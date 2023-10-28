@@ -1,5 +1,5 @@
-identifier: nucleo_f446re
-name: ST Nucleo F446RE
+identifier: power_module
+name: Power Module
 type: mcu
 arch: arm
 toolchain:
@@ -7,9 +7,6 @@ toolchain:
   - gnuarmemb
   - xtools
 supported:
-  - arduino_gpio
-  - arduino_i2c
-  - arduino_spi
   - counter
   - gpio
   - spi
