@@ -12,7 +12,7 @@
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
-	model = "STMicroelectronics STM32F446RE-NUCLEO board";
+	model = "Launch Initiative Sensor Module";
 	compatible = "st,stm32f446re-nucleo";
 
 	chosen {
@@ -20,7 +20,6 @@
 		zephyr,shell-uart = &usart2;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
-		zephyr,canbus = &can2;
 	};
 
 	leds: leds {
