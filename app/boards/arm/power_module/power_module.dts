@@ -7,43 +7,31 @@
 /dts-v1/;
 #include <st/f4/stm32f446Xe.dtsi>
 #include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
-#include "arduino_r3_connector.dtsi"
-#include "st_morpho_connector.dtsi"
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
-	model = "STMicroelectronics STM32F446RE-NUCLEO board";
+	model = "Launch Initiative Power Module";
 	compatible = "st,stm32f446re-nucleo";
 
 	chosen {
-		zephyr,console = &usart2;
-		zephyr,shell-uart = &usart2;
+		zephyr,console = &uart5;
+		zephyr,shell-uart = &uart5;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
-		zephyr,canbus = &can2;
 	};
 
-	leds: leds {
-		compatible = "gpio-leds";
-		green_led_2: led_2 {
-			gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
-			label = "User LD2";
-		};
-	};
-
-	gpio_keys {
-		compatible = "gpio-keys";
-		user_button: button {
-			label = "User";
-			gpios = <&gpioc 13 GPIO_ACTIVE_LOW>;
-			zephyr,code = <INPUT_KEY_0>;
-		};
-	};
-
-	aliases {
-		led0 = &green_led_2;
-		sw0 = &user_button;
-	};
+//	leds: leds {
+//		compatible = "gpio-leds";
+//		green_led_2: led_2 {
+//			gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
+//			label = "User LD2";
+//		};
+//	};
+//
+//
+//	aliases {
+//		led0 = &green_led_2;
+//	};
 };
 
 &clk_lsi {
@@ -73,44 +61,24 @@
 	apb2-prescaler = <1>;
 };
 
-&usart1 {
-	pinctrl-0 = <&usart1_tx_pb6 &usart1_rx_pb7>;
-	pinctrl-names = "default";
-	current-speed = <115200>;
-	status = "okay";
-};
-
-&usart2 {
-	pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
-	pinctrl-names = "default";
-	current-speed = <115200>;
-	status = "okay";
-};
 
 &i2c1 {
-	pinctrl-0 = <&i2c1_scl_pb8 &i2c1_sda_pb9>;
-	pinctrl-names = "default";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
-};
-
-&i2c2 {
-	pinctrl-0 = <&i2c2_scl_pb10 &i2c2_sda_pb3>;
-	pinctrl-names = "default";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
-};
-
-&i2c3 {
-	pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pb4>;
+	pinctrl-0 = <&i2c1_scl_pb7 &i2c1_sda_pb6>;
 	pinctrl-names = "default";
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 };
 
 &spi1 {
-	pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
+	pinctrl-0 = <&spi1_nss_pa8 &spi1_sck_pa5
 		     &spi1_miso_pa6 &spi1_mosi_pa7>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&spi2 {
+	pinctrl-0 = <&spi1_nss_pc11 &spi1_sck_pb10
+		     &spi1_miso_pc2 &spi1_mosi_pc1>;
 	pinctrl-names = "default";
 	status = "okay";
 };
@@ -125,20 +93,6 @@
 	status = "okay";
 };
 
-&can1 {
-	/* CAUTION: PB8 and PB9 may conflict with same pins of I2C1 */
-	pinctrl-0 = <&can1_rx_pb8 &can1_tx_pb9>;
-	pinctrl-names = "default";
-	bus-speed = <125000>;
-	status = "okay";
-};
-
-&can2 {
-	pinctrl-0 = <&can2_rx_pb12 &can2_tx_pb13>;
-	pinctrl-names = "default";
-	bus-speed = <125000>;
-	status = "okay";
-};
 
 &flash0 {
 

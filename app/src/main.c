@@ -112,38 +112,38 @@ static void ina219_processing() {
 //    }
 //}
 
-//int main(void) {
-//    const struct device *const ina = DEVICE_DT_GET_ONE(ti_ina219);
-//    struct sensor_value v_bus;
-//    struct sensor_value power;
-//    struct sensor_value current;
-//
-//    if (!device_is_ready(ina)) {
-//        printf("Device %s is not ready.\n", ina->name);
-//        return 0;
-//    }
-//
-//    while (true) {
-//        if (sensor_sample_fetch(ina)) {
-//            printf("Could not fetch sensor data.\n");
-//            return 0;
-//        }
-//
-//        sensor_channel_get(ina, SENSOR_CHAN_VOLTAGE, &v_bus);
-//        sensor_channel_get(ina, SENSOR_CHAN_POWER, &power);
-//        sensor_channel_get(ina, SENSOR_CHAN_CURRENT, &current);
-//
-//        printf("Bus: %f [V] -- "
-//               "Power: %f [W] -- "
-//               "Current: %f [A]\n",
-//               sensor_value_to_double(&v_bus),
-//               sensor_value_to_double(&power),
-//               sensor_value_to_double(&current));
-//        k_sleep(K_MSEC(2000));
-//    }
-//
-//    return 0;
-//}
+int main(void) {
+    const struct device *const ina = DEVICE_DT_GET_ONE(ti_ina219);
+    struct sensor_value v_bus;
+    struct sensor_value power;
+    struct sensor_value current;
+
+    if (!device_is_ready(ina)) {
+        printf("Device %s is not ready.\n", ina->name);
+        return 0;
+    }
+
+    while (true) {
+        if (sensor_sample_fetch(ina)) {
+            printf("Could not fetch sensor data.\n");
+            return 0;
+        }
+
+        sensor_channel_get(ina, SENSOR_CHAN_VOLTAGE, &v_bus);
+        sensor_channel_get(ina, SENSOR_CHAN_POWER, &power);
+        sensor_channel_get(ina, SENSOR_CHAN_CURRENT, &current);
+
+        printf("Bus: %f [V] -- "
+               "Power: %f [W] -- "
+               "Current: %f [A]\n",
+               sensor_value_to_double(&v_bus),
+               sensor_value_to_double(&power),
+               sensor_value_to_double(&current));
+        k_sleep(K_MSEC(2000));
+    }
+
+    return 0;
+}
 
 
 int main(void) {
