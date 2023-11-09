@@ -6,111 +6,12 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/sensor.h>
 #include <app_version.h>
-
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL
-);
+LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
-
-//static int print_samples;
-//static int lsm6dsl_trig_cnt;
-//
-//static void adxl375_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-//    static struct sensor_value accel_x;
-//    static struct sensor_value accel_y;
-//    static struct sensor_value accel_z;
-//
-//    while (true) {
-//
-//    }
-//}
-//
-//static void bmp388_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-//    static struct sensor_value pressure;
-//    static struct sensor_value temperature;
-//
-//    while (true) {
-//
-//    }
-//}
-//
-//static void lsm6dsl_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-//    static struct sensor_value accel_x;
-//    static struct sensor_value accel_y;
-//    static struct sensor_value accel_z;
-//    static struct sensor_value gyro_x;
-//    static struct sensor_value gyro_y;
-//    static struct sensor_value gyro_z;
-//
-//    while (true) {
-//
-//    }
-//}
-//
-//static void lis3mdl_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-//    static struct sensor_value mag_x;
-//    static struct sensor_value mag_y;
-//    static struct sensor_value mag_z;
-//
-//
-//    while (true) {
-//
-//    }
-//}
-//
-//static void ms5607_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-//    static struct sensor_value pressure;
-//    static struct sensor_value temperature;
-//
-//    while (true) {
-//
-//    }
-//}
-//
-//static void tmp117_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-//    static struct sensor_value temperature;
-//
-//    while (true) {
-//
-//    }
-//}
-//
-//static void ina219_processing() {
-//    while (true) {
-//
-//    }
-//}
-
-//int main(void) {
-//    const struct device *const rfm = DEVICE_DT_GET_ONE(rfm95w);
-//    struct lora_modem_config = {
-//            .frequency = 91500000,
-//            .bandwith = BW_125_KHZ,
-//            .datarate = SF_10,
-//            .preamble_len = 8,
-//            .coding_rate = CR_4_5,
-//            .iq_inverted = false,
-//            .public_network = false,
-//            .tx_power = 4,
-//            .tx = true
-//    };
-//
-//    int ret = lora_config(lora_modem_config);
-//    if (ret != 0) {
-//        printf("LORA Configuration failed!");
-//        return 0;
-//    }
-//
-//    while (1) {
-//        ret = lora_send(lora_dev, data, 256);
-//        if (ret != 0) {
-//            printf("LORA Send Failed!");
-//        }
-//
-//        k_sleep(1000);
-//    }
-//}
+// Check if board is power module
+#ifdef CONFIG_BOARD_POWER_MODULE
 
 int main(void) {
     const struct device *const ina = DEVICE_DT_GET_ONE(ti_ina219);
@@ -145,17 +46,20 @@ int main(void) {
     return 0;
 }
 
+#elif CONFIG_BOARD_RADIO_MODULE
+int main() {
 
-//int main(void) {
-//    printk("Zephyr Example Application %s\n", APP_VERSION_STRING);
-//
-//    const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c1));
-//
-//    if (!device_is_ready(i2c_dev)) {
-//        printk("Device %s is not ready.\n", i2c_dev->name);
-//        return 0;
-//    }
-//
-//    return 0;
-//}
+    return 0;
+}
 
+
+#elif CONFIG_BOARD_SENSOR_MODULE
+int main() {
+
+    return 0;
+}
+
+
+#else
+
+#endif
