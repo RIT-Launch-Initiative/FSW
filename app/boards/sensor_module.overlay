@@ -1,81 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 
-&gpioa {
-    status = "okay";
-};
-
-&gpiob {
-    status = "okay";
-};
-
-&gpioc {
-    status = "okay";
-};
-
 &i2c3 {
     status = "okay";
     sda-gpios = <&gpioc 9 GPIO_ACTIVE_LOW>;
     scl-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
 };
 
-&spi1 {
-    status = "okay";
-    cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
-    sck-gpios = <&gpioa 5 GPIO_ACTIVE_LOW>;
-    miso-gpios = <&gpioa 6 GPIO_ACTIVE_LOW>;
-    mosi-gpios = <&gpioa 7 GPIO_ACTIVE_LOW>;
-};
-
-&spi2 {
-    status = "okay";
-    cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
-    sck-gpios = <&gpiob 13 GPIO_ACTIVE_LOW>;
-    miso-gpios = <&gpioc 2 GPIO_ACTIVE_LOW>;
-    mosi-gpios = <&gpioc 1 GPIO_ACTIVE_LOW>;
-};
-
-
-&exti {
-    status = "okay";
-
-    interrupt-controller {
-        #interrupt-cells = <2>;
-    };
-
-    pc7 {
-        gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
-        interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
-    };
-
-    pc6 {
-        gpios = <&gpioc 6 GPIO_ACTIVE_LOW>;
-        interrupts = <6 IRQ_TYPE_EDGE_FALLING>;
-    };
-
-    pb15 {
-        gpios = <&gpiob 15 GPIO_ACTIVE_LOW>;
-        interrupts = <15 IRQ_TYPE_EDGE_FALLING>;
-    };
-
-    pb14 {
-        gpios = <&gpiob 14 GPIO_ACTIVE_LOW>;
-        interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
-    };
-
-    pb12 {
-        gpios = <&gpiob 12 GPIO_ACTIVE_LOW>;
-        interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
-    };
-};
-
-&led0 {
-    gpios = <&gpioc 5 GPIO_ACTIVE_LOW>; /* PC5 */
-};
-
-&led1 {
-    gpios = <&gpiob 0 GPIO_ACTIVE_LOW>; /* PB0 */
-};
-
-&led2 {
-    gpios = <&gpiob 1 GPIO_ACTIVE_LOW>; /* PB1 */
-};

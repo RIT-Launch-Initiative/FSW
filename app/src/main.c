@@ -13,74 +13,74 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL
 );
 
 
-static int print_samples;
-static int lsm6dsl_trig_cnt;
-
-static void adxl375_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-    static struct sensor_value accel_x;
-    static struct sensor_value accel_y;
-    static struct sensor_value accel_z;
-
-    while (true) {
-
-    }
-}
-
-static void bmp388_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-    static struct sensor_value pressure;
-    static struct sensor_value temperature;
-
-    while (true) {
-
-    }
-}
-
-static void lsm6dsl_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-    static struct sensor_value accel_x;
-    static struct sensor_value accel_y;
-    static struct sensor_value accel_z;
-    static struct sensor_value gyro_x;
-    static struct sensor_value gyro_y;
-    static struct sensor_value gyro_z;
-
-    while (true) {
-
-    }
-}
-
-static void lis3mdl_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-    static struct sensor_value mag_x;
-    static struct sensor_value mag_y;
-    static struct sensor_value mag_z;
-
-
-    while (true) {
-
-    }
-}
-
-static void ms5607_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-    static struct sensor_value pressure;
-    static struct sensor_value temperature;
-
-    while (true) {
-
-    }
-}
-
-static void tmp117_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
-    static struct sensor_value temperature;
-
-    while (true) {
-
-    }
-}
-
-static void ina219_processing() {
-    while (true) {
-
-    }
-}
+//static int print_samples;
+//static int lsm6dsl_trig_cnt;
+//
+//static void adxl375_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
+//    static struct sensor_value accel_x;
+//    static struct sensor_value accel_y;
+//    static struct sensor_value accel_z;
+//
+//    while (true) {
+//
+//    }
+//}
+//
+//static void bmp388_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
+//    static struct sensor_value pressure;
+//    static struct sensor_value temperature;
+//
+//    while (true) {
+//
+//    }
+//}
+//
+//static void lsm6dsl_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
+//    static struct sensor_value accel_x;
+//    static struct sensor_value accel_y;
+//    static struct sensor_value accel_z;
+//    static struct sensor_value gyro_x;
+//    static struct sensor_value gyro_y;
+//    static struct sensor_value gyro_z;
+//
+//    while (true) {
+//
+//    }
+//}
+//
+//static void lis3mdl_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
+//    static struct sensor_value mag_x;
+//    static struct sensor_value mag_y;
+//    static struct sensor_value mag_z;
+//
+//
+//    while (true) {
+//
+//    }
+//}
+//
+//static void ms5607_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
+//    static struct sensor_value pressure;
+//    static struct sensor_value temperature;
+//
+//    while (true) {
+//
+//    }
+//}
+//
+//static void tmp117_processing_callback(int result, uint8_t *buf, uint32_t buf_len, void *userdata) {
+//    static struct sensor_value temperature;
+//
+//    while (true) {
+//
+//    }
+//}
+//
+//static void ina219_processing() {
+//    while (true) {
+//
+//    }
+//}
 
 //int main(void) {
 //    const struct device *const rfm = DEVICE_DT_GET_ONE(rfm95w);
@@ -149,8 +149,23 @@ static void ina219_processing() {
 int main(void) {
     printk("Zephyr Example Application %s\n", APP_VERSION_STRING);
 
-    while (1) {
-        printk("Launch!\n");
+    const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c3));
+
+    if (!device_is_ready(i2c_dev)) {
+//        printk("Device %s is not ready.\n", i2c_dev->name);
+        return 0;
+    }
+
+//    printk("Device %s is ready.\n", i2c_dev->name);
+//
+    for (int i = 0; i < 128; i++) {
+        uint8_t buf[1];
+        buf[0] = i;
+//        int ret = i2c_write(i2c_dev, buf, 1, 0x00);
+        int ret;
+        if (ret == 0) {
+//            printk("Found device at address 0x%02x\n", i);
+        }
     }
 
     return 0;

@@ -1,4 +1,4 @@
-identifier: nucleo_f446re
+identifier: power_module
 name: ST Nucleo F446RE
 type: mcu
 arch: arm

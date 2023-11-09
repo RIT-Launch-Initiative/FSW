@@ -1,5 +1,5 @@
 identifier: power_module
-name: ST Nucleo F446RE
+name: Power Module
 type: mcu
 arch: arm
 toolchain:
