@@ -1,3 +1,0 @@
-config RADIO_MODULE
-	bool "Launch Initiative Radio Module"
-	depends on SOC_STM32F446XX

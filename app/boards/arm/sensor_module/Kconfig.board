@@ -1,8 +1,0 @@
-# STM32F446RE Nucleo board configuration
-
-# Copyright (c) 2018 Philémon Jaermann
-# SPDX-License-Identifier: Apache-2.0
-
-config SENSOR_MODULE
-	bool "Sensor Module"
-	depends on SOC_STM32F446XX
