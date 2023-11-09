@@ -149,23 +149,11 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL
 int main(void) {
     printk("Zephyr Example Application %s\n", APP_VERSION_STRING);
 
-    const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c3));
+    const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c1));
 
     if (!device_is_ready(i2c_dev)) {
-//        printk("Device %s is not ready.\n", i2c_dev->name);
+        printk("Device %s is not ready.\n", i2c_dev->name);
         return 0;
-    }
-
-//    printk("Device %s is ready.\n", i2c_dev->name);
-//
-    for (int i = 0; i < 128; i++) {
-        uint8_t buf[1];
-        buf[0] = i;
-//        int ret = i2c_write(i2c_dev, buf, 1, 0x00);
-        int ret;
-        if (ret == 0) {
-//            printk("Found device at address 0x%02x\n", i);
-        }
     }
 
     return 0;
