@@ -112,50 +112,50 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL
 //    }
 //}
 
-//int main(void) {
-//    const struct device *const ina = DEVICE_DT_GET_ONE(ti_ina219);
-//    struct sensor_value v_bus;
-//    struct sensor_value power;
-//    struct sensor_value current;
-//
-//    if (!device_is_ready(ina)) {
-//        printf("Device %s is not ready.\n", ina->name);
-//        return 0;
-//    }
-//
-//    while (true) {
-//        if (sensor_sample_fetch(ina)) {
-//            printf("Could not fetch sensor data.\n");
-//            return 0;
-//        }
-//
-//        sensor_channel_get(ina, SENSOR_CHAN_VOLTAGE, &v_bus);
-//        sensor_channel_get(ina, SENSOR_CHAN_POWER, &power);
-//        sensor_channel_get(ina, SENSOR_CHAN_CURRENT, &current);
-//
-//        printf("Bus: %f [V] -- "
-//               "Power: %f [W] -- "
-//               "Current: %f [A]\n",
-//               sensor_value_to_double(&v_bus),
-//               sensor_value_to_double(&power),
-//               sensor_value_to_double(&current));
-//        k_sleep(K_MSEC(2000));
-//    }
-//
-//    return 0;
-//}
-
-
 int main(void) {
-    printk("Zephyr Example Application %s\n", APP_VERSION_STRING);
+    const struct device *const ina = DEVICE_DT_GET_ONE(ti_ina219);
+    struct sensor_value v_bus;
+    struct sensor_value power;
+    struct sensor_value current;
 
-    const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c1));
-
-    if (!device_is_ready(i2c_dev)) {
-        printk("Device %s is not ready.\n", i2c_dev->name);
+    if (!device_is_ready(ina)) {
+        printf("Device %s is not ready.\n", ina->name);
         return 0;
+    }
+
+    while (true) {
+        if (sensor_sample_fetch(ina)) {
+            printf("Could not fetch sensor data.\n");
+            return 0;
+        }
+
+        sensor_channel_get(ina, SENSOR_CHAN_VOLTAGE, &v_bus);
+        sensor_channel_get(ina, SENSOR_CHAN_POWER, &power);
+        sensor_channel_get(ina, SENSOR_CHAN_CURRENT, &current);
+
+        printf("Bus: %f [V] -- "
+               "Power: %f [W] -- "
+               "Current: %f [A]\n",
+               sensor_value_to_double(&v_bus),
+               sensor_value_to_double(&power),
+               sensor_value_to_double(&current));
+        k_sleep(K_MSEC(2000));
     }
 
     return 0;
 }
+
+
+//int main(void) {
+//    printk("Zephyr Example Application %s\n", APP_VERSION_STRING);
+//
+//    const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c1));
+//
+//    if (!device_is_ready(i2c_dev)) {
+//        printk("Device %s is not ready.\n", i2c_dev->name);
+//        return 0;
+//    }
+//
+//    return 0;
+//}
 
