@@ -8,7 +8,7 @@
 #include <st/f4/stm32f446Xe.dtsi>
 #include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
-#include "sensor_module-pinctrl.dtsi"
+//#include "sensor_module-pinctrl.dtsi"
 
 / {
 	model = "Sensor Module";
@@ -39,15 +39,6 @@
 		};
 	};
 
-	gpio_keys {
-		compatible = "gpio-keys";
-		user_button: button {
-			label = "User";
-			gpios = <&gpioc 13 GPIO_ACTIVE_LOW>;
-			zephyr,code = <INPUT_KEY_0>;
-		};
-	};
-
 	aliases {
 		led0 = &red_led_1;
 		led1 = &red_led_2;
@@ -58,24 +49,23 @@
 	status = "okay";
 };
 
-&clk_hse {
-	hse-bypass;
-	clock-frequency = <DT_FREQ_M(8)>; /* STLink 8MHz clock */
+&clk_hsi {
+	clock-frequency = <DT_FREQ_M(16)>;
 	status = "okay";
 };
 
-&pll {
-	div-m = <8>;
-	mul-n = <384>;
-	div-p = <4>;
-	div-q = <8>;
-	clocks = <&clk_hse>;
-	status = "okay";
-};
+//&pll {
+//	div-m = <8>;
+//	mul-n = <384>;
+//	div-p = <2>;
+//	div-q = <2>;
+//	clocks = <&clk_hsi>;
+//	status = "okay";
+//};
 
 &rcc {
-	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(96)>;
+	clocks = <&clk_hsi>;
+	clock-frequency = <DT_FREQ_M(16)>;
 	ahb-prescaler = <1>;
 	apb1-prescaler = <2>;
 	apb2-prescaler = <1>;
@@ -87,88 +77,88 @@
 	current-speed = <115200>;
 	status = "okay";
 };
-
-&spi1 {
-	pinctrl-0 = <&eth_cs_pc4 &spi1_sck_pa5
-		     &spi1_miso_pa6 &spi1_mosi_pa7>;
-	pinctrl-names = "default";
-	status = "okay";
-
-    w5500: w5500@0 {
-        compatible = "wiznet,w5500";
-        reg = <0x0>;
-        spi-max-frequency = <10000000>;
-        int-gpios = <&gpioa 2 GPIO_ACTIVE_LOW>;
-        reset-gpios = <&gpioa 30 GPIO_ACTIVE_LOW>;
-    };
-};
-
-&spi2 {
-    pinctrl-0 = <&flash_cs_pc0 &spi2_sck_pb13
-		     &spi2_miso_pc2 &spi2_mosi_pc1>;
-	pinctrl-names = "default";
-	status = "okay";
-
-
-    // TODO CHECK JEDEC
-    w25q128jv: w25q16jv@0 {
-		compatible = "jedec,spi-nor";
-		reg = <0>;
-		spi-max-frequency = <40000000>;
-		size = <0x1000000>;
-		has-dpd;
-		t-enter-dpd = <4000>;
-		t-exit-dpd = <25000>;
-		jedec-id = [ef 40 15];
-	};
-
-};
-
-
-&i2c3 {
-	pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pc9>;
-	pinctrl-names = "default";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
-
-    bmp388: bmp388@76 {
-        compatible = "bosch,bmp388";
-        reg = <0x76>;
-        status = "disabled"; // addr conflict on V1
-    };
-
-    lsm6dsl: lsm6dsl@6B {
-        compatible = "st,lsm6dsl";
-        reg = <0x6B>;
-        status = "okay";
-    };
-
-    lis3mdl: lis3mdl@1C {
-        compatible = "st,lis3mdl";
-        reg = <0x1C>;
-        status = "okay";
-    };
-
-    ms5607: ms5607@76 {
-        compatible = "meas,ms5607";
-        reg = <0x76>;
-        status = "okay";
-    };
-
-
-    tmp117: tmp117@48 {
-		compatible = "ti,tmp116"; // TMP117 Compatible
-		reg = <0x48>;
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		eeprom: ti_tmp116_eeprom@0 {
-			compatible = "ti,tmp116-eeprom";
-			reg = <0x0>;
-			read-only;
-		};
-	};
-};
+//
+//&spi1 {
+//	pinctrl-0 = <&eth_cs_pc4 &spi1_sck_pa5
+//		     &spi1_miso_pa6 &spi1_mosi_pa7>;
+//	pinctrl-names = "default";
+//	status = "okay";
+//
+//    w5500: w5500@0 {
+//        compatible = "wiznet,w5500";
+//        reg = <0x0>;
+//        spi-max-frequency = <10000000>;
+//        int-gpios = <&gpioa 2 GPIO_ACTIVE_LOW>;
+//        reset-gpios = <&gpioa 30 GPIO_ACTIVE_LOW>;
+//    };
+//};
+//
+//&spi2 {
+//    pinctrl-0 = <&flash_cs_pc0 &spi2_sck_pb13
+//		     &spi2_miso_pc2 &spi2_mosi_pc1>;
+//	pinctrl-names = "default";
+//	status = "okay";
+//
+//
+//    // TODO CHECK JEDEC
+//    w25q128jv: w25q16jv@0 {
+//		compatible = "jedec,spi-nor";
+//		reg = <0>;
+//		spi-max-frequency = <40000000>;
+//		size = <0x1000000>;
+//		has-dpd;
+//		t-enter-dpd = <4000>;
+//		t-exit-dpd = <25000>;
+//		jedec-id = [ef 40 15];
+//	};
+//
+//};
+//
+//
+//&i2c3 {
+//	pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pc9>;
+//	pinctrl-names = "default";
+//	status = "okay";
+//	clock-frequency = <I2C_BITRATE_FAST>;
+//
+//    bmp388: bmp388@76 {
+//        compatible = "bosch,bmp388";
+//        reg = <0x76>;
+//        status = "disabled"; // addr conflict on V1
+//    };
+//
+//    lsm6dsl: lsm6dsl@6B {
+//        compatible = "st,lsm6dsl";
+//        reg = <0x6B>;
+//        status = "okay";
+//    };
+//
+//    lis3mdl: lis3mdl@1C {
+//        compatible = "st,lis3mdl";
+//        reg = <0x1C>;
+//        status = "okay";
+//    };
+//
+//    ms5607: ms5607@76 {
+//        compatible = "meas,ms5607";
+//        reg = <0x76>;
+//        status = "okay";
+//    };
+//
+//
+//    tmp117: tmp117@48 {
+//		compatible = "ti,tmp116"; // TMP117 Compatible
+//		reg = <0x48>;
+//		#address-cells = <1>;
+//		#size-cells = <0>;
+//
+//		eeprom: ti_tmp116_eeprom@0 {
+//			compatible = "ti,tmp116-eeprom";
+//			reg = <0x0>;
+//			read-only;
+//		};
+//	};
+//};
 
 &rtc {
 	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
