@@ -35,6 +35,7 @@ static void network_init() {
 struct sensor_value accel[3];
 
 uint8_t lsm_initialized = 0;
+
 static void lsm6dsl_task(void *unused0, void *unused1, void *unused2) {
     const struct device *const lsm6dsl_dev = DEVICE_DT_GET_ONE(st_lsm6dsl);
 
@@ -63,19 +64,43 @@ static void lsm6dsl_task(void *unused0, void *unused1, void *unused2) {
 }
 
 uint8_t lis_initialized = 0;
+
 static void lis3mdl_task() {
-    const struct device *const lis3mdl_dev = DEVICE_DT_GET_ONE(st_lis3mdl);
+    const struct device *const lis3mdl_dev = DEVICE_DT_GET_ONE(st_lis3mdl_magn);
+    struct sensor_value magn[3];
+
     if (!device_is_ready(lis3mdl_dev)) {
         LOG_ERR("LIS3MDL device not ready");
         return;
     }
 
     lis_initialized = 1;
+
+    while (1) {
+        if (sensor_sample_fetch(lis3mdl_dev)) {
+            printk("LIS3MDL sample update error");
+        }
+
+        if (sensor_channel_get(lis3mdl_dev, SENSOR_CHAN_MAGN_XYZ, magn)) {
+            printk("Cannot read LIS3MDL magn channels");
+        }
+
+        printk("LIS3MDL: X: %f, Y: %f, Z: %f",
+               sensor_value_to_double(&magn[0]),
+               sensor_value_to_double(&magn[1]),
+               sensor_value_to_double(&magn[2]));
+
+        k_msleep(100);
+    }
 }
 
 uint8_t ms_initialized = 0;
+
 static void ms5607_task() {
     const struct device *const ms5607_dev = DEVICE_DT_GET_ONE(meas_ms5607);
+    struct sensor_value press[1];
+    struct sensor_value temp[1];
+
     if (!device_is_ready(ms5607_dev)) {
         LOG_ERR("MS5607 device not ready");
         return;
@@ -83,17 +108,52 @@ static void ms5607_task() {
 
     ms_initialized = 1;
 
+    while (1) {
+        if (sensor_sample_fetch(ms5607_dev)) {
+            printk("MS5607 sample update error");
+        }
+
+        if (sensor_channel_get(ms5607_dev, SENSOR_CHAN_PRESS, press)) {
+            printk("Cannot read MS5607 pressure");
+        }
+
+        if (sensor_channel_get(ms5607_dev, SENSOR_CHAN_AMBIENT_TEMP, temp)) {
+            printk("Cannot read MS5607 temperature");
+        }
+
+        printk("MS5607: Pressure: %f, Temperature: %f",
+               sensor_value_to_double(press),
+               sensor_value_to_double(temp));
+
+        k_msleep(100);
+    }
+
 }
 
 uint8_t tmp_initialized = 0;
+
 static void tmp117_task() {
     const struct device *const tmp117_dev = DEVICE_DT_GET_ONE(ti_tmp116);
+    struct sensor_value temp[1];
     if (!device_is_ready(tmp117_dev)) {
         LOG_ERR("TMP117 device not ready");
         return;
     }
 
     tmp_initialized = 1;
+
+    while (1) {
+        if (sensor_sample_fetch(tmp117_dev)) {
+            printk("TMP117 sample update error");
+        }
+
+        if (sensor_channel_get(tmp117_dev, SENSOR_CHAN_AMBIENT_TEMP, temp)) {
+            printk("Cannot read TMP117 temperature");
+        }
+
+        printk("TMP117: Temperature: %f", sensor_value_to_double(temp));
+        k_msleep(100);
+    }
 
 }
 
@@ -137,18 +197,37 @@ static void init(void) {
 
     // Threads
     struct k_thread led_toggle_thread;
-    struct k_thread lsm6dsl_thread;
-
     k_thread_create(&led_toggle_thread, stacks[0], STACK_SIZE,
                     led_toggle, NULL, NULL, NULL,
                     0, 0, K_NO_WAIT);
+    k_thread_start(&led_toggle_thread);
 
+
+    struct k_thread lsm6dsl_thread;
     k_thread_create(&lsm6dsl_thread, stacks[1], STACK_SIZE,
                     lsm6dsl_task, NULL, NULL, NULL,
                     0, 0, K_NO_WAIT);
-
-    k_thread_start(&led_toggle_thread);
     k_thread_start(&lsm6dsl_thread);
+
+    struct k_thread ms5607_thread;
+    k_thread_create(&ms5607_thread, stacks[1], STACK_SIZE,
+                    ms5607_task, NULL, NULL, NULL,
+                    0, 0, K_NO_WAIT);
+    k_thread_start(&ms5607_thread);
+
+    struct k_thread tmp117_thread;
+    k_thread_create(&tmp117_thread, stacks[1], STACK_SIZE,
+                    tmp117_task, NULL, NULL, NULL,
+                    0, 0, K_NO_WAIT);
+    k_thread_start(&tmp117_thread);
+
+    struct k_thread lis3mdl_thread;
+    k_thread_create(&lis3mdl_thread, stacks[1], STACK_SIZE,
+                    lis3mdl_task, NULL, NULL, NULL,
+                    0, 0, K_NO_WAIT);
+    k_thread_start(&lis3mdl_thread);
+
+
 
 }
 
