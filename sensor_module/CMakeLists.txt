@@ -1,4 +1,4 @@
-set(BOARD nucleo_f446re)
+set(BOARD radio_module)
 set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 cmake_minimum_required(VERSION 3.13.1)
