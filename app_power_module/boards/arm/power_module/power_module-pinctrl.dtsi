@@ -1,0 +1,13 @@
+/ {
+	soc {
+		pinctrl: pin-controller@40020000 {
+            eth_cs_pc4: eth_cs_pa8 {
+                pinmux = <STM32_PINMUX('A', 8, AF1)>;
+            };
+
+            flash_cs_pc0: flash_cs_pc0 {
+                pinmux = <STM32_PINMUX('C', 11, AF1)>;
+            };
+        };
+    };
+};
