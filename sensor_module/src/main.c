@@ -11,6 +11,7 @@
 
 #define SLEEP_TIME_MS   1000
 
+
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(net_tx_queue);
 
