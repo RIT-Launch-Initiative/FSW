@@ -8,6 +8,7 @@
 #include <st/f4/stm32f446Xe.dtsi>
 #include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
+#include "radio_module-pinctrl.dtsi"
 
 / {
 	model = "Radio Module";
@@ -79,18 +80,6 @@
 	pinctrl-names = "default";
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
-
-    ina219@44 {
-		status = "okay";
-		compatible = "ti,ina219";
-		reg = <0x44>;
-		brng = <0>;
-		pg = <0>;
-		sadc = <13>;
-		badc = <13>;
-		shunt-milliohm = <100>;
-		lsb-microamp = <10>;
-	};
 };
 
 &spi1 {
@@ -110,15 +99,21 @@
 };
 
 &spi2 {
-	lora: sx1276@0 {
+    pinctrl-0 = <&spi2_nss_pa8 &spi2_sck_pb13
+		     &spi2_miso_pb14 &spi2_mosi_pb15>;
+	pinctrl-names = "default";
+	status = "okay";
+
+    lora: sx1276@0 {
 		compatible = "semtech,sx1276";
-		reg = <0>;
 		label = "sx1276";
-		reset-gpios = <&gpiob 7 GPIO_ACTIVE_LOW>;
-		dio-gpios = <&gpioa 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-			    <&gpioa 3 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+		reg = <0>;
+		reset-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
+		dio-gpios = <&gpioc 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+					<&gpiod 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+					<&gpiob 5 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 		power-amplifier-output = "pa-boost";
-		spi-max-frequency = <1000000>;
+		spi-max-frequency = <125000>;
 	};
 };
 
@@ -133,7 +128,6 @@
 };
 
 &flash0 {
-
 	partitions {
 		compatible = "fixed-partitions";
 		#address-cells = <1>;
