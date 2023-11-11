@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/sensor.h>
 #include <app_version.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/fs/fs.h>
+#include <zephyr/fs/littlefs.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/net/socket.h>
+#include <zephyr/storage/flash_map.h>
 
 #define SLEEP_TIME_MS   1000
 
@@ -32,8 +35,6 @@ static void init(void) {
 
 int main() {
     init();
-
-
 
 
     return 0;
