@@ -30,7 +30,7 @@
 	};
 
 	aliases {
-		led0 = &green_led_2;
+        lora0 = &lora;
 	};
 };
 

@@ -9,12 +9,8 @@
 #include <zephyr/logging/log.h>
 
 #define SLEEP_TIME_MS   1000
-#define LED0_NODE DT_ALIAS(led0)
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL
-);
-
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
 // Check if board is power module
 //#ifdef CONFIG_BOARD_POWER_MODULE
@@ -53,30 +49,8 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 //}
 //
 //#elif CONFIG_BOARD_RADIO_MODULE
+
 int main() {
-    int ret;
-
-    if (!gpio_is_ready_dt(&led)) {
-        return 0;
-    }
-
-    ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-    if (ret < 0) {
-        return 0;
-    }
-
-    while (1) {
-        printk("Hello World!\n");
-        ret = gpio_pin_toggle_dt(&led);
-        if (ret < 0) {
-            return 0;
-        }
-        k_msleep(SLEEP_TIME_MS);
-    }
-
-    while (1) {
-    }
-
     return 0;
 }
 
