@@ -1,0 +1,9 @@
+/ {
+	soc {
+		pinctrl: pin-controller@40020000 {
+            spi2_nss_pa8: spi2_nss_pa8 {
+                pinmux = <STM32_PINMUX('A', 8, AF1)>;
+            };
+        };
+    };
+};

@@ -1,0 +1,3 @@
+config BOARD_POWER_MODULE
+	bool "Power Module"
+	depends on SOC_STM32F446XX

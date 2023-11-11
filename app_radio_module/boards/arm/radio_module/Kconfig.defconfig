@@ -1,0 +1,11 @@
+if BOARD_RADIO_MODULE
+
+config BOARD
+	default "radio_module"
+
+config SPI_STM32_INTERRUPT
+	default y
+	depends on SPI
+
+endif # BOARD_RADIO_MODULE
+
