@@ -30,9 +30,38 @@ static K_THREAD_STACK_ARRAY_DEFINE(stacks, 2, STACK_SIZE);
 
 static struct net_if *net_interface;
 
+typedef struct ina_data {
+    struct sensor_value current;
+    struct sensor_value voltage;
+    struct sensor_value power;
+} ina_data_t;
+
+typedef struct {
+    ina_data_t ina_battery;
+    ina_data_t ina_3v3;
+    ina_data_t ina_5v0;
+} power_module_data_t;
+
+static void ina_task(void *device, void *data, void *unused2) {
+    const struct device *const dev = (const struct device *) device;
+    ina_data_t *ina_data = (ina_data_t *) data;
+    
+    if (!device_is_ready(dev)) {
+        printk("Device %s is not ready.\n", dev->name);
+        return;
+    }
+
+    while (true) {
+        sensor_sample_fetch(dev);
+        sensor_channel_get(dev, SENSOR_CHAN_VOLTAGE, &ina_data->voltage);
+        sensor_channel_get(dev, SENSOR_CHAN_POWER, &ina_data->power);
+        sensor_channel_get(dev, SENSOR_CHAN_CURRENT, &ina_data->current);
+        k_sleep(K_MSEC(100));
+    }
+}
 
 static int init_net_stack(void) {
-    static const char ip_addr[] = "10.10.10.70";
+    static const char ip_addr[] = "10.10.10.69";
     int ret;
 
     net_interface = net_if_get_default();
@@ -92,6 +121,13 @@ int send_udp_broadcast(const char *data, size_t data_len) {
     return 0;
 }
 
+static void tx_data(void *power_module_data, void *unused1, void *unused2) {
+    while (true) {
+        send_udp_broadcast((const char *) power_module_data, sizeof(power_module_data));
+        k_sleep(K_MSEC(100));
+    }
+}
+
 static int init(void) {
     // Queues
 //    k_queue_init(&net_tx_queue);
@@ -116,47 +152,15 @@ static int init(void) {
 
 
 int main(void) {
-//    const struct device *const ina = DEVICE_DT_GET_ONE(ti_ina219);
-//    struct sensor_value v_bus;
-//    struct sensor_value power;
-//    struct sensor_value current;
-
-    if (!init()) {
-        while (1) {
-            send_udp_broadcast("Launch!", 7);
-        }
-
-//        if (!device_is_ready(ina)) {
-//            printf("Device %s is not ready.\n", ina->name);
-//            return 0;
-//        }
-    } else {
+    if (init()) {
         while (1) {
             printf("DEADBEEF");
         }
     }
 
-
-//    while (true) {
-//        if (sensor_sample_fetch(ina)) {
-//            printf("Could not fetch sensor data.\n");
-//            return 0;
-//        }
-//
-//        sensor_channel_get(ina, SENSOR_CHAN_VOLTAGE, &v_bus);
-//        sensor_channel_get(ina, SENSOR_CHAN_POWER, &power);
-//        sensor_channel_get(ina, SENSOR_CHAN_CURRENT, &current);
-//
-//        printf("Bus: %f [V] -- "
-//               "Power: %f [W] -- "
-//               "Current: %f [A]\n",
-//               sensor_value_to_double(&v_bus),
-//               sensor_value_to_double(&power),
-//               sensor_value_to_double(&current));
-//
-//        k_sleep(K_MSEC(2000));
-//    }
-
+    while (1) {
+        send_udp_broadcast("Launch!", 7);
+    }
     return 0;
 }
 
