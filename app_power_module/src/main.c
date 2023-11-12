@@ -21,7 +21,7 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(net_tx_queue);
 
-#define STACK_SIZE (256)
+#define STACK_SIZE (2048)
 static K_THREAD_STACK_ARRAY_DEFINE(ina_stacks, 3, STACK_SIZE);
 
 static struct net_if *net_interface;
@@ -115,43 +115,15 @@ static void ina_task(void *p_id, void *unused1, void *unused2) {
     }
 }
 
-static int init_ina219_devices() {
-    const struct device *const ina_battery =  DEVICE_DT_GET(DT_INST(0, ti_ina219));
-    const struct device *const ina_3v3 =  DEVICE_DT_GET(DT_INST(1, ti_ina219));
-    const struct device *const ina_5v0 = DEVICE_DT_GET(DT_INST(2, ti_ina219));
+static void init_ina219_devices() {
+    for (int i = 0; i < 1; i++) {
+        struct k_thread ina_thread;
+        k_thread_create(&ina_thread, ina_stacks[i], STACK_SIZE,
+                        ina_task, (void *) i, NULL, NULL,
+                        K_PRIO_COOP(10), 0, K_NO_WAIT);
 
-    int ret = 0;
-    if (device_is_ready(ina_battery)) {
-        struct k_thread ina_battery_thread;
-//        k_thread_create(&ina_battery_thread, ina_stacks[0], STACK_SIZE,
-//                        ina_task, (void *) 0, NULL, NULL, 0, 0, K_NO_WAIT);
-//        k_thread_start(&ina_battery_thread);
-    } else {
-        printk("Device %s is not ready.\n", ina_battery->name);
-        ret |= 0b1;
+        k_thread_start(&ina_thread);
     }
-
-    if (device_is_ready(ina_3v3)) {
-        struct k_thread ina_3v3_thread;
-//        k_thread_create(&ina_3v3_thread, ina_stacks[1], 256,
-//                        ina_task, 1, NULL, NULL, 0, 0, K_NO_WAIT);
-//        k_thread_start(&ina_3v3_thread);
-    } else {
-        printk("Device %s is not ready.\n", ina_3v3->name);
-        ret |= 0b10;
-    }
-
-    if (device_is_ready(ina_5v0)) {
-        struct k_thread ina_5v0_thread;
-//        k_thread_create(&ina_5v0_thread, ina_stacks[2], 256,
-//                        ina_task, 2, NULL, NULL, 0, 0, K_NO_WAIT);
-//        k_thread_start(&ina_5v0_thread);
-    } else {
-        printk("Device %s is not ready.\n", ina_5v0->name);
-        ret |= 0b100;
-    }
-
-    return ret;
 }
 
 static int init_net_stack(void) {
@@ -187,7 +159,6 @@ static int init(void) {
     // Queues
 //    k_queue_init(&net_tx_queue);
 
-
     const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
     if (!device_is_ready(wiznet)) {
         printk("Device %s is not ready.\n", wiznet->name);
@@ -196,7 +167,6 @@ static int init(void) {
         printk("Device %s is ready.\n", wiznet->name);
         init_net_stack();
     }
-
 
     return 0;
 }
@@ -210,7 +180,6 @@ int main(void) {
     }
 
     init_ina219_devices();
-
 
     while (true) {
         send_udp_broadcast((const char *) &power_module_data, sizeof(power_module_data));
