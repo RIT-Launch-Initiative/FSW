@@ -26,7 +26,7 @@ static K_THREAD_STACK_ARRAY_DEFINE(ina_stacks, 3, STACK_SIZE);
 
 static struct net_if *net_interface;
 
-typedef struct ina_data {
+typedef struct {
     struct sensor_value current;
     struct sensor_value voltage;
     struct sensor_value power;
@@ -39,6 +39,7 @@ typedef struct {
 } power_module_data_t;
 
 static power_module_data_t power_module_data = {0};
+static struct k_thread ina_threads[3] = {0};
 
 int send_udp_broadcast(const char *data, size_t data_len) {
     int sock;
@@ -116,13 +117,12 @@ static void ina_task(void *p_id, void *unused1, void *unused2) {
 }
 
 static void init_ina219_devices() {
-    for (int i = 0; i < 1; i++) {
-        struct k_thread ina_thread;
-        k_thread_create(&ina_thread, ina_stacks[i], STACK_SIZE,
-                        ina_task, (void *) i, NULL, NULL,
+    for (int i = 0; i < 3; i++) {
+        k_thread_create(&ina_threads[i], &ina_stacks[i][0], STACK_SIZE,
+                        ina_task, INT_TO_POINTER(i), NULL, NULL,
                         K_PRIO_COOP(10), 0, K_NO_WAIT);
 
-        k_thread_start(&ina_thread);
+        k_thread_start(&ina_threads[0]);
     }
 }
 
@@ -181,8 +181,22 @@ int main(void) {
 
     init_ina219_devices();
 
+    int32_t buff[9] = {0};
+
     while (true) {
-        send_udp_broadcast((const char *) &power_module_data, sizeof(power_module_data));
+        buff[0] = power_module_data.ina_battery.current.val1;
+        buff[1] = power_module_data.ina_battery.voltage.val1;
+        buff[2] = power_module_data.ina_battery.power.val1;
+
+        buff[3] = power_module_data.ina_3v3.current.val1;
+        buff[4] = power_module_data.ina_3v3.voltage.val1;
+        buff[5] = power_module_data.ina_3v3.power.val1;
+
+        buff[6] = power_module_data.ina_5v0.current.val1;
+        buff[7] = power_module_data.ina_5v0.voltage.val1;
+        buff[8] = power_module_data.ina_5v0.power.val1;
+
+        send_udp_broadcast((const char *) buff, sizeof(buff));
         k_sleep(K_MSEC(100));
     }
     return 0;
