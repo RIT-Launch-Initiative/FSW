@@ -41,7 +41,7 @@ typedef struct {
 static power_module_data_t power_module_data = {0};
 static struct k_thread ina_threads[3] = {0};
 
-int send_udp_broadcast(const char *data, size_t data_len) {
+int send_udp_broadcast(const uint8_t *data, size_t data_len) {
     int sock;
     int ret;
 
@@ -74,15 +74,6 @@ int send_udp_broadcast(const char *data, size_t data_len) {
     return 0;
 }
 
-static void tx_data(void *unused0, void *unused1, void *unused2) {
-    while (true) {
-        send_udp_broadcast("Launch!", 7);
-//        send_udp_broadcast((const char *) &power_module_data, sizeof(power_module_data));
-        k_sleep(K_MSEC(100));
-    }
-}
-
-
 static void ina_task(void *p_id, void *unused1, void *unused2) {
     const struct device *dev;
     ina_data_t *ina_data;
@@ -94,11 +85,11 @@ static void ina_task(void *p_id, void *unused1, void *unused2) {
             ina_data = &power_module_data.ina_battery;
             break;
         case 1:
-            dev = DEVICE_DT_GET(DT_INST(1, ti_ina219));
+            dev = DEVICE_DT_GET(DT_INST(2, ti_ina219));
             ina_data = &power_module_data.ina_3v3;
             break;
         case 2:
-            dev = DEVICE_DT_GET(DT_INST(2, ti_ina219));
+            dev = DEVICE_DT_GET(DT_INST(1, ti_ina219));
             ina_data = &power_module_data.ina_5v0;
             break;
         default:
@@ -181,22 +172,22 @@ int main(void) {
 
     init_ina219_devices();
 
-    int32_t buff[9] = {0};
+    float buff[9] = {0};
 
     while (true) {
-        buff[0] = power_module_data.ina_battery.current.val1;
-        buff[1] = power_module_data.ina_battery.voltage.val1;
-        buff[2] = power_module_data.ina_battery.power.val1;
+        buff[0] = sensor_value_to_float(&power_module_data.ina_battery.current);
+        buff[1] = sensor_value_to_float(&power_module_data.ina_battery.voltage);
+        buff[2] = sensor_value_to_float(&power_module_data.ina_battery.power);
 
-        buff[3] = power_module_data.ina_3v3.current.val1;
-        buff[4] = power_module_data.ina_3v3.voltage.val1;
-        buff[5] = power_module_data.ina_3v3.power.val1;
+        buff[3] = sensor_value_to_float(&power_module_data.ina_3v3.current);
+        buff[4] = sensor_value_to_float(&power_module_data.ina_3v3.voltage);
+        buff[5] = sensor_value_to_float(&power_module_data.ina_3v3.power);
 
-        buff[6] = power_module_data.ina_5v0.current.val1;
-        buff[7] = power_module_data.ina_5v0.voltage.val1;
-        buff[8] = power_module_data.ina_5v0.power.val1;
+        buff[6] = sensor_value_to_float(&power_module_data.ina_5v0.current);
+        buff[7] = sensor_value_to_float(&power_module_data.ina_5v0.voltage);
+        buff[8] = sensor_value_to_float(&power_module_data.ina_5v0.power);
 
-        send_udp_broadcast((const char *) buff, sizeof(buff));
+        send_udp_broadcast((const uint8_t *) buff, sizeof(buff));
         k_sleep(K_MSEC(100));
     }
     return 0;
