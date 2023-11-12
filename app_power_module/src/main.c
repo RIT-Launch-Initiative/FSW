@@ -92,7 +92,7 @@ int send_udp_broadcast(const char *data, size_t data_len) {
     return 0;
 }
 
-static void init(void) {
+static int init(void) {
     // Queues
 //    k_queue_init(&net_tx_queue);
 
@@ -102,44 +102,60 @@ static void init(void) {
 //                    led_toggle, NULL, NULL, NULL,
 //                    0, 0, K_NO_WAIT);
 //    k_thread_start(&led_toggle_thread);
-    init_net_stack();
+
+    const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
+    if (!device_is_ready(wiznet)) {
+        printk("Device %s is not ready.\n", wiznet->name);
+    } else {
+        printk("Device %s is ready.\n", wiznet->name);
+        return init_net_stack();
+    }
+
+    return -1;
 }
 
 
-
 int main(void) {
-    const struct device *const ina = DEVICE_DT_GET_ONE(ti_ina219);
-    struct sensor_value v_bus;
-    struct sensor_value power;
-    struct sensor_value current;
+//    const struct device *const ina = DEVICE_DT_GET_ONE(ti_ina219);
+//    struct sensor_value v_bus;
+//    struct sensor_value power;
+//    struct sensor_value current;
 
-    init();
-
-    if (!device_is_ready(ina)) {
-        printf("Device %s is not ready.\n", ina->name);
-        return 0;
-    }
-
-    while (true) {
-        if (sensor_sample_fetch(ina)) {
-            printf("Could not fetch sensor data.\n");
-            return 0;
+    if (!init()) {
+        while (1) {
+            send_udp_broadcast("Launch!", 7);
         }
 
-        sensor_channel_get(ina, SENSOR_CHAN_VOLTAGE, &v_bus);
-        sensor_channel_get(ina, SENSOR_CHAN_POWER, &power);
-        sensor_channel_get(ina, SENSOR_CHAN_CURRENT, &current);
-
-        printf("Bus: %f [V] -- "
-               "Power: %f [W] -- "
-               "Current: %f [A]\n",
-               sensor_value_to_double(&v_bus),
-               sensor_value_to_double(&power),
-               sensor_value_to_double(&current));
-
-        send_udp_broadcast("Launch!", 7);
-        k_sleep(K_MSEC(2000));
+//        if (!device_is_ready(ina)) {
+//            printf("Device %s is not ready.\n", ina->name);
+//            return 0;
+//        }
+    } else {
+        while (1) {
+            printf("DEADBEEF");
+        }
     }
+
+
+//    while (true) {
+//        if (sensor_sample_fetch(ina)) {
+//            printf("Could not fetch sensor data.\n");
+//            return 0;
+//        }
+//
+//        sensor_channel_get(ina, SENSOR_CHAN_VOLTAGE, &v_bus);
+//        sensor_channel_get(ina, SENSOR_CHAN_POWER, &power);
+//        sensor_channel_get(ina, SENSOR_CHAN_CURRENT, &current);
+//
+//        printf("Bus: %f [V] -- "
+//               "Power: %f [W] -- "
+//               "Current: %f [A]\n",
+//               sensor_value_to_double(&v_bus),
+//               sensor_value_to_double(&power),
+//               sensor_value_to_double(&current));
+//
+//        k_sleep(K_MSEC(2000));
+//    }
 
     return 0;
 }
