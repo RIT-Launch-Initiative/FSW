@@ -77,7 +77,8 @@
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 
-    ina219@40 {
+    ina219_battery@40 {
+        label = "ina219_battery";
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x40>;
@@ -89,7 +90,8 @@
 		lsb-microamp = <10>;
 	};
 
-    ina219@41 {
+    ina219_3v3@41 {
+        label = "ina219_3v3";
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x41>;
@@ -101,7 +103,8 @@
 		lsb-microamp = <10>;
 	};
 
-    ina219@44 {
+    ina219_5v0@44 {
+        label = "ina219_5v0";
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x44>;
