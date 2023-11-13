@@ -23,6 +23,7 @@ K_QUEUE_DEFINE(net_tx_queue);
 
 #define STACK_SIZE (2048)
 static K_THREAD_STACK_ARRAY_DEFINE(ina_stacks, 3, STACK_SIZE);
+static K_THREAD_STACK_DEFINE(adc_stack, STACK_SIZE);
 
 static struct net_if *net_interface;
 
@@ -30,6 +31,7 @@ typedef struct {
     struct sensor_value current;
     struct sensor_value voltage;
     struct sensor_value power;
+    int16_t vin_voltage_sense;
 } ina_data_t;
 
 typedef struct {
@@ -40,6 +42,7 @@ typedef struct {
 
 static power_module_data_t power_module_data = {0};
 static struct k_thread ina_threads[3] = {0};
+static struct k_thread adc_thread = {};
 
 int send_udp_broadcast(const uint8_t *data, size_t data_len) {
     int sock;
@@ -72,6 +75,13 @@ int send_udp_broadcast(const uint8_t *data, size_t data_len) {
 
     close(sock);
     return 0;
+}
+
+static void adc_task(void *unused0, void *unused1, void *unused2) {
+
+    while (1) {
+
+    };
 }
 
 static void ina_task(void *p_id, void *unused1, void *unused2) {
@@ -107,13 +117,13 @@ static void ina_task(void *p_id, void *unused1, void *unused2) {
     }
 }
 
-static void init_ina219_devices() {
+static void init_ina219_tasks() {
     for (int i = 0; i < 3; i++) {
         k_thread_create(&ina_threads[i], &ina_stacks[i][0], STACK_SIZE,
                         ina_task, INT_TO_POINTER(i), NULL, NULL,
                         K_PRIO_COOP(10), 0, K_NO_WAIT);
 
-        k_thread_start(&ina_threads[0]);
+        k_thread_start(&ina_threads[i]);
     }
 }
 
@@ -158,6 +168,18 @@ static int init(void) {
         printk("Device %s is ready.\n", wiznet->name);
         init_net_stack();
     }
+    
+    k_thread_create(&adc_thread, adc_stack, STACK_SIZE,
+                    adc_task, NULL, NULL, NULL,
+                    K_PRIO_COOP(10), 0, K_NO_WAIT);
+    k_thread_start(&adc_thread);
+   
+   
+
+
+    init_ina219_tasks();
+
+    
 
     return 0;
 }
@@ -170,7 +192,6 @@ int main(void) {
         }
     }
 
-    init_ina219_devices();
 
     float buff[9] = {0};
 
