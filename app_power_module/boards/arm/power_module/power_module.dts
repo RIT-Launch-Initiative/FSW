@@ -78,7 +78,6 @@
 	clock-frequency = <I2C_BITRATE_FAST>;
 
     ina219_battery@40 {
-        label = "ina219_battery";
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x40>;
@@ -90,11 +89,10 @@
 		lsb-microamp = <10>;
 	};
 
-    ina219_3v3@41 {
-        label = "ina219_3v3";
+    ina219_3v3@44 {
 		status = "okay";
 		compatible = "ti,ina219";
-		reg = <0x41>;
+		reg = <0x44>;
 		brng = <0>;
 		pg = <0>;
 		sadc = <13>;
@@ -103,11 +101,10 @@
 		lsb-microamp = <10>;
 	};
 
-    ina219_5v0@44 {
-        label = "ina219_5v0";
+    ina219_5v0@41 {
 		status = "okay";
 		compatible = "ti,ina219";
-		reg = <0x44>;
+		reg = <0x41>;
 		brng = <0>;
 		pg = <0>;
 		sadc = <13>;
@@ -125,7 +122,6 @@
 
     w5500: w5500@0 {
         compatible = "wiznet,w5500";
-        label = "w5500";
         reg = <0x0>;
         spi-max-frequency = <10000000>;
         int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
