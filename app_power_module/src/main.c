@@ -38,6 +38,23 @@ typedef struct {
     ina_data_t ina_5v0;
 } power_module_data_t;
 
+
+typedef struct __attribute__((__packed__)) {
+    float current_battery;
+    float voltage_battery;
+    float power_battery;
+    
+    float current_3v3;
+    float voltage_3v3;
+    float power_3v3;
+
+    float current_5v0;
+    float voltage_5v0;
+    float power_5v0;
+
+    int16_t vin_voltage_sense;
+} power_module_packet_t;
+
 static power_module_data_t power_module_data = {0};
 static struct k_thread ina_threads[3] = {0};
 
@@ -172,22 +189,23 @@ int main(void) {
 
     init_ina219_devices();
 
-    float buff[9] = {0};
+    power_module_packet_t packet = {0};
 
     while (true) {
-        buff[0] = sensor_value_to_float(&power_module_data.ina_battery.current);
-        buff[1] = sensor_value_to_float(&power_module_data.ina_battery.voltage);
-        buff[2] = sensor_value_to_float(&power_module_data.ina_battery.power);
+        packet.current_battery =  sensor_value_to_float(&power_module_data.ina_battery.current);
+        packet.voltage_battery = sensor_value_to_float(&power_module_data.ina_battery.voltage);
+        packet.power_battery = sensor_value_to_float(&power_module_data.ina_battery.power);
 
-        buff[3] = sensor_value_to_float(&power_module_data.ina_3v3.current);
-        buff[4] = sensor_value_to_float(&power_module_data.ina_3v3.voltage);
-        buff[5] = sensor_value_to_float(&power_module_data.ina_3v3.power);
+        packet.current_3v3 = sensor_value_to_float(&power_module_data.ina_3v3.current);
+        packet.voltage_3v3 = sensor_value_to_float(&power_module_data.ina_3v3.voltage);
+        packet.power_3v3 = sensor_value_to_float(&power_module_data.ina_3v3.power);
 
-        buff[6] = sensor_value_to_float(&power_module_data.ina_5v0.current);
-        buff[7] = sensor_value_to_float(&power_module_data.ina_5v0.voltage);
-        buff[8] = sensor_value_to_float(&power_module_data.ina_5v0.power);
+        packet.current_5v0 = sensor_value_to_float(&power_module_data.ina_5v0.current);
+        packet.voltage_5v0 = sensor_value_to_float(&power_module_data.ina_5v0.voltage);
+        packet.power_5v0 = sensor_value_to_float(&power_module_data.ina_5v0.power);
+        packet.vin_voltage_sense = 0xBEEF;
 
-        send_udp_broadcast((const uint8_t *) buff, sizeof(buff));
+        send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t));
         k_sleep(K_MSEC(100));
     }
     return 0;
