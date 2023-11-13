@@ -95,11 +95,11 @@ static void ina_task(void *p_id, void *unused1, void *unused2) {
             ina_data = &power_module_data.ina_battery;
             break;
         case 1:
-            dev = DEVICE_DT_GET(DT_INST(2, ti_ina219));
+            dev = DEVICE_DT_GET(DT_INST(1, ti_ina219));
             ina_data = &power_module_data.ina_3v3;
             break;
         case 2:
-            dev = DEVICE_DT_GET(DT_INST(1, ti_ina219));
+            dev = DEVICE_DT_GET(DT_INST(2, ti_ina219));
             ina_data = &power_module_data.ina_5v0;
             break;
         default:
