@@ -1,4 +1,3 @@
-#include <app_version.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/adc.h>
@@ -49,7 +48,7 @@ typedef struct __attribute__((__packed__)) {
     float current_5v0;
     float voltage_5v0;
     float power_5v0;
-
+    
     int16_t vin_voltage_sense;
 } power_module_packet_t;
 
@@ -90,12 +89,12 @@ int send_udp_broadcast(const uint8_t *data, size_t data_len) {
 }
 
 static void adc_task(void *unused0, void *unused1, void *unused2) {
-    uint16_t buff;
+    // uint16_t buff;
     
-    struct adc_sequence adc_seq = {
-        .buffer = &buff,
-        .buffer_size = sizeof(buff)
-    };
+    // struct adc_sequence adc_seq = {
+    //     .buffer = &buff,
+    //     .buffer_size = sizeof(buff)
+    // };
 
     // if (!adc_is_ready_dt()) {
         // LOG_ERR("ADC device is not ready\n");
