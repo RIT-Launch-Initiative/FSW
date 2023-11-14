@@ -1,11 +1,7 @@
-/*
- * Copyright (c) 2021 Nordic Semiconductor ASA
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <app_version.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/adc.h>
 
 #include <zephyr/fs/fs.h>
 //#include <zephyr/fs/littlefs.h>
@@ -22,8 +18,8 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(net_tx_queue);
 
 #define STACK_SIZE (2048)
-static K_THREAD_STACK_ARRAY_DEFINE(ina_stacks, 3, STACK_SIZE);
-static K_THREAD_STACK_DEFINE(adc_stack, STACK_SIZE);
+static K_THREAD_STACK_ARRAY_DEFINE(stacks, 4, STACK_SIZE);
+//static K_THREAD_STACK_DEFINE(adc_stack, STACK_SIZE);
 
 static struct net_if *net_interface;
 
@@ -31,7 +27,7 @@ typedef struct {
     struct sensor_value current;
     struct sensor_value voltage;
     struct sensor_value power;
-    int16_t vin_voltage_sense;
+    int32_t vin_voltage_sense;
 } ina_data_t;
 
 typedef struct {
@@ -58,8 +54,7 @@ typedef struct __attribute__((__packed__)) {
 } power_module_packet_t;
 
 static power_module_data_t power_module_data = {0};
-static struct k_thread ina_threads[3] = {0};
-static struct k_thread adc_thread = {};
+static struct k_thread threads[4] = {0};
 
 int send_udp_broadcast(const uint8_t *data, size_t data_len) {
     int sock;
@@ -67,7 +62,7 @@ int send_udp_broadcast(const uint8_t *data, size_t data_len) {
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
-        printk("Failed to create socket (%d)\n", sock);
+        LOG_INF("Failed to create socket (%d)\n", sock);
         return sock;
     }
 
@@ -76,28 +71,52 @@ int send_udp_broadcast(const uint8_t *data, size_t data_len) {
     dst_addr.sin_port = htons(6969);
     ret = net_addr_pton(AF_INET, "255.255.255.255", &dst_addr.sin_addr);
     if (ret < 0) {
-        printk("Invalid IP address format\n");
+        LOG_INF("Invalid IP address format\n");
         close(sock);
         return ret;
     }
 
     ret = sendto(sock, data, data_len, 0, (struct sockaddr *) &dst_addr, sizeof(dst_addr));
     if (ret < 0) {
-        printk("Failed to send UDP broadcast (%d)\n", ret);
+        LOG_INF("Failed to send UDP broadcast (%d)\n", ret);
         close(sock);
         return ret;
     }
 
-    printk("Sent UDP broadcast: %s\n", data);
+    LOG_INF("Sent UDP broadcast: %s\n", data);
 
     close(sock);
     return 0;
 }
 
 static void adc_task(void *unused0, void *unused1, void *unused2) {
+    uint16_t buff;
+    
+    struct adc_sequence adc_seq = {
+        .buffer = &buff,
+        .buffer_size = sizeof(buff)
+    };
+
+    // if (!adc_is_ready_dt()) {
+        // LOG_ERR("ADC device is not ready\n");
+    //     return;
+    // }
+
+    // if (!adc_channel_setup_dt()) {
+    //     LOG_ERR("ADC channel setup failed\n");
+    //     return;
+    // }
 
     while (1) {
-
+        // int32_t tmp = 0;
+        // if (!adc_read(, &adc_seq)) {
+        //     LOG_ERR("ADC read failed\n");
+        //     continue;
+        // }
+        //
+        // if (adc_raw_to_millivolts_dt(, &tmp)) {
+        //     power_module_data.vin_voltage_sense = tmp; 
+        // }
     };
 }
 
@@ -136,11 +155,11 @@ static void ina_task(void *p_id, void *unused1, void *unused2) {
 
 static void init_ina219_tasks() {
     for (int i = 0; i < 3; i++) {
-        k_thread_create(&ina_threads[i], &ina_stacks[i][0], STACK_SIZE,
+        k_thread_create(&threads[i], &stacks[i][0], STACK_SIZE,
                         ina_task, INT_TO_POINTER(i), NULL, NULL,
                         K_PRIO_COOP(10), 0, K_NO_WAIT);
 
-        k_thread_start(&ina_threads[i]);
+        k_thread_start(&threads[i]);
     }
 }
 
@@ -150,24 +169,24 @@ static int init_net_stack(void) {
 
     net_interface = net_if_get_default();
     if (!net_interface) {
-        printk("No network interface found\n");
+        LOG_INF("No network interface found\n");
         return -ENODEV;
     }
 
     struct in_addr addr;
     ret = net_addr_pton(AF_INET, ip_addr, &addr);
     if (ret < 0) {
-        printk("Invalid IP address\n");
+        LOG_INF("Invalid IP address\n");
         return ret;
     }
 
     struct net_if_addr *ifaddr = net_if_ipv4_addr_add(net_interface, &addr, NET_ADDR_MANUAL, 0);
     if (!ifaddr) {
-        printk("Failed to add IP address\n");
+        LOG_INF("Failed to add IP address\n");
         return -ENODEV;
     }
 
-    printk("IPv4 address configured: %s\n", ip_addr);
+    LOG_INF("IPv4 address configured: %s\n", ip_addr);
 
     return 0;
 }
@@ -175,28 +194,25 @@ static int init_net_stack(void) {
 
 static int init(void) {
     // Queues
-//    k_queue_init(&net_tx_queue);
+//    k_queue_init(&net_tx_queueh;
 
     const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
     if (!device_is_ready(wiznet)) {
-        printk("Device %s is not ready.\n", wiznet->name);
+        LOG_INF("Device %s is not ready.\n", wiznet->name);
         return -ENODEV;
     } else {
-        printk("Device %s is ready.\n", wiznet->name);
+        LOG_INF("Device %s is ready.\n", wiznet->name);
         init_net_stack();
     }
     
-    k_thread_create(&adc_thread, adc_stack, STACK_SIZE,
-                    adc_task, NULL, NULL, NULL,
-                    K_PRIO_COOP(10), 0, K_NO_WAIT);
-    k_thread_start(&adc_thread);
-   
-   
-
-
     init_ina219_tasks();
-
     
+
+    k_thread_create(&threads[3], &stacks[3][0], STACK_SIZE,
+                     adc_task, NULL, NULL, NULL,
+                     K_PRIO_COOP(10), 0, K_NO_WAIT);
+    k_thread_start(&threads[3]);
+
 
     return 0;
 }
@@ -211,7 +227,7 @@ int main(void) {
 
 
     power_module_packet_t packet = {0};
-
+    uint8_t flip_flop = 0;
     while (true) {
         packet.current_battery =  sensor_value_to_float(&power_module_data.ina_battery.current);
         packet.voltage_battery = sensor_value_to_float(&power_module_data.ina_battery.voltage);
@@ -224,7 +240,9 @@ int main(void) {
         packet.current_5v0 = sensor_value_to_float(&power_module_data.ina_5v0.current);
         packet.voltage_5v0 = sensor_value_to_float(&power_module_data.ina_5v0.voltage);
         packet.power_5v0 = sensor_value_to_float(&power_module_data.ina_5v0.power);
-        packet.vin_voltage_sense = 0xBEEF;
+        packet.vin_voltage_sense = flip_flop ? 0xDEAD : 0xBEEF;
+        flip_flop ^= 0b1; 
+
 
         send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t));
         k_sleep(K_MSEC(100));
