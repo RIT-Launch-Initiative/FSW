@@ -40,6 +40,7 @@
 		led1 = &red_led_2;
 
         lora0 = &lora;
+        dbguart = &uart4;
         ubxlib-usart2 = &usart2;
 	};
 };
