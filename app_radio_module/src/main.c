@@ -153,7 +153,7 @@ int main() {
     // init();
     printk("Starting radio module!");
     const struct device *lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
-    
+
     if (!device_is_ready(lora_dev)) {
         LOG_ERR("%s not ready", lora_dev->name);
     }
@@ -173,7 +173,7 @@ int main() {
         if (ret != 0) {
             printk("Error sending! Got %d\n", ret);
         } else {
-            printk("LoRa packet sent");
+            printk("LoRa packet sent\n");
         }
     
         // gpio_pin_toggle_dt(&led0);
