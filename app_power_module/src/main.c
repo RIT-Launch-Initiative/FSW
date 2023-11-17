@@ -1,9 +1,9 @@
-#include <zephyr/drivers/sensor.h>
-#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/adc.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/sensor.h>
 
 #include <zephyr/fs/fs.h>
-//#include <zephyr/fs/littlefs.h>
+#include <zephyr/fs/littlefs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
@@ -14,7 +14,6 @@
 #include <zephyr/net/ethernet.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
-K_QUEUE_DEFINE(net_tx_queue);
 
 #define STACK_SIZE (2048)
 static K_THREAD_STACK_ARRAY_DEFINE(stacks, 4, STACK_SIZE);
@@ -89,32 +88,33 @@ int send_udp_broadcast(const uint8_t *data, size_t data_len) {
 }
 
 static void adc_task(void *unused0, void *unused1, void *unused2) {
-    // uint16_t buff;
+    uint16_t buff;
     
-    // struct adc_sequence adc_seq = {
-    //     .buffer = &buff,
-    //     .buffer_size = sizeof(buff)
-    // };
+    struct adc_sequence adc_seq = {
+        .buffer = &buff,
+        .buffer_size = sizeof(buff)
+    };
 
     // if (!adc_is_ready_dt()) {
-        // LOG_ERR("ADC device is not ready\n");
+    //     LOG_ERR("ADC device is not ready\n");
     //     return;
-    // }
+    }
 
     // if (!adc_channel_setup_dt()) {
     //     LOG_ERR("ADC channel setup failed\n");
     //     return;
     // }
 
+
     while (1) {
-        // int32_t tmp = 0;
+        int32_t tmp = 0;
         // if (!adc_read(, &adc_seq)) {
         //     LOG_ERR("ADC read failed\n");
         //     continue;
         // }
         //
         // if (adc_raw_to_millivolts_dt(, &tmp)) {
-        //     power_module_data.vin_voltage_sense = tmp; 
+            power_module_data.vin_voltage_sense = tmp; 
         // }
     };
 }
@@ -192,9 +192,6 @@ static int init_net_stack(void) {
 
 
 static int init(void) {
-    // Queues
-//    k_queue_init(&net_tx_queueh;
-
     const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
     if (!device_is_ready(wiznet)) {
         LOG_INF("Device %s is not ready.\n", wiznet->name);

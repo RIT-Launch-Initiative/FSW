@@ -1,10 +1,6 @@
-/*
- * Copyright (c) 2021 Nordic Semiconductor ASA
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/ptp_clock.h>
+#include <zephyr/drivers/lora.h>
 
 #include <zephyr/drivers/sensor.h>
 #include <app_version.h>
@@ -122,12 +118,31 @@ static void get_gnss(void) {
 
 }
 
+static int configure_lora(const struct device *dev, bool transmit) {
+    struct lora_modem_config config = {
+        .frequency = 915000000,
+        .bandwidth = BW_125_KHZ,
+        .datarate = SF_10,
+        .preamble_len = 8,
+        .coding_rate = CR_4_5,
+        .tx_power = 4,
+        .iq_inverted = false,
+        .public_network = false,
+        .tx = transmit
+    };
+
+    return lora_config(dev, &config);
+}
+
 
 static void lora_tx() {
-    if (!k_queue_is_empty(&lora_tx_queue)) {
+    // if (!k_queue_is_empty(&lora_tx_queue)) {
+    //
+    //
+    // }
+}
 
-
-    }
+static void lora_rx() {
 }
 
 static void toggle_led() {
@@ -135,12 +150,35 @@ static void toggle_led() {
 }
 
 int main() {
-    init();
+    // init();
+    printk("Starting radio module!");
+    const struct device *lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
+    
+    if (!device_is_ready(lora_dev)) {
+        LOG_ERR("%s not ready", lora_dev->name);
+    }
 
+
+    int ret = configure_lora(lora_dev, true);
+    if (ret != 0) {
+        printk("Error initializing LORA device. Got %d", ret);
+
+        while (1);
+    }
+
+
+    char data_tx[7] = "Launch!";
     while (1) {
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-        send_udp_broadcast("Launch!", 7);
+        ret = lora_send(lora_dev, data_tx, sizeof(data_tx));
+        if (ret != 0) {
+            printk("Error sending! Got %d\n", ret);
+        } else {
+            printk("LoRa packet sent");
+        }
+    
+        // gpio_pin_toggle_dt(&led0);
+        // gpio_pin_toggle_dt(&led1);
+        // send_udp_broadcast("Launch!", 7);
         k_msleep(SLEEP_TIME_MS);
     }
 
