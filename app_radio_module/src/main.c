@@ -126,7 +126,7 @@ void recv_cb(const struct device *dev, uint8_t *data, uint16_t size, int16_t rss
 
         printk("\n-----------------------------------\n");
 
-        send_udp_broadcast(data, len);
+        // send_udp_broadcast(data, size);
 
         memset(data, 0, size);
 	} 
