@@ -118,6 +118,7 @@ static void init(void) {
 
 void recv_cb(const struct device *dev, uint8_t *data, uint16_t size, int16_t rssi, int8_t snr) {
 	// When lora_recv_async is cancelled, may be called with 0 bytes.
+        gpio_pin_toggle_dt(&led1);
 	if (size != 0) {
 		printk("Received %d bytes:\n\tMem View: ",size);
 		for (uint16_t i = 0; i < size; i++) printk("0x%02x ",data[i]);
@@ -207,9 +208,10 @@ static int configure_lora(const struct device *dev, bool transmit) {
 int main() {
     // init();
     const struct device *lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
+    printk("Starting receiver\n");
 
     if (!device_is_ready(lora_dev)) {
-        LOG_ERR("%s not ready", lora_dev->name);
+        printk("%s not ready", lora_dev->name);
     }
 
 
@@ -222,6 +224,7 @@ int main() {
 
 
     char data_tx[7] = "Launch!";
+
     while (1) {
         ret = lora_recv_async(lora_dev, recv_cb);
     }
