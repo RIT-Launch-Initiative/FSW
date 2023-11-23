@@ -42,6 +42,7 @@
 
 	aliases {
 		led0 = &green_led_2;
+        led1 = &green_led_2;
 		sw0 = &user_button;
 	};
 };
@@ -92,6 +93,51 @@
 	pinctrl-names = "default";
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
+
+    adxl375: adxl375@53 {
+        compatible = "adi,adxl375";
+        reg = <0x53>;
+        status = "okay";
+    };
+
+    bmp388: bmp388@76 {
+        compatible = "bosch,bmp388";
+        reg = <0x76>;
+        status = "disabled"; // addr conflict on V1
+    };
+
+    lsm6dsl: lsm6dsl@6b {
+        compatible = "st,lsm6dsl";
+        reg = <0x6b>;
+        status = "okay";
+    };
+
+    lis3mdl: lis3mdl@1c {
+        compatible = "st,lis3mdl-magn";
+        reg = <0x1c>;
+        status = "okay";
+    };
+
+    ms5607: ms5607@76 {
+        compatible = "meas,ms5607";
+        reg = <0x76>;
+        status = "okay";
+    };
+
+
+    tmp117: tmp117@48 {
+		compatible = "ti,tmp116"; // TMP117 Compatible
+		reg = <0x48>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		eeprom: ti_tmp116_eeprom@0 {
+			compatible = "ti,tmp116-eeprom";
+			reg = <0x0>;
+			read-only;
+		};
+	};
+
 };
 
 &i2c2 {
