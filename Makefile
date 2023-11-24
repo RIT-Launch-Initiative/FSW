@@ -4,6 +4,9 @@ all:
 flash:
 	west flash
 
+nucleo:
+	west build -b nucleo_f446re app -p auto
+
 power:
 	west build -b power_module app_power_module -p auto 
 
