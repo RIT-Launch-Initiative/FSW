@@ -32,6 +32,7 @@ typedef struct {
     ina_data_t ina_battery;
     ina_data_t ina_3v3;
     ina_data_t ina_5v0;
+    int16_t vin_voltage_sense;
 } power_module_data_t;
 
 
@@ -95,10 +96,11 @@ static void adc_task(void *unused0, void *unused1, void *unused2) {
         .buffer_size = sizeof(buff)
     };
 
+    static const struct adc_channel_cfg vin_volt_sens_channel = ADC_CHANNEL_CFG_DT(adc1);
     // if (!adc_is_ready_dt()) {
     //     LOG_ERR("ADC device is not ready\n");
     //     return;
-    }
+    // }
 
     // if (!adc_channel_setup_dt()) {
     //     LOG_ERR("ADC channel setup failed\n");
@@ -114,7 +116,8 @@ static void adc_task(void *unused0, void *unused1, void *unused2) {
         // }
         //
         // if (adc_raw_to_millivolts_dt(, &tmp)) {
-            power_module_data.vin_voltage_sense = tmp; 
+            power_module_data.vin_voltage_sense = tmp;
+        k_msleep(1000);
         // }
     };
 }
