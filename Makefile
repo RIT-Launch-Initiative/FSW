@@ -5,7 +5,7 @@ flash:
 	west flash
 
 nucleo:
-	west build -b nucleo_f446re app -p auto
+	west build -b nucleo_f446re app -DSHIELD=launch_mikroe -p
 
 power:
 	west build -b power_module app_power_module -p auto 

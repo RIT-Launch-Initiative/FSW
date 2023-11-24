@@ -1,6 +1,0 @@
-&i2c1 {
-    status = "okay";
-    sda-gpios = <&gpiob 6 GPIO_ACTIVE_LOW>;
-    scl-gpios = <&gpiob 7 GPIO_ACTIVE_LOW>;
-};
-

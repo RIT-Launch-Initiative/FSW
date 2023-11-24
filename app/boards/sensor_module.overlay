@@ -1,8 +1,0 @@
-/* SPDX-License-Identifier: Apache-2.0 */
-
-&i2c3 {
-    status = "okay";
-    sda-gpios = <&gpioc 9 GPIO_ACTIVE_LOW>;
-    scl-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
-};
-
