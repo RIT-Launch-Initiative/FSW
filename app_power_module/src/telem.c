@@ -53,8 +53,6 @@ static void ina_task(void *p_id, void *unused1, void *unused2) {
         sensor_channel_get(dev, SENSOR_CHAN_VOLTAGE, &ina_data->voltage);
         sensor_channel_get(dev, SENSOR_CHAN_POWER, &ina_data->power);
         sensor_channel_get(dev, SENSOR_CHAN_CURRENT, &ina_data->current);
-
-        k_sleep(K_MSEC(100));
     }
 }
 
@@ -96,7 +94,7 @@ void init_telem_tasks() {
     for (int i = 0; i < 3; i++) {
         k_thread_create(&threads[i], &stacks[i][0], STACK_SIZE,
                         ina_task, INT_TO_POINTER(i), NULL, NULL,
-                        K_PRIO_COOP(10), 0, K_NO_WAIT);
+                        K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
 
         k_thread_start(&threads[i]);
     }
