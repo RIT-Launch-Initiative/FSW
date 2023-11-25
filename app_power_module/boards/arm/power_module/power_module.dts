@@ -61,7 +61,7 @@
 	current-speed = <115200>;
 	status = "okay";
 };
-
+/*
 &adc1 {
 //	pinctrl-0 = <&adc1_in4_pa4>;
 	pinctrl-names = "default";
@@ -79,7 +79,7 @@
 		zephyr,resolution = <12>;
 	};
 };
-
+*/
 
 &i2c1 {
 	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
