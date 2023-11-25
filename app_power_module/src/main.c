@@ -16,7 +16,7 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
 static int init(void) {
-    int ret = 0;
+    int ret = -1;
     // Guarantee physical layer before initializing upper layers
     if (!init_eth_iface()) {
         ret = init_net_stack();
@@ -32,6 +32,7 @@ int main(void) {
         return -1;
     }
 
+    // Won't run if initializing the network stack failed
     while (true) {
         convert_and_send();
 
