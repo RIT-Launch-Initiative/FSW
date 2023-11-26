@@ -39,7 +39,7 @@
 
 &pll {
 	div-m = <8>;
-	mul-n = <64>;
+	mul-n = <90>;
 	div-p = <2>;
 	clocks = <&clk_hsi>;
 	status = "okay";
@@ -47,9 +47,9 @@
 
 &rcc {
 	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(32)>;
+	clock-frequency = <DT_FREQ_M(45)>;
 	ahb-prescaler = <2>;
-	apb1-prescaler = <1>;
+	apb1-prescaler = <2>;
 	apb2-prescaler = <1>;
 };
 
