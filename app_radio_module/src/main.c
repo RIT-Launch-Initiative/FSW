@@ -42,55 +42,52 @@ static void init(const struct device *const lora_dev) {
     if (!init_eth_iface()) {
         init_net_stack();
     }
-
-    printk("Everything initialized!\n");
 }
 
 
-int main() {
-    const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
-    
-    uint8_t tx_buff[255] = {0};
-    uint8_t tx_buff_len = 0;
-
-    printk("Starting radio module!\n");
-
-    console_init();
-    init(lora_dev);
-    
-    while (1) {
-        uint8_t character = console_getchar();
-        console_putchar(character); 
-
-        if (character == '\r') {
-            console_putchar('\n');
-           
-            int ret = lora_tx(lora_dev, tx_buff, tx_buff_len);
-
-            if (ret != 0) {
-                printk("Error sending! Got %d\n", ret);
-            } else {
-                printk("LoRa packet sent\n");
-            }
-
-            tx_buff_len = 0;
-        } else {
-            tx_buff[tx_buff_len++] = character;
-        }
-
-        gpio_pin_toggle_dt(&led0);
-        send_udp_broadcast("Launch!", 7);
-    }
-
-    return 0;
-}
 // int main() {
-//     struct device *lora_dev = NULL;
-//     init(lora_dev);
+//     const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
+//     
+//     uint8_t tx_buff[255] = {0};
+//     uint8_t tx_buff_len = 0;
 //
+//     printk("Starting radio module!\n");
+//
+//     console_init();
+//     init(lora_dev);
+//     
 //     while (1) {
-//         int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
+//         uint8_t character = console_getchar();
+//         console_putchar(character); 
+//
+//         if (character == '\r') {
+//             console_putchar('\n');
+//            
+//             int ret = lora_tx(lora_dev, tx_buff, tx_buff_len);
+//
+//             if (ret != 0) {
+//                 printk("Error sending! Got %d\n", ret);
+//             } else {
+//                 printk("LoRa packet sent\n");
+//             }
+//
+//             tx_buff_len = 0;
+//         } else {
+//             tx_buff[tx_buff_len++] = character;
+//         }
+//
+//         gpio_pin_toggle_dt(&led0);
+//         send_udp_broadcast("Launch!", 7);
 //     }
 //
 //     return 0;
 // }
+int main() {
+    init(lora_dev);
+    printk("Receiver started\n");
+    while (1) {
+        int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
+    }
+
+    return 0;
+}
