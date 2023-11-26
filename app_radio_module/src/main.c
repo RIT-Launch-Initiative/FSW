@@ -44,66 +44,51 @@ static void init(const struct device *lora_dev) {
 }
 
 
-// int main() {
-//     // init();
-//     const struct device *lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
-//     const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
-//     const char prompt[] = "Start typing characters to see them echoed back\r\n";
-//     uint8_t tx_buff[255] = {0};
-//     uint8_t tx_buff_len = 0;
-//
-//     printk("Starting radio module!\n");
-//
-//     console_init();
-//     if (!device_is_ready(lora_dev)) {
-//         LOG_ERR("%s not ready", lora_dev->name);
-//     }
-//
-//
-//     int ret = configure_lora(lora_dev, true);
-//     if (ret != 0) {
-//         printk("Error initializing LORA device. Got %d", ret);
-//
-//         while (1);
-//     }
-//     
-//     printk("You should see another line with instructions below. If not,\n");
-// 	printk("the (interrupt-driven) console device doesn't work as expected:\n");
-// 	console_write(NULL, prompt, sizeof(prompt) - 1);    
-//     
-//     while (1) {
-//         uint8_t character = console_getchar();
-//         console_putchar(character); 
-//
-//         if (character == '\r') {
-//             console_putchar('\n');
-//             
-//             ret = lora_send(lora_dev, tx_buff, tx_buff_len);
-//             if (ret != 0) {
-//                 printk("Error sending! Got %d\n", ret);
-//             } else {
-//                 printk("LoRa packet sent\n");
-//             }
-//
-//             tx_buff_len = 0;
-//         } else {
-//             tx_buff[tx_buff_len++] = character;
-//         }
-//
-//         gpio_pin_toggle_dt(&led0);
-//         // gpio_pin_toggle_dt(&led1);
-//         // send_udp_broadcast("Launch!", 7);
-//     }
-//
-//     return 0;
-// }
 int main() {
-    struct device *lora_dev = NULL;
+    const struct device *lora_dev = NULL;
+    const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
+    
+    uint8_t tx_buff[255] = {0};
+    uint8_t tx_buff_len = 0;
+
+    printk("Starting radio module!\n");
+
+    console_init();
     init(lora_dev);
 
+    
     while (1) {
-        int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
+        uint8_t character = console_getchar();
+        console_putchar(character); 
+
+        if (character == '\r') {
+            console_putchar('\n');
+            
+            int ret = lora_send(lora_dev, tx_buff, tx_buff_len);
+            if (ret != 0) {
+                printk("Error sending! Got %d\n", ret);
+            } else {
+                printk("LoRa packet sent\n");
+            }
+
+            tx_buff_len = 0;
+        } else {
+            tx_buff[tx_buff_len++] = character;
+        }
+
+        gpio_pin_toggle_dt(&led0);
+        send_udp_broadcast("Launch!", 7);
     }
 
     return 0;
 }
+// int main() {
+//     struct device *lora_dev = NULL;
+//     init(lora_dev);
+//
+//     while (1) {
+//         int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
+//     }
+//
+//     return 0;
+// }
