@@ -55,7 +55,6 @@ int main() {
 
     console_init();
     init(lora_dev);
-
     
     while (1) {
         uint8_t character = console_getchar();
@@ -63,8 +62,9 @@ int main() {
 
         if (character == '\r') {
             console_putchar('\n');
-            
-            int ret = lora_send(lora_dev, tx_buff, tx_buff_len);
+           
+            int ret = lora_tx(lora_dev, tx_buff, tx_buff_len);
+
             if (ret != 0) {
                 printk("Error sending! Got %d\n", ret);
             } else {
