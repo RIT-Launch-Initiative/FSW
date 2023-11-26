@@ -26,24 +26,12 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
 
-static void init(const struct device *lora_dev) {
+static void init(const struct device *const lora_dev) {
     k_queue_init(&lora_tx_queue);
     k_queue_init(&net_tx_queue);
 
     if (!init_sx1276(lora_dev)) {
-        struct lora_modem_config config = {
-            .frequency = 915000000,
-            .bandwidth = BW_125_KHZ,
-            .datarate = SF_10,
-            .preamble_len = 8,
-            .coding_rate = CR_4_5,
-            .tx_power = 4,
-            .iq_inverted = false,
-            .public_network = false,
-            .tx = false
-        };
-
-        int ret = 1;
+        int ret = lora_configure(lora_dev, false);
         if (ret != 0) {
             printk("Error initializing LORA device. Got %d", ret);
         }
@@ -58,7 +46,7 @@ static void init(const struct device *lora_dev) {
 
 
 int main() {
-    const struct device *lora_dev = NULL;
+    const struct device *const lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
     const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
     
     uint8_t tx_buff[255] = {0};
