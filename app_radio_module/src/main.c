@@ -22,6 +22,8 @@ static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 #define LED1_NODE DT_ALIAS(led1)
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
+extern const struct device *const lora_dev;
+
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
@@ -46,7 +48,6 @@ static void init(const struct device *const lora_dev) {
 
 
 int main() {
-    const struct device *const lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
     const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
     
     uint8_t tx_buff[255] = {0};
