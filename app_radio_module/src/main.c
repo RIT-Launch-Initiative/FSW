@@ -28,7 +28,7 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
 
-static void init(const struct device *const lora_dev) {
+static void init() {
     k_queue_init(&lora_tx_queue);
     k_queue_init(&net_tx_queue);
 
@@ -45,49 +45,23 @@ static void init(const struct device *const lora_dev) {
 }
 
 
+int main() {
+    const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
+    
+    uint8_t tx_buff[255] = {0};
+    uint8_t tx_buff_len = 0;
+
+    printk("Starting radio module!\n");
+    init();
+    
+    return 0;
+}
 // int main() {
-//     const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
-//     
-//     uint8_t tx_buff[255] = {0};
-//     uint8_t tx_buff_len = 0;
-//
-//     printk("Starting radio module!\n");
-//
-//     console_init();
-//     init(lora_dev);
-//     
+//     init();
+//     printk("Receiver started\n");
 //     while (1) {
-//         uint8_t character = console_getchar();
-//         console_putchar(character); 
-//
-//         if (character == '\r') {
-//             console_putchar('\n');
-//            
-//             int ret = lora_tx(lora_dev, tx_buff, tx_buff_len);
-//
-//             if (ret != 0) {
-//                 printk("Error sending! Got %d\n", ret);
-//             } else {
-//                 printk("LoRa packet sent\n");
-//             }
-//
-//             tx_buff_len = 0;
-//         } else {
-//             tx_buff[tx_buff_len++] = character;
-//         }
-//
-//         gpio_pin_toggle_dt(&led0);
-//         send_udp_broadcast("Launch!", 7);
+//         int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
 //     }
 //
 //     return 0;
 // }
-int main() {
-    init(lora_dev);
-    printk("Receiver started\n");
-    while (1) {
-        int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
-    }
-
-    return 0;
-}
