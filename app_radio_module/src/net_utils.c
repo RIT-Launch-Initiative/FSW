@@ -56,7 +56,7 @@ int init_net_stack(void) {
     return 0;
 }
 
-int send_udp_broadcast(const uint8_t *data, size_t data_len) {
+int send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port) {
     int sock;
     int ret;
 
@@ -68,7 +68,7 @@ int send_udp_broadcast(const uint8_t *data, size_t data_len) {
 
     struct sockaddr_in dst_addr;
     dst_addr.sin_family = AF_INET;
-    dst_addr.sin_port = htons(6969);
+    dst_addr.sin_port = htons(port);
     ret = net_addr_pton(AF_INET, "255.255.255.255", &dst_addr.sin_addr);
     if (ret < 0) {
         LOG_INF("Invalid IP address format\n");

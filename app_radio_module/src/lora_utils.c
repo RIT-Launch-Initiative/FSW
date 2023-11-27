@@ -12,6 +12,7 @@
 const struct device *const lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
 
 
+
 int init_sx1276(const struct device *const dev) {
     if (!device_is_ready(dev)) {
         printk("Device %s is not ready.\n", dev->name);
