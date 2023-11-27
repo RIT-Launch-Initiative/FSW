@@ -119,5 +119,5 @@ void convert_and_send() {
     flip_flop ^= 0b1; 
 
 
-    send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t));
+    send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t), 9000);
 }
