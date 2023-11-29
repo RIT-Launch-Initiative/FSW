@@ -14,6 +14,6 @@ int init_eth_iface(void);
 
 int init_net_stack(void);
 
-int send_udp_broadcast(const uint8_t *data, size_t data_len);
+int send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port);
 
 #endif
