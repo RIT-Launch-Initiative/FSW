@@ -29,7 +29,7 @@ int init_eth_iface(void) {
 }
 
 int init_net_stack(void) {
-    static const char ip_addr[] = "10.10.10.69";
+    static const char ip_addr[] = "10.10.10.10";
     int ret;
 
     net_interface = net_if_get_default();
@@ -56,7 +56,7 @@ int init_net_stack(void) {
     return 0;
 }
 
-int send_udp_broadcast(const uint8_t *data, size_t data_len) {
+int send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port) {
     int sock;
     int ret;
 
@@ -68,7 +68,7 @@ int send_udp_broadcast(const uint8_t *data, size_t data_len) {
 
     struct sockaddr_in dst_addr;
     dst_addr.sin_family = AF_INET;
-    dst_addr.sin_port = htons(12000);
+    dst_addr.sin_port = htons(port);
     ret = net_addr_pton(AF_INET, "255.255.255.255", &dst_addr.sin_addr);
     if (ret < 0) {
         LOG_INF("Invalid IP address format\n");

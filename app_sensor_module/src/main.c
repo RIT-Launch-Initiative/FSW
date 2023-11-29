@@ -14,8 +14,10 @@
 #include <zephyr/net/socket.h>
 #include <zephyr/storage/flash_map.h>
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL
-);
+#include "sensors.h"
+#include "net_utils.h"
+
+LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(net_tx_queue);
 
 #define STACK_SIZE (2048)
@@ -30,7 +32,6 @@ static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static void init(void) {
     // Queues
     k_queue_init(&net_tx_queue);
-    network_init();
 }
 
 int main() {
