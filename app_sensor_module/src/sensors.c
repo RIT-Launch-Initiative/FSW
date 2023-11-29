@@ -90,13 +90,13 @@ void update_lsm6dsl_data(void *unused0, void *unused1, void *unused2) {
             printk("Cannot read LSM6DSL accel channels");
         }
        
-        readings.accel_x = sensor_value_to_float(accel[0]);
-        readings.accel_y = sensor_value_to_float(accel[1]);
-        readings.accel_z = sensor_value_to_float(accel[2]);
+        readings.accel_x = sensor_value_to_float(&accel[0]);
+        readings.accel_y = sensor_value_to_float(&accel[1]);
+        readings.accel_z = sensor_value_to_float(&accel[2]);
 
-        readings.gyro_x = sensor_value_to_float(gyro[0]);
-        readings.gyro_y = sensor_value_to_float(gyro[1]);
-        readings.gyro_z = sensor_value_to_float(gyro[2]);
+        readings.gyro_x = sensor_value_to_float(&gyro[0]);
+        readings.gyro_y = sensor_value_to_float(&gyro[1]);
+        readings.gyro_z = sensor_value_to_float(&gyro[2]);
 
 
     }

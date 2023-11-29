@@ -100,15 +100,15 @@
 //        status = "okay";
 //    };
 
-    bmp388: bmp388@76 {
+    bmp388: bmp388@77 {
         compatible = "bosch,bmp388";
-        reg = <0x76>;
-        status = "disabled"; // addr conflict on V1
+        reg = <0x77>;
+        status = "okay"; 
     };
 
-    lsm6dsl: lsm6dsl@6b {
+    lsm6dsl: lsm6dsl@6a {
         compatible = "st,lsm6dsl";
-        reg = <0x6b>;
+        reg = <0x6a>;
         status = "okay";
     };
 
