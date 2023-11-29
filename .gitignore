@@ -52,5 +52,14 @@ Mkfile.old
 dkms.conf
 
 build/
+
+# Zephyr files
+zephyr/
+.west
+
+
+# IDE Files
 .vscode/
+.idea/
+.cache/
 zephyr-windows.code-workspace

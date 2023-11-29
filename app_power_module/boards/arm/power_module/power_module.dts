@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Philémon Jaermann
+ * Copyright (c) 2023 Aaron Chan
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -37,19 +37,18 @@
 	status = "okay";
 };
 
-//&pll {
-//	div-m = <8>;
-//	mul-n = <384>;
-//	div-p = <2>;
-//	div-q = <2>;
-//	clocks = <&clk_hsi>;
-//	status = "okay";
-//};
+&pll {
+	div-m = <8>;
+	mul-n = <90>;
+	div-p = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
 
 &rcc {
-	clocks = <&clk_hsi>;
-	clock-frequency = <DT_FREQ_M(16)>;
-	ahb-prescaler = <1>;
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(45)>;
+	ahb-prescaler = <2>;
 	apb1-prescaler = <2>;
 	apb2-prescaler = <1>;
 };
@@ -61,15 +60,25 @@
 	current-speed = <115200>;
 	status = "okay";
 };
-
+/*
 &adc1 {
-	pinctrl-0 = <&adc1_in4_pa4>;
+//	pinctrl-0 = <&adc1_in4_pa4>;
 	pinctrl-names = "default";
 	st,adc-clock-source = <SYNC>;
 	st,adc-prescaler = <2>;
 	status = "okay";
-};
+    address-cells = <1>;
+    size_cells = <0>;
 
+    channel@4 {
+		reg = <4>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+};
+*/
 
 &i2c1 {
 	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
