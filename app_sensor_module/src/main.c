@@ -64,19 +64,19 @@ static void init(void) {
     // Queues
     k_queue_init(&net_tx_queue);
 
-    if (!init_eth_iface()) {
-        printk("Ethernet ready\n");
-        if (!init_net_stack()) {
-            printk("Network stack initialized\n");
-            // printk("Ethernet thread started\n");
-            
-        }
-    }
+    // if (!init_eth_iface()) {
+    //     printk("Ethernet ready\n");
+    //     if (!init_net_stack()) {
+    //         printk("Network stack initialized\n");
+    //         // printk("Ethernet thread started\n");
+    //         
+    //     }
+    // }
 
-    // // k_thread_create(&threads[1], &stacks[1][0], STACK_SIZE,
-    // //                 randomize_data, NULL, NULL, NULL,
-    // //                 K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-    // // k_thread_start(&threads[1]);
+    // k_thread_create(&threads[1], &stacks[1][0], STACK_SIZE,
+    //                 randomize_data, NULL, NULL, NULL,
+    //                 K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    // k_thread_start(&threads[1]);
     
     k_thread_create(&threads[2], &stacks[2][0], STACK_SIZE,
                     update_lsm6dsl_data, NULL, NULL, NULL,
