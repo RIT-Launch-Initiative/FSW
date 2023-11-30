@@ -14,3 +14,6 @@ project(power-module LANGUAGES C)
 
 FILE(GLOB sources src/*.c)
 target_sources(app PRIVATE ${sources})
+
+# global include directory
+zephyr_include_directories(../include)
