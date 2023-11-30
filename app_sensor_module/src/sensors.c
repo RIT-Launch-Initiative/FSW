@@ -59,14 +59,21 @@ void update_tmp117_data(void *unused0, void *unused1, void *unused2) {
 
     int ret = device_is_ready(device);
     if (ret) printk("Error %d: %s is not ready\n", ret, device->name);
-
+    float i = 0;
     while (1) {
         if (sensor_sample_fetch(device)) continue;
         
         sensor_channel_get(device, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
 
         data.temperature_tmp = sensor_value_to_float(&temperature);
-
+       
+        data.accel_x = i;
+        data.accel_y = i;
+        data.accel_z = 9.f;
+        data.pressure_bmp3 = 10000;
+        data.pressure_ms5 = 11000;
+        if (i++ < 256) i = 0;
+ 
     }
 }
 

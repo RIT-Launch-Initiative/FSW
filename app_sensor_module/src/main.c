@@ -33,12 +33,11 @@ static struct k_thread threads[4] = {0};
 
 extern SENSOR_MODULE_DATA_T data;
 
-static void broadcast_data_task(void *, void *, void *) {
-    while (1) {
-        
-        send_udp_broadcast((uint8_t *) &data, sizeof(SENSOR_MODULE_DATA_T), 11000);
-   }
-}
+// static void broadcast_data_task(void *, void *, void *) {
+//     while (1) {
+//         send_udp_broadcast((uint8_t *) &data, sizeof(SENSOR_MODULE_DATA_T), 11000);
+//    }
+// }
 
 static void randomize_data(void *, void *, void *) {
     while (1) {
@@ -50,7 +49,7 @@ static void randomize_data(void *, void *, void *) {
             data.pressure_ms5 = i;
         }
         
-        for (int i = 256; i >= 0; i++) {
+        for (int i = 256; i >= 0; i--) {
             data.accel_x = i;
             data.accel_y = i;
             data.accel_z = i;
@@ -69,23 +68,16 @@ static void init(void) {
         printk("Ethernet ready\n");
         if (!init_net_stack()) {
             printk("Network stack initialized\n");
-            k_thread_create(&threads[0], &stacks[0][0], STACK_SIZE,
-                            broadcast_data_task, NULL, NULL, NULL,
-                            K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-
-            k_thread_start(&threads[0]);
-
-            printk("Ethernet thread started\n");
- 
+            // printk("Ethernet thread started\n");
             
         }
     }
 
-    k_thread_create(&threads[1], &stacks[1][0], STACK_SIZE,
-                    randomize_data, NULL, NULL, NULL,
-                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-    k_thread_start(&threads[1]);
-
+    // // k_thread_create(&threads[1], &stacks[1][0], STACK_SIZE,
+    // //                 randomize_data, NULL, NULL, NULL,
+    // //                 K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    // // k_thread_start(&threads[1]);
+    //
     k_thread_create(&threads[2], &stacks[2][0], STACK_SIZE,
                     update_lsm6dsl_data, NULL, NULL, NULL,
                      K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
@@ -103,6 +95,9 @@ static void init(void) {
 int main() {
     init();
 
+    while (1) {
+        send_udp_broadcast((uint8_t *) &data, sizeof(SENSOR_MODULE_DATA_T), 11000);
+   }
 
     return 0;
 }
