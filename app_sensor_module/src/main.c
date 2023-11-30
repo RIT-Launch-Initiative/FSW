@@ -21,7 +21,8 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(net_tx_queue);
 
 #define STACK_SIZE (2048)
-static K_THREAD_STACK_ARRAY_DEFINE(stacks, 2, STACK_SIZE);
+static K_THREAD_STACK_ARRAY_DEFINE(stacks, 4, STACK_SIZE);
+static struct k_thread threads[4] = {0};
 
 #define LED0_NODE DT_ALIAS(led0)
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
@@ -30,23 +31,37 @@ static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
 
+static void udp_broadcast_task(void *, void *, void *) {
+    while (1) {
+        send_udp_broadcast("Launch!", 7, 10000);
+   }
+}
 
 static void init(void) {
     // Queues
     k_queue_init(&net_tx_queue);
 
     if (!init_eth_iface()) {
-        printk("Ethernet ready");
-        if (init_net_stack()) printk("Network stack initialized");
+        printk("Ethernet ready\n");
+        if (!init_net_stack()) {
+            printk("Network stack initialized\n");
+            k_thread_create(&threads[0], &stacks[0][0], STACK_SIZE,
+                            udp_broadcast_task, NULL, NULL, NULL,
+                            K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+
+            k_thread_start(&threads[0]);
+
+            printk("Ethernet thread started\n");
+ 
+            
+        }
     }
 }
+
 
 int main() {
     init();
 
-    while (1) {
-        send_udp_broadcast("Launch!", 7, 10000);
-    }
 
     return 0;
 }
