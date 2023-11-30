@@ -9,5 +9,5 @@ project(radio-module LANGUAGES C)
 FILE(GLOB sources src/*.c)
 target_sources(app PRIVATE ${sources})
 
-# global include directory
+# root include directory
 zephyr_include_directories(../include)
