@@ -20,7 +20,7 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(net_tx_queue);
 
-#define STACK_SIZE (2048)
+#define STACK_SIZE (512)
 static K_THREAD_STACK_ARRAY_DEFINE(stacks, 4, STACK_SIZE);
 static struct k_thread threads[4] = {0};
 
@@ -77,7 +77,7 @@ static void init(void) {
     // //                 randomize_data, NULL, NULL, NULL,
     // //                 K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
     // // k_thread_start(&threads[1]);
-    //
+    
     k_thread_create(&threads[2], &stacks[2][0], STACK_SIZE,
                     update_lsm6dsl_data, NULL, NULL, NULL,
                      K_PRIO_PREEMPT(10), 0, K_NO_WAIT);

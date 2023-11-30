@@ -10,6 +10,8 @@
 #include <zephyr/net/ethernet_mgmt.h>
 #include <zephyr/console/console.h>
 
+#include <zephyr/random/random.h>
+
 #include "net_utils.h"
 #include "lora_utils.h"
 
@@ -44,34 +46,58 @@ static void init() {
     }
 }
 
-//
-// int main() {
-//     const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
-//     
-//     uint8_t tx_buff[255] = {0};
-//     uint8_t tx_buff_len = 0;
-//
-//     printk("Starting radio module!\n");
-//     init();
-//
-//     while (1) {
-//         FAKE_SENSOR_DATA_T fake_data; // Let garbage fill here intentionally
-//         fake_data.port = 11000;
-//         lora_tx(lora_dev, (uint8_t *) &fake_data, sizeof(FAKE_SENSOR_DATA_T));
-//         gpio_pin_toggle_dt(&led0);
-//         k_msleep(100);
-//     }
-//     
-//     return 0;
-// }
+static void initialize_fake_sensor_data(FAKE_SENSOR_DATA_T *data) {
+    // Initialize port with a random value
+    sys_rand_get(&data->port, sizeof(data->port));
 
+    // Initialize floating-point values with random data
+    float *float_fields[] = {
+        &data->pressure_ms5, &data->temperature_ms5,
+        &data->pressure_bmp3, &data->temperature_bmp3,
+        &data->accel_x, &data->accel_y, &data->accel_z,
+        &data->magn_x, &data->magn_y, &data->magn_z,
+        &data->gyro_x, &data->gyro_y, &data->gyro_z,
+        &data->temperature_tmp
+    };
+
+    for (size_t i = 0; i < sizeof(float_fields) / sizeof(float *); ++i) {
+        uint32_t random_value;
+        sys_rand_get(&random_value, sizeof(random_value));
+        float rand_float = (float)(random_value % 100);
+        *(float_fields[i]) = rand_float;
+    }
+}
 
 int main() {
-    init();
-    printk("Receiver started\n");
-    while (1) {
-        int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
-    }
+    const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
+    
+    uint8_t tx_buff[255] = {0};
+    uint8_t tx_buff_len = 0;
 
+    printk("Starting radio module!\n");
+    init();
+
+    while (1) {
+        FAKE_SENSOR_DATA_T data;
+        initialize_fake_sensor_data(&data);
+       
+
+        data.port = 11000;
+        lora_tx(lora_dev, (uint8_t *) &data, sizeof(FAKE_SENSOR_DATA_T));
+        gpio_pin_toggle_dt(&led0);
+        k_msleep(100);
+    }
+    
     return 0;
 }
+
+
+// int main() {
+//     init();
+//     printk("Receiver started\n");
+//     while (1) {
+//         int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
+//     }
+//
+//     return 0;
+// }
