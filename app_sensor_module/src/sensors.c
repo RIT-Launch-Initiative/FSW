@@ -6,7 +6,7 @@
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
-static SENSOR_MODULE_DATA_T readings = {0};
+SENSOR_MODULE_DATA_T data = {0};
 
 
 static int check_dev(const struct device *device) {
@@ -18,7 +18,7 @@ static int check_dev(const struct device *device) {
 }
 
 
-void update_ms5607_readings(void *unused0, void *unused1, void *unused2) {
+void update_ms5607_data(void *unused0, void *unused1, void *unused2) {
     const struct device *const ms5607_dev = DEVICE_DT_GET_ONE(meas_ms5607);
     struct sensor_value press[1];
     struct sensor_value temp[1];
@@ -52,7 +52,7 @@ void update_ms5607_readings(void *unused0, void *unused1, void *unused2) {
 
 
 
-void update_tmp117_readings(void *unused0, void *unused1, void *unused2) {
+void update_tmp117_data(void *unused0, void *unused1, void *unused2) {
     const struct device *device = DEVICE_DT_GET_ANY(ti_tmp116);
 
     struct sensor_value temperature = {0};   
@@ -65,7 +65,7 @@ void update_tmp117_readings(void *unused0, void *unused1, void *unused2) {
         
         sensor_channel_get(device, SENSOR_CHAN_AMBIENT_TEMP, &temperature);
 
-        readings.temperature_tmp = sensor_value_to_float(&temperature);
+        data.temperature_tmp = sensor_value_to_float(&temperature);
 
     }
 }
@@ -90,13 +90,13 @@ void update_lsm6dsl_data(void *unused0, void *unused1, void *unused2) {
             printk("Cannot read LSM6DSL accel channels");
         }
        
-        readings.accel_x = sensor_value_to_float(&accel[0]);
-        readings.accel_y = sensor_value_to_float(&accel[1]);
-        readings.accel_z = sensor_value_to_float(&accel[2]);
+        data.accel_x = sensor_value_to_float(&accel[0]);
+        data.accel_y = sensor_value_to_float(&accel[1]);
+        data.accel_z = sensor_value_to_float(&accel[2]);
 
-        readings.gyro_x = sensor_value_to_float(&gyro[0]);
-        readings.gyro_y = sensor_value_to_float(&gyro[1]);
-        readings.gyro_z = sensor_value_to_float(&gyro[2]);
+        data.gyro_x = sensor_value_to_float(&gyro[0]);
+        data.gyro_y = sensor_value_to_float(&gyro[1]);
+        data.gyro_z = sensor_value_to_float(&gyro[2]);
 
 
     }

@@ -24,16 +24,19 @@ K_QUEUE_DEFINE(net_tx_queue);
 static K_THREAD_STACK_ARRAY_DEFINE(stacks, 4, STACK_SIZE);
 static struct k_thread threads[4] = {0};
 
-#define LED0_NODE DT_ALIAS(led0)
-static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+// #define LED0_NODE DT_ALIAS(led0)
+// static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+//
+// #define LED1_NODE DT_ALIAS(led1)
+// static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
-#define LED1_NODE DT_ALIAS(led1)
-static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
+extern SENSOR_MODULE_DATA_T data;
 
-static void udp_broadcast_task(void *, void *, void *) {
+static void broadcast_data_task(void *, void *, void *) {
     while (1) {
-        send_udp_broadcast("Launch!", 7, 10000);
+        
+        send_udp_broadcast((uint8_t *) &data, sizeof(SENSOR_MODULE_DATA_T), 11000);
    }
 }
 
@@ -46,7 +49,7 @@ static void init(void) {
         if (!init_net_stack()) {
             printk("Network stack initialized\n");
             k_thread_create(&threads[0], &stacks[0][0], STACK_SIZE,
-                            udp_broadcast_task, NULL, NULL, NULL,
+                            broadcast_data_task, NULL, NULL, NULL,
                             K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
 
             k_thread_start(&threads[0]);
@@ -56,6 +59,23 @@ static void init(void) {
             
         }
     }
+
+    k_thread_create(&threads[1], &stacks[1][0], STACK_SIZE,
+                    update_ms5607_data, NULL, NULL, NULL,
+                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_start(&threads[1]);
+
+    k_thread_create(&threads[2], &stacks[2][0], STACK_SIZE,
+                    update_lsm6dsl_data, NULL, NULL, NULL,
+                     K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+
+    k_thread_start(&threads[2]);
+
+    k_thread_create(&threads[3], &stacks[3][0], STACK_SIZE,
+                    update_tmp117_data, NULL, NULL, NULL,
+                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_start(&threads[3]);
+
 }
 
 

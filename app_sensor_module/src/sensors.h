@@ -2,7 +2,7 @@
 #define SENSORS_H_
 
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
     float pressure_ms5;
     float temperature_ms5;
 
