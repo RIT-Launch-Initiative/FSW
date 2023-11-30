@@ -40,6 +40,27 @@ static void broadcast_data_task(void *, void *, void *) {
    }
 }
 
+static void randomize_data(void *, void *, void *) {
+    while (1) {
+        for (int i = 0; i < 256; i++) {
+            data.accel_x = i;
+            data.accel_y = i;
+            data.accel_z = i;
+            data.pressure_bmp3 = i;
+            data.pressure_ms5 = i;
+        }
+        
+        for (int i = 256; i >= 0; i++) {
+            data.accel_x = i;
+            data.accel_y = i;
+            data.accel_z = i;
+            data.pressure_bmp3 = i;
+            data.pressure_ms5 = i;
+        }
+
+    }
+}
+
 static void init(void) {
     // Queues
     k_queue_init(&net_tx_queue);
@@ -61,7 +82,7 @@ static void init(void) {
     }
 
     k_thread_create(&threads[1], &stacks[1][0], STACK_SIZE,
-                    update_ms5607_data, NULL, NULL, NULL,
+                    randomize_data, NULL, NULL, NULL,
                     K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
     k_thread_start(&threads[1]);
 
