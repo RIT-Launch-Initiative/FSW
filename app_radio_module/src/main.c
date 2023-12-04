@@ -1,22 +1,19 @@
-#include <zephyr/kernel.h>
 #include <app_version.h>
-#include <zephyr/drivers/uart.h>
-
+#include <zephyr/console/console.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-
-#include <zephyr/net/socket.h>
 #include <zephyr/net/ethernet.h>
 #include <zephyr/net/ethernet_mgmt.h>
-#include <zephyr/console/console.h>
-
+#include <zephyr/net/socket.h>
 #include <zephyr/random/random.h>
 
-#include "net_utils.h"
 #include "lora_utils.h"
+#include "net_utils.h"
+#include "ubxlib_utils.h"
 
-
-#define SLEEP_TIME_MS   100
+#define SLEEP_TIME_MS 100
 
 #define LED0_NODE DT_ALIAS(led0)
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
@@ -29,7 +26,6 @@ extern const struct device *const lora_dev;
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
-
 
 static void init() {
     if (!init_sx1276(lora_dev)) {
@@ -57,8 +53,7 @@ static void initialize_fake_sensor_data(FAKE_SENSOR_DATA_T *data) {
         &data->accel_x, &data->accel_y, &data->accel_z,
         &data->magn_x, &data->magn_y, &data->magn_z,
         &data->gyro_x, &data->gyro_y, &data->gyro_z,
-        &data->temperature_tmp
-    };
+        &data->temperature_tmp};
 
     for (size_t i = 0; i < sizeof(float_fields) / sizeof(float *); ++i) {
         uint32_t random_value;
@@ -70,7 +65,7 @@ static void initialize_fake_sensor_data(FAKE_SENSOR_DATA_T *data) {
 
 int main() {
     const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
-    
+
     uint8_t tx_buff[255] = {0};
     uint8_t tx_buff_len = 0;
 
@@ -80,17 +75,15 @@ int main() {
     while (1) {
         FAKE_SENSOR_DATA_T data;
         initialize_fake_sensor_data(&data);
-       
 
         data.port = 11000;
-        lora_tx(lora_dev, (uint8_t *) &data, sizeof(FAKE_SENSOR_DATA_T));
+        lora_tx(lora_dev, (uint8_t *)&data, sizeof(FAKE_SENSOR_DATA_T));
         gpio_pin_toggle_dt(&led0);
         k_msleep(100);
     }
-    
+
     return 0;
 }
-
 
 // int main() {
 //     init();
