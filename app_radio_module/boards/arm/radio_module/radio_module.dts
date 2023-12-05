@@ -115,25 +115,32 @@
 
 &spi2 {
     pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pb14 &spi2_mosi_pb15>;
-    cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
+    cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW
+                    >;
 	pinctrl-names = "default";
 	status = "okay";
 
-    lora: sx1276@0 {
-		compatible = "semtech,sx1276";
-		label = "sx1276";
-		reg = <0>;
-		reset-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
-		dio-gpios = <&gpioc 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-					<&gpiod 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-					<&gpiob 5 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-					<&gpioa 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-					<&gpioa 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-					<&gpioa 10 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-		power-amplifier-output = "pa-boost";
-		spi-max-frequency = <125000>;
-        status = "okay";
-	};
+        lora: sx1276@0 {
+    		compatible = "semtech,sx1276";
+    		label = "sx1276";
+		    reg = <0>;
+	    	reset-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
+    		dio-gpios = <&gpioc 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+					    <&gpiod 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+				    	<&gpiob 5 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+			    		<&gpioa 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+		    			<&gpioa 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+	    				<&gpioa 10 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+    		power-amplifier-output = "pa-boost";
+    		spi-max-frequency = <125000>;
+            status = "okay";
+
+        storage: w25q128@0 {
+            compatible = "jedec,spi-nor";
+
+        }
+	
+    };
 };
 
 &rtc {
