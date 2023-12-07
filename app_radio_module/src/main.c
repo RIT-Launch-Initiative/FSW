@@ -80,10 +80,11 @@ int main() {
     while (1) {
         FAKE_SENSOR_DATA_T data;
         initialize_fake_sensor_data(&data);
-       
+        
+	k_queue_append(&lora_tx_queue, &data);
 
         data.port = 11000;
-        lora_tx(lora_dev, (uint8_t *) &data, sizeof(FAKE_SENSOR_DATA_T));
+        lora_tx(lora_dev, (uint8_t *) k_queue_get(&lora_tx_queue, K_FOREVER), sizeof(FAKE_SENSOR_DATA_T));
         gpio_pin_toggle_dt(&led0);
         k_msleep(100);
     }
