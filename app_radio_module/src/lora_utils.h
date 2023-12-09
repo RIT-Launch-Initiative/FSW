@@ -33,7 +33,11 @@ typedef struct __attribute__((__packed__)) {
     float temperature_tmp;
 } FAKE_SENSOR_DATA_T;
 
-
+typedef struct __attribute__((__packed__)) {
+    uint32_t packets_sent;
+    int16_t rssi;
+    int8_t snr;
+} RECEIVER_DATA_T;
 
 int init_sx1276(const struct device *const dev);
 

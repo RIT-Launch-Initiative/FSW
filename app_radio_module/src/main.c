@@ -68,36 +68,36 @@ static void initialize_fake_sensor_data(FAKE_SENSOR_DATA_T *data) {
     }
 }
 
-int main() {
-    const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
-    
-    uint8_t tx_buff[255] = {0};
-    uint8_t tx_buff_len = 0;
-
-    printk("Starting radio module!\n");
-    init();
-
-    while (1) {
-        FAKE_SENSOR_DATA_T data;
-        initialize_fake_sensor_data(&data);
-       
-
-        data.port = 11000;
-        lora_tx(lora_dev, (uint8_t *) &data, sizeof(FAKE_SENSOR_DATA_T));
-        gpio_pin_toggle_dt(&led0);
-        k_msleep(100);
-    }
-    
-    return 0;
-}
-
-
 // int main() {
-//     init();
-//     printk("Receiver started\n");
-//     while (1) {
-//         int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
-//     }
+//     const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
+//     
+//     uint8_t tx_buff[255] = {0};
+//     uint8_t tx_buff_len = 0;
 //
+//     printk("Starting radio module!\n");
+//     init();
+//
+//     while (1) {
+//         FAKE_SENSOR_DATA_T data;
+//         initialize_fake_sensor_data(&data);
+//        
+//
+//         data.port = 11000;
+//         lora_tx(lora_dev, (uint8_t *) &data, sizeof(FAKE_SENSOR_DATA_T));
+//         gpio_pin_toggle_dt(&led0);
+//         k_msleep(100);
+//     }
+//     
 //     return 0;
 // }
+
+
+int main() {
+    init();
+    printk("Receiver started\n");
+    while (1) {
+        int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
+    }
+
+    return 0;
+}

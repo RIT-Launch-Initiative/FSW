@@ -41,7 +41,9 @@ int lora_configure(const struct device *const dev, bool transmit) {
 }
 
 void lora_debug_recv_cb(const struct device *const dev, uint8_t *data, uint16_t size, int16_t rssi, int8_t snr) {
-	if (size != 0) {
+    static RECEIVER_DATA_T receiver_data = {0}; 
+
+	if (size != 0) {    
 		printk("Received %d bytes:\n\tMem View: ",size);
 		for (uint16_t i = 0; i < size; i++) printk("0x%02x ",data[i]);
         printk("\n\tVal View: %s\n", data);
@@ -51,8 +53,12 @@ void lora_debug_recv_cb(const struct device *const dev, uint8_t *data, uint16_t 
     
         uint16_t port = data[1] << 8 | data[0];
         printk("Port: %d\n", port);
-
         send_udp_broadcast(data + 2, size - 2, port);
+
+        ++receiver_data.packets_sent;
+        receiver_data.snr = snr;
+        receiver_data.rssi = rssi;
+        send_udp_broadcast((uint8_t *) &receiver_data, sizeof(receiver_data), 12001); 
         memset(data, 0, size);
 	} 
 }
