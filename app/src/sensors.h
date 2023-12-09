@@ -25,12 +25,6 @@ typedef struct {
 } SENSOR_MODULE_DATA_T;
 
 
-void update_adxl375_data(void *unused0, void *unused1, void *unused2);
-void update_bmp388_data(void *unused0, void *unused1, void *unused2);
-void update_ms5607_data(void *unused0, void *unused1, void *unused2);
-void update_lsm6dsl_data(void *unused0, void *unused1, void *unused2);
-void update_lis3mdl_data(void *unused0, void *unused1, void *unused2);
-void update_tmp117_data(void *unused0, void *unused1, void *unused2);
 
 #endif // !SENSORS_H_
 

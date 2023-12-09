@@ -2,7 +2,7 @@
 
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+LOG_MODULE_REGISTER(fs_utils, CONFIG_APP_LOG_LEVEL);
 
 int init_fs(struct fs_mount_t *mount_point) {
     int ret = fs_wipe((uintptr_t) mount_point->storage_dev);
