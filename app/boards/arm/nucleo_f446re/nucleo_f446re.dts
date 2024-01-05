@@ -91,7 +91,13 @@
 	pinctrl-0 = <&i2c1_scl_pb8 &i2c1_sda_pb9>;
 	pinctrl-names = "default";
 	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
+	clock-frequency = <I2C_BITRATE_FAST>; 
+
+    ms5611: ms5611@77 {
+        status = "okay";
+        compatible = "meas,ms5611";
+        reg = <0x77>;
+    };
 };
 
 &i2c2 {
