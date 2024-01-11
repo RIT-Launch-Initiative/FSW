@@ -4,7 +4,29 @@
 	aliases {
 		magn = &lis3mdl;
 		led = &shield_led; 
-		storage = &w25q;
+		storage = &w25q128;
+		logfs = &lfs1;
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+		lfs1: lfs1 {
+			// most of this is taken from the defaults in this compatible's
+			// binding
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&external_storage_partition>;
+			automount;
+			// automount causes trouble when we want to do things on startup,
+			// leaving it off for now
+
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <64>;
+			lookahead-size = <32>;
+			block-cycles = <(90 * 1000)>; 
+			// the datasheet gives 100K P-E cycles, I stay slightly under that
+		};
 	};
 };
 
@@ -16,12 +38,12 @@
 };
 
 &mikrobus_spi {
-	w25q: w25q128jv@1 {
+	w25q128: w25q128jv@1 {
 		compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
 		reg = <1>; // connected to to connector 1
 
 		spi-max-frequency = <(10 * 1000 * 1000)>; // fR = 50 MHz (Table 9.6, p.65)
-		size = <(128 * 1024 * 1024)>; // w25q(128) - 128 MBit (S 11, p.75) 
+		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75) 
 		jedec-id = [ef 40 18]; // 0xef4018 (Table 8.1.1, p.22)
 
 		has-dpd;
@@ -29,6 +51,17 @@
 		t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.66)
 		// described as Release Power-own 0xAB (S 8.2.22)
 		t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.66)
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			external_storage_partition: partition@0 {
+				label = "w25q-storage";
+				reg = <0 DT_SIZE_M(128)>;
+			};
+		};
 	};
 };
 

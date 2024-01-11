@@ -1,13 +1,15 @@
-#include <string.h>
 #include <zephyr/kernel.h>
-
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/flash.h>
+#include <zephyr/fs/fs.h>
+#include <zephyr/logging/log.h>
+// #include <zephyr/fs/littlefs.h>
 
+// #include <string.h>
 #include <stdio.h>
 
 // node identifiers
@@ -16,71 +18,100 @@
 // 	LIS3MDL connected to shield i2c
 // 	W25Q128JV breakout connected to port 1
 
+// devicetree gets
 #define LED_NODE DT_ALIAS(led)
 #define MAG_NODE DT_ALIAS(magn)
 #define FLASH_NODE DT_ALIAS(storage)
-
-#define SPI_FLASH_SECTOR_SIZE 4096
-#define TEST_STRING_LENGTH 256
 
 const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
 const struct device *const mag = DEVICE_DT_GET(MAG_NODE);
 const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
 
+// struct fs_mount_t* lfs_mount = &FS_FSTAB_ENTRY(FS_NODE);
 
-int32_t read_write_compare(off_t offset, const char *const text, size_t len) {
-	int32_t ret = 0;
-	uint8_t buf[TEST_STRING_LENGTH];
+/*
+// START required for littlefs
 
-	printf("Testing write of %d bytes to 0x%6X\n", 
-			len, (unsigned int) offset);
-	printf("Erasing target sector... ");
+FS_LITTLEFS_DECLARE_DEFAULT_CONFIG(lfsconfig);
+static struct fs_mount_t storage_mnt = {
+	.type = FS_LITTLEFS,
+	.fs_data = &lfsconfig,
+	.storage_dev = (void*) flash,
+	.mnt_point = "/lfs",
+};
 
-	gpio_pin_set_dt(&led, 1);
-	ret = flash_erase(flash, offset, SPI_FLASH_SECTOR_SIZE);
-	gpio_pin_set_dt(&led, 0);
+char boot_counter_fname[] = "boot_count";
+// END required for littlefs
+int32_t setup_littlefs(bool erase_before_mount) {
+int32_t ret;
+if (erase_before_mount) {
+LOG_PRINTK("Clearing flash device... ");
+ret = flash_erase(flash, 0, DT_PROP(FLASH_NODE, size));
+if (0 == ret) {
+LOG_PRINTK("OK\n");
+} else {
+LOG_PRINTK("Failed : %d\n", ret);
+return ret;
+}
+}
 
-	if (0 == ret) {
-		printf("Succeeded\n");
-	} else {
-		printf("Failed: %d\n", ret);
+LOG_PRINTK("Mounting LittleFS at %s... ", storage_mnt.mnt_point);
+ret = fs_mount(&storage_mnt);
+if (0 == ret) {
+LOG_PRINTK("OK\n");
+} else {
+LOG_PRINTK("Failed: %d\n", ret);
+return ret;
+}
+
+return 0;
+}
+*/
+
+
+int32_t increment_file_int32(char* fname, int32_t* count) {
+	int32_t ret;
+	int32_t close_ret;
+	struct fs_file_t file;
+
+
+	// prepare file for usage
+	fs_file_t_init(&file);
+	ret = fs_open(&file, fname, FS_O_CREATE | FS_O_RDWR);
+	if (ret < 0) {
+		LOG_PRINTK("Failed to open %s: %d\n", fname, ret);
 		return ret;
+	}
+
+	// get the counter from the file
+	ret = fs_read(&file, count, sizeof(*count));
+	if (ret < 0) {
+		LOG_PRINTK("Failed to read counter: %d\n", ret);
+		goto exit;
+	}
+	LOG_PRINTK("Read counter: %d\n", *count);
+
+	(*count)++;
+
+	// go back to the start of the file
+	ret = fs_seek(&file, 0, FS_SEEK_SET);
+	if (ret < 0) {
+		LOG_PRINTK("Failed to seek to start: %d\n", ret);
+		goto exit;
+	}
+
+	// write the counter to the file
+	ret = fs_write(&file, count, sizeof(*count));
+	if (ret < 0) {
+		LOG_PRINTK("Failed to write new count: %d\n", ret);
 	}
 	
-	printf("Testing write... ");
-
-	gpio_pin_set_dt(&led, 1);
-	ret = flash_write(flash, offset, (uint8_t*) text, len);
-	gpio_pin_set_dt(&led, 0);
-
-	if (0 == ret) {
-		printf("Succeeded.\n\tSENT: %*s\n", len, text);
-	} else {
-		printf("Failed: %d\n", ret);
-		return ret;
+exit:
+	close_ret = fs_close(&file);
+	if (close_ret < 0) {
+		LOG_PRINTK("Failed to close %s: %d\n", fname, close_ret);
+		return close_ret;
 	}
-
-	memset(buf, 0, len);
-	printf("Testing read... ");
-
-	gpio_pin_set_dt(&led, 1);
-	ret = flash_read(flash, offset, buf, len);
-	gpio_pin_set_dt(&led, 0);
-
-	if (0 == ret) {
-		printf("Succeeded.\n\tREAD: %*s\n", len, (char*) buf);
-	} else {
-		printf("Failed: %d\n", ret);
-		return ret;
-	}
-
-	printf("RESULT: ");
-	if (0 == memcmp(text, buf, len)) {
-		printf("Match.\n");
-	} else {
-		printf("Mismatch.\n");
-	}
-	
 	return ret;
 }
 
@@ -89,17 +120,17 @@ int32_t read_mag(struct sensor_value* val) {
 
 	ret = sensor_sample_fetch(mag);
 	if (ret < 0) {
-		printf("Unable to fetch sensor sample: %d\n", ret);
+		LOG_PRINTK("Unable to fetch sensor sample: %d\n", ret);
 		return ret;
 	}
 
 	ret = sensor_channel_get(mag, SENSOR_CHAN_MAGN_XYZ, val);
 	if (ret < 0) {
-		printf("Unable to read sensor channel: %d\n", ret);
+		LOG_PRINTK("Unable to read sensor channel: %d\n", ret);
 		return ret;
 	}
 	
-	printf("X: %f\tY: %f\tZ: %f\n", 
+	LOG_PRINTK("X: %f\tY: %f\tZ: %f\n", 
 			sensor_value_to_double(val), 
 			sensor_value_to_double(val + 1), 
 			sensor_value_to_double(val + 2));
@@ -109,9 +140,9 @@ int32_t read_mag(struct sensor_value* val) {
 
 int main(void) {
 	int32_t ret = 0;
-	struct sensor_value mag_field[3];
+	// struct sensor_value mag_field[3];
 
-	printf("Testing flash write (2).\n");
+	int32_t boot_counter = -1;
 
 	// Boilerplate: set up GPIO
 	if (!gpio_is_ready_dt(&led)) {
@@ -119,38 +150,61 @@ int main(void) {
 		return 0;
 	}
 
-	gpio_pin_set_dt(&led, 1);
-
 	if (gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE) < 0) {
 		printf("Unable to configure LED output pin\n");
 		return 0;
 	}
 
-	/*
 	if (!device_is_ready(mag)) {
 		printf("Device %s is not ready\n", mag->name);
 		return 0;
 	}
-	*/
 
+#ifdef CONFIG_CLEAR_STORAGE_PARTITION
 	if (!device_is_ready(flash)) {
 		printf("Device %s is not ready\n", flash->name);
 		return 0;
 	}
+	flash_erase(flash, 0, DT_PROP(FLASH_NODE, size));
+#endif
 
-	char text[] = "First test text";
-	read_write_compare(0, text, strlen(text));
-	read_write_compare(0x1000, text, strlen(text));
+	// gpio_pin_set_dt(&led, 1);
+	/* 
+	struct fs_statvfs sbuf;
+	ret = fs_statvfs("/lfs", &sbuf);
+	if (ret < 0) {
+		LOG_PRINTK("FAIL: statvfs: %d\n", ret);
+	} else {
+		LOG_PRINTK("%s: bsize = %lu ; frsize = %lu ;"
+				" blocks = %lu ; bfree = %lu\n",
+				lfs_mount->mnt_point,
+				sbuf.f_bsize, sbuf.f_frsize,
+				sbuf.f_blocks, sbuf.f_bfree);
+	}
+	*/
 
-	char text2[] = "Second test text";
-	read_write_compare(0, text2, strlen(text2));
-	read_write_compare(0x1000, text2, strlen(text2));
+
+	/*
+	   gpio_pin_set_dt(&led, 1);
+	   ret = setup_littlefs(false);
+	   gpio_pin_set_dt(&led, 0);
+	   if (ret != 0) {
+	   return ret;
+	   }
+	*/
+
+	ret = increment_file_int32("/lfs/boot_count", &boot_counter);
+	if (ret >= 0) {
+		LOG_PRINTK("Successfully read and updated boot counter: %d boots\n", boot_counter);
+	} else {
+		LOG_PRINTK("Failed to read file\n");
+	}
 
 	// forever
 	while(1) {
 		gpio_pin_toggle_dt(&led);
 		// read_mag(mag_field);
-		k_msleep(250);
+		k_msleep(100);
 	}
 	return 0;
 }

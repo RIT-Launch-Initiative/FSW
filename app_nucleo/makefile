@@ -4,5 +4,6 @@ all:
 flash:
 	west flash
 
-setup:
-	source $(ZEPHYR_BASE)/zephyr-env.sh
+udev:
+	sudo service udev restart
+	sudo udevadm control --reload
