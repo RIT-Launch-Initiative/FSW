@@ -54,7 +54,6 @@ dkms.conf
 build/
 
 # Zephyr files
-zephyr/
 .west
 
 
