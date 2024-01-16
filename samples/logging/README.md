@@ -1,3 +1,9 @@
+# Requirements
+- Nucleo-F446RE
+- Launch Mikroe Click Shield
+- LIS3MDL, connected to the shield's I2C
+- W25Q128JV, connected to the shield's SPI with CS1
+
 # Current state
 - Able to use filesystem to read a boot counter
 - Figured out necessary kconfig and devicetree entries

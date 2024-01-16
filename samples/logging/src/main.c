@@ -27,48 +27,6 @@ const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
 const struct device *const mag = DEVICE_DT_GET(MAG_NODE);
 const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
 
-// struct fs_mount_t* lfs_mount = &FS_FSTAB_ENTRY(FS_NODE);
-
-/*
-// START required for littlefs
-
-FS_LITTLEFS_DECLARE_DEFAULT_CONFIG(lfsconfig);
-static struct fs_mount_t storage_mnt = {
-	.type = FS_LITTLEFS,
-	.fs_data = &lfsconfig,
-	.storage_dev = (void*) flash,
-	.mnt_point = "/lfs",
-};
-
-char boot_counter_fname[] = "boot_count";
-// END required for littlefs
-int32_t setup_littlefs(bool erase_before_mount) {
-int32_t ret;
-if (erase_before_mount) {
-LOG_PRINTK("Clearing flash device... ");
-ret = flash_erase(flash, 0, DT_PROP(FLASH_NODE, size));
-if (0 == ret) {
-LOG_PRINTK("OK\n");
-} else {
-LOG_PRINTK("Failed : %d\n", ret);
-return ret;
-}
-}
-
-LOG_PRINTK("Mounting LittleFS at %s... ", storage_mnt.mnt_point);
-ret = fs_mount(&storage_mnt);
-if (0 == ret) {
-LOG_PRINTK("OK\n");
-} else {
-LOG_PRINTK("Failed: %d\n", ret);
-return ret;
-}
-
-return 0;
-}
-*/
-
-
 int32_t increment_file_int32(char* fname, int32_t* count) {
 	int32_t ret;
 	int32_t close_ret;
@@ -89,7 +47,6 @@ int32_t increment_file_int32(char* fname, int32_t* count) {
 		LOG_PRINTK("Failed to read counter: %d\n", ret);
 		goto exit;
 	}
-	LOG_PRINTK("Read counter: %d\n", *count);
 
 	(*count)++;
 
@@ -167,31 +124,6 @@ int main(void) {
 	}
 	flash_erase(flash, 0, DT_PROP(FLASH_NODE, size));
 #endif
-
-	// gpio_pin_set_dt(&led, 1);
-	/* 
-	struct fs_statvfs sbuf;
-	ret = fs_statvfs("/lfs", &sbuf);
-	if (ret < 0) {
-		LOG_PRINTK("FAIL: statvfs: %d\n", ret);
-	} else {
-		LOG_PRINTK("%s: bsize = %lu ; frsize = %lu ;"
-				" blocks = %lu ; bfree = %lu\n",
-				lfs_mount->mnt_point,
-				sbuf.f_bsize, sbuf.f_frsize,
-				sbuf.f_blocks, sbuf.f_bfree);
-	}
-	*/
-
-
-	/*
-	   gpio_pin_set_dt(&led, 1);
-	   ret = setup_littlefs(false);
-	   gpio_pin_set_dt(&led, 0);
-	   if (ret != 0) {
-	   return ret;
-	   }
-	*/
 
 	ret = increment_file_int32("/lfs/boot_count", &boot_counter);
 	if (ret >= 0) {
