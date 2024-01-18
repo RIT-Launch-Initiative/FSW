@@ -1,0 +1,14 @@
+/ {
+	soc {
+		pinctrl: pin-controller@40020000 {
+            eth_cs_pa8: eth_cs_pa8 {
+                pinmux = <STM32_PINMUX('A', 8, GPIO)>;
+                bias-pull-up;
+            };
+
+            flash_cs_pc0: flash_cs_pc0 {
+                pinmux = <STM32_PINMUX('C', 11, GPIO)>;
+            };
+        };
+    };
+};
