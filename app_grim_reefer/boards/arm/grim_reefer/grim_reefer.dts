@@ -10,7 +10,7 @@
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
-	model = "Power Module";
+	model = "Grim Reefer";
 	compatible = "st,stm32f446re-nucleo";
 
 	chosen {

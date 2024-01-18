@@ -21,7 +21,7 @@ APPLICATION_BINARY_DIR:PATH=/home/aaron/Development/Launch/Backplane-Flight-Comp
 APPLICATION_SOURCE_DIR:PATH=/home/aaron/Development/Launch/Backplane-Flight-Computer/app
 
 //Selected board
-BOARD:STRING=power_module
+BOARD:STRING=grim_reefer
 
 //Path to a file.
 BOARD_DIR:PATH=BOARD_DIR-NOTFOUND
