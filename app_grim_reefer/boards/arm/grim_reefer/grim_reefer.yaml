@@ -1,5 +1,5 @@
 identifier: grim_reefer
-name: Power Module
+name: Grim Reefer
 type: mcu
 arch: arm
 toolchain:

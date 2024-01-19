@@ -16,3 +16,6 @@ radio:
 sensor:
 	west build -b sensor_module app_sensor_module -p auto 
 
+reefer:
+	west build -b grim_reefer app_grim_reefer -p auto 
+
