@@ -14,6 +14,10 @@
 #include <u_cfg_app_platform_specific.h>
 #include <ubxlib.h>
 
+#ifndef ZEPHYR_INCLUDE_KERNEL_H_
+#include <zephyr/kernel.h>
+#endif  // !ZEPHYR_INCLUDE_KERNEL_H_
+
 /**
  * @brief GNSS device struct
  *

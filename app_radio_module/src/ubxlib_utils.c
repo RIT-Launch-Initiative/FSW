@@ -20,6 +20,7 @@ int start_maxm10s(gnss_dev_t* dev) {
     uint32_t ret = uPortInit();
     if (ret != 0)
         return ret;
+    printk("uPortInit() returned %d\n", ret);
 
     ret = uGnssInit();
     if (ret != 0)
