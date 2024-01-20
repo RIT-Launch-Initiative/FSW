@@ -26,6 +26,10 @@
 
 	aliases {
 	};
+	examplesensor {
+		compatible = "zephyr,examplesensor";
+		input-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
+	};
 };
 
 &clk_lsi {
@@ -62,15 +66,15 @@
 };
 /*
 &adc1 {
-//	pinctrl-0 = <&adc1_in4_pa4>;
+	//    pinctrl-0 = <&adc1_in4_pa4>;
 	pinctrl-names = "default";
 	st,adc-clock-source = <SYNC>;
 	st,adc-prescaler = <2>;
 	status = "okay";
-    address-cells = <1>;
-    size_cells = <0>;
+	address-cells = <1>;
+	size_cells = <0>;
 
-    channel@4 {
+	channel@4 {
 		reg = <4>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
@@ -78,7 +82,7 @@
 		zephyr,resolution = <12>;
 	};
 };
-*/
+ */
 
 &i2c1 {
 	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
@@ -86,7 +90,7 @@
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 
-    ina219_battery@40 {
+	ina219_battery@40 {
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x40>;
@@ -98,7 +102,7 @@
 		lsb-microamp = <10>;
 	};
 
-    ina219_3v3@44 {
+	ina219_3v3@44 {
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x44>;
@@ -110,7 +114,7 @@
 		lsb-microamp = <10>;
 	};
 
-    ina219_5v0@41 {
+	ina219_5v0@41 {
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x41>;
@@ -125,29 +129,29 @@
 
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
-    cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
 
-    w5500: w5500@0 {
-        compatible = "wiznet,w5500";
-        reg = <0x0>;
-        spi-max-frequency = <10000000>;
-        int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
-        reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
-    };
+	w5500: w5500@0 {
+		compatible = "wiznet,w5500";
+		reg = <0x0>;
+		spi-max-frequency = <10000000>;
+		int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
+	};
 };
 
 &spi2 {
 	pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
-    cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
 };
 
 &rtc {
 	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
-		 <&rcc STM32_SRC_LSI RTC_SEL(2)>;
+	         <&rcc STM32_SRC_LSI RTC_SEL(2)>;
 	status = "okay";
 };
 
