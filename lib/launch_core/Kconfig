@@ -1,0 +1,7 @@
+# Copyright (c) 2021, Legrand North America, LLC.
+# SPDX-License-Identifier: Apache-2.0
+
+config LAUNCH_CORE
+	bool "Launch Core Support"
+	help
+	  This option enables core functionality for launch software
