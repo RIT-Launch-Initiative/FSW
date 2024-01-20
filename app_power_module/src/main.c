@@ -5,10 +5,8 @@
  */
 
 #include "telem.h"
-#include "net_utils.h"
+#include <launch_core/net_utils.h>
 
-#include <zephyr/fs/fs.h>
-#include <zephyr/fs/littlefs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
@@ -18,7 +16,8 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 static int init(void) {
     int ret = -1;
     // Guarantee physical layer before initializing upper layers
-    if (!init_eth_iface()) {
+    const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
+    if (!init_eth_iface(wiznet)) {
         ret = init_net_stack();
     } 
     

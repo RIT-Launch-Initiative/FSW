@@ -32,14 +32,9 @@ typedef struct {
     float **float_values;
 } SENSOR_READINGS_ARGS_T;
 
-void update_sensor_data(void *dev, void *sensor_args, void *process_float);
-void update_adxl375_data(void *unused0, void *unused1, void *unused2);
-void update_bmp388_data(void *unused0, void *unused1, void *unused2);
-void update_ms5607_data(void *unused0, void *unused1, void *unused2);
-void update_lsm6dsl_data(void *unused0, void *unused1, void *unused2);
-void update_lis3mdl_data(void *unused0, void *unused1, void *unused2);
-void update_tmp117_data(void *unused0, void *unused1, void *unused2);
+int check_dev(const struct device *device);
 
+// void update_sensor_data(void *dev_arg, void *args, void *process_float_arg) {
 #endif // !SENSORS_H_
 
 
