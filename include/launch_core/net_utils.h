@@ -4,13 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef SENSOR_MODULE_NET_UTILS_H_
-#define SENSOR_MODULE_NET_UTILS_H_
+#ifndef POWER_MODULE_NET_UTILS_H_
+#define POWER_MODULE_NET_UTILS_H_
 
 #include <stdint.h>
 #include <stddef.h>
+#include <zephyr/kernel.h>
 
-int init_eth_iface(void); 
+int init_eth_iface(const struct device *dev); 
 
 int init_net_stack(void);
 

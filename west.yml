@@ -8,6 +8,8 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
+    - name: u-blox
+      url-base: git@github.com:u-blox
 
   projects:
     - name: zephyr
@@ -17,3 +19,11 @@ manifest:
         name-allowlist:
           - cmsis      
           - hal_stm32 
+
+    - name: ubxlib
+      remote: u-blox
+      path: ubxlib
+      revision: master
+      import: true
+      clone-depth: 1
+

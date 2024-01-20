@@ -5,7 +5,7 @@
  */
 
 #include "telem.h"
-#include "net_utils.h"
+#include <launch_core/net_utils.h>
 
 #include <stdint.h>
 
@@ -119,5 +119,5 @@ void convert_and_send() {
     flip_flop ^= 0b1; 
 
 
-    send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t), 9000);
+    // send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t), 9000);
 }

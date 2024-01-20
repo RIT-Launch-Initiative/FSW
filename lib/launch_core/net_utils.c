@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "net_utils.h"
+#include <launch_core/net_utils.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/net/socket.h>
@@ -17,19 +17,18 @@ LOG_MODULE_REGISTER(net_utils, CONFIG_APP_LOG_LEVEL);
 
 static struct net_if *net_interface;
 
-int init_eth_iface(void) {
-    const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
-    if (!device_is_ready(wiznet)) {
-        LOG_INF("Device %s is not ready.\n", wiznet->name);
+int init_eth_iface(const struct device *dev) {
+    if (!device_is_ready(dev)) {
+        LOG_INF("Device %s is not ready.\n", dev->name);
         return -ENODEV;
     } 
     
-    LOG_INF("Device %s is ready.\n", wiznet->name);
+    LOG_INF("Device %s is ready.\n", dev->name);
     return 0;
 }
 
 int init_net_stack(void) {
-    static const char ip_addr[] = "10.10.10.10";
+    static const char ip_addr[] = "10.10.10.69";
     int ret;
 
     net_interface = net_if_get_default();
