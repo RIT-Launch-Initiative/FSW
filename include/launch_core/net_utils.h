@@ -9,8 +9,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <zephyr/kernel.h>
 
-int init_eth_iface(void); 
+int init_eth_iface(const struct device *dev); 
 
 int init_net_stack(void);
 

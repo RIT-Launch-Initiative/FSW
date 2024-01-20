@@ -5,10 +5,8 @@
  */
 
 #include "telem.h"
-#include "net_utils.h"
+#include "launch_core/net_utils.h"
 
-#include <zephyr/fs/fs.h>
-#include <zephyr/fs/littlefs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
