@@ -4,7 +4,7 @@
 config MCP3561
 	bool "MCP3561 ADC"
 	default y
-	depends on DT_HAS_ZEPHYR_MCP3561_ENABLED
+	depends on DT_HAS_MICROCHIP_MCP3561_ENABLED
 	select GPIO
 	help
 	  Enable MCP3561 ADC
