@@ -34,7 +34,7 @@ typedef struct {
 
 int check_dev(const struct device *device);
 
-void update_sensor_data(void *dev_arg, void *args, void *process_float_arg) {
+// void update_sensor_data(void *dev_arg, void *args, void *process_float_arg) {
 #endif // !SENSORS_H_
 
 
