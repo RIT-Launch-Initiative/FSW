@@ -11,10 +11,8 @@
 #include <stddef.h>
 #include <zephyr/kernel.h>
 
-int init_eth_iface(const struct device *dev); 
+int l_init_udp_net_stack(const char *ip);
 
-int init_net_stack(void);
-
-int send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port);
+int l_send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port);
 
 #endif

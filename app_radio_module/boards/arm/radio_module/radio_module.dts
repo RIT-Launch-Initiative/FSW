@@ -39,7 +39,6 @@
         led0 = &red_led_1;
 		led1 = &red_led_2;
 
-        lora0 = &lora;
         dbguart = &uart4;
         ubxlib-usart2 = &usart2;
 	};
@@ -119,7 +118,7 @@
 	pinctrl-names = "default";
 	status = "okay";
 
-    lora: sx1276@0 {
+    sx1276: sx1276@0 {
 		compatible = "semtech,sx1276";
 		label = "sx1276";
 		reg = <0>;
