@@ -25,10 +25,7 @@
 	};
 
 	aliases {
-	};
-	examplesensor {
-		compatible = "zephyr,examplesensor";
-		input-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
+		my-adc = &load_cell_adc;
 	};
 };
 
@@ -147,6 +144,16 @@
 	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
+
+
+	load_cell_adc: load_cell_adc@0 {
+		compatible = "microchip,mcp3561";
+		status = "okay";
+		reg = <0x0>;
+		spi-max-frequency = <10000000>;
+
+	};
+
 };
 
 &rtc {

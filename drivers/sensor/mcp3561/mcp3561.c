@@ -37,7 +37,7 @@ static int mcp3561_channel_get(const struct device *dev,
 {
 	struct mcp3561_data *data = dev->data;
 
-	if (chan != SENSOR_CHAN_PROX) {
+	if (chan != SENSOR_CHAN_VOLTAGE) {
 		return -ENOTSUP;
 	}
 
