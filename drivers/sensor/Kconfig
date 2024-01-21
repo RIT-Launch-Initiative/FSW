@@ -3,5 +3,5 @@
 
 if SENSOR
 rsource "examplesensor/Kconfig"
-rsource "mcp3561/Kconfig"
+rsource "mcp356x/Kconfig"
 endif # SENSOR

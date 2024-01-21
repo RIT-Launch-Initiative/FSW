@@ -1,6 +1,6 @@
-description: "MCP3561 ADC"
+description: "MCP356X ADC"
 
-compatible: "microchip,mcp3561"
+compatible: "microchip,mcp356x"
 
 include: [adc-controller.yaml, spi-device.yaml]
 

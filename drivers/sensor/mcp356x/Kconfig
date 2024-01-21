@@ -1,10 +1,10 @@
 # Copyright (c) 2021 Nordic Semiconductor ASA
 # SPDX-License-Identifier: Apache-2.0
 
-config MCP3561
-	bool "MCP3561 ADC"
+config MCP356X
+	bool "MCP356X ADC"
 	default y
-	depends on DT_HAS_MICROCHIP_MCP3561_ENABLED
+	depends on DT_HAS_MICROCHIP_MCP356X_ENABLED
 	select GPIO
 	help
-	  Enable MCP3561 ADC
+	  Enable MCP356X ADC
