@@ -1,8 +1,10 @@
 #include <zephyr/kernel.h>
-#include <zephyr/drivers/uart.h>
 
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
+
+// Lora
+#include <zephyr/drivers/lora.h>
 
 #include <launch_core/lora_utils.h>
 #include <launch_core/net_utils.h>
@@ -22,14 +24,9 @@ static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 static void init() {
-//    if (!l_check_device(lora_dev)) {
-//        int ret = l_lora_configure(lora_dev, false);
-//        if (ret != 0) {
-//            printk("Error initializing LORA device. Got %d", ret);
-//        } else {
-//            printk("LoRa configured\n");
-//        }
-//    }
+    if (!l_check_device(lora_dev)) {
+        l_lora_configure(lora_dev, false);
+    }
 
     if (!l_check_device(wiznet)) {
         l_init_udp_net_stack("192.168.1.1");
@@ -37,8 +34,6 @@ static void init() {
 }
 
 int main() {
-    const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
-
     uint8_t tx_buff[255] = {0};
     uint8_t tx_buff_len = 0;
 
