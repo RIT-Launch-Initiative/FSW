@@ -16,6 +16,7 @@ typedef struct {
 } ina_data_t;
 
 typedef struct {
+    uint32_t timestamp;
     ina_data_t data_battery;
     ina_data_t data_3v3;
     ina_data_t data_5v0;

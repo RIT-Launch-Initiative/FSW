@@ -69,7 +69,7 @@ static void ina_task(void *, void *, void *) {
 
     while (true) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
-        uint32_t last_update = k_uptime_get_32();
+        ina_task_data.timestamp = k_uptime_get_32();
 
         struct sensor_value current;
         struct sensor_value voltage;
@@ -106,7 +106,7 @@ static void ina_task(void *, void *, void *) {
         }
 
         // Wait some time for sensor to get new values (15 Hz -> 66.67 ms)
-        uint32_t time_to_wait = INA219_UPDATE_TIME_MS - (k_uptime_get_32() - last_update);
+        uint32_t time_to_wait = INA219_UPDATE_TIME_MS - (k_uptime_get_32() - ina_task_data.timestamp);
         if (time_to_wait > 0) {
             k_sleep(K_MSEC(time_to_wait));
         }
