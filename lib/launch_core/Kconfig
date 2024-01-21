@@ -7,27 +7,27 @@ config LAUNCH_CORE
       This option enables core functionality for all flight software
 
 config LAUNCH_CORE_DEVICE
-    bool "Launch Core functionality for Device"
+    bool "Helper functionality for Device"
     depends on DEVICE
     help
       This option enables core functionality for device drivers
 
 config LAUNCH_CORE_NET
-    bool "Launch Core functionality for Networking"
-    select CONFIG_SYS_HASH_FUNC32
-    select CONFIG_SYS_HASH_MAP
+    bool "Helper functionality for Networking"
+    depends on CONFIG_SYS_HASH_MAP
+    depends on CONFIG_SYS_HASH_FUNC32
     help
       This option enables core functionality for Networking.
 
 config LAUNCH_CORE_LORA
-	bool "Launch Core functionality for LoRa"
+	bool "Helper functionality for LoRa"
 	select LORA
 	select LORA_SX127X
 	help
 	  This option enables core functionality for LoRa.
 
 config LAUNCH_CORE_FS
-    bool "Launch Core functionality for File System"
+    bool "Helper functionality for File System"
     depends on FS_LITTLEFS
     help
       This option enables core functionality for the File System.
