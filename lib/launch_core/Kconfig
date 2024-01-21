@@ -14,13 +14,15 @@ config LAUNCH_CORE_DEVICE
 
 config LAUNCH_CORE_NET
     bool "Launch Core functionality for Networking"
-    depends on NET_L2_ETHERNET
+    select CONFIG_SYS_HASH_FUNC32
+    select CONFIG_SYS_HASH_MAP
     help
       This option enables core functionality for Networking.
 
 config LAUNCH_CORE_LORA
 	bool "Launch Core functionality for LoRa"
-	depends on LORA && LORA_SX127X
+	select LORA
+	select LORA_SX127X
 	help
 	  This option enables core functionality for LoRa.
 
