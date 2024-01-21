@@ -17,18 +17,7 @@ LOG_MODULE_REGISTER(net_utils, CONFIG_APP_LOG_LEVEL);
 
 static struct net_if *net_interface;
 
-int init_eth_iface(const struct device *dev) {
-    if (!device_is_ready(dev)) {
-        LOG_INF("Device %s is not ready.\n", dev->name);
-        return -ENODEV;
-    } 
-    
-    LOG_INF("Device %s is ready.\n", dev->name);
-    return 0;
-}
-
-int init_net_stack(void) {
-    static const char ip_addr[] = "10.10.10.69";
+int l_init_udp_net_stack(const char *ip_addr) {
     int ret;
 
     net_interface = net_if_get_default();
@@ -55,7 +44,7 @@ int init_net_stack(void) {
     return 0;
 }
 
-int send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port) {
+int l_send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port) {
     int sock;
     int ret;
 

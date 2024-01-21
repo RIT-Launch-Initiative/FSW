@@ -15,11 +15,7 @@ manifest:
     - name: zephyr
       remote: zephyrproject-rtos
       revision: main
-      import:
-        name-allowlist:
-          - cmsis      
-          - hal_stm32 
-
+      import: true
     - name: ubxlib
       remote: u-blox
       path: ubxlib

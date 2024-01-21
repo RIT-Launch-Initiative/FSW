@@ -9,13 +9,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 SENSOR_MODULE_DATA_T data = {0};
 
 
-int check_dev(const struct device *device) {
-    int ret = device_is_ready(device);
-
-    if (ret) printk("Error %d: %s is not ready\n", ret, device->name);
-
-    return ret;
-}
 //
 // void update_sensor_data(void *dev_arg, void *args, void *process_float_arg) {
 //     SENSOR_READINGS_ARGS_T *sensor_args = (SENSOR_READINGS_ARGS_T*) args;

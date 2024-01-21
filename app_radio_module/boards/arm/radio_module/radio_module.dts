@@ -39,9 +39,10 @@
         led0 = &red_led_1;
 		led1 = &red_led_2;
 
-        lora0 = &lora;
         dbguart = &uart4;
         ubxlib-usart2 = &usart2;
+
+		lora0 = &lora;
 	};
 };
 
@@ -105,7 +106,6 @@
 
     w5500: w5500@0 {
         compatible = "wiznet,w5500";
-        label = "w5500";
         reg = <0x0>;
         spi-max-frequency = <10000000>;
         int-gpios = <&gpioa 2 GPIO_ACTIVE_LOW>;
@@ -119,9 +119,8 @@
 	pinctrl-names = "default";
 	status = "okay";
 
-    lora: sx1276@0 {
+    lora: lora@0 {
 		compatible = "semtech,sx1276";
-		label = "sx1276";
 		reg = <0>;
 		reset-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
 		dio-gpios = <&gpioc 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
