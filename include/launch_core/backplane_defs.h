@@ -7,6 +7,10 @@
 #ifndef BACKPLANE_DEFS_H
 #define BACKPLANE_DEFS_H
 
+/**
+ * Definitions for all backplane related constants
+ */
+
 #include <stdint.h>
 
 /********** GENERAL **********/

@@ -3,6 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+/**
+ * Utility functions for dealing with Zephyr devices
+ */
+
 #ifndef DEVICE_UTILS_H
 #define DEVICE_UTILS_H
 
