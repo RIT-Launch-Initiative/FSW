@@ -16,10 +16,14 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
 K_QUEUE_DEFINE(ina_processing_queue);
-#define STACK_SIZE (2048)
+#define SENSOR_READ_STACK_SIZE (512)
+#define QUEUE_PROCESSING_STACK_SIZE (1024)
 
-static K_THREAD_STACK_DEFINE(ina_stack, STACK_SIZE);
-static struct k_thread ina_thread;
+static K_THREAD_STACK_DEFINE(ina_read_stack, SENSOR_READ_STACK_SIZE);
+static struct k_thread ina_read_thread;
+
+static K_THREAD_STACK_DEFINE(ina_processing_stack, QUEUE_PROCESSING_STACK_SIZE);
+static struct k_thread ina_processing_thread;
 
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
@@ -62,6 +66,7 @@ static void ina_task(void *, void *, void *) {
     // TODO: Testing and publishing data
     while (true) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
+
         if (likely(ina_device_found[0])) {
             l_get_sensor_data_float(sensors[0], 3, ina_channels, (float **) &data_battery);
         }
@@ -74,8 +79,31 @@ static void ina_task(void *, void *, void *) {
             l_get_sensor_data_float(sensors[2], 3, ina_channels, (float **) &data_5v0);
         }
 
-//        k_queue_append(ina_processing_queue, &ina_task_data);
+        k_queue_append(&ina_processing_queue, &ina_task_data);
+    }
+}
 
+static void ina_queue_processing_task(void *, void *, void *) {
+    ina_task_data_t ina_task_data = {0};
+    ina_packed_data_t ina_packed_data = {0};
+
+    while (true) {
+        ina_task_data = *((ina_task_data_t *) k_queue_get(&ina_processing_queue, K_MSEC(100)));
+
+        ina_packed_data.current_battery = ina_task_data.data_battery.current;
+        ina_packed_data.voltage_battery = ina_task_data.data_battery.voltage;
+        ina_packed_data.power_battery = ina_task_data.data_battery.power;
+
+        ina_packed_data.current_3v3 = ina_task_data.data_3v3.current;
+        ina_packed_data.voltage_3v3 = ina_task_data.data_3v3.voltage;
+        ina_packed_data.power_3v3 = ina_task_data.data_3v3.power;
+
+        ina_packed_data.current_5v0 = ina_task_data.data_5v0.current;
+        ina_packed_data.voltage_5v0 = ina_task_data.data_5v0.voltage;
+        ina_packed_data.power_5v0 = ina_task_data.data_5v0.power;
+
+        // TODO: send to flash when data logging library is ready
+        l_send_udp_broadcast((uint8_t *) &ina_packed_data, sizeof(ina_packed_data_t), POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
     }
 }
 
@@ -100,9 +128,13 @@ static int init(void) {
         return ret;
     }
 
-    k_thread_create(&ina_thread, &ina_stack[0], STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0,
+    k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0,
                     K_NO_WAIT);
-    k_thread_start(&ina_thread);
+    k_thread_start(&ina_read_thread);
+
+    k_thread_create(&ina_processing_thread, &ina_processing_stack[0], QUEUE_PROCESSING_STACK_SIZE, ina_queue_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0,
+                    K_NO_WAIT);
+    k_thread_start(&ina_processing_thread);
 
     return 0;
 }
@@ -116,6 +148,7 @@ int main(void) {
     while (true) {
         k_sleep(K_MSEC(100));
     }
-    return 0;
-}
 
+    return 0;
+
+}
