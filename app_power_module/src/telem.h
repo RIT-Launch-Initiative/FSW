@@ -13,7 +13,6 @@ typedef struct {
     struct sensor_value current;
     struct sensor_value voltage;
     struct sensor_value power;
-    int32_t vin_voltage_sense;
 } ina_data_t;
 
 typedef struct {

@@ -44,7 +44,7 @@ int l_update_sensors(const struct device *const *devs, int num_devs) {
     return 0;
 }
 
-int l_get_sensor_data(const struct device *const dev, int num_channels, enum sensor_channel *channels,
+int l_get_sensor_data(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                       struct sensor_value **values) {
     for (int i = 0; i < num_channels; i++) {
         int ret = sensor_channel_get(dev, channels[i], values[i]);
@@ -56,7 +56,7 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
     return 0;
 }
 
-int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel *channels,
+int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                             float **values) {
     struct sensor_value *sensor_values[num_channels];
 

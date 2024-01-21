@@ -31,17 +31,29 @@ static power_module_data_t power_module_data = {0};
 static struct k_thread threads[4] = {0};
 
 static void ina_task(void *, void *, void *) {
-    const struct device *sensor_battery = DEVICE_DT_GET(DT_INST(0, ti_ina219));
-    const struct device *sensor_3v3 = DEVICE_DT_GET(DT_INST(1, ti_ina219));
-    const struct device *sensor_5v0 = DEVICE_DT_GET(DT_INST(2, ti_ina219));
+    // TODO: Maybe alias each sensor in the DTS
+    const struct device *sensors[] = {
+            DEVICE_DT_GET(DT_INST(0, ti_ina219)), // Battery
+            DEVICE_DT_GET(DT_INST(1, ti_ina219)), // 3v3
+            DEVICE_DT_GET(DT_INST(2, ti_ina219)) // 5v0
+    };
+
+    const enum sensor_channel ina_channels[] = {
+            SENSOR_CHAN_CURRENT,
+            SENSOR_CHAN_VOLTAGE,
+            SENSOR_CHAN_POWER
+    };
 
     ina_data_t data_battery = {0};
     ina_data_t data_3v3 = {0};
     ina_data_t data_5v0 = {0};
 
-    while (true) {
-        sensor_sample_fetch(sensor_battery);
 
+    while (true) {
+        l_update_sensors(sensors, 3);
+        l_get_sensor_data(sensors[0], 3, ina_channels, (struct sensor_value **) &data_battery);
+        l_get_sensor_data(sensors[1], 3, ina_channels, (struct sensor_value **) &data_3v3);
+        l_get_sensor_data(sensors[2], 3, ina_channels, (struct sensor_value **) &data_5v0);
 
     }
 }
