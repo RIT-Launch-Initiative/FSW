@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * Utility functions for dealing with Zephyr networking libraries
+ */
+
 #ifndef POWER_MODULE_NET_UTILS_H_
 #define POWER_MODULE_NET_UTILS_H_
 
