@@ -74,13 +74,14 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
 
 int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                             float **values) {
-    struct sensor_value *sensor_values[num_channels];
+    // TODO: Either get rid of this function or fix it. sensor_values will have null pointers which is causing crashes
+//    struct sensor_value *sensor_values[num_channels];
 
-    l_get_sensor_data(dev, num_channels, channels, sensor_values);
+//    l_get_sensor_data(dev, num_channels, channels, sensor_values);
 
-    for (int i = 0; i < num_channels; i++) {
-        *values[i] = sensor_value_to_float(sensor_values[i]);
-    }
+//    for (int i = 0; i < num_channels; i++) {
+//        *values[i] = sensor_value_to_float(sensor_values[i]);
+//    }
 
-    return 0;
+    return -1;
 }

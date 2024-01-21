@@ -71,23 +71,41 @@ static void ina_task(void *, void *, void *) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
         uint32_t last_update = k_uptime_get_32();
 
-//        if (likely(ina_device_found[0])) {
-//            l_get_sensor_data_float(sensors[0], 3, ina_channels, (float **) &data_battery);
-//        }
-//
-//        if (likely(ina_device_found[1])) {
-//            l_get_sensor_data_float(sensors[1], 3, ina_channels, (float **) &data_3v3);
-//        }
-//
-//        if (likely(ina_device_found[2])) {
-//            l_get_sensor_data_float(sensors[2], 3, ina_channels, (float **) &data_5v0);
-//        }
+        struct sensor_value current;
+        struct sensor_value voltage;
+        struct sensor_value power;
+        struct sensor_value *sensor_values[] = {
+                &current,
+                &voltage,
+                &power
+        };
+
+        if (likely(ina_device_found[0])) {
+            l_get_sensor_data(sensors[0], 3, ina_channels, sensor_values);
+            data_battery->current = sensor_value_to_float(&current);
+            data_battery->voltage = sensor_value_to_float(&voltage);
+            data_battery->power = sensor_value_to_float(&power);
+        }
+
+        if (likely(ina_device_found[1])) {
+            l_get_sensor_data(sensors[1], 3, ina_channels, sensor_values);
+            data_3v3->current = sensor_value_to_float(&current);
+            data_3v3->voltage = sensor_value_to_float(&voltage);
+            data_3v3->power = sensor_value_to_float(&power);
+        }
+
+        if (likely(ina_device_found[2])) {
+            l_get_sensor_data(sensors[2], 3, ina_channels, sensor_values);
+            data_5v0->current = sensor_value_to_float(&current);
+            data_5v0->voltage = sensor_value_to_float(&voltage);
+            data_5v0->power = sensor_value_to_float(&power);
+        }
 
         if (k_msgq_put(&ina_processing_queue, &ina_task_data, K_NO_WAIT)) {
             LOG_ERR("Failed to put data into INA219 processing queue");
         }
 
-//         Wait some time for sensor to get new values (15 Hz -> 66.67 ms)
+        // Wait some time for sensor to get new values (15 Hz -> 66.67 ms)
         uint32_t time_to_wait = INA219_UPDATE_TIME_MS - (k_uptime_get_32() - last_update);
         if (time_to_wait > 0) {
             k_sleep(K_MSEC(time_to_wait));
