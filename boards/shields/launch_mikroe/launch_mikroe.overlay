@@ -45,7 +45,10 @@
 };
 
 mikrobus_spi: &arduino_spi {};
-mikrobus_serial: &arduino_serial {};
 mikrobus_i2c: &arduino_i2c {};
 
-mikrobus_header: &mikrobus_header_1 {}; 
+mikrobus_header: &mikrobus_header_1 {};
+
+// Will cause issues since arduino_serial is not defined in nucleo_f446re.
+// Not using serial anyways where this a problem (yet)
+//mikrobus_serial: &arduino_serial {};
