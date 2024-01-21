@@ -13,11 +13,12 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
-
-K_QUEUE_DEFINE(ina_processing_queue);
 #define SENSOR_READ_STACK_SIZE (512)
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
+#define INA219_UPDATE_TIME_MS (67)
+
+LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+K_QUEUE_DEFINE(ina_processing_queue);
 
 static K_THREAD_STACK_DEFINE(ina_read_stack, SENSOR_READ_STACK_SIZE);
 static struct k_thread ina_read_thread;
@@ -66,6 +67,7 @@ static void ina_task(void *, void *, void *) {
     // TODO: Testing and publishing data
     while (true) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
+        uint32_t last_update = k_uptime_get_32();
 
         if (likely(ina_device_found[0])) {
             l_get_sensor_data_float(sensors[0], 3, ina_channels, (float **) &data_battery);
@@ -80,6 +82,12 @@ static void ina_task(void *, void *, void *) {
         }
 
 //        k_queue_append(&ina_processing_queue, &ina_task_data);
+
+        // Wait some time for sensor to get new values (15 Hz -> 66.67 ms)
+        uint32_t time_to_wait = INA219_UPDATE_TIME_MS - (k_uptime_get_32() - last_update);
+        if (time_to_wait > 0) {
+            k_sleep(K_MSEC(time_to_wait));
+        }
     }
 }
 
@@ -88,7 +96,7 @@ static void ina_queue_processing_task(void *, void *, void *) {
     ina_packed_data_t ina_packed_data = {0};
 
     while (true) {
-//        ina_task_data = *((ina_task_data_t *) k_queue_get(&ina_processing_queue, K_MSEC(100)));
+        ina_task_data = *((ina_task_data_t *) k_queue_get(&ina_processing_queue, K_MSEC(100)));
 
         ina_packed_data.current_battery = ina_task_data.data_battery.current;
         ina_packed_data.voltage_battery = ina_task_data.data_battery.voltage;
