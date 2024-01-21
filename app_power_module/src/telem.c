@@ -5,9 +5,11 @@
  */
 
 #include "telem.h"
-#include <launch_core/net_utils.h>
 
 #include <stdint.h>
+
+#include <launch_core/device_utils.h>
+#include <launch_core/net_utils.h>
 
 #include <zephyr/kernel.h>
 
@@ -18,41 +20,41 @@
 
 #define STACK_SIZE (2048)
 
-LOG_MODULE_REGISTER(telem, CONFIG_APP_LOG_LEVEL);
+LOG_MODULE_REGISTER(telem, CONFIG_APP_LOG_LEVEL
+);
 
 //static K_THREAD_STACK_DEFINE(adc_stack, STACK_SIZE);
-static K_THREAD_STACK_ARRAY_DEFINE(stacks, 4, STACK_SIZE);
+static K_THREAD_STACK_ARRAY_DEFINE(stacks,
+4, STACK_SIZE);
 
 static power_module_data_t power_module_data = {0};
 static struct k_thread threads[4] = {0};
 
-static void ina_task(void *p_id, void *unused1, void *unused2) {
-    const struct device *dev;
-    ina_data_t *ina_data;
+static void ina_task(void *, void *, void *) {
+    // TODO: Maybe alias each sensor in the DTS
+    const struct device *sensors[] = {
+            DEVICE_DT_GET(DT_INST(0, ti_ina219)), // Battery
+            DEVICE_DT_GET(DT_INST(1, ti_ina219)), // 3v3
+            DEVICE_DT_GET(DT_INST(2, ti_ina219)) // 5v0
+    };
 
-    switch (POINTER_TO_INT(p_id)) {
-        case 0:
-            dev = DEVICE_DT_GET(DT_INST(0, ti_ina219));
-            ina_data = &power_module_data.ina_battery;
-            break;
-        case 1:
-            dev = DEVICE_DT_GET(DT_INST(1, ti_ina219));
-            ina_data = &power_module_data.ina_3v3;
-            break;
-        case 2:
-            dev = DEVICE_DT_GET(DT_INST(2, ti_ina219));
-            ina_data = &power_module_data.ina_5v0;
-            break;
-        default:
-            return;
-    }
+    const enum sensor_channel ina_channels[] = {
+            SENSOR_CHAN_CURRENT,
+            SENSOR_CHAN_VOLTAGE,
+            SENSOR_CHAN_POWER
+    };
+
+    ina_data_t data_battery = {0};
+    ina_data_t data_3v3 = {0};
+    ina_data_t data_5v0 = {0};
 
 
+    // TODO: Testing and publishing data
     while (true) {
-        sensor_sample_fetch(dev);
-        sensor_channel_get(dev, SENSOR_CHAN_VOLTAGE, &ina_data->voltage);
-        sensor_channel_get(dev, SENSOR_CHAN_POWER, &ina_data->power);
-        sensor_channel_get(dev, SENSOR_CHAN_CURRENT, &ina_data->current);
+        l_update_sensors(sensors, 3);
+        l_get_sensor_data(sensors[0], 3, ina_channels, (struct sensor_value **) &data_battery);
+        l_get_sensor_data(sensors[1], 3, ina_channels, (struct sensor_value **) &data_3v3);
+        l_get_sensor_data(sensors[2], 3, ina_channels, (struct sensor_value **) &data_5v0);
     }
 }
 
@@ -105,7 +107,7 @@ void convert_and_send() {
     static power_module_packet_t packet = {0};
     static uint8_t flip_flop = 0;
 
-    packet.current_battery =  sensor_value_to_float(&power_module_data.ina_battery.current);
+    packet.current_battery = sensor_value_to_float(&power_module_data.ina_battery.current);
     packet.voltage_battery = sensor_value_to_float(&power_module_data.ina_battery.voltage);
     packet.power_battery = sensor_value_to_float(&power_module_data.ina_battery.power);
 
@@ -117,7 +119,7 @@ void convert_and_send() {
     packet.voltage_5v0 = sensor_value_to_float(&power_module_data.ina_5v0.voltage);
     packet.power_5v0 = sensor_value_to_float(&power_module_data.ina_5v0.power);
     packet.vin_voltage_sense = flip_flop ? 0xDEAD : 0xBEEF;
-    flip_flop ^= 0b1; 
+    flip_flop ^= 0b1;
 
 
     l_send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t), 9000);

@@ -11,6 +11,10 @@
 #include <zephyr/drivers/lora.h>
 
 /**
+ * Utility functions for dealing with Zephyr's LoRa library
+ */
+
+/**
  * Configure LoRa radio devices for transmission or reception.
  * @param dev - Device to configure
  * @param transmit - True if the device should be configured for transmission. False otherwise
