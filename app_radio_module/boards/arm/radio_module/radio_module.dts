@@ -111,7 +111,6 @@
         int-gpios = <&gpioa 2 GPIO_ACTIVE_LOW>;
         reset-gpios = <&gpioa 30 GPIO_ACTIVE_LOW>;
     };
-
 };
 
 &spi2 {
