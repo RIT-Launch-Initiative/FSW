@@ -1,11 +1,13 @@
 #include <zephyr/kernel.h>
 
+
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
+#include <launch_core/backplane_defs.h>
+#include <launch_core/device_utils.h>
 #include <launch_core/lora_utils.h>
 #include <launch_core/net_utils.h>
-#include <launch_core/device_utils.h>
 
 #define SLEEP_TIME_MS   100
 #define LED0_NODE DT_ALIAS(led0)
@@ -21,8 +23,18 @@ static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 static void init() {
+    char ip[MAX_IP_ADDRESS_STR_LEN];
+    int ret = -1;
+
+    k_queue_init(&net_tx_queue);
+
     if (!l_check_device(lora_dev)) {
         l_lora_configure(lora_dev, false);
+    }
+
+    if (0 > l_create_ip_str_default_net_id(ip, RADIO_MODULE_ID, 1)) {
+        LOG_ERR("Failed to create IP address string: %d", ret);
+        return -1;
     }
 
     if (!l_check_device(wiznet)) {

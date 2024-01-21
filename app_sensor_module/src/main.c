@@ -1,5 +1,6 @@
 #include <app_version.h>
 
+#include <launch_core/backplane_defs.h>
 #include <launch_core/device_utils.h>
 #include <launch_core/net_utils.h>
 
@@ -25,8 +26,16 @@ static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 static int init(void) {
-    static const char *ip = "192.168.1.1";
-    // Queues
+    char ip[MAX_IP_ADDRESS_STR_LEN];
+    int ret = -1;
+
+    k_queue_init(&net_tx_queue);
+
+    if (0 > l_create_ip_str_default_net_id(ip, SENSOR_MODULE_ID, 1)) {
+        LOG_ERR("Failed to create IP address string: %d", ret);
+        return -1;
+    }
+
     k_queue_init(&net_tx_queue);
 
     if (!l_check_device(wiznet)) {
