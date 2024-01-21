@@ -31,7 +31,7 @@ static int init(void) {
 static const struct device *get_adc(void)
 {
     
-	const struct device *const dev = DEVICE_DT_GET(DT_ALIAS(my_adc)); //DEVICE_DT_GET();
+	const struct device *const dev = DEVICE_DT_GET_ONE(microchip_mcp3561);
 
 
 	if (dev == NULL) {

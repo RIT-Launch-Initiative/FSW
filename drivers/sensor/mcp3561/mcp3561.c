@@ -17,7 +17,7 @@ struct mcp3561_data {
 };
 
 struct mcp3561_config {
-	struct gpio_dt_spec input;
+
 };
 
 static int mcp3561_sample_fetch(const struct device *dev,
@@ -26,7 +26,6 @@ static int mcp3561_sample_fetch(const struct device *dev,
 	const struct mcp3561_config *config = dev->config;
 	struct mcp3561_data *data = dev->data;
 
-	data->state = gpio_pin_get_dt(&config->input);
 
 	return 0;
 }
@@ -57,16 +56,16 @@ static int mcp3561_init(const struct device *dev)
 
 	int ret;
 
-	if (!device_is_ready(config->input.port)) {
-		LOG_ERR("Input GPIO not ready");
-		return -ENODEV;
-	}
+	// if (!device_is_ready(config->input.port)) {
+		// LOG_ERR("Input GPIO not ready");
+		// return -ENODEV;
+	// }
 
-	ret = gpio_pin_configure_dt(&config->input, GPIO_INPUT);
-	if (ret < 0) {
-		LOG_ERR("Could not configure input GPIO (%d)", ret);
-		return ret;
-	}
+	// ret = gpio_pin_configure_dt(&config->input, GPIO_INPUT);
+	// if (ret < 0) {
+		// LOG_ERR("Could not configure input GPIO (%d)", ret);
+		// return ret;
+	// }
 
 	return 0;
 }
@@ -74,9 +73,7 @@ static int mcp3561_init(const struct device *dev)
 #define MCP3561_INIT(i)						       \
 	static struct mcp3561_data mcp3561_data_##i;	       \
 									       \
-	static const struct mcp3561_config mcp3561_config_##i = {  \
-		.input = GPIO_DT_SPEC_INST_GET(i, input_gpios),		       \
-	};								       \
+	static const struct mcp3561_config mcp3561_config_##i = {};								       \
 									       \
 	DEVICE_DT_INST_DEFINE(i, mcp3561_init, NULL,		       \
 			      &mcp3561_data_##i,			       \
