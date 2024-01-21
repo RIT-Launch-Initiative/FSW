@@ -23,7 +23,7 @@ static const uint16_t POWER_MODULE_BASE_PORT = 11000;
 typedef enum {
     INA_DATA = 15,
     ADC_DATA = 50,
-} POWER_MODULE_PORT_OFFSET_T;
+} l_power_module_port_offset_t;
 
 
 /********** RADIO MODULE **********/
@@ -32,7 +32,7 @@ static const uint16_t RADIO_MODULE_BASE_PORT = 12000;
 
 typedef enum {
     GNSS_DATA = 20
-} RADIO_MODULE_PORT_OFFSET_T;
+} l_radio_module_port_offset_t;
 
 
 /********** SENSOR MODULE **********/
@@ -42,6 +42,6 @@ static const uint16_t SENSOR_MODULE_BASE_PORT = 13000;
 typedef enum {
     TEN_HZ_DATA = 10,
     HUNDRED_HZ_DATA = 100,
-} SENSOR_MODULE_PORT_OFFSET_T;
+} l_sensor_module_port_offset_t;
 
 #endif //BACKPLANE_DEFS_H
