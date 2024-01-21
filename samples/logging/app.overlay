@@ -1,5 +1,3 @@
-// #include "mikroe_click.overlay"
-
 / {
 	aliases {
 		magn = &lis3mdl;
@@ -41,15 +39,16 @@
 		compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
 		reg = <1>; // connected to to connector 1
 
-		spi-max-frequency = <(50 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
 		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75) 
 		jedec-id = [ef 40 18]; // 0xef4018 (Table 8.1.1, p.22)
+		spi-max-frequency = <(10 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
+		// but sticking to 10 because 50 doesn't work on my hardware at time of
+		// writing since it's just header wires
+
 
 		has-dpd;
-
 		// Power-down 0xB9 (S 8.2.21)
 		t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.66)
-
 		// Release Power-down 0xAB (S 8.2.22)
 		t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.66)
 
@@ -60,11 +59,13 @@
 
 			external_storage_partition: partition@0 {
 				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(128)>;
+				reg = <0 DT_SIZE_M(128)>; // takes up the whole flash
 			};
 		};
 	};
 };
+
+// Everything else is devicetree fragments I found helpful while doing this
 
 /* Fragment from Discovery 1475 board, which has several ST i2c sensors
 
