@@ -44,9 +44,23 @@ int l_update_sensors(const struct device *const *devs, int num_devs) {
     return 0;
 }
 
-int l_get_sensor_data(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
-                      struct sensor_value **values) {
+int l_get_sensor_data(const struct device *const dev, int num_channels, enum sensor_channel const *channels, struct sensor_value **values) {
     for (int i = 0; i < num_channels; i++) {
+        int ret = sensor_channel_get(dev, channels[i], values[i]);
+        if (ret != 0) {
+            LOG_ERR("Failed to get sensor data from %s. Errno %d\n", dev->name, ret);
+        }
+    }
+
+    return 0;
+}
+
+int l_get_sensor_data_safe(const struct device *const dev, int num_channels, enum sensor_channel const *channels, struct sensor_value **values, bool * const devs_ready) {
+    for (int i = 0; i < num_channels; i++) {
+        if (!devs_ready[i]) { // Skip if channel is not ready
+            continue;
+        }
+
         int ret = sensor_channel_get(dev, channels[i], values[i]);
         if (ret != 0) {
             LOG_ERR("Failed to get sensor data from %s. Errno %d\n", dev->name, ret);
