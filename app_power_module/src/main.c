@@ -16,10 +16,10 @@
 #define SENSOR_READ_STACK_SIZE (2048)
 #define QUEUE_PROCESSING_STACK_SIZE (2048)
 #define INA219_UPDATE_TIME_MS (67)
+#define INA219_QUEUE_SIZE (10) // TODO: Make this a config option. Has to #defined to compile
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
-#define INA219_QUEUE_SIZE 10 // TODO: Make this a config option. Has to #defined to compile
 static struct k_msgq ina_processing_queue;
 static uint8_t ina_processing_queue_buffer[INA219_QUEUE_SIZE * sizeof(ina_task_data_t)];
 
