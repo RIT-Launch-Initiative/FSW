@@ -1,0 +1,7 @@
+CBasedOnStyle: Google
+AlignAfterOpenBracket: Align
+AlignTrailingComments: 'true'
+AllowShortLoopsOnASingleLine: 'true'
+CompileFlags:
+  Add: -Wno-unknown-warning-option
+  Remove: [-m*, -f*]

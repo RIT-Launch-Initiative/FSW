@@ -11,5 +11,8 @@ radio:
 	west build -b radio_module app_radio_module -p auto 
 
 sensor:
-	west build -b sensor_module app_sensor_module -p auto 
+	west build -b sensor_module app_sensor_module -p auto
+
+clean:
+	rm -rf build
 

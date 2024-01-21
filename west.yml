@@ -1,0 +1,25 @@
+# Copyright (c) 2024 Aaron CHan
+# SPDX-License-Identifier: Apache-2.0
+
+manifest:
+  self:
+    west-commands: scripts/west-commands.yml
+
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+    - name: u-blox
+      url-base: git@github.com:u-blox
+
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: main
+      import: true
+    - name: ubxlib
+      remote: u-blox
+      path: ubxlib
+      revision: master
+      import: true
+      clone-depth: 1
+
