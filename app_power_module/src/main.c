@@ -79,7 +79,7 @@ static void ina_task(void *, void *, void *) {
             l_get_sensor_data_float(sensors[2], 3, ina_channels, (float **) &data_5v0);
         }
 
-        k_queue_append(&ina_processing_queue, &ina_task_data);
+//        k_queue_append(&ina_processing_queue, &ina_task_data);
     }
 }
 
@@ -88,7 +88,7 @@ static void ina_queue_processing_task(void *, void *, void *) {
     ina_packed_data_t ina_packed_data = {0};
 
     while (true) {
-        ina_task_data = *((ina_task_data_t *) k_queue_get(&ina_processing_queue, K_MSEC(100)));
+//        ina_task_data = *((ina_task_data_t *) k_queue_get(&ina_processing_queue, K_MSEC(100)));
 
         ina_packed_data.current_battery = ina_task_data.data_battery.current;
         ina_packed_data.voltage_battery = ina_task_data.data_battery.voltage;
