@@ -1,4 +1,4 @@
-#include "mikroe_click.overlay"
+// #include "mikroe_click.overlay"
 
 / {
 	aliases {
