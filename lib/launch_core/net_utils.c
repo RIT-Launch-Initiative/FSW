@@ -78,6 +78,11 @@ int l_send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port) {
 
 int l_receive_udp_callback(const struct device *dev, struct net_pkt *packet, int status) {
     // TODO: Currently being implemented and tested in another branch
+    if (sys_hashmap_contains_key(&UDP_PORT_HANDLERS, &packet->port)) {
+        l_udp_port_handler_t *port_handler = sys_hashmap_get(&UDP_PORT_HANDLERS, &packet->port);
+        port_handler->handler(NULL, NULL);
+    }
+
     return 0;
 }
 
