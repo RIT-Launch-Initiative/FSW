@@ -1,51 +1,78 @@
 /*
- * Copyright (c) 2023 Aaron Chan
+ * Copyright (c) 2023 Andriy Gelman
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 / {
-    mikrobus_header_1: mikrobus-connector-1 {
-        compatible = "mikro-bus";
-        #gpio-cells = <2>;
-        gpio-map-mask = <0xffffffff 0xffffffc0>;
-        gpio-map-pass-thru = <0 0x3f>;
-        gpio-map =  <0 0 &arduino_header 0 0>,   /* AN   -> A0  */
-                    <1 0 &arduino_header 3 0>,   /* RST  -> A3  */
-                    <2 0 &arduino_header 16 0>,  /* CS   -> D10 */
-                    <3 0 &arduino_header 19 0>,  /* SCK  -> D13 */
-                    <4 0 &arduino_header 18 0>,  /* MISO -> D12 */
-                    <5 0 &arduino_header 17 0>,  /* MOSI -> D11 */
-                    <6 0 &arduino_header 6 0>,   /* RX   -> D0  */
-                    <7 0 &arduino_header 7 0>,   /* TX   -> D1  */
-                    <8 0 &arduino_header 12 0>,  /* PWM  -> D6  */
-                    <9 0 &arduino_header 8 0>,   /* INT  -> D2  */
-                    <10 0 &arduino_header 20 0>, /* SCL  -> D14 */
-                    <11 0 &arduino_header 21 0>; /* SDA  -> D15 */
-    };
+	mikrobus_header_1: mikrobus-connector-1 {
+		compatible = "mikro-bus";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &arduino_header 0 0>,	/* AN   -> A0  */
+				<1 0 &arduino_header 3 0>,	/* RST  -> A3  */
+				<2 0 &arduino_header 16 0>,	/* CS   -> D10 */
+				<3 0 &arduino_header 19 0>,	/* SCK  -> D13 */
+				<4 0 &arduino_header 18 0>,	/* MISO -> D12 */
+				<5 0 &arduino_header 17 0>,	/* MOSI -> D11 */
+								/* +3.3V */
+								/* GND */
+				<6 0 &arduino_header 12 0>,	/* PWM  -> D6  */
+				<7 0 &arduino_header 8 0>,	/* INT  -> D2  */
+				<8 0 &arduino_header 6 0>,	/* RX   -> D0  */
+				<9 0 &arduino_header 7 0>,	/* TX   -> D1  */
+				<10 0 &arduino_header 5 0>,	/* SCL  -> A5  */
+				<11 0 &arduino_header 4 0>;	/* SDA  -> A4  */
+								/* +5V */
+								/* GND */
+	};
 
-    mikrobus_header_2: mikrobus-connector-2 {
-        compatible = "mikro-bus";
-        #gpio-cells = <2>;
-        gpio-map-mask = <0xffffffff 0xffffffc0>;
-        gpio-map-pass-thru = <0 0x3f>;
-        gpio-map =  <0 0 &arduino_header 1 0>,   /* AN   -> A1  */
-                    <1 0 &arduino_header 2 0>,   /* RST  -> A2  */
-                    <2 0 &arduino_header 15 0>,  /* CS   -> D9 */
-                    <3 0 &arduino_header 19 0>,  /* SCK  -> D13 */
-                    <4 0 &arduino_header 18 0>,  /* MISO -> D12 */
-                    <5 0 &arduino_header 17 0>,  /* MOSI -> D11 */
-                    <6 0 &arduino_header 6 0>,   /* RX   -> D0  */
-                    <7 0 &arduino_header 7 0>,   /* TX   -> D1  */
-                    <8 0 &arduino_header 11 0>,  /* PWM  -> D5  */
-                    <9 0 &arduino_header 9 0>,   /* INT  -> D3  */
-                    <10 0 &arduino_header 5 0>,  /* SCL  -> A5  */
-                    <11 0 &arduino_header 4 0>;  /* SDA  -> A4  */
-    };
+	mikrobus_header_2: mikrobus-connector-2 {
+		compatible = "mikro-bus";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map =	<0 0 &arduino_header 1 0>,	/* AN   -> A1  */
+				<1 0 &arduino_header 2 0>,	/* RST  -> A2  */
+				<2 0 &arduino_header 15 0>,	/* CS   -> D9 */
+				<3 0 &arduino_header 19 0>,	/* SCK  -> D13 */
+				<4 0 &arduino_header 18 0>,	/* MISO -> D12 */
+				<5 0 &arduino_header 17 0>,	/* MOSI -> D11 */
+								/* +3.3V */
+								/* GND */
+				<6 0 &arduino_header 11 0>,	/* PWM  -> D5  */
+				<7 0 &arduino_header 9 0>,	/* INT  -> D3  */
+				<8 0 &arduino_header 6 0>,	/* RX   -> D0  */
+				<9 0 &arduino_header 7 0>,	/* TX   -> D1  */
+				<10 0 &arduino_header 5 0>,	/* SCL  -> A5  */
+				<11 0 &arduino_header 4 0>;	/* SDA  -> A4  */
+								/* +5V */
+								/* GND */
+	};
+
+	leds: leds {
+		compatible = "gpio-leds";
+		shield_led: led_3 {
+			gpios = <&arduino_header 13 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
 };
 
-mikrobus_spi: &arduino_spi {};
-mikrobus_serial: &arduino_serial {};
+mikrobus_spi: &arduino_spi {
+	cs-gpios = <&mikrobus_header_1 2 GPIO_ACTIVE_LOW>, 
+				<&mikrobus_header_2 2 GPIO_ACTIVE_LOW>;
+
+};
 mikrobus_i2c: &arduino_i2c {};
 
-mikrobus_header: &mikrobus_header_1 {}; 
+mikrobus_serial: &usart2 {}; // enabled by default on the nucleo
+
+shield_serial: &uart4 { // not enabled by default on the nucleo
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>; 
+	current-speed = <115200>;
+	status = "okay";
+};
+
