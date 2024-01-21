@@ -17,11 +17,35 @@
 #include <zephyr/net/ethernet.h>
 #include <zephyr/net/net_event.h>
 
+/********** GENERAL **********/
+
+
+/**
+ * Create a string representation of an IP address
+ * @param ip_str - Pointer to a buffer to store the string
+ * @param a - First octet
+ * @param b - Second octet
+ * @param c - Third octet
+ * @param d - Fourth octet
+ * @return Number of characters written to the buffer or negative error code
+ */
+int l_create_ip_str(char *ip_str, int a, int b, int c, int d);
+
+/**
+ * Create a string representation of an IP address with the default network ID
+ * @param ip_str - Pointer to a buffer to store the string
+ * @param c - Third octet
+ * @param d - Fourth octet
+ * @return Number of characters written to the buffer or negative error code
+ */
+int l_create_ip_str_default_net_id(char *ip_str, int c, int d);
 
 /********** UDP **********/
+typedef void (*l_udp_handler_t)(uint8_t *data, size_t data_len);
+
 typedef struct {
     uint16_t port;
-    void (*handler)(uint8_t *data, size_t data_len);
+    l_udp_handler_t handler;
 } l_udp_port_handler_t;
 
 /**
@@ -55,7 +79,7 @@ int l_receive_udp_callback(const struct device *dev, struct net_pkt *packet, int
  * @param handler - Function to handle data
  * @return Zephyr status code
  */
-int l_add_port_handler(uint16_t port, void (*handler)(uint8_t *data, size_t data_len));
+int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler);
 
 /**
  * Remove a port handler

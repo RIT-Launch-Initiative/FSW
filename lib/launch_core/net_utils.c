@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <stdio.h>
+
+#include <launch_core/backplane_defs.h>
 #include <launch_core/net_utils.h>
+
 #include <zephyr/sys/hash_map.h>
 #include <zephyr/types.h>
 
@@ -15,6 +19,20 @@ LOG_MODULE_REGISTER(net_utils);
 SYS_HASHMAP_DEFINE_STATIC(UDP_PORT_HANDLERS);
 
 static struct net_if *net_interface;
+
+int l_create_ip_str(char *ip_str, int a, int b, int c, int d) {
+    if (!ip_str) return -5;
+    if (a < 0 || a > 255) return -1;
+    if (b < 0 || b > 255) return -2;
+    if (c < 0 || c > 255) return -3;
+    if (d < 0 || d > 255) return -4;
+
+    return snprintf(ip_str, MAX_IP_ADDRESS_STR_LEN, "%d.%d.%d.%d", a, b, c, d);
+}
+
+int l_create_ip_str_default_net_id(char *ip_str, int c, int d) {
+    return l_create_ip_str(ip_str, BACKPLANE_NETWORK_ID[0], BACKPLANE_NETWORK_ID[1], c, d);
+}
 
 int l_init_udp_net_stack(const char *ip_addr) {
     int ret;
@@ -78,18 +96,13 @@ int l_send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port) {
 
 int l_receive_udp_callback(const struct device *dev, struct net_pkt *packet, int status) {
     // TODO: Currently being implemented and tested in another branch
-    if (sys_hashmap_contains_key(&UDP_PORT_HANDLERS, &packet->port)) {
-        l_udp_port_handler_t *port_handler = sys_hashmap_get(&UDP_PORT_HANDLERS, &packet->port);
-        port_handler->handler(NULL, NULL);
-    }
-
     return 0;
 }
 
-int l_add_port_handler(uint16_t port, void (*handler)(uint8_t *data, size_t data_len)) {
-    return sys_hashmap_insert(&UDP_PORT_HANDLERS, &port, handler, NULL);
+int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler) {
+    return sys_hashmap_insert(&UDP_PORT_HANDLERS, port, POINTER_TO_INT(handler), NULL);
 }
 
 int l_remove_port_handler(uint16_t port) {
-    return sys_hashmap_remove(&UDP_PORT_HANDLERS, &port, NULL);
+    return sys_hashmap_remove(&UDP_PORT_HANDLERS, port, NULL);
 }
