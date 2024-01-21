@@ -3,9 +3,6 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
-// Lora
-#include <zephyr/drivers/lora.h>
-
 #include <launch_core/lora_utils.h>
 #include <launch_core/net_utils.h>
 #include <launch_core/device_utils.h>
@@ -37,7 +34,7 @@ int main() {
     uint8_t tx_buff[255] = {0};
     uint8_t tx_buff_len = 0;
 
-    printk("Starting radio module!\n");
+    LOG_DBG("Starting radio module!\n");
     init();
 
     while (1) {
