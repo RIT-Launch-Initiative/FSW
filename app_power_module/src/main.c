@@ -16,12 +16,11 @@
 #define SENSOR_READ_STACK_SIZE (2048)
 #define QUEUE_PROCESSING_STACK_SIZE (2048)
 #define INA219_UPDATE_TIME_MS (67)
-#define INA219_QUEUE_SIZE (10) // TODO: Make this a config option. Has to #defined to compile
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
 static struct k_msgq ina_processing_queue;
-static uint8_t ina_processing_queue_buffer[INA219_QUEUE_SIZE * sizeof(ina_task_data_t)];
+static uint8_t ina_processing_queue_buffer[CONFIG_INA219_QUEUE_SIZE * sizeof(ina_task_data_t)];
 
 static K_THREAD_STACK_DEFINE(ina_read_stack, SENSOR_READ_STACK_SIZE);
 static struct k_thread ina_read_thread;
@@ -144,7 +143,7 @@ static int init(void) {
     char ip[MAX_IP_ADDRESS_STR_LEN];
     int ret = -1;
 
-    k_msgq_init(&ina_processing_queue, ina_processing_queue_buffer, sizeof(ina_task_data_t), INA219_QUEUE_SIZE);
+    k_msgq_init(&ina_processing_queue, ina_processing_queue_buffer, sizeof(ina_task_data_t), CONFIG_INA219_QUEUE_SIZE);
     if (0 > l_create_ip_str_default_net_id(ip, POWER_MODULE_ID, 1)) {
         LOG_ERR("Failed to create IP address string: %d", ret);
         return -1;
