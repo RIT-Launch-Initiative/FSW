@@ -52,7 +52,7 @@ int l_update_sensors(const struct device *const *devs, int num_devs);
  * @param devs_ready - List of booleans indicating whether the device is ready
  * @return Status code (Only 0 currently)
  */
-int l_update_sensors_safe(const struct device *const *devs, int num_devs, bool *const devs_ready);
+int l_update_sensors_safe(const struct device *const *devs, int num_devs, const bool *devs_ready);
 
 /**
  * Get sensor data from a device.
