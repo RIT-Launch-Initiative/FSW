@@ -13,8 +13,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#define SENSOR_READ_STACK_SIZE (2048)
-#define QUEUE_PROCESSING_STACK_SIZE (2048)
+#define SENSOR_READ_STACK_SIZE (512)
+#define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
