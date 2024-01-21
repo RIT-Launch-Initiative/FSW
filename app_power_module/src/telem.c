@@ -20,22 +20,20 @@
 
 #define STACK_SIZE (2048)
 
-LOG_MODULE_REGISTER(telem, CONFIG_APP_LOG_LEVEL
-);
+LOG_MODULE_REGISTER(telem);
 
 //static K_THREAD_STACK_DEFINE(adc_stack, STACK_SIZE);
-static K_THREAD_STACK_ARRAY_DEFINE(stacks,
-4, STACK_SIZE);
+static K_THREAD_STACK_DEFINE(ina_stack, STACK_SIZE);
+static struct k_thread ina_thread;
 
 static power_module_data_t power_module_data = {0};
-static struct k_thread threads[4] = {0};
 
 static void ina_task(void *, void *, void *) {
     // TODO: Maybe alias each sensor in the DTS
     const struct device *sensors[] = {
-            DEVICE_DT_GET(DT_INST(0, ti_ina219)), // Battery
-            DEVICE_DT_GET(DT_INST(1, ti_ina219)), // 3v3
-            DEVICE_DT_GET(DT_INST(2, ti_ina219)) // 5v0
+            DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
+            DEVICE_DT_GET(DT_ALIAS(ina3v3)), // 3v3
+            DEVICE_DT_GET(DT_ALIAS(ina5v0)) // 5v0
     };
 
     const enum sensor_channel ina_channels[] = {
@@ -93,14 +91,8 @@ static void ina_task(void *, void *, void *) {
 // }
 
 void init_telem_tasks() {
-    // TODO: Maybe make this one thread that does all the INA stuff
-    for (int i = 0; i < 3; i++) {
-        k_thread_create(&threads[i], &stacks[i][0], STACK_SIZE,
-                        ina_task, INT_TO_POINTER(i), NULL, NULL,
-                        K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-
-        k_thread_start(&threads[i]);
-    }
+    k_thread_create(&ina_thread, &ina_stack[0], STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_start(&ina_thread);
 }
 
 void convert_and_send() {

@@ -25,6 +25,9 @@
 	};
 
 	aliases {
+		inabatt = &ina0;
+		ina3v3 = &ina1;
+		ina5v0 = &ina2;
 	};
 };
 
@@ -86,7 +89,7 @@
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 
-    ina219_battery@40 {
+    ina0: ina219_battery@40 {
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x40>;
@@ -98,7 +101,7 @@
 		lsb-microamp = <10>;
 	};
 
-    ina219_3v3@44 {
+    ina1: ina219_3v3@44 {
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x44>;
@@ -110,7 +113,7 @@
 		lsb-microamp = <10>;
 	};
 
-    ina219_5v0@41 {
+    ina2: ina219_5v0@41 {
 		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x41>;
