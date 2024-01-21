@@ -13,15 +13,15 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#define SENSOR_READ_STACK_SIZE (512)
-#define QUEUE_PROCESSING_STACK_SIZE (1024)
+#define SENSOR_READ_STACK_SIZE (2048)
+#define QUEUE_PROCESSING_STACK_SIZE (2048)
 #define INA219_UPDATE_TIME_MS (67)
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
-#define INA219_QUEUE_SIZE 32 // TODO: Make this a config option. Has to #defined to compile
+#define INA219_QUEUE_SIZE 10 // TODO: Make this a config option. Has to #defined to compile
 static struct k_msgq ina_processing_queue;
-uint8_t ina_processing_queue_buffer[INA219_QUEUE_SIZE * sizeof(ina_task_data_t)];
+static uint8_t ina_processing_queue_buffer[INA219_QUEUE_SIZE * sizeof(ina_task_data_t)];
 
 static K_THREAD_STACK_DEFINE(ina_read_stack, SENSOR_READ_STACK_SIZE);
 static struct k_thread ina_read_thread;
@@ -71,25 +71,30 @@ static void ina_task(void *, void *, void *) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
         uint32_t last_update = k_uptime_get_32();
 
-        if (likely(ina_device_found[0])) {
-            l_get_sensor_data_float(sensors[0], 3, ina_channels, (float **) &data_battery);
-        }
+//        if (likely(ina_device_found[0])) {
+//            l_get_sensor_data_float(sensors[0], 3, ina_channels, (float **) &data_battery);
+//        }
+//
+//        if (likely(ina_device_found[1])) {
+//            l_get_sensor_data_float(sensors[1], 3, ina_channels, (float **) &data_3v3);
+//        }
+//
+//        if (likely(ina_device_found[2])) {
+//            l_get_sensor_data_float(sensors[2], 3, ina_channels, (float **) &data_5v0);
+//        }
 
-        if (likely(ina_device_found[1])) {
-            l_get_sensor_data_float(sensors[1], 3, ina_channels, (float **) &data_3v3);
-        }
+//        if (k_msgq_put(&ina_processing_queue, &ina_task_data, K_NO_WAIT)) {
+//            LOG_ERR("Failed to put data into INA219 processing queue");
+//        }
 
-        if (likely(ina_device_found[2])) {
-            l_get_sensor_data_float(sensors[2], 3, ina_channels, (float **) &data_5v0);
-        }
-
-        k_msgq_put(&ina_processing_queue, &ina_task_data, K_NO_WAIT);
-
-        // Wait some time for sensor to get new values (15 Hz -> 66.67 ms)
+//         Wait some time for sensor to get new values (15 Hz -> 66.67 ms)
         uint32_t time_to_wait = INA219_UPDATE_TIME_MS - (k_uptime_get_32() - last_update);
         if (time_to_wait > 0) {
             k_sleep(K_MSEC(time_to_wait));
         }
+
+        uint8_t heartbeat = 1;
+        l_send_udp_broadcast(&heartbeat, sizeof(heartbeat), 11000);
     }
 }
 
@@ -98,7 +103,10 @@ static void ina_queue_processing_task(void *, void *, void *) {
     ina_packed_data_t ina_packed_data = {0};
 
     while (true) {
-        k_msgq_get(&ina_processing_queue, &ina_task_data, K_FOREVER);
+//        if (k_msgq_get(&ina_processing_queue, &ina_task_data, K_FOREVER)) {
+//            LOG_ERR("Failed to get data from INA219 processing queue");
+//            continue;
+//        }
 
         ina_packed_data.current_battery = ina_task_data.data_battery.current;
         ina_packed_data.voltage_battery = ina_task_data.data_battery.voltage;
@@ -142,9 +150,9 @@ static int init(void) {
     k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
     k_thread_start(&ina_read_thread);
 
-    k_thread_create(&ina_processing_thread, &ina_processing_stack[0], QUEUE_PROCESSING_STACK_SIZE, ina_queue_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0,
-                    K_NO_WAIT);
-    k_thread_start(&ina_processing_thread);
+//    k_thread_create(&ina_processing_thread, &ina_processing_stack[0], QUEUE_PROCESSING_STACK_SIZE, ina_queue_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0,
+//                    K_NO_WAIT);
+//    k_thread_start(&ina_processing_thread);
 
     return 0;
 }
