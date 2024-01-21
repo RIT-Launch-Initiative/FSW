@@ -5,7 +5,7 @@
  */
 
 #include "telem.h"
-#include "net_utils.h"
+#include <launch_core/net_utils.h>
 
 #include <stdint.h>
 
@@ -90,7 +90,8 @@ static void ina_task(void *p_id, void *unused1, void *unused2) {
 //     };
 // }
 
-void init_telem_tasks() { 
+void init_telem_tasks() {
+    // TODO: Maybe make this one thread that does all the INA stuff
     for (int i = 0; i < 3; i++) {
         k_thread_create(&threads[i], &stacks[i][0], STACK_SIZE,
                         ina_task, INT_TO_POINTER(i), NULL, NULL,
@@ -119,5 +120,5 @@ void convert_and_send() {
     flip_flop ^= 0b1; 
 
 
-    send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t), 9000);
+    l_send_udp_broadcast((const uint8_t *) &packet, sizeof(power_module_packet_t), 9000);
 }

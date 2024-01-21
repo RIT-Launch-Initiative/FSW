@@ -39,9 +39,10 @@
         led0 = &red_led_1;
 		led1 = &red_led_2;
 
-        lora0 = &lora;
         dbguart = &uart4;
         ubxlib-usart2 = &usart2;
+
+		lora0 = &lora;
 	};
 };
 
@@ -105,7 +106,6 @@
 
     w5500: w5500@0 {
         compatible = "wiznet,w5500";
-        label = "w5500";
         reg = <0x0>;
         spi-max-frequency = <10000000>;
         int-gpios = <&gpioa 2 GPIO_ACTIVE_LOW>;
@@ -115,32 +115,24 @@
 
 &spi2 {
     pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pb14 &spi2_mosi_pb15>;
-    cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW
-                    >;
+    cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
 
-        lora: sx1276@0 {
-    		compatible = "semtech,sx1276";
-    		label = "sx1276";
-		    reg = <0>;
-	    	reset-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
-    		dio-gpios = <&gpioc 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-					    <&gpiod 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-				    	<&gpiob 5 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-			    		<&gpioa 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-		    			<&gpioa 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
-	    				<&gpioa 10 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-    		power-amplifier-output = "pa-boost";
-    		spi-max-frequency = <125000>;
-            status = "okay";
-
-        storage: w25q128@0 {
-            compatible = "jedec,spi-nor";
-
-        }
-	
-    };
+    lora: lora@0 {
+		compatible = "semtech,sx1276";
+		reg = <0>;
+		reset-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
+		dio-gpios = <&gpioc 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+					<&gpiod 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+					<&gpiob 5 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+					<&gpioa 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+					<&gpioa 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,
+					<&gpioa 10 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+		power-amplifier-output = "pa-boost";
+		spi-max-frequency = <125000>;
+        status = "okay";
+	};
 };
 
 &rtc {

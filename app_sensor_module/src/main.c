@@ -1,82 +1,65 @@
 #include <app_version.h>
+
+#include <launch_core/backplane_defs.h>
+#include <launch_core/device_utils.h>
+#include <launch_core/net_utils.h>
+
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/gpio.h>
 
-#include <zephyr/fs/fs.h>
-//#include <zephyr/fs/littlefs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/storage/flash_map.h>
 
 #include "sensors.h"
-#include "net_utils.h"
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 K_QUEUE_DEFINE(net_tx_queue);
 
 #define STACK_SIZE (512)
+#define LED0_NODE DT_ALIAS(led0)
+static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
-// #define LED0_NODE DT_ALIAS(led0)
-// static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-//
-// #define LED1_NODE DT_ALIAS(led1)
-// static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+#define LED1_NODE DT_ALIAS(led1)
+static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
+static int init(void) {
+    char ip[MAX_IP_ADDRESS_STR_LEN];
+    int ret = -1;
 
-extern SENSOR_MODULE_DATA_T data;
-
-// static void broadcast_data_task(void *, void *, void *) {
-//     while (1) {
-//         send_udp_broadcast((uint8_t *) &data, sizeof(SENSOR_MODULE_DATA_T), 11000);
-//    }
-// }
-
-static void randomize_data(void *, void *, void *) {
-    while (1) {
-        for (int i = 0; i < 256; i++) {
-            data.accel_x = i;
-            data.accel_y = i;
-            data.accel_z = i;
-            data.pressure_bmp3 = i;
-            data.pressure_ms5 = i;
-        }
-        
-        for (int i = 256; i >= 0; i--) {
-            data.accel_x = i;
-            data.accel_y = i;
-            data.accel_z = i;
-            data.pressure_bmp3 = i;
-            data.pressure_ms5 = i;
-        }
-
-    }
-}
-
-static void init(void) {
-    // Queues
     k_queue_init(&net_tx_queue);
 
-    if (!init_eth_iface()) {
-        printk("Ethernet ready\n");
-        if (!init_net_stack()) {
-            printk("Network stack initialized\n");
-        }
+    if (0 > l_create_ip_str_default_net_id(ip, SENSOR_MODULE_ID, 1)) {
+        LOG_ERR("Failed to create IP address string: %d", ret);
+        return -1;
     }
 
-}
+    k_queue_init(&net_tx_queue);
 
+    if (!l_check_device(wiznet)) {
+        if (!l_init_udp_net_stack(ip)) {
+            LOG_ERR("Failed to initialize network stack");
+        }
+    } else {
+        LOG_ERR("Failed to get network device");
+    }
 
-int main() {
-    init();
-
-    while (1) {
-        send_udp_broadcast((uint8_t *) &data, sizeof(SENSOR_MODULE_DATA_T), 11000);
-   }
+    // Sensors
 
     return 0;
 }
 
+int main() {
+    if (!init()) {
+        return -1;
+    }
 
+    while (1) {
+    }
+
+    return 0;
+}
 
 

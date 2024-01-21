@@ -1,5 +1,0 @@
-# Copyright (c) 2023 Aaron Chan
-# SPDX-License-Identifier: Apache-2.0
-
-config LAUNCH_MIKROE_CLICK
-	def_bool $(shields_list_contains,launch_mikroe)
