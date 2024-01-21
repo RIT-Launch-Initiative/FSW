@@ -49,12 +49,12 @@ static void ina_task(void *, void *, void *) {
     ina_data_t data_5v0 = {0};
 
 
+    // TODO: Testing and publishing data
     while (true) {
         l_update_sensors(sensors, 3);
         l_get_sensor_data(sensors[0], 3, ina_channels, (struct sensor_value **) &data_battery);
         l_get_sensor_data(sensors[1], 3, ina_channels, (struct sensor_value **) &data_3v3);
         l_get_sensor_data(sensors[2], 3, ina_channels, (struct sensor_value **) &data_5v0);
-
     }
 }
 
