@@ -20,7 +20,8 @@ typedef struct {
     ina_data_t data_battery;
     ina_data_t data_3v3;
     ina_data_t data_5v0;
-} ina_task_data_t;
+    int16_t vin_adc_data;
+} power_module_telemetry_t;
 
 // Packed data for sending over the network and storing as compactly as possible
 typedef struct __attribute__((packed)) {
@@ -35,7 +36,9 @@ typedef struct __attribute__((packed)) {
     float current_5v0;
     float voltage_5v0;
     float power_5v0;
-} ina_packed_data_t;
+
+    int16_t vin_adc_data;
+} power_module_telemetry_packed_t;
 
 
 #endif
