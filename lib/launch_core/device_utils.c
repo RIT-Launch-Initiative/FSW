@@ -27,7 +27,7 @@ int l_check_device(const struct device *const dev) {
 int l_init_adc_channel(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence) {
     int ret = adc_is_ready_dt(channel);
 
-    if (ret < 0) {
+    if (ret >= 0) {
         ret = adc_channel_setup_dt(channel);
 
         if (ret < 0) {
