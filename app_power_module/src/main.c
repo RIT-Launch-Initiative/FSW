@@ -17,7 +17,8 @@
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL
+);
 
 static struct k_msgq ina_processing_queue;
 static uint8_t ina_processing_queue_buffer[CONFIG_INA219_QUEUE_SIZE * sizeof(ina_task_data_t)];
@@ -30,7 +31,18 @@ static struct k_thread ina_processing_thread;
 
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
+static const enum sensor_channel ina_channels[] = {
+        SENSOR_CHAN_CURRENT,
+        SENSOR_CHAN_VOLTAGE,
+        SENSOR_CHAN_POWER
+};
+
+
 static void ina_task(void *, void *, void *) {
+    ina_task_data_t ina_task_data = {0};
+    int16_t vin_adc_data = 0;
+    uint16_t temp_vin_adc_data = 0;
+
     const struct device *sensors[] = {
             DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
             DEVICE_DT_GET(DT_ALIAS(ina3v3)), // 3v3
@@ -38,8 +50,11 @@ static void ina_task(void *, void *, void *) {
     };
 
     const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
-    const struct adc_channel_cfg vin_sense_adc_cfg = ADC_CHANNEL_CFG_DT(DT_CHILD(DT_NODELABEL(adc1), channel_4));
-    struct adc_sequence vin_sense_sequence;
+
+    struct adc_sequence vin_sense_sequence = {
+            .buffer = &temp_vin_adc_data,
+            .buffer_size = sizeof(temp_vin_adc_data),
+    };
 
     const bool ina_device_found[] = {
             l_check_device(sensors[0]) == 0,
@@ -47,16 +62,7 @@ static void ina_task(void *, void *, void *) {
             l_check_device(sensors[2]) == 0
     };
 
-
     const bool adc_ready = l_init_adc_channel(&vin_sense_adc, &vin_sense_sequence) == 0;
-
-    const enum sensor_channel ina_channels[] = {
-            SENSOR_CHAN_CURRENT,
-            SENSOR_CHAN_VOLTAGE,
-            SENSOR_CHAN_POWER
-    };
-
-    ina_task_data_t ina_task_data = {0};
 
     if (!ina_device_found[0]) {
         LOG_ERR("INA219 battery sensor not found");
@@ -70,8 +76,13 @@ static void ina_task(void *, void *, void *) {
         LOG_ERR("INA219 5v0 sensor not found");
     }
 
+    if (!adc_ready) {
+        LOG_ERR("ADC channel %d is not ready", vin_sense_adc.channel_id);
+    }
+
     while (true) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
+        l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) & vin_adc_data);
         ina_task_data.timestamp = k_uptime_get_32();
 
         struct sensor_value current;
@@ -139,7 +150,8 @@ static void ina_queue_processing_task(void *, void *, void *) {
         ina_packed_data.power_5v0 = ina_task_data.data_5v0.power;
 
         // TODO: write to flash when data logging library is ready
-        l_send_udp_broadcast((uint8_t *) &ina_packed_data, sizeof(ina_packed_data_t), POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+        l_send_udp_broadcast((uint8_t * ) & ina_packed_data, sizeof(ina_packed_data_t),
+                             POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
     }
 }
 
@@ -165,10 +177,12 @@ static int init(void) {
     }
 
     // TODO: Play with these values on rev 2 where we can do more profiling
-    k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL,
+                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
     k_thread_start(&ina_read_thread);
 
-    k_thread_create(&ina_processing_thread, &ina_processing_stack[0], QUEUE_PROCESSING_STACK_SIZE, ina_queue_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0,
+    k_thread_create(&ina_processing_thread, &ina_processing_stack[0], QUEUE_PROCESSING_STACK_SIZE,
+                    ina_queue_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0,
                     K_NO_WAIT);
     k_thread_start(&ina_processing_thread);
 

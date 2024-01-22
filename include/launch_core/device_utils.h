@@ -36,11 +36,7 @@ int l_init_adc_channel(const struct adc_dt_spec *const channel, struct adc_seque
 
 int l_init_adc_channels(const struct adc_dt_spec *const channels, struct adc_sequence *const sequences, const int num_channels);
 
-int l_read_adc_raw(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val);
-
 int l_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val);
-
-int l_async_read_adc_raw(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val);
 
 int l_async_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val);
 
