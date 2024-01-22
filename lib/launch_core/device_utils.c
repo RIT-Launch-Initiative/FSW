@@ -80,10 +80,10 @@ int l_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *
     return ret;
 }
 
+// TODO: Implement
 int l_async_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val) {
     return -1;
 }
-
 
 /********** SENSORS **********/
 int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_args_t *args, bool convert_to_float) {

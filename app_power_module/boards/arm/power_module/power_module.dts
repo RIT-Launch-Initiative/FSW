@@ -28,7 +28,12 @@
 		inabatt = &ina0;
 		ina3v3 = &ina1;
 		ina5v0 = &ina2;
+		vin = &adc1;
 	};
+
+	zephyr,user {
+        io-channels = <&adc1 4>;
+    };
 };
 
 &clk_lsi {

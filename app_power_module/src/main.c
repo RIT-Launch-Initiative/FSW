@@ -37,11 +37,18 @@ static void ina_task(void *, void *, void *) {
             DEVICE_DT_GET(DT_ALIAS(ina5v0)) // 5v0
     };
 
+    const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+    const struct adc_channel_cfg vin_sense_adc_cfg = ADC_CHANNEL_CFG_DT(DT_CHILD(DT_NODELABEL(adc1), channel_4));
+    struct adc_sequence vin_sense_sequence;
+
     const bool ina_device_found[] = {
             l_check_device(sensors[0]) == 0,
             l_check_device(sensors[1]) == 0,
             l_check_device(sensors[2]) == 0
     };
+
+
+    const bool adc_ready = l_init_adc_channel(&vin_sense_adc, &vin_sense_sequence) == 0;
 
     const enum sensor_channel ina_channels[] = {
             SENSOR_CHAN_CURRENT,
