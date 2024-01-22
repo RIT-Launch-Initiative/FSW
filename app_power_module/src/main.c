@@ -78,15 +78,18 @@ static void ina_task(void *, void *, void *) {
 
     if (!adc_ready) {
         LOG_ERR("ADC channel %d is not ready", vin_sense_adc.channel_id);
+        sensor_telemetry.vin_adc_data = -0x7FFF;
+
     }
 
     while (true) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
         if (likely(adc_ready)) {
-            if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data)) {
+            if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t * ) & vin_adc_data)) {
                 sensor_telemetry.vin_adc_data = vin_adc_data;
             } else {
                 LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
+                sensor_telemetry.vin_adc_data = -0x7FFF;
             }
         }
         sensor_telemetry.timestamp = k_uptime_get_32();
@@ -154,6 +157,8 @@ static void ina_queue_processing_task(void *, void *, void *) {
         packed_telemetry.current_5v0 = sensor_telemetry.data_5v0.current;
         packed_telemetry.voltage_5v0 = sensor_telemetry.data_5v0.voltage;
         packed_telemetry.power_5v0 = sensor_telemetry.data_5v0.power;
+
+        packed_telemetry.vin_adc_data = sensor_telemetry.vin_adc_data;
 
         // TODO: write to flash when data logging library is ready
         l_send_udp_broadcast((uint8_t * ) & packed_telemetry, sizeof(power_module_telemetry_packed_t),
