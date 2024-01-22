@@ -44,6 +44,22 @@ int l_update_sensors(const struct device *const *devs, int num_devs) {
     return 0;
 }
 
+int l_update_sensors_safe(const struct device *const *devs, int num_devs, const bool *devs_ready) {
+    for (int i = 0; i < num_devs; i++) {
+        if (unlikely(!devs_ready[i])) { // Skip if channel is not ready
+            continue;
+        }
+
+        int ret = sensor_sample_fetch(devs[i]);
+        if (ret != 0) {
+            LOG_ERR("Failed to fetch sensor data from %s. Errno %d\n", devs[i]->name, ret);
+        }
+    }
+
+    return 0;
+}
+
+
 int l_get_sensor_data(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                       struct sensor_value **values) {
     for (int i = 0; i < num_channels; i++) {
@@ -58,13 +74,14 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
 
 int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                             float **values) {
-    struct sensor_value *sensor_values[num_channels];
+    // TODO: Either get rid of this function or fix it. sensor_values will have null pointers which is causing crashes
+//    struct sensor_value *sensor_values[num_channels];
 
-    l_get_sensor_data(dev, num_channels, channels, sensor_values);
+//    l_get_sensor_data(dev, num_channels, channels, sensor_values);
 
-    for (int i = 0; i < num_channels; i++) {
-        *values[i] = sensor_value_to_float(sensor_values[i]);
-    }
+//    for (int i = 0; i < num_channels; i++) {
+//        *values[i] = sensor_value_to_float(sensor_values[i]);
+//    }
 
-    return 0;
+    return -1;
 }

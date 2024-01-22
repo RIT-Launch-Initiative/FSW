@@ -46,6 +46,15 @@ int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_a
 int l_update_sensors(const struct device *const *devs, int num_devs);
 
 /**
+ * Command sensor updates for a list of devices if they are ready.
+ * @param devs - List of devices to update sensor samples
+ * @param num_devs - Number of devices in the list
+ * @param devs_ready - List of booleans indicating whether the device is ready
+ * @return Status code (Only 0 currently)
+ */
+int l_update_sensors_safe(const struct device *const *devs, int num_devs, const bool *devs_ready);
+
+/**
  * Get sensor data from a device.
  * @param dev - Device to read from
  * @param num_channels - Number of channels to read
