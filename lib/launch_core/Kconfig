@@ -14,8 +14,8 @@ config LAUNCH_CORE_DEVICE
 
 config LAUNCH_CORE_NET
     bool "Helper functionality for Networking"
-    depends on CONFIG_SYS_HASH_MAP
-    depends on CONFIG_SYS_HASH_FUNC32
+    select CONFIG_SYS_HASH_MAP
+    select CONFIG_SYS_HASH_FUNC32
     help
       This option enables core functionality for Networking.
 

@@ -12,6 +12,7 @@
 #define DEVICE_UTILS_H
 
 #include <zephyr/device.h>
+#include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/sensor.h>
 
 typedef struct {
@@ -21,12 +22,23 @@ typedef struct {
     float **float_values;
 } l_sensor_readings_args_t;
 
+/********** GENERAL **********/
+
 /**
  * Confirm that the device is present and ready to be used.
  * @param dev - Device to check
  * @return Zephyr status code (0 if device is ready, -ENODEV otherwise)
  */
 int l_check_device(const struct device *const dev);
+
+/**********   ADC   **********/
+int l_init_adc_channels(const struct adc_dt_spec *const channels, const int num_channels);
+
+
+
+
+/********** SENSORS **********/
+
 
 /**
  * Command sensor updates and get sensor data from a device.

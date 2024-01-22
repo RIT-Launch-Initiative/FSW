@@ -11,6 +11,8 @@
 
 LOG_MODULE_REGISTER(device_utils);
 
+/********** GENERAL **********/
+
 int l_check_device(const struct device *const dev) {
     if (!device_is_ready(dev)) {
         LOG_ERR("Device %s is not ready.\n", dev->name);
@@ -21,6 +23,9 @@ int l_check_device(const struct device *const dev) {
     return 0;
 }
 
+/**********   ADC   **********/
+
+/********** SENSORS **********/
 int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_args_t *args, bool convert_to_float) {
     l_update_sensors(&dev, 1);
 

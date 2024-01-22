@@ -50,9 +50,6 @@ static void ina_task(void *, void *, void *) {
     };
 
     ina_task_data_t ina_task_data = {0};
-    ina_data_t *data_battery = &ina_task_data.data_battery;
-    ina_data_t *data_3v3 = &ina_task_data.data_3v3;
-    ina_data_t *data_5v0 = &ina_task_data.data_5v0;
 
     if (!ina_device_found[0]) {
         LOG_ERR("INA219 battery sensor not found");
@@ -81,23 +78,23 @@ static void ina_task(void *, void *, void *) {
 
         if (likely(ina_device_found[0])) {
             l_get_sensor_data(sensors[0], 3, ina_channels, sensor_values);
-            data_battery->current = sensor_value_to_float(&current);
-            data_battery->voltage = sensor_value_to_float(&voltage);
-            data_battery->power = sensor_value_to_float(&power);
+            ina_task_data.data_battery.current = sensor_value_to_float(&current);
+            ina_task_data.data_battery.voltage = sensor_value_to_float(&voltage);
+            ina_task_data.data_battery.power = sensor_value_to_float(&power);
         }
 
         if (likely(ina_device_found[1])) {
             l_get_sensor_data(sensors[1], 3, ina_channels, sensor_values);
-            data_3v3->current = sensor_value_to_float(&current);
-            data_3v3->voltage = sensor_value_to_float(&voltage);
-            data_3v3->power = sensor_value_to_float(&power);
+            ina_task_data.data_3v3.current = sensor_value_to_float(&current);
+            ina_task_data.data_3v3.voltage = sensor_value_to_float(&voltage);
+            ina_task_data.data_3v3.power = sensor_value_to_float(&power);
         }
 
         if (likely(ina_device_found[2])) {
             l_get_sensor_data(sensors[2], 3, ina_channels, sensor_values);
-            data_5v0->current = sensor_value_to_float(&current);
-            data_5v0->voltage = sensor_value_to_float(&voltage);
-            data_5v0->power = sensor_value_to_float(&power);
+            ina_task_data.data_5v0.current = sensor_value_to_float(&current);
+            ina_task_data.data_5v0.voltage = sensor_value_to_float(&voltage);
+            ina_task_data.data_5v0.power = sensor_value_to_float(&power);
         }
 
         if (k_msgq_put(&ina_processing_queue, &ina_task_data, K_NO_WAIT)) {
