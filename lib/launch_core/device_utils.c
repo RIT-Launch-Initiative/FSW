@@ -24,20 +24,25 @@ int l_check_device(const struct device *const dev) {
 }
 
 /**********   ADC   **********/
+int l_init_adc_channel(const struct adc_dt_spec *const channel) {
+    int ret = adc_is_ready_dt(channel);
+
+    if (ret == 0) {
+        ret = adc_channel_setup_dt(channel);
+
+        if (ret < 0) {
+            LOG_ERR("ADC channel %d failed to be setup. Errno %d.", channel->channel_id, ret);
+        }
+    } else {
+        LOG_ERR("ADC channel %d is not ready. Errno %d.", channel->channel_id, ret);
+    }
+    
+    return ret;
+}
+
 int l_init_adc_channels(const struct adc_dt_spec *const channels, const int num_channels) {
     for (int i = 0; i < num_channels; i++) {
-        const struct adc_dt_spec *current_channel = &channels[i];
-        int ret = adc_is_ready_dt(current_channel);
-
-        if (ret == 0) {
-            ret = adc_channel_setup_dt(current_channel);
-
-            if (ret < 0) {
-                LOG_ERR("ADC channel %d failed to be setup. Errno %d.", current_channel->channel_id, ret);
-            }
-        } else {
-            LOG_ERR("ADC channel %d is not ready. Errno %d.", current_channel->channel_id, ret);
-        }
+        l_init_adc_channel(&channels[i]);
     }
 
     return 0;

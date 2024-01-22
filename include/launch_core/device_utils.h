@@ -32,6 +32,8 @@ typedef struct {
 int l_check_device(const struct device *const dev);
 
 /**********   ADC   **********/
+int l_init_adc_channel(const struct adc_dt_spec *const channel);
+
 int l_init_adc_channels(const struct adc_dt_spec *const channels, const int num_channels);
 
 
