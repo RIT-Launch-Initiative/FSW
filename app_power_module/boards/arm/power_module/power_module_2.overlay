@@ -6,6 +6,7 @@
         led2 = &led_2;
         led3 = &led_3;
         ledwiz = &wiznet_led;
+        uartdbg = &uart5;
     };
 
     leds: leds {
@@ -31,13 +32,23 @@
         };
 
 	};
+};
 
-//    soc {
-//        uart5 {
-//            pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
-//            pinctrl-names = "default";
-//            current-speed = <115200>;
-//            status = "okay";
-//        };
-//    };
+
+/ {
+    chosen {
+        zephyr,console = &uart5;
+		zephyr,shell-uart = &uart5;
+    };
+};
+
+/ {
+    soc {
+        uart5: serial@40005000 {
+            pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+            pinctrl-names = "default";
+            current-speed = <115200>;
+            status = "okay";
+        };
+    };
 };
