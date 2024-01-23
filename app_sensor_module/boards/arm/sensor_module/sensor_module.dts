@@ -11,47 +11,66 @@
 #include "sensor_module-pinctrl.dtsi"
 
 / {
-	model = "Sensor Module";
-	compatible = "st,stm32f446re-nucleo";
+    model = "Sensor Module";
+    compatible = "st,stm32f446re-nucleo";
 
-	chosen {
-		zephyr,console = &uart5;
-		zephyr,shell-uart = &uart5;
-		zephyr,sram = &sram0;
-		zephyr,flash = &flash0;
-	};
+    chosen {
+        zephyr,sram = &sram0;
+        zephyr,flash = &flash0;
 
-	leds: leds {
-		compatible = "gpio-leds";
-		red_led_1: led_1 {
-			gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
-			label = "USER LED1";
-		};
+        storage = &w25q128;
+        logfs = &lfs1;
+    };
+
+    leds: leds {
+        compatible = "gpio-leds";
+
+        red_led_1: led_1 {
+            gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+            label = "USER LED1";
+        };
 
         red_led_2: led_2 {
-			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
-			label = "User LED2";
-		};
+            gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+            label = "User LED2";
+        };
 
         wiz_led: wiz_led {
-			gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
-			label = "Wiznet LED";
-		};
-	};
+            gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
+            label = "Wiznet LED";
+        };
+    };
 
-	aliases {
-		led0 = &red_led_1;
-		led1 = &red_led_2;
-	};
+    fstab {
+        compatible = "zephyr,fstab";
+
+        lfs1: lfs1 {
+            compatible = "zephyr,fstab,littlefs";
+            mount-point = "/lfs";
+            partition = <&external_storage_partition>;
+            automount;
+
+            read-size = <16>;
+            prog-size = <16>;
+            cache-size = <64>;
+            lookahead-size = <32>;
+            block-cycles = <(90 * 1000)>;
+        };
+    };
+
+    aliases {
+        led0 = &red_led_1;
+        led1 = &red_led_2;
+    };
 };
 
 &clk_lsi {
-	status = "okay";
+    status = "okay";
 };
 
 &clk_hsi {
-	clock-frequency = <DT_FREQ_M(16)>;
-	status = "okay";
+    clock-frequency = <DT_FREQ_M(16)>;
+    status = "okay";
 };
 
 //&pll {
@@ -64,25 +83,25 @@
 //};
 
 &rcc {
-	clocks = <&clk_hsi>;
-	clock-frequency = <DT_FREQ_M(16)>;
-	ahb-prescaler = <1>;
-	apb1-prescaler = <2>;
-	apb2-prescaler = <1>;
+    clocks = <&clk_hsi>;
+    clock-frequency = <DT_FREQ_M(16)>;
+    ahb-prescaler = <1>;
+    apb1-prescaler = <2>;
+    apb2-prescaler = <1>;
 };
 
 &uart5 {
-	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
-	pinctrl-names = "default";
-	current-speed = <115200>;
-	status = "okay";
+    pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+    pinctrl-names = "default";
+    current-speed = <115200>;
+    status = "okay";
 };
 
 &spi1 {
-	pinctrl-0 = <&eth_cs_pc4 &spi1_sck_pa5
-		     &spi1_miso_pa6 &spi1_mosi_pa7>;
-	pinctrl-names = "default";
-	status = "okay";
+    pinctrl-0 = <&eth_cs_pc4 &spi1_sck_pa5
+                 &spi1_miso_pa6 &spi1_mosi_pa7>;
+    pinctrl-names = "default";
+    status = "okay";
 
     w5500: w5500@0 {
         compatible = "wiznet,w5500";
@@ -94,32 +113,42 @@
 };
 
 &spi2 {
-    pinctrl-0 = <&flash_cs_pc0 &spi2_sck_pb13
-		     &spi2_miso_pc2 &spi2_mosi_pc1>;
-	pinctrl-names = "default";
-	status = "okay";
+    pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
+    cs-gpios = <&gpioc 9 GPIO_ACTIVE_LOW>;
 
+    pinctrl-names = "default";
+    status = "okay";
 
-    // TODO CHECK JEDEC
-    w25q128jv: w25q16jv@0 {
-		compatible = "jedec,spi-nor";
-		reg = <0>;
-		spi-max-frequency = <40000000>;
-		size = <0x1000000>;
-		has-dpd;
-		t-enter-dpd = <4000>;
-		t-exit-dpd = <25000>;
-		jedec-id = [ef 40 15];
-	};
+    w25q128: w25q128jv@0 {
+        compatible = "jedec,spi-nor";
+        reg = <0>;
 
+        spi-max-frequency = <(10 * 1000 * 1000)>;
+        size = <DT_SIZE_M(128)>;
+        jedec-id = [ef 40 18];
+
+        has-dpd;
+        t-enter-dpd = <(3 * 1000)>;
+        t-exit-dpd = <(3 * 1000)>;
+
+        partitions {
+            compatible = "fixed-partitions";
+            #address-cells = <1>;
+            #size-cells = <1>;
+
+            external_storage_partition: partition@0 {
+                label = "w25q-storage";
+                reg = <0 DT_SIZE_M(128)>;
+            };
+        };
+    };
 };
 
-
 &i2c3 {
-	pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pc9>;
-	pinctrl-names = "default";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
+    pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pc9>;
+    pinctrl-names = "default";
+    status = "okay";
+    clock-frequency = <I2C_BITRATE_FAST>;
 
     bmp388: bmp388@76 {
         compatible = "bosch,bmp388";
@@ -145,64 +174,65 @@
         status = "okay";
     };
 
-
     tmp117: tmp117@48 {
-		compatible = "ti,tmp116"; // TMP117 Compatible
-		reg = <0x48>;
-		#address-cells = <1>;
-		#size-cells = <0>;
+        compatible = "ti,tmp116"; // TMP117 Compatible
+        reg = <0x48>;
+        #address-cells = <1>;
+        #size-cells = <0>;
 
-		eeprom: ti_tmp116_eeprom@0 {
-			compatible = "ti,tmp116-eeprom";
-			reg = <0x0>;
-			read-only;
-		};
-	};
+        eeprom: ti_tmp116_eeprom@0 {
+            compatible = "ti,tmp116-eeprom";
+            reg = <0x0>;
+            read-only;
+        };
+    };
 };
 
 &rtc {
-	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
-		 <&rcc STM32_SRC_LSI RTC_SEL(2)>;
-	status = "okay";
+    clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
+             <&rcc STM32_SRC_LSI RTC_SEL(2)>;
+    status = "okay";
 };
 
 &backup_sram {
-	status = "okay";
+    status = "okay";
 };
 
 &flash0 {
-	partitions {
-		compatible = "fixed-partitions";
-		#address-cells = <1>;
-		#size-cells = <1>;
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
 
-		boot_partition: partition@0 {
-			label = "mcuboot";
-			reg = <0x00000000 DT_SIZE_K(64)>;
-			read-only;
-		};
+        boot_partition: partition@0 {
+            label = "mcuboot";
+            reg = <0x00000000 DT_SIZE_K(64)>;
+            read-only;
+        };
 
-		/*
-		 * The flash starting at 0x00010000 and ending at
-		 * 0x0001ffff (sectors 16-31) is reserved for use
-		 * by the application.
-		 */
-		storage_partition: partition@10000 {
-			label = "storage";
-			reg = <0x00010000 DT_SIZE_K(64)>;
-		};
+        /*
+         * The flash starting at 0x00010000 and ending at
+         * 0x0001ffff (sectors 16-31) is reserved for use
+         * by the application.
+         */
+        storage_partition: partition@10000 {
+            label = "storage";
+            reg = <0x00010000 DT_SIZE_K(64)>;
+        };
 
-		slot0_partition: partition@20000 {
-			label = "image-0";
-			reg = <0x00020000 DT_SIZE_K(128)>;
-		};
-		slot1_partition: partition@40000 {
-			label = "image-1";
-			reg = <0x00040000 DT_SIZE_K(128)>;
-		};
-		scratch_partition: partition@60000 {
-			label = "image-scratch";
-			reg = <0x00060000 DT_SIZE_K(128)>;
-		};
-	};
+        slot0_partition: partition@20000 {
+            label = "image-0";
+            reg = <0x00020000 DT_SIZE_K(128)>;
+        };
+
+        slot1_partition: partition@40000 {
+            label = "image-1";
+            reg = <0x00040000 DT_SIZE_K(128)>;
+        };
+
+        scratch_partition: partition@60000 {
+            label = "image-scratch";
+            reg = <0x00060000 DT_SIZE_K(128)>;
+        };
+    };
 };

@@ -1,4 +1,5 @@
-#include <app_version.h>
+#include <launch_core/backplane_defs.h>
+#include <launch_core/device_utils.h>
 #include <launch_core/lora_utils.h>
 #include <launch_core/net_utils.h>
 #include <zephyr/console/console.h>
@@ -16,8 +17,6 @@
 #define SLEEP_TIME_MS 100
 
 #define LED0_NODE DT_ALIAS(led0)
-static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-
 #define LED1_NODE DT_ALIAS(led1)
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
@@ -37,6 +36,10 @@ static void gnss_init_task(void) {
     else
         printk("Error initializing GNSS. Got %d", ret);
 }
+static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
+static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 #define GNSS_INIT_STACK_SIZE 2 << 10
 #define GNSS_INIT_PRIORITY 4
@@ -46,20 +49,22 @@ static k_tid_t gnss_init_tid;
 
 // init method
 static void init() {
-    const struct device *const lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
-    // TODO: Figure out compile issues here
-    //  if (!l_init_sx1276(lora_dev)) {
-    //  int ret = l_lora_configure(lora_dev, false);
-    //  if (ret != 0) {
-    //      printk("Error initializing LORA device. Got %d", ret);
-    //  } else {
-    //      printk("LoRa configured\n");
-    //  }
-    // }
+    char ip[MAX_IP_ADDRESS_STR_LEN];
+    int ret = -1;
 
-    const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
-    if (!init_eth_iface(wiznet)) {
-        init_net_stack();
+    k_queue_init(&net_tx_queue);
+
+    if (!l_check_device(lora_dev)) {
+        l_lora_configure(lora_dev, false);
+    }
+
+    if (0 > l_create_ip_str_default_net_id(ip, RADIO_MODULE_ID, 1)) {
+        LOG_ERR("Failed to create IP address string: %d", ret);
+        return -1;
+    }
+
+    if (!l_check_device(wiznet)) {
+        l_init_udp_net_stack("192.168.1.1");
     }
 
     // start gnss init thread
@@ -70,12 +75,10 @@ static void init() {
 }
 
 int main() {
-    const struct device *uart_dev = DEVICE_DT_GET(DT_ALIAS(dbguart));
-
     uint8_t tx_buff[255] = {0};
     uint8_t tx_buff_len = 0;
 
-    printk("Starting radio module!\n");
+    LOG_DBG("Starting radio module!\n");
     init();
 
     while (1) {
