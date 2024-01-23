@@ -20,13 +20,19 @@ static int init(void) { return 0; }
 #error "whoops"
 #endif
 
+#if DT_NUM_INST_STATUS_OKAY(microchip_mcp3561) == 0
+#error "mcp3561 adc not in DTS"
+#else
+// #error microchip_mcp3561 has some DT_NUM_INST_STATUS_OKAY(microchip_mcp3561)
+#endif
+
 /*
  * Get a device structure from a devicetree node with compatible
  * "bosch,bme280". (If there are multiple, just pick one.)
  */
 static const struct device *get_adc(void) {
 
-  const struct device *const dev = DEVICE_DT_GET_ONE(microchip_mcp356x);
+  const struct device *const dev = DEVICE_DT_GET_ONE(microchip_mcp3561);
 
   if (dev == NULL) {
     /* No such node, or the node does not have status "okay". */

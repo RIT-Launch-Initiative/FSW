@@ -2,13 +2,11 @@
  * Copyright (c) 2021 Nordic Semiconductor ASA
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#define DT_DRV_COMPAT microchip_mcp356x
+#define DT_DRV_COMPAT microchip_mcp3561
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/gpio.h>
-#include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/spi.h>
 #include <zephyr/logging/log.h>
 
@@ -40,29 +38,41 @@ static const struct adc_driver_api mcp356x_api = {
 };
 
 static int mcp356x_init(const struct device *dev) {
-
   const struct mcp356x_config *config = dev->config;
-
   if (!device_is_ready(config->bus.bus)) {
     LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
     return -ENODEV;
   }
-
   return 0;
 }
 
-#define INST_DT_MCP356x(inst) DT_INST(inst, DT_DRV_COMPAT)
+#define INST_DT_MCP356x(inst, n) DT_INST(inst, microchip_mcp356##n)
 
-#define MCP356x_INIT(i)                                                        \
-  static struct mcp356x_data mcp356x_data_##i;                                 \
+#define MCP356x_INIT(i, compat, n)                                             \
+  static struct mcp356x_data mcp356##n##_data_##i;                             \
                                                                                \
-  static const struct mcp356x_config mcp356x_config_##i = {                    \
+  static const struct mcp356x_config mcp356##n##_config_##i = {                \
       .bus = SPI_DT_SPEC_GET(                                                  \
-          DT_INST(i, DT_DRV_COMPAT),                                           \
+          INST_DT_MCP356x(i, n),                                               \
           SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),         \
-      .channels = DT_PROP(DT_INST(i, DT_DRV_COMPAT), num_channels)};           \
-  DEVICE_DT_INST_DEFINE(i, mcp356x_init, NULL, &mcp356x_data_##i,              \
-                        &mcp356x_config_##i, POST_KERNEL,                      \
+      .channels = n};                                                          \
+  DEVICE_DT_INST_DEFINE(i, mcp356x_init, NULL, &mcp356##n##_data_##i,          \
+                        &mcp356##n##_config_##i, POST_KERNEL,                  \
                         CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
 
-DT_INST_FOREACH_STATUS_OKAY(MCP356x_INIT)
+// 1 Channel ADC
+#define MCP3561_INIT(i) MCP356x_INIT(i, microchip_mcp3561, 1)
+// 4 Channel ADC
+#define MCP3562_INIT(i) MCP356x_INIT(i, microchip_mcp3562, 2)
+// 8 Channel ADC
+#define MCP3564_INIT(i) MCP356x_INIT(i, microchip_mcp3564, 4)
+
+#define CALL_WITH_ARG(arg, expr) expr(arg)
+
+#define INST_DT_MCP356X_FOREACH(t, inst_expr)                                  \
+  LISTIFY(DT_NUM_INST_STATUS_OKAY(microchip_mcp##t), CALL_WITH_ARG, (;),       \
+          inst_expr)
+
+INST_DT_MCP356X_FOREACH(3561, MCP3561_INIT);
+INST_DT_MCP356X_FOREACH(3562, MCP3562_INIT);
+INST_DT_MCP356X_FOREACH(3564, MCP3564_INIT);

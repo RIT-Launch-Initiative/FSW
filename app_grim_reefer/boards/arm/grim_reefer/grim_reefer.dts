@@ -147,13 +147,14 @@
 
 
 	load_cell_adc: load_cell_adc@0 {
-		compatible = "microchip,mcp356x";
+		compatible = "microchip,mcp3561";
 		status = "okay";
 		reg = <0x0>;
 		spi-max-frequency = <10000000>;
 		#io-channel-cells = <1>;
 		#address-cells = <1>;
 		#size-cells = <0>;
+		// name = "asdf";
 
 		channel@0 {
 			reg = <0>;

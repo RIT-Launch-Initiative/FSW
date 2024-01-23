@@ -1,15 +1,16 @@
-description: "MCP356X ADC"
+# Common fields for microchip mcp356(1/2/4) ADCs
 
-compatible: "microchip,mcp356x"
 
 include: [adc-controller.yaml, spi-device.yaml]
-
 
 
 properties:
   "#io-channel-cells":
     type: int
     required: true
+  name:
+    type: string
+    # default: ""
 
 io-channel-cells:
   - input
