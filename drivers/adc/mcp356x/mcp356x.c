@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Nordic Semiconductor ASA
  * SPDX-License-Identifier: Apache-2.0
  */
-#define DT_DRV_COMPAT microchip_mcp3561
+// #define DT_DRV_COMPAT microchip_mcp3561
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/adc.h>
@@ -56,9 +56,9 @@ static int mcp356x_init(const struct device *dev) {
           INST_DT_MCP356x(i, n),                                               \
           SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),         \
       .channels = n};                                                          \
-  DEVICE_DT_INST_DEFINE(i, mcp356x_init, NULL, &mcp356##n##_data_##i,          \
-                        &mcp356##n##_config_##i, POST_KERNEL,                  \
-                        CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
+  DEVICE_DT_DEFINE(INST_DT_MCP356x(i, n), mcp356x_init, NULL,                  \
+                   &mcp356##n##_data_##i, &mcp356##n##_config_##i,             \
+                   POST_KERNEL, CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
 
 // 1 Channel ADC
 #define MCP3561_INIT(i) MCP356x_INIT(i, microchip_mcp3561, 1)
