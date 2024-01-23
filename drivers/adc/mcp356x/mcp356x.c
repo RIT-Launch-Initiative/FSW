@@ -45,20 +45,22 @@ static int mcp356x_init(const struct device *dev) {
   }
   return 0;
 }
-
+// Get the DT node that is the instance identified by inst with n channels
 #define INST_DT_MCP356x(inst, n) DT_INST(inst, microchip_mcp356##n)
 
-#define MCP356x_INIT(i, compat, n)                                             \
-  static struct mcp356x_data mcp356##n##_data_##i;                             \
+// Define the init macro for different instances, channel numbers
+#define MCP356x_INIT(instance, compat, channel_num)                            \
+  static struct mcp356x_data mcp356##channel_num##_data_##instance;            \
                                                                                \
-  static const struct mcp356x_config mcp356##n##_config_##i = {                \
-      .bus = SPI_DT_SPEC_GET(                                                  \
-          INST_DT_MCP356x(i, n),                                               \
-          SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),         \
-      .channels = n};                                                          \
-  DEVICE_DT_DEFINE(INST_DT_MCP356x(i, n), mcp356x_init, NULL,                  \
-                   &mcp356##n##_data_##i, &mcp356##n##_config_##i,             \
-                   POST_KERNEL, CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
+  static const struct mcp356x_config mcp356##channel_num##_config_##instance = \
+      {.bus = SPI_DT_SPEC_GET(                                                 \
+           INST_DT_MCP356x(instance, channel_num),                             \
+           SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),        \
+       .channels = channel_num};                                               \
+  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \
+                   &mcp356##channel_num##_data_##instance,                     \
+                   &mcp356##channel_num##_config_##instance, POST_KERNEL,      \
+                   CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
 
 // 1 Channel ADC
 #define MCP3561_INIT(i) MCP356x_INIT(i, microchip_mcp3561, 1)
