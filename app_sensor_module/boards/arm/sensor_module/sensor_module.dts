@@ -15,8 +15,6 @@
     compatible = "st,stm32f446re-nucleo";
 
     chosen {
-        zephyr,console = &uart5;
-        zephyr,shell-uart = &uart5;
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
 
