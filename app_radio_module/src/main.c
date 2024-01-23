@@ -37,6 +37,7 @@ static void gnss_init_task(void) {
     else
         printk("Error initializing GNSS. Got %d", ret);
 }
+
 #define GNSS_INIT_STACK_SIZE 2 << 10
 #define GNSS_INIT_PRIORITY 4
 K_THREAD_STACK_DEFINE(gnss_init_stack_area, GNSS_INIT_STACK_SIZE);
