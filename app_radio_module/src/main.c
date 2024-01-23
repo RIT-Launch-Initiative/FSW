@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2023 Aaron Chan
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * @file main.c
+ * @authors Nate Aquino naquino14@outlook.com
+ *          Aaron Chan
+ * @brief Radio Module Entry Point
+ */
+
 #include <launch_core/backplane_defs.h>
 #include <launch_core/device_utils.h>
 #include <launch_core/lora_utils.h>
@@ -16,17 +27,16 @@
 
 #define SLEEP_TIME_MS 100
 
-#define LED0_NODE DT_ALIAS(led0)
-#define LED1_NODE DT_ALIAS(led1)
-static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
-
-gnss_dev_t *gnss_dev;
-extern int start_maxm10s(gnss_dev_t *dev);
-
+// logging
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+
+// LoRa queue
 K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
 
+// GNSS
+gnss_dev_t *gnss_dev;
+extern int start_maxm10s(gnss_dev_t *dev);
 // GNSS init thread
 static void gnss_init_task(void) {
     printk("Initializing GNSS...\n");
@@ -36,16 +46,20 @@ static void gnss_init_task(void) {
     else
         printk("Error initializing GNSS. Got %d", ret);
 }
-static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
-static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
-static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
-
+// GNSS init thread defs
 #define GNSS_INIT_STACK_SIZE 2 << 10
 #define GNSS_INIT_PRIORITY 4
 K_THREAD_STACK_DEFINE(gnss_init_stack_area, GNSS_INIT_STACK_SIZE);
 static struct k_thread gnss_init_thread_data;
 static k_tid_t gnss_init_tid;
+
+// device setup
+#define LED0_NODE DT_ALIAS(led0)
+#define LED1_NODE DT_ALIAS(led1)
+static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
+static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 // init method
 static void init() {
