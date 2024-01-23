@@ -4,16 +4,14 @@ compatible: "microchip,mcp356x"
 
 include: [adc-controller.yaml, spi-device.yaml]
 
+
+
 properties:
   "#io-channel-cells":
-    const: 1
+    type: int
+    required: true
 
 io-channel-cells:
   - input
-
-
-
-
-
-
+ 
 
