@@ -1,4 +1,4 @@
-description: Microchip MCP3561
+description: Microchip MCP3561 (1 Channel ADC)
 
 compatible: "microchip,mcp3561"
 
