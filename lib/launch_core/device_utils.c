@@ -19,7 +19,7 @@ int l_check_device(const struct device *const dev) {
         return -ENODEV;
     }
 
-    LOG_ERR("Device %s is ready.\n", dev->name);
+    LOG_INF("Device %s is ready.\n", dev->name);
     return 0;
 }
 
@@ -40,6 +40,7 @@ int l_init_adc_channel(const struct adc_dt_spec *const channel, struct adc_seque
             LOG_ERR("ADC channel %d failed to setup sequence. Errno %d", channel->channel_id, ret);
         }
 
+        LOG_INF("ADC channel %d is ready.", channel->channel_id);
     } else {
         LOG_ERR("ADC channel %d is not ready. Errno %d.", channel->channel_id, ret);
     }
@@ -112,6 +113,7 @@ int l_update_sensors(const struct device *const *devs, int num_devs) {
 int l_update_sensors_safe(const struct device *const *devs, int num_devs, const bool *devs_ready) {
     for (int i = 0; i < num_devs; i++) {
         if (unlikely(!devs_ready[i])) { // Skip if channel is not ready
+            LOG_ERR("Sensor %s is not ready.\n", devs[i]->name);
             continue;
         }
 

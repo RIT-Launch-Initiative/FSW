@@ -28,12 +28,12 @@ int l_lora_configure(const struct device *const dev, bool transmit) {
 
 void l_lora_debug_recv_cb(const struct device *const dev, uint8_t *data, uint16_t size, int16_t rssi, int8_t snr) {
     if (size != 0) {
-        printk("Received %d bytes:\n\tMem View: ", size);
-        for (uint16_t i = 0; i < size; i++) printk("0x%02x ", data[i]);
-        printk("\n\tVal View: %s\n", data);
-        printk("\tRSSI = %ddBm\n\tSNR = %ddBm\n", rssi, snr);
+        LOG_INF("Received %d bytes:\n\tMem View: ", size);
+        for (uint16_t i = 0; i < size; i++) LOG_INF("0x%02x ", data[i]);
+        LOG_INF("\n\tVal View: %s\n", data);
+        LOG_INF("\tRSSI = %ddBm\n\tSNR = %ddBm\n", rssi, snr);
 
-        printk("\n-----------------------------------\n");
+        LOG_INF("\n-----------------------------------\n");
         memset(data, 0, size);
     }
 }
