@@ -149,7 +149,7 @@
 
 
 	load_cell_adc: load_cell_adc@0 {
-		compatible = "microchip,mcp3564";
+		compatible = "microchip,mcp3561";
 		status = "okay";
 		reg = <0x0>;
 		spi-max-frequency = <10000000>;
@@ -159,13 +159,14 @@
 
 		channel@0 {
 			reg = <0>;
+			zephyr,differential;
 			zephyr,gain = "ADC_GAIN_1_6";
 			zephyr,reference = "ADC_REF_VDD_1";
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
 		};
 
 		channel@2 {
-			reg = <02>;
+			reg = <2>;
 			zephyr,gain = "ADC_GAIN_1_6";
 			zephyr,reference = "ADC_REF_VDD_1";
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
@@ -175,6 +176,7 @@
 			zephyr,gain = "ADC_GAIN_1_6";
 			zephyr,reference = "ADC_REF_VDD_1";
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
+			zephyr,oversampling = <128>;
 		};
 
 	};

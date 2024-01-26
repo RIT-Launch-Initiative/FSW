@@ -29,6 +29,53 @@ static int mcp356x_read_channel(const struct device *dev,
 
 int mcp356x_channel_setup(const struct device *dev,
                           const struct adc_channel_cfg *channel_cfg) {
+  const struct mcp356x_config *config = dev->config;
+
+  // Check channel number
+  if (channel_cfg->channel_id >= config->channels) {
+    LOG_ERR("unsupported channel id '%d' of mcp356%d", channel_cfg->channel_id,
+            config->channels);
+    return -ENOTSUP;
+  }
+
+  // Configure Gain
+  uint8_t gain_bits = 0;
+  switch (channel_cfg->gain) {
+  case ADC_GAIN_1_3:
+    gain_bits = 0b000;
+    break;
+  case ADC_GAIN_1:
+    gain_bits = 0b001;
+    break;
+  case ADC_GAIN_2:
+    gain_bits = 0b010;
+    break;
+  case ADC_GAIN_4:
+    gain_bits = 0b011;
+    break;
+  case ADC_GAIN_8:
+    gain_bits = 0b100;
+    break;
+  case ADC_GAIN_16:
+    gain_bits = 0b101;
+    break;
+  case ADC_GAIN_32:
+    gain_bits = 0b110;
+    break;
+  case ADC_GAIN_64:
+    gain_bits = 0b111;
+    break;
+  default:
+    LOG_ERR("unsupported channel gain '%d' on channel %d", channel_cfg->gain,
+            channel_cfg->channel_id);
+    return -ENOTSUP;
+  }
+
+  // Configure OSR
+  // switch (channel_cfg->reference) {
+  // case Internal
+  // }
+
   return -1;
 }
 
@@ -38,11 +85,18 @@ static const struct adc_driver_api mcp356x_api = {
 };
 
 static int mcp356x_init(const struct device *dev) {
+
   const struct mcp356x_config *config = dev->config;
+
   if (!device_is_ready(config->bus.bus)) {
     LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
     return -ENODEV;
   }
+  if (config->channels != 1) {
+    LOG_ERR("Only one channel MCP3561 is supported\n");
+    return -ENOTSUP;
+  }
+
   return 0;
 }
 // Get the DT node that is the instance identified by inst with n channels
@@ -63,11 +117,10 @@ static int mcp356x_init(const struct device *dev) {
                    CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
 
 // 1 Channel ADC
+// In the future, add MCP356x_INIT for 2, 4 channel and do foreach for those as
+// well Only will work in devicetree if you add
+// dts/bindings/adc/microchip,mcp356x.yaml
 #define MCP3561_INIT(i) MCP356x_INIT(i, microchip_mcp3561, 1)
-// 4 Channel ADC
-#define MCP3562_INIT(i) MCP356x_INIT(i, microchip_mcp3562, 2)
-// 8 Channel ADC
-#define MCP3564_INIT(i) MCP356x_INIT(i, microchip_mcp3564, 4)
 
 #define CALL_WITH_ARG(arg, expr) expr(arg)
 
@@ -76,5 +129,3 @@ static int mcp356x_init(const struct device *dev) {
           inst_expr)
 
 INST_DT_MCP356X_FOREACH(3561, MCP3561_INIT);
-INST_DT_MCP356X_FOREACH(3562, MCP3562_INIT);
-INST_DT_MCP356X_FOREACH(3564, MCP3564_INIT);
