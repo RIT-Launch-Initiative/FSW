@@ -64,7 +64,7 @@
 
 			external_storage_partition: partition@0 {
 				label = "w25q-storage";
-				reg = <DT_SIZE_M(1) DT_SIZE_M(127)>; // takes up the whole flash
+				reg = <0 DT_SIZE_M(128)>; // takes up the whole flash
 			};
 		};
 	};
