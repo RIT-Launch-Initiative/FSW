@@ -55,16 +55,16 @@ static int init(void) {
     // Initialize SLIP
 
     // Arbitrate with connected module over SLIP
-//    initiate_arbitration(POTATO_EXTENSION_BOARD_ID, 0);
+    initiate_arbitration(POTATO_EXTENSION_BOARD_ID, 0);
 
     // Initialize tasks
     // TODO: Maybe prioritize in this order (ADC, SLIP, sensors)
-//    k_thread_create(&adc_read_thread, &adc_read_stack[0], POTATO_STACK_SIZE,
-//                    adc_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-//    k_thread_create(&sensor_read_thread, &sensor_read_stack[0], POTATO_STACK_SIZE,
-//                    sensor_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-//    k_thread_create(&slip_tx_thread, &slip_tx_stack[0], POTATO_STACK_SIZE,
-//                    slip_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_create(&adc_read_thread, &adc_read_stack[0], POTATO_STACK_SIZE,
+                    adc_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_create(&sensor_read_thread, &sensor_read_stack[0], POTATO_STACK_SIZE,
+                    sensor_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_create(&slip_tx_thread, &slip_tx_stack[0], POTATO_STACK_SIZE,
+                    slip_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
 
 
     k_thread_start(&adc_read_thread);
