@@ -1,0 +1,3 @@
+config BOARD_SENSOR_MODULE
+	bool "Sensor Module"
+	depends on SOC_STM32F446XX
