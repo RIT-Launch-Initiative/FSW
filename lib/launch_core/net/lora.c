@@ -4,13 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <include/launch_core/net/lora.h>
+#include <launch_core/net/lora.h>
 
-#include "zephyr/drivers/lora.h"
+#include <zephyr/drivers/lora.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 #include <memory.h>
+
+LOG_MODULE_REGISTER(lora);
 
 int l_lora_configure(const struct device *const dev, bool transmit) {
     struct lora_modem_config config = {

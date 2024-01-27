@@ -1,6 +1,7 @@
 #include <launch_core/dev/adc.h>
 
-#include <zephyr/device/adc.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/kernel.h>
 
 LOG_MODULE_REGISTER(launch_adc_utils);
 

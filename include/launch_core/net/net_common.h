@@ -11,6 +11,11 @@
 #ifndef L_NET_UTILS_H_
 #define L_NET_UTILS_H_
 
+#include <stdint.h>
+
+static const uint8_t MAX_IP_ADDRESS_STR_LEN = 16;
+static const uint8_t BACKPLANE_NETWORK_ID[2] = {192, 168};
+
 /**
  * Create a string representation of an IP address
  * @param ip_str - Pointer to a buffer to store the string

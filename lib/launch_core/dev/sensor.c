@@ -1,6 +1,10 @@
 #include <launch_core/dev/sensor.h>
 
-LOG_MODULE_REGISTER(launch_adc_utils);
+#include <zephyr/device.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/kernel.h>
+
+LOG_MODULE_REGISTER(launch_sensor_utils);
 
 int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_args_t *args, bool convert_to_float) {
     l_update_sensors(&dev, 1);

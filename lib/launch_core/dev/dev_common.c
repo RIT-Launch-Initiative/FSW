@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <launch_core/device_utils.h>
+#include <launch_core/dev/dev_common.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>

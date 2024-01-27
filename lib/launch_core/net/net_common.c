@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+
+
 int l_create_ip_str(char *ip_str, int a, int b, int c, int d) {
     if (!ip_str) return -5;
     if (a < 0 || a > 255) return -1;

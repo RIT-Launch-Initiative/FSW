@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #include <launch_core/backplane_defs.h>
-#include <launch_core/net_utils.h>
+#include <launch_core/net/udp.h>
 
 #include <zephyr/sys/hash_map.h>
 #include <zephyr/types.h>

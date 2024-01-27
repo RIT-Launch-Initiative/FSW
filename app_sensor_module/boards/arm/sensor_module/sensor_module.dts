@@ -17,6 +17,7 @@
     chosen {
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
+        zephyr,console = &uart5;
 
         storage = &w25q128;
         logfs = &lfs1;
