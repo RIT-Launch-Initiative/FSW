@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
-# Backplane Power Module Application
+# Grim Reefer Application
 #
-# Copyright (c) 2023 Aaron Chan
+# Copyright (c) 2023 Richie Sommers
 # SPDX-License-Identifier: Apache-2.0
 
 set(BOARD grim_reefer)
