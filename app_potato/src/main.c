@@ -2,6 +2,7 @@
 
 #include <launch_core/device_utils.h>
 #include <launch_core/net_utils.h> // TODO: Might need for SLIP
+#include <launch_core/extension_boards.h>
 
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/gpio.h>
@@ -22,7 +23,7 @@ static struct k_thread adc_read_thread;
 
 static K_THREAD_STACK_DEFINE(sensor_read_stack, POTATO_STACK_SIZE);
 static struct k_thread sensor_read_thread;
-
+// TODO: Might just be a process task that sends over SLIP, but also logs data
 static K_THREAD_STACK_DEFINE(slip_tx_stack, POTATO_STACK_SIZE);
 static struct k_thread slip_tx_thread;
 
@@ -60,10 +61,7 @@ static int init(void) {
     // Initialize SLIP
 
     // Arbitrate with connected module over SLIP
-    // TODO: Modify condition. Loop should exit when acknowledgement is sent by parent module
-    while (false) {
-
-    }
+    initiate_arbitration(POTATO_EXTENSION_BOARD_ID, 0);
 
     // Initialize tasks
     // TODO: Maybe prioritize in this order (ADC, SLIP, sensors)
@@ -85,6 +83,7 @@ int main() {
     if (!init()) {
         return -1;
     }
+
 
     return 0;
 }
