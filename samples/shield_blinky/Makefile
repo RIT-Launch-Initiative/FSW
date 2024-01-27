@@ -1,5 +1,5 @@
 all: 
-	west build
+	west build -p auto .
 
 flash:
 	west flash

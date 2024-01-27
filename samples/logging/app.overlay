@@ -1,7 +1,10 @@
 / {
+	chosen {
+		zephyr,console = &usart2;
+	};
 	aliases {
-		magn = &lis3mdl;
-		led = &shield_led; 
+		// magn = &lis3mdl;
+		led = &shield_led;
 		storage = &w25q128;
 		logfs = &lfs1;
 	};
@@ -19,7 +22,7 @@
 			prog-size = <16>;
 			cache-size = <64>; // may need to grow for optimization
 			lookahead-size = <32>;
-			block-cycles = <(90 * 1000)>; 
+			block-cycles = <(90 * 1000)>;
 			// the datasheet gives 100K P-E cycles
 			// NOTE: this seems to default to 512 for the mounted filesystem
 			// anyway
@@ -27,21 +30,23 @@
 	};
 };
 
-&mikrobus_i2c {
-	lis3mdl: lis3mdl@1c {
-		compatible = "st,lis3mdl-magn";
-		reg = <0x1c>;
-	};
-};
+// &mikrobus_i2c {
+	// lis3mdl: lis3mdl@1c {
+		// compatible = "st,lis3mdl-magn";
+		// reg = <0x1c>;
+	// };
+// };
+
+
 
 &mikrobus_spi {
 	w25q128: w25q128jv@1 {
 		compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
 		reg = <1>; // connected to to connector 1
 
-		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75) 
-		jedec-id = [ef 40 18]; // 0xef4018 (Table 8.1.1, p.22)
-		spi-max-frequency = <(10 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
+		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75)
+		jedec-id = [ ef 40 18  ]; // 0xef4018 (Table 8.1.1, p.22)
+		spi-max-frequency = <(5 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
 		// but sticking to 10 because 50 doesn't work on my hardware at time of
 		// writing since it's just header wires
 
@@ -59,7 +64,7 @@
 
 			external_storage_partition: partition@0 {
 				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(128)>; // takes up the whole flash
+				reg = <DT_SIZE_M(1) DT_SIZE_M(127)>; // takes up the whole flash
 			};
 		};
 	};
@@ -103,13 +108,13 @@
 		xshut-gpios = <&gpioc 6 GPIO_ACTIVE_LOW>;
 	};
 };
-*/
+ */
 
 
-/* Fragment from Adafruit Feather STM32F405, cited by samples/drivers/flash 
+/* Fragment from Adafruit Feather STM32F405, cited by samples/drivers/flash
 &spi1 {
 	pinctrl-0 = <&spi1_nss_pa15 &spi1_sck_pb3
-		     &spi1_miso_pb4 &spi1_mosi_pb5>;
+	&spi1_miso_pb4 &spi1_mosi_pb5>;
 	pinctrl-names = "default";
 	status = "okay";
 	cs-gpios = <&gpioa 15 GPIO_ACTIVE_LOW>;
@@ -121,7 +126,7 @@
 		has-dpd;
 		t-enter-dpd = <20000>;
 		t-exit-dpd = <100000>;
-		jedec-id = [c8 40 15];
+		jedec-id = [ c8 40 15  ];
 	};
 };
-*/
+ */
