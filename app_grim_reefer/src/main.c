@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Aaron Chan
+ * Copyright (c) 2023 Richie Sommers
  *
  * SPDX-License-Identifier: Apache-2.0
  */
