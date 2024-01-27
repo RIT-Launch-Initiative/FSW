@@ -31,7 +31,7 @@ typedef void (*l_extension_board_data_handler_t)(void *data, size_t len);
  * @param timeout_ms - Time before arbitration times out. 0 for no timeout
  * @return ID of the extension board. -1 if no board is found
  */
-l_extension_board_id_t find_extension_board(const struct device *dev, uint16_t base_port, uint32_t timeout_ms) {
+l_extension_board_id_t find_extension_board(const struct device *dev, uint16_t base_port, uint32_t timeout_ms);
 
 /**
  * Used by extension boards to identify themselves to the parent module
