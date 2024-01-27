@@ -1,4 +1,4 @@
-identifier: sensor_module
+identifier: potato
 name: Sensor Module
 type: mcu
 arch: arm

@@ -11,7 +11,7 @@
 #include "sensor_module-pinctrl.dtsi"
 
 / {
-    model = "Sensor Module";
+    model = "Potato";
     compatible = "st,stm32f446re-nucleo";
 
     chosen {
