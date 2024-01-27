@@ -9,6 +9,12 @@
 #ifndef EXTENSION_BOARDS_H
 #define EXTENSION_BOARDS_H
 
+#include <stdint.h>
+
+#include <zephyr/device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/uart.h>
+
 /********** GENERAL **********/
 
 typedef enum {
@@ -20,6 +26,8 @@ typedef void (*l_extension_board_data_handler_t)(void *data, size_t len);
 
 /**
  * Used by extension boards to identify themselves to the parent module
+ * @param dev - Pointer to UART device
+ * @param base_port - Base port of the parent module
  * @param timeout_ms - Time before arbitration times out. 0 for no timeout
  * @return ID of the extension board. -1 if no board is found
  */
