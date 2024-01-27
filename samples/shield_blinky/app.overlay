@@ -1,0 +1,10 @@
+/ {
+	chosen {
+		zephyr,console = &shield_serial;
+	};
+	aliases {
+		led = &shield_led; 
+	};
+
+};
+
