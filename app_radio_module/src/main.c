@@ -5,9 +5,9 @@
 #include <zephyr/logging/log.h>
 
 #include <launch_core/backplane_defs.h>
-#include <launch_core/device_utils.h>
-#include <launch_core/lora_utils.h>
-#include <launch_core/net_utils.h>
+#include <launch_core/dev/dev_common.h>
+#include <launch_core/net/lora.h>
+#include <launch_core/net/net_common.h>
 
 #define SLEEP_TIME_MS   100
 #define LED0_NODE DT_ALIAS(led0)

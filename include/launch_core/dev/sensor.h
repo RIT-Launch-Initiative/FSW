@@ -5,14 +5,13 @@
  */
 
 /**
- * Utility functions for dealing with Zephyr devices
+ * Utility functions for dealing with the Zephyr sensor API
  */
 
-#ifndef DEVICE_UTILS_H
-#define DEVICE_UTILS_H
+#ifndef L_SENSOR_UTILS_H
+#define L_SENSOR_UTILS_H
 
 #include <zephyr/device.h>
-#include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/sensor.h>
 
 typedef struct {
@@ -21,27 +20,6 @@ typedef struct {
     struct sensor_value **values;
     float **float_values;
 } l_sensor_readings_args_t;
-
-/********** GENERAL **********/
-
-/**
- * Confirm that the device is present and ready to be used.
- * @param dev - Device to check
- * @return Zephyr status code (0 if device is ready, -ENODEV otherwise)
- */
-int l_check_device(const struct device *const dev);
-
-/**********   ADC   **********/
-int l_init_adc_channel(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence);
-
-int l_init_adc_channels(const struct adc_dt_spec *const channels, struct adc_sequence *const sequences, const int num_channels);
-
-int l_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val);
-
-int l_async_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val);
-
-/********** SENSORS **********/
-
 
 /**
  * Command sensor updates and get sensor data from a device.
@@ -91,4 +69,5 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
 int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                             float **values);
 
-#endif //DEVICE_UTILS_H
+
+#endif // L_SENSOR_UTILS_H

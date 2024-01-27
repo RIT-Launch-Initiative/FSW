@@ -7,8 +7,13 @@
 #include "power_module_defs.h"
 
 #include <launch_core/backplane_defs.h>
-#include <launch_core/device_utils.h>
-#include <launch_core/net_utils.h>
+
+#include <launch_core/dev/adc.h>
+#include <launch_core/dev/dev_common.h>
+#include <launch_core/dev/sensor.h>
+
+#include <launch_core/net/net_common.h>
+#include <launch_core/net/udp.h>
 
 #include <zephyr/drivers/gpio.h>
 
