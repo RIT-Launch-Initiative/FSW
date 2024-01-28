@@ -1,6 +1,6 @@
 / {
     aliases {
-        // storage_flash: &external-flash;
+        storage = &flash0;
     };
 
     fstab {
@@ -8,7 +8,7 @@
         lfs1: lfs1 {
             compatible = "zephyr,fstab,littlefs";
             mount-point = "/lfs";
-            partition = <&storage_partition>;
+            partition = <&external_storage_partition>;
             automount;
 
             // the binding reccomends defaults for these
@@ -28,7 +28,7 @@
 
 &flashcontroller0 {
     compatible = "zephyr,sim-flash";
-    reg = <0x00000000 DT_SIZE_K(2048)>;
+    reg = <0x00000000 DT_SIZE_M(513)>;
 
     #address-cells = <1>;
     #size-cells = <1>;
@@ -39,7 +39,7 @@
         compatible = "soc-nv-flash";
         erase-block-size = <4096>;
         write-block-size = <1>;
-        reg = <0x00000000 DT_SIZE_K(2048)>;
+        reg = <0x00000000 DT_SIZE_M(513)>; // builtin stuff + external flash simulation
 
         partitions {
             compatible = "fixed-partitions";
@@ -62,9 +62,9 @@
                 label = "image-scratch";
                 reg = <0x000de000 0x0001e000>;
             };
-            storage_partition: partition@fc000 {
+            external_storage_partition: partition@fc000 {
                 label = "storage";
-                reg = <0x000fc000 0x00004000>;
+                reg = <0x000fc000 DT_SIZE_M(512)>;
             };
         };
     };
