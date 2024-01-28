@@ -22,8 +22,8 @@ int main(void) {
   // Won't run if initializing the network stack failed
   while (true) {
     // convert_and_send();
-
-    k_sleep(K_MSEC(100));
+    printk("main looping\n");
+    k_sleep(K_MSEC(1000));
   }
   return 0;
 }
