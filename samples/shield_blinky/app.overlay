@@ -1,6 +1,6 @@
 / {
 	chosen {
-		zephyr,console = &shield_serial;
+		zephyr,console = &usart2;
 	};
 	aliases {
 		led = &shield_led; 
