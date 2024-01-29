@@ -4,7 +4,6 @@
 	};
 
 	aliases {
-		magn = &lis3mdl;
 		led = &shield_led; 
 		storage = &w25q128;
 		logfs = &lfs1;
@@ -28,13 +27,6 @@
 			// NOTE: this seems to default to 512 for the mounted filesystem
 			// anyway
 		};
-	};
-};
-
-&mikrobus_i2c {
-	lis3mdl: lis3mdl@1c {
-		compatible = "st,lis3mdl-magn";
-		reg = <0x1c>;
 	};
 };
 
