@@ -4,6 +4,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// PC0 - ADC CS
+// PC4 W25_CS
+// PC8 LDO enable
+// PC11 Camera enable
+
+// PB0 led 1
+// PB1 led 2
+// PB14 ADC interupt
+// PB15 ADC MCLK
+
+//PB8 LSM6 INT2
+//PB9 LSM6 INT1
+
+
+// PB6 I2C1 SCL
+// PB7 I2C1 SDA
+
 /dts-v1/;
 #include <st/f4/stm32f446Xe.dtsi>
 #include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
@@ -53,15 +70,15 @@
 
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
-	cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpioa 0 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
-
+	// ADC on
 };
 
 &spi2 {
-	pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
-	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+	pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
+	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
 

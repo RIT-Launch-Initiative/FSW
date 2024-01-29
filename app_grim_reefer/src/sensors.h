@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+uint32_t useconds_since_launch();
+
 // sorta made up types
 typedef struct {
   int32_t x, y, z;
@@ -21,7 +23,7 @@ typedef struct {
 
 typedef struct {
   int32_t millivolts;
-  int32_t amps;
+  int32_t milliamps;
 } ina260_data_t;
 
 typedef struct {
@@ -29,3 +31,5 @@ typedef struct {
   ina260_data_t load_cell;
   ina260_data_t board_power;
 } all_inas_data_t;
+
+all_inas_data_t read_inas();
