@@ -26,6 +26,27 @@
 
 	aliases {
 	};
+
+
+	fstab {
+		compatible = "zephyr,fstab";
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&external_storage_partition>;
+			automount;
+
+			// the binding reccomends defaults for these
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <64>; // may need to grow for optimization
+			lookahead-size = <32>;
+			block-cycles = <(90 * 1000)>;
+			// the datasheet gives 100K P-E cycles
+			// NOTE: this seems to default to 512 for the mounted filesystem
+			// anyway
+		};
+	};
 };
 
 &clk_lsi {
@@ -106,17 +127,36 @@
 
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
-	cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
 
-	w5500: w5500@0 {
-		compatible = "wiznet,w5500";
-		reg = <0x0>;
-		spi-max-frequency = <10000000>;
-		int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
-		reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
+	w25q512: w25q512jv@0 {
+		compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
+		reg = <0>;
+
+		size = <DT_SIZE_M(512)>; // w25q512 - 512 MBit (S 9.4, p.92)
+		jedec-id = [ ef 40 20  ]; // 0xef4020 (Table 8.1.1, p.25)
+		spi-max-frequency = <(10 * 1000000)>; // fR = 50 MHz (Table 9.6, p.86)
+
+		has-dpd;
+		// Power-down 0xB9 (S 8.2.21)
+		t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.87)
+		// Release Power-down 0xAB (S 8.2.22)
+		t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.87)
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			external_storage_partition: partition@0 {
+				label = "w25q-storage";
+				reg = <0 DT_SIZE_M(512)>; // takes up the whole flash
+			};
+		};
 	};
+
 };
 
 &spi2 {
@@ -124,6 +164,7 @@
 	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
+	// ADC
 };
 
 &rtc {
