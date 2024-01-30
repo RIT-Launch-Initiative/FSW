@@ -22,6 +22,12 @@
 
 	leds: leds {
 		compatible = "gpio-leds";
+		red_led: led_1 {
+			gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+		};
+		red_led_again: led_2 {
+			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	aliases {
