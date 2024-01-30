@@ -32,6 +32,9 @@
 	aliases {
 		storage = &w25q128;
 	};
+	zephyr,user{
+		ldo-enable = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+	};
 
 	chosen {
 		zephyr,console = &usart2;
@@ -74,6 +77,8 @@
 	pinctrl-names = "default";
 	status = "okay";
 	// ADC on
+	// adc-enable = <&gpioc 11 GPIO_ACTIVE_HIGH>; // idk about active directionn
+
 };
 
 &spi2 {
