@@ -33,7 +33,7 @@
 		storage = &w25q128;
 	};
 	zephyr,user{
-		ldo-enable = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+		ldo-enables = <&gpioc 8 GPIO_ACTIVE_HIGH>;
 	};
 
 	chosen {
