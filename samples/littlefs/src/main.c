@@ -17,7 +17,7 @@
 #define FLASH_NODE DT_ALIAS(storage)
 
 const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
-const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
+const struct device* flash = DEVICE_DT_GET(FLASH_NODE);
 
 int32_t increment_file_int32(char* fname, int32_t* count) {
 	int32_t ret;
@@ -85,9 +85,6 @@ int main(void) {
 		printk("Device %s is not ready\n", flash->name);
 		return 0;
 	}
-#ifdef CONFIG_CLEAR_STORAGE_PARTITION
-	flash_erase(flash, 0, DT_PROP(FLASH_NODE, size));
-#endif
 
 	ret = increment_file_int32("/lfs/boot_count", &boot_counter);
 	if (ret >= 0) {

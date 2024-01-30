@@ -37,8 +37,8 @@
 
 		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75) 
 		jedec-id = [ef 40 18]; // 0xef4018 (Table 8.1.1, p.22)
-		spi-max-frequency = <(10 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
-		// but sticking to 10 because 50 doesn't work on my hardware, at time of
+		spi-max-frequency = <(5 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
+		// but sticking to 1 because 50 doesn't work on my hardware, at time of
 		// writing
 
 		has-dpd;
