@@ -20,6 +20,11 @@
 		zephyr,flash = &flash0;
 	};
 
+	zephyr,user {
+		gpio-enable-ldos = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+		gpio-enable-cameras = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+	};
+
 	leds: leds {
 		compatible = "gpio-leds";
 		red_led: led_1 {
@@ -28,9 +33,6 @@
 		another_led: led_2 {
 			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
 		};
-	};
-
-	aliases {
 	};
 
 
