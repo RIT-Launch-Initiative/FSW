@@ -24,8 +24,7 @@
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL
-);
+LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
 
 static struct k_msgq ina_processing_queue;
 static uint8_t ina_processing_queue_buffer[CONFIG_INA219_QUEUE_SIZE * sizeof(power_module_telemetry_t)];

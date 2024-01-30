@@ -1,0 +1,13 @@
+sample:
+  description: Potato
+  name: potato
+common:
+  build_only: true
+  integration_platforms:
+    - potato
+    - nucleo_f446re
+tests:
+  app.default: {}
+  app.debug:
+    extra_overlay_confs:
+      - debug.conf

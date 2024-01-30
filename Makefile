@@ -4,6 +4,7 @@ all:
 flash:
 	west flash
 
+# Modules
 power:
 	west build -b power_module@2 app_power_module -p auto
 
@@ -13,6 +14,9 @@ radio:
 sensor:
 	west build -b sensor_module app_sensor_module -p auto
 
+# Extension boards
+potato:
+	west build -b potato app_potato -p auto
 clean:
 	rm -rf build
 
