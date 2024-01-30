@@ -1,5 +1,5 @@
 identifier: potato
-name: Sensor Module
+name: POTATO
 type: mcu
 arch: arm
 toolchain:
