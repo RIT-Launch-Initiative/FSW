@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix: # Define different development plaforms and applications to compile
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        app: # Put in alphabetical order please :) 
+          - app_potato
+          - app_power_module
+          - app_radio_module
+          - app_sensor_module
+
+    # Concurrently run checks for each OS
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ${{ matrix.app }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Setup Zephyr project
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          app-path: ${{ matrix.app }}
+          toolchains: arm-zephyr-eabi
+
+      - name: Build firmware
+        working-directory: ${{ matrix.app }}
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
+          fi
+          west twister -T app -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+
+      - name: Twister Tests
+        working-directory: ${{ matrix.app }}
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
+          fi
+          west twister -T tests -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+
