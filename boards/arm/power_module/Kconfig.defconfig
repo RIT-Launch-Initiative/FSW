@@ -1,0 +1,10 @@
+if BOARD_POWER_MODULE
+
+config BOARD
+	default "power_module"
+
+config SPI_STM32_INTERRUPT
+	default y
+	depends on SPI
+
+endif # BOARD_POWER_MODULE

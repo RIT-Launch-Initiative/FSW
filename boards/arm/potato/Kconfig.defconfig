@@ -1,0 +1,6 @@
+if BOARD_POTATO
+
+config BOARD
+	default "potato"
+
+endif # BOARD_POTATO
