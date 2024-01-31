@@ -2,29 +2,39 @@ name: Build
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - '*'
+  # Run every Monday at 12 AM in case things decide to magically break
+  # Don't want to be spammed about failures every day though
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 * * 1"
 
 jobs:
   build:
     strategy:
       fail-fast: false
-      matrix: # Define different development plaforms and applications to compile
+      matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        app: # Put in alphabetical order please :) 
+        app: # Define different development plaforms and applications to compile
           - app_potato
           - app_power_module
           - app_radio_module
           - app_sensor_module
 
-    # Concurrently run checks for each OS
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           path: ${{ matrix.app }}
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.0
+        with:
+          ssh-private-key: ${{ secrets.LAUNCH_ACCESS_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -54,4 +64,3 @@ jobs:
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
           west twister -T tests -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
-
