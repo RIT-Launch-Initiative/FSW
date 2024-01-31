@@ -20,16 +20,17 @@
 		zephyr,flash = &flash0;
 	};
 
-	zephyr,user {
-
+	aliases {
+		led1 = &redled;
+		led2 = &anotherled;
 	};
 
 	leds: leds {
 		compatible = "gpio-leds";
-		red_led: led_1 {
+		redled: redled{
 			gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
 		};
-		another_led: led_2 {
+		anotherled: anotherled{
 			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
 		};
 	};
