@@ -21,8 +21,7 @@
 	};
 
 	zephyr,user {
-		gpio-enable-ldos = <&gpioc 8 GPIO_ACTIVE_HIGH>;
-		gpio-enable-cameras = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+
 	};
 
 	leds: leds {
@@ -32,6 +31,19 @@
 		};
 		another_led: led_2 {
 			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	control_gpios{
+		compatible = "gpio-keys";
+		ldo-enable{
+			gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for LDO";
+		};
+		camera-enable{
+			gpios = <&gpiob 11 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for Cameras";
+
 		};
 	};
 
