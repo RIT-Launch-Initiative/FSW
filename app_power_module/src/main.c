@@ -37,11 +37,11 @@ static struct k_thread ina_processing_thread;
 
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
-static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
-static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
-static const struct gpio_dt_spec led3 = GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios);
-static const struct gpio_dt_spec led_wiznet = GPIO_DT_SPEC_GET(DT_ALIAS(ledwiz), gpios);
+//static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+//static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
+//static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
+//static const struct gpio_dt_spec led3 = GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios);
+//static const struct gpio_dt_spec led_wiznet = GPIO_DT_SPEC_GET(DT_ALIAS(ledwiz), gpios);
 
 static const enum sensor_channel ina_channels[] = {
         SENSOR_CHAN_CURRENT,
