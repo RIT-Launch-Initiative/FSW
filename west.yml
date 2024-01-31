@@ -9,7 +9,7 @@ manifest:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
     - name: u-blox
-      url-base: git@github.com:u-blox
+      url-base: https://github.com/u-blox
 
   projects:
     - name: zephyr
