@@ -34,7 +34,7 @@ jobs:
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.5.0
         with:
-          ssh-private-key: ${{ secrets.LAUNCH_ACCESS_TOKEN }}
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
