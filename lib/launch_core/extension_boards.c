@@ -54,8 +54,6 @@ int initiate_arbitration(l_extension_board_id_t id, uint32_t timeout_ms) {
     uint32_t elapsed_time = 0;
     uint32_t received_byte = 0;
 
-
-
     while (elapsed_time < timeout_ms) {
         // TODO: Send UART until timeout or response
         if (received_byte != 0) {
