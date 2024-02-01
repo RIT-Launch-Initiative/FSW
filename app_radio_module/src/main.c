@@ -1,6 +1,5 @@
 #include <zephyr/kernel.h>
 
-
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
@@ -8,6 +7,7 @@
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/net/lora.h>
 #include <launch_core/net/net_common.h>
+#include <launch_core/net/udp.h>
 
 #define SLEEP_TIME_MS   100
 #define LED0_NODE DT_ALIAS(led0)
@@ -22,7 +22,7 @@ static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
-static void init() {
+static int init() {
     char ip[MAX_IP_ADDRESS_STR_LEN];
     int ret = -1;
 
@@ -40,17 +40,19 @@ static void init() {
     if (!l_check_device(wiznet)) {
         l_init_udp_net_stack("192.168.1.1");
     }
+
+    return 0;
 }
 
 int main() {
-    uint8_t tx_buff[255] = {0};
-    uint8_t tx_buff_len = 0;
-
     LOG_DBG("Starting radio module!\n");
-    init();
+    if (init()) {
+        return -1;
+    }
 
     while (1) {
         gpio_pin_toggle_dt(&led0);
+        gpio_pin_toggle_dt(&led1);
         k_msleep(100);
     }
 

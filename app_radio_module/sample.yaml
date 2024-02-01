@@ -1,6 +1,3 @@
-# This file is provided so that the application can be compiled using Twister,
-# the Zephyr testing tool. In this file, multiple combinations can be specified,
-# so that you can easily test all of them locally or in CI.
 sample:
   description: Radio Module
   name: radio-module

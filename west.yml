@@ -16,11 +16,12 @@ manifest:
       remote: zephyrproject-rtos
       revision: main
       import:
-        name-allowlist: # Need to support networking, littlefs, lora,
+        name-allowlist:
           - cmsis
           - hal_stm32
           - hal_espressif
           - littlefs
+          - loramac-node
     - name: ubxlib
       remote: u-blox
       path: ubxlib
