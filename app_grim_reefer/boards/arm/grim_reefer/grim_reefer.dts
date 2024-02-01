@@ -30,10 +30,7 @@
 	model = "Grim Reefer";
 	compatible = "st,stm32f446re-nucleo";
 	aliases {
-		storage = &w25q128;
-	};
-	zephyr,user{
-		ldo-enables = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+		storage = &w25q512;
 	};
 
 	chosen {
@@ -43,13 +40,7 @@
 		zephyr,flash = &flash0;
 	};
 
-	aliases {
-		// led1 = &redled;
-		// led2 = &anotherled;
-		// ldoenable = &ldo-enable;
-		// camenable = &cam-enable;
 
-	};
 
 	leds: leds {
 		compatible = "gpio-leds";

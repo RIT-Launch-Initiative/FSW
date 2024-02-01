@@ -18,6 +18,7 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 #else
 #define CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG 1
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
+#endif
 
 // devicetree gets
 #define LED1_NODE DT_NODELABEL(redled)
@@ -73,40 +74,6 @@ static int init(void) {
 int main(void) {
   if (init()) {
     return -1;
-  }
-
-  int32_t ret = 0;
-
-  int32_t boot_counter = -1;
-
-  // Boilerplate: set up GPIO
-  // if (!gpio_is_ready_dt(&led)) {
-  // printf("GPIO is not ready\n");
-  // return 0;
-  // }
-
-  // if (gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE) < 0) {
-  // printf("Unable to configure LED output pin\n");
-  // return 0;
-  // }
-
-#ifdef CONFIG_CLEAR_STORAGE_PARTITION
-  if (!device_is_ready(flash)) {
-    printf("Device %s is not ready\n", flash->name);
-    return 0;
-  }
-  flash_erase(flash, 0, DT_PROP(FLASH_NODE, size));
-#endif
-
-  ret = increment_file_int32("/lfs/boot_count", &boot_counter);
-  if (ret >= 0) {
-    LOG_PRINTK("Successfully read and updated boot counter: %d boots\n",
-               boot_counter);
-    printk("inked\n");
-
-  } else {
-    LOG_PRINTK("Failed to read file\n");
-    printk("failed\n");
   }
 
   // Won't run if initializing the network stack failed
