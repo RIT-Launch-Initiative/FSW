@@ -3,6 +3,29 @@
         storage = &flash0;
     };
 
+    leds: leds {
+        compatible = "gpio-leds";
+        redled: redled{
+            gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+        };
+        anotherled: anotherled{
+            gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+        };
+    };
+
+    control_gpios{
+        compatible = "gpio-keys";
+        ldo_enable: ldo-enable{
+            gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+            label = "Enable pin for LDO";
+        };
+        cam_enable: cam-enable{
+            gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+            label = "Enable pin for Cameras";
+
+        };
+    };
+
     fstab {
         compatible = "zephyr,fstab";
         lfs1: lfs1 {
