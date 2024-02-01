@@ -21,8 +21,11 @@
 	};
 
 	aliases {
-		led1 = &redled;
-		led2 = &anotherled;
+		// led1 = &redled;
+		// led2 = &anotherled;
+		// ldoenable = &ldo-enable;
+		// camenable = &cam-enable;
+
 	};
 
 	leds: leds {
@@ -37,11 +40,11 @@
 
 	control_gpios{
 		compatible = "gpio-keys";
-		ldo-enable{
+		ldo_enable: ldo-enable{
 			gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
 			label = "Enable pin for LDO";
 		};
-		camera-enable{
+		cam_enable: cam-enable{
 			gpios = <&gpiob 11 GPIO_ACTIVE_HIGH>;
 			label = "Enable pin for Cameras";
 
