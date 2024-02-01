@@ -152,6 +152,7 @@
 		compatible = "microchip,mcp3561";
 		status = "okay";
 		reg = <0x0>;
+		osr = "OSR_32";
 		spi-max-frequency = <10000000>;
 		#io-channel-cells = <1>;
 		#address-cells = <1>;
@@ -164,21 +165,6 @@
 			zephyr,reference = "ADC_REF_VDD_1";
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
 		};
-
-		channel@2 {
-			reg = <2>;
-			zephyr,gain = "ADC_GAIN_1_6";
-			zephyr,reference = "ADC_REF_VDD_1";
-			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
-		};
-		channel@3 {
-			reg = <3>;
-			zephyr,gain = "ADC_GAIN_1_6";
-			zephyr,reference = "ADC_REF_VDD_1";
-			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
-			zephyr,oversampling = <128>;
-		};
-
 	};
 
 };

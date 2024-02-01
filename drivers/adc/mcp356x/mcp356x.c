@@ -10,6 +10,26 @@
 #include <zephyr/drivers/spi.h>
 #include <zephyr/logging/log.h>
 
+enum OSR {
+  // Total OSR3 OSR1 OSR[3:0]
+  OSR_32,    // 32  1   0000
+  OSR_64,    // 61  1   0001
+  OSR_128,   // 128 1   0010
+  OSR_256,   // 256 1   0011
+  OSR_512,   // 512 1   0100
+  OSR_1024,  // 512 2   0101
+  OSR_2048,  // 512 4   0110
+  OSR_4096,  // 512 8   0111
+  OSR_8192,  // 512 16  1000
+  OSR_16384, // 512 32  1001
+  OSR_20480, // 512 40  1010
+  OSR_24576, // 512 48  1011
+  OSR_40960, // 512 80  1100
+  OSR_49152, // 512 96  1101
+  OSR_81920, // 512 160 1110
+  OSR_98304  // 512 192 1111
+};
+
 LOG_MODULE_REGISTER(mcp356x, CONFIG_SENSOR_LOG_LEVEL);
 
 struct mcp356x_data {
@@ -18,7 +38,8 @@ struct mcp356x_data {
 
 struct mcp356x_config {
   struct spi_dt_spec bus;
-  uint8_t channels; // 1 2 4
+  uint8_t channels; // 1
+  enum OSR osr;
 };
 
 static int mcp356x_read_channel(const struct device *dev,
@@ -66,15 +87,66 @@ int mcp356x_channel_setup(const struct device *dev,
     gain_bits = 0b111;
     break;
   default:
-    LOG_ERR("unsupported channel gain '%d' on channel %d", channel_cfg->gain,
-            channel_cfg->channel_id);
+    LOG_ERR("unsupported OSR '%d'", config->osr);
     return -ENOTSUP;
   }
 
   // Configure OSR
-  // switch (channel_cfg->reference) {
-  // case Internal
-  // }
+  uint8_t osr_bits = 0;
+  switch (config->osr) {
+  case OSR_32:
+    osr_bits = 0b0000;
+    break;
+  case OSR_64:
+    osr_bits = 0b0001;
+    break;
+  case OSR_128:
+    osr_bits = 0b0010;
+    break;
+  case OSR_256:
+    osr_bits = 0b0011;
+    break;
+  case OSR_512:
+    osr_bits = 0b0100;
+    break;
+  case OSR_1024:
+    osr_bits = 0b0101;
+    break;
+  case OSR_2048:
+    osr_bits = 0b0110;
+    break;
+  case OSR_4096:
+    osr_bits = 0b0111;
+    break;
+  case OSR_8192:
+    osr_bits = 0b1000;
+    break;
+  case OSR_16384:
+    osr_bits = 0b1001;
+    break;
+  case OSR_20480:
+    osr_bits = 0b1010;
+    break;
+  case OSR_24576:
+    osr_bits = 0b1011;
+    break;
+  case OSR_40960:
+    osr_bits = 0b1100;
+    break;
+  case OSR_49152:
+    osr_bits = 0b1101;
+    break;
+  case OSR_81920:
+    osr_bits = 0b1110;
+    break;
+  case OSR_98304:
+    osr_bits = 0b1111;
+    break;
+  default:
+    LOG_ERR("unsupported channel gain '%d' on channel %d", channel_cfg->gain,
+            channel_cfg->channel_id);
+    return -ENOTSUP;
+  }
 
   return -1;
 }
@@ -110,7 +182,8 @@ static int mcp356x_init(const struct device *dev) {
       {.bus = SPI_DT_SPEC_GET(                                                 \
            INST_DT_MCP356x(instance, channel_num),                             \
            SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),        \
-       .channels = channel_num};                                               \
+       .channels = channel_num,                                                \
+       .osr = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), osr)};   \
   DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \
                    &mcp356##channel_num##_data_##instance,                     \
                    &mcp356##channel_num##_config_##instance, POST_KERNEL,      \
