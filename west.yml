@@ -11,6 +11,7 @@ manifest:
     - name: u-blox
       url-base: https://github.com/u-blox
 
+
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
@@ -26,6 +27,8 @@ manifest:
       remote: u-blox
       path: ubxlib
       revision: master
-      import: true
+      import:
+        name-allowlist:
+          - gnss
       clone-depth: 1
 

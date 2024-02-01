@@ -21,7 +21,7 @@ jobs:
         app: # Define different development plaforms and applications to compile
           - app_potato
           - app_power_module
-          - app_radio_module
+#          - app_radio_module
           - app_sensor_module
 
     runs-on: ${{ matrix.os }}
