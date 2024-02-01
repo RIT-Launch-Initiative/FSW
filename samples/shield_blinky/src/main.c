@@ -21,24 +21,14 @@ int main(void) {
   }
 
   if (gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE) < 0) {
-    LOG_ERR("Unable to configure LED output pin\n");
-    return -1;
-  }
-  if (!gpio_is_ready_dt(&ldo_enable)) {
-    LOG_ERR("LDO Enable GPIO is not ready\n");
+    printf("Unable to configure LED output pin\n");
     return 0;
   }
-
-  if (gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_ACTIVE) < 0) {
-    LOG_ERR("Unable to configure LDO output pin\n");
-    return -1;
-  }
-  /* Configure the pin */
 
   // forever
   while (1) {
     gpio_pin_toggle_dt(&led);
-    LOG_PRINTK("LED toggle %d\n", ++counter);
+    printk("LED toggle %d\n", ++counter);
     k_msleep(100);
   }
   return 0;

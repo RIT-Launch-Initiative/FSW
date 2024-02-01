@@ -43,9 +43,37 @@
 		zephyr,flash = &flash0;
 	};
 
+	aliases {
+		// led1 = &redled;
+		// led2 = &anotherled;
+		// ldoenable = &ldo-enable;
+		// camenable = &cam-enable;
+
+	};
+
 	leds: leds {
 		compatible = "gpio-leds";
+		redled: redled{
+			gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+		};
+		anotherled: anotherled{
+			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+		};
 	};
+
+	control_gpios{
+		compatible = "gpio-keys";
+		ldo_enable: ldo-enable{
+			gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for LDO";
+		};
+		cam_enable: cam-enable{
+			gpios = <&gpiob 11 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for Cameras";
+
+		};
+	};
+
 
 	fstab {
 		compatible = "zephyr,fstab";
@@ -66,44 +94,103 @@
 			// anyway
 		};
 	};
-
 };
 
+&clk_lsi {
+	status = "okay";
+};
 
+&clk_hsi {
+	clock-frequency = <DT_FREQ_M(16)>;
+	status = "okay";
+};
+
+&pll {
+	div-m = <8>;
+	mul-n = <90>;
+	div-p = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(45)>;
+	ahb-prescaler = <2>;
+	apb1-prescaler = <2>;
+	apb2-prescaler = <1>;
+};
+
+// Modify when we finally get UART on REV2
+&usart2 {
+	pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	ina219_battery@40 {// Load Cell - LDO (5v)
+		status = "okay";
+		compatible = "ti,ina219"; // TODO make this INA260
+		reg = <0x40>;
+		brng = <0>;
+		pg = <0>;
+		sadc = <13>;
+		badc = <13>;
+		shunt-milliohm = <100>;
+		lsb-microamp = <10>;
+	};
+
+	ina219_3v3@41 {// Grim - Buck (3.3v)
+		status = "okay";
+		compatible = "ti,ina219"; // TODO make this INA260
+		reg = <0x41>;
+		brng = <0>;
+		pg = <0>;
+		sadc = <13>;
+		badc = <13>;
+		shunt-milliohm = <100>;
+		lsb-microamp = <10>;
+	};
+
+	ina219_5v0@44 {// Battery (7.4v)
+		status = "okay";
+		compatible = "ti,ina219"; // TODO make this INA260
+		reg = <0x44>;
+		brng = <0>;
+		pg = <0>;
+		sadc = <13>;
+		badc = <13>;
+		shunt-milliohm = <100>;
+		lsb-microamp = <10>;
+	};
+};
 
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
-	cs-gpios = <&gpioa 0 GPIO_ACTIVE_LOW>;
-	pinctrl-names = "default";
-	status = "okay";
-	// ADC on
-	// adc-enable = <&gpioc 11 GPIO_ACTIVE_HIGH>; // idk about active directionn
-
-};
-
-&spi2 {
-	pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
 	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
 
-	w25q128: w25q128jv@0 {
-		// TODO update with actual spi chip 128 -> 512
+	w25q512: w25q512jv@0 {
 		compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
-		reg = <0>; // connected to to connector 1
+		reg = <0>;
 
-		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75)
-		jedec-id = [ ef 40 18  ]; // 0xef4018 (Table 8.1.1, p.22)
-		spi-max-frequency = <(10 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
-		// but sticking to 10 because 50 doesn't work on my hardware at time of
-		// writing since it's just header wires
-
+		size = <DT_SIZE_M(512)>; // w25q512 - 512 MBit (S 9.4, p.92)
+		jedec-id = [ ef 40 20  ]; // 0xef4020 (Table 8.1.1, p.25)
+		spi-max-frequency = <(10 * 1000000)>; // fR = 50 MHz (Table 9.6, p.86)
 
 		has-dpd;
 		// Power-down 0xB9 (S 8.2.21)
-		t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.66)
+		t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.87)
 		// Release Power-down 0xAB (S 8.2.22)
-		t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.66)
+		t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.87)
 
 		partitions {
 			compatible = "fixed-partitions";
@@ -112,10 +199,19 @@
 
 			external_storage_partition: partition@0 {
 				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(128)>; // takes up the whole flash
+				reg = <0 DT_SIZE_M(512)>; // takes up the whole flash
 			};
 		};
 	};
+
+};
+
+&spi2 {
+	pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
+	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+	pinctrl-names = "default";
+	status = "okay";
+	// ADC
 };
 
 &rtc {
@@ -163,81 +259,5 @@
 			label = "image-scratch";
 			reg = <0x00060000 DT_SIZE_K(128)>;
 		};
-	};
-};
-
-&clk_lsi {
-	status = "okay";
-};
-
-&clk_hsi {
-	clock-frequency = <DT_FREQ_M(16)>;
-	status = "okay";
-};
-
-&pll {
-	div-m = <8>;
-	mul-n = <90>;
-	div-p = <2>;
-	clocks = <&clk_hsi>;
-	status = "okay";
-};
-
-&rcc {
-	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(45)>;
-	ahb-prescaler = <2>;
-	apb1-prescaler = <2>;
-	apb2-prescaler = <1>;
-};
-
-// Modify when we finally get UART on REV2
-&usart2 {
-	pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
-	pinctrl-names = "default";
-	current-speed = <115200>;
-	status = "okay";
-};
-
-&i2c1 {
-	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
-	pinctrl-names = "default";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
-
-	ina219_battery@40 {
-		status = "okay";
-		compatible = "ti,ina219";
-		reg = <0x40>;
-		brng = <0>;
-		pg = <0>;
-		sadc = <13>;
-		badc = <13>;
-		shunt-milliohm = <100>;
-		lsb-microamp = <10>;
-	};
-
-	ina219_3v3@44 {
-		status = "okay";
-		compatible = "ti,ina219";
-		reg = <0x44>;
-		brng = <0>;
-		pg = <0>;
-		sadc = <13>;
-		badc = <13>;
-		shunt-milliohm = <100>;
-		lsb-microamp = <10>;
-	};
-
-	ina219_5v0@41 {
-		status = "okay";
-		compatible = "ti,ina219";
-		reg = <0x41>;
-		brng = <0>;
-		pg = <0>;
-		sadc = <13>;
-		badc = <13>;
-		shunt-milliohm = <100>;
-		lsb-microamp = <10>;
 	};
 };

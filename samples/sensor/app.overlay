@@ -1,0 +1,17 @@
+/ {
+	chosen {
+		zephyr,console = &usart2;
+	};
+
+	aliases {
+		magn = &lis3mdl;
+		led = &shield_led; 
+	};
+};
+
+&mikrobus_i2c {
+	lis3mdl: lis3mdl@1c {
+		compatible = "st,lis3mdl-magn";
+		reg = <0x1c>;
+	};
+};

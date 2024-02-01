@@ -4,8 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr/fs/fs.h>
-#include <zephyr/fs/littlefs.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/gpio.h>
+// #include <zephyr/fs/fs.h>
+// #include <zephyr/fs/littlefs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
@@ -15,57 +18,57 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 #else
 #define CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG 1
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
-#endif
 
-// #define FLASH_NODE DT_ALIAS(led0)
-#define FLASH_NODE DT_ALIAS(storage)
-const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
+// devicetree gets
+#define LED1_NODE DT_NODELABEL(redled)
+#define LED2_NODE DT_NODELABEL(anotherled)
 
-int32_t increment_file_int32(char *fname, int32_t *count) {
-  int32_t ret;
-  int32_t close_ret;
-  struct fs_file_t file;
+const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
 
-  // prepare file for usage
-  fs_file_t_init(&file);
-  ret = fs_open(&file, fname, FS_O_CREATE | FS_O_RDWR);
-  if (ret < 0) {
-    LOG_PRINTK("Failed to open %s: %d\n", fname, ret);
-    return ret;
+#define LDO_EN_NODE DT_NODELABEL(ldo_enable)
+#define CAM_EN_NODE DT_NODELABEL(cam_enable)
+
+const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
+const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
+
+static int init(void) {
+  // Init LEDS
+  if (!gpio_is_ready_dt(&led1)) {
+    LOG_ERR("LED 1 is not ready\n");
+    return -1;
   }
-
-  // get the counter from the file
-  ret = fs_read(&file, count, sizeof(*count));
-  if (ret < 0) {
-    LOG_PRINTK("Failed to read counter: %d\n", ret);
-    goto exit;
+  if (gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure LED 1 output pin\n");
+    return -1;
   }
-
-  (*count)++;
-
-  // go back to the start of the file
-  ret = fs_seek(&file, 0, FS_SEEK_SET);
-  if (ret < 0) {
-    LOG_PRINTK("Failed to seek to start: %d\n", ret);
-    goto exit;
+  if (!gpio_is_ready_dt(&led2)) {
+    LOG_ERR("LED 2 is not ready\n");
+    return -1;
   }
-
-  // write the counter to the file
-  ret = fs_write(&file, count, sizeof(*count));
-  if (ret < 0) {
-    LOG_PRINTK("Failed to write new count: %d\n", ret);
+  if (gpio_pin_configure_dt(&led2, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure LED 2 output pin\n");
+    return -1;
   }
-
-exit:
-  close_ret = fs_close(&file);
-  if (close_ret < 0) {
-    LOG_PRINTK("Failed to close %s: %d\n", fname, close_ret);
-    return close_ret;
+  // Init Enable pins
+  if (!gpio_is_ready_dt(&ldo_enable)) {
+    LOG_ERR("ldo enable pin is not ready\n");
+    return -1;
   }
-  return ret;
+  if (gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure ldo enable output pin\n");
+    return -1;
+  }
+  if (!gpio_is_ready_dt(&cam_enable)) {
+    LOG_ERR("camera enable pin is not ready\n");
+    return -1;
+  }
+  if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure camera enable output pin\n");
+    return -1;
+  }
+  return 0;
 }
-
-static int init(void) { return 0; }
 
 int main(void) {
   if (init()) {
