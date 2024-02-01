@@ -14,6 +14,9 @@
 
 #include <zephyr/logging/log.h>
 
+#include <zephyr/net/socket.h>
+#include <unistd.h>
+
 LOG_MODULE_REGISTER(launch_udp_utils);
 
 SYS_HASHMAP_DEFINE_STATIC(UDP_PORT_HANDLERS);

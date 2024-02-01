@@ -1,21 +1,12 @@
-#include <app_version.h>
-
 #include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
-#include <launch_core/dev/sensor.h>
 #include <launch_core/net/net_common.h>
-
-#include <zephyr/drivers/sensor.h>
-#include <zephyr/drivers/gpio.h>
+#include <launch_core/net/udp.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/net/socket.h>
-#include <zephyr/storage/flash_map.h>
 
-#include "sensors.h"
-
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 K_QUEUE_DEFINE(net_tx_queue);
 
 #define STACK_SIZE (512)
@@ -28,9 +19,9 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 static int init(void) {
     char ip[MAX_IP_ADDRESS_STR_LEN];
-    int ret = -1;
 
     k_queue_init(&net_tx_queue);
+    int ret = 0;
 
     if (0 > l_create_ip_str_default_net_id(ip, SENSOR_MODULE_ID, 1)) {
         LOG_ERR("Failed to create IP address string: %d", ret);

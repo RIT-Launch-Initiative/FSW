@@ -5,6 +5,6 @@ menu "Zephyr"
 source "Kconfig.zephyr"
 endmenu
 
-module = APP_SENSOR_MODULE
-module-str = APP_SENSOR_MODULE
+module = APP_POTATO
+module-str = APP_POTATO
 source "subsys/logging/Kconfig.template.log_config"
