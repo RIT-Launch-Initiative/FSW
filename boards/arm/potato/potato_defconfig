@@ -1,3 +1,6 @@
+# Copyright (c) 2024 RIT Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
 # System
 CONFIG_CLOCK_CONTROL=y
 CONFIG_SOC_SERIES_STM32F4X=y
