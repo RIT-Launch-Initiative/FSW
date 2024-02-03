@@ -33,7 +33,7 @@ CONFIG_THREAD_NAME=y
 CONFIG_KERNEL_MEM_POOL=y
 
 # Heap (ubxlib fails without this)
-CONFIG_HEAP_MEM_POOL_SIZE=20000
+CONFIG_HEAP_MEM_POOL_SIZE=40000
 # ubxlib gh asks for 20000 bytes of heap
 
 # enable pin controller
