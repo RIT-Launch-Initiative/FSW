@@ -42,19 +42,6 @@ int start_maxm10s(gnss_dev_t* dev) {
         return ret;
     }
 
-    // open a UART port to the MAX-M10S GNSS module
-    // I am going to leave this as I2C for now, SPI and UART
-    // also exist. TODO: Macro values should be filled in based
-    // devicetree shenanigans
-    dev->transportHandle.i2c = uPortI2cOpen(MAXM10S_I2C,
-                                            MAXM10S_SDA_PIN,
-                                            MAXM10S_SCL_PIN,
-                                            true);
-    if (dev->transportHandle.i2c < 0) {
-        LOG_ERR("uPortI2cOpen() returned %d\n", dev->transportHandle.i2c);
-        return dev->transportHandle.i2c;
-    }
-
     // Add a GNSS instance and telling it to spit data out
     // on the i2c transport handle.
     ret = uGnssAdd(U_GNSS_MODULE_TYPE_M10,  // our module is a MAX-M10S
