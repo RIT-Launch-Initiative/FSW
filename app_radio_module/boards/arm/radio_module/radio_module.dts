@@ -52,8 +52,16 @@
             gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
             label = "User LED2";
         };
-
     };
+
+    cfg-device-gnss {
+        compatible = "u-blox,ubxlib-device-gnss";
+        status = "okay";
+        transport-type = "i2c1";
+        module-type = "U_GNSS_MODULE_TYPE_M10";
+    };
+
+
 
     aliases {
         led0 = &red_led_1;
@@ -122,9 +130,9 @@
 
     max0: maxm10s@42 {
         status = "okay";
-        compatible = "ublox,maxm10s";
+        compatible = "u-blox,maxm10s";
         reg = <0x42>;
-        
+
     };
 };
 

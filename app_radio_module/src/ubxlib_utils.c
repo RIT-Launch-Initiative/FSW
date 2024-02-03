@@ -25,43 +25,12 @@ LOG_MODULE_REGISTER(ubxlib_utils);
 
 // TODO: get rid of gnss_dev_t and use uGnssTransportHandle_t instead
 int start_maxm10s(gnss_dev_t* dev) { 
-    uint32_t ret = uDeviceOpen(NULL, dev->gnssHandle);
+    int ret = uDeviceOpen(NULL, dev->gnssHandle);
     dev->transportHandle = (uGnssTransportHandle_t)NULL;
     if (ret != 0) {
         LOG_ERR("uDeviceOpen() returned %d\n", ret);
         return ret;
     }
-
-    // // Initialize the APIs
-    // uint32_t ret = uPortInit();
-    // if (ret != 0)
-    //     return ret;
-    // LOG_INF("uPortInit() returned %d\n", ret);
-
-    // ret = uPortI2cInit();
-    // if (ret != 0) {
-    //     LOG_ERR("uPortI2cInit() returned %d\n", ret);
-    //     return ret;
-    // }
-
-    // ret = uGnssInit();
-    // if (ret != 0) {
-    //     LOG_ERR("uGnssInit() returned %d\n", ret);
-    //     return ret;
-    // }
-
-    // // Add a GNSS instance and telling it to spit data out
-    // // on the i2c transport handle.
-    // ret = uGnssAdd(U_GNSS_MODULE_TYPE_M10,  // our module is a MAX-M10S
-    //                U_GNSS_TRANSPORT_I2C,
-    //                dev->transportHandle,
-    //                U_CFG_APP_PIN_GNSS_ENABLE_POWER,
-    //                false,
-    //                dev->gnssHandle);
-    // if (ret != 0) {
-    //     LOG_ERR("uGnssAdd() returned %d\n", ret);
-    //     return ret;
-    // }
 
     // Print gnss messages to the i2c line
     uGnssSetUbxMessagePrint(dev->gnssHandle, true);
