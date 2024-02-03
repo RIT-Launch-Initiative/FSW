@@ -34,6 +34,10 @@ typedef struct {
  */
 int l_init_udp_net_stack(const char *ip);
 
+int l_init_udp_socket(const char *ip, uint16_t port);
+
+int l_deinit_udp_socket(int sock);
+
 /**
  * Send a UDP broadcast message
  * @param buff - Buffer of data to transmit
@@ -41,16 +45,16 @@ int l_init_udp_net_stack(const char *ip);
  * @param port - Port to transmit on
  * @return Zephyr status code
  */
-int l_send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port);
+int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t port);
 
 /**
- * Receive UDP callback
- * @param dev - Network device
- * @param packet - Packet received
- * @param status - Status of the packet
+ * Polling receive function for UDP
+ * @param data - Buffer to receive data into
+ * @param data_len - Size of the buffer
+ * @param port - Port the data was received on
  * @return Zephyr status code
  */
-int l_receive_udp_callback(const struct device *dev, struct net_pkt *packet, int status);
+int l_receive_udp_poll(int sock, const uint8_t *buff, size_t len, uint16_t port);
 
 /**
  * Add a function for handling data from a specific port

@@ -50,7 +50,7 @@ int l_init_udp_net_stack(const char *ip_addr) {
     return 0;
 }
 
-int l_send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port) {
+int l_init_udp_socket(const char *ip, uint16_t port) {
     int sock;
     int ret;
 
@@ -60,31 +60,50 @@ int l_send_udp_broadcast(const uint8_t *data, size_t data_len, uint16_t port) {
         return sock;
     }
 
-    struct sockaddr_in dst_addr;
-    dst_addr.sin_family = AF_INET;
-    dst_addr.sin_port = htons(port);
-    ret = net_addr_pton(AF_INET, "255.255.255.255", &dst_addr.sin_addr);
-    if (ret < 0) {
-        LOG_ERR("Invalid IP address format\n");
-        close(sock);
-        return ret;
-    }
+//    struct sockaddr_in addr;
+//    addr.sin_family = AF_INET;
+//    addr.sin_port = htons(port);
+//    ret = net_addr_pton(AF_INET, ip, &addr.sin_addr);
+//    if (ret < 0) {
+//        LOG_ERR("Invalid IP address format\n");
+//        close(sock);
+//        return ret;
+//    }
+// TODO: Bind fails, but we can still broadcast
+//    ret = bind(sock, (struct sockaddr *) &addr, sizeof(addr));
+//    if (ret < 0) {
+//        LOG_ERR("Failed to bind socket (%d)\n", ret);
+//        close(sock);
+//        return ret;
+//    }
 
-    ret = sendto(sock, data, data_len, 0, (struct sockaddr *) &dst_addr, sizeof(dst_addr));
-    if (ret < 0) {
-        LOG_ERR("Failed to send UDP broadcast (%d)\n", ret);
-        close(sock);
-        return ret;
-    }
+    LOG_INF("UDP socket bound to IP: %s, port: %d\n", ip, port);
 
-    LOG_INF("Sent UDP broadcast: %s\n", data);
-
-    close(sock);
     return 0;
 }
 
-int l_receive_udp_callback(const struct device *dev, struct net_pkt *packet, int status) {
-    // TODO: Currently being implemented and tested in another branch
+int l_deinit_udp_socket(int sock) {
+    return close(sock);
+}
+
+int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t port) {
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    int ret = net_addr_pton(AF_INET, "255.255.255.255", &addr.sin_addr);
+
+    if (ret == 0) {
+        ret = sendto(sock, buff, len, 0, (struct sockaddr *) &addr, sizeof(addr));
+        if (ret < 0) {
+            LOG_ERR("Failed to send broadcast message (%d)\n", ret);
+        }
+    }
+
+    return ret;
+}
+
+int l_receive_udp_poll(int sock, const uint8_t *buff, size_t len, uint16_t port) {
+
     return 0;
 }
 
