@@ -28,7 +28,7 @@
 #define SLEEP_TIME_MS 100
 
 // logging
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+LOG_MODULE_REGISTER(main);
 
 // LoRa queue
 K_QUEUE_DEFINE(lora_tx_queue);
@@ -36,15 +36,17 @@ K_QUEUE_DEFINE(net_tx_queue);
 
 // GNSS
 gnss_dev_t *gnss_dev;
+
 extern int start_maxm10s(gnss_dev_t *dev);
+
 // GNSS init thread
 static void gnss_init_task(void) {
     printk("Initializing GNSS...\n");
     int ret = start_maxm10s(gnss_dev);
-    if (!ret)
-        printk("GNSS initialized\n");
-    else
-        printk("Error initializing GNSS. Got %d", ret);
+    if (!ret) {
+        LOG_INF("GNSS initialized\n");
+
+    }
 }
 // GNSS init thread defs
 #define GNSS_INIT_STACK_SIZE 2 << 10
