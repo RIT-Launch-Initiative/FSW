@@ -61,8 +61,6 @@
         module-type = "U_GNSS_MODULE_TYPE_M10";
     };
 
-
-
     aliases {
         led0 = &red_led_1;
         led1 = &red_led_2;
