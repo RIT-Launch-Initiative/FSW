@@ -50,7 +50,7 @@ int main() {
         return -1;
     }
 
-    int socket = l_init_udp_socket("192.168.1.2", 10000);
+    int socket = l_init_udp_socket("192.168.1.1", 10000);
 
     while (1) {
         gpio_pin_toggle_dt(&led0);

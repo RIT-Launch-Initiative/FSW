@@ -51,31 +51,37 @@ int l_init_udp_net_stack(const char *ip_addr) {
 }
 
 int l_init_udp_socket(const char *ip, uint16_t port) {
-    int sock;
-    int ret;
+    static const int broadcast_enable = 1;
+    int ret = -1;
+    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcast_enable, sizeof(broadcast_enable));
 
-    sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
         LOG_ERR("Failed to create socket (%d)\n", sock);
         return sock;
     }
 
-//    struct sockaddr_in addr;
-//    addr.sin_family = AF_INET;
-//    addr.sin_port = htons(port);
-//    ret = net_addr_pton(AF_INET, ip, &addr.sin_addr);
-//    if (ret < 0) {
-//        LOG_ERR("Invalid IP address format\n");
-//        close(sock);
-//        return ret;
-//    }
-// TODO: Bind fails, but we can still broadcast
-//    ret = bind(sock, (struct sockaddr *) &addr, sizeof(addr));
-//    if (ret < 0) {
-//        LOG_ERR("Failed to bind socket (%d)\n", ret);
-//        close(sock);
-//        return ret;
-//    }
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    if (ip == NULL) {
+        addr.sin_addr.s_addr = INADDR_ANY;
+        LOG_INF("NULL IP address received. Binding to all interfaces\n");
+    } else {
+        ret = inet_pton(AF_INET, ip, &addr.sin_addr);
+        if (ret <= 0) {
+            LOG_ERR("Invalid IP address format or address not specified\n");
+            close(sock);
+            return ret;
+        }
+    }
+
+    ret = bind(sock, (struct sockaddr *) &addr, sizeof(addr));
+    if (ret < 0) {
+        LOG_ERR("Failed to bind socket (%d)\n", ret);
+        close(sock);
+        return ret;
+    }
 
     LOG_INF("UDP socket bound to IP: %s, port: %d\n", ip, port);
 
