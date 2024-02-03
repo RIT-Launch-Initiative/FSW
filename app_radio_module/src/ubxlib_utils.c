@@ -24,14 +24,18 @@ LOG_MODULE_REGISTER(ubxlib_utils);
 // #define MAXM10S_SCL_PIN -1
 
 // TODO: get rid of gnss_dev_t and use uGnssTransportHandle_t instead
-int start_maxm10s(gnss_dev_t* dev) { 
-    int ret = uDeviceOpen(NULL, dev->gnssHandle);
+int start_maxm10s(gnss_dev_t* dev) {
+    int ret = uDeviceMutexCreate();
+    if (ret != 0) {
+        LOG_ERR("Failed to create mutex");
+        return ret;
+    }
+    ret = uDeviceOpen(NULL, dev->gnssHandle);
     dev->transportHandle = (uGnssTransportHandle_t)NULL;
     if (ret != 0) {
         LOG_ERR("uDeviceOpen() returned %d\n", ret);
         return ret;
     }
-
     // Print gnss messages to the i2c line
     uGnssSetUbxMessagePrint(dev->gnssHandle, true);
 
