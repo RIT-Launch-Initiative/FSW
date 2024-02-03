@@ -10,8 +10,12 @@
 
 #include "ubxlib_utils.h"
 
+#define MAX0_NODE DT_ALIAS(max0)
+static const struct device *const max0 = DEVICE_DT_GET(MAX0_NODE);
+
 /// TODO: Fill in the correct values for these
-#define MAXM10S_I2C -1
+#define I2C1_NODE DT_ALIAS(i2c1)
+#define MAXM10S_I2C DEVICE_DT_GET(I2C1_NODE)
 #define MAXM10S_SDA_PIN -1
 #define MAXM10S_SCL_PIN -1
 

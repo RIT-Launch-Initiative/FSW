@@ -18,6 +18,10 @@
 #include <zephyr/kernel.h>
 #endif  // !ZEPHYR_INCLUDE_KERNEL_H_
 
+#ifndef ZEPHYR_INCLUDE_DRIVERS_I2C_H_
+#include <zephyr/drivers/i2c.h>
+#endif  // !ZEPHYR_INCLUDE_DRIVERS_I2C_H_
+
 /**
  * @brief GNSS device struct
  *

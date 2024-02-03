@@ -63,6 +63,9 @@
         ubxlib-usart2 = &usart2;
 
         lora0 = &lora;
+
+        max0 = &max0;
+        i2c1 = &i2c1;
     };
 };
 
@@ -116,6 +119,13 @@
     pinctrl-names = "default";
     status = "okay";
     clock-frequency = <I2C_BITRATE_FAST>;
+
+    max0: maxm10s@42 {
+        status = "okay";
+        compatible = "ublox,maxm10s";
+        reg = <0x42>;
+        
+    };
 };
 
 &spi1 {
