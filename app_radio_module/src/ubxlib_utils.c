@@ -30,6 +30,13 @@ int start_maxm10s(gnss_dev_t* dev) {
         LOG_ERR("Failed to create mutex");
         return ret;
     }
+
+    ret = uPortI2cInit();
+    if (ret != 0) {
+        LOG_ERR("uPortI2cInit() returned %d\n", ret);
+        return ret;
+    }
+
     ret = uDeviceOpen(NULL, dev->gnssHandle);
     dev->transportHandle = (uGnssTransportHandle_t)NULL;
     if (ret != 0) {
