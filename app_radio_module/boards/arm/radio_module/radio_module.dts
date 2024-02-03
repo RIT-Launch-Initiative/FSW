@@ -54,13 +54,6 @@
         };
     };
 
-    cfg-device-gnss {
-        compatible = "u-blox,ubxlib-device-gnss";
-        status = "okay";
-        transport-type = "i2c1";
-        module-type = "U_GNSS_MODULE_TYPE_M10";
-    };
-
     aliases {
         led0 = &red_led_1;
         led1 = &red_led_2;
@@ -139,6 +132,7 @@
         compatible = "u-blox,ubxlib-device-gnss";
         status = "okay";
         transport-type = "i2c1";
+//        transport-type = "usart2";
         module-type = "U_GNSS_MODULE_TYPE_M10";
     };
 };
