@@ -128,6 +128,15 @@
     };
 };
 
+/ {
+    cfg-device-gnss {
+        compatible = "u-blox,ubxlib-device-gnss";
+        status = "okay";
+        transport-type = "i2c1";
+        module-type = "U_GNSS_MODULE_TYPE_M10";
+    };
+};
+
 &spi1 {
     pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
                  &spi1_miso_pa6 &spi1_mosi_pa7>;
