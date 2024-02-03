@@ -52,10 +52,13 @@ int main() {
 
     int socket = l_init_udp_socket("192.168.1.1", 10000);
 
+    uint8_t rx_buff[100];
+
     while (1) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
         l_send_udp_broadcast(socket, (const uint8_t*) "Launch!", 7, 10000);
+        l_receive_udp_poll(socket, rx_buff, 100, 15000);
         k_msleep(100);
     }
 

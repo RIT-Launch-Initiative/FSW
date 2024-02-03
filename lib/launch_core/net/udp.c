@@ -16,6 +16,9 @@
 
 #include <zephyr/net/socket.h>
 #include <unistd.h>
+#include <zephyr/posix/arpa/inet.h>
+#include <zephyr/net/socket.h>
+
 
 LOG_MODULE_REGISTER(launch_udp_utils);
 
@@ -109,6 +112,15 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
 }
 
 int l_receive_udp_poll(int sock, const uint8_t *buff, size_t len, uint16_t port) {
+    struct sockaddr_in addr;
+    socklen_t addr_len = sizeof(addr);
+    int ret = recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
+    if (ret < 0) {
+        LOG_ERR("Failed to receive data (%d)\n", ret);
+    } else {
+//        LOG_INF("Received %d bytes from %s:%d\n", ret, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+        LOG_INF("Received %d bytes from %d\n", ret, ntohs(addr.sin_port));
+    }
 
     return 0;
 }
