@@ -33,7 +33,7 @@ CONFIG_THREAD_NAME=y
 CONFIG_KERNEL_MEM_POOL=y
 
 # Heap (ubxlib fails without this)
-CONFIG_HEAP_MEM_POOL_SIZE=40000
+CONFIG_HEAP_MEM_POOL_SIZE=20000
 # ubxlib gh asks for 20000 bytes of heap
 
 # enable pin controller
@@ -55,6 +55,8 @@ CONFIG_GNSS=y
 CONFIG_GNSS_SATELLITES=y
 CONFIG_GNSS_NMEA0183=y
 CONFIG_UBXLIB_GNSS=y
+CONFIG_UBXLIB_CELL=n
+CONFIG_UBXLIB_SHORTRANGE=n
 # these were required for the GNSS to work
 # according to the ubxlib gh
 CONFIG_MINIMAL_LIBC_MALLOC=n
