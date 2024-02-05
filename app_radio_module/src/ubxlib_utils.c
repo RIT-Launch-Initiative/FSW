@@ -35,13 +35,7 @@ static void l_gnss_callback(uDeviceHandle_t gnssHandle,
 
 // TODO: get rid of gnss_dev_t and use uGnssTransportHandle_t instead
 int init_maxm10s(gnss_dev_t *dev) {
-    int ret = uDeviceMutexCreate();
-    if (ret != 0) {
-        LOG_ERR("Failed to create mutex");
-        return ret;
-    }
-
-    ret = uPortInit();
+    int ret = uPortInit();
     if (ret != 0) {
         LOG_ERR("uPortInit() returned %d\n", ret);
         return ret;
@@ -55,28 +49,18 @@ int init_maxm10s(gnss_dev_t *dev) {
 
     ret = uDeviceInit();
     if (ret != 0) {
-        LOG_ERR("uDeviceInit() returned %d\n", ret);
+        LOG_ERR("uPortDeviceInit() returned %d\n", ret);
         return ret;
     }
 
     ret = uDeviceOpen(NULL, dev->gnssHandle);
     if (ret != 0) {
         LOG_ERR("uDeviceOpen() returned %d\n", ret);
-
-//        ret = uGnssPwrOn(dev->gnssHandle);
-//        if (ret != 0) {
-//            LOG_ERR("uGnssPwrOn() returned %d\n", ret);
-//            return ret;
-//        }
-
-
-
-//        return ret;
+        return ret;
     }
 
 //    dev->transportHandle = (uGnssTransportHandle_t) NULL;
 //    // Print gnss messages to the i2c line
-//    uGnssSetUbxMessagePrint(dev->gnssHandle, true);
 //
     // Start the GNSS module
 //    uDeviceHandle_t dev_handle = NULL;
