@@ -44,8 +44,8 @@
     cfg-device-gnss {
         compatible = "u-blox,ubxlib-device-gnss";
         status = "okay";
-        transport-type = "i2c1";
-        //        transport-type = "usart2";
+        //        transport-type = "i2c1";
+        transport-type = "usart2";
         module-type = "U_GNSS_MODULE_TYPE_M10";
     };
 
@@ -63,7 +63,6 @@
         };
     };
 
-
     reset: reset {
         compatible = "gpio-reset";
 
@@ -72,7 +71,6 @@
             label = "U-Blox Reset";
         };
     };
-
 
     aliases {
         led0 = &red_led_1;
@@ -121,10 +119,10 @@
     current-speed = <9600>;
     status = "okay";
 
-//    ubxlib-usart2 {
-//        status = "okay";
-//        current-speed = <9600>;
-//    };
+    //    ubxlib-usart2 {
+    //        status = "okay";
+    //        current-speed = <9600>;
+    //    };
 };
 
 &uart4 {
@@ -147,7 +145,6 @@
 
     };
 };
-
 
 &spi1 {
     pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
