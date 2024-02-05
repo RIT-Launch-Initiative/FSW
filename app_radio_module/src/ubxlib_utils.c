@@ -17,34 +17,24 @@ LOG_MODULE_REGISTER(ubxlib_utils);
 // #define MAX0_NODE DT_ALIAS(max0)
 // static const struct device *const max0 = DEVICE_DT_GET(MAX0_NODE);
 
-// /// TODO: Fill in the correct values for these
-// #define I2C1_NODE DT_ALIAS(i2c1)
-// #define MAXM10S_I2C DEVICE_DT_GET(I2C1_NODE)
-// #define MAXM10S_SDA_PIN -1
-// #define MAXM10S_SCL_PIN -1
+static void l_gnss_callback(uDeviceHandle_t gnssHandle,
+                               int32_t errorCode,
+                               int32_t latitudeX1e7,
+                               int32_t longitudeX1e7,
+                               int32_t altitudeMillimetres,
+                               int32_t radiusMillimetres,
+                               int32_t speedMillimetresPerSecond,
+                               int32_t svs,
+                               int64_t timeUtc) {
+    // TODO: Have another function set a callback that this function will redirect to.
+    // This callback will encapsulate all data in these arguments into a struct
+    // Also, probably LOG data here and add a KConfig option to enable/disable
+
+}
+
 
 // TODO: get rid of gnss_dev_t and use uGnssTransportHandle_t instead
 int start_maxm10s(gnss_dev_t *dev) {
-    static const uDeviceCfg_t gDeviceCfg = {
-            .deviceType = U_DEVICE_TYPE_GNSS,
-            .deviceCfg = {
-                    .cfgGnss = {
-                            .moduleType = U_GNSS_MODULE_TYPE_M10,
-                            .pinEnablePower = 0,
-                    },
-            },
-            .transportType = U_DEVICE_TRANSPORT_TYPE_I2C,
-            .transportCfg = {
-                    .cfgI2c = {
-                            .i2c = U_CFG_APP_GNSS_I2C,
-                            .pinSda = -1,
-                            .pinScl = -1,
-                            .alreadyOpen = true
-                    },
-            },
-    };
-
-
     int ret = uDeviceMutexCreate();
     if (ret != 0) {
         LOG_ERR("Failed to create mutex");
@@ -69,26 +59,32 @@ int start_maxm10s(gnss_dev_t *dev) {
         return ret;
     }
 
-
-//    ret = uGnssInit();
-//    if (ret != 0) {
-//        LOG_ERR("uGnssInit() returned %d\n", ret);
-//        return ret;
-//    }
-
-    ret = uDeviceOpen(&gDeviceCfg, dev->gnssHandle);
+    ret = uDeviceOpen(NULL, dev->gnssHandle);
     if (ret != 0) {
         LOG_ERR("uDeviceOpen() returned %d\n", ret);
-        return ret;
+
+//        ret = uGnssPwrOn(dev->gnssHandle);
+//        if (ret != 0) {
+//            LOG_ERR("uGnssPwrOn() returned %d\n", ret);
+//            return ret;
+//        }
+
+
+
+//        return ret;
     }
 
 //    dev->transportHandle = (uGnssTransportHandle_t) NULL;
 //    // Print gnss messages to the i2c line
 //    uGnssSetUbxMessagePrint(dev->gnssHandle, true);
 //
-//    // Start the GNSS module
-//    return uGnssPwrOn(dev->gnssHandle);
-
+    // Start the GNSS module
+//    uDeviceHandle_t dev_handle = NULL;
+//    MyContext_t context = {0};
+//    uDeviceSetUserContext(dev_handle, (void *) &context);
+//    ret = uGnssPosGetStreamedStart(dev_handle,
+//                                   U_GNSS_POS_STREAMED_PERIOD_DEFAULT_MS,
+//                                   l_gnss_callback);
     return 0;
 
 }
