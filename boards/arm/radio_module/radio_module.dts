@@ -44,8 +44,8 @@
     cfg-device-gnss {
         compatible = "u-blox,ubxlib-device-gnss";
         status = "okay";
-        transport-type = "i2c1";
-//        transport-type = "usart2";
+//        transport-type = "i2c1";
+        transport-type = "usart2";
         module-type = "U_GNSS_MODULE_TYPE_M10";
     };
 

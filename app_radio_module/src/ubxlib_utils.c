@@ -53,12 +53,15 @@ int init_maxm10s(gnss_dev_t *dev) {
         return ret;
     }
 
-    ret = uDeviceOpen(NULL, dev->gnssHandle);
+    ret = uDeviceOpen(NULL, &dev->gnssHandle);
     if (ret != 0) {
         LOG_ERR("uDeviceOpen() returned %d\n", ret);
         return ret;
     }
 
+    return 0;
+
+}
 //    dev->transportHandle = (uGnssTransportHandle_t) NULL;
 //    // Print gnss messages to the i2c line
 //
@@ -69,9 +72,6 @@ int init_maxm10s(gnss_dev_t *dev) {
 //    ret = uGnssPosGetStreamedStart(dev_handle,
 //                                   U_GNSS_POS_STREAMED_PERIOD_DEFAULT_MS,
 //                                   l_gnss_callback);
-    return 0;
-
-}
 
 // TODO: update this to work with uDeviceClose
 int stop_maxm10s(gnss_dev_t *dev) {

@@ -84,6 +84,7 @@ static int init() {
         LOG_INF("GNSS module initialized");
     }
 
+
     return ret;
 }
 
