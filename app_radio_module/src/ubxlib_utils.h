@@ -37,7 +37,7 @@ typedef struct gnss_dev {
  *
  * @return int 0 if successful, negative otherwise
  */
-int start_maxm10s(gnss_dev_t* dev);
+int init_maxm10s(gnss_dev_t* dev);
 
 /**
  * @brief Stop the MAX-M10S GNSS module

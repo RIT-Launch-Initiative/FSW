@@ -34,7 +34,7 @@ static void l_gnss_callback(uDeviceHandle_t gnssHandle,
 
 
 // TODO: get rid of gnss_dev_t and use uGnssTransportHandle_t instead
-int start_maxm10s(gnss_dev_t *dev) {
+int init_maxm10s(gnss_dev_t *dev) {
     int ret = uDeviceMutexCreate();
     if (ret != 0) {
         LOG_ERR("Failed to create mutex");

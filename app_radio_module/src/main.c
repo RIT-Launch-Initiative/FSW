@@ -43,7 +43,7 @@ K_QUEUE_DEFINE(net_tx_queue);
 // GNSS
 gnss_dev_t *gnss_dev;
 
-extern int start_maxm10s(gnss_dev_t *dev);
+extern int init_maxm10s(gnss_dev_t *dev);
 
 static struct k_thread gnss_init_thread_data;
 static k_tid_t gnss_init_tid;
@@ -77,15 +77,19 @@ static int init() {
         l_init_udp_net_stack("192.168.1.1");
     }
 
-    // start gnss init thread
-    start_maxm10s(gnss_dev);
+    if (0 > init_maxm10s(gnss_dev)) {
+        LOG_ERR("Failed to initialize GNSS module");
+        return -1;
+    } else {
+        LOG_INF("GNSS module initialized");
+    }
+
     return ret;
 }
 
 int main() {
     LOG_DBG("Starting radio module!\n");
 
-    init();
     if (init()) {
         return -1;
     }
