@@ -24,7 +24,27 @@ LOG_MODULE_REGISTER(ubxlib_utils);
 // #define MAXM10S_SCL_PIN -1
 
 // TODO: get rid of gnss_dev_t and use uGnssTransportHandle_t instead
-int start_maxm10s(gnss_dev_t* dev) {
+int start_maxm10s(gnss_dev_t *dev) {
+//    static const uDeviceCfg_t gDeviceCfg = {
+//            .deviceType = U_DEVICE_TYPE_GNSS,
+//            .deviceCfg = {
+//                    .cfgGnss = {
+//                            .moduleType = U_GNSS_MODULE_TYPE_M10,
+//                            .pinEnablePower = -1,
+//                    },
+//            },
+//            .transportType = U_DEVICE_TRANSPORT_TYPE_I2C,
+//            .transportCfg = {
+//                    .cfgI2c = {
+//                            .i2c = U_CFG_APP_GNSS_I2C,
+//                            .pinSda = -1,
+//                            .pinScl = -1,
+//                            .alreadyOpen = true
+//                    },
+//            },
+//    };
+
+
     int ret = uDeviceMutexCreate();
     if (ret != 0) {
         LOG_ERR("Failed to create mutex");
@@ -49,14 +69,14 @@ int start_maxm10s(gnss_dev_t* dev) {
         return ret;
     }
 
-    ret = uGnssInit();
-    if (ret != 0) {
-        LOG_ERR("uGnssInit() returned %d\n", ret);
-        return ret;
-    }
+//    ret = uGnssInit();
+//    if (ret != 0) {
+//        LOG_ERR("uGnssInit() returned %d\n", ret);
+//        return ret;
+//    }
 
     ret = uDeviceOpen(NULL, dev->gnssHandle);
-    dev->transportHandle = (uGnssTransportHandle_t)NULL;
+    dev->transportHandle = (uGnssTransportHandle_t) NULL;
     if (ret != 0) {
         LOG_ERR("uDeviceOpen() returned %d\n", ret);
         return ret;
@@ -69,7 +89,7 @@ int start_maxm10s(gnss_dev_t* dev) {
 }
 
 // TODO: update this to work with uDeviceClose
-int stop_maxm10s(gnss_dev_t* dev) {
+int stop_maxm10s(gnss_dev_t *dev) {
     uint32_t ret = uGnssPwrOff(dev->gnssHandle);
     if (ret != 0)
         return ret;

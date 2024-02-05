@@ -21,24 +21,33 @@
         zephyr,flash = &flash0;
 
         storage = &w25q128;
-		logfs = &lfs1;
+        logfs = &lfs1;
     };
 
     fstab {
-		compatible = "zephyr,fstab";
-		lfs1: lfs1 {
-			compatible = "zephyr,fstab,littlefs";
-			mount-point = "/lfs";
-			partition = <&external_storage_partition>;
-			automount;
+        compatible = "zephyr,fstab";
 
-			read-size = <16>;
-			prog-size = <16>;
-			cache-size = <64>;
-			lookahead-size = <32>;
-			block-cycles = <(90 * 1000)>;
-		};
-	};
+        lfs1: lfs1 {
+            compatible = "zephyr,fstab,littlefs";
+            mount-point = "/lfs";
+            partition = <&external_storage_partition>;
+            automount;
+
+            read-size = <16>;
+            prog-size = <16>;
+            cache-size = <64>;
+            lookahead-size = <32>;
+            block-cycles = <(90 * 1000)>;
+        };
+    };
+
+    cfg-device-gnss {
+        compatible = "u-blox,ubxlib-device-gnss";
+        status = "okay";
+        transport-type = "i2c1";
+        //        transport-type = "usart2";
+        module-type = "U_GNSS_MODULE_TYPE_M10";
+    };
 
     leds: leds {
         compatible = "gpio-leds";
@@ -54,12 +63,24 @@
         };
     };
 
+
+    reset: reset {
+        compatible = "gpio-reset";
+
+        ublox_reset: ublox_reset {
+            gpios = <&gpioc 13 GPIO_ACTIVE_LOW>;
+            label = "U-Blox Reset";
+        };
+    };
+
+
     aliases {
         led0 = &red_led_1;
         led1 = &red_led_2;
 
         dbguart = &uart4;
         ubxlib-usart2 = &usart2;
+        ubxrst = &ublox_reset;
 
         lora0 = &lora;
 
@@ -97,13 +118,13 @@
 &usart2 {
     pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
     pinctrl-names = "default";
-    current-speed = <115200>;
+    current-speed = <9600>;
     status = "okay";
 
-    ubxlib-uart4 {
-        status = "okay";
-        current-speed = <115200>;
-    };
+//    ubxlib-usart2 {
+//        status = "okay";
+//        current-speed = <9600>;
+//    };
 };
 
 &uart4 {
@@ -127,15 +148,6 @@
     };
 };
 
-/ {
-    cfg-device-gnss {
-        compatible = "u-blox,ubxlib-device-gnss";
-        status = "okay";
-        transport-type = "i2c1";
-//        transport-type = "usart2";
-        module-type = "U_GNSS_MODULE_TYPE_M10";
-    };
-};
 
 &spi1 {
     pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5

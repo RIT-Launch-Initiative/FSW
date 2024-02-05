@@ -60,6 +60,7 @@ static k_tid_t gnss_init_tid;
 #define LED1_NODE DT_ALIAS(led1)
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+//static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_NODELABEL(reset), ublox_reset);
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
@@ -95,6 +96,7 @@ int main() {
     uint8_t tx_buff_len = 0;
 
     LOG_DBG("Starting radio module!\n");
+
     init();
 
     while (1) {
