@@ -48,8 +48,6 @@ static void gnss_init_task(void) {
         LOG_INF("GNSS initialized\n");
     }
 
-
-
 }
 // GNSS init thread defs
 #define GNSS_INIT_STACK_SIZE 2 << 10
