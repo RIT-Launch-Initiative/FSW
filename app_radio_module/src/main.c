@@ -45,26 +45,13 @@ gnss_dev_t *gnss_dev;
 
 extern int start_maxm10s(gnss_dev_t *dev);
 
-
-// GNSS init thread
-static void gnss_init_task(void) {
-    printk("Initializing GNSS...\n");
-    int ret = start_maxm10s(gnss_dev);
-    if (!ret) {
-        LOG_INF("GNSS initialized\n");
-    }
-
-}
-// GNSS init thread defs
-#define GNSS_INIT_STACK_SIZE 2 << 10
-#define GNSS_INIT_PRIORITY 4
-K_THREAD_STACK_DEFINE(gnss_init_stack_area, GNSS_INIT_STACK_SIZE);
 static struct k_thread gnss_init_thread_data;
 static k_tid_t gnss_init_tid;
 
 // device setup
 #define LED0_NODE DT_ALIAS(led0)
 #define LED1_NODE DT_ALIAS(led1)
+
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 //static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_NODELABEL(reset), ublox_reset);
@@ -91,10 +78,7 @@ static int init() {
     }
 
     // start gnss init thread
-    gnss_init_tid = k_thread_create(&gnss_init_thread_data, gnss_init_stack_area,
-                                    K_THREAD_STACK_SIZEOF(gnss_init_stack_area),
-                                    gnss_init_task, NULL, NULL, NULL,
-                                    GNSS_INIT_PRIORITY, 0, K_NO_WAIT);
+    start_maxm10s(gnss_dev);
     return ret;
 }
 
