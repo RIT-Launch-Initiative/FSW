@@ -1,6 +1,7 @@
 general:
   last_updated: 04/20/1969
 
+  general_command_port: 9000
   launch_event_notification_port: 9999
 
   commands:
@@ -20,11 +21,14 @@ power_module:
   ports:
     ina_data:
       port_number: 15
-      commands:
-        - name: Example
-          byte_value: 'e'
-          description: Example description
-          expected_following_bytes: 0
+    adc_data:
+      port_number: 50
+
+  commands:
+    - name: Example
+      byte_value: 'e'
+      description: Example description
+      expected_following_bytes: 0
 
 radio_module:
   id: 2
@@ -32,11 +36,11 @@ radio_module:
   ports:
     gnss_data:
       port_number: 20
-      commands:
-        - name: send_lora
-          byte_value: 's'
-          description: Send a LoRa packet
-          expected_following_bytes: 255
+  commands:
+    - name: send_lora
+      byte_value: 's'
+      description: Send a LoRa packet
+      expected_following_bytes: 255
 
 sensor_module:
   id: 3
