@@ -28,7 +28,7 @@ int main(void) {
 	// forever
 	while(1) {
 		gpio_pin_toggle_dt(&led);
-		LOG_PRINTK("LED toggle %d\n", ++counter);
+		printk("LED toggle %d\n", ++counter);
 		k_msleep(100);
 	}
 	return 0;

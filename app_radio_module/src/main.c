@@ -10,9 +10,11 @@
  */
 
 #include <launch_core/backplane_defs.h>
-#include <launch_core/device_utils.h>
-#include <launch_core/lora_utils.h>
-#include <launch_core/net_utils.h>
+#include <launch_core/dev/dev_common.h>
+#include <launch_core/net/lora.h>
+#include <launch_core/net/net_common.h>
+#include <launch_core/net/udp.h>
+
 #include <zephyr/console/console.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
@@ -22,6 +24,10 @@
 #include <zephyr/net/ethernet_mgmt.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/random/random.h>
+
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
+
 
 #include "ubxlib_utils.h"
 
@@ -65,10 +71,9 @@ static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
-// init method
-static void init() {
+static int init() {
     char ip[MAX_IP_ADDRESS_STR_LEN];
-    int ret = -1;
+    int ret = 0;
 
     k_queue_init(&net_tx_queue);
 
@@ -90,18 +95,20 @@ static void init() {
                                     K_THREAD_STACK_SIZEOF(gnss_init_stack_area),
                                     gnss_init_task, NULL, NULL, NULL,
                                     GNSS_INIT_PRIORITY, 0, K_NO_WAIT);
+    return ret;
 }
 
 int main() {
-    uint8_t tx_buff[255] = {0};
-    uint8_t tx_buff_len = 0;
-
     LOG_DBG("Starting radio module!\n");
 
     init();
+    if (init()) {
+        return -1;
+    }
 
     while (1) {
         gpio_pin_toggle_dt(&led0);
+        gpio_pin_toggle_dt(&led1);
         k_msleep(100);
     }
 

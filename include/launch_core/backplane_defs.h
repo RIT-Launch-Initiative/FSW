@@ -14,8 +14,6 @@
 #include <stdint.h>
 
 /********** GENERAL **********/
-static const uint8_t MAX_IP_ADDRESS_STR_LEN = 16;
-static const uint8_t BACKPLANE_NETWORK_ID[2] = {192, 168};
 
 static const uint16_t LAUNCH_EVENT_NOTIFICATION_PORT = 9999;
 

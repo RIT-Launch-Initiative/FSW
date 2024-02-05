@@ -1,0 +1,10 @@
+# Copyright (c) 2024 Aaron Chan
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Zephyr"
+source "Kconfig.zephyr"
+endmenu
+
+module = APP_POTATO
+module-str = APP_POTATO
+source "subsys/logging/Kconfig.template.log_config"
