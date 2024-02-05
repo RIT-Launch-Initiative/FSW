@@ -69,6 +69,7 @@ int start_maxm10s(gnss_dev_t *dev) {
         return ret;
     }
 
+
 //    ret = uGnssInit();
 //    if (ret != 0) {
 //        LOG_ERR("uGnssInit() returned %d\n", ret);
@@ -76,16 +77,20 @@ int start_maxm10s(gnss_dev_t *dev) {
 //    }
 
     ret = uDeviceOpen(NULL, dev->gnssHandle);
-    dev->transportHandle = (uGnssTransportHandle_t) NULL;
     if (ret != 0) {
         LOG_ERR("uDeviceOpen() returned %d\n", ret);
         return ret;
     }
-    // Print gnss messages to the i2c line
-    uGnssSetUbxMessagePrint(dev->gnssHandle, true);
 
-    // Start the GNSS module
-    return uGnssPwrOn(dev->gnssHandle);
+//    dev->transportHandle = (uGnssTransportHandle_t) NULL;
+//    // Print gnss messages to the i2c line
+//    uGnssSetUbxMessagePrint(dev->gnssHandle, true);
+//
+//    // Start the GNSS module
+//    return uGnssPwrOn(dev->gnssHandle);
+
+    return 0;
+
 }
 
 // TODO: update this to work with uDeviceClose
