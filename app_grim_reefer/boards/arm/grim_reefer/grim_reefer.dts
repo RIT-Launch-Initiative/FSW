@@ -153,6 +153,9 @@
 		status = "okay";
 		reg = <0x0>;
 		osr = "OSR_32";
+		prescale = "PRE_8";
+		clock-selection = "CLK_INTERNAL";
+
 		spi-max-frequency = <10000000>;
 		#io-channel-cells = <1>;
 		#address-cells = <1>;

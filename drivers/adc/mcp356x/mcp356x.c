@@ -10,6 +10,60 @@
 #include <zephyr/drivers/spi.h>
 #include <zephyr/logging/log.h>
 
+/*
+Registers:
+NAME    len addr
+ADCDATA   24  0x0
+CONFIG0   8   0x1
+CONFIG1   8   0x2
+CONFIG2   8   0x3
+CONFIG3   8   0x4
+IRQ       8   0x5
+MUX       8   0x6
+SCAN      24  0x7
+TIMER     24  0x8
+OFFSETCAL 24  0x9
+GAINCAL   24  0xA
+LOCK      8   0xD
+CRCCFG    16  0xF
+*/
+
+enum MCP_Reg {
+  ADCDATA = 0x0,
+  CONFIG0 = 0x1,
+  CONFIG1 = 0x2,
+  CONFIG2 = 0x3,
+  CONFIG3 = 0x4,
+  IRQ = 0x5,
+  MUX = 0x6,
+  SCAN = 0x7,
+  TIMER = 0x8,
+  OFFSETCAL = 0x9,
+  GAINCAL = 0xA,
+  LOCK = 0xD,
+  CRCCFG = 0xF,
+};
+
+void mcp_write_reg(const struct mcp356x_config *config, enum MCP_Reg reg, ) {
+  const uint8_t addr_bit_pos = 2;
+  const uint8_t write_command_mask = 0x02;
+  const uint8_t MCP3561_DEVICE_ADDRESS = (0x01);
+  const uint8_t MCP3561_DEVICE_ADDRESS_MASK = (MCP3561_DEVICE_ADDRESS << 6);
+}
+
+enum CLK_SEL {
+  CLK_EXTERNAL,
+  CLK_INTERNAL,
+  CLK_INTERNAL_NO_BROADCAST,
+};
+
+enum PRE {
+  PRE_8, // AMCLK = MCLK/8
+  PRE_4, // AMCLK = MCLK/4
+  PRE_2, // AMCLK = MCLK/2
+  PRE_1, // AMCLK = MCLK
+};
+
 enum OSR {
   // Total OSR3 OSR1 OSR[3:0]
   OSR_32,    // 32  1   0000
@@ -40,13 +94,22 @@ struct mcp356x_config {
   struct spi_dt_spec bus;
   uint8_t channels; // 1
   enum OSR osr;
+  enum PRE prescale;
+  enum CLK_SEL clock;
 };
 
 static int mcp356x_read_channel(const struct device *dev,
                                 const struct adc_sequence *sequence) {
 
+  // READ ADCDATA REG
   return -1;
 }
+
+struct scan_reg {
+  uint8_t dly : 3;
+  uint8_t reserved : 5;
+  uint16_t scan : 16;
+};
 
 int mcp356x_channel_setup(const struct device *dev,
                           const struct adc_channel_cfg *channel_cfg) {
@@ -87,7 +150,8 @@ int mcp356x_channel_setup(const struct device *dev,
     gain_bits = 0b111;
     break;
   default:
-    LOG_ERR("unsupported OSR '%d'", config->osr);
+    LOG_ERR("unsupported channel gain '%d' on channel %d", channel_cfg->gain,
+            channel_cfg->channel_id);
     return -ENOTSUP;
   }
 
@@ -143,10 +207,88 @@ int mcp356x_channel_setup(const struct device *dev,
     osr_bits = 0b1111;
     break;
   default:
-    LOG_ERR("unsupported channel gain '%d' on channel %d", channel_cfg->gain,
-            channel_cfg->channel_id);
+    LOG_ERR("unsupported OSR '%d'", config->osr);
     return -ENOTSUP;
   }
+
+  // Configure PRE
+  uint8_t prescale_bits = 0;
+  switch (config->prescale) {
+  case PRE_8:
+    prescale_bits = 0b11;
+    break;
+  case PRE_4:
+    prescale_bits = 0b10;
+    break;
+  case PRE_2:
+    prescale_bits = 0b01;
+    break;
+  case PRE_1:
+    prescale_bits = 0b00;
+    break;
+  }
+
+  uint8_t CONFIG1 = (prescale_bits << 6) | (osr_bits << 2);
+  // You get one diffy channel and you'll be happy about it
+  // Page 96
+  uint8_t mux_vin_p = 0b0000;
+  uint8_t mux_vin_m = 0b0001;
+  uint8_t mux_register = mux_vin_p << 4 | mux_vin_m;
+
+  // Scan register
+  // only 24 bits long
+  // 1 for diffy channel A, zero for all others
+  uint16_t scan = 0b0000000100000000;
+  struct scan_reg scanreg = {.dly = 0b000, .scan = 0b0000000, .scan = scan};
+
+  // VREF Selection
+  uint8_t vref_sel_bits = 0b0;
+  switch (channel_cfg->reference) {
+  case ADC_REF_INTERNAL:
+    vref_sel_bits = 0b1;
+    break;
+  case ADC_REF_EXTERNAL0:
+    vref_sel_bits = 0b0;
+    break;
+  default:
+    LOG_ERR("unsupported reference voltage '%d'", channel_cfg->reference);
+    return -ENOTSUP;
+  }
+
+  // CLK Selection
+  uint8_t clk_sel_bits = 0b0;
+  switch (config->clock) {
+  case CLK_EXTERNAL:
+    clk_sel_bits = 0b0;
+    break;
+  case CLK_INTERNAL:
+    clk_sel_bits = 0b0;
+    break;
+  case CLK_INTERNAL_NO_BROADCAST:
+    clk_sel_bits = 0b0;
+    break;
+  }
+  // No Current Source/Sink Selection Bits for Sensor Bias
+  // TODO ADC_MODE
+  uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4);
+  struct spi_buf b = {};
+  struct spi_buf_set = {
+      bufs = &b,
+  } spi_write_dt(config->bus, buf);
+  // ADCDATA
+  // CONFIG0
+
+  // CONFIG1
+  // CONFIG2
+  // CONFIG3
+  // IRQ
+  // MUX
+  // SCAN
+  // TIMER
+  // OFFSETCAL
+  // GAINCAL
+  // LOCK
+  // CRCCFG
 
   return -1;
 }
@@ -183,7 +325,11 @@ static int mcp356x_init(const struct device *dev) {
            INST_DT_MCP356x(instance, channel_num),                             \
            SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),        \
        .channels = channel_num,                                                \
-       .osr = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), osr)};   \
+       .osr = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), osr),    \
+       .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
+                                clock_selection),                              \
+       .prescale =                                                             \
+           DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), prescale)}; \
   DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \
                    &mcp356##channel_num##_data_##instance,                     \
                    &mcp356##channel_num##_config_##instance, POST_KERNEL,      \

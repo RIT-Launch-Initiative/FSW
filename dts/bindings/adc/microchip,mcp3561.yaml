@@ -7,6 +7,41 @@ include: microchip,mcp356x-base.yaml
 
 
 properties:
+  device-address:
+    type: int
+    required: true
+    description: |
+      Each MCP356X has a device address hardwired in the chip and printed on the package.
+      The device address can be used to talk to multiple chips using 1 chip select line (like i2c)
+
+  clock-selection:
+    type: string
+    required: true
+    description: |
+      Clock Selection
+      - CLK_EXTERNAL: MCLK = clock on the analog master clock output pin
+      - CLK_INTERNAL: MCLK = integrated clock. analog master clock output pin follows integrated clock
+      - CLK_INTERNAL_NO_BROADCAST: MCLK = integrated clock. analog master clock output pin does NOT follow integrated clock
+    enum:
+      - "CLK_EXTERNAL"
+      - "CLK_INTERNAL"
+      - "CLK_INTERNAL_NO_BROADCAST"
+
+  prescale:
+    type: string
+    required: true
+    description: |
+      Prescaler setting
+      - PRE_8: AMCLK = MCLK/8
+      - PRE_4: AMCLK = MCLK/4
+      - PRE_2: AMCLK = MCLK/2
+      - PRE_1: AMCLK = MCLK
+    enum:
+      - "PRE_8"
+      - "PRE_4"
+      - "PRE_2"
+      - "PRE_1"
+      
   osr:
     type: string
     required: true
@@ -15,7 +50,7 @@ properties:
       - OSR_32: OSR of 32
       - OSR_64: OSR of 64
       - OSR_128: OSR of 128
-      - OSR_256: x OSR of 256
+      - OSR_256: OSR of 256
       - OSR_512: OSR of 512
       - OSR_1024: OSR of 1024
       - OSR_2048: OSR of 2048
