@@ -21,7 +21,7 @@ typedef struct __attribute__((__packed__)) {
     float gyro_y;
     float gyro_z;
 
-    float temperature_tmp;
+    //float temperature_tmp;
 } SENSOR_MODULE_DATA_T;
 #endif // !SENSORS_H_
 
