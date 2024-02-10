@@ -44,8 +44,7 @@
     cfg-device-gnss {
         compatible = "u-blox,ubxlib-device-gnss";
         status = "okay";
-//        transport-type = "i2c1";
-        transport-type = "usart2";
+        transport-type = "i2c1";
         module-type = "U_GNSS_MODULE_TYPE_M10";
     };
 
@@ -82,7 +81,7 @@
 
         lora0 = &lora;
 
-        max0 = &max0;
+        // max0 = &max0;
         i2c1 = &i2c1;
     };
 };
@@ -142,7 +141,10 @@
         status = "okay";
         compatible = "u-blox,maxm10s";
         reg = <0x42>;
-
+        i2c-address = <0x42>;
+        transport-type = "i2c1";
+        module-type = "U_GNSS_MODULE_TYPE_M10";
+        i2c-already-open;
     };
 };
 
