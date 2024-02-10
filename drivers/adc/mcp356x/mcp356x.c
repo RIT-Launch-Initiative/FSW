@@ -45,10 +45,13 @@ enum MCP_Reg {
 };
 
 void mcp_write_reg(const struct mcp356x_config *config, enum MCP_Reg reg, ) {
+  // Write setup
   const uint8_t addr_bit_pos = 2;
   const uint8_t write_command_mask = 0x02;
-  const uint8_t MCP3561_DEVICE_ADDRESS = (0x01);
-  const uint8_t MCP3561_DEVICE_ADDRESS_MASK = (MCP3561_DEVICE_ADDRESS << 6);
+
+  //
+  const uint8_t device_address_mask = (config->device_addr << 6);
+  const uint8_t write_command = (write_command_mask | device_address_mask);
 }
 
 enum CLK_SEL {
@@ -93,6 +96,7 @@ struct mcp356x_data {
 struct mcp356x_config {
   struct spi_dt_spec bus;
   uint8_t channels; // 1
+  uint8_t device_addr;
   enum OSR osr;
   enum PRE prescale;
   enum CLK_SEL clock;
@@ -266,7 +270,7 @@ int mcp356x_channel_setup(const struct device *dev,
     break;
   case CLK_INTERNAL_NO_BROADCAST:
     clk_sel_bits = 0b0;
-    break;
+    r break;
   }
   // No Current Source/Sink Selection Bits for Sensor Bias
   // TODO ADC_MODE
@@ -274,7 +278,8 @@ int mcp356x_channel_setup(const struct device *dev,
   struct spi_buf b = {};
   struct spi_buf_set = {
       bufs = &b,
-  } spi_write_dt(config->bus, buf);
+  };
+  mcp_write_reg();
   // ADCDATA
   // CONFIG0
 
@@ -324,6 +329,8 @@ static int mcp356x_init(const struct device *dev) {
       {.bus = SPI_DT_SPEC_GET(                                                 \
            INST_DT_MCP356x(instance, channel_num),                             \
            SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),        \
+       .device_addr =                                                          \
+           DT_PROP(INST_DT_MCP356x(instance, channel_num), device_address),    \
        .channels = channel_num,                                                \
        .osr = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), osr),    \
        .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
