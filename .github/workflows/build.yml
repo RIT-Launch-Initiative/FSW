@@ -21,6 +21,7 @@ jobs:
           - app_power_module
           - app_radio_module
           - app_sensor_module
+          - app_grim_reefer
 
     runs-on: ${{ matrix.os }}
     steps:
