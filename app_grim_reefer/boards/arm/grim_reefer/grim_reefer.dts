@@ -20,13 +20,6 @@
 		zephyr,flash = &flash0;
 	};
 
-	aliases {
-		// led1 = &redled;
-		// led2 = &anotherled;
-		// ldoenable = &ldo-enable;
-		// camenable = &cam-enable;
-
-	};
 
 	leds: leds {
 		compatible = "gpio-leds";
