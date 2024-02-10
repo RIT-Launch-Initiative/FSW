@@ -2,16 +2,15 @@
 # the Zephyr testing tool. In this file, multiple combinations can be specified,
 # so that you can easily test all of them locally or in CI.
 sample:
-  description: Example application
-  name: example-application 
+  description:
+  name: grim_reefer 
 common:
   build_only: true
   integration_platforms:
-    - custom_plank
-    - nucleo_f302r8
     - grim_reefer
 tests:
   app.default: {}
   app.debug:
     extra_overlay_confs:
       - debug.conf
+
