@@ -1,0 +1,3 @@
+config BOARD_POTATO
+	bool "POTATO"
+	depends on SOC_STM32F446XX

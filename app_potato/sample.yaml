@@ -1,10 +1,10 @@
 sample:
-  description:
-  name: power-module
+  description: Potato
+  name: potato
 common:
   build_only: true
   integration_platforms:
-    - power_module@2
+    - potato
 tests:
   app.default: {}
   app.debug:
