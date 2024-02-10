@@ -4,6 +4,9 @@ all:
 flash:
 	west flash
 
+debug:
+	west debug
+
 # Modules
 power:
 	west build -b power_module@2 app_power_module -p auto -DOVERLAY_CONFIG=debug.conf
