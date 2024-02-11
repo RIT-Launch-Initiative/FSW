@@ -1,0 +1,13 @@
+sample:
+  description:
+  name: grim_reefer 
+common:
+  build_only: true
+  integration_platforms:
+    - grim_reefer
+tests:
+  app.default: {}
+  app.debug:
+    extra_overlay_confs:
+      - debug.conf
+
