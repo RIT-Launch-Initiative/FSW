@@ -88,6 +88,7 @@ struct mcp356x_config {
   uint8_t device_addr; // Written on chip packaging
 
   enum adc_reference global_reference;
+  enum adc_gain global_gain;
   enum OSR osr;
   enum PRE prescale;
   enum CLK_SEL clock;
@@ -172,41 +173,14 @@ int mcp356x_channel_setup(const struct device *dev,
                           const struct adc_channel_cfg *channel_cfg) {
   const struct mcp356x_config *config = dev->config;
 
-  // Configure Gain
-  uint8_t gain_bits = 0;
-  switch (channel_cfg->gain) {
-  case ADC_GAIN_1_3:
-    gain_bits = 0b000;
-    break;
-  case ADC_GAIN_1:
-    gain_bits = 0b001;
-    break;
-  case ADC_GAIN_2:
-    gain_bits = 0b010;
-    break;
-  case ADC_GAIN_4:
-    gain_bits = 0b011;
-    break;
-  case ADC_GAIN_8:
-    gain_bits = 0b100;
-    break;
-  case ADC_GAIN_16:
-    gain_bits = 0b101;
-    break;
-  case ADC_GAIN_32:
-    gain_bits = 0b110;
-    break;
-  case ADC_GAIN_64:
-    gain_bits = 0b111;
-    break;
-  default:
-    LOG_ERR("unsupported channel gain '%d' on channel %d", channel_cfg->gain,
-            channel_cfg->channel_id);
-    return -ENOTSUP;
-  }
-
   if (channel_cfg->reference != config->global_reference) {
     LOG_ERR("Reference for channel %d does not match the global reference. (It "
+            "needs to)\n",
+            channel_cfg->channel_id);
+  }
+
+  if (channel_cfg->gain != config->global_gain) {
+    LOG_ERR("Gain for channel %d does not match the global gain. (It "
             "needs to)\n",
             channel_cfg->channel_id);
   }
@@ -225,6 +199,76 @@ int mcp356x_channel_setup(const struct device *dev,
 
   uint8_t mux_register = mux_vin_p << 4 | mux_vin_m;
 
+  // ADCDATA
+  // CONFIG0 check
+  // CONFIG1 check
+  // CONFIG2
+  // CONFIG3
+  // IRQ
+  // MUX
+  // SCAN
+  // TIMER
+  // OFFSETCAL
+  // GAINCAL
+  // LOCK
+  // CRCCFG
+
+  return -1;
+}
+
+static const struct adc_driver_api mcp356x_api = {
+    .channel_setup = &mcp356x_channel_setup,
+    .read = &mcp356x_read_channel,
+};
+
+static int mcp356x_init(const struct device *dev) {
+
+  const struct mcp356x_config *config = dev->config;
+
+  if (!device_is_ready(config->bus.bus)) {
+    LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
+    return -ENODEV;
+  }
+  if (config->channels != 1) {
+    LOG_ERR("Only one channel MCP3561 is supported\n");
+    return -ENOTSUP;
+  }
+
+  // Page 91
+  // VREF Selection
+  uint8_t vref_sel_bits = 0b0;
+  switch (config->global_reference) {
+  case ADC_REF_INTERNAL:
+    vref_sel_bits = 0b1;
+    break;
+  case ADC_REF_EXTERNAL0:
+    vref_sel_bits = 0b0;
+    break;
+  default:
+    LOG_ERR("unsupported reference voltage '%d'", config->global_reference);
+    return -ENOTSUP;
+  }
+
+  // CLK Selection
+  uint8_t clk_sel_bits = 0b0;
+  switch (config->clock) {
+  case CLK_EXTERNAL:
+    clk_sel_bits = 0b0;
+    break;
+  case CLK_INTERNAL:
+    clk_sel_bits = 0b0;
+    break;
+  case CLK_INTERNAL_NO_BROADCAST:
+    clk_sel_bits = 0b0;
+    break;
+  }
+  // No Current Source/Sink Selection Bits for Sensor Bias
+  // TODO ADC_MODE
+  uint8_t adc_mode = 0b10; // page 91 (standby)
+  uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4) | adc_mode;
+  mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
+
+  // Page 92
   // Configure OSR
   uint8_t osr_bits = 0;
   switch (config->osr) {
@@ -302,76 +346,64 @@ int mcp356x_channel_setup(const struct device *dev,
 
   mcp_write_reg_8(config, MCP_reg_CONFIG1, CONFIG1);
 
-  // ADCDATA
-  // CONFIG0
+  // Page 93
 
-  // CONFIG1
-  // CONFIG2
-  // CONFIG3
-  // IRQ
-  // MUX
-  // SCAN
-  // TIMER
-  // OFFSETCAL
-  // GAINCAL
-  // LOCK
-  // CRCCFG
-
-  return -1;
-}
-
-static const struct adc_driver_api mcp356x_api = {
-    .channel_setup = &mcp356x_channel_setup,
-    .read = &mcp356x_read_channel,
-};
-
-static int mcp356x_init(const struct device *dev) {
-
-  const struct mcp356x_config *config = dev->config;
-
-  if (!device_is_ready(config->bus.bus)) {
-    LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
-    return -ENODEV;
-  }
-  if (config->channels != 1) {
-    LOG_ERR("Only one channel MCP3561 is supported\n");
-    return -ENOTSUP;
-  }
-
-  // VREF Selection
-  uint8_t vref_sel_bits = 0b0;
-  switch (config->global_reference) {
-  case ADC_REF_INTERNAL:
-    vref_sel_bits = 0b1;
+  // Configure Gain
+  uint8_t gain_bits = 0;
+  switch (config->global_gain) {
+  case ADC_GAIN_1_3:
+    gain_bits = 0b000;
     break;
-  case ADC_REF_EXTERNAL0:
-    vref_sel_bits = 0b0;
+  case ADC_GAIN_1:
+    gain_bits = 0b001;
+    break;
+  case ADC_GAIN_2:
+    gain_bits = 0b010;
+    break;
+  case ADC_GAIN_4:
+    gain_bits = 0b011;
+    break;
+  case ADC_GAIN_8:
+    gain_bits = 0b100;
+    break;
+  case ADC_GAIN_16:
+    gain_bits = 0b101;
+    break;
+  case ADC_GAIN_32:
+    gain_bits = 0b110;
+    break;
+  case ADC_GAIN_64:
+    gain_bits = 0b111;
     break;
   default:
-    LOG_ERR("unsupported reference voltage '%d'", config->global_reference);
+    LOG_ERR("unsupported channel gain '%d'", config->global_gain);
     return -ENOTSUP;
   }
 
-  // CLK Selection
-  uint8_t clk_sel_bits = 0b0;
-  switch (config->clock) {
-  case CLK_EXTERNAL:
-    clk_sel_bits = 0b0;
-    break;
-  case CLK_INTERNAL:
-    clk_sel_bits = 0b0;
-    break;
-  case CLK_INTERNAL_NO_BROADCAST:
-    clk_sel_bits = 0b0;
-    break;
-  }
-  // No Current Source/Sink Selection Bits for Sensor Bias
-  // TODO ADC_MODE
-  uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4);
-  mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
+  uint8_t boost = 0b10; // 1x boost (bias current) (default)
+  uint8_t az_mux = 0b0; // mux auto zero internal (default)
+  uint8_t az_ref = 0b1; // auto zero internal voltage ref (default)
+  uint8_t reserved_bit = 0b1;
+
+  uint8_t CONFIG2 = (boost << 6) | (gain_bits << 3) | (az_mux << 2) |
+                    (az_ref << 1) | reserved_bit;
+  mcp_write_reg_8(config, MCP_reg_CONFIG2, CONFIG2);
+
+  // Page 94
+  uint8_t conv_mode = 0b00;
+  uint8_t data_format = 0b00; // 24 bit adc data (default)
+  uint8_t crc_format = 0;
+  uint8_t en_crccom = 0;  // offset calibration (default)
+  uint8_t en_offcal = 0;  // offset calibration (default)
+  uint8_t en_gaincal = 0; // gain calibration (default)
+  uint8_t CONFIG3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
+                    (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
+
+  mcp_write_reg_8(config, MCP_reg_CONFIG3, CONFIG3);
 
   // Scan register (THIS DRIVER DOES NOT SCAN)
   uint32_t scan_reg = 0;
+
   mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
 
   return 0;
