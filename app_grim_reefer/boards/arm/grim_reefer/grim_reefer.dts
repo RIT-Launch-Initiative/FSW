@@ -155,6 +155,7 @@
 		osr = "OSR_32";
 		prescale = "PRE_8";
 		clock-selection = "CLK_INTERNAL";
+		reference = "ADC_REF_INTERNAL";
 		device-address = <1>;
 		spi-max-frequency = <10000000>;
 		#io-channel-cells = <1>;
@@ -165,7 +166,7 @@
 			reg = <0>;
 			zephyr,differential;
 			zephyr,gain = "ADC_GAIN_1_6";
-			zephyr,reference = "ADC_REF_VDD_1";
+			zephyr,reference = "ADC_REF_INTERNAL";
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
 		};
 	};
@@ -177,6 +178,7 @@
 		osr = "OSR_32";
 		prescale = "PRE_8";
 		clock-selection = "CLK_INTERNAL";
+		reference = "ADC_REF_INTERNAL";
 		device-address = <1>;
 		spi-max-frequency = <10000000>;
 		#io-channel-cells = <1>;
@@ -187,26 +189,24 @@
 			reg = <0>;
 			zephyr,differential;
 			zephyr,gain = "ADC_GAIN_1_6";
-			zephyr,reference = "ADC_REF_VDD_1";
+			zephyr,reference = "ADC_REF_INTERNAL";
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
 		};
 		channel@1 {
 			reg = <1>;
 			zephyr,differential;
 			zephyr,gain = "ADC_GAIN_1_6";
-			zephyr,reference = "ADC_REF_VDD_1";
+			zephyr,reference = "ADC_REF_INTERNAL";
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
 		};
 		channel@5 {
 			reg = <5>;
 			zephyr,gain = "ADC_GAIN_1_6";
-			zephyr,reference = "ADC_REF_VDD_1";
+			zephyr,reference = "ADC_REF_INTERNAL";
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
 		};
 
 	};
-
-
 };
 
 &rtc {

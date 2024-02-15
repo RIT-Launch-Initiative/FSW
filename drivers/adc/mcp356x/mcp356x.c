@@ -86,6 +86,8 @@ struct mcp356x_config {
   struct spi_dt_spec bus;
   uint8_t channels;    // 1
   uint8_t device_addr; // Written on chip packaging
+
+  enum adc_reference global_reference;
   enum OSR osr;
   enum PRE prescale;
   enum CLK_SEL clock;
@@ -170,13 +172,6 @@ int mcp356x_channel_setup(const struct device *dev,
                           const struct adc_channel_cfg *channel_cfg) {
   const struct mcp356x_config *config = dev->config;
 
-  // Check channel number
-  if (channel_cfg->channel_id >= config->channels) {
-    LOG_ERR("unsupported channel id '%d' of mcp356%d", channel_cfg->channel_id,
-            config->channels);
-    return -ENOTSUP;
-  }
-
   // Configure Gain
   uint8_t gain_bits = 0;
   switch (channel_cfg->gain) {
@@ -210,10 +205,15 @@ int mcp356x_channel_setup(const struct device *dev,
     return -ENOTSUP;
   }
 
-  // You get one diffy channel and you'll be happy about it
-  // Page 96
+  if (channel_cfg->reference != config->global_reference) {
+    LOG_ERR("Reference for channel %d does not match the global reference. (It "
+            "needs to)\n",
+            channel_cfg->channel_id);
+  }
+
   uint8_t mux_vin_p = channel_cfg->input_positive;
   uint8_t mux_vin_m = channel_cfg->input_negative;
+
   if (mux_vin_p > 0b1111) {
     LOG_ERR("Unsupported Vin+ %d", mux_vin_p);
     return -1;
@@ -222,39 +222,8 @@ int mcp356x_channel_setup(const struct device *dev,
     LOG_ERR("Unsupported Vin- %d", mux_vin_m);
     return -1;
   }
+
   uint8_t mux_register = mux_vin_p << 4 | mux_vin_m;
-
-  // VREF Selection
-  uint8_t vref_sel_bits = 0b0;
-  switch (channel_cfg->reference) {
-  case ADC_REF_INTERNAL:
-    vref_sel_bits = 0b1;
-    break;
-  case ADC_REF_EXTERNAL0:
-    vref_sel_bits = 0b0;
-    break;
-  default:
-    LOG_ERR("unsupported reference voltage '%d'", channel_cfg->reference);
-    return -ENOTSUP;
-  }
-
-  // CLK Selection
-  uint8_t clk_sel_bits = 0b0;
-  switch (config->clock) {
-  case CLK_EXTERNAL:
-    clk_sel_bits = 0b0;
-    break;
-  case CLK_INTERNAL:
-    clk_sel_bits = 0b0;
-    break;
-  case CLK_INTERNAL_NO_BROADCAST:
-    clk_sel_bits = 0b0;
-    break;
-  }
-  // No Current Source/Sink Selection Bits for Sensor Bias
-  // TODO ADC_MODE
-  uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4);
-  mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
 
   // Configure OSR
   uint8_t osr_bits = 0;
@@ -369,6 +338,38 @@ static int mcp356x_init(const struct device *dev) {
     return -ENOTSUP;
   }
 
+  // VREF Selection
+  uint8_t vref_sel_bits = 0b0;
+  switch (config->global_reference) {
+  case ADC_REF_INTERNAL:
+    vref_sel_bits = 0b1;
+    break;
+  case ADC_REF_EXTERNAL0:
+    vref_sel_bits = 0b0;
+    break;
+  default:
+    LOG_ERR("unsupported reference voltage '%d'", config->global_reference);
+    return -ENOTSUP;
+  }
+
+  // CLK Selection
+  uint8_t clk_sel_bits = 0b0;
+  switch (config->clock) {
+  case CLK_EXTERNAL:
+    clk_sel_bits = 0b0;
+    break;
+  case CLK_INTERNAL:
+    clk_sel_bits = 0b0;
+    break;
+  case CLK_INTERNAL_NO_BROADCAST:
+    clk_sel_bits = 0b0;
+    break;
+  }
+  // No Current Source/Sink Selection Bits for Sensor Bias
+  // TODO ADC_MODE
+  uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4);
+  mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
+
   // Scan register (THIS DRIVER DOES NOT SCAN)
   uint32_t scan_reg = 0;
   mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
@@ -379,9 +380,9 @@ static int mcp356x_init(const struct device *dev) {
 #define INST_DT_MCP356x(inst, n) DT_INST(inst, microchip_mcp356##n)
 
 // Define the init macro for different instances, channel numbers
-#define MCP356x_INIT(instance, compat, channel_num)                            \
-  static struct mcp356x_data mcp356##channel_num##_data_##instance;            \
-                                                                               \
+#define MCP356x_INIT(instance, compat, channel_num)                              \
+  static struct mcp356x_data mcp356##channel_num##_data_##instance;              \
+                                                                                 \
   static const struct mcp356x_config mcp356##channel_num##_config_##instance = \
       {.bus = SPI_DT_SPEC_GET(                                                 \
            INST_DT_MCP356x(instance, channel_num),                             \
@@ -389,14 +390,16 @@ static int mcp356x_init(const struct device *dev) {
        .device_addr =                                                          \
            DT_PROP(INST_DT_MCP356x(instance, channel_num), device_address),    \
        .channels = channel_num,                                                \
+       .global_reference =                                                     \
+           DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), reference),  \ 
        .osr = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), osr),    \
        .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
                                 clock_selection),                              \
        .prescale =                                                             \
            DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), prescale)}; \
-  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \
-                   &mcp356##channel_num##_data_##instance,                     \
-                   &mcp356##channel_num##_config_##instance, POST_KERNEL,      \
+  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL,   \
+                   &mcp356##channel_num##_data_##instance,                       \
+                   &mcp356##channel_num##_config_##instance, POST_KERNEL,        \
                    CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
 
 // 1 Channel ADC
