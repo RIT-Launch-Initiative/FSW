@@ -143,7 +143,7 @@
 
 &spi2 {
 	pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
-	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW &gpioc 1 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
 
@@ -169,6 +169,43 @@
 			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
 		};
 	};
+
+	potato: potato@1 {
+		compatible = "microchip,mcp3561";
+		status = "okay";
+		reg = <0x1>;
+		osr = "OSR_32";
+		prescale = "PRE_8";
+		clock-selection = "CLK_INTERNAL";
+		device-address = <1>;
+		spi-max-frequency = <10000000>;
+		#io-channel-cells = <1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		channel@0 {
+			reg = <0>;
+			zephyr,differential;
+			zephyr,gain = "ADC_GAIN_1_6";
+			zephyr,reference = "ADC_REF_VDD_1";
+			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
+		};
+		channel@1 {
+			reg = <1>;
+			zephyr,differential;
+			zephyr,gain = "ADC_GAIN_1_6";
+			zephyr,reference = "ADC_REF_VDD_1";
+			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
+		};
+		channel@5 {
+			reg = <5>;
+			zephyr,gain = "ADC_GAIN_1_6";
+			zephyr,reference = "ADC_REF_VDD_1";
+			zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
+		};
+
+	};
+
 
 };
 

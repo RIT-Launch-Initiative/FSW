@@ -2,7 +2,6 @@
  * Copyright (c) 2021 Nordic Semiconductor ASA
  * SPDX-License-Identifier: Apache-2.0
  */
-// #define DT_DRV_COMPAT microchip_mcp3561
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/adc.h>
@@ -29,30 +28,20 @@ CRCCFG    16  0xF
 */
 
 enum MCP_Reg {
-  ADCDATA = 0x0,
-  CONFIG0 = 0x1,
-  CONFIG1 = 0x2,
-  CONFIG2 = 0x3,
-  CONFIG3 = 0x4,
-  IRQ = 0x5,
-  MUX = 0x6,
-  SCAN = 0x7,
-  TIMER = 0x8,
-  OFFSETCAL = 0x9,
-  GAINCAL = 0xA,
-  LOCK = 0xD,
-  CRCCFG = 0xF,
+  MCP_reg_ADCDATA = 0x0,
+  MCP_reg_CONFIG0 = 0x1,
+  MCP_reg_CONFIG1 = 0x2,
+  MCP_reg_CONFIG2 = 0x3,
+  MCP_reg_CONFIG3 = 0x4,
+  MCP_reg_IRQ = 0x5,
+  MCP_reg_MUX = 0x6,
+  MCP_reg_SCAN = 0x7,
+  MCP_reg_TIMER = 0x8,
+  MCP_reg_OFFSETCAL = 0x9,
+  MCP_reg_GAINCAL = 0xA,
+  MCP_reg_LOCK = 0xD,
+  MCP_reg_CRCCFG = 0xF,
 };
-
-void mcp_write_reg(const struct mcp356x_config *config, enum MCP_Reg reg, ) {
-  // Write setup
-  const uint8_t addr_bit_pos = 2;
-  const uint8_t write_command_mask = 0x02;
-
-  //
-  const uint8_t device_address_mask = (config->device_addr << 6);
-  const uint8_t write_command = (write_command_mask | device_address_mask);
-}
 
 enum CLK_SEL {
   CLK_EXTERNAL,
@@ -95,17 +84,79 @@ struct mcp356x_data {
 
 struct mcp356x_config {
   struct spi_dt_spec bus;
-  uint8_t channels; // 1
-  uint8_t device_addr;
+  uint8_t channels;    // 1
+  uint8_t device_addr; // Written on chip packaging
   enum OSR osr;
   enum PRE prescale;
   enum CLK_SEL clock;
 };
 
+int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
+                    uint8_t data) {
+  // Write Constants
+  static const uint8_t command_addr_pos = 2;
+  static const uint8_t write_command_mask = 0x02;
+
+  // Device Specific
+  const uint8_t device_address_mask = (config->device_addr << 6);
+  const uint8_t write_command = (device_address_mask | write_command_mask);
+  const uint8_t command_specifier = (reg << command_addr_pos) | write_command;
+
+  // Write Data
+  uint8_t cmd[2] = {command_specifier, data};
+
+  struct spi_buf buf = {
+      .buf = &cmd,
+      .len = 2,
+  };
+
+  struct spi_buf_set set = {
+      .buffers = &buf,
+      .count = 1,
+  };
+  return spi_write_dt(&config->bus, &set);
+}
+int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
+                     uint32_t data) {
+  // Write Constants
+  static const uint8_t command_addr_pos = 2;
+  static const uint8_t write_command_mask = 0x02;
+
+  // Device Specific
+  const uint8_t device_address_mask = (config->device_addr << 6);
+  const uint8_t write_command = (device_address_mask | write_command_mask);
+  const uint8_t command_specifier = (reg << command_addr_pos) | write_command;
+
+  // Write Data
+  uint32_t cmd = (command_specifier << 24) | (data & 0x00FFFFFF);
+
+  struct spi_buf buf = {
+      .buf = &cmd,
+      .len = 4,
+  };
+
+  struct spi_buf_set set = {
+      .buffers = &buf,
+      .count = 1,
+  };
+  return spi_write_dt(&config->bus, &set);
+}
+
 static int mcp356x_read_channel(const struct device *dev,
                                 const struct adc_sequence *sequence) {
+  const struct mcp356x_config *config = dev->config;
 
-  // READ ADCDATA REG
+  if (sequence->options != NULL) {
+    LOG_ERR("This driver does not support sequencing");
+    return -1;
+  }
+  uint32_t channel = sequence->channels;
+
+  uint8_t vin_plus = 0b1111 & (channel >> 4);
+  uint8_t vin_minus = 0b1111 & (channel);
+
+  // TABLE 5-1. PAGE 38 for explanation of bitmask
+
   return -1;
 }
 
@@ -158,6 +209,52 @@ int mcp356x_channel_setup(const struct device *dev,
             channel_cfg->channel_id);
     return -ENOTSUP;
   }
+
+  // You get one diffy channel and you'll be happy about it
+  // Page 96
+  uint8_t mux_vin_p = channel_cfg->input_positive;
+  uint8_t mux_vin_m = channel_cfg->input_negative;
+  if (mux_vin_p > 0b1111) {
+    LOG_ERR("Unsupported Vin+ %d", mux_vin_p);
+    return -1;
+  }
+  if (mux_vin_m > 0b1111) {
+    LOG_ERR("Unsupported Vin- %d", mux_vin_m);
+    return -1;
+  }
+  uint8_t mux_register = mux_vin_p << 4 | mux_vin_m;
+
+  // VREF Selection
+  uint8_t vref_sel_bits = 0b0;
+  switch (channel_cfg->reference) {
+  case ADC_REF_INTERNAL:
+    vref_sel_bits = 0b1;
+    break;
+  case ADC_REF_EXTERNAL0:
+    vref_sel_bits = 0b0;
+    break;
+  default:
+    LOG_ERR("unsupported reference voltage '%d'", channel_cfg->reference);
+    return -ENOTSUP;
+  }
+
+  // CLK Selection
+  uint8_t clk_sel_bits = 0b0;
+  switch (config->clock) {
+  case CLK_EXTERNAL:
+    clk_sel_bits = 0b0;
+    break;
+  case CLK_INTERNAL:
+    clk_sel_bits = 0b0;
+    break;
+  case CLK_INTERNAL_NO_BROADCAST:
+    clk_sel_bits = 0b0;
+    break;
+  }
+  // No Current Source/Sink Selection Bits for Sensor Bias
+  // TODO ADC_MODE
+  uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4);
+  mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
 
   // Configure OSR
   uint8_t osr_bits = 0;
@@ -233,53 +330,9 @@ int mcp356x_channel_setup(const struct device *dev,
   }
 
   uint8_t CONFIG1 = (prescale_bits << 6) | (osr_bits << 2);
-  // You get one diffy channel and you'll be happy about it
-  // Page 96
-  uint8_t mux_vin_p = 0b0000;
-  uint8_t mux_vin_m = 0b0001;
-  uint8_t mux_register = mux_vin_p << 4 | mux_vin_m;
 
-  // Scan register
-  // only 24 bits long
-  // 1 for diffy channel A, zero for all others
-  uint16_t scan = 0b0000000100000000;
-  struct scan_reg scanreg = {.dly = 0b000, .scan = 0b0000000, .scan = scan};
+  mcp_write_reg_8(config, MCP_reg_CONFIG1, CONFIG1);
 
-  // VREF Selection
-  uint8_t vref_sel_bits = 0b0;
-  switch (channel_cfg->reference) {
-  case ADC_REF_INTERNAL:
-    vref_sel_bits = 0b1;
-    break;
-  case ADC_REF_EXTERNAL0:
-    vref_sel_bits = 0b0;
-    break;
-  default:
-    LOG_ERR("unsupported reference voltage '%d'", channel_cfg->reference);
-    return -ENOTSUP;
-  }
-
-  // CLK Selection
-  uint8_t clk_sel_bits = 0b0;
-  switch (config->clock) {
-  case CLK_EXTERNAL:
-    clk_sel_bits = 0b0;
-    break;
-  case CLK_INTERNAL:
-    clk_sel_bits = 0b0;
-    break;
-  case CLK_INTERNAL_NO_BROADCAST:
-    clk_sel_bits = 0b0;
-    r break;
-  }
-  // No Current Source/Sink Selection Bits for Sensor Bias
-  // TODO ADC_MODE
-  uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4);
-  struct spi_buf b = {};
-  struct spi_buf_set = {
-      bufs = &b,
-  };
-  mcp_write_reg();
   // ADCDATA
   // CONFIG0
 
@@ -315,6 +368,10 @@ static int mcp356x_init(const struct device *dev) {
     LOG_ERR("Only one channel MCP3561 is supported\n");
     return -ENOTSUP;
   }
+
+  // Scan register (THIS DRIVER DOES NOT SCAN)
+  uint32_t scan_reg = 0;
+  mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
 
   return 0;
 }
