@@ -3,4 +3,6 @@
 
 if SENSOR
 rsource "examplesensor/Kconfig"
+
+rsource "adxl375/Kconfig"
 endif # SENSOR
