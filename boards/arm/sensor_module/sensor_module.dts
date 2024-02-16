@@ -170,9 +170,10 @@
         status = "okay";
     };
 
-    ms5611: ms5607@77 { // TODO: This should be MS5607 and we should make a revision overlay
+    // TODO: This should be MS5607 and we should make a revision overlay
+    ms5611: ms5611@77 {
         compatible = "meas,ms5611";
-        reg = <0x76>;
+        reg = <0x77>;
         status = "okay";
     };
 
