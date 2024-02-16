@@ -1,4 +1,4 @@
-# Micropower, 3-Axis, +/-200g Digital Accelerometer
+# Low power, 3-Axis, +/-200g Digital Accelerometer
 
 # Copyright (c) 2023 Aaron Chan
 # SPDX-License-Identifier: Apache-2.0
@@ -12,8 +12,3 @@ menuconfig ADXL375
 	help
 	  Enable driver for ADXL375 Three-Axis Digital Accelerometers.
 
-# TODO: Add more configs later
-#if ADXL375
-
-
-#endif # ADXL375

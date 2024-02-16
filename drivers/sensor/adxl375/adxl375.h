@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright (c) 2023 Aaron Chan
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -58,7 +58,7 @@
 #define ADXL375_DEVID_VAL	0xE5u  /* Analog Devices accelerometer ID */
 
 #define ADXL375_READ		0x01u
-#define ADXL375_REG_READ(x)	(((x & 0xFF) << 1) | adxl375_READ)
+#define ADXL375_REG_READ(x)	(((x & 0xFF) << 1) |ADXL375_READ)
 #define ADXL375_REG_WRITE(x)	((x & 0xFF) << 1)
 #define ADXL375_TO_I2C_REG(x)	((x) >> 1)
 
@@ -201,6 +201,8 @@
 #define ADXL375_FIFO_STATUS_FIFO_TRIG(x)     (((x) >> 7) & 0x1)
 #define ADXL375_FIFO_STATUS_ENTRIES(x)       ((x) & 0x7F)
 
+/* ADXL375 scale factors specified in page 3, table 1 of datasheet */
+#define ADXL375_MG2G_MULTIPLIER 0.049
 
 enum adxl375_axis {
 	ADXL375_X_AXIS,
@@ -234,7 +236,7 @@ enum adxl375_bandwidth {
 };
 
 enum adxl375_odr {
-    ADXL375_ODR_0_10HZ,
+    ADXL375_ODR_0_10HZ = 0,
     ADXL375_ODR_0_20HZ,
     ADXL375_ODR_0_39HZ,
     ADXL375_ODR_0_78HZ,
@@ -333,12 +335,12 @@ struct adxl375_dev_config {
 	struct gpio_dt_spec interrupt;
 #endif
 
-	enum adxl375_bandwidth bw;
 	enum adxl375_odr odr;
-
 
 	/* Device Settings */
 	bool autosleep;
+
+	bool lp;
 
 	enum adxl375_op_mode op_mode;
 };

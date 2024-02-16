@@ -2,7 +2,7 @@
  */
 
 /*
- * Copyright (c) 2018 STMicroelectronics
+ * Copyright (c) 2022 Analog Devices
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -18,53 +18,40 @@
 
 LOG_MODULE_DECLARE(ADXL375, CONFIG_SENSOR_LOG_LEVEL);
 
-static int adxl375_bus_access(const struct device *dev, uint8_t reg,
-			      void *data, size_t length)
+static int adxl375_bus_access(const struct device *dev, uint8_t reg, void *data, size_t length)
 {
 	const struct adxl375_dev_config *config = dev->config;
 
 	if (reg & ADXL375_READ) {
-		return i2c_burst_read_dt(&config->i2c,
-					 ADXL375_TO_I2C_REG(reg),
-					 (uint8_t *) data, length);
+		return i2c_burst_read_dt(&config->i2c, ADXL375_TO_I2C_REG(reg), (uint8_t *)data,
+					 length);
 	} else {
 		if (length != 1) {
 			return -EINVAL;
 		}
 
-		return i2c_reg_write_byte_dt(&config->i2c,
-					     ADXL375_TO_I2C_REG(reg),
+		return i2c_reg_write_byte_dt(&config->i2c, ADXL375_TO_I2C_REG(reg),
 					     *(uint8_t *)data);
 	}
 }
 
-static int adxl375_i2c_reg_read(const struct device *dev, uint8_t reg_addr,
-			    uint8_t *reg_data)
+static int adxl375_i2c_reg_read(const struct device *dev, uint8_t reg_addr, uint8_t *reg_data)
 {
 	return adxl375_bus_access(dev, ADXL375_REG_READ(reg_addr), reg_data, 1);
 }
 
-static int adxl375_i2c_reg_read_multiple(const struct device *dev,
-					 uint8_t reg_addr,
-					 uint8_t *reg_data,
-					 uint16_t count)
+static int adxl375_i2c_reg_read_multiple(const struct device *dev, uint8_t reg_addr,
+					 uint8_t *reg_data, uint16_t count)
 {
-	return adxl375_bus_access(dev, ADXL375_REG_READ(reg_addr),
-				  reg_data, count);
+	return adxl375_bus_access(dev, ADXL375_REG_READ(reg_addr), reg_data, count);
 }
 
-static int adxl375_i2c_reg_write(const struct device *dev,
-				 uint8_t reg_addr,
-				 uint8_t reg_data)
+static int adxl375_i2c_reg_write(const struct device *dev, uint8_t reg_addr, uint8_t reg_data)
 {
-	return adxl375_bus_access(dev, ADXL375_REG_WRITE(reg_addr),
-				  &reg_data, 1);
+	return adxl375_bus_access(dev, ADXL375_REG_WRITE(reg_addr), &reg_data, 1);
 }
 
-
-int adxl375_i2c_reg_write_mask(const struct device *dev,
-			       uint8_t reg_addr,
-			       uint32_t mask,
+int adxl375_i2c_reg_write_mask(const struct device *dev, uint8_t reg_addr, uint32_t mask,
 			       uint8_t data)
 {
 	int ret;
@@ -81,10 +68,10 @@ int adxl375_i2c_reg_write_mask(const struct device *dev,
 	return adxl375_i2c_reg_write(dev, reg_addr, tmp);
 }
 
-static const struct adxl375_transfer_function adxl372_i2c_transfer_fn = {
+static const struct adxl375_transfer_function adxl375_i2c_transfer_fn = {
 	.read_reg_multiple = adxl375_i2c_reg_read_multiple,
 	.write_reg = adxl375_i2c_reg_write,
-	.read_reg  = adxl375_i2c_reg_read,
+	.read_reg = adxl375_i2c_reg_read,
 	.write_reg_mask = adxl375_i2c_reg_write_mask,
 };
 
