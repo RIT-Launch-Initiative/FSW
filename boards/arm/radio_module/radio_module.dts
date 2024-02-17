@@ -63,7 +63,7 @@
     };
 
     reset: reset {
-        compatible = "gpio-reset";
+        compatible = "gpio-leds"; // Figure out a better compatible.
 
         ublox_reset: ublox_reset {
             gpios = <&gpioc 13 GPIO_ACTIVE_LOW>;
@@ -75,9 +75,11 @@
         led0 = &red_led_1;
         led1 = &red_led_2;
 
+        ubx-rst = &ublox_reset;
+
         dbguart = &uart4;
         ubxlib-uart2 = &usart2;
-        ubxrst = &ublox_reset;
+
 
         lora0 = &lora;
 
