@@ -1,10 +1,10 @@
-# Copyright (c) 2021 Nordic Semiconductor ASA
+# Copyright (c) 2024, RIT Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
-config EXAMPLESENSOR
-	bool "Example sensor"
+config MS5611
+	bool "MS5611 Barometer"
 	default y
-	depends on DT_HAS_ZEPHYR_EXAMPLESENSOR_ENABLED
-	select GPIO
+	depends on DT_HAS_MEAS_MS5611_ENABLED
+	select I2C
 	help
-	  Enable example sensor
+		Enable MS5611 barometer driver.
