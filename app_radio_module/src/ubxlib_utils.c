@@ -11,11 +11,14 @@
 #include "ubxlib_utils.h"
 
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/gpio.h>
 
 LOG_MODULE_REGISTER(ubxlib_utils);
 
 // #define MAX0_NODE DT_ALIAS(max0)
 // static const struct device *const max0 = DEVICE_DT_GET(MAX0_NODE);
+static const struct gpio_dt_spec ubx_rst = GPIO_DT_SPEC_GET(DT_ALIAS(ubx_rst), gpios);
+
 
 static void l_gnss_callback(uDeviceHandle_t gnssHandle,
                                int32_t errorCode,
@@ -35,6 +38,12 @@ static void l_gnss_callback(uDeviceHandle_t gnssHandle,
 
 // TODO: get rid of gnss_dev_t and use uGnssTransportHandle_t instead
 int init_maxm10s(gnss_dev_t *dev) {
+    LOG_INF("Resetting MAX-M10S GNSS Module\n");
+    gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_LOW);
+    k_msleep(500);
+    gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_HIGH);
+    k_msleep(2000);
+
     int ret = uPortInit();
     if (ret != 0) {
         LOG_ERR("uPortInit() returned %d\n", ret);

@@ -42,10 +42,12 @@
     };
 
     cfg-device-gnss {
-        compatible = "u-blox,ubxlib-device-gnss";
         status = "okay";
+        compatible = "u-blox,ubxlib-device-gnss";
+        i2c-address = <0x42>;
         transport-type = "i2c1";
         module-type = "U_GNSS_MODULE_TYPE_M10";
+        i2c-already-open;
     };
 
     leds: leds {

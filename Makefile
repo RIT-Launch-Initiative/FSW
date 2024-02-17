@@ -7,6 +7,9 @@ flash:
 debug:
 	west debug
 
+make mon:
+	sudo minicom -D /dev/ttyUSB0 -b 115200
+
 # Modules
 power:
 	west build -b power_module@2 app_power_module -p auto -DOVERLAY_CONFIG=debug.conf

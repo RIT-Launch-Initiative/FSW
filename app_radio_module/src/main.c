@@ -52,7 +52,6 @@ static k_tid_t gnss_init_tid;
 
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
-static const struct gpio_dt_spec ubx_rst = GPIO_DT_SPEC_GET(DT_ALIAS(ubx_rst), gpios);
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
@@ -75,16 +74,21 @@ static int init() {
         l_init_udp_net_stack("192.168.1.1");
     }
 
-    while (0 != init_maxm10s(gnss_dev)) {
+//     while (0 != init_maxm10s(gnss_dev)) {
+//         LOG_ERR("Failed to initialize GNSS module");
+//         gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_LOW);
+//         k_msleep(100);
+//         gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_HIGH);
+//         k_msleep(10);
+//     }
+// //    else {
+//     LOG_INF("GNSS module initialized");
+// //    }
+    if (!init_maxm10s(gnss_dev)) {
+        LOG_INF("GNSS module initialized");
+    } else {
         LOG_ERR("Failed to initialize GNSS module");
-        gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_LOW);
-        k_msleep(100);
-        gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_HIGH);
-        k_msleep(10);
     }
-//    else {
-    LOG_INF("GNSS module initialized");
-//    }
 
 
     return ret;
@@ -92,10 +96,6 @@ static int init() {
 
 int main() {
     LOG_DBG("Starting radio module!\n");
-
-    gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_LOW);
-    k_msleep(100);
-    gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_HIGH);
 
     if (init()) {
         return -1;
