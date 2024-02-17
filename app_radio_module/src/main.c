@@ -75,12 +75,16 @@ static int init() {
         l_init_udp_net_stack("192.168.1.1");
     }
 
-    if (0 > init_maxm10s(gnss_dev)) {
+    while (0 != init_maxm10s(gnss_dev)) {
         LOG_ERR("Failed to initialize GNSS module");
-        return -1;
-    } else {
-        LOG_INF("GNSS module initialized");
+        gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_LOW);
+        k_msleep(100);
+        gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_HIGH);
+        k_msleep(10);
     }
+//    else {
+    LOG_INF("GNSS module initialized");
+//    }
 
 
     return ret;
@@ -89,9 +93,9 @@ static int init() {
 int main() {
     LOG_DBG("Starting radio module!\n");
 
-    gpio_pin_set_dt(&ubx_rst, 0);
+    gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_LOW);
     k_msleep(100);
-    gpio_pin_set_dt(&ubx_rst, 1);
+    gpio_pin_set_dt(&ubx_rst, GPIO_ACTIVE_HIGH);
 
     if (init()) {
         return -1;
