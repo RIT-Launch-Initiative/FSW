@@ -104,7 +104,7 @@ uint8_t mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg) {
   const uint8_t command_specifier = (reg << command_addr_pos) | sread_command;
 
   // Write Data
-  uint8_t cmd[2] = {command_specifier, data};
+  uint8_t cmd[2] = {command_specifier, 0};
 
   struct spi_buf txbuf = {
       .buf = &cmd,
@@ -126,12 +126,12 @@ uint8_t mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg) {
       .count = 1,
   };
 
-  spi_transceive_dt(config->bus, &txbufset, &rxbufset);
+  spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
 
   return reg8[1];
 }
 
-unit32_t mcp_read_reg_24(const struct mcp356x_config *config,
+uint32_t mcp_read_reg_24(const struct mcp356x_config *config,
                          enum MCP_Reg reg) {
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
@@ -142,7 +142,7 @@ unit32_t mcp_read_reg_24(const struct mcp356x_config *config,
   const uint8_t command_specifier = (reg << command_addr_pos) | sread_command;
 
   // Write Data
-  uint8_t cmd[2] = {command_specifier, data};
+  uint8_t cmd[2] = {command_specifier, 0};
 
   struct spi_buf txbuf = {
       .buf = &cmd,
@@ -164,7 +164,7 @@ unit32_t mcp_read_reg_24(const struct mcp356x_config *config,
       .count = 1,
   };
 
-  spi_transceive_dt(config->bus, &txbufset, &rxbufset);
+  spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
 
   uint32_t res = (reg24[1] << 16) | (reg24[2] << 8) | (reg24[3]);
   return res;
@@ -236,14 +236,14 @@ static int mcp356x_read_channel(const struct device *dev,
   uint8_t mux_reg = (vin_plus << 4) | vin_minus;
 
   // Write mux register
-  mcp_write_reg_8(config->bus, mux_reg);
+  mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
 
   // Wait X pulses of mclk for result to come in
   // or, or wait for IRQ to come in and and make sure IRQ reg says its the right
   // one
   k_usleep(10); // silly hack until then
 
-  uint32_t val = mcp_read_reg_24(config->bus, MCP_reg_ADCDATA);
+  uint32_t val = mcp_read_reg_24(config, MCP_reg_ADCDATA);
 
   return val;
 }
@@ -495,9 +495,9 @@ static int mcp356x_init(const struct device *dev) {
 #define INST_DT_MCP356x(inst, n) DT_INST(inst, microchip_mcp356##n)
 
 // Define the init macro for different instances, channel numbers
-#define MCP356x_INIT(instance, compat, channel_num)                              \
-  static struct mcp356x_data mcp356##channel_num##_data_##instance;              \
-                                                                                 \
+#define MCP356x_INIT(instance, compat, channel_num)                            \
+  static struct mcp356x_data mcp356##channel_num##_data_##instance;            \
+                                                                               \
   static const struct mcp356x_config mcp356##channel_num##_config_##instance = \
       {.bus = SPI_DT_SPEC_GET(                                                 \
            INST_DT_MCP356x(instance, channel_num),                             \
@@ -506,15 +506,15 @@ static int mcp356x_init(const struct device *dev) {
            DT_PROP(INST_DT_MCP356x(instance, channel_num), device_address),    \
        .channels = channel_num,                                                \
        .global_reference =                                                     \
-           DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), reference),  \ 
+           DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), reference), \
        .osr = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), osr),    \
        .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
                                 clock_selection),                              \
        .prescale =                                                             \
            DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), prescale)}; \
-  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL,   \
-                   &mcp356##channel_num##_data_##instance,                       \
-                   &mcp356##channel_num##_config_##instance, POST_KERNEL,        \
+  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \
+                   &mcp356##channel_num##_data_##instance,                     \
+                   &mcp356##channel_num##_config_##instance, POST_KERNEL,      \
                    CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
 
 // 1 Channel ADC
