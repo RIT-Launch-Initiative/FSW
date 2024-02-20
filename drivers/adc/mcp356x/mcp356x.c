@@ -239,11 +239,11 @@ static int mcp356x_read_channel(const struct device *dev,
   mcp_write_reg_8(config->bus, mux_reg);
 
   // Wait X pulses of mclk for result to come in
+  // or, or wait for IRQ to come in and and make sure IRQ reg says its the right
+  // one
   k_usleep(10); // silly hack until then
 
   uint32_t val = mcp_read_reg_24(config->bus, MCP_reg_ADCDATA);
-
-  // TABLE 5-1. PAGE 38 for explanation of bitmask
 
   return val;
 }
