@@ -94,6 +94,82 @@ struct mcp356x_config {
   enum CLK_SEL clock;
 };
 
+uint8_t mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg) {
+  static const uint8_t command_addr_pos = 2;
+  static const uint8_t sread_command_mask = 0x01;
+
+  // Device Specific
+  const uint8_t device_address_mask = (config->device_addr << 6);
+  const uint8_t sread_command = (device_address_mask | sread_command_mask);
+  const uint8_t command_specifier = (reg << command_addr_pos) | sread_command;
+
+  // Write Data
+  uint8_t cmd[2] = {command_specifier, data};
+
+  struct spi_buf txbuf = {
+      .buf = &cmd,
+      .len = 2,
+  };
+
+  struct spi_buf_set txbufset = {
+      .buffers = &txbuf,
+      .count = 1,
+  };
+
+  uint8_t reg8[2];
+  struct spi_buf rxbuf = {
+      .buf = &reg8,
+      .len = 2,
+  };
+  struct spi_buf_set rxbufset = {
+      .buffers = &rxbuf,
+      .count = 1,
+  };
+
+  spi_transceive_dt(config->bus, &txbufset, &rxbufset);
+
+  return reg8[1];
+}
+
+unit32_t mcp_read_reg_24(const struct mcp356x_config *config,
+                         enum MCP_Reg reg) {
+  static const uint8_t command_addr_pos = 2;
+  static const uint8_t sread_command_mask = 0x01;
+
+  // Device Specific
+  const uint8_t device_address_mask = (config->device_addr << 6);
+  const uint8_t sread_command = (device_address_mask | sread_command_mask);
+  const uint8_t command_specifier = (reg << command_addr_pos) | sread_command;
+
+  // Write Data
+  uint8_t cmd[2] = {command_specifier, data};
+
+  struct spi_buf txbuf = {
+      .buf = &cmd,
+      .len = 2,
+  };
+
+  struct spi_buf_set txbufset = {
+      .buffers = &txbuf,
+      .count = 1,
+  };
+
+  uint8_t reg24[5];
+  struct spi_buf rxbuf = {
+      .buf = &reg24,
+      .len = 5,
+  };
+  struct spi_buf_set rxbufset = {
+      .buffers = &rxbuf,
+      .count = 1,
+  };
+
+  spi_transceive_dt(config->bus, &txbufset, &rxbufset);
+
+  uint32_t res = (reg24[1] << 16) | (reg24[2] << 8) | (reg24[3]);
+  return res;
+}
+
 int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
                     uint8_t data) {
   // Write Constants
@@ -157,10 +233,19 @@ static int mcp356x_read_channel(const struct device *dev,
 
   uint8_t vin_plus = 0b1111 & (channel >> 4);
   uint8_t vin_minus = 0b1111 & (channel);
+  uint8_t mux_reg = (vin_plus << 4) | vin_minus;
+
+  // Write mux register
+  mcp_write_reg_8(config->bus, mux_reg);
+
+  // Wait X pulses of mclk for result to come in
+  k_usleep(10); // silly hack until then
+
+  uint32_t val = mcp_read_reg_24(config->bus, MCP_reg_ADCDATA);
 
   // TABLE 5-1. PAGE 38 for explanation of bitmask
 
-  return -1;
+  return val;
 }
 
 struct scan_reg {
@@ -234,7 +319,7 @@ static int mcp356x_init(const struct device *dev) {
     return -ENOTSUP;
   }
 
-  // Page 91
+  // Page 91 CONFIG0 ----------------------------------------------------------
   // VREF Selection
   uint8_t vref_sel_bits = 0b0;
   switch (config->global_reference) {
@@ -268,7 +353,7 @@ static int mcp356x_init(const struct device *dev) {
   uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4) | adc_mode;
   mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
 
-  // Page 92
+  // Page 92 CONFIG1 ----------------------------------------------------------
   // Configure OSR
   uint8_t osr_bits = 0;
   switch (config->osr) {
@@ -346,8 +431,7 @@ static int mcp356x_init(const struct device *dev) {
 
   mcp_write_reg_8(config, MCP_reg_CONFIG1, CONFIG1);
 
-  // Page 93
-
+  // Page 93 CONFIG2 ----------------------------------------------------------
   // Configure Gain
   uint8_t gain_bits = 0;
   switch (config->global_gain) {
@@ -389,13 +473,13 @@ static int mcp356x_init(const struct device *dev) {
                     (az_ref << 1) | reserved_bit;
   mcp_write_reg_8(config, MCP_reg_CONFIG2, CONFIG2);
 
-  // Page 94
+  // Page 94 CONFIG3 ----------------------------------------------------------
   uint8_t conv_mode = 0b00;
   uint8_t data_format = 0b00; // 24 bit adc data (default)
-  uint8_t crc_format = 0;
-  uint8_t en_crccom = 0;  // offset calibration (default)
-  uint8_t en_offcal = 0;  // offset calibration (default)
-  uint8_t en_gaincal = 0; // gain calibration (default)
+  uint8_t crc_format = 0b0;   // 16 bit crc format (default)
+  uint8_t en_crccom = 0b0;    // offset calibration (default)
+  uint8_t en_offcal = 0b0;    // offset calibration (default)
+  uint8_t en_gaincal = 0b0;   // gain calibration (default)
   uint8_t CONFIG3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
                     (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
 
@@ -403,7 +487,6 @@ static int mcp356x_init(const struct device *dev) {
 
   // Scan register (THIS DRIVER DOES NOT SCAN)
   uint32_t scan_reg = 0;
-
   mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
 
   return 0;
