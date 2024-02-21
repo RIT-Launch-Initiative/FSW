@@ -15,6 +15,8 @@ K_QUEUE_DEFINE(net_tx_queue);
 //
 //#define LED1_NODE DT_ALIAS(led1)
 //static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+//static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+//static const struct device *const ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 //static const struct device *const adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
