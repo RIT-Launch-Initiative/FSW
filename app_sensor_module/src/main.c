@@ -19,6 +19,8 @@ K_QUEUE_DEFINE(net_tx_queue);
 //static const struct device *const ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
+//static const struct device *const adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
+
 static int init(void) {
     char ip[MAX_IP_ADDRESS_STR_LEN];
 
