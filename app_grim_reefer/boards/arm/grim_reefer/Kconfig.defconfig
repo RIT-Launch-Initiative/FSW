@@ -1,6 +1,0 @@
-if BOARD_GRIM_REEFER
-
-config BOARD
-	default "grim_reefer"
-
-endif # BOARD_GRIM_REEFER
