@@ -16,10 +16,10 @@
 #include "sensors.h"
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
-LOG_MODULE_REGISTER(tmp116_task, LOG_LEVEL_INF);
 K_QUEUE_DEFINE(net_tx_queue);
 
 #define STACK_SIZE (512)
+#define TMP_UPDATE_TIME_MS (100)
 #define LED0_NODE DT_ALIAS(led0)
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
@@ -27,39 +27,51 @@ static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
-static void ina_task(void *, void *, void *) {
-    struct sensor_value temperature;
-    power_module_telemetry_t sensor_telemetry = {0};
+// Sensors
+static K_THREAD_STACK_DEFINE(tmp_task_stack, STACK_SIZE);
+static struct k_thread tmp_task_thread_data;
+
+static void tmp_task(void *, void *, void *) {
+
+    tmp116_telemetry_t sensor_telemetry = {0};
     
-    const struct device *tmp116_device = DEVICE_DT_GET_ANY(ti_tmp116);
-    if (!device_is_ready(tmp116_device)) {
-        LOG_ERR("whomp whomp TMP116 sensor not found");
-        return;
+    const struct device *tmp116_device = DEVICE_DT_GET_ANY(ti_tmp116); // Get the TMP116 device
+    if (!device_is_ready(tmp116_device)) {                             // check if ready
+        LOG_ERR("TMP116 sensor not found");
+        return;                                                        // device is not ready 
     }
 
-    // channels and storage for sensor readings
-    enum sensor_channel channels[] = {SENSOR_CHAN_AMBIENT_TEMP};
-    struct sensor_value *values[] = {&temperature};
+    // Allocate mem for float storage
+    float *float_storage = malloc(sizeof(float));
+
+    // Define the sensor reading arguments
     l_sensor_readings_args_t args = {
         .num_readings = 1,
-        .channels = channels,
-        .values = values, // Use if not converting to float
-        .float_values = {&some_float_var}, // float values
+        .channels = (enum sensor_channel[]){SENSOR_CHAN_IR}, // change to channel
+        .values = NULL, // Not used in this case
+        .float_values = &float_storage
     };
-    while (true) {
+
+    while (true){
         sensor_telemetry.timestamp = k_uptime_get_32();
 
-        // Fetch and read temperature data from TMP116 using aaron's helper function
-        int result = l_update_get_sensor_data(tmp116_device, &args, true); // set true if float conversion needed
-        if (result == 0) {
-            // If needed, convert sensor_value to float or double for processing
-            float temp_celsius = sensor_value_to_double(&temperature);
-            sensor_telemetry.data_temperature = temp_celsius;
+        // Fetch and read temperature data from
+        int result = l_update_get_sensor_data(tmp116_device, &args, true); // Set at true for float conversion
+        if (result < 0){
+            LOG_ERR("Failed to get tmp values");
+        } else {
+            // Log the reading
+            LOG_INF("Temperature: %f C", *args.float_values[0]); // log the float value
         }
 
-        // sleep for 100 ms
-        k_sleep(K_MSEC(100));
+        // sleep
+        uint32_t time_to_wait = TMP_UPDATE_TIME_MS - (k_uptime_get_32() - sensor_telemetry.timestamp);
+        if (time_to_wait > 0) {
+            k_sleep(K_MSEC(time_to_wait));
+        }
     }
+    // free allocated memory
+    k_free(float_storage);
 }
 
 static int init(void) {
@@ -83,7 +95,17 @@ static int init(void) {
         LOG_ERR("Failed to get network device");
     }
 
-    // Sensors
+    const struct device *tmp116_device = DEVICE_DT_GET_ANY(ti_tmp116); // get device from tree
+    // Check if TMP116 device exists
+    if (!device_is_ready(tmp116_device)) {
+        LOG_ERR("TMP116 sensor not found");
+        return -1; // Return early if device is not found
+    }
+    
+    // sensors
+    k_thread_create(&tmp_task_thread_data, tmp_task_stack, STACK_SIZE,
+                    tmp_task, NULL, NULL, NULL,
+                    K_PRIO_PREEMPT(1), 0, K_NO_WAIT);
 
     return 0;
 }

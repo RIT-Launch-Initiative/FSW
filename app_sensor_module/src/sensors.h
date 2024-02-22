@@ -1,3 +1,4 @@
+#include <zephyr/drivers/sensor.h>
 #ifndef SENSORS_H_
 #define SENSORS_H_
 
@@ -23,6 +24,12 @@ typedef struct __attribute__((__packed__)) {
 
     //float temperature_tmp;
 } SENSOR_MODULE_DATA_T;
+
+typedef struct {
+    uint32_t timestamp;      // Timestamp to record the time of the measurement
+    float temperature_data; // Temperature raw data from TMP116
+} tmp116_telemetry_t;
+
 #endif // !SENSORS_H_
 
 
