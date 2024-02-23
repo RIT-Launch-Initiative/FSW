@@ -22,7 +22,6 @@ static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * 
 //static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 //static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 //static const struct device *const ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
-static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 //static const struct device *const adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
 
@@ -39,7 +38,7 @@ static int init(void) {
 
     k_queue_init(&net_tx_queue);
 
-    if (!l_check_device(wiznet)) {
+    if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
         if (!l_init_udp_net_stack(ip)) {
             LOG_ERR("Failed to initialize network stack");
         }
