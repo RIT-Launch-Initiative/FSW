@@ -62,7 +62,7 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
     hundred_hz_telemetry_packed_t hundred_hz_telem_packed;
 
     while (true) {
-        if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &hundred_hz_telem, K_NO_WAIT) {
+        if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &hundred_hz_telem, K_NO_WAIT)) {
             hundred_hz_telem_packed.adxl375.accel_x = hundred_hz_telem.adxl375.accel_x;
             hundred_hz_telem_packed.adxl375.accel_y = hundred_hz_telem.adxl375.accel_y;
             hundred_hz_telem_packed.adxl375.accel_z = hundred_hz_telem.adxl375.accel_z;
@@ -91,19 +91,15 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
             LOG_WRN("Failed to get data from 100 Hz queue");
         }
 
-        if (0 == k_msgq_get(&ten_hz_telemetry_queue, &sensor_telemetry, K_NO_WAIT) { 
-            l_send_udp_broadcast((uint8_t *) &packed_telemetry, sizeof(sensor_module_telemetry_packed_t),
+        if (0 == k_msgq_get(&ten_hz_telemetry_queue, &ten_hz_telem, K_NO_WAIT)) { 
+            l_send_udp_broadcast((uint8_t *) &ten_hz_telem, sizeof(ten_hz_telemetry_t),
                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
         } else {
             LOG_WRN("Failed to get data from 10 Hz queue");
         }
         
-        if (0 == k_msgq_get(&extension_board_telemetry_queue, &sensor_telemetry, K_NO_WAIT) { 
-            l_send_udp_broadcast((uint8_t *) &packed_telemetry, sizeof(64),
-                             SENSOR_MODULE_BASE_PORT);
-        } else {
-            LOG_WRN("Failed to get data from 10 Hz queue");
-        }
+        // TODO: Extension board support. Need to figure out a robust way of doing this
+
         // TODO: write to flash when data logging library is ready
     }
 }
