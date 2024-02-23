@@ -18,6 +18,10 @@ static uint8_t ten_hz_telemetry_queue_buffer[CONFIG_TEN_HZ_QUEUE_SIZE * sizeof(t
 static struct k_msgq hundred_hz_telemetry_queue;
 static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * sizeof(hundred_hz_telemetry_t)];
 
+// Threads
+static K_THREAD_STACK_DEFINE(telemetry_processing_stack, STACK_SIZE);
+static struct k_thread telemetry_processing_thread;
+
 
 // Devices
 //#define LED0_NODE DT_ALIAS(led0)
@@ -26,32 +30,7 @@ static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * 
 //#define LED1_NODE DT_ALIAS(led1)
 //static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
-static int init(void) {
-    char ip[MAX_IP_ADDRESS_STR_LEN];
-    int ret = 0;
-
-    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(ten_hz_telemetry_t), CONFIG_TEN_HZ_QUEUE_SIZE);
-    k_msgq_init(&hundred_hz_telemetry_queue, hundred_hz_telemetry_queue_buffer, sizeof(hundred_hz_telemetry_t), CONFIG_HUNDRED_HZ_QUEUE_SIZE);
-
-    if (0 > l_create_ip_str_default_net_id(ip, SENSOR_MODULE_ID, 1)) {
-        LOG_ERR("Failed to create IP address string: %d", ret);
-        return -1;
-    }
-
-    if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
-        if (!l_init_udp_net_stack(ip)) {
-            LOG_ERR("Failed to initialize network stack");
-        }
-    } else {
-        LOG_ERR("Failed to get network device");
-    }
-
-    // Sensors
-
-    return 0;
-}
-
-static void telemetry_queue_processing_task(void *, void *, void *) {
+static void telemetry_processing_task(void *, void *, void *) {
     ten_hz_telemetry_t ten_hz_telem;
     hundred_hz_telemetry_t hundred_hz_telem;
     hundred_hz_telemetry_packed_t hundred_hz_telem_packed;
@@ -99,6 +78,37 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
         // TODO: write to flash when data logging library is ready
     }
 }
+
+static int init(void) {
+    char ip[MAX_IP_ADDRESS_STR_LEN];
+    int ret = 0;
+
+    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(ten_hz_telemetry_t), CONFIG_TEN_HZ_QUEUE_SIZE);
+    k_msgq_init(&hundred_hz_telemetry_queue, hundred_hz_telemetry_queue_buffer, sizeof(hundred_hz_telemetry_t), CONFIG_HUNDRED_HZ_QUEUE_SIZE);
+
+    if (0 > l_create_ip_str_default_net_id(ip, SENSOR_MODULE_ID, 1)) {
+        LOG_ERR("Failed to create IP address string: %d", ret);
+        return -1;
+    }
+
+    if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
+        if (!l_init_udp_net_stack(ip)) {
+            LOG_ERR("Failed to initialize network stack");
+        }
+    } else {
+        LOG_ERR("Failed to get network device");
+    }
+
+    // Tasks
+    k_thread_create(&telemetry_processing_thread, &telemetry_processing_stack[0], STACK_SIZE,
+                    telemetry_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
+    k_thread_start(&telemetry_processing_thread);
+
+
+
+    return 0;
+}
+
 
 
 int main() {
