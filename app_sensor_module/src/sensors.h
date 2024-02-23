@@ -3,7 +3,7 @@
 
 #include <launch_core/dev/sensor_data_types.h>
 
-typedef l_temperature_data_t ten_hz_telemtry_t;
+typedef l_temperature_data_t ten_hz_telemetry_t;
 
 typedef struct {
     l_accelerometer_data_t adxl375;
@@ -28,6 +28,7 @@ typedef struct __attribute__((packed)) {
 
     l_magnetometer_data_packed_t lis3mdl;
 } hundred_hz_telemetry_packed_t;
+
 
 #endif // !SENSORS_H_
 

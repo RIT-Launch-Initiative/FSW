@@ -57,12 +57,35 @@ static int init(void) {
 }
 
 static void telemetry_queue_processing_task(void *, void *, void *) {
-    sensor_module_telemetry_t sensor_telemetry = {0};
-    sensor_module_telemetry_packed_t packed_telemetry = {0};
+    ten_hz_telemetry_t ten_hz_telem;
+    hundred_hz_telemetry_t hundred_hz_telem;
+    hundred_hz_telemetry_packed_t hundred_hz_telem_packed;
 
     while (true) {
-        if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &sensor_telemetry, K_USEC(10))) {
-            l_send_udp_broadcast((uint8_t * ) &packed_telemetry, sizeof(sensor_module_telemetry_packed_t),
+        if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &hundred_hz_telem, K_USEC(10))) {
+            hundred_hz_telem_packed.adxl375.accel_x = hundred_hz_telem.adxl375.accel_x;
+            hundred_hz_telem_packed.adxl375.accel_y = hundred_hz_telem.adxl375.accel_y;
+            hundred_hz_telem_packed.adxl375.accel_z = hundred_hz_telem.adxl375.accel_z;
+
+            hundred_hz_telem_packed.lsm6dsl_accel.accel_x = hundred_hz_telem.lsm6dsl_accel.accel_x;
+            hundred_hz_telem_packed.lsm6dsl_accel.accel_y = hundred_hz_telem.lsm6dsl_accel.accel_y;
+            hundred_hz_telem_packed.lsm6dsl_accel.accel_z = hundred_hz_telem.lsm6dsl_accel.accel_z;
+
+            hundred_hz_telem_packed.ms5611.pressure = hundred_hz_telem.ms5611.pressure;
+            hundred_hz_telem_packed.ms5611.temperature = hundred_hz_telem.ms5611.temperature;
+
+            hundred_hz_telem_packed.bmp388.pressure = hundred_hz_telem.bmp388.pressure;
+            hundred_hz_telem_packed.bmp388.temperature = hundred_hz_telem.bmp388.temperature;
+
+            hundred_hz_telem_packed.lsm6dsl_gyro.gyro_x = hundred_hz_telem.lsm6dsl_gyro.gyro_x;
+            hundred_hz_telem_packed.lsm6dsl_gyro.gyro_y = hundred_hz_telem.lsm6dsl_gyro.gyro_y;
+            hundred_hz_telem_packed.lsm6dsl_gyro.gyro_z = hundred_hz_telem.lsm6dsl_gyro.gyro_z;
+
+            hundred_hz_telem_packed.lis3mdl.mag_x = hundred_hz_telem.lis3mdl.mag_x;
+            hundred_hz_telem_packed.lis3mdl.mag_y = hundred_hz_telem.lis3mdl.mag_y;
+            hundred_hz_telem_packed.lis3mdl.mag_z = hundred_hz_telem.lis3mdl.mag_z;
+
+            l_send_udp_broadcast((uint8_t * ) &hundred_hz_telem_packed, sizeof(hundred_hz_telemetry_packed_t),
                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
         } else {
             LOG_WRN("Failed to get data from 100 Hz queue");
