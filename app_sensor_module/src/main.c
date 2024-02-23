@@ -22,7 +22,6 @@ static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * 
 static K_THREAD_STACK_DEFINE(telemetry_processing_stack, STACK_SIZE);
 static struct k_thread telemetry_processing_thread;
 
-
 // Devices
 //#define LED0_NODE DT_ALIAS(led0)
 //static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
@@ -60,19 +59,19 @@ static void telemetry_processing_task(void *, void *, void *) {
             hundred_hz_telem_packed.lis3mdl.mag_y = hundred_hz_telem.lis3mdl.mag_y;
             hundred_hz_telem_packed.lis3mdl.mag_z = hundred_hz_telem.lis3mdl.mag_z;
 
-            l_send_udp_broadcast((uint8_t * ) &hundred_hz_telem_packed, sizeof(hundred_hz_telemetry_packed_t),
-                             SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
+            l_send_udp_broadcast((uint8_t * ) & hundred_hz_telem_packed, sizeof(hundred_hz_telemetry_packed_t),
+                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
         } else {
             LOG_WRN("Failed to get data from 100 Hz queue");
         }
 
-        if (0 == k_msgq_get(&ten_hz_telemetry_queue, &ten_hz_telem, K_NO_WAIT)) { 
-            l_send_udp_broadcast((uint8_t *) &ten_hz_telem, sizeof(ten_hz_telemetry_t),
-                             SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
+        if (0 == k_msgq_get(&ten_hz_telemetry_queue, &ten_hz_telem, K_NO_WAIT)) {
+            l_send_udp_broadcast((uint8_t * ) & ten_hz_telem, sizeof(ten_hz_telemetry_t),
+                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
         } else {
             LOG_WRN("Failed to get data from 10 Hz queue");
         }
-        
+
         // TODO: Extension board support. Need to figure out a robust way of doing this
 
         // TODO: write to flash when data logging library is ready
@@ -83,8 +82,10 @@ static int init(void) {
     char ip[MAX_IP_ADDRESS_STR_LEN];
     int ret = 0;
 
-    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(ten_hz_telemetry_t), CONFIG_TEN_HZ_QUEUE_SIZE);
-    k_msgq_init(&hundred_hz_telemetry_queue, hundred_hz_telemetry_queue_buffer, sizeof(hundred_hz_telemetry_t), CONFIG_HUNDRED_HZ_QUEUE_SIZE);
+    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(ten_hz_telemetry_t),
+                CONFIG_TEN_HZ_QUEUE_SIZE);
+    k_msgq_init(&hundred_hz_telemetry_queue, hundred_hz_telemetry_queue_buffer, sizeof(hundred_hz_telemetry_t),
+                CONFIG_HUNDRED_HZ_QUEUE_SIZE);
 
     if (0 > l_create_ip_str_default_net_id(ip, SENSOR_MODULE_ID, 1)) {
         LOG_ERR("Failed to create IP address string: %d", ret);
@@ -104,11 +105,8 @@ static int init(void) {
                     telemetry_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&telemetry_processing_thread);
 
-
-
     return 0;
 }
-
 
 
 int main() {
