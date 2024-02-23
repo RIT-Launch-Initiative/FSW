@@ -28,11 +28,10 @@ static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * 
 
 static int init(void) {
     char ip[MAX_IP_ADDRESS_STR_LEN];
-
-    k_queue_init(&ten_hz_telemetry_queue);
-    k_queue_init(&hundred_hz_telemetry_queue);
-
     int ret = 0;
+
+    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(ten_hz_telemetry_t), CONFIG_TEN_HZ_QUEUE_SIZE);
+    k_msgq_init(&hundred_hz_telemetry_queue, hundred_hz_telemetry_queue_buffer, sizeof(hundred_hz_telemetry_t), CONFIG_HUNDRED_HZ_QUEUE_SIZE);
 
     if (0 > l_create_ip_str_default_net_id(ip, SENSOR_MODULE_ID, 1)) {
         LOG_ERR("Failed to create IP address string: %d", ret);
