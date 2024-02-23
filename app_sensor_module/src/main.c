@@ -7,7 +7,12 @@
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
-K_QUEUE_DEFINE(net_tx_queue);
+
+static struct k_msgq ten_hz_telemetry_queue;
+static uint8_t ten_hz_telemetry_queue_buffer[CONFIG_TEN_HZ_QUEUE_SIZE * sizeof(float)];
+
+static struct k_msgq hundred_hz_telemetry_queue;
+static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * sizeof(hundred_hz_telemetry_t)];
 
 #define STACK_SIZE (512)
 //#define LED0_NODE DT_ALIAS(led0)
@@ -46,6 +51,24 @@ static int init(void) {
 
     return 0;
 }
+
+static void telemetry_queue_processing_task(void *, void *, void *) {
+    power_module_telemetry_t sensor_telemetry = {0};
+    power_module_telemetry_packed_t packed_telemetry = {0};
+
+    while (true) {
+        if (k_msgq_get(&ina_processing_queue, &sensor_telemetry, K_FOREVER)) {
+            LOG_ERR("Failed to get data from INA219 processing queue");
+            continue;
+        }
+
+
+        // TODO: write to flash when data logging library is ready
+        l_send_udp_broadcast((uint8_t * ) & packed_telemetry, sizeof(power_module_telemetry_packed_t),
+                             POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+    }
+}
+
 
 int main() {
     if (!init()) {
