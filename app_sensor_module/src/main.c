@@ -10,10 +10,10 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 
 static struct k_msgq ten_hz_telemetry_queue;
-static uint8_t ten_hz_telemetry_queue_buffer[CONFIG_TEN_HZ_QUEUE_SIZE * sizeof(float)];
+static uint8_t ten_hz_telemetry_queue_buffer[CONFIG_TEN_HZ_QUEUE_SIZE * sizeof(ten_hz_telemetry_t)];
 
 static struct k_msgq hundred_hz_telemetry_queue;
-static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * sizeof(sensor_module_telemetry_t)];
+static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * sizeof(hundred_hz_telemetry_t)];
 
 static struct k_msgq extension_board_telemetry_queue;
 static uint8_t extension_board_telemetry_queue_buffer[CONFIG_EXTENSION_BOARD_QUEUE_SIZE * 16]; // TODO: Come up with a good size
@@ -62,7 +62,7 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
     hundred_hz_telemetry_packed_t hundred_hz_telem_packed;
 
     while (true) {
-        if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &hundred_hz_telem, K_USEC(10))) {
+        if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &hundred_hz_telem, K_NO_WAIT) {
             hundred_hz_telem_packed.adxl375.accel_x = hundred_hz_telem.adxl375.accel_x;
             hundred_hz_telem_packed.adxl375.accel_y = hundred_hz_telem.adxl375.accel_y;
             hundred_hz_telem_packed.adxl375.accel_z = hundred_hz_telem.adxl375.accel_z;
@@ -91,14 +91,14 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
             LOG_WRN("Failed to get data from 100 Hz queue");
         }
 
-        if (0 == k_msgq_get(&ten_hz_telemetry_queue, &sensor_telemetry, K_USEC(10))) { // Don't want to hold up processing above 
+        if (0 == k_msgq_get(&ten_hz_telemetry_queue, &sensor_telemetry, K_NO_WAIT) { 
             l_send_udp_broadcast((uint8_t *) &packed_telemetry, sizeof(sensor_module_telemetry_packed_t),
                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
         } else {
             LOG_WRN("Failed to get data from 10 Hz queue");
         }
         
-        if (0 == k_msgq_get(&extension_board_telemetry_queue, &sensor_telemetry, K_USEC(10))) { // Don't want to hold up processing above 
+        if (0 == k_msgq_get(&extension_board_telemetry_queue, &sensor_telemetry, K_NO_WAIT) { 
             l_send_udp_broadcast((uint8_t *) &packed_telemetry, sizeof(64),
                              SENSOR_MODULE_BASE_PORT);
         } else {
