@@ -61,14 +61,14 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
             l_send_udp_broadcast((uint8_t * ) &packed_telemetry, sizeof(sensor_module_telemetry_packed_t),
                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
         } else {
-            LOG_ERR("Failed to get data from 100 Hz queue");
+            LOG_WRN("Failed to get data from 100 Hz queue");
         }
 
         if (0 == k_msgq_get(&ten_hz_telemetry_queue, &sensor_telemetry, K_USEC(10))) { // Don't want to hold up processing above 
             l_send_udp_broadcast((uint8_t *) &packed_telemetry, sizeof(sensor_module_telemetry_packed_t),
                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
         } else {
-            LOG_ERR("Failed to get data from 10 Hz queue");
+            LOG_WRN("Failed to get data from 10 Hz queue");
         }
         // TODO: write to flash when data logging library is ready
     }
