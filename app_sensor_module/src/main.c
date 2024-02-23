@@ -63,6 +63,7 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
 
     while (true) {
         if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &hundred_hz_telem, K_NO_WAIT)) {
+            // TODO: Maybe make this a core lib function to handle copying data safely and avoid this mess
             hundred_hz_telem_packed.adxl375.accel_x = hundred_hz_telem.adxl375.accel_x;
             hundred_hz_telem_packed.adxl375.accel_y = hundred_hz_telem.adxl375.accel_y;
             hundred_hz_telem_packed.adxl375.accel_z = hundred_hz_telem.adxl375.accel_z;
