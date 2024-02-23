@@ -12,7 +12,7 @@ static struct k_msgq ten_hz_telemetry_queue;
 static uint8_t ten_hz_telemetry_queue_buffer[CONFIG_TEN_HZ_QUEUE_SIZE * sizeof(float)];
 
 static struct k_msgq hundred_hz_telemetry_queue;
-static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * sizeof(hundred_hz_telemetry_t)];
+static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * sizeof(power_module_telemetry_t)];
 
 #define STACK_SIZE (512)
 //#define LED0_NODE DT_ALIAS(led0)
@@ -57,15 +57,20 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
     power_module_telemetry_packed_t packed_telemetry = {0};
 
     while (true) {
-        if (k_msgq_get(&ina_processing_queue, &sensor_telemetry, K_FOREVER)) {
-            LOG_ERR("Failed to get data from INA219 processing queue");
-            continue;
+        if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &sensor_telemetry, K_USEC(10))) {
+            l_send_udp_broadcast((uint8_t * ) &packed_telemetry, sizeof(power_module_telemetry_packed_t),
+                             SENSOR_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+        } else {
+            LOG_ERR("Failed to get data from 100 Hz queue");
         }
 
-
+        if (0 == k_msgq_get(&ten_hz_telemetry_queue, &sensor_telemetry, K_USEC(10))) { // Don't want to hold up processing above 
+            l_send_udp_broadcast((uint8_t * ) &packed_telemetry, sizeof(power_module_telemetry_packed_t),
+                             SENSOR_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+        } else {
+            LOG_ERR("Failed to get data from 10 Hz queue");
+        }
         // TODO: write to flash when data logging library is ready
-        l_send_udp_broadcast((uint8_t * ) & packed_telemetry, sizeof(power_module_telemetry_packed_t),
-                             POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
     }
 }
 
