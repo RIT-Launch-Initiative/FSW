@@ -14,6 +14,9 @@ static uint8_t ten_hz_telemetry_queue_buffer[CONFIG_TEN_HZ_QUEUE_SIZE * sizeof(f
 static struct k_msgq hundred_hz_telemetry_queue;
 static uint8_t hundred_hz_telemetry_queue_buffer[CONFIG_HUNDRED_HZ_QUEUE_SIZE * sizeof(sensor_module_telemetry_t)];
 
+static struct k_msgq extension_board_telemetry_queue;
+static uint8_t extension_board_telemetry_queue_buffer[CONFIG_EXTENSION_BOARD_QUEUE_SIZE * 16]; // TODO: Come up with a good size
+
 #define STACK_SIZE (512)
 //#define LED0_NODE DT_ALIAS(led0)
 //static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
@@ -66,6 +69,13 @@ static void telemetry_queue_processing_task(void *, void *, void *) {
         if (0 == k_msgq_get(&ten_hz_telemetry_queue, &sensor_telemetry, K_USEC(10))) { // Don't want to hold up processing above 
             l_send_udp_broadcast((uint8_t *) &packed_telemetry, sizeof(sensor_module_telemetry_packed_t),
                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
+        } else {
+            LOG_WRN("Failed to get data from 10 Hz queue");
+        }
+        
+        if (0 == k_msgq_get(&extension_board_telemetry_queue, &sensor_telemetry, K_USEC(10))) { // Don't want to hold up processing above 
+            l_send_udp_broadcast((uint8_t *) &packed_telemetry, sizeof(64),
+                             SENSOR_MODULE_BASE_PORT);
         } else {
             LOG_WRN("Failed to get data from 10 Hz queue");
         }
