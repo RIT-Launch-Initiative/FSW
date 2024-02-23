@@ -3,44 +3,31 @@
 
 #include <launch_core/dev/sensor_data_types.h>
 
+typedef l_temperature_data_t ten_hz_telemtry_t;
+
 typedef struct {
-    accelerometer_data_t adxl375;
-    accelerometer_data_t lsm6dsl_accel;
+    l_accelerometer_data_t adxl375;
+    l_accelerometer_data_t lsm6dsl_accel;
     
-    barometer_data_t ms5611;
-    barometer_data_t bmp388;
+    l_barometer_data_t ms5611;
+    l_barometer_data_t bmp388;
 
-    gyroscope_data_t lsm6dsl_gyro;
+    l_gyroscope_data_t lsm6dsl_gyro;
 
-    magnetometer_data_t lis3mdl;
-
-    temperature_data_t LL
-
+    l_magnetometer_data_t lis3mdl;
 } hundred_hz_telemetry_t;
 
-typedef struct {
-    float pressure_ms5;
-    float temperature_ms5;
+typedef struct __attribute__((packed)) {
+    l_accelerometer_data_packed_t adxl375;
+    l_accelerometer_data_packed_t lsm6dsl_accel;
+    
+    l_barometer_data_packed_t ms5611;
+    l_barometer_data_packed_t bmp388;
 
-    float pressure_bmp3;
-    float temperature_bmp3;
+    l_gyroscope_data_packed_t lsm6dsl_gyro;
 
-    float accel_x;
-    float accel_y;
-    float accel_z;
-   
-    float magn_x;
-    float magn_y;
-    float magn_z;
-
-    float gyro_x;
-    float gyro_y;
-    float gyro_z;
-
-    float temperature_tmp;
-} sensor_module_telemetry_packed_t;
-
-
+    l_magnetometer_data_packed_t lis3mdl;
+} hundred_hz_telemetry_packed_t;
 
 #endif // !SENSORS_H_
 
