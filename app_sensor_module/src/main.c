@@ -1,3 +1,4 @@
+#include "sensors.h"
 #include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/net/net_common.h>
@@ -31,7 +32,9 @@ static uint8_t extension_board_telemetry_queue_buffer[CONFIG_EXTENSION_BOARD_QUE
 static int init(void) {
     char ip[MAX_IP_ADDRESS_STR_LEN];
 
-    k_queue_init(&net_tx_queue);
+    k_queue_init(&ten_hz_telemetry_queue);
+    k_queue_init(&hundred_hz_telemetry_queue);
+    k_queue_init(&extension_board_telemetry_queue);
     int ret = 0;
 
     if (0 > l_create_ip_str_default_net_id(ip, SENSOR_MODULE_ID, 1)) {
@@ -39,7 +42,6 @@ static int init(void) {
         return -1;
     }
 
-    k_queue_init(&net_tx_queue);
 
     if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
         if (!l_init_udp_net_stack(ip)) {
