@@ -1,5 +1,6 @@
 #include <zephyr/kernel.h>
 
+#include <zephyr/drivers/gnss.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
@@ -44,17 +45,18 @@ static int init() {
     return 0;
 }
 
+
 int main() {
     LOG_DBG("Starting radio module!\n");
     if (init()) {
         return -1;
     }
 
-    while (1) {
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-        k_msleep(100);
-    }
+//    while (1) {
+//        gpio_pin_toggle_dt(&led0);
+//        gpio_pin_toggle_dt(&led1);
+//        k_msleep(100);
+//    }
 
     return 0;
 }
