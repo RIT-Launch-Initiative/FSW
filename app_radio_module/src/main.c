@@ -23,6 +23,23 @@ static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
+static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
+    if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
+        LOG_INF("%s has fix!\r\n", dev->name);
+    } else {
+        LOG_INF("%s has no fix!\r\n", dev->name);
+    }
+}
+
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
+
+#if CONFIG_GNSS_SATELLITES
+static void gnss_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size) {
+    LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
+}
+#endif
+GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_satellites_cb);
+
 static int init() {
     char ip[MAX_IP_ADDRESS_STR_LEN];
     int ret = -1;
@@ -45,23 +62,7 @@ static int init() {
     return 0;
 }
 
-static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
-    if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
-        LOG_INF("%s has fix!\r\n", dev->name);
-    } else {
-        LOG_INF("%s has no fix!\r\n", dev->name);
-    }
-}
 
-GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
-
-#if CONFIG_GNSS_SATELLITES
-static void gnss_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size) {
-    LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
-}
-#endif
-
-GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_satellites_cb);
 
 int main() {
     LOG_DBG("Starting radio module!\n");
