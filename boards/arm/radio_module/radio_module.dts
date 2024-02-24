@@ -97,7 +97,7 @@
 &usart2 {
     pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
     pinctrl-names = "default";
-    current-speed = <115200>;
+    current-speed = <9600>;
     status = "okay";
 
     maxm10s: ublox-maxm10s {
