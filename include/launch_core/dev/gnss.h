@@ -5,6 +5,6 @@
 
 void gnss_debug_fix_cb(const struct device *dev, const struct gnss_data *data);
 
-static void gnss_debug_satellites_count_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size);
+void gnss_debug_satellites_count_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size);
 
 #endif // L_GNSS_H
