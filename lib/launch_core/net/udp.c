@@ -52,6 +52,10 @@ int l_init_udp_net_stack(const char *ip_addr) {
     ret = net_addr_pton(AF_INET, "255.255.255.0", &subnet);
     net_if_ipv4_set_netmask(net_interface, &subnet);
 
+    struct in_addr gw;
+    ret = net_addr_pton(AF_INET, "192.168.1.1", &gw);
+    net_if_ipv4_set_gw(net_interface, &gw);
+
 
     LOG_INF("IPv4 address configured: %s\n", ip_addr);
 

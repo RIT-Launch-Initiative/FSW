@@ -38,7 +38,7 @@ static int init() {
     }
 
     if (!l_check_device(wiznet)) {
-        l_init_udp_net_stack("192.168.1.1");
+        l_init_udp_net_stack("192.168.1.3");
     }
 
     return 0;
@@ -50,7 +50,7 @@ int main() {
         return -1;
     }
 
-    int socket = l_init_udp_socket("192.168.1.1", 10000);
+    int socket = l_init_udp_socket("192.168.1.3", 10000);
 
     uint8_t rx_buff[100];
 
