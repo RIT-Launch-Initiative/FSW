@@ -2,33 +2,33 @@
 #ifndef SENSORS_H_
 #define SENSORS_H_
 
+#include <launch_core/dev/sensor_data_types.h>
 
-typedef struct __attribute__((__packed__)) {
-    float pressure_ms5;
-    float temperature_ms5;
-
-    float pressure_bmp3;
-    float temperature_bmp3;
-
-    float accel_x;
-    float accel_y;
-    float accel_z;
-   
-    float magn_x;
-    float magn_y;
-    float magn_z;
-
-    float gyro_x;
-    float gyro_y;
-    float gyro_z;
-
-    //float temperature_tmp;
-} SENSOR_MODULE_DATA_T;
+typedef l_temperature_data_t ten_hz_telemetry_t;
 
 typedef struct {
-    uint32_t timestamp;      // Timestamp to record the time of the measurement
-    float temperature_data; // Temperature raw data from TMP116
-} tmp116_telemetry_t;
+    l_accelerometer_data_t adxl375;
+    l_accelerometer_data_t lsm6dsl_accel;
+    
+    l_barometer_data_t ms5611;
+    l_barometer_data_t bmp388;
+
+    l_gyroscope_data_t lsm6dsl_gyro;
+
+    l_magnetometer_data_t lis3mdl;
+} hundred_hz_telemetry_t;
+
+typedef struct __attribute__((packed)) {
+    l_accelerometer_data_packed_t adxl375;
+    l_accelerometer_data_packed_t lsm6dsl_accel;
+    
+    l_barometer_data_packed_t ms5611;
+    l_barometer_data_packed_t bmp388;
+
+    l_gyroscope_data_packed_t lsm6dsl_gyro;
+
+    l_magnetometer_data_packed_t lis3mdl;
+} hundred_hz_telemetry_packed_t;
 
 #endif // !SENSORS_H_
 
