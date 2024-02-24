@@ -50,9 +50,9 @@ int init_maxm10s(gnss_dev_t *dev) {
         return ret;
     }
 
-    ret = uPortI2cInit();
+    ret = uPortUartInit();
     if (ret != 0) {
-        LOG_ERR("uPortI2cInit() returned %d\n", ret);
+        LOG_ERR("uPortUartInit() returned %d\n", ret);
         return ret;
     }
 
@@ -69,7 +69,6 @@ int init_maxm10s(gnss_dev_t *dev) {
     }
 
     return 0;
-
 }
 //    dev->transportHandle = (uGnssTransportHandle_t) NULL;
 //    // Print gnss messages to the i2c line
@@ -91,7 +90,7 @@ int stop_maxm10s(gnss_dev_t *dev) {
     // deallocate the GNSS instance
     uGnssDeinit();
     uPortDeinit();
-    dev->transportHandle.i2c = -1;
+    dev->transportHandle.uart = -1;
     dev->gnssHandle = NULL;
     return 0;
 }
