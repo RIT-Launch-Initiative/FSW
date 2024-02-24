@@ -60,11 +60,11 @@ int main() {
         return -1;
     }
 
-//    while (1) {
-//        gpio_pin_toggle_dt(&led0);
-//        gpio_pin_toggle_dt(&led1);
-//        k_msleep(100);
-//    }
+    while (1) {
+        gpio_pin_toggle_dt(&led0);
+        gpio_pin_toggle_dt(&led1);
+        k_msleep(100);
+    }
 
     return 0;
 }
