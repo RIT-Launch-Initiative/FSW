@@ -5,6 +5,7 @@
 
 #include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
+#include <launch_core/dev/gnss.h>
 #include <launch_core/net/lora.h>
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
@@ -13,7 +14,7 @@
 #define LED0_NODE DT_ALIAS(led0)
 #define LED1_NODE DT_ALIAS(led1)
 
-LOG_MODULE_REGISTER(main);
+LOG_MODULE_REGISTER(main, CONFIG_APP_RADIO_MODULE_LOG_LEVEL);
 
 // Queues
 K_QUEUE_DEFINE(lora_tx_queue);

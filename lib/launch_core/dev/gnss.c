@@ -1,4 +1,7 @@
-#include "gnss.h"
+#include <launch_core/dev/gnss.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(launch_gnss);
 
 void gnss_debug_fix_cb(const struct device *dev, const struct gnss_data *data) {
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
@@ -8,6 +11,6 @@ void gnss_debug_fix_cb(const struct device *dev, const struct gnss_data *data) {
     }
 }
 
-static void gnss_debug_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size) {
+static void gnss_debug_satellites_count_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size) {
     LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
 }
