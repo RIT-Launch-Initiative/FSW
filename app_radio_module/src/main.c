@@ -104,7 +104,16 @@ int main() {
     while (1) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
-        k_msleep(100);
+
+        uint32_t lat = 0;
+        uint32_t lon = 0;
+        int ret = uGnssPosGet(gnss_dev->gnssHandle, &lat, &lon, NULL, NULL, NULL, NULL, NULL, NULL);
+        if (ret != 0) {
+            LOG_ERR("uGnssPosGet() returned %d", ret);
+        }
+        LOG_INF("Lat: %d, Lon: %d", lat, lon);
+
+        k_msleep(5000);
     }
 
     return 0;

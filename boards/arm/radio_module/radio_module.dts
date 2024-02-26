@@ -44,7 +44,7 @@
     cfg-device-gnss {
         status = "okay";
         compatible = "u-blox,ubxlib-device-gnss";
-        transport-type = "usart2";
+        transport-type = "ubxlib-uart2";
         module-type = "U_GNSS_MODULE_TYPE_M10";
     };
 
@@ -78,7 +78,7 @@
         ubx-rst = &ublox_reset;
 
         dbguart = &uart4;
-        // ubxlib-uart2 = &usart2;
+        ubxlib-uart2 = &usart2;
 
 
         lora0 = &lora;
