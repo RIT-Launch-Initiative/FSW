@@ -49,12 +49,10 @@ int l_init_udp_net_stack(const char *ip_addr) {
     }
 
     struct in_addr subnet;
-    ret = net_addr_pton(AF_INET, "255.255.255.0", &subnet);
+    ret = net_addr_pton(AF_INET, "255.0.0.0", &subnet);
     net_if_ipv4_set_netmask(net_interface, &subnet);
 
-    struct in_addr gw;
-    ret = net_addr_pton(AF_INET, "192.168.1.1", &gw);
-    net_if_ipv4_set_gw(net_interface, &gw);
+    net_if_set_promisc(net_interface);
 
 
     LOG_INF("IPv4 address configured: %s\n", ip_addr);
@@ -140,4 +138,102 @@ int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler) {
 
 int l_remove_port_handler(uint16_t port) {
     return sys_hashmap_remove(&UDP_PORT_HANDLERS, port, NULL);
+}
+
+
+void l_receive_multicast_packets(int port, uint8_t *buffer, size_t buffer_size) {
+    int sockfd;
+    struct sockaddr_in my_addr;
+    struct ip_mreqn mreq;
+
+
+
+    // Create UDP socket
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        LOG_ERR("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Enable SO_REUSEADDR to allow multiple instances of this application to receive copies of the multicast datagrams
+    int reuse = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)) < 0) {
+        LOG_ERR("setting SO_REUSEADDR error");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    // Set up the local address and port to bind to
+    memset(&my_addr, 0, sizeof(my_addr));
+    my_addr.sin_family = AF_INET;
+    my_addr.sin_addr.s_addr = htonl(INADDR_ANY);  // Receive multicast on any interface
+    my_addr.sin_port = htons(port);
+
+    // Bind socket to the local address
+    if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(my_addr)) < 0) {
+        LOG_ERR("bind failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    // Join multicast group
+    mreq.imr_multiaddr.s4_addr[0] = 224;  // Multicast group address
+    mreq.imr_multiaddr.s4_addr[1] = 0;  // Multicast group address
+    mreq.imr_multiaddr.s4_addr[2] = 0;  // Multicast group address
+    mreq.imr_multiaddr.s4_addr[3] = 1;  // Multicast group address
+
+    mreq.imr_address.s_addr = htonl(INADDR_ANY);       // Use default interface
+    if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) < 0) {
+        LOG_ERR("setsockopt");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
+    LOG_INF("Waiting for multicast packets...\n");
+
+    ssize_t num_bytes = recvfrom(sockfd, buffer, buffer_size, 0, NULL, NULL);
+    if (num_bytes < 0) {
+        LOG_ERR("recvfrom");
+        close(sockfd);
+    }
+    buffer[num_bytes] = '\0'; // Null-terminate the received data
+    LOG_INF("Received multicast packet: %s\n", buffer);
+
+    close(sockfd);
+}
+
+int l_udp_receive(int port, uint8_t *buffer, size_t buffer_size) {
+    struct sockaddr_in addr;
+    int sock, len, rc;
+
+    sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock < 0) {
+        LOG_ERR("Failed to create socket\n");
+        return -1;
+    }
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    rc = bind(sock, (struct sockaddr *)&addr, sizeof(addr));
+    if (rc < 0) {
+        LOG_ERR("Failed to bind socket\n");
+        close(sock);
+        return -1;
+    }
+
+    LOG_INF("Waiting for data...\n");
+    len = recv(sock, buffer, buffer_size, 0);
+    if (len < 0) {
+        LOG_ERR("Error receiving data\n");
+        close(sock);
+        return -1;
+    }
+
+    buffer[len] = '\0';
+
+    close(sock);
+
+    return len;
 }

@@ -71,4 +71,9 @@ int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler);
  */
 int l_remove_port_handler(uint16_t port);
 
+void l_receive_multicast_packets(int port, uint8_t *buffer, size_t buffer_size);
+
+int l_udp_receive(int port, uint8_t *buffer, size_t buffer_size);
+
+
 #endif // L_UDP_UTILS_H_

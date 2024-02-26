@@ -38,7 +38,7 @@ static int init() {
     }
 
     if (!l_check_device(wiznet)) {
-        l_init_udp_net_stack("192.168.1.3");
+        l_init_udp_net_stack("10.0.0.3");
     }
 
     return 0;
@@ -50,15 +50,17 @@ int main() {
         return -1;
     }
 
-    int socket = l_init_udp_socket("192.168.1.3", 10000);
+//    int socket = l_init_udp_socket("10.0.0.3", 10000);
 
     uint8_t rx_buff[100];
 
     while (1) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
-        l_send_udp_broadcast(socket, (const uint8_t*) "Launch!", 7, 10000);
-        l_receive_udp_poll(socket, rx_buff, 100, 15000);
+//        l_send_udp_broadcast(socket, (const uint8_t*) "Launch!", 7, 10000);
+        l_udp_receive(10000, rx_buff, 100);
+//        l_receive_udp_poll(socket, rx_buff, 100, 15000);
+//        l_receive_multicast_packets(10000, rx_buff, 100);
         k_msleep(100);
     }
 
