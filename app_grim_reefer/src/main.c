@@ -4,11 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "orchestrator.h"
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
-// #include <zephyr/fs/fs.h>
-// #include <zephyr/fs/littlefs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
@@ -76,11 +75,11 @@ int main(void) {
     return -1;
   }
 
-  // Won't run if initializing the network stack failed
+  orchestrate();
+
   while (true) {
-    // convert_and_send();
-    printk("main looping\n");
-    k_sleep(K_MSEC(5000));
+    printk("chilling\n");
+    k_sleep(K_MSEC(15000));
   }
   return 0;
 }

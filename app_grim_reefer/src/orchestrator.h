@@ -9,3 +9,5 @@ Main detection / timer
 Ground detection / timer
 */
 uint32_t useconds_since_launch();
+
+int orchestrate();

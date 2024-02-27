@@ -1,0 +1,38 @@
+#define LOGIC_VOLTAGE_LOW_MILLIVOLTS 3500
+#define LOGIC_VOLTAGE_LOW_MILLIVOLTS 3500
+
+#define BOOST_TO_NOSEOVER_TIMER_SECONDS 30
+#define NOSEOVE_TO_MAIN_TIMER_SECONDS 30
+#define MAIN_TO_GROUND_TIMER_SECONDS 30
+
+// Data collection thread info
+
+// Phase -1 - After startup, before launch detecting
+#define CANCEL_FLIGHT_TIMEOUT_SECONDS 15
+
+// Phase 0 - Launch Detection
+
+// Phase 1 - Boost
+
+// 1 ms
+#define BOOST_PHASE_IMU_ALT_SAMPLE_PERIOD_MS 1
+#define BOOST_PHASE_LOAD_CELL_SAMPLE_PERIOD_US 1000
+#define BOOST_PHASE_TEMP_VOLTAGE_SAMPLE_PERIOD_MS 1000
+
+// Phase 2 - Reef Events
+#define REEF_PHASE_IMU_ALT_SAMPLE_PERIOD_MS 1
+#define REEF_PHASE_LOAD_CELL_SAMPLE_PERIOD_US 100
+#define REEF_PHASE_TEMP_VOLTAGE_SAMPLE_PERIOD_MS 1000
+
+// Phase 3 - Under Main
+#define MAIN_PHASE_IMU_ALT_SAMPLE_PERIOD_MS 1
+#define MAIN_PHASE_LOAD_CELL_SAMPLE_PERIOD_US 1000
+#define MAIN_PHASE_TEMP_VOLTAGE_SAMPLE_PERIOD_MS 1000
+
+// Data locations
+
+#define PREDETECT_FILEPATH "predetect.bin"
+
+#define DATA_SLOW_FILEPATH "boost_slow.bin"
+#define DATA_FAST_FILEPATH "boost_fast.bin"
+#define DATA_ADC_FILEPATH "boost_adc.bin"

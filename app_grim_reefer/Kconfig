@@ -11,6 +11,12 @@ source "Kconfig.zephyr"
 endmenu
 
 
+menuconfig ORCHESTRATOR_SHELL
+	bool "Enable Orchestration Commands"
+	default y
+
+
+
 module = APP_GRIM_REEFER
 module-str = APP_GRIM_REEFER
 source "subsys/logging/Kconfig.template.log_config"
