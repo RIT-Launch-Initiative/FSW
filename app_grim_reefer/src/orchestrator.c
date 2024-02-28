@@ -1,4 +1,6 @@
 #include "orchestrator.h"
+#include "config.h"
+#include "sensors.h"
 #include <stdint.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/sys/time_units.h>
@@ -44,35 +46,61 @@ volatile static bool override_boost_detect = false;
 volatile static bool flight_cancelled = false;
 volatile static enum Phase flight_phase = Phase_LaunchDetecting;
 
+// pre-detect buffer
+// struct ring_buf something somehting
+
 int orchestrate() {
+  // too read into
+  struct fast_data dat;
   // On Pad
   flight_phase = Phase_LaunchDetecting;
+  LOG_INF("Detecting boost");
   while (!override_boost_detect) {
     if (flight_cancelled) {
       flight_phase = Phase_FlightCancelled;
       return 0;
     }
 
-    LOG_INF("Detecting boost");
-    k_msleep(1000);
+    int ret = read_fast(&dat);
+    // fill in timestamp (not since launch, just since boot + wrapping)
+
+    // ring_buf.push(dat)
+    // if is_launched(){break;}
+
+    k_msleep(LAUNCH_DETECT_PHASE_IMU_ALT_SAMPLE_PERIOD_MS);
   }
 
   // Boost Detected
   flight_phase = Phase_Boost;
   k_event_set(&launch_detected, EVENT_HAPPENED);
+  LOG_INF("Detecting Noseover");
   while (1) {
-    LOG_INF("Detecting Noseover");
-    k_msleep(1000);
+
+    int ret = read_fast(&dat);
+    // fill in timestamp
+
+    if (k_msgq_put(&fast_data_queue, &dat, K_NO_WAIT) != 0) {
+      LOG_WRN("fast data queue full");
+    }
+
+    k_msleep(BOOST_PHASE_IMU_ALT_SAMPLE_PERIOD_MS);
     break;
   }
 
   // Nose Over Detected
   flight_phase = Phase_ReefEvents;
   k_event_set(&noseover_detected, EVENT_HAPPENED);
+  LOG_INF("Detecting Under Main");
 
   while (1) {
-    LOG_INF("Detecting Under Main");
-    k_msleep(1000);
+    int ret = read_fast(&dat);
+    // fill in timestamp
+
+    if (k_msgq_put(&fast_data_queue, &dat, K_NO_WAIT) != 0) {
+      LOG_WRN("fast data queue full");
+    }
+
+    k_msleep(REEF_PHASE_IMU_ALT_SAMPLE_PERIOD_MS);
     break;
   }
 
@@ -80,9 +108,13 @@ int orchestrate() {
   flight_phase = Phase_UnderMain;
   k_event_set(&main_detected, EVENT_HAPPENED);
 
+  LOG_INF("Detecting Ground");
   while (1) {
-    LOG_INF("Detecting Ground");
-    k_msleep(1000);
+    if (k_msgq_put(&fast_data_queue, &dat, K_NO_WAIT) != 0) {
+      LOG_WRN("fast data queue full");
+    }
+
+    k_msleep(MAIN_PHASE_IMU_ALT_SAMPLE_PERIOD_MS);
     break;
   }
 
@@ -90,7 +122,6 @@ int orchestrate() {
   flight_phase = Phase_Ground;
   k_event_set(&flight_over, EVENT_HAPPENED);
 
-  // End the threads
   return 0;
 }
 

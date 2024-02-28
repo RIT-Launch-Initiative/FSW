@@ -11,6 +11,7 @@
 #define CANCEL_FLIGHT_TIMEOUT_SECONDS 15
 
 // Phase 0 - Launch Detection
+#define LAUNCH_DETECT_PHASE_IMU_ALT_SAMPLE_PERIOD_MS 1
 
 // Phase 1 - Boost
 
@@ -32,6 +33,10 @@
 // Data locations
 
 #define PREDETECT_FILEPATH "/lfs/predetect.bin"
-#define DATA_SLOW_FILEPATH "/lfs/boost_slow.bin"
-#define DATA_FAST_FILEPATH "/lfs/boost_fast.bin"
-#define DATA_ADC_FILEPATH "/lfs/boost_adc.bin"
+#define DATA_SLOW_FILEPATH "/lfs/slow.bin"
+#define DATA_FAST_FILEPATH "/lfs/fast.bin"
+#define DATA_ADC_FILEPATH "/lfs/adc.bin"
+
+// Thread stuff
+#define DATA_STORAGE_STACK_SIZE 500
+#define DATA_STORAGE_PRIORITY 5

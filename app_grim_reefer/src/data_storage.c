@@ -109,10 +109,5 @@ int data_writing_thread(void *, void *, void *) {
   return 0;
 }
 
-#define DATA_STORAGE_STACK_SIZE 500
-#define DATA_STORAGE_PRIORITY 5
-
-extern void my_entry_point(void *, void *, void *);
-
 K_THREAD_DEFINE(data_tid, DATA_STORAGE_STACK_SIZE, data_writing_thread, NULL,
                 NULL, NULL, DATA_STORAGE_PRIORITY, 0, 0);
