@@ -32,7 +32,6 @@
 // Data locations
 
 #define PREDETECT_FILEPATH "predetect.bin"
-
 #define DATA_SLOW_FILEPATH "boost_slow.bin"
 #define DATA_FAST_FILEPATH "boost_fast.bin"
 #define DATA_ADC_FILEPATH "boost_adc.bin"

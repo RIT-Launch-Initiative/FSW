@@ -1,9 +1,15 @@
+#include "orchestrator.h"
 #include <stdint.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/sys/time_units.h>
 #include <zephyr/sys_clock.h>
 
 LOG_MODULE_REGISTER(orchestrator);
+
+K_EVENT_DEFINE(launch_detected);
+K_EVENT_DEFINE(noseover_detected);
+K_EVENT_DEFINE(main_detected);
+K_EVENT_DEFINE(flight_over);
 
 const uint64_t not_yet_launched = ~0;
 const uint32_t not_yet_launched_32 = ~0;
@@ -44,7 +50,7 @@ int orchestrate() {
   while (!override_boost_detect) {
     if (flight_cancelled) {
       flight_phase = Phase_FlightCancelled;
-      return;
+      return 0;
     }
 
     LOG_INF("Detecting boost");
@@ -53,6 +59,7 @@ int orchestrate() {
 
   // Boost Detected
   flight_phase = Phase_Boost;
+  k_event_set(&launch_detected, EVENT_HAPPENED);
   while (1) {
     LOG_INF("Detecting Noseover");
     k_msleep(1000);
@@ -60,6 +67,7 @@ int orchestrate() {
 
   // Nose Over Detected
   flight_phase = Phase_ReefEvents;
+  k_event_set(&noseover_detected, EVENT_HAPPENED);
 
   while (1) {
     LOG_INF("Detecting Under Main");
@@ -69,6 +77,7 @@ int orchestrate() {
 
   // Main Detected
   flight_phase = Phase_UnderMain;
+  k_event_set(&main_detected, EVENT_HAPPENED);
 
   while (1) {
     LOG_INF("Detecting Ground");
@@ -78,6 +87,7 @@ int orchestrate() {
 
   // Wacked the ground
   flight_phase = Phase_Ground;
+  k_event_set(&flight_over, EVENT_HAPPENED);
 
   // End the threads
   return 0;
