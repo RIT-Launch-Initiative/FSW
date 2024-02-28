@@ -13,7 +13,7 @@ K_MSGQ_DEFINE(slow_data_queue, sizeof(struct slow_data), QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_data), QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(fast_data_queue, sizeof(struct fast_data), QUEUE_SIZE, 1);
 
-int data_writing_thread() {
+int data_writing_thread(void *, void *, void *) {
 
   struct fs_file_t adc_file;
   struct fs_file_t fast_file;
@@ -21,6 +21,7 @@ int data_writing_thread() {
 
   // Open Files (unless LFS_NO_ALLOC is set, this will allocate caches according
   // to the fstab in the board device tree)
+  LOG_INF("openning data files");
   int ret;
   fs_file_t_init(&adc_file);
   ret = fs_open(&adc_file, DATA_ADC_FILEPATH, FS_O_CREATE | FS_O_RDWR);
@@ -47,7 +48,7 @@ int data_writing_thread() {
   struct adc_data adc_data_local;
   struct fast_data fast_data_local;
   struct slow_data slow_dat_local;
-
+  *((int *)0) = 0;
   // Start reading
   while (1) {
     // Check to see if flight is over
@@ -89,8 +90,7 @@ int data_writing_thread() {
       }
     }
 
-    // will return immediatly if no other threads need to run
-    k_yield();
+    k_usleep(1);
   }
   LOG_INF("flight over, saving all\n");
   // close it all
@@ -109,3 +109,11 @@ int data_writing_thread() {
   }
   return 0;
 }
+
+#define DATA_STORAGE_STACK_SIZE 500
+#define DATA_STORAGE_PRIORITY 5
+
+extern void my_entry_point(void *, void *, void *);
+
+K_THREAD_DEFINE(data_tid, DATA_STORAGE_STACK_SIZE, data_writing_thread, NULL,
+                NULL, NULL, DATA_STORAGE_PRIORITY, 0, 0);

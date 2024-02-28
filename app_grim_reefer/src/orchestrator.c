@@ -63,6 +63,7 @@ int orchestrate() {
   while (1) {
     LOG_INF("Detecting Noseover");
     k_msleep(1000);
+    break;
   }
 
   // Nose Over Detected
