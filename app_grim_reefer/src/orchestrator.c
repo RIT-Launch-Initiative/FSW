@@ -103,9 +103,13 @@ int orchestrate() {
 static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
   ARG_UNUSED(argc);
   ARG_UNUSED(argv);
-
-  shell_print(shell, "Will not fly. Power cycle to fly again\n");
-  flight_cancelled = true;
+  if (flight_phase != Phase_LaunchDetecting) {
+    shell_print(shell,
+                "The payload already launched and/or landed. Can't nogo\n");
+  } else {
+    shell_print(shell, "Will not fly. Power cycle to fly again");
+    flight_cancelled = true;
+  }
   return 0;
 }
 
@@ -115,27 +119,27 @@ static int cmd_phase(const struct shell *shell, size_t argc, char **argv) {
 
   switch (flight_phase) {
   case Phase_FlightCancelled:
-    shell_print(shell, "Flight Cancelled\n");
+    shell_print(shell, "Flight Cancelled");
     break;
 
   case Phase_LaunchDetecting:
-    shell_print(shell, "Detecting Launch\n");
+    shell_print(shell, "Detecting Launch");
     break;
 
   case Phase_ReefEvents:
-    shell_print(shell, "Watching for reef events\n");
+    shell_print(shell, "Watching for reef events");
     break;
 
   case Phase_UnderMain:
-    shell_print(shell, "Under Main\n");
+    shell_print(shell, "Under Main");
     break;
 
   case Phase_Ground:
-    shell_print(shell, "Hit the ground\n");
+    shell_print(shell, "Hit the ground");
     break;
 
   default:
-    shell_print(shell, "UNKNOWN FLIGHT PHASE (you should be paniccing)\n");
+    shell_print(shell, "UNKNOWN FLIGHT PHASE (you should be paniccing)");
     break;
   }
 
@@ -148,7 +152,7 @@ static int cmd_useconds(const struct shell *shell, size_t argc, char **argv) {
   uint64_t cycles = k_uptime_ticks();
   uint64_t us_since_boot = k_cyc_to_us_near64(cycles);
 
-  shell_print(shell, "%llu microseconds since boot\n", cycles);
+  shell_print(shell, "%llu microseconds since boot", cycles);
 
   return 0;
 }
@@ -158,7 +162,7 @@ static int cmd_override_boost_detect(const struct shell *shell, size_t argc,
   ARG_UNUSED(argc);
   ARG_UNUSED(argv);
 
-  shell_print(shell, "overriding boost\n");
+  shell_print(shell, "overriding boost");
   override_boost_detect = true;
 
   return 0;
