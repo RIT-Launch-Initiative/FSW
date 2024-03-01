@@ -125,6 +125,84 @@ int orchestrate() {
   return 0;
 }
 
+int adc_thread(void *, void *, void *) {
+  // Wait for flight to start
+  k_event_wait(&launch_detected, EVENT_HAPPENED, false, K_FOREVER);
+  uint32_t delay_us = BOOST_PHASE_LOAD_CELL_SAMPLE_PERIOD_US;
+
+  struct adc_data dat;
+
+  while (1) {
+    // end of flight
+    if (k_event_wait(&flight_over, EVENT_HAPPENED, false, K_NO_WAIT) ==
+        EVENT_HAPPENED) {
+      break;
+    }
+    // noseover detection
+    if (k_event_wait(&noseover_detected, EVENT_HAPPENED, false, K_NO_WAIT) ==
+        EVENT_HAPPENED) {
+      delay_us = REEF_PHASE_LOAD_CELL_SAMPLE_PERIOD_US;
+    }
+    // main detection
+    if (k_event_wait(&main_detected, EVENT_HAPPENED, false, K_NO_WAIT) ==
+        EVENT_HAPPENED) {
+      delay_us = MAIN_PHASE_LOAD_CELL_SAMPLE_PERIOD_US;
+    }
+
+    read_adc(&dat);
+    // fill in timestamp
+    if (k_msgq_put(&adc_data_queue, &dat, K_NO_WAIT) != 0) {
+      LOG_WRN("adc data queue full");
+    }
+
+    k_usleep(delay_us);
+  }
+
+  return 0;
+}
+
+int slow_thread(void *, void *, void *) {
+  // Wait for flight to start
+  k_event_wait(&launch_detected, EVENT_HAPPENED, false, K_FOREVER);
+  uint32_t delay_us = BOOST_PHASE_TEMP_VOLTAGE_SAMPLE_PERIOD_MS;
+
+  struct slow_data dat;
+
+  while (1) {
+    // end of flight reaction
+    if (k_event_wait(&flight_over, EVENT_HAPPENED, false, K_NO_WAIT) ==
+        EVENT_HAPPENED) {
+      break;
+    }
+    // noseover detection reaction
+    if (k_event_wait(&noseover_detected, EVENT_HAPPENED, false, K_NO_WAIT) ==
+        EVENT_HAPPENED) {
+      delay_us = REEF_PHASE_TEMP_VOLTAGE_SAMPLE_PERIOD_MS;
+    }
+    // main detection reaction
+    if (k_event_wait(&main_detected, EVENT_HAPPENED, false, K_NO_WAIT) ==
+        EVENT_HAPPENED) {
+      delay_us = MAIN_PHASE_TEMP_VOLTAGE_SAMPLE_PERIOD_MS;
+    }
+
+    read_slow(&dat);
+    // fill in timestamp
+    if (k_msgq_put(&slow_data_queue, &dat, K_NO_WAIT) != 0) {
+      LOG_WRN("slow data queue full");
+    }
+
+    k_usleep(delay_us);
+  }
+
+  return 0;
+}
+
+K_THREAD_DEFINE(adc_tid, ADC_STACK_SIZE, adc_thread, NULL, NULL, NULL,
+                ADC_PRIORITY, 0, 0);
+
+K_THREAD_DEFINE(slow_tid, SLOW_STACK_SIZE, slow_thread, NULL, NULL, NULL,
+                SLOW_PRIORITY, 0, 0);
+
 #ifdef CONFIG_ORCHESTRATOR_SHELL
 
 /**
@@ -136,10 +214,11 @@ static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
   ARG_UNUSED(argv);
   if (flight_phase != Phase_LaunchDetecting) {
     shell_print(shell,
-                "The payload already launched and/or landed. Can't nogo\n");
+                "The payload already launched and/or landed. Can't nogo");
   } else {
     shell_print(shell, "Will not fly. Power cycle to fly again");
     flight_cancelled = true;
+    k_event_set(&flight_over, EVENT_HAPPENED);
   }
   return 0;
 }
@@ -192,8 +271,11 @@ static int cmd_override_boost_detect(const struct shell *shell, size_t argc,
                                      char **argv) {
   ARG_UNUSED(argc);
   ARG_UNUSED(argv);
-
-  shell_print(shell, "overriding boost");
+  if (flight_phase == Phase_LaunchDetecting) {
+    shell_print(shell, "overriding boost");
+  } else {
+    shell_print(shell, "can't override boost. already launched");
+  }
   override_boost_detect = true;
 
   return 0;

@@ -31,7 +31,7 @@ int read_fast(struct fast_data *dat) {
   return 0;
 }
 int read_adc(struct adc_data *dat) {
-  dat->adc_value = 0;
+  dat->adc_value = 0xEFBEADDE;
   return 0;
 }
 #endif

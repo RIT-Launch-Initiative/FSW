@@ -40,3 +40,9 @@
 // Thread stuff
 #define DATA_STORAGE_STACK_SIZE 500
 #define DATA_STORAGE_PRIORITY 5
+
+#define ADC_STACK_SIZE 500
+#define ADC_PRIORITY 5
+
+#define SLOW_STACK_SIZE 500
+#define SLOW_PRIORITY 5
