@@ -32,7 +32,18 @@ static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 #define UDP_RX_BUFF_LEN 256 // TODO: Make this a KConfig
+#define NUM_SOCKETS 2
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
+static int udp_sockets[NUM_SOCKETS] = {0};
+static int udp_socket_ports[NUM_SOCKETS] = {10000, 11000};
+static l_udp_socket_list_t udp_socket_list = {
+        .sockets = udp_sockets,
+        .num_sockets = 2
+};
+
+static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
+    l_default_receive_thread(socks, buff_ptr, buff_len);
+}
 
 static void init_networking() {
     if (l_check_device(wiznet) != 0) {
@@ -46,14 +57,17 @@ static void init_networking() {
         return;
     }
 
-    int sock = l_init_udp_socket("192.168.144.81", 10000);
-    if (sock < 0) {
-        LOG_ERR("Failed to create UDP socket: %d", socket);
-        return -1;
+    for (int i = 0; i < udp_socket_list.num_sockets; i++) {
+        udp_socket_list.sockets[i] = l_init_udp_socket("192.168.144.81", udp_socket_ports[i]);
+        if (udp_socket_list.sockets[i] < 0) {
+            LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
+            return;
+        }
     }
 
     k_thread_create(&udp_rx_thread, &udp_rx_stack[0], UDP_RX_STACK_SIZE,
-                    l_default_receive_thread, sock, POINTER_TO_INT(udp_rx_buffer), UDP_RX_BUFF_LEN, K_PRIO_PREEMPT(5),
+                    udp_rx_task, &udp_socket_list, udp_rx_buffer, INT_TO_POINTER(UDP_RX_BUFF_LEN),
+                    K_PRIO_PREEMPT(5),
                     0,
                     K_NO_WAIT);
     k_thread_start(&udp_rx_thread);

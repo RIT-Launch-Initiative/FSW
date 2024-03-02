@@ -27,6 +27,12 @@ typedef struct {
     l_udp_handler_t handler;
 } l_udp_port_handler_t;
 
+typedef struct {
+    int *sockets;
+    int num_sockets;
+
+} l_udp_socket_list_t;
+
 /**
  * Initialize a UDP networking stack
  * @param ip - IP address to bind to
@@ -68,12 +74,12 @@ int l_receive_udp(int sock, const uint8_t *buff, size_t len);
 /**
  * Default UDP receive thread meant to be started, not called
  * Create and add port handlers to handle data from specific ports
- * @param sock
- * @param buff_ptr
- * @param len
+ * @param socks - Pointer to a list of sockets to receive data on
+ * @param buff_ptr - Pointer to a buffer to store received data
+ * @param buff_len - INT_TO_POINTER size of the buffer
  * @return
  */
-int l_default_receive_thread(int sock, int buff_ptr, int len);
+int l_default_receive_thread(void *socks, void *buff_ptr, void *buff_len);
 
 /**
  * Add a function for handling data from a specific port

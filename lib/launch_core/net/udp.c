@@ -152,12 +152,18 @@ int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
     return 0;
 }
 
-int l_default_receive_thread(int sock, int buff_ptr, int len) {
-    uint8_t *buff = INT_TO_POINTER(buff_ptr);
+int l_default_receive_thread(void *socks, void *buff_ptr, void *buff_len) {
+    l_udp_socket_list_t *socket_list = (l_udp_socket_list_t *) socks;
+    uint8_t *buff = (uint8_t *) buff_ptr;
+    size_t len = POINTER_TO_INT(buff_len);
 
     while (true) {
-        l_receive_udp(sock, buff, len);
+        for (int i = 0; i < socket_list->num_sockets; i++) {
+            l_receive_udp(socket_list->sockets[i], buff, len);
+        }
     }
+
+    return 0;
 }
 
 int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler) {
