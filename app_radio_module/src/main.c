@@ -5,6 +5,7 @@
 
 #include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
+#include <launch_core/dev/gnss.h>
 #include <launch_core/net/lora.h>
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
@@ -14,16 +15,19 @@
 #define LED0_NODE DT_ALIAS(led0)
 #define LED1_NODE DT_ALIAS(led1)
 
-LOG_MODULE_REGISTER(main);
+LOG_MODULE_REGISTER(main, CONFIG_APP_RADIO_MODULE_LOG_LEVEL);
 
 // Queues
 K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
 
 // Threads
-static K_THREAD_STACK_DEFINE(udp_rx_stack,
-UDP_RX_STACK_SIZE);
+static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
 static struct k_thread udp_rx_thread;
+
+// Callbacks
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
+GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
 
 // Devices
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
@@ -31,6 +35,7 @@ static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
+// Networking
 #define UDP_RX_BUFF_LEN 256 // TODO: Make this a KConfig
 #define NUM_SOCKETS 2
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
@@ -94,6 +99,8 @@ static int init() {
 
     return 0;
 }
+
+
 
 int main() {
     LOG_DBG("Starting radio module!\n");

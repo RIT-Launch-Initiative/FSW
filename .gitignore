@@ -62,3 +62,4 @@ build/
 .idea/
 .cache/
 zephyr-windows.code-workspace
+flash.bin

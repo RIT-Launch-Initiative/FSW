@@ -17,6 +17,11 @@ sensor:
 # Extension boards
 potato:
 	west build -b potato app_potato -p auto -DOVERLAY_CONFIG=debug.conf
+
+reefer:
+	west build -b grim_reefer app_grim_reefer -p auto -DOVERLAY_CONFIG=debug.conf
+
+
 clean:
 	rm -rf build
 

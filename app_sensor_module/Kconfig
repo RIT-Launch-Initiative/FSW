@@ -8,3 +8,22 @@ endmenu
 module = APP_SENSOR_MODULE
 module-str = APP_SENSOR_MODULE
 source "subsys/logging/Kconfig.template.log_config"
+
+config TEN_HZ_QUEUE_SIZE
+    int "10 Hz Queue Size"
+    default 4
+    help
+      The number of samples that can be stored in the 10 Hz telemetry processing queue
+
+config HUNDRED_HZ_QUEUE_SIZE
+    int "100 Hz Queue Size"
+    default 16
+    help
+      The number of samples that can be stored in the 100 Hz telemetry processing queue
+
+config EXTENSION_BOARD_QUEUE_SIZE
+    int "Extension Board Queue Size"
+    default 16
+    help
+      The number of samples that can be stored in the extension board telemetry processing queue
+
