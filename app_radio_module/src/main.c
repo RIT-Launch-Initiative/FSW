@@ -35,7 +35,7 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 #define NUM_SOCKETS 2
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
 static int udp_sockets[NUM_SOCKETS] = {0};
-static int udp_socket_ports[NUM_SOCKETS] = {10000, 11000};
+static int udp_socket_ports[NUM_SOCKETS] = {10000};
 static l_udp_socket_list_t udp_socket_list = {
         .sockets = udp_sockets,
         .num_sockets = 2
