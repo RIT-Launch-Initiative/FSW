@@ -151,6 +151,13 @@ int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
     return 0;
 }
 
+int l_default_receive_thread(int sock, int buff_ptr, int len) {
+    uint8_t *buff = INT_TO_POINTER(buff_ptr);
+
+    while (true) {
+        l_receive_udp(sock, buff, len);
+    }
+}
 
 int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler) {
     return sys_hashmap_insert(&UDP_PORT_HANDLERS, port, POINTER_TO_INT(handler), NULL);

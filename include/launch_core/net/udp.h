@@ -64,6 +64,17 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
  */
 int l_receive_udp(int sock, const uint8_t *buff, size_t len);
 
+
+/**
+ * Default UDP receive thread meant to be started, not called
+ * Create and add port handlers to handle data from specific ports
+ * @param sock
+ * @param buff_ptr
+ * @param len
+ * @return
+ */
+int l_default_receive_thread(int sock, int buff_ptr, int len);
+
 /**
  * Add a function for handling data from a specific port
  * @param port - Port to handle
