@@ -56,6 +56,8 @@ int main() {
         return -1;
     }
 
+//    l_set_socket_rx_timeout(socket, 1000);
+
     uint8_t rx_buff[100];
 
     while (1) {
@@ -63,7 +65,7 @@ int main() {
         gpio_pin_toggle_dt(&led1);
         l_send_udp_broadcast(socket, (const uint8_t*) "Launch!", 7, 10000);
 //        l_udp_receive(10000, rx_buff, 100);
-        l_receive_udp_poll(socket, rx_buff, 100, 10000);
+        l_receive_udp(socket, rx_buff, 100, 10000);
 //        l_receive_multicast_packets(10000, rx_buff, 100);
         k_msleep(100);
     }

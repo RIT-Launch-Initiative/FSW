@@ -39,6 +39,14 @@ int l_init_udp_socket(const char *ip, uint16_t port);
 int l_deinit_udp_socket(int sock);
 
 /**
+ * Configure a receive timeout for a socket
+ * @param sock - Socket to configure
+ * @param timeout - Timeout in milliseconds
+ * @return
+ */
+int l_set_socket_rx_timeout(int sock, int timeout);
+
+/**
  * Send a UDP broadcast message
  * @param buff - Buffer of data to transmit
  * @param len - Size of the buffer
@@ -48,13 +56,14 @@ int l_deinit_udp_socket(int sock);
 int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t port);
 
 /**
- * Polling receive function for UDP
- * @param data - Buffer to receive data into
- * @param data_len - Size of the buffer
+ * Receive function for UDP meant to run in its own thread (blocking function)
+ * @param sock - Initialized socket to receive data on
+ * @param buff - Buffer to store received data
+ * @param len - Size of the buffer
  * @param port - Port the data was received on
  * @return Zephyr status code
  */
-int l_receive_udp_poll(int sock, const uint8_t *buff, size_t len, uint16_t port);
+int l_receive_udp(int sock, const uint8_t *buff, size_t len, uint16_t port);
 
 /**
  * Add a function for handling data from a specific port
@@ -71,9 +80,6 @@ int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler);
  */
 int l_remove_port_handler(uint16_t port);
 
-void l_receive_multicast_packets(int port, uint8_t *buffer, size_t buffer_size);
-
-int l_udp_receive(int port, uint8_t *buffer, size_t buffer_size);
 
 
 #endif // L_UDP_UTILS_H_
