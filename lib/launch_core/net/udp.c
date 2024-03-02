@@ -138,7 +138,7 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
     return ret;
 }
 
-int l_receive_udp(int sock, const uint8_t *buff, size_t len, uint16_t port) {
+int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
     int ret = recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
@@ -150,6 +150,7 @@ int l_receive_udp(int sock, const uint8_t *buff, size_t len, uint16_t port) {
 
     return 0;
 }
+
 
 int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler) {
     return sys_hashmap_insert(&UDP_PORT_HANDLERS, port, POINTER_TO_INT(handler), NULL);
