@@ -14,7 +14,7 @@ K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_data), QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(fast_data_queue, sizeof(struct fast_data), QUEUE_SIZE, 1);
 
 int data_writing_thread(void *, void *, void *) {
-
+  k_msleep(1000);
   struct fs_file_t adc_file;
   struct fs_file_t fast_file;
   struct fs_file_t slow_file;

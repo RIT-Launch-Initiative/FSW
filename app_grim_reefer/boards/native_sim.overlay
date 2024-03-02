@@ -50,6 +50,7 @@
 
 
 &flashcontroller0 {
+    status = "okay";
     compatible = "zephyr,sim-flash";
     reg = <0x00000000 DT_SIZE_M(513)>;
 

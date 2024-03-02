@@ -7,6 +7,7 @@
 #include "orchestrator.h"
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/drivers/flash.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -36,6 +37,7 @@ const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
 
 static int init(void) {
+  printk("iitting\n");
   // Init LEDS
   if (!gpio_is_ready_dt(&led1)) {
     LOG_ERR("LED 1 is not ready\n");
@@ -72,13 +74,17 @@ static int init(void) {
   }
   if (!device_is_ready(flash)) {
     printk("Device %s is not ready\n", flash->name);
-    return 0;
+    return -1;
   }
   return 0;
 }
 
 int main(void) {
-  if (init()) {
+  flash_erase(flash, 0, DT_PROP(FLASH_NODE, size));
+
+  printk("main\n");
+  if (init() < 0) {
+    printk("init failed\n");
     return -1;
   }
 

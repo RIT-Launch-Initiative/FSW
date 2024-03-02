@@ -203,7 +203,7 @@ K_THREAD_DEFINE(adc_tid, ADC_STACK_SIZE, adc_thread, NULL, NULL, NULL,
 K_THREAD_DEFINE(slow_tid, SLOW_STACK_SIZE, slow_thread, NULL, NULL, NULL,
                 SLOW_PRIORITY, 0, 0);
 
-#ifdef CONFIG_ORCHESTRATOR_SHELL
+#ifdef CONFIG_SHELL
 
 /**
  * Shell Commands for controlling orchestration
