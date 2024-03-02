@@ -23,7 +23,6 @@
 #define SENSOR_READ_STACK_SIZE (512)
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
-#define POWER_MODULE_IP_ADDR "192.168.144.10" // TODO: Make this a KConfig
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
 
@@ -213,8 +212,6 @@ static void ina_queue_processing_task(void *, void *, void *) {
 
 static int init(void) {
 //    char ip[MAX_IP_ADDRESS_STR_LEN];
-    int ret = -1;
-
     k_msgq_init(&ina_processing_queue, ina_processing_queue_buffer, sizeof(power_module_telemetry_t),
                 CONFIG_INA219_QUEUE_SIZE);
 
