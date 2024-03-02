@@ -50,16 +50,20 @@ int main() {
         return -1;
     }
 
-//    int socket = l_init_udp_socket("10.0.0.3", 10000);
+    int socket = l_init_udp_socket("192.168.144.81", 10000);
+    if (socket < 0) {
+        LOG_ERR("Failed to create UDP socket: %d", socket);
+        return -1;
+    }
 
     uint8_t rx_buff[100];
 
     while (1) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
-//        l_send_udp_broadcast(socket, (const uint8_t*) "Launch!", 7, 10000);
+        l_send_udp_broadcast(socket, (const uint8_t*) "Launch!", 7, 10000);
 //        l_udp_receive(10000, rx_buff, 100);
-//        l_receive_udp_poll(socket, rx_buff, 100, 15000);
+        l_receive_udp_poll(socket, rx_buff, 100, 10000);
 //        l_receive_multicast_packets(10000, rx_buff, 100);
         k_msleep(100);
     }

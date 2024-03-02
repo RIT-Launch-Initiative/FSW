@@ -125,8 +125,7 @@ int l_receive_udp_poll(int sock, const uint8_t *buff, size_t len, uint16_t port)
     if (ret < 0) {
         LOG_ERR("Failed to receive data (%d)\n", ret);
     } else {
-//        LOG_INF("Received %d bytes from %s:%d\n", ret, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
-        LOG_INF("Received %d bytes from %d\n", ret, ntohs(addr.sin_port));
+        LOG_INF("Received %d bytes from %d: %s", ret, ntohs(addr.sin_port), buff);
     }
 
     return 0;
