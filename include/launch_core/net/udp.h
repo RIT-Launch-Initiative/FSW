@@ -40,20 +40,31 @@ typedef struct {
  */
 int l_init_udp_net_stack(const char *ip);
 
+/*
+ * Open a UDP socket for a specific IP and port
+ * @param ip - IP address to bind to
+ * @param port - Port to bind to
+ */
 int l_init_udp_socket(const char *ip, uint16_t port);
 
+/**
+ * Close a UDP socket
+ * @param sock - Socket to close
+ * @return Zephyr status code
+ */
 int l_deinit_udp_socket(int sock);
 
 /**
- * Configure a receive timeout for a socket
+ * Configure a receive timeout for a socket (NYI)
  * @param sock - Socket to configure
  * @param timeout - Timeout in milliseconds
- * @return
+ * @return Zephyr status code
  */
 int l_set_socket_rx_timeout(int sock, int timeout);
 
 /**
  * Send a UDP broadcast message
+ * @param sock - Socket to send data on
  * @param buff - Buffer of data to transmit
  * @param len - Size of the buffer
  * @param port - Port to transmit on
