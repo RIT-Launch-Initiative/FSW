@@ -44,6 +44,13 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 //static const struct gpio_dt_spec led3 = GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios);
 //static const struct gpio_dt_spec led_wiznet = GPIO_DT_SPEC_GET(DT_ALIAS(ledwiz), gpios);
 
+static int udp_sockets[1] = {0};
+static int udp_socket_ports[1] = {10000};
+static l_udp_socket_list_t udp_socket_list = {
+        .sockets = udp_sockets,
+        .num_sockets = 1
+};
+
 static const enum sensor_channel ina_channels[] = {
         SENSOR_CHAN_CURRENT,
         SENSOR_CHAN_VOLTAGE,
@@ -152,10 +159,31 @@ static void ina_task(void *, void *, void *) {
     }
 }
 
+static void init_networking() {
+    if (l_check_device(wiznet) != 0) {
+        LOG_ERR("Wiznet device not found");
+        return;
+    }
+
+    int ret = l_init_udp_net_stack("192.168.144.80");
+    if (ret != 0) {
+        LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
+        return;
+    }
+
+    for (int i = 0; i < udp_socket_list.num_sockets; i++) {
+        udp_socket_list.sockets[i] = l_init_udp_socket("192.168.144.80", udp_socket_ports[i]);
+        if (udp_socket_list.sockets[i] < 0) {
+            LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
+            return;
+        }
+    }
+}
+
 static void ina_queue_processing_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
     power_module_telemetry_packed_t packed_telemetry = {0};
-    int sock = l_init_udp_socket("192.168.144.10", POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+    int sock = l_init_udp_socket("192.168.144.80", POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
 
     while (true) {
         if (k_msgq_get(&ina_processing_queue, &sensor_telemetry, K_FOREVER)) {
@@ -189,21 +217,8 @@ static int init(void) {
 
     k_msgq_init(&ina_processing_queue, ina_processing_queue_buffer, sizeof(power_module_telemetry_t),
                 CONFIG_INA219_QUEUE_SIZE);
-//    if (0 > l_create_ip_str_default_net_id(ip, POWER_MODULE_ID, 1)) {
-//        LOG_ERR("Failed to create IP address string: %d", ret);
-//        return -1;
-//    }
 
-    if (!l_check_device(wiznet)) {
-        ret = l_init_udp_net_stack("192.168.144.10");
-        if (ret != 0) {
-            LOG_ERR("Failed to initialize network stack");
-            return ret;
-        }
-    } else {
-        LOG_ERR("Failed to get network device");
-        return ret;
-    }
+    init_networking();
 
     // TODO: Play with these values on rev 2 where we can do more profiling
     k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL,
