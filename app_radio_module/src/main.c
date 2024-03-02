@@ -56,14 +56,14 @@ static void init_networking() {
         return;
     }
 
-    int ret = l_init_udp_net_stack("192.168.144.81");
+    int ret = l_init_udp_net_stack(RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
         return;
     }
 
     for (int i = 0; i < udp_socket_list.num_sockets; i++) {
-        udp_socket_list.sockets[i] = l_init_udp_socket("192.168.144.81", udp_socket_ports[i]);
+        udp_socket_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, udp_socket_ports[i]);
         if (udp_socket_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
             return;
