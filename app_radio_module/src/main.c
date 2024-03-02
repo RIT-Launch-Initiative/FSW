@@ -35,7 +35,7 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
 
 static void init_networking() {
-    if (l_check_device(wiznet) != 0)  {
+    if (l_check_device(wiznet) != 0) {
         LOG_ERR("Wiznet device not found");
         return;
     }
@@ -75,6 +75,7 @@ static int init() {
         return -1;
     }
 
+    init_networking();
 
 
     return 0;

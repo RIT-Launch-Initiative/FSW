@@ -153,9 +153,7 @@ int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
 }
 
 int l_default_receive_thread(int sock, int buff_ptr, int len) {
-    LOG_INF("Starting default UDP receive thread");
     uint8_t *buff = INT_TO_POINTER(buff_ptr);
-    
 
     while (true) {
         l_receive_udp(sock, buff, len);
