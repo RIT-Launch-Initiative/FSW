@@ -111,6 +111,7 @@ int main() {
     while (1) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
+        l_send_udp_broadcast(udp_sockets[0], (uint8_t *) "Launch!", 7, 10000);
         k_msleep(100);
     }
 

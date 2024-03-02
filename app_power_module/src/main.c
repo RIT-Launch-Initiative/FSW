@@ -23,6 +23,7 @@
 #define SENSOR_READ_STACK_SIZE (512)
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
+#define POWER_MODULE_IP_ADDR "192.168.144.10" // TODO: Make this a KConfig
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
 
@@ -154,6 +155,7 @@ static void ina_task(void *, void *, void *) {
 static void ina_queue_processing_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
     power_module_telemetry_packed_t packed_telemetry = {0};
+    int sock = l_init_udp_socket("192.168.144.10", POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
 
     while (true) {
         if (k_msgq_get(&ina_processing_queue, &sensor_telemetry, K_FOREVER)) {
@@ -176,24 +178,24 @@ static void ina_queue_processing_task(void *, void *, void *) {
         packed_telemetry.vin_adc_data_v = (sensor_telemetry.vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN;
 
         // TODO: write to flash when data logging library is ready
-        l_send_udp_broadcast((uint8_t * ) & packed_telemetry, sizeof(power_module_telemetry_packed_t),
+        l_send_udp_broadcast(sock, (uint8_t *) &packed_telemetry, sizeof(power_module_telemetry_packed_t),
                              POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
     }
 }
 
 static int init(void) {
-    char ip[MAX_IP_ADDRESS_STR_LEN];
+//    char ip[MAX_IP_ADDRESS_STR_LEN];
     int ret = -1;
 
     k_msgq_init(&ina_processing_queue, ina_processing_queue_buffer, sizeof(power_module_telemetry_t),
                 CONFIG_INA219_QUEUE_SIZE);
-    if (0 > l_create_ip_str_default_net_id(ip, POWER_MODULE_ID, 1)) {
-        LOG_ERR("Failed to create IP address string: %d", ret);
-        return -1;
-    }
+//    if (0 > l_create_ip_str_default_net_id(ip, POWER_MODULE_ID, 1)) {
+//        LOG_ERR("Failed to create IP address string: %d", ret);
+//        return -1;
+//    }
 
     if (!l_check_device(wiznet)) {
-        ret = l_init_udp_net_stack(ip);
+        ret = l_init_udp_net_stack("192.168.144.10");
         if (ret != 0) {
             LOG_ERR("Failed to initialize network stack");
             return ret;
