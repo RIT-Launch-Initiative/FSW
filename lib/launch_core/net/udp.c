@@ -49,7 +49,7 @@ int l_init_udp_net_stack(const char *ip_addr) {
     }
 
     struct in_addr subnet;
-    ret = net_addr_pton(AF_INET, "255.0.0.0", &subnet);
+    ret = net_addr_pton(AF_INET, "255.255.255.0", &subnet);
     net_if_ipv4_set_netmask(net_interface, &subnet);
 
     net_if_set_promisc(net_interface);
