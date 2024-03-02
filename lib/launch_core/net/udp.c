@@ -31,20 +31,20 @@ int l_init_udp_net_stack(const char *ip_addr) {
 
     net_interface = net_if_get_default();
     if (!net_interface) {
-        LOG_INF("No network interface found\n");
+        LOG_INF("No network interface found");
         return -ENODEV;
     }
 
     struct in_addr addr;
     ret = net_addr_pton(AF_INET, ip_addr, &addr);
     if (ret < 0) {
-        LOG_ERR("Invalid IP address\n");
+        LOG_ERR("Invalid IP address");
         return ret;
     }
 
     struct net_if_addr *ifaddr = net_if_ipv4_addr_add(net_interface, &addr, NET_ADDR_MANUAL, 0);
     if (!ifaddr) {
-        LOG_ERR("Failed to add IP address\n");
+        LOG_ERR("Failed to add IP address");
         return -ENODEV;
     }
 
@@ -55,7 +55,7 @@ int l_init_udp_net_stack(const char *ip_addr) {
     net_if_set_promisc(net_interface);
 
 
-    LOG_INF("IPv4 address configured: %s\n", ip_addr);
+    LOG_INF("IPv4 address configured: %s", ip_addr);
 
     return 0;
 }
@@ -63,16 +63,17 @@ int l_init_udp_net_stack(const char *ip_addr) {
 int l_init_udp_socket(const char *ip, uint16_t port) {
     static const int broadcast_enable = 1;
     int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    int ret = -1;
 
     if (sock < 0) {
-        LOG_ERR("Failed to create socket (%d)\n", sock);
+        LOG_ERR("Failed to create socket (%d)", sock);
         return sock;
     }
 
 //    TODO: Investigate why setsockopt returns -1. Does not impact broadcast functionality though...
 //    int ret = setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcast_enable, sizeof(broadcast_enable));
 //    if (ret < 0) {
-//        LOG_ERR("Failed to enable broadcast on socket (%d)\n", ret);
+//        LOG_ERR("Failed to enable broadcast on socket (%d)", ret);
 //    }
 //    TODO: Timeout would be nice though
 //    l_set_socket_rx_timeout(sock, 1000);
@@ -82,11 +83,11 @@ int l_init_udp_socket(const char *ip, uint16_t port) {
     addr.sin_port = htons(port);
     if (ip == NULL) {
         addr.sin_addr.s_addr = INADDR_ANY;
-        LOG_INF("NULL IP address received. Binding to all interfaces\n");
+        LOG_INF("NULL IP address received. Binding to all interfaces");
     } else {
         ret = inet_pton(AF_INET, ip, &addr.sin_addr);
         if (ret <= 0) {
-            LOG_ERR("Invalid IP address format or address not specified\n");
+            LOG_ERR("Invalid IP address format or address not specified");
             close(sock);
             return ret;
         }
@@ -94,12 +95,12 @@ int l_init_udp_socket(const char *ip, uint16_t port) {
 
     ret = bind(sock, (struct sockaddr *) &addr, sizeof(addr));
     if (ret < 0) {
-        LOG_ERR("Failed to bind socket (%d)\n", ret);
+        LOG_ERR("Failed to bind socket (%d)", ret);
         close(sock);
         return ret;
     }
 
-    LOG_INF("UDP socket bound to IP: %s, port: %d\n", ip, port);
+    LOG_INF("UDP socket bound to IP: %s, port: %d", ip, port);
 
     return 0;
 }
@@ -112,11 +113,11 @@ int l_set_socket_rx_timeout(int sock, int timeout) {
     struct timeval time_val;
     time_val.tv_sec = timeout / 1000;
     time_val.tv_usec = (timeout % 1000) * 100;
-    LOG_INF("Setting socket timeout to %lld seconds and %ld microseconds\n", time_val.tv_sec, time_val.tv_usec);
+    LOG_INF("Setting socket timeout to %lld seconds and %ld microseconds", time_val.tv_sec, time_val.tv_usec);
     int ret = setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &time_val, sizeof(time_val));
 
     if (ret < 0) {
-        LOG_ERR("Failed to set socket timeout (%d)\n", ret);
+        LOG_ERR("Failed to set socket timeout (%d)", ret);
     }
 
     return ret;
@@ -131,7 +132,7 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
     if (ret == 0) {
         ret = sendto(sock, buff, len, 0, (struct sockaddr *) &addr, sizeof(addr));
         if (ret < 0) {
-            LOG_ERR("Failed to send broadcast message (%d)\n", ret);
+            LOG_ERR("Failed to send broadcast message (%d)", ret);
         }
     }
 
@@ -143,7 +144,7 @@ int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
     socklen_t addr_len = sizeof(addr);
     int ret = recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
     if (ret < 0) {
-        LOG_ERR("Failed to receive data (%d)\n", ret);
+        LOG_ERR("Failed to receive data (%d)", ret);
     } else {
         LOG_INF("Received %d bytes from %d: %s", ret, ntohs(addr.sin_port), buff);
     }
@@ -152,7 +153,9 @@ int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
 }
 
 int l_default_receive_thread(int sock, int buff_ptr, int len) {
+    LOG_INF("Starting default UDP receive thread");
     uint8_t *buff = INT_TO_POINTER(buff_ptr);
+    
 
     while (true) {
         l_receive_udp(sock, buff, len);

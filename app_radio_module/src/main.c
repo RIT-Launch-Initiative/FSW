@@ -10,17 +10,55 @@
 #include <launch_core/net/udp.h>
 
 #define SLEEP_TIME_MS   100
+#define UDP_RX_STACK_SIZE 1024
 #define LED0_NODE DT_ALIAS(led0)
 #define LED1_NODE DT_ALIAS(led1)
 
 LOG_MODULE_REGISTER(main);
+
+// Queues
 K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
 
+// Threads
+static K_THREAD_STACK_DEFINE(udp_rx_stack,
+UDP_RX_STACK_SIZE);
+static struct k_thread udp_rx_thread;
+
+// Devices
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
+
+#define UDP_RX_BUFF_LEN 256 // TODO: Make this a KConfig
+static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
+
+static void init_networking() {
+    if (l_check_device(wiznet) != 0)  {
+        LOG_ERR("Wiznet device not found");
+        return;
+    }
+
+    int ret = l_init_udp_net_stack("192.168.144.81");
+    if (ret != 0) {
+        LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
+        return;
+    }
+
+    int sock = l_init_udp_socket("192.168.144.81", 10000);
+    if (sock < 0) {
+        LOG_ERR("Failed to create UDP socket: %d", socket);
+        return -1;
+    }
+
+    k_thread_create(&udp_rx_thread, &udp_rx_stack[0], UDP_RX_STACK_SIZE,
+                    l_default_receive_thread, sock, POINTER_TO_INT(udp_rx_buffer), UDP_RX_BUFF_LEN, K_PRIO_PREEMPT(5),
+                    0,
+                    K_NO_WAIT);
+    k_thread_start(&udp_rx_thread);
+
+}
 
 static int init() {
     char ip[MAX_IP_ADDRESS_STR_LEN];
@@ -37,9 +75,7 @@ static int init() {
         return -1;
     }
 
-    if (!l_check_device(wiznet)) {
-        l_init_udp_net_stack("192.168.144.81");
-    }
+
 
     return 0;
 }
@@ -50,23 +86,9 @@ int main() {
         return -1;
     }
 
-    int socket = l_init_udp_socket("192.168.144.81", 10000);
-    if (socket < 0) {
-        LOG_ERR("Failed to create UDP socket: %d", socket);
-        return -1;
-    }
-
-//    l_set_socket_rx_timeout(socket, 1000);
-
-    uint8_t rx_buff[100];
-
     while (1) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
-        l_send_udp_broadcast(socket, (const uint8_t*) "Launch!", 7, 10000);
-//        l_udp_receive(10000, rx_buff, 100);
-        l_receive_udp(socket, rx_buff, 100, 10000);
-//        l_receive_multicast_packets(10000, rx_buff, 100);
         k_msleep(100);
     }
 
