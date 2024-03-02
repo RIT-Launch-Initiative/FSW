@@ -32,6 +32,9 @@ const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
 const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
 const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
+#define FLASH_NODE DT_ALIAS(storage)
+const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
+
 static int init(void) {
   // Init LEDS
   if (!gpio_is_ready_dt(&led1)) {
@@ -66,6 +69,10 @@ static int init(void) {
   if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
     LOG_ERR("Unable to configure camera enable output pin\n");
     return -1;
+  }
+  if (!device_is_ready(flash)) {
+    printk("Device %s is not ready\n", flash->name);
+    return 0;
   }
   return 0;
 }

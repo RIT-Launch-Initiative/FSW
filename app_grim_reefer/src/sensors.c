@@ -1,7 +1,8 @@
 #include "sensors.h"
+#include "config.h"
 #include "orchestrator.h"
 
-#ifdef BOARD_GRIM_REEFER
+#ifndef USE_SIM_DATA
 #error havent implemented sensor reading yet, sue me
 #else
 int read_slow(struct slow_data *dat) {

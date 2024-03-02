@@ -259,10 +259,12 @@ static int cmd_phase(const struct shell *shell, size_t argc, char **argv) {
 static int cmd_useconds(const struct shell *shell, size_t argc, char **argv) {
   ARG_UNUSED(argc);
   ARG_UNUSED(argv);
-  uint64_t cycles = k_uptime_ticks();
+  uint64_t cycles = k_cycle_get_64();
   uint64_t us_since_boot = k_cyc_to_us_near64(cycles);
+  uint64_t s_since_boot = k_cyc_to_ms_near64(cycles);
 
-  shell_print(shell, "%llu microseconds since boot", cycles);
+  shell_print(shell, "%llu microseconds %llu ms %llu cyc since boot",
+              us_since_boot, s_since_boot, cycles);
 
   return 0;
 }
