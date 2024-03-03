@@ -15,5 +15,9 @@ void l_init_time(uint32_t time_of_day_ms) {
 }
 
 uint32_t l_get_time_of_day_ms(uint32_t current_uptime_ms) {
+    if (uptime_during_init_ms == 0) {
+        return 0;
+    }
+
     return time_of_day_ms + (current_uptime_ms - uptime_during_init_ms);
 }
