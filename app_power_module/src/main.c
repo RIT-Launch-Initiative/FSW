@@ -20,7 +20,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#define SENSOR_READ_STACK_SIZE (512)
+#define SENSOR_READ_STACK_SIZE (640)
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
 
@@ -107,7 +107,7 @@ static void ina_task(void *, void *, void *) {
     }
 
     while (true) {
-//        l_update_sensors_safe(sensors, 3, ina_device_found);
+        l_update_sensors_safe(sensors, 3, ina_device_found);
         if (likely(adc_ready)) {
             if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t * ) & vin_adc_data)) {
                 sensor_telemetry.vin_adc_data_mv = vin_adc_data;
