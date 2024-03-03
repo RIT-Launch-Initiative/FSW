@@ -13,6 +13,8 @@
 
 #include <stdint.h>
 
+#define CLASS_A_NETMASK "10.0.0.0"
+
 static const uint8_t MAX_IP_ADDRESS_STR_LEN = 16;
 static const uint8_t BACKPLANE_NETWORK_ID[2] = {192, 168};
 

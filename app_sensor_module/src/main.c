@@ -59,15 +59,15 @@ static void telemetry_processing_task(void *, void *, void *) {
             hundred_hz_telem_packed.lis3mdl.mag_y = hundred_hz_telem.lis3mdl.mag_y;
             hundred_hz_telem_packed.lis3mdl.mag_z = hundred_hz_telem.lis3mdl.mag_z;
 
-            l_send_udp_broadcast((uint8_t * ) & hundred_hz_telem_packed, sizeof(hundred_hz_telemetry_packed_t),
-                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
+//            l_send_udp_broadcast((uint8_t * ) & hundred_hz_telem_packed, sizeof(hundred_hz_telemetry_packed_t),
+//                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
         } else {
             LOG_WRN("Failed to get data from 100 Hz queue");
         }
 
         if (0 == k_msgq_get(&ten_hz_telemetry_queue, &ten_hz_telem, K_NO_WAIT)) {
-            l_send_udp_broadcast((uint8_t * ) & ten_hz_telem, sizeof(ten_hz_telemetry_t),
-                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
+//            l_send_udp_broadcast((uint8_t * ) & ten_hz_telem, sizeof(ten_hz_telemetry_t),
+//                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
         } else {
             LOG_WRN("Failed to get data from 10 Hz queue");
         }
