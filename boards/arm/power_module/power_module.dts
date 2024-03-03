@@ -17,8 +17,8 @@
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
 
-//        storage = &w25q128;
-//        logfs = &lfs1;
+        storage = &w25q128;
+        logfs = &lfs1;
     };
 
     aliases {
@@ -32,22 +32,22 @@
         compatible = "gpio-leds";
     };
 
-//    fstab {
-//        compatible = "zephyr,fstab";
-//
-//        lfs1: lfs1 {
-//            compatible = "zephyr,fstab,littlefs";
-//            mount-point = "/lfs";
-//            partition = <&external_storage_partition>;
-//            automount;
-//
-//            read-size = <16>;
-//            prog-size = <16>;
-//            cache-size = <64>;
-//            lookahead-size = <32>;
-//            block-cycles = <(90 * 1000)>;
-//        };
-//    };
+    fstab {
+        compatible = "zephyr,fstab";
+
+        lfs1: lfs1 {
+            compatible = "zephyr,fstab,littlefs";
+            mount-point = "/lfs";
+            partition = <&external_storage_partition>;
+            automount;
+
+            read-size = <16>;
+            prog-size = <16>;
+            cache-size = <64>;
+            lookahead-size = <32>;
+            block-cycles = <(90 * 1000)>;
+        };
+    };
 
     zephyr,user {
         io-channels = <&adc1 4>;
@@ -161,29 +161,29 @@
     pinctrl-names = "default";
     status = "okay";
 
-//    w25q128: w25q128jv@0 {
-//        compatible = "jedec,spi-nor";
-//        reg = <0>;
-//
-//        spi-max-frequency = <(10 * 1000 * 1000)>;
-//        size = <DT_SIZE_M(128)>;
-//        jedec-id = [ef 40 18];
-//
-//        has-dpd;
-//        t-enter-dpd = <(3 * 1000)>;
-//        t-exit-dpd = <(3 * 1000)>;
-//
-//        partitions {
-//            compatible = "fixed-partitions";
-//            #address-cells = <1>;
-//            #size-cells = <1>;
-//
-//            external_storage_partition: partition@0 {
-//                label = "w25q-storage";
-//                reg = <0 DT_SIZE_M(128)>;
-//            };
-//        };
-//    };
+    w25q128: w25q128jv@0 {
+        compatible = "jedec,spi-nor";
+        reg = <0>;
+
+        spi-max-frequency = <(10 * 1000 * 1000)>;
+        size = <DT_SIZE_M(128)>;
+        jedec-id = [ef 40 18];
+
+        has-dpd;
+        t-enter-dpd = <(3 * 1000)>;
+        t-exit-dpd = <(3 * 1000)>;
+
+        partitions {
+            compatible = "fixed-partitions";
+            #address-cells = <1>;
+            #size-cells = <1>;
+
+            external_storage_partition: partition@0 {
+                label = "w25q-storage";
+                reg = <0 DT_SIZE_M(128)>;
+            };
+        };
+    };
 };
 
 &rtc {
