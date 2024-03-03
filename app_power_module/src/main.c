@@ -24,6 +24,8 @@
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
 
+#define POWER_MOD_IP_ADDR "10.1.2.1" // TODO: Make this configurable
+
 LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
 
 static struct k_msgq ina_processing_queue;
@@ -164,14 +166,14 @@ static void init_networking() {
         return;
     }
 
-    int ret = l_init_udp_net_stack("192.168.144.80");
+    int ret = l_init_udp_net_stack(POWER_MOD_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
         return;
     }
 
     for (int i = 0; i < udp_socket_list.num_sockets; i++) {
-        udp_socket_list.sockets[i] = l_init_udp_socket("192.168.144.80", udp_socket_ports[i]);
+        udp_socket_list.sockets[i] = l_init_udp_socket(POWER_MOD_IP_ADDR, udp_socket_ports[i]);
         if (udp_socket_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
             return;
@@ -182,7 +184,7 @@ static void init_networking() {
 static void ina_queue_processing_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
     power_module_telemetry_packed_t packed_telemetry = {0};
-    int sock = l_init_udp_socket("192.168.144.80", POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+    int sock = udp_socket_list.sockets[0];
 
     while (true) {
         if (k_msgq_get(&ina_processing_queue, &sensor_telemetry, K_FOREVER)) {
