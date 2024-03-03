@@ -5,7 +5,6 @@
  */
 
 #include "power_module_defs.h"
-
 #include <launch_core/backplane_defs.h>
 
 #include <launch_core/dev/adc.h>
@@ -16,7 +15,7 @@
 #include <launch_core/net/udp.h>
 
 #include <zephyr/drivers/gpio.h>
-
+#include <zephyr/net/sntp.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -233,11 +232,13 @@ static int init(void) {
 
 
 int main(void) {
+    struct sntp_time time;
     if (init()) {
         return -1;
     }
 
     while (true) {
+        sntp_simple("10.0.0.0", 1000, &time);
         k_sleep(K_MSEC(100));
     }
 
