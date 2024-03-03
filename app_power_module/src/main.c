@@ -107,7 +107,7 @@ static void ina_task(void *, void *, void *) {
     }
 
     while (true) {
-        l_update_sensors_safe(sensors, 3, ina_device_found);
+//        l_update_sensors_safe(sensors, 3, ina_device_found);
         if (likely(adc_ready)) {
             if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t * ) & vin_adc_data)) {
                 sensor_telemetry.vin_adc_data_mv = vin_adc_data;
