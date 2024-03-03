@@ -46,7 +46,7 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 //static const struct gpio_dt_spec led_wiznet = GPIO_DT_SPEC_GET(DT_ALIAS(ledwiz), gpios);
 
 static int udp_sockets[1] = {0};
-static int udp_socket_ports[1] = {10000};
+static int udp_socket_ports[1] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
 static l_udp_socket_list_t udp_socket_list = {
         .sockets = udp_sockets,
         .num_sockets = 1
@@ -213,7 +213,6 @@ static void ina_queue_processing_task(void *, void *, void *) {
 }
 
 static int init(void) {
-//    char ip[MAX_IP_ADDRESS_STR_LEN];
     k_msgq_init(&ina_processing_queue, ina_processing_queue_buffer, sizeof(power_module_telemetry_t),
                 CONFIG_INA219_QUEUE_SIZE);
 
