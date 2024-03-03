@@ -20,9 +20,11 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#define SENSOR_READ_STACK_SIZE (512)
+#define SENSOR_READ_STACK_SIZE (640)
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
+
+#define POWER_MOD_IP_ADDR "10.1.2.1" // TODO: Make this configurable
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
 
@@ -44,7 +46,7 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 //static const struct gpio_dt_spec led_wiznet = GPIO_DT_SPEC_GET(DT_ALIAS(ledwiz), gpios);
 
 static int udp_sockets[1] = {0};
-static int udp_socket_ports[1] = {10000};
+static int udp_socket_ports[1] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
 static l_udp_socket_list_t udp_socket_list = {
         .sockets = udp_sockets,
         .num_sockets = 1
@@ -164,14 +166,14 @@ static void init_networking() {
         return;
     }
 
-    int ret = l_init_udp_net_stack("192.168.144.80");
+    int ret = l_init_udp_net_stack(POWER_MOD_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
         return;
     }
 
     for (int i = 0; i < udp_socket_list.num_sockets; i++) {
-        udp_socket_list.sockets[i] = l_init_udp_socket("192.168.144.80", udp_socket_ports[i]);
+        udp_socket_list.sockets[i] = l_init_udp_socket(POWER_MOD_IP_ADDR, udp_socket_ports[i]);
         if (udp_socket_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
             return;
@@ -182,7 +184,7 @@ static void init_networking() {
 static void ina_queue_processing_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
     power_module_telemetry_packed_t packed_telemetry = {0};
-    int sock = l_init_udp_socket("192.168.144.80", POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+    int sock = udp_socket_list.sockets[0];
 
     while (true) {
         if (k_msgq_get(&ina_processing_queue, &sensor_telemetry, K_FOREVER)) {
@@ -211,7 +213,6 @@ static void ina_queue_processing_task(void *, void *, void *) {
 }
 
 static int init(void) {
-//    char ip[MAX_IP_ADDRESS_STR_LEN];
     k_msgq_init(&ina_processing_queue, ina_processing_queue_buffer, sizeof(power_module_telemetry_t),
                 CONFIG_INA219_QUEUE_SIZE);
 

@@ -45,7 +45,6 @@ int l_update_sensors_safe(const struct device *const *devs, int num_devs, const 
     return 0;
 }
 
-
 int l_get_sensor_data(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                       struct sensor_value **values) {
     for (int i = 0; i < num_channels; i++) {
