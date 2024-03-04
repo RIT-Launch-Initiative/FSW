@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-//LOG_MODULE_REGISTER(sntp_utils);
+LOG_MODULE_REGISTER(sntp_utils);
 
 void l_sntp_client_init(const char *server_ip, k_tid_t sntp_thread_id) {
 

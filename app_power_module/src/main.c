@@ -29,7 +29,6 @@
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
 
-L_SNTP_CLIENT_SETUP;
 
 static struct k_msgq ina_processing_queue;
 static uint8_t ina_processing_queue_buffer[CONFIG_INA219_QUEUE_SIZE * sizeof(power_module_telemetry_t)];
