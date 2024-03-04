@@ -42,7 +42,7 @@ void l_sntp_start_client_thread(const char *server_ip, uint64_t timeout_ms) {
     static struct k_thread sntp_thread;
 
     k_tid_t sntp_thread_id = k_thread_create(&sntp_thread, sntp_thread_stack, SNTP_CLIENT_STACK_SIZE,
-                                          l_sntp_client_thread, (void *) server_ip, POINTER_TO_UINT(timeout_ms), NULL,
+                                          l_sntp_client_thread, (void *) server_ip, UINT_TO_POINTER(timeout_ms), NULL,
                                           0, 0, K_NO_WAIT);
     k_thread_start(sntp_thread_id);
 }
