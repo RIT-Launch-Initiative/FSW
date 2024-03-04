@@ -12,6 +12,8 @@
 #ifndef L_TIME_H
 #define L_TIME_H
 
+#include <stdint.h>
+
 /**
  * Set the time of day in milliseconds
  * @param time_of_day_ms - Time of day in milliseconds

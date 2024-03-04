@@ -1,7 +1,9 @@
 #ifndef L_SNTP_UTILS_H
 #define L_SNTP_UTILS_H
 
-#include <sntp.h>
+#include <stdint.h>
+#include <zephyr/kernel.h>
+
 
 /**
  * Initialize an SNTP client
@@ -11,10 +13,10 @@
 void l_sntp_client_init(const char *server_ip, k_tid_t sntp_thread_id);
 
 /**
- * Thread for updating system time from an SNTP server
+ * Start an SNTP client thread that will stop once the time has been updated
  * @param server_ip - IP address of the (S)NTP server
- * @param current_time - Pointer to the current time
+ * @param update_interval_ms - Interval between updates in milliseconds
  */
-void l_sntp_client_thread(void *server_ip, void *current_time, void *);
+void l_sntp_start_client_thread(const char *server_ip, uint32_t update_interval_ms, struct k_thread_t *sntp_thread, k_thread_stack_t *sntp_thread_stack) {
 
 #endif // L_SNTP_UTILS_H
