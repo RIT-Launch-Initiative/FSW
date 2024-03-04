@@ -32,10 +32,6 @@ static void l_sntp_client_thread(void *p_server_ip, void *timeout, void *) {
     LOG_INF("SNTP client thread finished. Time of day: %u", l_get_time_of_day_ms(k_uptime_get_32()));
 }
 
-void l_sntp_client_init(const char *server_ip, k_tid_t sntp_thread_id) {
-
-}
-
 void l_sntp_start_client_thread(const char *server_ip, uint64_t timeout_ms) {
     // TODO: Dynamically allocate the stack and have a callback to free it
     static K_THREAD_STACK_DEFINE(sntp_thread_stack, SNTP_CLIENT_STACK_SIZE);
