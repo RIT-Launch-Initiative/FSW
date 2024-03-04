@@ -181,6 +181,8 @@ static void init_networking() {
             return;
         }
     }
+
+    l_sntp_start_client_thread("10.0.0.0", 1000);
 }
 
 static void ina_queue_processing_task(void *, void *, void *) {
@@ -235,13 +237,11 @@ static int init(void) {
 
 
 int main(void) {
-    struct sntp_time time;
     if (init()) {
         return -1;
     }
 
     while (true) {
-        sntp_simple("10.0.0.0", 1000, &time);
         k_sleep(K_MSEC(100));
     }
 

@@ -5,6 +5,7 @@
  */
 
 #include <launch_core/os/time.h>
+#include <zephyr/kernel.h>
 
 static uint32_t time_of_day_ms = 0;
 static uint32_t uptime_during_init_ms = 0;
