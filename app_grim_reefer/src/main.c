@@ -19,22 +19,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 #endif
 
-// devicetree gets
-#define LED1_NODE DT_NODELABEL(redled)
-#define LED2_NODE DT_NODELABEL(anotherled)
-
-const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
-const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
-
-#define LDO_EN_NODE DT_NODELABEL(ldo_enable)
-#define CAM_EN_NODE DT_NODELABEL(cam_enable)
-
-const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
-const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
-
-#define FLASH_NODE DT_ALIAS(storage)
-const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
-
 static int init(void) { return 0; }
 // Did you break device tree
 #if !DT_NODE_EXISTS(DT_ALIAS(my_adc))
@@ -68,7 +52,7 @@ static const struct device *get_adc(void) {
     return NULL;
   }
 
-  printk("Found device \"%s\", getting sensor data\n", dev->name);
+  printk("Found device \"%s\"", dev->name);
   return dev;
 }
 
@@ -83,11 +67,8 @@ int main(void) {
     return 0;
   }
 
-  struct sensor_value volts;
   // Won't run if initializing the network stack failed
   while (true) {
-    sensor_sample_fetch(dev);
-    sensor_channel_get(dev, SENSOR_CHAN_VOLTAGE, &volts);
 
     k_sleep(K_MSEC(100));
   }
