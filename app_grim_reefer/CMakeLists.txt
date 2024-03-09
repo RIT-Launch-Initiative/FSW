@@ -1,9 +1,3 @@
-#-------------------------------------------------------------------------------
-# Backplane Power Module Application
-#
-# Copyright (c) 2023 Aaron Chan
-# SPDX-License-Identifier: Apache-2.0
-
 set(BOARD grim_reefer)
 set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 

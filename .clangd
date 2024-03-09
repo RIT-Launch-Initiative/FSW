@@ -2,6 +2,7 @@ CBasedOnStyle: Google
 AlignAfterOpenBracket: Align
 AlignTrailingComments: 'true'
 AllowShortLoopsOnASingleLine: 'true'
-ompileFlags:
+TabWidth: '4'
+CompileFlags:
   Add: -Wno-unknown-warning-option
   Remove: [-m*, -f*]

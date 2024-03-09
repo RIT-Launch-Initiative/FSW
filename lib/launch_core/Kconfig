@@ -1,7 +1,35 @@
-# Copyright (c) 2021, Legrand North America, LLC.
+# Copyright (c) 2024 Aaron Chan
 # SPDX-License-Identifier: Apache-2.0
 
 config LAUNCH_CORE
-	bool "Launch Core Support"
+    bool "Launch Core"
+    help
+      This option enables core functionality for all flight software
+
+config LAUNCH_CORE_DEVICE
+    bool "Helper functionality for Device"
+    depends on DEVICE
+    help
+      This option enables core functionality for device drivers
+
+config LAUNCH_CORE_NET
+    bool "Helper functionality for Networking"
+    select CONFIG_SYS_HASH_MAP
+    select CONFIG_SYS_HASH_FUNC32
+    help
+      This option enables core functionality for Networking.
+
+config LAUNCH_CORE_LORA
+	bool "Helper functionality for LoRa"
+	select LORA
+	select LORA_SX127X
 	help
-	  This option enables core functionality for launch software
+	  This option enables core functionality for LoRa.
+
+config LAUNCH_CORE_FS
+    bool "Helper functionality for File System"
+    depends on FS_LITTLEFS
+    help
+      This option enables core functionality for the File System.
+
+

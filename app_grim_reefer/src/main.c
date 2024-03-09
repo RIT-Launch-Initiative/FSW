@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Aaron Chan
+ * Copyright (c) 2023 Richie Sommers
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -12,7 +12,28 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+#ifdef BOARD_GRIM_REEFER
+LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
+#else
+#define CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG 1
+LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
+#endif
+
+// devicetree gets
+#define LED1_NODE DT_NODELABEL(redled)
+#define LED2_NODE DT_NODELABEL(anotherled)
+
+const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
+
+#define LDO_EN_NODE DT_NODELABEL(ldo_enable)
+#define CAM_EN_NODE DT_NODELABEL(cam_enable)
+
+const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
+const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
+
+#define FLASH_NODE DT_ALIAS(storage)
+const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
 
 static int init(void) { return 0; }
 // Did you break device tree

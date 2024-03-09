@@ -4,18 +4,29 @@ all:
 flash:
 	west flash
 
-nucleo:
-	west build -b nucleo_f446re app -DSHIELD=launch_mikroe -p
-
+# Modules
 power:
-	west build -b power_module app_power_module -p auto 
+	west build -b power_module@2 app_power_module -p auto -DOVERLAY_CONFIG=debug.conf
 
 radio:
-	west build -b radio_module app_radio_module -p auto 
+	west build -b radio_module app_radio_module -p auto -DOVERLAY_CONFIG=debug.conf
 
 sensor:
-	west build -b sensor_module app_sensor_module -p auto 
+	west build -b sensor_module app_sensor_module -p auto -DOVERLAY_CONFIG=debug.conf
+
+# Extension boards
+potato:
+	west build -b potato app_potato -p auto -DOVERLAY_CONFIG=debug.conf
+
+reefer:
+	west build -b grim_reefer app_grim_reefer -p auto -DOVERLAY_CONFIG=debug.conf
+
+
+clean:
+	rm -rf build
 
 reefer:
 	west build -b grim_reefer app_grim_reefer -p auto 
 
+sim_reefer:
+	west build app_grim_reefer -b native_sim -p auto -- -DOVERLAY_CONFIG=boards/native_sim.conf
