@@ -69,6 +69,10 @@
         osr = "OSR_32";
         #io-channel-cells = <1>;
         spi-max-frequency = <DT_FREQ_M(20)>; // pg. 12, Table 1.1 20MHz
+
+        chan1: channel1@0 {
+            reg = <0>;
+        };
     };
     w25q128: w25q128jv@1 {
         status = "okay";
