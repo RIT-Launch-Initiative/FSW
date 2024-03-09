@@ -42,7 +42,7 @@
 #define DATA_ADC_FILEPATH "/lfs/adc.bin"
 
 // Thread stuff
-#define DATA_STORAGE_STACK_SIZE 8192
+#define DATA_STORAGE_STACK_SIZE (4096 * 4)
 #define DATA_STORAGE_PRIORITY 5
 
 #define ADC_STACK_SIZE 500

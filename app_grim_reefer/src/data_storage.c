@@ -22,7 +22,8 @@ int data_writing_thread(void *, void *, void *) {
   // Open Files (unless LFS_NO_ALLOC is set, this will allocate caches according
   // to the fstab in the board device tree)
   LOG_INF("opening data files");
-  int ret;
+  int ret = 0;
+
   fs_file_t_init(&adc_file);
   ret = fs_open(&adc_file, DATA_ADC_FILEPATH, FS_O_CREATE | FS_O_RDWR);
   if (ret < 0) {
@@ -59,34 +60,40 @@ int data_writing_thread(void *, void *, void *) {
     // save data
     int queue_ret;
 
-    // adc data
-    queue_ret = k_msgq_get(&adc_data_queue, &adc_data_local, K_NO_WAIT);
-    if (queue_ret == 0) {
-      // write data
-      ret = fs_write(&adc_file, &adc_data_local, sizeof(adc_data_local));
-      if (ret < 0) {
-        LOG_ERR("error writing adc file");
-      }
-    }
-
     // fast data
     queue_ret = k_msgq_get(&fast_data_queue, &fast_data_local, K_NO_WAIT);
     if (queue_ret == 0) {
       // write data
+      printk("writing fast %d\n", sizeof(fast_data_local));
       ret = fs_write(&fast_file, &fast_data_local, sizeof(fast_data_local));
       if (ret < 0) {
         LOG_ERR("error writing fast file");
       }
+      printk("fast wrote %d\n", ret);
+    }
+
+    // adc data
+    queue_ret = k_msgq_get(&adc_data_queue, &adc_data_local, K_NO_WAIT);
+    if (queue_ret == 0) {
+      // write data
+      printk("writing adc %d\n", sizeof(adc_data_local));
+      ret = fs_write(&adc_file, &adc_data_local, sizeof(adc_data_local));
+      if (ret < 0) {
+        LOG_ERR("error writing adc file");
+      }
+      printk("adc wrote %d\n", ret);
     }
 
     // slow data
     queue_ret = k_msgq_get(&slow_data_queue, &slow_dat_local, K_NO_WAIT);
     if (queue_ret == 0) {
       // write data
+      printk("writing slow %d\n", sizeof(slow_dat_local));
       ret = fs_write(&slow_file, &slow_dat_local, sizeof(slow_dat_local));
       if (ret < 0) {
         LOG_ERR("error writing slow file");
       }
+      printk("slow wrote %d\n", ret);
     }
 
     k_usleep(1);
