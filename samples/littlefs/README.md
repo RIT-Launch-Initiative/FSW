@@ -25,8 +25,13 @@ both of these from the node's label. Otherwise, each filesystem provides
 `DECLARE_CUSTOM_CONFIG` macros to create this structure, and then the mount
 point contains a pointer to that structure.
 
+# Shell
+After all of the sample code finishes executing, the shell opens. The commands
+are documented in the shell sample documentation.
+
 # References:
 - [LittleFS sample](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/subsys/fs/littlefs)
+- [FS shell sample](https://docs.zephyrproject.org/latest/samples/subsys/shell/fs/README.html)
 - [FSTAB binding](https://docs.zephyrproject.org/latest/build/dts/api/bindings/fs/zephyr,fstab,littlefs.html)
 - [JEDEC NOR-SPI bindings](https://docs.zephyrproject.org/latest/build/dts/api/bindings/mtd/jedec%2Cspi-nor.html#std-dtcompatible-jedec-spi-nor)
 - [Errno values](https://docs.zephyrproject.org/apidoc/latest/group__system__errno.html)
