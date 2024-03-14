@@ -1,8 +1,0 @@
-mainmenu "Data logging MWE"
-
-config CLEAR_STORAGE_PARTITION
-	bool "Clear the flash area before mounting"
-	help
-		Use this to force file system rebuild
-
-source "Kconfig.zephyr"
