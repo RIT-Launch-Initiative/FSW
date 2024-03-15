@@ -6,5 +6,5 @@ set(SHIELD launch_mikroe)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(sample_logging LANGUAGES CXX)
 
-FILE(GLOB app_sources src/*.cpp)
+FILE(GLOB app_sources src/*.cpp ../../lib/launch_core/os/Logger.cpp)
 target_sources(app PRIVATE ${app_sources})

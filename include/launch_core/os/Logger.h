@@ -1,49 +1,45 @@
-
 #ifndef LOGGER_H
 #define LOGGER_H
+
 #include <string.h>
 #include <zephyr/kernel.h>
 #include <zephyr/fs/fs.h>
 #include <zephyr/logging/log.h>
 
-#define ENOTINIT 200
-
-/** FS_O_READ open for read
- * FS_O_WRITE open for write
- * FS_O_RDWR open for read/write (FS_O_READ | FS_O_WRITE)
- * FS_O_CREATE create file if it does not exist
- * FS_O_APPEND move to end of file before each write
- */
+#define ENOTINIT 200 // device not initialized
 
 enum log_mode {
-	SLOG_INFINITE,
-	SLOG_STOP,
+	SLOG_ONCE,
 	SLOG_CIRC
 };
 
 class SensorLogger {
-public:
+	/*
+	 * Convenience class to log fixed-width sensor data
+	 * One of the constructor's arguments is the logging mode
+	 * For "once", write() returns -ENOSPC at the configured size and 
+	 * For "circ", write() wraps around to the start and never ends
+	 */
 
-	SensorLogger(char* fname, size_t sample_width, enum log_mode mode, size_t max_size = 0);
+public:
+	SensorLogger(char* fname, size_t sample_width, size_t max_size, enum log_mode mode);
 
 	int32_t init(void);
-
 	int32_t write(uint8_t* src);
+	int32_t read(uint8_t* dst, size_t idx);
 
-	int32_t read(size_t idx, uint8_t* dst);
+	// constructed with these
+	const char* m_fname;
+	const size_t m_width;
+	const size_t m_size;
+	const enum log_mode m_mode;
 
 protected:
 	int32_t stat(void);
 	int32_t stat_vfs(void);
 
-	// constructed with these members
-	bool m_initalized = false;
-	char* m_fname;
-	size_t m_width;
-	enum log_mode m_mode;
-	size_t m_size;
-
 	// runtime variables
+	bool m_initalized = false;
 	struct fs_file_t m_file;
 	struct fs_dirent m_dirent;
 	struct fs_statvfs m_vfs;

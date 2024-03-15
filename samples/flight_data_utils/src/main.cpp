@@ -1,4 +1,5 @@
 #include "zephyr/fs/fs_interface.h"
+#include <cstdint>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -26,17 +27,23 @@ const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
 const struct device* const flash = DEVICE_DT_GET(FLASH_NODE);
 const struct device* const mag = DEVICE_DT_GET(MAG_NODE);
 
-struct sensor_value mag_val[3];
+struct txyz {
+	int32_t time;
+	struct sensor_value xyz[3];
+};
+struct txyz mag_val;
+char once_path[] = "/lfs/once";
+char circ_path[] = "/lfs/circ";
+char bc_path[] = "/lfs/boot_count";
+#define N_SAMPLES 100
 
-char mag_path[] = "/lfs/mag";
-char bootcount_path[] = "/lfs/boot_count";
-SensorLogger inf_logger{mag_path, sizeof(mag_val), SLOG_INFINITE};
+SensorLogger once_logger{once_path, sizeof(mag_val), sizeof(mag_val) * N_SAMPLES, SLOG_ONCE};
+SensorLogger circ_logger{circ_path, sizeof(mag_val), sizeof(mag_val) * N_SAMPLES, SLOG_CIRC};
 
 int32_t increment_file_int32(char* fname, int32_t* count) {
 	int32_t ret;
 	int32_t close_ret;
 	struct fs_file_t file;
-
 
 	// prepare file for usage
 	fs_file_t_init(&file);
@@ -77,14 +84,15 @@ exit:
 	return ret;
 }
 
-void print_mag(struct sensor_value* val) {
-	LOG_PRINTK("X: %f\tY: %f\tZ: %f\n", 
-			sensor_value_to_double(val), 
-			sensor_value_to_double(val + 1), 
-			sensor_value_to_double(val + 2));
+void print_mag_val() {
+	LOG_PRINTK("T: %d ct\tX: %5f ga\tY: %5f ga\tZ: %5f ga\n",
+			mag_val.time, 
+			sensor_value_to_double(mag_val.xyz),
+			sensor_value_to_double(mag_val.xyz + 1),
+			sensor_value_to_double(mag_val.xyz + 2));
 }
 
-int32_t read_mag(struct sensor_value* val) {
+int32_t read_mag(struct txyz* val) {
 	int32_t ret = 0;
 
 	ret = sensor_sample_fetch(mag);
@@ -93,41 +101,15 @@ int32_t read_mag(struct sensor_value* val) {
 		return ret;
 	}
 
-	ret = sensor_channel_get(mag, SENSOR_CHAN_MAGN_XYZ, val);
+	val->time = k_uptime_ticks();
+
+	ret = sensor_channel_get(mag, SENSOR_CHAN_MAGN_XYZ, val->xyz);
 	if (ret < 0) {
 		LOG_ERR("Unable to read sensor channel: %d\n", ret);
 		return ret;
 	}
-
-	print_mag(val);
 	
 	return 0;
-}
-
-void log_mag(struct sensor_value* val) {
-	int32_t ret = 0;
-
-	ret = inf_logger.write(reinterpret_cast<uint8_t *>(val));
-
-	if (ret < 0) {
-		LOG_ERR("Failed to write flight data: %d", ret);
-	}
-}
-
-void mag_task(void) {
-	int n_loops = 0;
-	while(n_loops++ < 1000*60) {
-		read_mag(mag_val);
-		k_msleep(1);
-	}
-}
-
-void log_task(void) {
-	int n_loops = 0;
-	while(n_loops++ < 1000*60) {
-		log_mag(mag_val);
-		k_msleep(1);
-	}
 }
 
 int main(void) {
@@ -157,17 +139,50 @@ int main(void) {
 		return -1;
 	}
 
-	ret = inf_logger.init();
+	ret = once_logger.init();
 	if (ret < 0) {
-		LOG_ERR("Failed to initialize logger: %d\n", ret);
+		LOG_ERR("Failed to initialize oneshot logger: %d", ret);
 		return ret;
 	}
 
-	ret = increment_file_int32(bootcount_path, &boot_counter);
+	ret = circ_logger.init();
+	if (ret < 0) {
+		LOG_ERR("Failed to initialize circular logger: %d", ret);
+		return ret;
+	}
+
+	ret = increment_file_int32(bc_path, &boot_counter);
 	if (ret >= 0) {
-		LOG_ERR("Successfully read and updated boot counter: %d boots\n", boot_counter);
+		LOG_INF("Successfully read and updated boot counter: %d boots", boot_counter);
 	} else {
-		LOG_ERR("Failed to read file\n");
+		LOG_ERR("Failed to read file");
+	}
+
+	int32_t once_status = 0;
+	int32_t circ_status = 0;
+	uint32_t now = k_uptime_ticks();
+	while (k_uptime_ticks() < (now + CONFIG_SYS_CLOCK_TICKS_PER_SEC * 10)) {
+		ret = read_mag(&mag_val);
+		if (ret < 0) {
+			continue;
+		}
+		if (once_status >= 0) {
+			once_status = once_logger.write((uint8_t*) &mag_val);
+		}
+		if (circ_status >= 0) {
+			circ_status = circ_logger.write((uint8_t*) &mag_val);
+		}
+	}
+
+	LOG_INF("Printing once-logged values:");
+	for (size_t i = 0; i < N_SAMPLES; i++) {
+		once_logger.read((uint8_t*) &mag_val, i);
+		print_mag_val();
+	}
+	LOG_INF("Printing circular-logged values:");
+	for (size_t i = 0; i < N_SAMPLES; i++) {
+		circ_logger.read((uint8_t*) &mag_val, i);
+		print_mag_val();
 	}
 
 	// forever
@@ -178,7 +193,3 @@ int main(void) {
 	}
 	return 0;
 }
-
-#define STACKSIZE 1024
-K_THREAD_DEFINE(mag_task_id, STACKSIZE, mag_task, NULL, NULL, NULL, 7, 0, 0);
-K_THREAD_DEFINE(log_task_id, STACKSIZE, log_task, NULL, NULL, NULL, 7, 0, 0);
