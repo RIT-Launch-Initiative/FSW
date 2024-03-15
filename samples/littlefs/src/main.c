@@ -205,9 +205,17 @@ void write_test_pattern(char* fname) {
 	}
 	
 	// not ret-checking the rest, because if open() worked the rest probably do
+	fs_truncate(&file, sizeof(test_pattern));
 	fs_write(&file, (void*) test_pattern, sizeof(test_pattern));
 	
+	LOG_INF("File and filesystem info:");
 	print_tell(&file);
+	print_statvfs(fname);
+
+	fs_truncate(&file, 2 * sizeof(test_pattern));
+	LOG_INF("File and filesystem info after expansion:");
+	print_tell(&file);
+	print_stat(fname);
 	print_statvfs(fname);
 	
 	fs_close(&file);

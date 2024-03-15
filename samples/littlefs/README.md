@@ -7,6 +7,7 @@
 - Creating fixed-partitions to mount different filesystems to
 - Creating filesystems in code, in tree, and auto-mounted in tree.
 - Incrementing a boot counter and writing and reading a test pattern
+- Shrinking and expanding a file
 - Kconfig options to enable the filesystem shell
 
 # Making a filesystem
@@ -29,7 +30,8 @@ mount point structure, which has a pointer to the data as one of its members. If
 a filesystem is created in-tree under `fstab`, `FS_FSTAB_DECLARE_ENTRY` creates
 both of these from the node's label. Otherwise, each filesystem provides
 `DECLARE_CUSTOM_CONFIG` macros to create this structure, and then the mount
-point contains a pointer to that structure.
+point contains a pointer to that structure. Then `fs_mount_t` takes in a mount
+point structure and mounts the filesystem.
 
 # Shell
 After all of the sample code finishes executing, the shell opens. The commands
