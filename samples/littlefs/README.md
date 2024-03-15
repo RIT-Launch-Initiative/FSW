@@ -3,6 +3,12 @@
 - Launch Mikroe Click Shield
 - W25Q128JV, connected to the shield's SPI with CS1
 
+# Demonstrates
+- Creating fixed-partitions to mount different filesystems to
+- Creating filesystems in code, in tree, and auto-mounted in tree.
+- Incrementing a boot counter and writing and reading a test pattern
+- Kconfig options to enable the filesystem shell
+
 # Making a filesystem
 First, declare the filesystem's parameters:
 
