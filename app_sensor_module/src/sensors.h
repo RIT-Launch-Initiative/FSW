@@ -1,3 +1,4 @@
+#include <zephyr/drivers/sensor.h>
 #ifndef SENSORS_H_
 #define SENSORS_H_
 
@@ -28,7 +29,6 @@ typedef struct __attribute__((packed)) {
 
     l_magnetometer_data_packed_t lis3mdl;
 } hundred_hz_telemetry_packed_t;
-
 
 #endif // !SENSORS_H_
 
