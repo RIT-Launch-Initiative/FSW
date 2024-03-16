@@ -16,10 +16,8 @@ board:
     toolchain:
     - zephyr
     - gnuarmemb
-    - xtools
     supported:
     - gpio
     - spi
     - i2c
-    - can
     - backup_sram

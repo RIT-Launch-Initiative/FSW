@@ -97,6 +97,12 @@
     pinctrl-names = "default";
     current-speed = <115200>;
     status = "okay";
+
+    modbus0 {
+        compatible = "zephyr,modbus-serial";
+        status = "okay";
+        de-gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+    };
 };
 
 &spi1 {
