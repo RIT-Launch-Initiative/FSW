@@ -1,7 +1,6 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <string.h>
 #include <zephyr/kernel.h>
 #include <zephyr/fs/fs.h>
 #include <zephyr/logging/log.h>
@@ -22,23 +21,25 @@ class SensorLogger {
 	 */
 
 public:
-	SensorLogger(char* fname, size_t sample_width, size_t max_size, enum log_mode mode);
+	SensorLogger(char* fname, size_t sample_width, size_t n_samples, enum log_mode mode);
 
 	int32_t init(void);
+	int32_t open(void);
+	int32_t close(void);
 	int32_t write(uint8_t* src);
 	int32_t read(uint8_t* dst, size_t idx);
-
-	// constructed with these
-	const char* m_fname;
-	const size_t m_width;
-	const size_t m_size;
-	const enum log_mode m_mode;
-
+	int32_t file_size();
+	int32_t volume_free_space();
+	
 protected:
 	int32_t stat(void);
 	int32_t stat_vfs(void);
 
-	// runtime variables
+	const char* m_fname;
+	const size_t m_width;
+	const enum log_mode m_mode;
+
+	const size_t m_size;
 	bool m_initalized = false;
 	struct fs_file_t m_file;
 	struct fs_dirent m_dirent;

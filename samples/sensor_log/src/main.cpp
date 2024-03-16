@@ -1,5 +1,3 @@
-#include "zephyr/fs/fs_interface.h"
-#include <cstdint>
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -31,14 +29,34 @@ struct txyz {
 	int32_t time;
 	struct sensor_value xyz[3];
 };
-struct txyz mag_val;
-char once_path[] = "/lfs/once";
-char circ_path[] = "/lfs/circ";
-char bc_path[] = "/lfs/boot_count";
-#define N_SAMPLES 100
 
-SensorLogger once_logger{once_path, sizeof(mag_val), sizeof(mag_val) * N_SAMPLES, SLOG_ONCE};
-SensorLogger circ_logger{circ_path, sizeof(mag_val), sizeof(mag_val) * N_SAMPLES, SLOG_CIRC};
+char bc_path[] = "/lfs/boot_count";
+
+char boost_samples_path[] = "/lfs/boost";
+char flight_samples_path[] = "/lfs/flight";
+char too_big_path[] = "/lfs/throwaway";
+#define N_CIRC_SAMPLES 100
+#define N_ONCE_SAMPLES 300
+
+SensorLogger detect_buffer{
+	boost_samples_path, 
+	sizeof(struct txyz), 
+	N_CIRC_SAMPLES, 
+	SLOG_CIRC};
+
+SensorLogger flight_log{
+	flight_samples_path,
+	sizeof(struct txyz),
+	N_ONCE_SAMPLES,
+	SLOG_ONCE};
+
+// "too-big" 
+/* SensorLogger too_big_logger{
+	too_big_path,
+	sizeof(struct txyz),
+	1024 * 1024,
+	SLOG_ONCE
+}; */
 
 int32_t increment_file_int32(char* fname, int32_t* count) {
 	int32_t ret;
@@ -84,12 +102,12 @@ exit:
 	return ret;
 }
 
-void print_mag_val() {
+void print_mag_val(struct txyz* val) {
 	LOG_PRINTK("T: %d ct\tX: %5f ga\tY: %5f ga\tZ: %5f ga\n",
-			mag_val.time, 
-			sensor_value_to_double(mag_val.xyz),
-			sensor_value_to_double(mag_val.xyz + 1),
-			sensor_value_to_double(mag_val.xyz + 2));
+			val->time, 
+			sensor_value_to_double(val->xyz),
+			sensor_value_to_double(val->xyz + 1),
+			sensor_value_to_double(val->xyz + 2));
 }
 
 int32_t read_mag(struct txyz* val) {
@@ -112,9 +130,84 @@ int32_t read_mag(struct txyz* val) {
 	return 0;
 }
 
+int32_t log_routine(void) {
+	int32_t ret = 0;
+	int32_t now = k_uptime_ticks();
+	int32_t end = now + 
+		CONFIG_SENSOR_LOG_DURATION * CONFIG_SYS_CLOCK_TICKS_PER_SEC;
+	struct txyz sample;
+
+	ret = detect_buffer.init();
+	if (ret < 0) {
+		LOG_ERR("Unable to initialize detection circular buffer: %d", ret);
+		return ret;
+	}
+	ret = flight_log.init();
+	if (ret < 0) {
+		LOG_ERR("Unable to initialize flight buffer: %d", ret);
+		return ret;
+	}
+
+	// Look for a large magnetic field for CONFIG... seconds
+	while (k_uptime_ticks() < end) { 
+		ret = read_mag(&sample);
+		if (ret < 0) {
+			LOG_ERR("Failed to read from magnetometer");
+			return ret;
+		}
+
+		ret = detect_buffer.write((uint8_t*) &sample);
+		if (ret < 0) {
+			LOG_ERR("Failed to write sample");
+			return ret;
+		}
+
+		if (abs(sample.xyz[2].val1) > 3) { // mag_z is large
+			break;
+		}
+		k_msleep(10);
+	}
+	if (ret < 0) {
+		return ret;
+	}
+
+	// flight_log errors when out of space
+	while (1) {
+		ret = read_mag(&sample);
+		if (ret < 0) {
+			LOG_ERR("Failed to read from magnetometer: %d", ret);
+			return ret;
+		}
+
+		ret = flight_log.write((uint8_t*) &sample);
+		if (-ENOSPC == ret) {
+			break;
+		} else if (ret < 0) {
+			return ret;
+		}
+		k_msleep(10);
+	}
+	
+	LOG_INF("Printing detection buffer");
+	// print logged values
+	for (off_t i = 0; i < N_CIRC_SAMPLES; i++) {
+		detect_buffer.read((uint8_t*) &sample, i);
+		print_mag_val(&sample);
+	}
+
+
+	LOG_INF("Printing flight buffer");
+	for (off_t i = 0; i < N_ONCE_SAMPLES; i++) {
+		flight_log.read((uint8_t*) &sample, i);
+		print_mag_val(&sample);
+	}
+
+	LOG_INF("Verify that the flight buffer's timer counts pick up where the detection buffer ends.");
+	return ret;
+}
+
 int main(void) {
 	int32_t ret = 0;
-	// struct sensor_value mag_field[3];
 
 	int32_t boot_counter = -1;
 
@@ -139,18 +232,6 @@ int main(void) {
 		return -1;
 	}
 
-	ret = once_logger.init();
-	if (ret < 0) {
-		LOG_ERR("Failed to initialize oneshot logger: %d", ret);
-		return ret;
-	}
-
-	ret = circ_logger.init();
-	if (ret < 0) {
-		LOG_ERR("Failed to initialize circular logger: %d", ret);
-		return ret;
-	}
-
 	ret = increment_file_int32(bc_path, &boot_counter);
 	if (ret >= 0) {
 		LOG_INF("Successfully read and updated boot counter: %d boots", boot_counter);
@@ -158,34 +239,17 @@ int main(void) {
 		LOG_ERR("Failed to read file");
 	}
 
-	int32_t once_status = 0;
-	int32_t circ_status = 0;
-	uint32_t now = k_uptime_ticks();
-	while (k_uptime_ticks() < (now + CONFIG_SYS_CLOCK_TICKS_PER_SEC * 10)) {
-		ret = read_mag(&mag_val);
-		if (ret < 0) {
-			continue;
-		}
-		if (once_status >= 0) {
-			once_status = once_logger.write((uint8_t*) &mag_val);
-		}
-		if (circ_status >= 0) {
-			circ_status = circ_logger.write((uint8_t*) &mag_val);
-		}
-	}
+	/* ret = too_big_logger.init();
+	if (ret == -ENOSPC) {
+		LOG_INF("Logger did not have enough space to initialize");
+		LOG_INF("Bad file is size %d", too_big_logger.file_size());
+	} else if (ret < 0) {
+		LOG_ERR("Other error: %d", ret);
+	} else {
+		LOG_ERR("Error expected but none recieved");
+	} */
 
-	LOG_INF("Printing once-logged values:");
-	for (size_t i = 0; i < N_SAMPLES; i++) {
-		once_logger.read((uint8_t*) &mag_val, i);
-		print_mag_val();
-	}
-	LOG_INF("Printing circular-logged values:");
-	for (size_t i = 0; i < N_SAMPLES; i++) {
-		circ_logger.read((uint8_t*) &mag_val, i);
-		print_mag_val();
-	}
-
-	// forever
+	log_routine();
 	// just proves that the thing is alive
 	while(1) {
 		gpio_pin_toggle_dt(&led);

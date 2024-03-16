@@ -4,13 +4,12 @@
 - LIS3MDL, connected to the shield's I2C
 - W25Q128JV, connected to the shield's SPI with CS1
 
-# Current state
-- Able to use filesystem to read a boot counter
-- Figured out necessary kconfig and devicetree entries
+# Demonstrates
+- Using a sensor logger in circular mode 
+- Using a threshold to start logging in once-mode
 
-# References:
-- [LIS3MDL Kconfig options](https://docs.zephyrproject.org/latest/kconfig.html#!CONFIG_LIS3MDL)
-- [JEDEC NOR-SPI bindings](https://docs.zephyrproject.org/latest/build/dts/api/bindings/mtd/jedec%2Cspi-nor.html#std-dtcompatible-jedec-spi-nor)
-- [LittleFS sample](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/subsys/fs/littlefs)
-- [FSTAB binding](https://docs.zephyrproject.org/latest/build/dts/api/bindings/fs/zephyr,fstab,littlefs.html)
-- [Errno values](https://docs.zephyrproject.org/apidoc/latest/group__system__errno.html)
+# Known issues
+- Can't pre-allocate the file to check whether there is enough space, and
+  growing a file appears to be quadratic. `fs_truncate` is very slow (5m36s to
+  fill up the chip), so we need to figure out whether that will translate to
+  taking a very long time to grow to that point.
