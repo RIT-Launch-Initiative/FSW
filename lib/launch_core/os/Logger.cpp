@@ -4,15 +4,6 @@
 
 LOG_MODULE_REGISTER(slog, CONFIG_LOG_DEFAULT_LEVEL);
 
-/**
- * @brief Construct a logger for fixed-width samples
- * 
- * @param fname 		file name to log to
- * @param sample_width 	width of one data sample
- * @param mode			SLOG_INFINITE, STOP, or CIRC, to define overflow
- * 						behavior
- * @param max_size		maximum file size in bytes
- */
 SensorLogger::SensorLogger(
 		char* fname, 
 		size_t sample_width, 
@@ -21,14 +12,6 @@ SensorLogger::SensorLogger(
 	m_fname(fname), m_width(sample_width), m_mode(mode), m_size(n_samples * sample_width) {};
 
 
-/**
- * @brief Initialize the logger
- *
- * State change: File name opened in CREATE | RDWR mode
- *
- * @retval = 0: success
- * @retval < 0: other fs error
- */
 int32_t SensorLogger::init(void) {
 	int32_t ret = 0;
 
@@ -88,36 +71,16 @@ int32_t SensorLogger::init(void) {
 	return ret;
 }
 
-/**
- * @brief Open the target file for reading and writing
- * @retval = 0: success
- * @retval < 0: fs_open error
- */
 
 int32_t SensorLogger::open(void) {
 	return fs_open(&m_file, m_fname, FS_O_RDWR);
 }
 
-/**
- * @brief Close the target file
- * @retval = 0: success
- * @retval < 0: fs_close error
- */
 int32_t SensorLogger::close(void) {
 	return fs_close(&m_file); 
 }
 
 
-/**
- * @brief Seek to the appropriate (based on the logging mode) point and write
- * the buffer
- *
- * @param src 	buffer to write (assumed fixed-width, with the initialized width)
- *
- * @retval = 0 			success
- * @retval = -ENOTINIT 	logger was never initialized
- * @retval < 0			other errno from fs functions
- */
 int32_t SensorLogger::write(uint8_t* src) {
 	int32_t ret = 0;
 	if (!m_initalized) {
@@ -159,14 +122,6 @@ int32_t SensorLogger::write(uint8_t* src) {
 	return ret;
 }
 
-/**
- * @brief Read a frame from the device
- *
- * @param dst 	Buffer to read into (at least as big as the frame width)
- * @param idx	Frame index to read
- *
- * I'm not sure whether the arguments "should" be the other way around
- */
 int32_t SensorLogger::read(uint8_t* dst, size_t idx) { 
 	int32_t ret = 0;
 
@@ -198,14 +153,6 @@ int32_t SensorLogger::read(uint8_t* dst, size_t idx) {
 	return ret;
 }
 
-/**
- * @brief Get the file's size in bytes
- *
- * The file does not have to be open
- *
- * @retval >= 0	the file's size in bytes
- * @retval < 0	fs_stat error
- */
 int32_t SensorLogger::file_size(void) {
 	int32_t ret = 0;
 	ret = stat();
@@ -216,14 +163,6 @@ int32_t SensorLogger::file_size(void) {
 	return m_dirent.size;
 }
 
-/**
- * @brief Get the available free space in bytes
- *
- * The file does not have to be open
- *
- * @retval >= 0	free space on the filesystem in bytes
- * @retval < 0	fs_statvfs error
- */
 int32_t SensorLogger::volume_free_space(void) {
 	int32_t ret = 0;
 	ret = fs_sync(&m_file); // otherwise, properties on disk may not reflect
@@ -241,10 +180,6 @@ int32_t SensorLogger::volume_free_space(void) {
 
 /// Internal functions
 
-/**
- * @brief Stat the file
- *
- */
 int32_t SensorLogger::stat(void) {
 	int32_t ret = fs_stat(m_fname, &m_dirent); 
 	if (ret < 0) {
@@ -258,9 +193,6 @@ int32_t SensorLogger::stat(void) {
 	return ret;
 }
 
-/**
- * @brief Stat the volume the file is on
- */
 int32_t SensorLogger::stat_vfs(void) {
 	int32_t ret = fs_statvfs(m_fname, &m_vfs);		
 	if (ret < 0) {
