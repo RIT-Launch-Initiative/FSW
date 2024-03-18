@@ -11,7 +11,7 @@
 #ifndef L_SENSOR_UTILS_H
 #define L_SENSOR_UTILS_H
 
-#include <launch_core/dev/types.h>
+#include <launch_core/types.h>
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
