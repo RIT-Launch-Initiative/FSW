@@ -60,5 +60,6 @@ typedef struct __attribute__((packed)) {
     l_magnetometer_data_t lis3mdl;
 } sensor_module_hundred_hz_telemetry_t;
 
+typedef l_temperature_data_t sensor_module_ten_hz_telemetry_t;
 
 #endif
