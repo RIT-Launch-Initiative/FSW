@@ -48,5 +48,17 @@ typedef struct __attribute__((packed)) {
     float vin_adc_data_v;
 } power_module_telemetry_t;
 
+typedef struct __attribute__((packed)) {
+    l_accelerometer_data_t adxl375;
+    l_accelerometer_data_t lsm6dsl_accel;
+
+    l_barometer_data_t ms5611;
+    l_barometer_data_t bmp388;
+
+    l_gyroscope_data_t lsm6dsl_gyro;
+
+    l_magnetometer_data_t lis3mdl;
+} sensor_module_hundred_hz_telemetry_t;
+
 
 #endif
