@@ -3,18 +3,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include <zephyr/drivers/sensor.h>
 
 #ifndef POWER_MODULE_DEFS_H_
 #define POWER_MODULE_DEFS_H_
+#include <zephyr/drivers/sensor.h>
 
 // Aligned structs for Zephyr queues
-typedef struct {
-    float current;
-    float voltage;
-    float power;
-} ina_data_t;
-
 typedef struct {
     uint32_t timestamp;
     ina_data_t data_battery;
