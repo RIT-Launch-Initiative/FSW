@@ -105,7 +105,7 @@ static int init(void) {
     const struct device *rs485_uart = DEVICE_DT_GET(DT_NODELABEL(uart5));
 
     if (l_uart_init_rs485(rs485_uart) != 0) {
-        if (!l_init_udp_net_stack(ip, rs485_uart)) {
+        if (!l_init_udp_net_stack_by_device(rs485_uart, ip)) {
             LOG_ERR("Failed to initialize network stack");
         }
     } else {
