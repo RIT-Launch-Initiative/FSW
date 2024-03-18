@@ -1,8 +1,8 @@
 #include "sensors.h"
 #include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
+#include <launch_core/dev/uart.h>
 #include <launch_core/net/net_common.h>
-#include <launch_core/net/modbus.h>
 #include <launch_core/net/udp.h>
 
 #include <zephyr/kernel.h>
