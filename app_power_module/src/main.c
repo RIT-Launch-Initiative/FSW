@@ -63,7 +63,7 @@ static const float MV_TO_V_MULTIPLIER = 0.001f;
 
 static void ina_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
-    int16_t vin_adc_data = 0;
+    int16_t vin_adc_data_mv = 0;
     uint16_t temp_vin_adc_data = 0;
 
     const struct device *sensors[] = {
@@ -101,18 +101,17 @@ static void ina_task(void *, void *, void *) {
 
     if (!adc_ready) {
         LOG_ERR("ADC channel %d is not ready", vin_sense_adc.channel_id);
-        sensor_telemetry.vin_adc_data_mv = -0x7FFF;
-
+        sensor_telemetry.vin_adc_data_v = -0x7FFF;
     }
 
     while (true) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
         if (likely(adc_ready)) {
-            if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t * ) & vin_adc_data)) {
-                sensor_telemetry.vin_adc_data_mv = vin_adc_data;
+            if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
+                sensor_telemetry.vin_adc_data_v = ((int16_t) (vin_adc_data_mv * MV_TO_V_MULTIPLIER)) * ADC_GAIN;
             } else {
                 LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
-                sensor_telemetry.vin_adc_data_mv = -0x7FFF;
+                sensor_telemetry.vin_adc_data_v = -0x7FFF;
             }
         }
         sensor_telemetry.timestamp = k_uptime_get_32();
@@ -182,7 +181,6 @@ static void init_networking() {
 
 static void ina_queue_processing_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
-    power_module_telemetry_packed_t packed_telemetry = {0};
     int sock = udp_socket_list.sockets[0];
 
     while (true) {
@@ -191,22 +189,8 @@ static void ina_queue_processing_task(void *, void *, void *) {
             continue;
         }
 
-        packed_telemetry.current_battery = sensor_telemetry.data_battery.current;
-        packed_telemetry.voltage_battery = sensor_telemetry.data_battery.voltage;
-        packed_telemetry.power_battery = sensor_telemetry.data_battery.power;
-
-        packed_telemetry.current_3v3 = sensor_telemetry.data_3v3.current;
-        packed_telemetry.voltage_3v3 = sensor_telemetry.data_3v3.voltage;
-        packed_telemetry.power_3v3 = sensor_telemetry.data_3v3.power;
-
-        packed_telemetry.current_5v0 = sensor_telemetry.data_5v0.current;
-        packed_telemetry.voltage_5v0 = sensor_telemetry.data_5v0.voltage;
-        packed_telemetry.power_5v0 = sensor_telemetry.data_5v0.power;
-
-        packed_telemetry.vin_adc_data_v = (sensor_telemetry.vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN;
-
         // TODO: write to flash when data logging library is ready
-        l_send_udp_broadcast(sock, (uint8_t *) &packed_telemetry, sizeof(power_module_telemetry_packed_t),
+        l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
                              POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
     }
 }
