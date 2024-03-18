@@ -79,7 +79,7 @@ static void telemetry_processing_task(void *, void *, void *) {
     }
 }
 
-static void initialize_networks() {
+static void initialize_networks(void) {
     char eth_ip[MAX_IP_ADDRESS_STR_LEN];
     char rs485_ip[MAX_IP_ADDRESS_STR_LEN];
 
@@ -96,7 +96,7 @@ static void initialize_networks() {
     }
 
     if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {
-        if (l_create_ip_str(eth_ip, 11, 0, 3, 1) == 0) {
+        if (l_create_ip_str(rs485_ip, 11, 0, 3, 1) == 0) {
             if (l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip)) {
                 LOG_ERR("Failed to initialize network stack");
             }
