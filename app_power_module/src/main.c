@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "power_module_defs.h"
-
 #include <launch_core/backplane_defs.h>
+#include <launch_core/types.h>
 
 #include <launch_core/dev/adc.h>
 #include <launch_core/dev/dev_common.h>
