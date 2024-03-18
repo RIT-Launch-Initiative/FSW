@@ -24,6 +24,13 @@ typedef struct __attribute__((packed)) {
     float mag_z;
 } l_magnetometer_data_t;
 
+typedef struct __attribute__((packed)) {
+    float current;
+    float voltage;
+    float power;
+} l_shunt_data_t
+
+
 typedef float l_temperature_data_t;
 
 #endif
