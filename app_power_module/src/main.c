@@ -108,7 +108,7 @@ static void ina_task(void *, void *, void *) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
         if (likely(adc_ready)) {
             if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
-                sensor_telemetry.vin_adc_data_v = (int16_t) ((vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN);
+                sensor_telemetry.vin_adc_data_v = (vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN;
             } else {
                 LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
                 sensor_telemetry.vin_adc_data_v = -0x7FFF;
