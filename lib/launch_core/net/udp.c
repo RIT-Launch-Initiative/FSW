@@ -27,7 +27,7 @@ SYS_HASHMAP_DEFINE_STATIC(UDP_PORT_HANDLERS);
 
 static struct net_if *net_interface;
 
-int l_init_udp_net_stack(const char *ip_addr) {
+int l_init_udp_net_stack_default(const char *ip_addr) {
     int ret;
 
     net_interface = net_if_get_default();

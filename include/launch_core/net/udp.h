@@ -38,7 +38,7 @@ typedef struct {
  * @param ip - IP address to bind to
  * @return Zephyr status code
  */
-int l_init_udp_net_stack(const char *ip);
+int l_init_udp_net_stack_default(const char *ip);
 
 /*
  * Open a UDP socket for a specific IP and port

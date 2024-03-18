@@ -94,11 +94,19 @@ static int init(void) {
     }
 
     if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
-        if (!l_init_udp_net_stack(ip)) {
+        if (!l_init_udp_net_stack_default(ip)) {
             LOG_ERR("Failed to initialize network stack");
         }
     } else {
         LOG_ERR("Failed to get network device");
+    }
+
+    if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {
+        if (!l_init_udp_net_stack_default(ip)) {
+            LOG_ERR("Failed to initialize network stack");
+        }
+    } else {
+        LOG_ERR("Failed to initialize UART to RS485");
     }
 
     // Tasks
