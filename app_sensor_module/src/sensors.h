@@ -1,7 +1,7 @@
 #ifndef SENSORS_H_
 #define SENSORS_H_
 
-#include <launch_core/dev/sensor_data_types.h>
+#include <launch_core/dev/types.h>
 
 typedef l_temperature_data_t ten_hz_telemetry_t;
 
