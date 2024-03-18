@@ -7,8 +7,8 @@
 
     aliases {
         led = &shield_led;
-        storage = &w25q128;
-        logfs = &lfs1;
+        // storage = &w25q128;
+        // logfs = &lfs1;
     };
 
     leds: leds {
@@ -36,70 +36,79 @@
 
 
 
-    fstab {
-        compatible = "zephyr,fstab";
-        lfs1: lfs1 {
-            compatible = "zephyr,fstab,littlefs";
-            mount-point = "/lfs";
-            partition = <&external_storage_partition>;
-            automount;
+    // fstab {
+        //     compatible = "zephyr,fstab";
+        //     lfs1: lfs1 {
+            //         compatible = "zephyr,fstab,littlefs";
+            //         mount-point = "/lfs";
+            //         partition = <&external_storage_partition>;
+            //         automount;
 
-            // the binding reccomends defaults for these
-            read-size = <16>;
-            prog-size = <16>;
-            cache-size = <64>; // may need to grow for optimization
-            lookahead-size = <32>;
-            block-cycles = <(90 * 1000)>;
-            // the datasheet gives 100K P-E cycles
-            // NOTE: this seems to default to 512 for the mounted filesystem
-            // anyway
-        };
-    };
+            //         // the binding reccomends defaults for these
+            //         read-size = <16>;
+            //         prog-size = <16>;
+            //         cache-size = <64>; // may need to grow for optimization
+            //         lookahead-size = <32>;
+            //         block-cycles = <(90 * 1000)>;
+            //         // the datasheet gives 100K P-E cycles
+            //         // NOTE: this seems to default to 512 for the mounted filesystem
+            //         // anyway
+        //     };
+    // };
 };
 
 &mikrobus_spi {
-    adc: mcp3561@0 {
+    adc: mcp3561@1 {
         status = "okay";
         compatible = "microchip,mcp3561";
-        reg = <0>;
+        reg = <1>;
         device-address = <1>;
         reference = "ADC_REF_INTERNAL";
         clock-selection = "CLK_INTERNAL";
         prescale = "PRE_1";
         osr = "OSR_32";
+        spi-max-frequency = <DT_FREQ_M(10)>; // pg. 12, Table 1.1 MAX 20MHz
+
         #io-channel-cells = <1>;
-        spi-max-frequency = <DT_FREQ_M(20)>; // pg. 12, Table 1.1 20MHz
+        #address-cells = <1>;
+        #size-cells = <0>;
 
-        chan1: channel1@0 {
+        chan: chan@0 {
             reg = <0>;
+            zephyr,differential;
+            zephyr,gain = "ADC_GAIN_1_6";
+            zephyr,reference = "ADC_REF_INTERNAL";
+            zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
         };
+
+
     };
-    w25q128: w25q128jv@1 {
-        status = "okay";
-        compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
-        reg = <1>; // connected to to connector 1
+    // w25q128: w25q128jv@1 {
+        //     status = "okay";
+        //     compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
+        //     reg = <1>; // connected to to connector 1
 
-        size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75)
-        jedec-id = [ ef 40 18  ]; // 0xef4018 (Table 8.1.1, p.22)
-        spi-max-frequency = <(10 * 200000)>; // fR = 50 MHz (Table 9.6, p.65)
-        // but sticking to 10 because 50 doesn't work on my hardware, at time of
-        // writing
+        //     size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75)
+        //     jedec-id = [ ef 40 18  ]; // 0xef4018 (Table 8.1.1, p.22)
+        //     spi-max-frequency = <(10 * 200000)>; // fR = 50 MHz (Table 9.6, p.65)
+        //     // but sticking to 10 because 50 doesn't work on my hardware, at time of
+        //     // writing
 
-        has-dpd;
-        // Power-down 0xB9 (S 8.2.21)
-        t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.66)
-        // Release Power-down 0xAB (S 8.2.22)
-        t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.66)
+        //     has-dpd;
+        //     // Power-down 0xB9 (S 8.2.21)
+        //     t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.66)
+        //     // Release Power-down 0xAB (S 8.2.22)
+        //     t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.66)
 
-        partitions {
-            compatible = "fixed-partitions";
-            #address-cells = <1>;
-            #size-cells = <1>;
+        //     partitions {
+            //         compatible = "fixed-partitions";
+            //         #address-cells = <1>;
+            //         #size-cells = <1>;
 
-            external_storage_partition: partition@0 {
-                label = "w25q-storage";
-                reg = <0 DT_SIZE_M(128)>; // takes up the whole flash
-            };
-        };
-    };
+            //         external_storage_partition: partition@0 {
+                //             label = "w25q-storage";
+                //             reg = <0 DT_SIZE_M(128)>; // takes up the whole flash
+            //         };
+        //     };
+    // };
 };

@@ -1,26 +1,21 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/logging/log.h>
-
+#include <zephyr/sys/printk.h>
 LOG_MODULE_REGISTER(main);
 
 #define ADC_NODE DT_NODELABEL(adc)
 
-#if !DT_NODE_EXISTS(ADC_NODE)
-#error "something went very wrong. You forgot an ADC"
-#endif
-
 const struct device *my_adc = DEVICE_DT_GET(ADC_NODE);
 
+// static const struct adc_channel_cfg ch0_cfg_dt =
+// ADC_CHANNEL_CFG_DT(DT_CHILD(ADC_NODE, DT_NODELABEL(chan)));
+
 int main() {
-  if (my_adc == NULL) {
-    LOG_ERR("No mcp3561r ADC Found");
-    return -1;
-  }
+  LOG_INF("Initializing ADC");
   if (!device_is_ready(my_adc)) {
-    printk("\nError: Device \"%s\" is not ready; "
-           "check the driver initialization logs for errors.\n",
-           my_adc->name);
+    LOG_ERR("ADC isn't ready");
     return -1;
   }
+  // adc_channel_setup(my_adc, &ch0_cfg_dt);
 }

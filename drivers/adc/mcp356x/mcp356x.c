@@ -9,6 +9,8 @@
 #include <zephyr/drivers/spi.h>
 #include <zephyr/logging/log.h>
 
+LOG_MODULE_REGISTER(mcp356x);
+
 /*
 Registers:
 NAME    len addr
@@ -76,8 +78,6 @@ enum OSR {
   OSR_98304  // 512 192 1111
 };
 
-LOG_MODULE_REGISTER(mcp356x, CONFIG_SENSOR_LOG_LEVEL);
-
 struct mcp356x_data {
   int state;
 };
@@ -94,10 +94,11 @@ struct mcp356x_config {
   enum CLK_SEL clock;
 };
 
-uint8_t mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg) {
+int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
+                   uint8_t *result) {
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
-
+  LOG_INF("reading reg: %d", (int)reg);
   // Device Specific
   const uint8_t device_address_mask = (config->device_addr << 6);
   const uint8_t sread_command = (device_address_mask | sread_command_mask);
@@ -116,7 +117,7 @@ uint8_t mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg) {
       .count = 1,
   };
 
-  uint8_t reg8[2];
+  uint8_t reg8[2] = {0xbb, 0xaa};
   struct spi_buf rxbuf = {
       .buf = &reg8,
       .len = 2,
@@ -126,9 +127,11 @@ uint8_t mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg) {
       .count = 1,
   };
 
-  spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
+  int res = spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
+  *result = reg8[1];
+  LOG_INF("READ 8 %x %x", reg8[0], reg8[1]);
 
-  return reg8[1];
+  return res;
 }
 
 uint32_t mcp_read_reg_24(const struct mcp356x_config *config,
@@ -193,6 +196,8 @@ int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
       .buffers = &buf,
       .count = 1,
   };
+  LOG_INF("SPI Writing 8");
+
   return spi_write_dt(&config->bus, &set);
 }
 int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
@@ -306,8 +311,33 @@ static const struct adc_driver_api mcp356x_api = {
     .read = &mcp356x_read_channel,
 };
 
-static int mcp356x_init(const struct device *dev) {
+int dump_registers(const struct mcp356x_config *config) {
+  int res;
 
+  uint8_t config0 = 0xcc;
+  res = mcp_read_reg_8(config, MCP_reg_CONFIG0, &config0);
+  if (res != 0) {
+    return res;
+  }
+  LOG_INF("CONFIG0 %x", config0);
+
+  uint8_t config1 = 0xdd;
+  res = mcp_read_reg_8(config, MCP_reg_CONFIG1, &config1);
+  if (res != 0) {
+    return res;
+  }
+  LOG_INF("CONFIG1 %x", config1);
+
+  uint8_t config2 = 0xee;
+  res = mcp_read_reg_8(config, MCP_reg_CONFIG2, &config2);
+  if (res != 0) {
+    return res;
+  }
+  LOG_INF("CONFIG2 %x", config2);
+  return 0;
+}
+
+static int mcp356x_init(const struct device *dev) {
   const struct mcp356x_config *config = dev->config;
 
   if (!device_is_ready(config->bus.bus)) {
@@ -318,6 +348,14 @@ static int mcp356x_init(const struct device *dev) {
     LOG_ERR("Only one channel MCP3561 is supported\n");
     return -ENOTSUP;
   }
+
+  int dres = dump_registers(config);
+  LOG_INF("Dump: %d", dres);
+
+  uint8_t reg0 = 0xcc;
+  int res = mcp_read_reg_8(config, MCP_reg_CONFIG0, &reg0);
+  LOG_INF("reg0 = %x", reg0);
+  LOG_INF("res = %d", res);
 
   // Page 91 CONFIG0 ----------------------------------------------------------
   // VREF Selection
@@ -434,35 +472,38 @@ static int mcp356x_init(const struct device *dev) {
   // Page 93 CONFIG2 ----------------------------------------------------------
   // Configure Gain
   uint8_t gain_bits = 0;
-  switch (config->global_gain) {
-  case ADC_GAIN_1_3:
-    gain_bits = 0b000;
-    break;
-  case ADC_GAIN_1:
-    gain_bits = 0b001;
-    break;
-  case ADC_GAIN_2:
-    gain_bits = 0b010;
-    break;
-  case ADC_GAIN_4:
-    gain_bits = 0b011;
-    break;
-  case ADC_GAIN_8:
-    gain_bits = 0b100;
-    break;
-  case ADC_GAIN_16:
-    gain_bits = 0b101;
-    break;
-  case ADC_GAIN_32:
-    gain_bits = 0b110;
-    break;
-  case ADC_GAIN_64:
-    gain_bits = 0b111;
-    break;
-  default:
-    LOG_ERR("unsupported channel gain '%d'", config->global_gain);
-    return -ENOTSUP;
-  }
+  // switch (config->global_gain) {
+  //   case 0:
+  //   gain_bits = 0b001;
+  //   break;
+  // case ADC_GAIN_1_3:
+  //   gain_bits = 0b000;
+  //   break;
+  // case ADC_GAIN_1:
+  //   gain_bits = 0b001;
+  //   break;
+  // case ADC_GAIN_2:
+  //   gain_bits = 0b010;
+  //   break;
+  // case ADC_GAIN_4:
+  //   gain_bits = 0b011;
+  //   break;
+  // case ADC_GAIN_8:
+  //   gain_bits = 0b100;
+  //   break;
+  // case ADC_GAIN_16:
+  //   gain_bits = 0b101;
+  //   break;
+  // case ADC_GAIN_32:
+  //   gain_bits = 0b110;
+  //   break;
+  // case ADC_GAIN_64:
+  //   gain_bits = 0b111;
+  //   break;
+  // default:
+  //   LOG_ERR("unsupported channel gain '%d'", config->global_gain);
+  //   return -ENOTSUP;
+  // }
 
   uint8_t boost = 0b10; // 1x boost (bias current) (default)
   uint8_t az_mux = 0b0; // mux auto zero internal (default)
@@ -483,11 +524,14 @@ static int mcp356x_init(const struct device *dev) {
   uint8_t CONFIG3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
                     (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
 
-  mcp_write_reg_8(config, MCP_reg_CONFIG3, CONFIG3);
+  int err = mcp_write_reg_8(config, MCP_reg_CONFIG3, CONFIG3);
 
   // Scan register (THIS DRIVER DOES NOT SCAN)
   uint32_t scan_reg = 0;
   mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
+
+  dres = dump_registers(config);
+  LOG_INF("Dump: %d", dres);
 
   return 0;
 }
