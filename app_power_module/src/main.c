@@ -13,9 +13,11 @@
 
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
+#include <launch_core/net/sntp.h>
 
+#include <launch_core/os/time.h>
 #include <zephyr/drivers/gpio.h>
-
+#include <zephyr/net/sntp.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -26,6 +28,7 @@
 #define POWER_MOD_IP_ADDR "10.1.2.1" // TODO: Make this configurable
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
+
 
 static struct k_msgq ina_processing_queue;
 static uint8_t ina_processing_queue_buffer[CONFIG_INA219_QUEUE_SIZE * sizeof(power_module_telemetry_t)];
@@ -177,6 +180,8 @@ static void init_networking() {
             return;
         }
     }
+
+    l_sntp_start_client_thread("10.0.0.0", 1000);
 }
 
 static void ina_queue_processing_task(void *, void *, void *) {
