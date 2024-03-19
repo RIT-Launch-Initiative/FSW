@@ -67,7 +67,7 @@
         clock-selection = "CLK_INTERNAL";
         prescale = "PRE_1";
         osr = "OSR_32";
-        spi-max-frequency = <DT_FREQ_M(10)>; // pg. 12, Table 1.1 MAX 20MHz
+        spi-max-frequency = <DT_FREQ_M(2)>; // pg. 12, Table 1.1 MAX 20MHz
 
         #io-channel-cells = <1>;
         #address-cells = <1>;

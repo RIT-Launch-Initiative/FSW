@@ -98,7 +98,8 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
                    uint8_t *result) {
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
-  LOG_INF("reading reg: %d", (int)reg);
+
+  LOG_INF("reading reg: %d id %d", (int)reg, (int)config->device_addr);
   // Device Specific
   const uint8_t device_address_mask = (config->device_addr << 6);
   const uint8_t sread_command = (device_address_mask | sread_command_mask);
@@ -117,7 +118,7 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
       .count = 1,
   };
 
-  uint8_t reg8[2] = {0xbb, 0xaa};
+  uint8_t reg8[2] = {0xbe, 0xad};
   struct spi_buf rxbuf = {
       .buf = &reg8,
       .len = 2,
@@ -126,7 +127,6 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
       .buffers = &rxbuf,
       .count = 1,
   };
-
   int res = spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
   *result = reg8[1];
   LOG_INF("READ 8 %x %x", reg8[0], reg8[1]);
