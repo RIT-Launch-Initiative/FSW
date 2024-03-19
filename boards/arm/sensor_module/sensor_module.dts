@@ -97,6 +97,8 @@
     pinctrl-names = "default";
     current-speed = <115200>;
     status = "okay";
+
+//    de-gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
 };
 
 &spi1 {
@@ -181,6 +183,12 @@
     ms5611: ms5611@77 {
         compatible = "meas,ms5611";
         reg = <0x77>;
+        status = "okay";
+    };
+
+    shtc3: shtc3@70 {
+        compatible = "sensirion,shtc3";
+        reg = <0x70>;
         status = "okay";
     };
 

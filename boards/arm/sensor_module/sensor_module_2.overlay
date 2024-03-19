@@ -1,0 +1,21 @@
+/ {
+    chosen {
+        zephyr,console = &uart4;
+		zephyr,shell-uart = &uart4;
+    };
+};
+
+/ {
+    soc {
+        uart4: serial@40004c00 {
+            pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
+            pinctrl-names = "default";
+            current-speed = <115200>;
+            status = "okay";
+        };
+    };
+};
+
+&shtc3 {
+    status = "disabled";
+};

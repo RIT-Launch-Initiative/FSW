@@ -12,7 +12,7 @@ radio:
 	west build -b radio_module app_radio_module -p auto -DOVERLAY_CONFIG=debug.conf
 
 sensor:
-	west build -b sensor_module app_sensor_module -p auto -DOVERLAY_CONFIG=debug.conf
+	west build -b sensor_module@2 app_sensor_module -p auto -DOVERLAY_CONFIG=debug.conf
 
 # Extension boards
 potato:
