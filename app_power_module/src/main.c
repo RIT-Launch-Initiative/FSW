@@ -166,7 +166,7 @@ static void init_networking() {
         return;
     }
 
-    int ret = l_init_udp_net_stack(POWER_MOD_IP_ADDR);
+    int ret = l_init_udp_net_stack_default(POWER_MOD_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
         return;

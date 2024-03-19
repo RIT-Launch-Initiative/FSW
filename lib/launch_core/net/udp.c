@@ -25,12 +25,9 @@ LOG_MODULE_REGISTER(launch_udp_utils);
 
 SYS_HASHMAP_DEFINE_STATIC(UDP_PORT_HANDLERS);
 
-static struct net_if *net_interface;
-
-int l_init_udp_net_stack(const char *ip_addr) {
+int l_init_udp_net_stack(struct net_if *net_interface, const char *ip_addr) {
     int ret;
 
-    net_interface = net_if_get_default();
     if (!net_interface) {
         LOG_INF("No network interface found");
         return -ENODEV;
@@ -43,7 +40,7 @@ int l_init_udp_net_stack(const char *ip_addr) {
         return ret;
     }
 
-    struct net_if_addr *ifaddr = net_if_ipv4_addr_add(net_interface, &addr, NET_ADDR_MANUAL, 0);
+    struct net_if_addr const *ifaddr = net_if_ipv4_addr_add(net_interface, &addr, NET_ADDR_MANUAL, 0);
     if (!ifaddr) {
         LOG_ERR("Failed to add IP address");
         return -ENODEV;
@@ -59,6 +56,14 @@ int l_init_udp_net_stack(const char *ip_addr) {
     LOG_INF("IPv4 address configured: %s", ip_addr);
 
     return 0;
+}
+
+int l_init_udp_net_stack_default(const char *ip_addr) {
+    return l_init_udp_net_stack(net_if_get_default(), ip_addr);
+}
+
+int l_init_udp_net_stack_by_device(const struct device *dev, const char *ip_addr) {
+    return l_init_udp_net_stack(net_if_lookup_by_dev(dev), ip_addr);
 }
 
 int l_init_udp_socket(const char *ip, uint16_t port) {

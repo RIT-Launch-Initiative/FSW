@@ -1,0 +1,23 @@
+board:
+  name: Sensor Module
+  vendor: RIT Launch Initiative
+  revision:
+    format: number
+    default: 1
+    exact: true
+    revisions:
+    - name: 1
+    - name: 2
+  socs:
+  - name: stm32f446re
+    flash: 512
+    ram: 96
+    arch: arm
+    toolchain:
+    - zephyr
+    - gnuarmemb
+    supported:
+    - gpio
+    - spi
+    - i2c
+    - backup_sram
