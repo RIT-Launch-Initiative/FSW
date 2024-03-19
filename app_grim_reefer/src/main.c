@@ -37,7 +37,6 @@ const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
 
 static int init(void) {
-  printk("iitting\n");
   // Init LEDS
   if (!gpio_is_ready_dt(&led1)) {
     LOG_ERR("LED 1 is not ready\n");
@@ -82,7 +81,6 @@ static int init(void) {
 int main(void) {
   // flash_erase(flash, 0, DT_PROP(FLASH_NODE, size));
 
-  printk("main\n");
   if (init() < 0) {
     printk("init failed\n");
     return -1;

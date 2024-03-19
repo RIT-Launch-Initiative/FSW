@@ -2,6 +2,8 @@
 #include "config.h"
 #include "sensors.h"
 #include <stdint.h>
+#include <zephyr/fs/fs.h>
+#include <zephyr/fs/littlefs.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/sys/time_units.h>
 #include <zephyr/sys_clock.h>
@@ -46,6 +48,11 @@ volatile static bool override_boost_detect = false;
 volatile static bool flight_cancelled = false;
 volatile static enum Phase flight_phase = Phase_LaunchDetecting;
 
+uint64_t boost_time_ms = 0;
+uint64_t noseover_time_ms = 0;
+uint64_t main_time_ms = 0;
+uint64_t ground_time_ms = 0;
+
 // pre-detect buffer
 // struct ring_buf something somehting
 
@@ -62,6 +69,7 @@ int orchestrate() {
     }
 
     int ret = read_fast(&dat);
+    dat.timestamp = k_uptime_get(); // TODO SUB MILLISECOND PRECISION
     // fill in timestamp (not since launch, just since boot + wrapping)
 
     // ring_buf.push(dat)
@@ -71,10 +79,15 @@ int orchestrate() {
   }
 
   // Boost Detected
+  boost_time_ms = k_uptime_get();
+  LOG_INF("Boost at %lld ms", boost_time_ms);
   flight_phase = Phase_Boost;
   k_event_set(&launch_detected, EVENT_HAPPENED);
   LOG_INF("Detecting Noseover");
-  while (1) {
+
+  // Watch for noseover
+  while ((k_uptime_get() - boost_time_ms) <
+         (BOOST_TO_NOSEOVER_TIMER_SECONDS * 1000)) {
 
     int ret = read_fast(&dat);
     // fill in timestamp
@@ -84,15 +97,18 @@ int orchestrate() {
     }
 
     k_msleep(BOOST_PHASE_IMU_ALT_SAMPLE_PERIOD_MS);
-    break;
   }
 
   // Nose Over Detected
+  noseover_time_ms = k_uptime_get();
+  LOG_INF("Noseover at %lld ms", noseover_time_ms);
+
   flight_phase = Phase_ReefEvents;
   k_event_set(&noseover_detected, EVENT_HAPPENED);
   LOG_INF("Detecting Under Main");
 
-  while (1) {
+  while ((k_uptime_get() - noseover_time_ms) <
+         (NOSEOVER_TO_MAIN_TIMER_SECONDS * 1000)) {
     int ret = read_fast(&dat);
     // fill in timestamp
 
@@ -101,7 +117,6 @@ int orchestrate() {
     }
 
     k_msleep(REEF_PHASE_IMU_ALT_SAMPLE_PERIOD_MS);
-    break;
   }
 
   // Main Detected
@@ -151,6 +166,7 @@ int adc_thread(void *, void *, void *) {
 
     read_adc(&dat);
     // fill in timestamp
+    dat.timestamp = k_uptime_get(); // TODO SUB MILLISECOND TIMESTAMPS
     if (k_msgq_put(&adc_data_queue, &dat, K_NO_WAIT) != 0) {
       LOG_WRN("adc data queue full");
     }
@@ -187,6 +203,7 @@ int slow_thread(void *, void *, void *) {
 
     read_slow(&dat);
     // fill in timestamp
+    dat.timestamp = k_uptime_get(); // TODO SUB MILLISECOND TIMESTAMPS
     if (k_msgq_put(&slow_data_queue, &dat, K_NO_WAIT) != 0) {
       LOG_WRN("slow data queue full");
     }
@@ -235,7 +252,8 @@ static int cmd_phase(const struct shell *shell, size_t argc, char **argv) {
   case Phase_LaunchDetecting:
     shell_print(shell, "Detecting Launch");
     break;
-
+  case Phase_Boost:
+    shell_print(shell, "Boost") break;
   case Phase_ReefEvents:
     shell_print(shell, "Watching for reef events");
     break;
@@ -267,6 +285,23 @@ static int cmd_useconds(const struct shell *shell, size_t argc, char **argv) {
               us_since_boot, s_since_boot, cycles);
 
   return 0;
+}
+
+static int dum_file() {}
+
+static int cmd_dump_fast(const struct shell *shell, size_t argc, char **argv) {}
+
+static int cmd_dump_slow(const struct shell *shell, size_t argc, char **argv) {}
+
+static int cmd_dump_adc(const struct shell *shell, size_t argc, char **argv) {
+  struct fs_file_t adc_file;
+
+  fs_file_t_init(&adc_file);
+  ret = fs_open(&adc_file, DATA_ADC_FILEPATH, FS_O_CREATE | FS_O_R);
+  if (ret != 0) {
+    shell_print("Failed to open %s: %d", DATA_ADC_FILEPATH, ret);
+    return ret;
+  }
 }
 
 static int cmd_override_boost_detect(const struct shell *shell, size_t argc,
