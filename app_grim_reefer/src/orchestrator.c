@@ -253,7 +253,8 @@ static int cmd_phase(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Detecting Launch");
     break;
   case Phase_Boost:
-    shell_print(shell, "Boost") break;
+    shell_print(shell, "Boost");
+    break;
   case Phase_ReefEvents:
     shell_print(shell, "Watching for reef events");
     break;
@@ -287,21 +288,19 @@ static int cmd_useconds(const struct shell *shell, size_t argc, char **argv) {
   return 0;
 }
 
-static int dum_file() {}
-
 static int cmd_dump_fast(const struct shell *shell, size_t argc, char **argv) {}
 
 static int cmd_dump_slow(const struct shell *shell, size_t argc, char **argv) {}
 
 static int cmd_dump_adc(const struct shell *shell, size_t argc, char **argv) {
-  struct fs_file_t adc_file;
-
-  fs_file_t_init(&adc_file);
-  ret = fs_open(&adc_file, DATA_ADC_FILEPATH, FS_O_CREATE | FS_O_R);
-  if (ret != 0) {
-    shell_print("Failed to open %s: %d", DATA_ADC_FILEPATH, ret);
-    return ret;
-  }
+  // struct fs_file_t adc_file;
+  //
+  // fs_file_t_init(&adc_file);
+  // ret = fs_open(&adc_file, DATA_ADC_FILEPATH, FS_O_CREATE | FS_O_R);
+  // if (ret != 0) {
+  // shell_print("Failed to open %s: %d", DATA_ADC_FILEPATH, ret);
+  // return ret;
+  // }
 }
 
 static int cmd_override_boost_detect(const struct shell *shell, size_t argc,
