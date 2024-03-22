@@ -5,6 +5,8 @@
 
 #include "radio_module_functionality.h"
 
+#define RADIO_MODULE_IP_ADDR BACKPLANE_IP(RADIO_MODULE_ID, 1, 1) // TODO: KConfig the board revision and #
+
 #define NUM_SOCKETS 4
 #define SLEEP_TIME_MS   100
 #define LED0_NODE DT_ALIAS(led0)
@@ -39,15 +41,7 @@ l_udp_socket_list_t udp_socket_list = {
 static int init_networking() {
     k_queue_init(&net_tx_queue);
 
-    char ip[MAX_IP_ADDRESS_STR_LEN];
-
-    int ret = l_create_ip_str_default_net_id(ip, RADIO_MODULE_ID, 1);
-    if (ret < 0) {
-        LOG_ERR("Failed to create IP address string: %d", ret);
-        return -1;
-    }
-  
-    ret = l_init_udp_net_stack_by_device(wiznet, RADIO_MODULE_IP_ADDR);
+    int ret = l_init_udp_net_stack_by_device(wiznet, RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
         return -3;

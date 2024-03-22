@@ -17,7 +17,6 @@
 static const uint16_t LAUNCH_EVENT_NOTIFICATION_PORT = 9999;
 
 /********** POWER MODULE **********/
-#define POWER_MODULE_IP_ADDR "10.0.0.10"
 static const uint8_t POWER_MODULE_ID = 1;
 
 static const uint16_t POWER_MODULE_BASE_PORT = 11000;
@@ -29,8 +28,6 @@ typedef enum {
 
 
 /********** RADIO MODULE **********/
-#define RADIO_MODULE_IP_ADDR "10.0.0.20"
-
 static const uint8_t RADIO_MODULE_ID = 2;
 static const uint16_t RADIO_MODULE_BASE_PORT = 12000;
 
@@ -40,7 +37,6 @@ typedef enum {
 
 
 /********** SENSOR MODULE **********/
-#define SENSOR_MODULE_IP_ADDR "10.0.0.30"
 static const uint8_t SENSOR_MODULE_ID = 3;
 static const uint16_t SENSOR_MODULE_BASE_PORT = 13000;
 
