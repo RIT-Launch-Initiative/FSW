@@ -12,7 +12,7 @@ endmenu
 
 menuconfig RADIO_MODULE_RECEIVER
 	bool "Radio module is the ground receiver"
-	default y
+	default n
 
 module = APP_RADIO_MODULE
 module-str = APP_RADIO_MODULE
