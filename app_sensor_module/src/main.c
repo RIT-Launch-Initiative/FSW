@@ -8,6 +8,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
+#define SENSOR_MODULE_IP_ADDR BACKPLANE_IP(SENSOR_MODULE_ID, 2, 1) // TODO: KConfig the board revision and #
 #define STACK_SIZE (512)
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
@@ -89,7 +90,7 @@ static void initialize_networks(void) {
 }
 
 static int init(void) {
-    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(ten_hz_telemetry_t),
+    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(sensor_module_ten_hz_telemetry_t),
                 CONFIG_TEN_HZ_QUEUE_SIZE);
     k_msgq_init(&hundred_hz_telemetry_queue, hundred_hz_telemetry_queue_buffer,
                 sizeof(sensor_module_hundred_hz_telemetry_t),
@@ -110,9 +111,6 @@ static int init(void) {
 int main() {
     if (!init()) {
         return -1;
-    }
-
-    while (1) {
     }
 
     return 0;
