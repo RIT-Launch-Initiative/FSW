@@ -18,10 +18,10 @@ LOG_MODULE_REGISTER(lora);
 static struct lora_modem_config config = {
         .frequency = 915000000,
         .bandwidth = BW_125_KHZ,
-        .datarate = SF_10,
+        .datarate = SF_12,
         .preamble_len = 8,
         .coding_rate = CR_4_5,
-        .tx_power = 4,
+        .tx_power = 13,
         .iq_inverted = false,
         .public_network = false,
         .tx = true
@@ -66,7 +66,7 @@ int l_lora_set_data_rate(const struct device *const dev, enum lora_datarate data
     return lora_config(dev, &config);
 }
 
-int l_lora_set_coding_rate(const struct device *const dev, enum lora_coding_rate coding_rate) {
+int l_lora_set_spreading_factor(const struct device *const dev, enum lora_coding_rate coding_rate) {
     config.coding_rate = coding_rate;
     return lora_config(dev, &config);
 }

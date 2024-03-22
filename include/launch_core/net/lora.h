@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Aaron Chan
+ * Copyright (c) 2023 RIT Launch Initiative
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -78,12 +78,12 @@ int l_lora_set_bandwidth(const struct device *dev, enum lora_signal_bandwidth ba
 int l_lora_set_data_rate(const struct device *dev, enum lora_datarate data_rate);
 
 /**
- * Set the coding rate of the LoRa device
+ * Set the spreading factor of the LoRa device
  * @param dev - Device to configure
  * @param coding_rate - Coding rate to set the device to
  * @return
  */
-int l_lora_set_coding_rate(const struct device *dev, enum lora_coding_rate coding_rate);
+int l_lora_set_spreading_factor(const struct device *dev, enum lora_coding_rate coding_rate);
 
 /**
  * Set the preamble length of the LoRa device
