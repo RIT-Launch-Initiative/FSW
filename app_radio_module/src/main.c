@@ -47,7 +47,7 @@ static int init_networking() {
         return -1;
     }
   
-    ret = l_init_udp_net_stack(RADIO_MODULE_IP_ADDR);
+    ret = l_init_udp_net_stack_by_device(wiznet, RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
         return -3;
@@ -65,8 +65,7 @@ static int init_networking() {
 
 static int init() {
     if (l_check_device(lora_dev) == 0) {
-        l_lora_configure(lora_dev, false);
-        init_lora_unique();
+        init_lora_unique(lora_dev);
     }
 
 
@@ -86,6 +85,9 @@ int main() {
     if (init()) {
         return -1;
     }
+
+    gpio_pin_toggle_dt(&led0);
+    gpio_pin_toggle_dt(&led1);
 
     return main_unique();
 }

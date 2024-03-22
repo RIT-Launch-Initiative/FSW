@@ -14,7 +14,6 @@
 #include <stdint.h>
 
 /********** GENERAL **********/
-
 static const uint16_t LAUNCH_EVENT_NOTIFICATION_PORT = 9999;
 
 /********** POWER MODULE **********/
