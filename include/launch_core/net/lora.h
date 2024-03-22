@@ -81,7 +81,7 @@ int l_lora_set_data_rate(const struct device *dev, enum lora_datarate data_rate)
  * Set the spreading factor of the LoRa device
  * @param dev - Device to configure
  * @param coding_rate - Coding rate to set the device to
- * @return
+ * @return Zephyr status code
  */
 int l_lora_set_spreading_factor(const struct device *dev, enum lora_coding_rate coding_rate);
 
