@@ -13,6 +13,8 @@ int init_udp_unique(l_udp_socket_list_t *udp_socket_list);
 
 int start_tasks();
 
+int main_unique();
+
 
 
 #endif //RADIO_MODULE_FUNCTIONALITY_H

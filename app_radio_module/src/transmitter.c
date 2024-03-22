@@ -1,6 +1,7 @@
 #if !defined(RADIO_MODULE_RECEIVER)
 
 #include <launch_core/dev/gnss.h>
+#include <zephyr/drivers/gpio.h>
 #include "radio_module_functionality.h"
 
 // Callbacks
@@ -40,6 +41,11 @@ int start_tasks() {
 
 
     return 0;
+}
+
+int main_unique() {
+    return 0;
+
 }
 
 #endif

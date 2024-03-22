@@ -47,10 +47,7 @@ static int init_networking() {
         return -1;
     }
 
-    if (l_check_device(wiznet) != 0) {
-        LOG_ERR("Wiznet device not found");
-        return -2;
-    }
+
 
     ret = l_init_udp_net_stack(RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
@@ -66,19 +63,21 @@ static int init_networking() {
     }
 
 
-
-    init_udp_unique(&udp_socket_list);
-
     return 0;
 }
 
 static int init() {
-    if (!l_check_device(lora_dev)) {
+    if (l_check_device(lora_dev) == 0) {
         l_lora_configure(lora_dev, false);
         init_lora_unique();
     }
 
-    init_networking();
+
+    if (l_check_device(wiznet) == 0) {
+        init_networking();
+        init_udp_unique(&udp_socket_list);
+    }
+
     start_tasks();
 
     return 0;
@@ -91,23 +90,5 @@ int main() {
         return -1;
     }
 
-    while (1) {
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-        l_send_udp_broadcast(udp_socket_list.sockets[0], (uint8_t *) "Launch!", 7, 10000);
-        k_msleep(100);
-    }
-
-    return 0;
+    return main_unique();
 }
-
-
-// int main() {
-//     init();
-//     printk("Receiver started\n");
-//     while (1) {
-//         int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
-//     }
-//
-//     return 0;
-// }

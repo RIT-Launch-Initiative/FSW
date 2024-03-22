@@ -13,5 +13,8 @@ int start_tasks() {
     return 0;
 }
 
+int main_unique() {
+    return 0;
+}
 
 #endif
