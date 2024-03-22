@@ -28,14 +28,9 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 // Networking
 #define UDP_RX_BUFF_LEN 256 // TODO: Make this a KConfig
-#define NUM_SOCKETS 2
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
-static int udp_sockets[NUM_SOCKETS] = {0};
-static int udp_socket_ports[NUM_SOCKETS] = {10000};
-static l_udp_socket_list_t udp_socket_list = {
-        .sockets = udp_sockets,
-        .num_sockets = 2
-};
+
+extern l_udp_socket_list_t udp_socket_list;
 
 static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
     l_default_receive_thread(socks, buff_ptr, buff_len);
@@ -45,25 +40,26 @@ static int init_networking() {
     k_queue_init(&net_tx_queue);
 
     char ip[MAX_IP_ADDRESS_STR_LEN];
-    if (0 > l_create_ip_str_default_net_id(ip, RADIO_MODULE_ID, 1)) {
+
+    int ret = l_create_ip_str_default_net_id(ip, RADIO_MODULE_ID, 1);
+    if (ret < 0) {
         LOG_ERR("Failed to create IP address string: %d", ret);
         return -1;
     }
-
 
     if (l_check_device(wiznet) != 0) {
         LOG_ERR("Wiznet device not found");
         return -2;
     }
 
-    int ret = l_init_udp_net_stack(RADIO_MODULE_IP_ADDR);
+    ret = l_init_udp_net_stack(RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
         return -3;
     }
 
     for (int i = 0; i < udp_socket_list.num_sockets; i++) {
-        udp_socket_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, udp_socket_ports[i]);
+        udp_socket_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, udp_socket_list.ports[i]);
         if (udp_socket_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
         }
@@ -82,9 +78,6 @@ static int init_networking() {
 }
 
 static int init() {
-    int ret = -1;
-
-
     if (!l_check_device(lora_dev)) {
         l_lora_configure(lora_dev, false);
         init_lora_unique();
@@ -106,7 +99,7 @@ int main() {
     while (1) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
-        l_send_udp_broadcast(udp_sockets[0], (uint8_t *) "Launch!", 7, 10000);
+        l_send_udp_broadcast(udp_socket_list.sockets[0], (uint8_t *) "Launch!", 7, 10000);
         k_msleep(100);
     }
 
