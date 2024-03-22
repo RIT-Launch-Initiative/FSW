@@ -45,5 +45,21 @@ int l_lora_tx(const struct device *const lora_dev, uint8_t *buff, size_t len);
  */
 void l_lora_debug_recv_cb(const struct device *const dev, uint8_t *data, uint16_t size, int16_t rssi, int8_t snr);
 
+/**
+ * Configure LoRa radio devices for transmission or reception.
+ * @param dev - Device to configure
+ * @param transmit - True if the device should be configured for transmission. False otherwise
+ * @return Zephyr status code
+ */
+int l_lora_set_tx_rx(const struct device *const dev, bool transmit);
+
+int l_lora_set_frequency(const struct device *const dev, uint32_t frequency);
+int l_lora_set_bandwidth(const struct device *const dev, enum lora_signal_bandwidth bandwidth);
+int l_lora_set_data_rate(const struct device *const dev, enum lora_datarate data_rate);
+int l_lora_set_coding_rate(const struct device *const dev, enum lora_coding_rate coding_rate);
+int l_lora_set_preamble_len(const struct device *const dev, uint16_t preamble_len);
+int l_lora_set_tx_power(const struct device *const dev, int8_t tx_power);
+
+
 
 #endif // L_LORA_UTILS_H_
