@@ -53,6 +53,7 @@ void l_lora_debug_recv_cb(const struct device *const dev, uint8_t *data, uint16_
  */
 int l_lora_set_tx_rx(const struct device *const dev, bool transmit);
 
+
 int l_lora_set_frequency(const struct device *const dev, uint32_t frequency);
 int l_lora_set_bandwidth(const struct device *const dev, enum lora_signal_bandwidth bandwidth);
 int l_lora_set_data_rate(const struct device *const dev, enum lora_datarate data_rate);
