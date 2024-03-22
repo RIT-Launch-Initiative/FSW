@@ -7,7 +7,6 @@
 
 #define NUM_SOCKETS 4
 #define SLEEP_TIME_MS   100
-#define UDP_RX_STACK_SIZE 1024
 #define LED0_NODE DT_ALIAS(led0)
 #define LED1_NODE DT_ALIAS(led1)
 
@@ -17,10 +16,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_RADIO_MODULE_LOG_LEVEL);
 K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
 
-// Threads
-static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
-static struct k_thread udp_rx_thread;
-
 // Devices
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
@@ -28,11 +23,8 @@ static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 // Networking
-#define UDP_RX_BUFF_LEN 256 // TODO: Make this a KConfig
-static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
-
 static int udp_sockets[NUM_SOCKETS] = {0};
-static int udp_socket_ports[NUM_SOCKETS] = {LAUNCH_EVENT_NOTIFICATION_PORT,
+static uint16_t udp_socket_ports[NUM_SOCKETS] = {LAUNCH_EVENT_NOTIFICATION_PORT,
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT,
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT,
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT,
@@ -43,9 +35,6 @@ l_udp_socket_list_t udp_socket_list = {
         .num_sockets = NUM_SOCKETS
 };
 
-static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
-    l_default_receive_thread(socks, buff_ptr, buff_len);
-}
 
 static int init_networking() {
     k_queue_init(&net_tx_queue);
@@ -76,14 +65,9 @@ static int init_networking() {
         }
     }
 
-    k_thread_create(&udp_rx_thread, &udp_rx_stack[0], UDP_RX_STACK_SIZE,
-                    udp_rx_task, &udp_socket_list, udp_rx_buffer, INT_TO_POINTER(UDP_RX_BUFF_LEN),
-                    K_PRIO_PREEMPT(5),
-                    0,
-                    K_NO_WAIT);
-    k_thread_start(&udp_rx_thread);
 
-    init_udp_unique();
+
+    init_udp_unique(&udp_socket_list);
 
     return 0;
 }

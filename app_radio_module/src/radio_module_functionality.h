@@ -9,7 +9,7 @@
 
 int init_lora_unique();
 
-int init_udp_unique();
+int init_udp_unique(l_udp_socket_list_t *udp_socket_list);
 
 int start_tasks();
 
