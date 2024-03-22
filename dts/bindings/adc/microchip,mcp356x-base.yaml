@@ -12,6 +12,10 @@ properties:
     type: string
     # default: ""
 
+  #irq-pin:
+  #  type: phandle-array
+  #  description: "irq pin"
+
   reference:
     type: string
     required: true

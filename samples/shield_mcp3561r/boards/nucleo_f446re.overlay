@@ -58,30 +58,29 @@
 };
 
 &mikrobus_spi {
-    adc: mcp3561@1 {
+    adc: mcp3561@0 {
         status = "okay";
         compatible = "microchip,mcp3561";
-        reg = <1>;
+        reg = <0>;
         device-address = <1>;
         reference = "ADC_REF_INTERNAL";
         clock-selection = "CLK_INTERNAL";
         prescale = "PRE_1";
         osr = "OSR_32";
-        spi-max-frequency = <DT_FREQ_M(2)>; // pg. 12, Table 1.1 MAX 20MHz
-
+        spi-max-frequency = <DT_FREQ_M(10)>; // pg. 12, Table 1.1 MAX 20MHz
+        //
         #io-channel-cells = <1>;
         #address-cells = <1>;
         #size-cells = <0>;
-
+        //
         chan: chan@0 {
             reg = <0>;
             zephyr,differential;
             zephyr,gain = "ADC_GAIN_1_6";
             zephyr,reference = "ADC_REF_INTERNAL";
             zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
+
         };
-
-
     };
     // w25q128: w25q128jv@1 {
         //     status = "okay";

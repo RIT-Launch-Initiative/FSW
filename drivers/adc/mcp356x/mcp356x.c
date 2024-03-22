@@ -11,6 +11,13 @@
 
 LOG_MODULE_REGISTER(mcp356x);
 
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)                                                   \
+  ((byte)&0x80 ? '1' : '0'), ((byte)&0x40 ? '1' : '0'),                        \
+      ((byte)&0x20 ? '1' : '0'), ((byte)&0x10 ? '1' : '0'),                    \
+      ((byte)&0x08 ? '1' : '0'), ((byte)&0x04 ? '1' : '0'),                    \
+      ((byte)&0x02 ? '1' : '0'), ((byte)&0x01 ? '1' : '0')
+
 /*
 Registers:
 NAME    len addr
@@ -98,8 +105,6 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
                    uint8_t *result) {
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
-
-  LOG_INF("reading reg: %d id %d", (int)reg, (int)config->device_addr);
   // Device Specific
   const uint8_t device_address_mask = (config->device_addr << 6);
   const uint8_t sread_command = (device_address_mask | sread_command_mask);
@@ -129,13 +134,12 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
   };
   int res = spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
   *result = reg8[1];
-  LOG_INF("READ 8 %x %x", reg8[0], reg8[1]);
 
   return res;
 }
 
-uint32_t mcp_read_reg_24(const struct mcp356x_config *config,
-                         enum MCP_Reg reg) {
+int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
+                    uint32_t *data) {
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
 
@@ -167,10 +171,13 @@ uint32_t mcp_read_reg_24(const struct mcp356x_config *config,
       .count = 1,
   };
 
-  spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
-
+  int ret = spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
+  if (ret < 0) {
+    return ret;
+  }
   uint32_t res = (reg24[1] << 16) | (reg24[2] << 8) | (reg24[3]);
-  return res;
+  *data = res;
+  return 0;
 }
 
 int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
@@ -196,7 +203,8 @@ int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
       .buffers = &buf,
       .count = 1,
   };
-  LOG_INF("SPI Writing 8");
+  LOG_INF("SPI Writing 8 reg %d  to " BYTE_TO_BINARY_PATTERN, reg,
+          BYTE_TO_BINARY(data));
 
   return spi_write_dt(&config->bus, &set);
 }
@@ -212,10 +220,14 @@ int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
   const uint8_t command_specifier = (reg << command_addr_pos) | write_command;
 
   // Write Data
-  uint32_t cmd = (command_specifier << 24) | (data & 0x00FFFFFF);
+  uint8_t cmds[4];
+  cmds[0] = command_specifier;
+  cmds[1] = (data >> 16) & 0xFF;
+  cmds[2] = (data >> 8) & 0xFF;
+  cmds[3] = (data)&0xFF;
 
   struct spi_buf buf = {
-      .buf = &cmd,
+      .buf = &cmds,
       .len = 4,
   };
 
@@ -248,7 +260,8 @@ static int mcp356x_read_channel(const struct device *dev,
   // one
   k_usleep(10); // silly hack until then
 
-  uint32_t val = mcp_read_reg_24(config, MCP_reg_ADCDATA);
+  uint32_t val = 0xFFFFFF;
+  mcp_read_reg_24(config, MCP_reg_ADCDATA, &val);
 
   return val;
 }
@@ -313,27 +326,34 @@ static const struct adc_driver_api mcp356x_api = {
 
 int dump_registers(const struct mcp356x_config *config) {
   int res;
+  const int num_8bts = 6;
+  char *names[] = {
+      "CONFIG0", "CONFIG1", "CONFIG2", "CONFIG3", "IRQ", "MUX",
+  };
+  enum MCP_Reg registers_8bit[] = {MCP_reg_CONFIG0, MCP_reg_CONFIG1,
+                                   MCP_reg_CONFIG2, MCP_reg_CONFIG3,
+                                   MCP_reg_IRQ,     MCP_reg_MUX};
 
-  uint8_t config0 = 0xcc;
-  res = mcp_read_reg_8(config, MCP_reg_CONFIG0, &config0);
-  if (res != 0) {
-    return res;
-  }
-  LOG_INF("CONFIG0 %x", config0);
+  printk("Registers: ========\n");
 
-  uint8_t config1 = 0xdd;
-  res = mcp_read_reg_8(config, MCP_reg_CONFIG1, &config1);
-  if (res != 0) {
-    return res;
-  }
-  LOG_INF("CONFIG1 %x", config1);
+  uint32_t adcdata = 0xFF44DE;
+  mcp_read_reg_24(config, MCP_reg_ADCDATA, &adcdata);
+  printk("ADCDATA: %x\n", adcdata);
 
-  uint8_t config2 = 0xee;
-  res = mcp_read_reg_8(config, MCP_reg_CONFIG2, &config2);
-  if (res != 0) {
-    return res;
+  for (int reg = 0; reg < num_8bts; reg++) {
+    uint8_t data = 0xcc;
+    res = mcp_read_reg_8(config, registers_8bit[reg], &data);
+    if (res != 0) {
+      return res;
+    }
+    printk("%s: " BYTE_TO_BINARY_PATTERN "\n", names[reg],
+           BYTE_TO_BINARY(data));
   }
-  LOG_INF("CONFIG2 %x", config2);
+
+  uint32_t timer = 0xFF44DE;
+  mcp_read_reg_24(config, MCP_reg_TIMER, &timer);
+  printk("TIMER: %x\n", timer);
+
   return 0;
 }
 
@@ -350,12 +370,6 @@ static int mcp356x_init(const struct device *dev) {
   }
 
   int dres = dump_registers(config);
-  LOG_INF("Dump: %d", dres);
-
-  uint8_t reg0 = 0xcc;
-  int res = mcp_read_reg_8(config, MCP_reg_CONFIG0, &reg0);
-  LOG_INF("reg0 = %x", reg0);
-  LOG_INF("res = %d", res);
 
   // Page 91 CONFIG0 ----------------------------------------------------------
   // VREF Selection
@@ -376,13 +390,13 @@ static int mcp356x_init(const struct device *dev) {
   uint8_t clk_sel_bits = 0b0;
   switch (config->clock) {
   case CLK_EXTERNAL:
-    clk_sel_bits = 0b0;
+    clk_sel_bits = 0b00;
     break;
   case CLK_INTERNAL:
-    clk_sel_bits = 0b0;
+    clk_sel_bits = 0b11;
     break;
   case CLK_INTERNAL_NO_BROADCAST:
-    clk_sel_bits = 0b0;
+    clk_sel_bits = 0b10;
     break;
   }
   // No Current Source/Sink Selection Bits for Sensor Bias
@@ -472,38 +486,38 @@ static int mcp356x_init(const struct device *dev) {
   // Page 93 CONFIG2 ----------------------------------------------------------
   // Configure Gain
   uint8_t gain_bits = 0;
-  // switch (config->global_gain) {
-  //   case 0:
-  //   gain_bits = 0b001;
-  //   break;
-  // case ADC_GAIN_1_3:
-  //   gain_bits = 0b000;
-  //   break;
-  // case ADC_GAIN_1:
-  //   gain_bits = 0b001;
-  //   break;
-  // case ADC_GAIN_2:
-  //   gain_bits = 0b010;
-  //   break;
-  // case ADC_GAIN_4:
-  //   gain_bits = 0b011;
-  //   break;
-  // case ADC_GAIN_8:
-  //   gain_bits = 0b100;
-  //   break;
-  // case ADC_GAIN_16:
-  //   gain_bits = 0b101;
-  //   break;
-  // case ADC_GAIN_32:
-  //   gain_bits = 0b110;
-  //   break;
-  // case ADC_GAIN_64:
-  //   gain_bits = 0b111;
-  //   break;
-  // default:
-  //   LOG_ERR("unsupported channel gain '%d'", config->global_gain);
-  //   return -ENOTSUP;
-  // }
+  switch (config->global_gain) {
+  case 0:
+    gain_bits = 0b001;
+    break;
+  case ADC_GAIN_1_3:
+    gain_bits = 0b000;
+    break;
+  case ADC_GAIN_1:
+    gain_bits = 0b001;
+    break;
+  case ADC_GAIN_2:
+    gain_bits = 0b010;
+    break;
+  case ADC_GAIN_4:
+    gain_bits = 0b011;
+    break;
+  case ADC_GAIN_8:
+    gain_bits = 0b100;
+    break;
+  case ADC_GAIN_16:
+    gain_bits = 0b101;
+    break;
+  case ADC_GAIN_32:
+    gain_bits = 0b110;
+    break;
+  case ADC_GAIN_64:
+    gain_bits = 0b111;
+    break;
+  default:
+    LOG_ERR("unsupported channel gain '%d'", config->global_gain);
+    return -ENOTSUP;
+  }
 
   uint8_t boost = 0b10; // 1x boost (bias current) (default)
   uint8_t az_mux = 0b0; // mux auto zero internal (default)
@@ -530,8 +544,10 @@ static int mcp356x_init(const struct device *dev) {
   uint32_t scan_reg = 0;
   mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
 
+  uint32_t timer_reg = 0;
+  mcp_write_reg_24(config, MCP_reg_TIMER, timer_reg);
+
   dres = dump_registers(config);
-  LOG_INF("Dump: %d", dres);
 
   return 0;
 }
