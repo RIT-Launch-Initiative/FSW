@@ -34,11 +34,27 @@ typedef struct {
 } l_udp_socket_list_t;
 
 /**
- * Initialize a UDP networking stack
- * @param ip - IP address to bind to
+ * Initialize a UDP networking stack with a default interface
+ * @param ip_addr - IP address to bind to
  * @return Zephyr status code
  */
-int l_init_udp_net_stack(const char *ip);
+int l_init_udp_net_stack_default(const char *ip_addr);
+
+/**
+ * Initialize a UDP networking stack to a specific device
+ * @param dev - Physical network device
+ * @param ip_addr - IP address to bind to
+ * @return Zephyr status code
+ */
+int l_init_udp_net_stack_by_device(const struct device *dev, const char *ip_addr);
+
+/**
+ * Initialize a UDP networking stack
+ * @param iface - Network interface being binded to
+ * @param ip_addr - IP address to bind to
+ * @return Zephyr status code
+ */
+int l_init_udp_net_stack(struct net_if *iface, const char *ip_addr);
 
 /*
  * Open a UDP socket for a specific IP and port

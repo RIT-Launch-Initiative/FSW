@@ -1,12 +1,18 @@
 #include <app_version.h>
 
+#include <launch_core/dev/dev_common.h>
+#include <launch_core/dev/uart.h>
 #include <launch_core/extension_boards.h>
+#include <launch_core/net/net_common.h>
+#include <launch_core/net/udp.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(main, CONFIG_APP_POTATO_LOG_LEVEL
-);
+
+LOG_MODULE_REGISTER(app_potato);
 
 // Threads
 #define POTATO_STACK_SIZE (512)
@@ -50,11 +56,34 @@ static void slip_tx_task(void *, void *, void *) {
     }
 }
 
-static int init(void) {
-    // Initialize SLIP
+int init_slip_network(void) {
+    char rs485_ip[MAX_IP_ADDRESS_STR_LEN];
 
-    // Arbitrate with connected module over SLIP
-    initiate_arbitration(POTATO_EXTENSION_BOARD_ID, 0);
+    int ret = l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0;
+    if (ret != 0) {
+        LOG_ERR("Failed to initialize UART to RS485");
+        return ret;
+    }
+
+    ret = l_create_ip_str(rs485_ip, 11, 1, 2, 1) != 0;
+    if (ret != 0) {
+        LOG_ERR("Failed to create IP address string");
+        return ret;
+    }
+
+    ret = l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip);
+    if (ret != 0) {
+        LOG_ERR("Failed to initialize network stack");
+    }
+
+    return ret;
+}
+
+static int init(void) {
+    if (init_slip_network() == 0) {
+        // Arbitrate with connected module over SLIP
+        initiate_arbitration(POTATO_EXTENSION_BOARD_ID, 0);
+    }
 
     // Initialize tasks
     // TODO: Maybe prioritize in this order (ADC, SLIP, sensors)
