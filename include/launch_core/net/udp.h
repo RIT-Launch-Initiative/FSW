@@ -29,8 +29,8 @@ typedef struct {
 
 typedef struct {
     int *sockets;
+    uint16_t *ports;
     int num_sockets;
-
 } l_udp_socket_list_t;
 
 /**
