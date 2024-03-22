@@ -3,13 +3,6 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
-#include <launch_core/backplane_defs.h>
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/dev/gnss.h>
-#include <launch_core/net/lora.h>
-#include <launch_core/net/net_common.h>
-#include <launch_core/net/udp.h>
-
 #include "radio_module_functionality.h"
 
 #define SLEEP_TIME_MS   100
@@ -26,10 +19,6 @@ K_QUEUE_DEFINE(net_tx_queue);
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
 static struct k_thread udp_rx_thread;
-
-// Callbacks
-GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
-GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
 
 // Devices
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
@@ -52,23 +41,31 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
     l_default_receive_thread(socks, buff_ptr, buff_len);
 }
 
-static void init_networking() {
+static int init_networking() {
+    k_queue_init(&net_tx_queue);
+
+    char ip[MAX_IP_ADDRESS_STR_LEN];
+    if (0 > l_create_ip_str_default_net_id(ip, RADIO_MODULE_ID, 1)) {
+        LOG_ERR("Failed to create IP address string: %d", ret);
+        return -1;
+    }
+
+
     if (l_check_device(wiznet) != 0) {
         LOG_ERR("Wiznet device not found");
-        return;
+        return -2;
     }
 
     int ret = l_init_udp_net_stack(RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
-        return;
+        return -3;
     }
 
     for (int i = 0; i < udp_socket_list.num_sockets; i++) {
         udp_socket_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, udp_socket_ports[i]);
         if (udp_socket_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
-            return;
         }
     }
 
@@ -78,29 +75,26 @@ static void init_networking() {
                     0,
                     K_NO_WAIT);
     k_thread_start(&udp_rx_thread);
-}
 
-static int init() {
-    char ip[MAX_IP_ADDRESS_STR_LEN];
-    int ret = -1;
-
-    k_queue_init(&net_tx_queue);
-
-    if (!l_check_device(lora_dev)) {
-        l_lora_configure(lora_dev, false);
-    }
-
-    if (0 > l_create_ip_str_default_net_id(ip, RADIO_MODULE_ID, 1)) {
-        LOG_ERR("Failed to create IP address string: %d", ret);
-        return -1;
-    }
-
-    init_networking();
-
+    init_udp_unique();
 
     return 0;
 }
 
+static int init() {
+    int ret = -1;
+
+
+    if (!l_check_device(lora_dev)) {
+        l_lora_configure(lora_dev, false);
+        init_lora_unique();
+    }
+
+    init_networking();
+    start_tasks();
+
+    return 0;
+}
 
 
 int main() {
