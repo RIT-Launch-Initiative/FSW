@@ -47,8 +47,6 @@ static int init_networking() {
         return -1;
     }
 
-
-
     ret = l_init_udp_net_stack(RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
@@ -61,7 +59,6 @@ static int init_networking() {
             LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
         }
     }
-
 
     return 0;
 }

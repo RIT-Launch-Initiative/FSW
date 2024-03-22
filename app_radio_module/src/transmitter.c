@@ -22,8 +22,8 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
 }
 
 
-int init_lora_unique() {
-    return 0;
+int init_lora_unique(const struct device *const lora_dev) {
+    return l_lora_configure(lora_dev, true);
 }
 
 int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {

@@ -7,7 +7,7 @@
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
 
-int init_lora_unique();
+int init_lora_unique(const struct device *lora_dev);
 
 int init_udp_unique(l_udp_socket_list_t *udp_socket_list);
 
