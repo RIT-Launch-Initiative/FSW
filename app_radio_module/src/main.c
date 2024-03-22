@@ -10,6 +10,8 @@
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
 
+#include "radio_module_functionality.h"
+
 #define SLEEP_TIME_MS   100
 #define UDP_RX_STACK_SIZE 1024
 #define LED0_NODE DT_ALIAS(led0)
@@ -76,7 +78,6 @@ static void init_networking() {
                     0,
                     K_NO_WAIT);
     k_thread_start(&udp_rx_thread);
-
 }
 
 static int init() {
