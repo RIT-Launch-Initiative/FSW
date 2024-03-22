@@ -51,14 +51,32 @@ int l_lora_set_tx_rx(const struct device *const dev, bool transmit) {
     return lora_config(dev, &config);
 }
 
-int l_lora_set_frequency(const struct device *const dev, uint32_t frequency);
+int l_lora_set_frequency(const struct device *const dev, uint32_t frequency) {
+    config.frequency = frequency;
+    return lora_config(dev, &config);
+}
 
-int l_lora_set_bandwidth(const struct device *const dev, enum lora_signal_bandwidth bandwidth);
+int l_lora_set_bandwidth(const struct device *const dev, enum lora_signal_bandwidth bandwidth) {
+    config.bandwidth = bandwidth;
+    return lora_config(dev, &config);
+}
 
-int l_lora_set_data_rate(const struct device *const dev, enum lora_datarate data_rate);
+int l_lora_set_data_rate(const struct device *const dev, enum lora_datarate data_rate) {
+    config.datarate = data_rate;
+    return lora_config(dev, &config);
+}
 
-int l_lora_set_coding_rate(const struct device *const dev, enum lora_coding_rate coding_rate);
+int l_lora_set_coding_rate(const struct device *const dev, enum lora_coding_rate coding_rate) {
+    config.coding_rate = coding_rate;
+    return lora_config(dev, &config);
+}
 
-int l_lora_set_preamble_len(const struct device *const dev, uint16_t preamble_len);
+int l_lora_set_preamble_len(const struct device *const dev, uint16_t preamble_len) {
+    config.preamble_len = preamble_len;
+    return lora_config(dev, &config);
+}
 
-int l_lora_set_tx_power(const struct device *const dev, int8_t tx_power);
+int l_lora_set_tx_power(const struct device *const dev, int8_t tx_power) {
+    config.tx_power = tx_power;
+    return lora_config(dev, &config);
+}
