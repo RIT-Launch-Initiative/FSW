@@ -8,9 +8,7 @@
 #define RADIO_MODULE_IP_ADDR BACKPLANE_IP(RADIO_MODULE_ID, 1, 1) // TODO: KConfig the board revision and #
 
 #define NUM_SOCKETS 4
-#define SLEEP_TIME_MS   100
-#define LED0_NODE DT_ALIAS(led0)
-#define LED1_NODE DT_ALIAS(led1)
+#define SLEEP_TIME_MS 100
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_RADIO_MODULE_LOG_LEVEL);
 
@@ -19,18 +17,16 @@ K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
 
 // Devices
-static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 // Networking
 static int udp_sockets[NUM_SOCKETS] = {0};
 static uint16_t udp_socket_ports[NUM_SOCKETS] = {LAUNCH_EVENT_NOTIFICATION_PORT,
-                                 POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT,
-                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT,
-                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT,
-                                 };
+                                                 POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT,
+                                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT,
+                                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT,
+};
 l_udp_socket_list_t udp_socket_list = {
         .sockets = udp_sockets,
         .ports = udp_socket_ports,
@@ -44,7 +40,7 @@ static int init_networking() {
     int ret = l_init_udp_net_stack_by_device(wiznet, RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
-        return -3;
+        return ret;
     }
 
     for (int i = 0; i < udp_socket_list.num_sockets; i++) {
@@ -73,15 +69,11 @@ static int init() {
     return 0;
 }
 
-
 int main() {
     LOG_DBG("Starting radio module!\n");
     if (init()) {
         return -1;
     }
-
-    gpio_pin_toggle_dt(&led0);
-    gpio_pin_toggle_dt(&led1);
 
     return main_unique();
 }

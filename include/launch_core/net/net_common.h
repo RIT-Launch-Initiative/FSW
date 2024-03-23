@@ -20,11 +20,10 @@
     #network_octet "." #module_id "." #revision_number "." #board_number
 
 // Class A Backplane Network
-#define BACKPLANE_SUBNET 10
 #define BACKPLANE_IP(module_id, revision_number, board_number) \
-    CLASS_A_IP(BACKPLANE_SUBNET, module_id, revision_number, board_number)
+    CLASS_A_IP(10, module_id, revision_number, board_number)
 
-static const uint8_t MAX_IP_ADDRESS_STR_LEN = 16;
+#define MAX_IP_ADDRESS_STR_LEN 16
 
 /**
  * Create a string representation of an IP address
