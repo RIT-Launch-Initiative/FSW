@@ -55,13 +55,12 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
     }
 }
 
-static void lora_tx_task() {
+static void lora_tx_task(void *, void *, void *) {
     const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 
     while (1) {
         l_lora_packet_t packet = {0};
         k_msgq_get(&lora_tx_queue, &packet, K_FOREVER);
-        LOG_INF("Processing a lora packet of %d bytes", packet.payload_len);
         l_lora_tx(lora_dev, (uint8_t *) &packet, packet.payload_len + sizeof(packet.port));
     }
 }
@@ -82,12 +81,8 @@ int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {
 }
 
 int start_tasks() {
-    k_thread_create(&lora_tx_thread, &lora_tx_stack[0],
-                    LORA_TX_STACK_SIZE,
-                    lora_tx_task, NULL, NULL, NULL,
-                    K_PRIO_PREEMPT(5),
-                    0,
-                    K_NO_WAIT);
+    k_thread_create(&lora_tx_thread, &lora_tx_stack[0], LORA_TX_STACK_SIZE,
+                    lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&lora_tx_thread);
     return 0;
 }
