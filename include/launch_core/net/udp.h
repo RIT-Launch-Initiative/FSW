@@ -60,6 +60,7 @@ int l_init_udp_net_stack(struct net_if *iface, const char *ip_addr);
  * Open a UDP socket for a specific IP and port
  * @param ip - IP address to bind to
  * @param port - Port to bind to
+ * @return Socket descriptor or negative error code
  */
 int l_init_udp_socket(const char *ip, uint16_t port);
 
