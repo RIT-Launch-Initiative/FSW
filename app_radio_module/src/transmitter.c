@@ -1,4 +1,5 @@
 #include "zephyr/kernel/thread.h"
+
 #if !defined(RADIO_MODULE_RECEIVER)
 
 #include "radio_module_functionality.h"
@@ -33,23 +34,23 @@ static K_THREAD_STACK_DEFINE(lora_tx_stack, LORA_TX_STACK_SIZE);
 static struct k_thread lora_tx_thread;
 
 static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
-    l_udp_socket_list_t *sock_list = (l_udp_socket_list_t*) socks;
-    size_t len = POINTER_TO_INT(buff_len);
-    
+    l_udp_socket_list_t *sock_list = (l_udp_socket_list_t *) socks;
+    size_t buff_size = POINTER_TO_INT(buff_len);
+    int rcv_size = 0;
+
     while (true) {
         for (int i = 0; i < sock_list->num_sockets; i++) {
-            // looping through sockets
             l_lora_packet_t packet = {0};
-            packet.port = sock_list->ports[i];
-            packet.payload_len = l_receive_udp(sock_list->sockets[i], packet.payload, len);
 
-            if (unlikely(packet.payload_len < 0)) {
-              LOG_ERR("Failed to receive UDP data (%d)", packet.payload_len);
-              continue;
+            packet.port = sock_list->ports[i];
+            rcv_size = l_receive_udp(sock_list->sockets[i], packet.payload, buff_size);
+            if (rcv_size <= 0) {
+                continue;
             }
 
-            // this copies the packet to the queue
+            packet.payload_len = (uint8_t) rcv_size;
             k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
+            LOG_INF("Finished putting on queue");
         }
     }
 }
@@ -60,7 +61,8 @@ static void lora_tx_task() {
     while (1) {
         l_lora_packet_t packet = {0};
         k_msgq_get(&lora_tx_queue, &packet, K_FOREVER);
-        l_lora_tx(lora_dev, (uint8_t*)&packet, packet.payload_len + sizeof(packet.port));
+        LOG_INF("Processing a lora packet of %d bytes", packet.payload_len);
+        l_lora_tx(lora_dev, (uint8_t *) &packet, packet.payload_len + sizeof(packet.port));
     }
 }
 
@@ -79,8 +81,8 @@ int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {
     return 0;
 }
 
-int start_tasks() { 
-    k_thread_create(&lora_tx_thread, &lora_tx_stack[0], 
+int start_tasks() {
+    k_thread_create(&lora_tx_thread, &lora_tx_stack[0],
                     LORA_TX_STACK_SIZE,
                     lora_tx_task, NULL, NULL, NULL,
                     K_PRIO_PREEMPT(5),
