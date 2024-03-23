@@ -139,12 +139,7 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
 int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
-    int ret = recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
-    if (ret > 0) {
-        LOG_INF("Received %d bytes from %d: %s", ret, ntohs(addr.sin_port), buff);
-    }
-
-    return 0;
+    return recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
 }
 
 int l_default_receive_thread(void *socks, void *buff_ptr, void *buff_len) {
