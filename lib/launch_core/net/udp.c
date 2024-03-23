@@ -75,14 +75,6 @@ int l_init_udp_socket(const char *ip, uint16_t port) {
         return sock;
     }
 
-//    TODO: Investigate why setsockopt returns -1. Does not impact broadcast functionality though...
-//    static const int broadcast_enable = 1;
-//    int ret = setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcast_enable, sizeof(broadcast_enable));
-//    if (ret < 0) {
-//        LOG_ERR("Failed to enable broadcast on socket (%d)", ret);
-//    }
-//    TODO: Timeout would be nice though
-
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);

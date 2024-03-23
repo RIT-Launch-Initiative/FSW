@@ -48,10 +48,8 @@ static int init_networking() {
         if (udp_socket_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
         } else {
-            l_set_socket_rx_timeout(udp_socket_list.sockets[i], 100);
+            l_set_socket_rx_timeout(udp_socket_list.sockets[i], 1);
         }
-
-
     }
 
     return 0;
