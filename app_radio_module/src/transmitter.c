@@ -1,12 +1,18 @@
 #if !defined(RADIO_MODULE_RECEIVER)
 
-#include <launch_core/dev/gnss.h>
-#include <zephyr/drivers/gpio.h>
 #include "radio_module_functionality.h"
 
+#include <launch_core/dev/gnss.h>
+
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(radio_module_txer);
+
 // Callbacks
-GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
-GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
+//GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
+//GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
 
 // Networking
 #define UDP_RX_STACK_SIZE 1024
@@ -38,14 +44,20 @@ int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {
 }
 
 int start_tasks() {
-
-
     return 0;
 }
 
 int main_unique() {
-    return 0;
+    const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
 
+    while (true) {
+        gpio_pin_toggle_dt(&led0);
+        gpio_pin_toggle_dt(&led1);
+        k_msleep(100);
+    }
+
+    return 0;
 }
 
 #endif

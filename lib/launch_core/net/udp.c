@@ -75,15 +75,6 @@ int l_init_udp_socket(const char *ip, uint16_t port) {
         return sock;
     }
 
-//    TODO: Investigate why setsockopt returns -1. Does not impact broadcast functionality though...
-//    static const int broadcast_enable = 1;
-//    int ret = setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcast_enable, sizeof(broadcast_enable));
-//    if (ret < 0) {
-//        LOG_ERR("Failed to enable broadcast on socket (%d)", ret);
-//    }
-//    TODO: Timeout would be nice though
-//    l_set_socket_rx_timeout(sock, 1000);
-
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
@@ -106,9 +97,9 @@ int l_init_udp_socket(const char *ip, uint16_t port) {
         return ret;
     }
 
-    LOG_INF("UDP socket bound to IP: %s, port: %d", ip, port);
+    LOG_INF("UDP socket %d bound to IP: %s, port: %d", sock, ip, port);
 
-    return 0;
+    return sock;
 }
 
 int l_deinit_udp_socket(int sock) {
@@ -119,7 +110,7 @@ int l_set_socket_rx_timeout(int sock, int timeout) {
     struct timeval time_val;
     time_val.tv_sec = timeout / 1000;
     time_val.tv_usec = (timeout % 1000) * 100;
-    LOG_INF("Setting socket timeout to %lld seconds and %ld microseconds", time_val.tv_sec, time_val.tv_usec);
+    LOG_INF("Setting socket %d timeout to %lld seconds and %ld microseconds", sock, time_val.tv_sec, time_val.tv_usec);
     int ret = setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &time_val, sizeof(time_val));
 
     if (ret < 0) {
@@ -148,14 +139,7 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
 int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
-    int ret = recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
-    if (ret < 0) {
-        LOG_ERR("Failed to receive data (%d)", ret);
-    } else {
-        LOG_INF("Received %d bytes from %d: %s", ret, ntohs(addr.sin_port), buff);
-    }
-
-    return 0;
+    return recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
 }
 
 int l_default_receive_thread(void *socks, void *buff_ptr, void *buff_len) {
