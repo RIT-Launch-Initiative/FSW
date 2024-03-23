@@ -58,13 +58,10 @@ static void lora_tx_task() {
     const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 
     while (1) {
-        // pop from queue
         l_lora_packet_t packet = {0};
         k_msgq_get(&lora_tx_queue, &packet, K_FOREVER);
         l_lora_tx(lora_dev, (uint8_t*)&packet, packet.payload_len + sizeof(packet.port));
     }
-
-
 }
 
 int init_lora_unique(const struct device *const lora_dev) {

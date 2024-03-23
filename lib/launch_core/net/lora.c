@@ -40,9 +40,9 @@ void l_lora_debug_recv_cb(const struct device *dev, uint8_t *data, uint16_t size
 }
 
 int l_lora_tx(const struct device *dev, uint8_t *buff, size_t len) {
-    l_lora_configure(dev, true);
+    l_lora_set_tx_rx(dev, true);
     int ret = lora_send(dev, buff, len);
-    l_lora_configure(dev, false);
+    l_lora_set_tx_rx(dev, false);
     return ret;
 }
 

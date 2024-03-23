@@ -29,14 +29,6 @@ typedef struct l_lora_packet {
 } l_lora_packet_t;
 
 /**
- * Configure LoRa radio devices for transmission or reception.
- * @param dev - Device to configure
- * @param transmit - True if the device should be configured for transmission. False otherwise
- * @return Zephyr status code
- */
-int l_lora_configure(const struct device *dev, bool transmit);
-
-/**
  * Transmit a message over LoRa.
  * @param lora_dev - Device to transmit over
  * @param buff - Buffer of data to transmit
