@@ -64,7 +64,7 @@
         ubxlib-usart2 = &usart2;
 
         lora0 = &lora;
-//        gnss = &maxm10s;
+        gnss = &maxm10s;
     };
 };
 
@@ -100,10 +100,10 @@
     current-speed = <9600>;
     status = "okay";
 
-//    maxm10s: ublox-maxm10s {
-//        status = "okay";
-//        compatible = "gnss-nmea-generic";
-//    };
+    maxm10s: ublox-maxm10s {
+        status = "okay";
+        compatible = "gnss-nmea-generic";
+    };
 };
 
 &uart4 {
