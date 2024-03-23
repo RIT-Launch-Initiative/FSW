@@ -36,14 +36,20 @@ static struct k_thread lora_tx_thread;
 static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
     l_udp_socket_list_t *sock_list = (l_udp_socket_list_t*) socks;
     size_t len = POINTER_TO_INT(buff_len);
-
+    
     while (true) {
         for (int i = 0; i < sock_list->num_sockets; i++) {
             // looping through sockets
             l_lora_packet_t packet = {0};
-            packet.len = len;
             packet.port = sock_list->ports[i];
-            l_receive_udp(sock_list->sockets[i], packet.data, len);
+            packet.len = l_receive_udp(sock_list->sockets[i], packet.data, len);
+
+            if (unlikely(packet.len < 0)) {
+                LOG_ERR("Failed to receive UDP data (%d)", packet.len);
+                continue;
+            }
+            
+            // this copies the packet to the queue
             k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
         }
     }

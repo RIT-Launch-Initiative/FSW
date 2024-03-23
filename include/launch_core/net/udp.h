@@ -94,7 +94,7 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
  * @param sock - Initialized socket to receive data on
  * @param buff - Buffer to store received data
  * @param len - Size of the buffer
- * @return Zephyr status code
+ * @return Received bytes or Zephyr status code if negative 
  */
 int l_receive_udp(int sock, const uint8_t *buff, size_t len);
 
