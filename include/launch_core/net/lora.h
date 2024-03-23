@@ -19,8 +19,7 @@
  * Utility functions for dealing with Zephyr's LoRa library
  */
 
-// this is 200 to make space for the port number 
-// lora header bytes
+// 230 Bytes containing port number + data with the remaining 26 meant for headers
 #define LORA_PACKET_DATA_SIZE 230
 
 typedef struct l_lora_packet {

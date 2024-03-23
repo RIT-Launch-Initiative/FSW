@@ -1,3 +1,4 @@
+#include "zephyr/kernel/thread.h"
 #if !defined(RADIO_MODULE_RECEIVER)
 
 #include "radio_module_functionality.h"
@@ -19,17 +20,34 @@ LOG_MODULE_REGISTER(radio_module_txer);
 #define UDP_RX_BUFF_LEN 256 // TODO: Make this a KConfig
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
 
+#define LORA_TX_STACK_SIZE 1024
+
+// Queues
+static struct k_msgq lora_tx_queue;
+static uint8_t lora_tx_queue_buff[CONFIG_LORA_TX_QUEUE_SIZE * sizeof(l_lora_packet_t)];
+
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
 static struct k_thread udp_rx_thread;
 
-static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
-    l_default_receive_thread(socks, buff_ptr, buff_len);
-    // Copy ethernet data into queue
-}
+static K_THREAD_STACK_DEFINE(lora_tx_stack, LORA_TX_STACK_SIZE);
+static struct k_thread lora_tx_thread;
 
-static struct k_msgq lora_tx_queue;
-static uint8_t lora_tx_queue_buff[LORA_TX_QUEUE_SIZE * sizeof(l_lora_packet_t)];
+static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
+    l_udp_socket_list_t *sock_list = (l_udp_socket_list_t*) socks;
+    size_t len = POINTER_TO_INT(buff_len);
+
+    while (true) {
+        for (int i = 0; i < sock_list->num_sockets; i++) {
+            // looping through sockets
+            l_lora_packet_t packet = {0};
+            packet.len = len;
+            packet.port = sock_list->ports[i];
+            l_receive_udp(sock_list->sockets[i], packet.data, len);
+            k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
+        }
+    }
+}
 
 static void lora_tx_task() {
     // Get the data from Ethernet queue
@@ -62,7 +80,14 @@ int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {
     return 0;
 }
 
-int start_tasks() {
+int start_tasks() { 
+    k_thread_create(&lora_tx_thread, &lora_tx_stack[0], 
+                    LORA_TX_STACK_SIZE,
+                    lora_tx_task, NULL, NULL, NULL,
+                    K_PRIO_PREEMPT(5),
+                    0,
+                    K_NO_WAIT);
+    k_thread_start(&lora_tx_thread);
     return 0;
 }
 

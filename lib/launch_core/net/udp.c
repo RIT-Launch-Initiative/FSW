@@ -152,7 +152,6 @@ int l_default_receive_thread(void *socks, void *buff_ptr, void *buff_len) {
     while (true) {
         for (int i = 0; i < socket_list->num_sockets; i++) {
             l_receive_udp(socket_list->sockets[i], buff, len);
-            socket_list->ports[i]
         }
     }
 
