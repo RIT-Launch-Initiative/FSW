@@ -106,9 +106,9 @@ int l_init_udp_socket(const char *ip, uint16_t port) {
         return ret;
     }
 
-    LOG_INF("UDP socket bound to IP: %s, port: %d", ip, port);
+    LOG_INF("UDP socket %d bound to IP: %s, port: %d", sock, ip, port);
 
-    return 0;
+    return sock;
 }
 
 int l_deinit_udp_socket(int sock) {
@@ -119,7 +119,7 @@ int l_set_socket_rx_timeout(int sock, int timeout) {
     struct timeval time_val;
     time_val.tv_sec = timeout / 1000;
     time_val.tv_usec = (timeout % 1000) * 100;
-    LOG_INF("Setting socket timeout to %lld seconds and %ld microseconds", time_val.tv_sec, time_val.tv_usec);
+    LOG_INF("Setting socket %d timeout to %lld seconds and %ld microseconds", sock, time_val.tv_sec, time_val.tv_usec);
     int ret = setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &time_val, sizeof(time_val));
 
     if (ret < 0) {

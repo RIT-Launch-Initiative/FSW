@@ -47,7 +47,11 @@ static int init_networking() {
         udp_socket_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, udp_socket_list.ports[i]);
         if (udp_socket_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
+        } else {
+            l_set_socket_rx_timeout(udp_socket_list.sockets[i], 100);
         }
+
+
     }
 
     return 0;
