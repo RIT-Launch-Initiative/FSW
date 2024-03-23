@@ -9,8 +9,6 @@
 // devicetree gets
 #define LED_NODE DT_ALIAS(led)
 const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
-const struct gpio_dt_spec ldo_enable =
-    GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, ldo_enable);
 
 int main(void) {
   int counter = 0;

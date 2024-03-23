@@ -241,29 +241,45 @@ int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
 static int mcp356x_read_channel(const struct device *dev,
                                 const struct adc_sequence *sequence) {
   const struct mcp356x_config *config = dev->config;
-
+  int res = 0;
   if (sequence->options != NULL) {
     LOG_ERR("This driver does not support sequencing");
     return -1;
   }
+  if (sequence->buffer_size < 4) {
+    LOG_ERR("MCP3561 buffer must be at least 4 bytes long");
+    return -1;
+  }
   uint32_t channel = sequence->channels;
-
+  // sequence
   uint8_t vin_plus = 0b1111 & (channel >> 4);
   uint8_t vin_minus = 0b1111 & (channel);
   uint8_t mux_reg = (vin_plus << 4) | vin_minus;
 
+  // if (sequence.)
+
+  LOG_INF("MUX_REG = " BYTE_TO_BINARY_PATTERN "\n", BYTE_TO_BINARY(mux_reg));
+
   // Write mux register
-  mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
+  res = mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
+  if (res < 0) {
+    return res;
+  }
 
   // Wait X pulses of mclk for result to come in
   // or, or wait for IRQ to come in and and make sure IRQ reg says its the right
   // one
-  k_usleep(10); // silly hack until then
+  k_usleep(2); // silly hack until then
 
-  uint32_t val = 0xFFFFFF;
-  mcp_read_reg_24(config, MCP_reg_ADCDATA, &val);
+  uint32_t val = 12345;
+  res = mcp_read_reg_24(config, MCP_reg_ADCDATA, &val);
+  if (res != 0) {
+    return res;
+  }
+  *(int32_t *)(sequence->buffer) = val;
 
-  return val;
+  LOG_INF("READ CHANNEL %x = %x", mux_reg, val);
+  return res;
 }
 
 struct scan_reg {
@@ -300,7 +316,8 @@ int mcp356x_channel_setup(const struct device *dev,
     return -1;
   }
 
-  uint8_t mux_register = mux_vin_p << 4 | mux_vin_m;
+  uint8_t mux_register = (mux_vin_p << 4) | mux_vin_m;
+  // channel_cfg->channel_id = mux_register;
 
   // ADCDATA
   // CONFIG0 check
@@ -316,12 +333,13 @@ int mcp356x_channel_setup(const struct device *dev,
   // LOCK
   // CRCCFG
 
-  return -1;
+  return 0;
 }
 
 static const struct adc_driver_api mcp356x_api = {
     .channel_setup = &mcp356x_channel_setup,
     .read = &mcp356x_read_channel,
+    .ref_internal = 2400,
 };
 
 int dump_registers(const struct mcp356x_config *config) {
@@ -350,9 +368,9 @@ int dump_registers(const struct mcp356x_config *config) {
            BYTE_TO_BINARY(data));
   }
 
-  uint32_t timer = 0xFF44DE;
+  uint32_t timer = 978;
   mcp_read_reg_24(config, MCP_reg_TIMER, &timer);
-  printk("TIMER: %x\n", timer);
+  printk("TIMER: %d\n", timer);
 
   return 0;
 }
@@ -401,7 +419,7 @@ static int mcp356x_init(const struct device *dev) {
   }
   // No Current Source/Sink Selection Bits for Sensor Bias
   // TODO ADC_MODE
-  uint8_t adc_mode = 0b10; // page 91 (standby)
+  uint8_t adc_mode = 0b11; // page 91 (standby)
   uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4) | adc_mode;
   mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
 
@@ -543,9 +561,6 @@ static int mcp356x_init(const struct device *dev) {
   // Scan register (THIS DRIVER DOES NOT SCAN)
   uint32_t scan_reg = 0;
   mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
-
-  uint32_t timer_reg = 0;
-  mcp_write_reg_24(config, MCP_reg_TIMER, timer_reg);
 
   dres = dump_registers(config);
 

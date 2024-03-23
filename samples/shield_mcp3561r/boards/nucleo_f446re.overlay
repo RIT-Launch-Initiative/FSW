@@ -1,5 +1,8 @@
 
 / {
+    zephyr,user {
+        io-channels = <&adc 0>;
+    };
     chosen {
         zephyr,console = &usart2;
         zephyr,shell-uart = &usart2;
@@ -7,58 +10,16 @@
 
     aliases {
         led = &shield_led;
-        // storage = &w25q128;
-        // logfs = &lfs1;
     };
 
-    leds: leds {
-        compatible = "gpio-leds";
-        redled: redled{
-            gpios = <&gpioa 13 GPIO_ACTIVE_HIGH>;
-        };
-        anotherled: anotherled{
-            gpios = <&gpioa 14 GPIO_ACTIVE_HIGH>;
-        };
-    };
-
-    control_gpios{
-        compatible = "gpio-keys";
-        ldo_enable: ldo-enable{
-            gpios = <&gpioc 14 GPIO_ACTIVE_HIGH>;
-            label = "Enable pin for LDO";
-        };
-        cam_enable: cam-enable{
-            gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>;
-            label = "Enable pin for Cameras";
-
-        };
-    };
-
-
-
-    // fstab {
-        //     compatible = "zephyr,fstab";
-        //     lfs1: lfs1 {
-            //         compatible = "zephyr,fstab,littlefs";
-            //         mount-point = "/lfs";
-            //         partition = <&external_storage_partition>;
-            //         automount;
-
-            //         // the binding reccomends defaults for these
-            //         read-size = <16>;
-            //         prog-size = <16>;
-            //         cache-size = <64>; // may need to grow for optimization
-            //         lookahead-size = <32>;
-            //         block-cycles = <(90 * 1000)>;
-            //         // the datasheet gives 100K P-E cycles
-            //         // NOTE: this seems to default to 512 for the mounted filesystem
-            //         // anyway
-        //     };
-    // };
 };
 
 &mikrobus_spi {
     adc: mcp3561@0 {
+        #io-channel-cells = <1>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+
         status = "okay";
         compatible = "microchip,mcp3561";
         reg = <0>;
@@ -67,13 +28,10 @@
         clock-selection = "CLK_INTERNAL";
         prescale = "PRE_1";
         osr = "OSR_32";
-        spi-max-frequency = <DT_FREQ_M(10)>; // pg. 12, Table 1.1 MAX 20MHz
+        spi-max-frequency = <DT_FREQ_M(8)>; // pg. 12, Table 1.1 MAX 20MHz
         //
-        #io-channel-cells = <1>;
-        #address-cells = <1>;
-        #size-cells = <0>;
         //
-        chan: chan@0 {
+        channel@0 {
             reg = <0>;
             zephyr,differential;
             zephyr,gain = "ADC_GAIN_1_6";
