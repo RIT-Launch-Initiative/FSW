@@ -14,7 +14,7 @@
 #include <stdint.h>
 
 // IPv4 Class A
-#define CLASS_A_NETMASK "10.0.0.0"
+#define CLASS_A_NETMASK "255.0.0.0"
 
 #define CLASS_A_IP(network_octet, module_id, revision_number, board_number) \
     #network_octet "." #module_id "." #revision_number "." #board_number
