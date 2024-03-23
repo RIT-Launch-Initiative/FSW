@@ -24,7 +24,6 @@ static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
 
 // Queues
 static struct k_msgq lora_tx_queue;
-static uint8_t lora_tx_queue_buff[CONFIG_LORA_TX_QUEUE_SIZE * sizeof(l_lora_packet_t)];
 
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
@@ -42,13 +41,13 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
             // looping through sockets
             l_lora_packet_t packet = {0};
             packet.port = sock_list->ports[i];
-            packet.len = l_receive_udp(sock_list->sockets[i], packet.data, len);
+            packet.payload_len = l_receive_udp(sock_list->sockets[i], packet.payload, len);
 
-            if (unlikely(packet.len < 0)) {
-                LOG_ERR("Failed to receive UDP data (%d)", packet.len);
-                continue;
+            if (unlikely(packet.payload_len < 0)) {
+              LOG_ERR("Failed to receive UDP data (%d)", packet.payload_len);
+              continue;
             }
-            
+
             // this copies the packet to the queue
             k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
         }
@@ -56,16 +55,13 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
 }
 
 static void lora_tx_task() {
-    // Get the data from Ethernet queue
-    // queue us a k_msgq full of lora packet structs
-    // Data here is mutable
-
-    // Send (block)
-    // l_lora_tx(/*some data*/);
+    const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 
     while (1) {
-        // Get data from queue
-        // lora send async
+        // pop from queue
+        l_lora_packet_t packet = {0};
+        k_msgq_get(&lora_tx_queue, &packet, K_FOREVER);
+        l_lora_tx(lora_dev, (uint8_t*)&packet, packet.payload_len + sizeof(packet.port));
     }
 
 

@@ -24,8 +24,8 @@
 
 typedef struct l_lora_packet {
     uint16_t port;
-    uint8_t len;
-    uint8_t data[LORA_PACKET_DATA_SIZE];
+    uint8_t payload[LORA_PACKET_DATA_SIZE];
+    uint8_t payload_len;
 } l_lora_packet_t;
 
 /**
