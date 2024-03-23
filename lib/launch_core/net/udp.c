@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "zephyr/net/net_ip.h"
 #include <stdio.h>
 
 #include <launch_core/backplane_defs.h>
@@ -139,6 +140,7 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
 int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
+
     return recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
 }
 
@@ -150,6 +152,7 @@ int l_default_receive_thread(void *socks, void *buff_ptr, void *buff_len) {
     while (true) {
         for (int i = 0; i < socket_list->num_sockets; i++) {
             l_receive_udp(socket_list->sockets[i], buff, len);
+            socket_list->ports[i]
         }
     }
 

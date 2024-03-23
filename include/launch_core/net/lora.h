@@ -11,12 +11,23 @@
 #ifndef L_LORA_UTILS_H_
 #define L_LORA_UTILS_H_
 
+#include <sys/_stdint.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/lora.h>
 
 /**
  * Utility functions for dealing with Zephyr's LoRa library
  */
+
+// this is 200 to make space for the port number 
+// lora header bytes
+#define LORA_PACKET_DATA_SIZE 230
+
+typedef struct l_lora_packet {
+    uint16_t port;
+    uint8_t len;
+    uint8_t data[LORA_PACKET_DATA_SIZE];
+} l_lora_packet_t;
 
 /**
  * Configure LoRa radio devices for transmission or reception.

@@ -25,8 +25,27 @@ static struct k_thread udp_rx_thread;
 
 static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
     l_default_receive_thread(socks, buff_ptr, buff_len);
+    // Copy ethernet data into queue
 }
 
+static struct k_msgq lora_tx_queue;
+static uint8_t lora_tx_queue_buff[LORA_TX_QUEUE_SIZE * sizeof(l_lora_packet_t)];
+
+static void lora_tx_task() {
+    // Get the data from Ethernet queue
+    // queue us a k_msgq full of lora packet structs
+    // Data here is mutable
+
+    // Send (block)
+    // l_lora_tx(/*some data*/);
+
+    while (1) {
+        // Get data from queue
+        // lora send async
+    }
+
+
+}
 
 int init_lora_unique(const struct device *const lora_dev) {
     return l_lora_set_tx_rx(lora_dev, true);
