@@ -82,7 +82,6 @@ int l_init_udp_socket(const char *ip, uint16_t port) {
 //        LOG_ERR("Failed to enable broadcast on socket (%d)", ret);
 //    }
 //    TODO: Timeout would be nice though
-//    l_set_socket_rx_timeout(sock, 1000);
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -149,9 +148,7 @@ int l_receive_udp(int sock, const uint8_t *buff, size_t len) {
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
     int ret = recvfrom(sock, (void *) buff, len, 0, (struct sockaddr *) &addr, &addr_len);
-    if (ret < 0) {
-        LOG_ERR("Failed to receive data (%d)", ret);
-    } else {
+    if (ret > 0) {
         LOG_INF("Received %d bytes from %d: %s", ret, ntohs(addr.sin_port), buff);
     }
 
