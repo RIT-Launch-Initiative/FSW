@@ -11,7 +11,6 @@
 #ifndef L_LORA_UTILS_H_
 #define L_LORA_UTILS_H_
 
-#include <sys/_stdint.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/lora.h>
 
