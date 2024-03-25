@@ -296,12 +296,14 @@ int mcp356x_channel_setup(const struct device *dev,
     LOG_ERR("Reference for channel %d does not match the global reference. (It "
             "needs to)\n",
             channel_cfg->channel_id);
+    return -1;
   }
 
   if (channel_cfg->gain != config->global_gain) {
     LOG_ERR("Gain for channel %d does not match the global gain. (It "
             "needs to)\n",
             channel_cfg->channel_id);
+    return -1;
   }
 
   uint8_t mux_vin_p = channel_cfg->input_positive;

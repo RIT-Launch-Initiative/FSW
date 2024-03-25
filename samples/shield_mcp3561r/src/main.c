@@ -63,7 +63,7 @@ int main() {
 
   while (true) {
     printk("ADC reading[%u]:\n", count++);
-    int32_t val_mv;
+    int32_t val;
 
     printk("- %s, channel %d: ", adc_chan0.dev->name, adc_chan0.channel_id);
     sequence.channels = adc_chan0.channel_id;
@@ -84,23 +84,16 @@ int main() {
      * complement value.
      */
     if (adc_chan0.channel_cfg.differential) {
-      val_mv = (int32_t)((int16_t)buf);
+      val = (int32_t)((int16_t)buf);
     } else {
-      val_mv = (int32_t)buf;
+      val = (int32_t)buf;
     }
-    printk("%" PRId32, val_mv);
-    err = adc_raw_to_millivolts_dt(&adc_chan0, &val_mv);
-    /* conversion to mV may not be supported, skip if not */
-    if (err < 0) {
-      printk(" (value in mV not available)\n");
-    } else {
-      printk(" = %" PRId32 " mV\n", val_mv);
-    }
+    printk("%d\n", val);
 
     gpio_pin_toggle_dt(&led);
     printk("LED toggle\n");
 
-    k_msleep(2000);
+    k_msleep(500);
   }
 }
 
