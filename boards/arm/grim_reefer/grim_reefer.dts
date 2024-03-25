@@ -152,6 +152,7 @@
 	status = "okay";
 
 	w25q512: w25q512jv@0 {
+		status = "okay";
 		compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
 		reg = <0>;
 

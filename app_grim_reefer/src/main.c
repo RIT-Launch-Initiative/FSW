@@ -34,6 +34,11 @@ const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
 const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
 #define FLASH_NODE DT_ALIAS(storage)
+
+#if !DT_NODE_EXISTS(FLASH_NODE)
+#error "whoops"
+#endif
+
 const struct device *const flash = DEVICE_DT_GET(FLASH_NODE);
 
 static int init(void) {
