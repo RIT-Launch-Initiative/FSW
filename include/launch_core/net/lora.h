@@ -18,13 +18,14 @@
  * Utility functions for dealing with Zephyr's LoRa library
  */
 
-/**
- * Configure LoRa radio devices for transmission or reception.
- * @param dev - Device to configure
- * @param transmit - True if the device should be configured for transmission. False otherwise
- * @return Zephyr status code
- */
-int l_lora_configure(const struct device *dev, bool transmit);
+// 230 Bytes containing port number + data with the remaining 26 meant for headers
+#define LORA_PACKET_DATA_SIZE 230
+
+typedef struct l_lora_packet {
+    uint16_t port;
+    uint8_t payload[LORA_PACKET_DATA_SIZE];
+    uint8_t payload_len;
+} l_lora_packet_t;
 
 /**
  * Transmit a message over LoRa.
