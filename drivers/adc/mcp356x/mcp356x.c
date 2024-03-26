@@ -85,14 +85,28 @@ enum OSR {
   OSR_98304  // 512 192 1111
 };
 
+struct config0 {};
+struct config1 {};
+struct config2 {};
+struct config3 {};
+
+struct registers {
+  struct config0 cfg0;
+  struct config1 cfg1;
+  struct config2 cfg2;
+  struct config3 cfg3;
+};
+
 struct mcp356x_data {
-  int state;
+  struct registers reg;
 };
 
 struct mcp356x_config {
   struct spi_dt_spec bus;
   uint8_t channels;    // 1
   uint8_t device_addr; // Written on chip packaging
+
+  struct registers reg;
 
   enum adc_reference global_reference;
   enum adc_gain global_gain;
@@ -203,8 +217,8 @@ int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
       .buffers = &buf,
       .count = 1,
   };
-  LOG_INF("SPI Writing 8 reg %d  to " BYTE_TO_BINARY_PATTERN, reg,
-          BYTE_TO_BINARY(data));
+  // LOG_INF("SPI Writing 8 reg %d  to " BYTE_TO_BINARY_PATTERN, reg,
+  // BYTE_TO_BINARY(data));
 
   return spi_write_dt(&config->bus, &set);
 }
@@ -241,6 +255,8 @@ int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
 static int mcp356x_read_channel(const struct device *dev,
                                 const struct adc_sequence *sequence) {
   const struct mcp356x_config *config = dev->config;
+  const struct mcp356x_data *data = dev->data;
+
   int res = 0;
   if (sequence->options != NULL) {
     LOG_ERR("This driver does not support sequencing");
@@ -256,9 +272,9 @@ static int mcp356x_read_channel(const struct device *dev,
   uint8_t vin_minus = 0b1111 & (channel);
   uint8_t mux_reg = (vin_plus << 4) | vin_minus;
 
-  // if (sequence.)
+  mux_reg = 0b00001000;
 
-  LOG_INF("MUX_REG = " BYTE_TO_BINARY_PATTERN "\n", BYTE_TO_BINARY(mux_reg));
+  // LOG_INF("MUX_REG = " BYTE_TO_BINARY_PATTERN "\n", BYTE_TO_BINARY(mux_reg));
 
   // Write mux register
   res = mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
@@ -269,7 +285,7 @@ static int mcp356x_read_channel(const struct device *dev,
   // Wait X pulses of mclk for result to come in
   // or, or wait for IRQ to come in and and make sure IRQ reg says its the right
   // one
-  k_usleep(2); // silly hack until then
+  k_msleep(1); // silly hack until then
 
   uint32_t val = 12345;
   res = mcp_read_reg_24(config, MCP_reg_ADCDATA, &val);
@@ -278,7 +294,8 @@ static int mcp356x_read_channel(const struct device *dev,
   }
   *(int32_t *)(sequence->buffer) = val;
 
-  LOG_INF("READ CHANNEL %x = %x", mux_reg, val);
+  // LOG_INF("READ CHANNEL %x = %x", mux_reg, val);
+  // dump_registers(config);
   return res;
 }
 
@@ -347,12 +364,11 @@ static const struct adc_driver_api mcp356x_api = {
 int dump_registers(const struct mcp356x_config *config) {
   int res;
   const int num_8bts = 6;
-  char *names[] = {
-      "CONFIG0", "CONFIG1", "CONFIG2", "CONFIG3", "IRQ", "MUX",
-  };
-  enum MCP_Reg registers_8bit[] = {MCP_reg_CONFIG0, MCP_reg_CONFIG1,
-                                   MCP_reg_CONFIG2, MCP_reg_CONFIG3,
-                                   MCP_reg_IRQ,     MCP_reg_MUX};
+  char *names[] = {"CONFIG0", "CONFIG1", "CONFIG2", "CONFIG3",
+                   "IRQ",     "MUX",     "IRQ"};
+  enum MCP_Reg registers_8bit[] = {
+      MCP_reg_CONFIG0, MCP_reg_CONFIG1, MCP_reg_CONFIG2, MCP_reg_CONFIG3,
+      MCP_reg_IRQ,     MCP_reg_MUX,     MCP_reg_IRQ};
 
   printk("Registers: ========\n");
 
@@ -389,7 +405,7 @@ static int mcp356x_init(const struct device *dev) {
     return -ENOTSUP;
   }
 
-  int dres = dump_registers(config);
+  // int dres = dump_registers(config);
 
   // Page 91 CONFIG0 ----------------------------------------------------------
   // VREF Selection
@@ -422,7 +438,8 @@ static int mcp356x_init(const struct device *dev) {
   // No Current Source/Sink Selection Bits for Sensor Bias
   // TODO ADC_MODE
   uint8_t adc_mode = 0b11; // page 91 (standby)
-  uint8_t CONFIG0 = (vref_sel_bits << 7) | (clk_sel_bits << 4) | adc_mode;
+  uint8_t CONFIG0 =
+      (vref_sel_bits << 7) | (clk_sel_bits << 4) | adc_mode | (1 << 6);
   mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
 
   // Page 92 CONFIG1 ----------------------------------------------------------
@@ -549,7 +566,7 @@ static int mcp356x_init(const struct device *dev) {
   mcp_write_reg_8(config, MCP_reg_CONFIG2, CONFIG2);
 
   // Page 94 CONFIG3 ----------------------------------------------------------
-  uint8_t conv_mode = 0b00;
+  uint8_t conv_mode = 0b11;
   uint8_t data_format = 0b00; // 24 bit adc data (default)
   uint8_t crc_format = 0b0;   // 16 bit crc format (default)
   uint8_t en_crccom = 0b0;    // offset calibration (default)
@@ -560,11 +577,18 @@ static int mcp356x_init(const struct device *dev) {
 
   int err = mcp_write_reg_8(config, MCP_reg_CONFIG3, CONFIG3);
 
+  uint8_t irq_reg =
+      0b00110111; // set irq to active low so we don't need a pull up resistor
+  mcp_write_reg_8(config, MCP_reg_IRQ, irq_reg);
+
   // Scan register (THIS DRIVER DOES NOT SCAN)
   uint32_t scan_reg = 0;
   mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
 
-  dres = dump_registers(config);
+  uint32_t timer_reg = 0;
+  mcp_write_reg_24(config, MCP_reg_TIMER, timer_reg);
+
+  int dres = dump_registers(config);
 
   return 0;
 }
@@ -584,7 +608,6 @@ static int mcp356x_init(const struct device *dev) {
        .channels = channel_num,                                                \
        .global_reference =                                                     \
            DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), reference), \
-       .osr = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), osr),    \
        .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
                                 clock_selection),                              \
        .prescale =                                                             \

@@ -23,16 +23,14 @@ LOG_MODULE_REGISTER(main);
 #define LED_NODE DT_ALIAS(led)
 const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
 
-/* Data of ADC io-channels specified in devicetree. */
+#define IRQ_NODE DT_NODELABEL(irq)
+const struct gpio_dt_spec irq = GPIO_DT_SPEC_GET(IRQ_NODE, gpios);
 
-// static const struct adc_channel_cfg ch0_cfg_dt =
-// ADC_CHANNEL_CFG_DT(DT_CHILD(DT_NODELABEL(adc), channel_0));
+/* Data of ADC io-channels specified in devicetree. */
 
 static const struct adc_dt_spec adc_chan0 =
     ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
-// static const struct adc_dt_spec adc_channels[] = {ch0_cfg_dt};
 
-// static const struct adc_dt_spec myadc = ADC_DT_SPEC_GET(DT_NODELABEL(adc));
 int init_led();
 int main() {
 
@@ -62,10 +60,11 @@ int main() {
   // }
 
   while (true) {
-    printk("ADC reading[%u]:\n", count++);
+    // printk("ADC reading[%u]:\n", count++);
     int32_t val;
 
-    printk("- %s, channel %d: ", adc_chan0.dev->name, adc_chan0.channel_id);
+    // printk("- %s, channel %d: \n", adc_chan0.dev->name,
+    // adc_chan0.channel_id);
     sequence.channels = adc_chan0.channel_id;
 
     err = adc_sequence_init_dt(&adc_chan0, &sequence);
@@ -88,24 +87,31 @@ int main() {
     } else {
       val = (int32_t)buf;
     }
-    printk("%d\n", val);
+    // int vref_mv = 2400;
+    float vref = 2.4;
+    float resolution = (1 << 24);
+    float top = 6667200;
+    float bot = 30420;
+    float valf = val;
+    float vs = ((valf - bot) / (top - bot));
+    // (float)val
+    // if (adc_raw_to_millivolts_dt(&adc_chan0, &val) != 0) {
+    // printk("No conversion\n");
+    // }
+    printk("%d          \r", val);
 
     gpio_pin_toggle_dt(&led);
-    printk("LED toggle\n");
 
-    k_msleep(500);
+    // printk("LED toggle\n");
+
+    k_msleep(100);
   }
 }
 
 int init_led() {
   // Boilerplate: set up GPIO
-  if (!gpio_is_ready_dt(&led)) {
+  if (!gpio_is_ready_dt(&irq)) {
     LOG_ERR("GPIO is not ready\n");
-    return -1;
-  }
-
-  if (gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE) < 0) {
-    printf("Unable to configure LED output pin\n");
     return -1;
   }
   return 0;
