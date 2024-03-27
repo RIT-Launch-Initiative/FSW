@@ -37,7 +37,6 @@ int main() {
   init_led();
 
   int err;
-  uint32_t count = 0;
   uint32_t buf;
   struct adc_sequence sequence = {
       .buffer = &buf,
@@ -87,17 +86,6 @@ int main() {
     } else {
       val = (int32_t)buf;
     }
-    // int vref_mv = 2400;
-    float vref = 2.4;
-    float resolution = (1 << 24);
-    float top = 6667200;
-    float bot = 30420;
-    float valf = val;
-    float vs = ((valf - bot) / (top - bot));
-    // (float)val
-    // if (adc_raw_to_millivolts_dt(&adc_chan0, &val) != 0) {
-    // printk("No conversion\n");
-    // }
     printk("%d          \r", val);
 
     gpio_pin_toggle_dt(&led);

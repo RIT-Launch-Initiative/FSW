@@ -31,19 +31,19 @@
         compatible = "microchip,mcp3561";
         reg = <0>;
         device-address = <1>;
-        reference = "ADC_REF_INTERNAL";
         clock-selection = "CLK_INTERNAL";
         prescale = "PRE_1";
         spi-max-frequency = <DT_FREQ_M(8)>; // pg. 12, Table 1.1 MAX 20MHz
 
-        //
-        //
         channel@0 {
             reg = <0>;
-            // zephyr,differential;
-            zephyr,gain = "ADC_GAIN_1_6";
+            zephyr,gain = "ADC_GAIN_1";
             zephyr,reference = "ADC_REF_INTERNAL";
-            zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
+
+            zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+
+            zephyr,input-positive = <0>;
+            zephyr,input-negative = <8>;
 
         };
     };
