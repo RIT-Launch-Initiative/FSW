@@ -6,12 +6,6 @@ include: [adc-controller.yaml, spi-device.yaml]
 
 
 properties:
-  "#io-channel-cells":
-    type: int
-    required: true
-  name:
-    type: string
-
   device-address:
     type: int
     required: true
@@ -47,7 +41,44 @@ properties:
       - "PRE_2"
       - "PRE_1"
       
+  # osr:
+  #   type: string
+  #   required: true
+  #   description: |
+  #     OSR selection:
+  #     - OSR_32: OSR of 32
+  #     - OSR_64: OSR of 64
+  #     - OSR_128: OSR of 128
+  #     - OSR_256: OSR of 256
+  #     - OSR_512: OSR of 512
+  #     - OSR_1024: OSR of 1024
+  #     - OSR_2048: OSR of 2048
+  #     - OSR_4096: OSR of 4096
+  #     - OSR_8192: OSR of 8192
+  #     - OSR_16384: OSR of 16384
+  #     - OSR_20480: OSR of 20480
+  #     - OSR_24576: OSR of 24576
+  #     - OSR_40960: OSR of 40960
+  #     - OSR_49152: OSR of 49152
+  #     - OSR_81920: OSR of 81920
+  #     - OSR_98304: OSR of 98304
+  #   enum:
+  #     - "OSR_32"
+  #     - "OSR_64"
+  #     - "OSR_128"
+  #     - "OSR_256"
+  #     - "OSR_512"
+  #     - "OSR_1024"
+  #     - "OSR_2048"
+  #     - "OSR_4096"
+  #     - "OSR_8192"
+  #     - "OSR_16384"
+  #     - "OSR_20480"
+  #     - "OSR_24576"
+  #     - "OSR_40960"
+  #     - "OSR_49152"
+  #     - "OSR_81920"
+  #     - "OSR_98304"
 
-io-channel-cells:
-  - input
- 
+
+
