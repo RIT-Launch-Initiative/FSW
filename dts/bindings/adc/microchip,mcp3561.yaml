@@ -2,7 +2,8 @@ description: Microchip MCP3561 (1 Channel ADC)
 
 compatible: "microchip,mcp3561"
 
-include: [adc-controller.yaml, spi-device.yaml]
+include: microchip,mcp356x-base.yaml
+
 
 
 properties:
@@ -79,6 +80,3 @@ properties:
   #     - "OSR_49152"
   #     - "OSR_81920"
   #     - "OSR_98304"
-
-
-
