@@ -58,6 +58,8 @@ int main() {
   }
   // }
 
+  printf("raw hex, raw dec, volts, volts\n");
+
   while (true) {
     // printk("ADC reading[%u]:\n", count++);
 
@@ -81,7 +83,7 @@ int main() {
       int32_t mv_left = (int32_t)volts;
       int32_t mv_right = (int32_t)((volts - mv_left) * 10000);
 
-      printk("0x%06x  %d  %2.4f V  %d.%04d V \n", buf, val, (double)volts,
+      printk("0x%06x,\t%8d,\t%2.4f V,\t%d.%04d V,\t\r", buf, val, (double)volts,
              mv_left, mv_right);
     }
 
