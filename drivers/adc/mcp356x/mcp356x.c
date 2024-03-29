@@ -275,7 +275,6 @@ static int mcp356x_read_channel(const struct device *dev,
     if (((sequence->channels >> channel_id) & 0b1) == 0) {
       continue;
     }
-    LOG_INF("Reading %d channel", channel_id);
 
     struct channel_map_entry cfg = data->channel_map[channel_id];
     uint8_t config0 = (data->config0 & 0b01111111) | (1 << 7);
@@ -308,7 +307,6 @@ static int mcp356x_read_channel(const struct device *dev,
     }
     *(int32_t *)(sequence->buffer) = val;
   }
-  dump_registers(config);
 
   return 0;
 }
