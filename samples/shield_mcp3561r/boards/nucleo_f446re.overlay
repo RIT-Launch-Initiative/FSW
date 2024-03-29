@@ -31,7 +31,6 @@
         compatible = "microchip,mcp3561";
         reg = <0>;
         device-address = <1>;
-        reference = "ADC_REF_INTERNAL";
         clock-selection = "CLK_INTERNAL";
         prescale = "PRE_1";
         spi-max-frequency = <DT_FREQ_M(8)>; // pg. 12, Table 1.1 MAX 20MHz

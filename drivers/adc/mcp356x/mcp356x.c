@@ -50,9 +50,9 @@ enum PRE {
 };
 
 enum OSR {
-  // Total bits        OSR3  x OSR1 OSR[3:0]
+  // Total,  bits,      OSR3,  OSR1
   OSR_32 = 0b0000,    // 32  x 1
-  OSR_64 = 0b0001,    // 61  x 1
+  OSR_64 = 0b0001,    // 64  x 1
   OSR_128 = 0b0010,   // 128 x 1
   OSR_256 = 0b0011,   // 256 x 1
   OSR_512 = 0b0100,   // 512 x 1
@@ -80,6 +80,7 @@ struct mcp356x_data {
   struct channel_map_entry channel_map[8];
   uint8_t enabled_channels_bitmap;
 
+  // Configrations. If these registers match we don't need to rewrite them
   uint8_t config0;
   uint8_t config1;
   uint8_t config2;
@@ -89,8 +90,8 @@ struct mcp356x_data {
 
 struct mcp356x_config {
   struct spi_dt_spec bus;
-  uint8_t channels;    // 1
-  uint8_t device_addr; // Written on chip packaging
+  uint8_t channels;    // 1 2 or 4
+  uint8_t device_addr; // Specified on chip packaging. Normally 1
 
   enum OSR osr;
   enum PRE prescale;
