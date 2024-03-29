@@ -19,20 +19,38 @@ LOG_MODULE_REGISTER(mcp356x);
       ((byte)&0x08 ? '1' : '0'), ((byte)&0x04 ? '1' : '0'),                    \
       ((byte)&0x02 ? '1' : '0'), ((byte)&0x01 ? '1' : '0')
 
+/*
+Registers:
+NAME    len addr
+ADCDATA   24  0x0
+CONFIG0   8   0x1
+CONFIG1   8   0x2
+CONFIG2   8   0x3
+CONFIG3   8   0x4
+IRQ       8   0x5
+MUX       8   0x6
+SCAN      24  0x7
+TIMER     24  0x8
+OFFSETCAL 24  0x9
+GAINCAL   24  0xA
+LOCK      8   0xD
+CRCCFG    16  0xF
+*/
+
 enum MCP_Reg {
-  MCP_reg_ADCDATA = 0x0,   // 24 bits
-  MCP_reg_CONFIG0 = 0x1,   // 8 bits
-  MCP_reg_CONFIG1 = 0x2,   // 8 bits
-  MCP_reg_CONFIG2 = 0x3,   // 8 bits
-  MCP_reg_CONFIG3 = 0x4,   // 8 bits
-  MCP_reg_IRQ = 0x5,       // 8 bits
-  MCP_reg_MUX = 0x6,       // 8 bits
-  MCP_reg_SCAN = 0x7,      // 24 bits
-  MCP_reg_TIMER = 0x8,     // 24 bits
-  MCP_reg_OFFSETCAL = 0x9, // 24 bits
-  MCP_reg_GAINCAL = 0xA,   // 24 bits
-  MCP_reg_LOCK = 0xD,      // 8 bits
-  MCP_reg_CRCCFG = 0xF,    // 16 bits
+  MCP_reg_ADCDATA = 0x0,
+  MCP_reg_CONFIG0 = 0x1,
+  MCP_reg_CONFIG1 = 0x2,
+  MCP_reg_CONFIG2 = 0x3,
+  MCP_reg_CONFIG3 = 0x4,
+  MCP_reg_IRQ = 0x5,
+  MCP_reg_MUX = 0x6,
+  MCP_reg_SCAN = 0x7,
+  MCP_reg_TIMER = 0x8,
+  MCP_reg_OFFSETCAL = 0x9,
+  MCP_reg_GAINCAL = 0xA,
+  MCP_reg_LOCK = 0xD,
+  MCP_reg_CRCCFG = 0xF,
 };
 
 enum CLK_SEL {
@@ -50,25 +68,33 @@ enum PRE {
 
 enum OSR {
   // Total OSR3 OSR1 OSR[3:0]
-  OSR_32,    // 32  1   0000
-  OSR_64,    // 61  1   0001
-  OSR_128,   // 128 1   0010
-  OSR_256,   // 256 1   0011
-  OSR_512,   // 512 1   0100
-  OSR_1024,  // 512 2   0101
-  OSR_2048,  // 512 4   0110
-  OSR_4096,  // 512 8   0111
-  OSR_8192,  // 512 16  1000
-  OSR_16384, // 512 32  1001
-  OSR_20480, // 512 40  1010
-  OSR_24576, // 512 48  1011
-  OSR_40960, // 512 80  1100
-  OSR_49152, // 512 96  1101
-  OSR_81920, // 512 160 1110
-  OSR_98304  // 512 192 1111
+  OSR_32 = 0b0000,    // 32  1
+  OSR_64 = 0b0001,    // 61  1
+  OSR_128 = 0b0010,   // 128 1
+  OSR_256 = 0b0011,   // 256 1
+  OSR_512 = 0b0100,   // 512 1
+  OSR_1024 = 0b0101,  // 512 2
+  OSR_2048 = 0b0110,  // 512 4
+  OSR_4096 = 0b0111,  // 512 8
+  OSR_8192 = 0b1000,  // 512 16
+  OSR_16384 = 0b1001, // 512 32
+  OSR_20480 = 0b1010, // 512 40
+  OSR_24576 = 0b1011, // 512 48
+  OSR_40960 = 0b1100, // 512 80
+  OSR_49152 = 0b1101, // 512 96
+  OSR_81920 = 0b1110, // 512 160
+  OSR_98304 = 0b1111  // 512 192
 };
 
-struct mcp356x_data {};
+struct channel_map_entry {
+  uint8_t mux_reg;
+  bool differential;
+};
+
+struct mcp356x_data {
+  struct channel_map_entry channel_map[8];
+  uint8_t enabled_channels_bitmap;
+};
 
 struct mcp356x_config {
   struct spi_dt_spec bus;
@@ -81,8 +107,6 @@ struct mcp356x_config {
   enum PRE prescale;
   enum CLK_SEL clock;
 };
-
-int dump_registers(const struct mcp356x_config *config);
 
 int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
                    uint8_t *result) {
@@ -223,7 +247,7 @@ int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
 static int mcp356x_read_channel(const struct device *dev,
                                 const struct adc_sequence *sequence) {
   const struct mcp356x_config *config = dev->config;
-  struct mcp356x_data *data = dev->data;
+  const struct mcp356x_data *data = dev->data;
 
   int res = 0;
   if (sequence->options != NULL) {
@@ -268,19 +292,12 @@ static int mcp356x_read_channel(const struct device *dev,
 int mcp356x_channel_setup(const struct device *dev,
                           const struct adc_channel_cfg *channel_cfg) {
   const struct mcp356x_config *config = dev->config;
-  struct mcp356x_data *data = dev->data;
 
-  uint8_t vref_sel_bit = 0b0;
-  switch (channel_cfg->reference) {
-  case ADC_REF_INTERNAL:
-    vref_sel_bit = 0b1;
-    break;
-  case ADC_REF_EXTERNAL0:
-    vref_sel_bit = 0b0;
-    break;
-  default:
-    LOG_ERR("unsupported reference voltage %d", channel_cfg->reference);
-    return -ENOTSUP;
+  if (channel_cfg->reference != config->global_reference) {
+    LOG_ERR("Reference for channel %d does not match the global reference. (It "
+            "needs to)\n",
+            channel_cfg->channel_id);
+    return -1;
   }
 
   if (channel_cfg->gain != config->global_gain) {
@@ -367,8 +384,22 @@ static int mcp356x_init(const struct device *dev) {
     return -ENOTSUP;
   }
 
+  // int dres = dump_registers(config);
+
   // Page 91 CONFIG0 ----------------------------------------------------------
   // VREF Selection
+  uint8_t vref_sel_bits = 0b0;
+  switch (config->global_reference) {
+  case ADC_REF_INTERNAL:
+    vref_sel_bits = 0b1;
+    break;
+  case ADC_REF_EXTERNAL0:
+    vref_sel_bits = 0b0;
+    break;
+  default:
+    LOG_ERR("unsupported reference voltage '%d'", config->global_reference);
+    return -ENOTSUP;
+  }
 
   // CLK Selection
   uint8_t clk_sel_bits = 0b0;
@@ -383,9 +414,12 @@ static int mcp356x_init(const struct device *dev) {
     clk_sel_bits = 0b10;
     break;
   }
+  // No Current Source/Sink Selection Bits for Sensor Bias
+  // TODO ADC_MODE
   uint8_t adc_mode = 0b11; // page 91 (standby)
-  data->config0 = (1 << 6) | (clk_sel_bits << 4) | adc_mode;
-  mcp_write_reg_8(config, MCP_reg_CONFIG0, data->config0);
+  uint8_t CONFIG0 =
+      (vref_sel_bits << 7) | (clk_sel_bits << 4) | adc_mode | (1 << 6);
+  mcp_write_reg_8(config, MCP_reg_CONFIG0, CONFIG0);
 
   // Page 92 CONFIG1 ----------------------------------------------------------
   // Configure OSR
@@ -408,19 +442,54 @@ static int mcp356x_init(const struct device *dev) {
     break;
   }
 
-  data->config1 = (prescale_bits << 6);
+  uint8_t CONFIG1 = (prescale_bits << 6) | (osr_bits << 2);
 
-  mcp_write_reg_8(config, MCP_reg_CONFIG1, data->config1);
+  mcp_write_reg_8(config, MCP_reg_CONFIG1, CONFIG1);
 
   // Page 93 CONFIG2 ----------------------------------------------------------
+  // Configure Gain
+  uint8_t gain_bits = 0;
+  switch (config->global_gain) {
+  case 0:
+    gain_bits = 0b001;
+    break;
+  case ADC_GAIN_1_3:
+    gain_bits = 0b000;
+    break;
+  case ADC_GAIN_1:
+    gain_bits = 0b001;
+    break;
+  case ADC_GAIN_2:
+    gain_bits = 0b010;
+    break;
+  case ADC_GAIN_4:
+    gain_bits = 0b011;
+    break;
+  case ADC_GAIN_8:
+    gain_bits = 0b100;
+    break;
+  case ADC_GAIN_16:
+    gain_bits = 0b101;
+    break;
+  case ADC_GAIN_32:
+    gain_bits = 0b110;
+    break;
+  case ADC_GAIN_64:
+    gain_bits = 0b111;
+    break;
+  default:
+    LOG_ERR("unsupported channel gain '%d'", config->global_gain);
+    return -ENOTSUP;
+  }
 
   uint8_t boost = 0b10; // 1x boost (bias current) (default)
   uint8_t az_mux = 0b0; // mux auto zero internal (default)
   uint8_t az_ref = 0b1; // auto zero internal voltage ref (default)
   uint8_t reserved_bit = 0b1;
 
-  data->config2 = (boost << 6) | (az_mux << 2) | (az_ref << 1) | reserved_bit;
-  mcp_write_reg_8(config, MCP_reg_CONFIG2, data->config2);
+  uint8_t CONFIG2 = (boost << 6) | (gain_bits << 3) | (az_mux << 2) |
+                    (az_ref << 1) | reserved_bit;
+  mcp_write_reg_8(config, MCP_reg_CONFIG2, CONFIG2);
 
   // Page 94 CONFIG3 ----------------------------------------------------------
   uint8_t conv_mode = 0b11;
@@ -429,8 +498,8 @@ static int mcp356x_init(const struct device *dev) {
   uint8_t en_crccom = 0b0;    // offset calibration (default)
   uint8_t en_offcal = 0b0;    // offset calibration (default)
   uint8_t en_gaincal = 0b0;   // gain calibration (default)
-  data->config3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
-                  (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
+  uint8_t CONFIG3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
+                    (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
 
   (void)mcp_write_reg_8(config, MCP_reg_CONFIG3, CONFIG3);
 
@@ -463,6 +532,8 @@ static int mcp356x_init(const struct device *dev) {
        .device_addr =                                                          \
            DT_PROP(INST_DT_MCP356x(instance, channel_num), device_address),    \
        .channels = channel_num,                                                \
+       .global_reference =                                                     \
+           DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), reference), \
        .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
                                 clock_selection),                              \
        .prescale =                                                             \
