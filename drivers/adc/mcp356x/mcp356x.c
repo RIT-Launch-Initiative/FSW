@@ -8,6 +8,7 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/spi.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/util.h>
 
 LOG_MODULE_REGISTER(mcp356x);
 
@@ -67,46 +68,38 @@ enum PRE {
 
 enum OSR {
   // Total OSR3 OSR1 OSR[3:0]
-  OSR_32,    // 32  1   0000
-  OSR_64,    // 61  1   0001
-  OSR_128,   // 128 1   0010
-  OSR_256,   // 256 1   0011
-  OSR_512,   // 512 1   0100
-  OSR_1024,  // 512 2   0101
-  OSR_2048,  // 512 4   0110
-  OSR_4096,  // 512 8   0111
-  OSR_8192,  // 512 16  1000
-  OSR_16384, // 512 32  1001
-  OSR_20480, // 512 40  1010
-  OSR_24576, // 512 48  1011
-  OSR_40960, // 512 80  1100
-  OSR_49152, // 512 96  1101
-  OSR_81920, // 512 160 1110
-  OSR_98304  // 512 192 1111
+  OSR_32 = 0b0000,    // 32  1
+  OSR_64 = 0b0001,    // 61  1
+  OSR_128 = 0b0010,   // 128 1
+  OSR_256 = 0b0011,   // 256 1
+  OSR_512 = 0b0100,   // 512 1
+  OSR_1024 = 0b0101,  // 512 2
+  OSR_2048 = 0b0110,  // 512 4
+  OSR_4096 = 0b0111,  // 512 8
+  OSR_8192 = 0b1000,  // 512 16
+  OSR_16384 = 0b1001, // 512 32
+  OSR_20480 = 0b1010, // 512 40
+  OSR_24576 = 0b1011, // 512 48
+  OSR_40960 = 0b1100, // 512 80
+  OSR_49152 = 0b1101, // 512 96
+  OSR_81920 = 0b1110, // 512 160
+  OSR_98304 = 0b1111  // 512 192
 };
 
-struct config0 {};
-struct config1 {};
-struct config2 {};
-struct config3 {};
-
-struct registers {
-  struct config0 cfg0;
-  struct config1 cfg1;
-  struct config2 cfg2;
-  struct config3 cfg3;
+struct channel_map_entry {
+  uint8_t mux_reg;
+  bool differential;
 };
 
 struct mcp356x_data {
-  struct registers reg;
+  struct channel_map_entry channel_map[8];
+  uint8_t enabled_channels_bitmap;
 };
 
 struct mcp356x_config {
   struct spi_dt_spec bus;
   uint8_t channels;    // 1
   uint8_t device_addr; // Written on chip packaging
-
-  struct registers reg;
 
   enum adc_reference global_reference;
   enum adc_gain global_gain;
@@ -117,8 +110,10 @@ struct mcp356x_config {
 
 int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
                    uint8_t *result) {
+  // Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
+
   // Device Specific
   const uint8_t device_address_mask = (config->device_addr << 6);
   const uint8_t sread_command = (device_address_mask | sread_command_mask);
@@ -126,12 +121,10 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
 
   // Write Data
   uint8_t cmd[2] = {command_specifier, 0};
-
   struct spi_buf txbuf = {
       .buf = &cmd,
       .len = 2,
   };
-
   struct spi_buf_set txbufset = {
       .buffers = &txbuf,
       .count = 1,
@@ -147,13 +140,14 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
       .count = 1,
   };
   int res = spi_transceive_dt(&config->bus, &txbufset, &rxbufset);
-  *result = reg8[1];
+  *result = reg8[1]; // reg8[0] is just the command we wrote
 
   return res;
 }
 
 int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
                     uint32_t *data) {
+  // Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
 
@@ -217,8 +211,6 @@ int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
       .buffers = &buf,
       .count = 1,
   };
-  // LOG_INF("SPI Writing 8 reg %d  to " BYTE_TO_BINARY_PATTERN, reg,
-  // BYTE_TO_BINARY(data));
 
   return spi_write_dt(&config->bus, &set);
 }
@@ -262,32 +254,36 @@ static int mcp356x_read_channel(const struct device *dev,
     LOG_ERR("This driver does not support repeated sequencing");
     return -1;
   }
-  if (sequence->buffer_size < 4) {
-    LOG_ERR("MCP3561 buffer must be at least 4 bytes long");
+  int32_t num_channels = __builtin_popcount(sequence->channels);
+  if (sequence->buffer_size < 4 * num_channels) {
+    LOG_ERR(
+        "MCP3561 buffer must be at least 4 * # of channels read long. Reading "
+        "%d needs %d bytes. was supplied %d",
+        num_channels, 4 * num_channels, sequence->buffer_size);
     return -1;
   }
 
-  uint8_t mux_reg = 0b00000001; // diffy channel 0
-  // mux_reg = 0xF8;               // Read common mode voltage
-  mux_reg = 0x98; // read full voltage range (ref to ground)
-  // Write mux register
-  res = mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
-  if (res < 0) {
-    return res;
+  for (uint8_t i = 0; i < 8; i++) { // max channels you can have is 8
+    uint8_t channel_id = i;
+    uint8_t mux_reg = data->channel_map[i].mux_reg;
+    // Write mux register
+    res = mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
+    if (res < 0) {
+      return res;
+    }
+
+    // Wait X pulses of mclk for result to come in
+    // or, or wait for IRQ to come in and and make sure IRQ reg says its the
+    // right one
+    k_msleep(1); // silly hack until then
+
+    uint32_t val = 12345;
+    res = mcp_read_reg_24(config, MCP_reg_ADCDATA, &val);
+    if (res != 0) {
+      return res;
+    }
+    *(int32_t *)(sequence->buffer) = val;
   }
-
-  // Wait X pulses of mclk for result to come in
-  // or, or wait for IRQ to come in and and make sure IRQ reg says its the right
-  // one
-  k_msleep(1); // silly hack until then
-
-  uint32_t val = 12345;
-  res = mcp_read_reg_24(config, MCP_reg_ADCDATA, &val);
-  if (res != 0) {
-    return res;
-  }
-  *(int32_t *)(sequence->buffer) = val;
-
   dump_registers(config);
 
   return 0;
@@ -313,18 +309,11 @@ int mcp356x_channel_setup(const struct device *dev,
 
   uint8_t mux_vin_p = channel_cfg->input_positive;
   uint8_t mux_vin_m = channel_cfg->input_negative;
+  uint8_t mux_reg = (mux_vin_p << 4) | mux_vin_m;
+  bool differential = channel_cfg->differential;
+  struct channel_map_entry entry = {.mux_reg = mux_reg,
+                                    .differential = differential};
   // TODO save these into register map
-
-  // if (mux_vin_p > 0b1111) {
-  //   LOG_ERR("Unsupported Vin+ %d", mux_vin_p);
-  //   return -1;
-  // }
-  // if (mux_vin_m > 0b1111) {
-  //   LOG_ERR("Unsupported Vin- %d", mux_vin_m);
-  //   return -1;
-  // }
-
-  // channel_cfg->channel_id = mux_register;
 
   // ADCDATA
   // CONFIG0 check
@@ -383,6 +372,8 @@ int dump_registers(const struct mcp356x_config *config) {
 
 static int mcp356x_init(const struct device *dev) {
   const struct mcp356x_config *config = dev->config;
+  struct mcp356x_data *data = dev->data;
+  data->enabled_channels_bitmap = 0;
 
   if (!device_is_ready(config->bus.bus)) {
     LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
@@ -432,60 +423,7 @@ static int mcp356x_init(const struct device *dev) {
 
   // Page 92 CONFIG1 ----------------------------------------------------------
   // Configure OSR
-  uint8_t osr_bits = 0;
-  switch (config->osr) {
-  case OSR_32:
-    osr_bits = 0b0000;
-    break;
-  case OSR_64:
-    osr_bits = 0b0001;
-    break;
-  case OSR_128:
-    osr_bits = 0b0010;
-    break;
-  case OSR_256:
-    osr_bits = 0b0011;
-    break;
-  case OSR_512:
-    osr_bits = 0b0100;
-    break;
-  case OSR_1024:
-    osr_bits = 0b0101;
-    break;
-  case OSR_2048:
-    osr_bits = 0b0110;
-    break;
-  case OSR_4096:
-    osr_bits = 0b0111;
-    break;
-  case OSR_8192:
-    osr_bits = 0b1000;
-    break;
-  case OSR_16384:
-    osr_bits = 0b1001;
-    break;
-  case OSR_20480:
-    osr_bits = 0b1010;
-    break;
-  case OSR_24576:
-    osr_bits = 0b1011;
-    break;
-  case OSR_40960:
-    osr_bits = 0b1100;
-    break;
-  case OSR_49152:
-    osr_bits = 0b1101;
-    break;
-  case OSR_81920:
-    osr_bits = 0b1110;
-    break;
-  case OSR_98304:
-    osr_bits = 0b1111;
-    break;
-  default:
-    LOG_ERR("unsupported OSR '%d'", config->osr);
-    return -ENOTSUP;
-  }
+  uint8_t osr_bits = (uint8_t)config->osr;
 
   // Configure PRE
   uint8_t prescale_bits = 0;
