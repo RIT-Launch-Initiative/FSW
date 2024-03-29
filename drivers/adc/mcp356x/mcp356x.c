@@ -259,23 +259,17 @@ static int mcp356x_read_channel(const struct device *dev,
 
   int res = 0;
   if (sequence->options != NULL) {
-    LOG_ERR("This driver does not support sequencing");
+    LOG_ERR("This driver does not support repeated sequencing");
     return -1;
   }
   if (sequence->buffer_size < 4) {
     LOG_ERR("MCP3561 buffer must be at least 4 bytes long");
     return -1;
   }
-  uint32_t channel = sequence->channels;
-  // sequence
-  uint8_t vin_plus = 0b1111 & (channel >> 4);
-  uint8_t vin_minus = 0b1111 & (channel);
-  uint8_t mux_reg = (vin_plus << 4) | vin_minus;
 
-  mux_reg = 0b00001000;
-
-  // LOG_INF("MUX_REG = " BYTE_TO_BINARY_PATTERN "\n", BYTE_TO_BINARY(mux_reg));
-
+  uint8_t mux_reg = 0b00000001; // diffy channel 0
+  // mux_reg = 0xF8;               // Read common mode voltage
+  mux_reg = 0x98; // read full voltage range (ref to ground)
   // Write mux register
   res = mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
   if (res < 0) {
@@ -294,16 +288,10 @@ static int mcp356x_read_channel(const struct device *dev,
   }
   *(int32_t *)(sequence->buffer) = val;
 
-  // LOG_INF("READ CHANNEL %x = %x", mux_reg, val);
-  // dump_registers(config);
-  return res;
-}
+  dump_registers(config);
 
-struct scan_reg {
-  uint8_t dly : 3;
-  uint8_t reserved : 5;
-  uint16_t scan : 16;
-};
+  return 0;
+}
 
 int mcp356x_channel_setup(const struct device *dev,
                           const struct adc_channel_cfg *channel_cfg) {
@@ -325,17 +313,17 @@ int mcp356x_channel_setup(const struct device *dev,
 
   uint8_t mux_vin_p = channel_cfg->input_positive;
   uint8_t mux_vin_m = channel_cfg->input_negative;
+  // TODO save these into register map
 
-  if (mux_vin_p > 0b1111) {
-    LOG_ERR("Unsupported Vin+ %d", mux_vin_p);
-    return -1;
-  }
-  if (mux_vin_m > 0b1111) {
-    LOG_ERR("Unsupported Vin- %d", mux_vin_m);
-    return -1;
-  }
+  // if (mux_vin_p > 0b1111) {
+  //   LOG_ERR("Unsupported Vin+ %d", mux_vin_p);
+  //   return -1;
+  // }
+  // if (mux_vin_m > 0b1111) {
+  //   LOG_ERR("Unsupported Vin- %d", mux_vin_m);
+  //   return -1;
+  // }
 
-  uint8_t mux_register = (mux_vin_p << 4) | mux_vin_m;
   // channel_cfg->channel_id = mux_register;
 
   // ADCDATA
@@ -575,7 +563,7 @@ static int mcp356x_init(const struct device *dev) {
   uint8_t CONFIG3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
                     (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
 
-  int err = mcp_write_reg_8(config, MCP_reg_CONFIG3, CONFIG3);
+  (void)mcp_write_reg_8(config, MCP_reg_CONFIG3, CONFIG3);
 
   uint8_t irq_reg =
       0b00110111; // set irq to active low so we don't need a pull up resistor
@@ -588,7 +576,7 @@ static int mcp356x_init(const struct device *dev) {
   uint32_t timer_reg = 0;
   mcp_write_reg_24(config, MCP_reg_TIMER, timer_reg);
 
-  int dres = dump_registers(config);
+  (void)dump_registers(config);
 
   return 0;
 }
