@@ -78,7 +78,11 @@ int main() {
     if (!differential) {
       int32_t val = (int32_t)buf;
       float volts = 2.4f * ((float)val) / ((float)0x7fffff);
-      printk("0x%6x  %d  %2.4f V       \n", buf, val, (double)volts);
+      int32_t mv_left = (int32_t)volts;
+      int32_t mv_right = (int32_t)((volts - mv_left) * 10000);
+
+      printk("0x%06x  %d  %2.4f V  %d.%04d V \n", buf, val, (double)volts,
+             mv_left, mv_right);
     }
 
     gpio_pin_toggle_dt(&led);
