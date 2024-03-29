@@ -265,6 +265,9 @@ static int mcp356x_read_channel(const struct device *dev,
 
   for (uint8_t i = 0; i < 8; i++) { // max channels you can have is 8
     uint8_t channel_id = i;
+    if (((sequence->channels >> channel_id) & 0b1) == 0) {
+      continue;
+    }
     uint8_t mux_reg = data->channel_map[i].mux_reg;
     // Write mux register
     res = mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
@@ -292,6 +295,7 @@ static int mcp356x_read_channel(const struct device *dev,
 int mcp356x_channel_setup(const struct device *dev,
                           const struct adc_channel_cfg *channel_cfg) {
   const struct mcp356x_config *config = dev->config;
+  struct mcp356x_data *data = dev->data;
 
   if (channel_cfg->reference != config->global_reference) {
     LOG_ERR("Reference for channel %d does not match the global reference. (It "
@@ -313,21 +317,8 @@ int mcp356x_channel_setup(const struct device *dev,
   bool differential = channel_cfg->differential;
   struct channel_map_entry entry = {.mux_reg = mux_reg,
                                     .differential = differential};
-  // TODO save these into register map
 
-  // ADCDATA
-  // CONFIG0 check
-  // CONFIG1 check
-  // CONFIG2
-  // CONFIG3
-  // IRQ
-  // MUX
-  // SCAN
-  // TIMER
-  // OFFSETCAL
-  // GAINCAL
-  // LOCK
-  // CRCCFG
+  data->channel_map[channel_cfg->channel_id] = entry;
 
   return 0;
 }
@@ -383,8 +374,6 @@ static int mcp356x_init(const struct device *dev) {
     LOG_ERR("Only one channel MCP3561 is supported\n");
     return -ENOTSUP;
   }
-
-  // int dres = dump_registers(config);
 
   // Page 91 CONFIG0 ----------------------------------------------------------
   // VREF Selection

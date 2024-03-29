@@ -39,42 +39,14 @@
 
         channel@0 {
             reg = <0>;
-            // zephyr,differential;
             zephyr,gain = "ADC_GAIN_1_6";
             zephyr,reference = "ADC_REF_INTERNAL";
             zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 1)>;
 
-            zephyr,input-positive = <0>;
-            zephyr,input-negative = <1>;
+            zephyr,input-positive = <8>;
+            zephyr,input-negative = <9>;
 
         };
     };
-    // w25q128: w25q128jv@1 {
-        //     status = "okay";
-        //     compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
-        //     reg = <1>; // connected to to connector 1
 
-        //     size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75)
-        //     jedec-id = [ ef 40 18  ]; // 0xef4018 (Table 8.1.1, p.22)
-        //     spi-max-frequency = <(10 * 200000)>; // fR = 50 MHz (Table 9.6, p.65)
-        //     // but sticking to 10 because 50 doesn't work on my hardware, at time of
-        //     // writing
-
-        //     has-dpd;
-        //     // Power-down 0xB9 (S 8.2.21)
-        //     t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.66)
-        //     // Release Power-down 0xAB (S 8.2.22)
-        //     t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.66)
-
-        //     partitions {
-            //         compatible = "fixed-partitions";
-            //         #address-cells = <1>;
-            //         #size-cells = <1>;
-
-            //         external_storage_partition: partition@0 {
-                //             label = "w25q-storage";
-                //             reg = <0 DT_SIZE_M(128)>; // takes up the whole flash
-            //         };
-        //     };
-    // };
 };
