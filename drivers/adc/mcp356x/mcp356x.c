@@ -68,21 +68,7 @@ enum OSR {
   OSR_98304  // 512 192 1111
 };
 
-struct config0 {};
-struct config1 {};
-struct config2 {};
-struct config3 {};
-
-struct registers {
-  struct config0 cfg0;
-  struct config1 cfg1;
-  struct config2 cfg2;
-  struct config3 cfg3;
-};
-
-struct mcp356x_data {
-  struct registers reg;
-};
+struct mcp356x_data {};
 
 struct mcp356x_config {
   struct spi_dt_spec bus;

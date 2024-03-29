@@ -80,10 +80,6 @@ int main() {
       float volts = 2.4f * ((float)val) / ((float)0x7fffff);
       printk("0x%6x  %d  %2.4f V       \n", buf, val, (double)volts);
     }
-<<<<<<< HEAD
-    printk("%d          \r", val);
-=======
->>>>>>> shield_mcp3561r_fix_fix
 
     gpio_pin_toggle_dt(&led);
 
