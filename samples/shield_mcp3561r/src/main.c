@@ -60,7 +60,6 @@ int main() {
 
   while (true) {
     // printk("ADC reading[%u]:\n", count++);
-    int32_t val;
 
     // printk("- %s, channel %d: \n", adc_chan0.dev->name,
     // adc_chan0.channel_id);
@@ -75,18 +74,16 @@ int main() {
       printk("Could not read (%d)\n", err);
       continue;
     }
-
-    /*
-     * If using differential mode, the 16 bit value
-     * in the ADC sample buffer should be a signed 2's
-     * complement value.
-     */
-    if (adc_chan0.channel_cfg.differential) {
-      val = (int32_t)((int16_t)buf);
-    } else {
-      val = (int32_t)buf;
+    bool differential = false;
+    if (!differential) {
+      int32_t val = (int32_t)buf;
+      float volts = 2.4f * ((float)val) / ((float)0x7fffff);
+      printk("0x%6x  %d  %2.4f V       \n", buf, val, (double)volts);
     }
+<<<<<<< HEAD
     printk("%d          \r", val);
+=======
+>>>>>>> shield_mcp3561r_fix_fix
 
     gpio_pin_toggle_dt(&led);
 
