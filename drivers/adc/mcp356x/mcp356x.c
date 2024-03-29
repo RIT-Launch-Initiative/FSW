@@ -19,71 +19,54 @@ LOG_MODULE_REGISTER(mcp356x);
       ((byte)&0x08 ? '1' : '0'), ((byte)&0x04 ? '1' : '0'),                    \
       ((byte)&0x02 ? '1' : '0'), ((byte)&0x01 ? '1' : '0')
 
-/*
-Registers:
-NAME    len addr
-ADCDATA   24  0x0
-CONFIG0   8   0x1
-CONFIG1   8   0x2
-CONFIG2   8   0x3
-CONFIG3   8   0x4
-IRQ       8   0x5
-MUX       8   0x6
-SCAN      24  0x7
-TIMER     24  0x8
-OFFSETCAL 24  0x9
-GAINCAL   24  0xA
-LOCK      8   0xD
-CRCCFG    16  0xF
-*/
-
 enum MCP_Reg {
-  MCP_reg_ADCDATA = 0x0,
-  MCP_reg_CONFIG0 = 0x1,
-  MCP_reg_CONFIG1 = 0x2,
-  MCP_reg_CONFIG2 = 0x3,
-  MCP_reg_CONFIG3 = 0x4,
-  MCP_reg_IRQ = 0x5,
-  MCP_reg_MUX = 0x6,
-  MCP_reg_SCAN = 0x7,
-  MCP_reg_TIMER = 0x8,
-  MCP_reg_OFFSETCAL = 0x9,
-  MCP_reg_GAINCAL = 0xA,
-  MCP_reg_LOCK = 0xD,
-  MCP_reg_CRCCFG = 0xF,
+  MCP_Reg_ADCDATA = 0x0,   // len 24/32
+  MCP_Reg_CONFIG0 = 0x1,   // len 8
+  MCP_Reg_CONFIG1 = 0x2,   // len 8
+  MCP_Reg_CONFIG2 = 0x3,   // len 8
+  MCP_Reg_CONFIG3 = 0x4,   // len 8
+  MCP_Reg_IRQ = 0x5,       // len 8
+  MCP_Reg_MUX = 0x6,       // len 8
+  MCP_Reg_SCAN = 0x7,      // len 24
+  MCP_Reg_TIMER = 0x8,     // len 24
+  MCP_Reg_OFFSETCAL = 0x9, // len 24
+  MCP_Reg_GAINCAL = 0xA,   // len 24
+  MCP_Reg_LOCK = 0xD,      // len 8
+  MCP_Reg_CRCCFG = 0xF,    // len 16
 };
 
 enum CLK_SEL {
-  CLK_EXTERNAL,
-  CLK_INTERNAL,
-  CLK_INTERNAL_NO_BROADCAST,
+  CLK_EXTERNAL = 0b00,
+  CLK_EXTERNAL2 = 0b01,
+  CLK_INTERNAL_NO_BROADCAST = 0b10,
+  CLK_INTERNAL = 0b11,
 };
 
 enum PRE {
-  PRE_8, // AMCLK = MCLK/8
-  PRE_4, // AMCLK = MCLK/4
-  PRE_2, // AMCLK = MCLK/2
-  PRE_1, // AMCLK = MCLK
+  PRE_1 = 0b00, // AMCLK = MCLK
+  PRE_2 = 0b01, // AMCLK = MCLK/2
+  PRE_4 = 0b10, // AMCLK = MCLK/4
+  PRE_8 = 0b11, // AMCLK = MCLK/8
 };
 
 enum OSR {
-  // Total OSR3 OSR1 OSR[3:0]
-  OSR_32 = 0b0000,    // 32  1
-  OSR_64 = 0b0001,    // 61  1
-  OSR_128 = 0b0010,   // 128 1
-  OSR_256 = 0b0011,   // 256 1
-  OSR_512 = 0b0100,   // 512 1
-  OSR_1024 = 0b0101,  // 512 2
-  OSR_2048 = 0b0110,  // 512 4
-  OSR_4096 = 0b0111,  // 512 8
-  OSR_8192 = 0b1000,  // 512 16
-  OSR_16384 = 0b1001, // 512 32
-  OSR_20480 = 0b1010, // 512 40
-  OSR_24576 = 0b1011, // 512 48
-  OSR_40960 = 0b1100, // 512 80
-  OSR_49152 = 0b1101, // 512 96
-  OSR_81920 = 0b1110, // 512 160
-  OSR_98304 = 0b1111  // 512 192
+  // Total bits        OSR3  x OSR1 OSR[3:0]
+  OSR_32 = 0b0000,    // 32  x 1
+  OSR_64 = 0b0001,    // 61  x 1
+  OSR_128 = 0b0010,   // 128 x 1
+  OSR_256 = 0b0011,   // 256 x 1
+  OSR_512 = 0b0100,   // 512 x 1
+  OSR_1024 = 0b0101,  // 512 x 2
+  OSR_2048 = 0b0110,  // 512 x 4
+  OSR_4096 = 0b0111,  // 512 x 8
+  OSR_8192 = 0b1000,  // 512 x 16
+  OSR_16384 = 0b1001, // 512 x 32
+  OSR_20480 = 0b1010, // 512 x 40
+  OSR_24576 = 0b1011, // 512 x 48
+  OSR_40960 = 0b1100, // 512 x 80
+  OSR_49152 = 0b1101, // 512 x 96
+  OSR_81920 = 0b1110, // 512 x 160
+  OSR_98304 = 0b1111  // 512 x 192
 };
 
 struct channel_map_entry {
@@ -113,6 +96,319 @@ struct mcp356x_config {
   enum PRE prescale;
   enum CLK_SEL clock;
 };
+int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
+                   uint8_t *result);
+
+int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
+                    uint32_t *data);
+int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
+                    uint8_t data);
+
+int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
+                     uint32_t data);
+
+static int mcp356x_read_channel(const struct device *dev,
+                                const struct adc_sequence *sequence) {
+  const struct mcp356x_config *config = dev->config;
+  struct mcp356x_data *data = dev->data;
+
+  int res = 0;
+  if (sequence->options != NULL) {
+    LOG_ERR("This driver does not support repeated sequencing");
+    return -1;
+  }
+  int32_t num_channels = __builtin_popcount(sequence->channels);
+
+  if (sequence->buffer_size < 4 * num_channels) {
+    LOG_ERR(
+        "MCP3561 buffer must be at least 4 * # of channels read long. Reading "
+        "%d needs %d bytes. was supplied %d",
+        num_channels, 4 * num_channels, sequence->buffer_size);
+    return -1;
+  }
+
+  for (uint8_t i = 0; i < 8; i++) { // max channels you can have is 8
+    uint8_t channel_id = i;
+    if (((sequence->channels >> channel_id) & 0b1) == 0) {
+      continue;
+    }
+
+    struct channel_map_entry cfg = data->channel_map[channel_id];
+    uint8_t config0 = (data->config0 & 0b01111111) | (1 << 7);
+    if (config0 != data->config0) {
+      (void)mcp_write_reg_8(config, MCP_Reg_CONFIG0, config0);
+      data->config0 = config0;
+    }
+
+    uint8_t config2 = (data->config2 & 0b11000111) | (cfg.gain_bits << 3);
+    if (config2 != data->config2) {
+      (void)mcp_write_reg_8(config, MCP_Reg_CONFIG2, config2);
+      data->config2 = config2;
+    }
+
+    uint8_t mux_reg = data->channel_map[i].mux_reg;
+    if (mux_reg != data->mux) {
+      (void)mcp_write_reg_8(config, MCP_Reg_MUX, mux_reg);
+      data->mux = mux_reg;
+    }
+
+    // Wait X pulses of mclk for result to come in
+    // or, or wait for IRQ to come in and and make sure IRQ reg says its the
+    // right one
+    k_msleep(1); // silly hack until then
+
+    uint32_t val = 12345;
+    res = mcp_read_reg_24(config, MCP_Reg_ADCDATA, &val);
+    if (res != 0) {
+      return res;
+    }
+    *(int32_t *)(sequence->buffer) = val;
+  }
+
+  return 0;
+}
+
+int mcp356x_channel_setup(const struct device *dev,
+                          const struct adc_channel_cfg *channel_cfg) {
+  const struct mcp356x_config *config = dev->config;
+  struct mcp356x_data *data = dev->data;
+
+  if (channel_cfg->channel_id > 2 * config->channels) {
+    LOG_ERR("register/channel %d of %s invalid. This device supports %d "
+            "differential channels or %d single ended channels. You probably "
+            "didn't mean to have this many channels",
+            channel_cfg->channel_id, dev->name, config->channels,
+            config->channels * 2);
+    return -ENOTSUP;
+  }
+
+  uint8_t mux_vin_p = channel_cfg->input_positive;
+  if (mux_vin_p > 15) {
+    LOG_ERR("zephyr,positive invalid for %s channel %d.", dev->name,
+            channel_cfg->channel_id);
+  }
+  uint8_t mux_vin_m = channel_cfg->input_negative;
+  if (mux_vin_m > 15) {
+    LOG_ERR("zephyr,negative invalid for %s channel %d.", dev->name,
+            channel_cfg->channel_id);
+  }
+
+  uint8_t mux_reg = (mux_vin_p << 4) | mux_vin_m;
+  bool differential = channel_cfg->differential;
+  uint8_t gain_bits = 0;
+  switch (channel_cfg->gain) {
+  case ADC_GAIN_1_3:
+    gain_bits = 0b000;
+    break;
+  case ADC_GAIN_1:
+    gain_bits = 0b001;
+    break;
+  case ADC_GAIN_2:
+    gain_bits = 0b010;
+    break;
+  case ADC_GAIN_4:
+    gain_bits = 0b011;
+    break;
+  case ADC_GAIN_8:
+    gain_bits = 0b100;
+    break;
+  case ADC_GAIN_16:
+    gain_bits = 0b101;
+    break;
+  case ADC_GAIN_32:
+    gain_bits = 0b110;
+    break;
+  case ADC_GAIN_64:
+    gain_bits = 0b111;
+    break;
+  default:
+    LOG_ERR("unsupported channel gain '%d'", channel_cfg->gain);
+    return -ENOTSUP;
+  }
+
+  enum adc_reference ref = channel_cfg->reference;
+
+  // VREF Selection
+  uint8_t vref_sel_bits = 0b0;
+  switch (ref) {
+  case ADC_REF_INTERNAL:
+    vref_sel_bits = 0b1;
+    break;
+  case ADC_REF_EXTERNAL0:
+    vref_sel_bits = 0b0;
+    break;
+  default:
+    LOG_ERR("unsupported reference voltage '%d'", ref);
+    return -ENOTSUP;
+  }
+
+  struct channel_map_entry entry = {.mux_reg = mux_reg,
+                                    .differential = differential,
+                                    .gain_bits = gain_bits,
+                                    .reference_bits = ref};
+
+  data->channel_map[channel_cfg->channel_id] = entry;
+
+  return 0;
+}
+
+static const struct adc_driver_api mcp356x_api = {
+    .channel_setup = &mcp356x_channel_setup,
+    .read = &mcp356x_read_channel,
+    .ref_internal = 2400,
+};
+
+int dump_registers(const struct mcp356x_config *config) {
+  int res;
+  const int num_8bts = 6;
+  char *names[] = {"CONFIG0", "CONFIG1", "CONFIG2", "CONFIG3",
+                   "IRQ",     "MUX",     "IRQ"};
+  enum MCP_Reg registers_8bit[] = {
+      MCP_Reg_CONFIG0, MCP_Reg_CONFIG1, MCP_Reg_CONFIG2, MCP_Reg_CONFIG3,
+      MCP_Reg_IRQ,     MCP_Reg_MUX,     MCP_Reg_IRQ};
+
+  printk("Registers: ========\n");
+
+  uint32_t adcdata = 0xFF44DE;
+  mcp_read_reg_24(config, MCP_Reg_ADCDATA, &adcdata);
+  printk("ADCDATA: %x\n", adcdata);
+
+  for (int reg = 0; reg < num_8bts; reg++) {
+    uint8_t data = 0xcc;
+    res = mcp_read_reg_8(config, registers_8bit[reg], &data);
+    if (res != 0) {
+      return res;
+    }
+    printk("%s: " BYTE_TO_BINARY_PATTERN "\n", names[reg],
+           BYTE_TO_BINARY(data));
+  }
+
+  uint32_t timer = 978;
+  mcp_read_reg_24(config, MCP_Reg_TIMER, &timer);
+  printk("TIMER: %d\n", timer);
+
+  return 0;
+}
+
+static int mcp356x_init(const struct device *dev) {
+  const struct mcp356x_config *config = dev->config;
+  struct mcp356x_data *data = dev->data;
+  data->enabled_channels_bitmap = 0;
+
+  if (!device_is_ready(config->bus.bus)) {
+    LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
+    return -ENODEV;
+  }
+  if (config->channels != 1) {
+    LOG_ERR("Only one channel MCP3561 is supported\n");
+    return -ENOTSUP;
+  }
+
+  // Page 91 CONFIG0 ----------------------------------------------------------
+  // VREF Selection done by channel but 1 is the default of the adc
+  uint8_t vref_sel_bits = 0b1;
+
+  // CLK Selection
+  if (config->clock > 3) {
+    LOG_ERR("Unknown clock selection bits %d", config->clock);
+    return -ENOTSUP;
+  }
+  uint8_t clk_sel_bits = (uint8_t)config->clock;
+
+  // No Current Source/Sink Selection Bits for Sensor Bias
+  uint8_t adc_mode = 0b11; // continous conversion mode
+  data->config0 =
+      (vref_sel_bits << 7) | (1 << 6) | (clk_sel_bits << 4) | adc_mode;
+  mcp_write_reg_8(config, MCP_Reg_CONFIG0, data->config0);
+
+  // Page 92 CONFIG1 ----------------------------------------------------------
+  // Configure OSR
+  uint8_t osr_bits = (uint8_t)config->osr;
+
+  // Configure PRESCALE
+  if (config->prescale > 3) {
+    LOG_ERR("Invalid prescale selection %d", config->prescale);
+    return -ENOTSUP;
+  }
+  uint8_t prescale_bits = (uint8_t)config->prescale;
+
+  data->config1 = (prescale_bits << 6) | (osr_bits << 2);
+
+  mcp_write_reg_8(config, MCP_Reg_CONFIG1, data->config1);
+
+  // Page 93 CONFIG2 ----------------------------------------------------------
+  // Configure Gain
+  uint8_t gain_bits = 0;
+  uint8_t boost = 0b10; // 1x boost (bias current) (default)
+  uint8_t az_mux = 0b0; // mux auto zero internal (default)
+  uint8_t az_ref = 0b1; // auto zero internal voltage ref (default)
+  uint8_t reserved_bit = 0b1;
+
+  data->config2 = (boost << 6) | (gain_bits << 3) | (az_mux << 2) |
+                  (az_ref << 1) | reserved_bit;
+  mcp_write_reg_8(config, MCP_Reg_CONFIG2, data->config2);
+
+  // Page 94 CONFIG3 ----------------------------------------------------------
+  uint8_t conv_mode = 0b11;
+  uint8_t data_format = 0b00; // 24 bit adc data (default)
+  uint8_t crc_format = 0b0;   // 16 bit crc format (default)
+  uint8_t en_crccom = 0b0;    // offset calibration (default)
+  uint8_t en_offcal = 0b0;    // offset calibration (default)
+  uint8_t en_gaincal = 0b0;   // gain calibration (default)
+  data->config3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
+                  (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
+
+  (void)mcp_write_reg_8(config, MCP_Reg_CONFIG3, data->config3);
+
+  uint8_t irq_reg =
+      0b00110111; // set irq to active low so we don't need a pull up resistor
+  mcp_write_reg_8(config, MCP_Reg_IRQ, irq_reg);
+
+  // Scan register (THIS DRIVER DOES NOT SCAN)
+  uint32_t scan_reg = 0;
+  mcp_write_reg_24(config, MCP_Reg_SCAN, scan_reg);
+
+  uint32_t timer_reg = 0;
+  mcp_write_reg_24(config, MCP_Reg_TIMER, timer_reg);
+
+  (void)dump_registers(config);
+
+  return 0;
+}
+// Get the DT node that is the instance identified by inst with n channels
+#define INST_DT_MCP356x(inst, n) DT_INST(inst, microchip_mcp356##n)
+
+// Define the init macro for different instances, channel numbers
+#define MCP356x_INIT(instance, compat, channel_num)                            \
+  static struct mcp356x_data mcp356##channel_num##_data_##instance;            \
+                                                                               \
+  static const struct mcp356x_config mcp356##channel_num##_config_##instance = \
+      {.bus = SPI_DT_SPEC_GET(                                                 \
+           INST_DT_MCP356x(instance, channel_num),                             \
+           SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),        \
+       .device_addr =                                                          \
+           DT_PROP(INST_DT_MCP356x(instance, channel_num), device_address),    \
+       .channels = channel_num,                                                \
+       .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
+                                clock_selection),                              \
+       .prescale =                                                             \
+           DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), prescale)}; \
+  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \
+                   &mcp356##channel_num##_data_##instance,                     \
+                   &mcp356##channel_num##_config_##instance, POST_KERNEL,      \
+                   CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
+
+#define MCP3561_INIT(i) MCP356x_INIT(i, microchip_mcp3561, 1)
+
+#define CALL_WITH_ARG(arg, expr) expr(arg)
+
+#define INST_DT_MCP356X_FOREACH(t, inst_expr)                                  \
+  LISTIFY(DT_NUM_INST_STATUS_OKAY(microchip_mcp##t), CALL_WITH_ARG, (;),       \
+          inst_expr)
+
+INST_DT_MCP356X_FOREACH(3561, MCP3561_INIT);
+
+// Register R/W ===============================================================
 
 int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
                    uint8_t *result) {
@@ -249,316 +545,3 @@ int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
   };
   return spi_write_dt(&config->bus, &set);
 }
-
-static int mcp356x_read_channel(const struct device *dev,
-                                const struct adc_sequence *sequence) {
-  const struct mcp356x_config *config = dev->config;
-  struct mcp356x_data *data = dev->data;
-
-  int res = 0;
-  if (sequence->options != NULL) {
-    LOG_ERR("This driver does not support repeated sequencing");
-    return -1;
-  }
-  int32_t num_channels = __builtin_popcount(sequence->channels);
-
-  if (sequence->buffer_size < 4 * num_channels) {
-    LOG_ERR(
-        "MCP3561 buffer must be at least 4 * # of channels read long. Reading "
-        "%d needs %d bytes. was supplied %d",
-        num_channels, 4 * num_channels, sequence->buffer_size);
-    return -1;
-  }
-
-  for (uint8_t i = 0; i < 8; i++) { // max channels you can have is 8
-    uint8_t channel_id = i;
-    if (((sequence->channels >> channel_id) & 0b1) == 0) {
-      continue;
-    }
-
-    struct channel_map_entry cfg = data->channel_map[channel_id];
-    uint8_t config0 = (data->config0 & 0b01111111) | (1 << 7);
-    if (config0 != data->config0) {
-      (void)mcp_write_reg_8(config, MCP_reg_CONFIG0, config0);
-      data->config0 = config0;
-    }
-
-    uint8_t config2 = (data->config2 & 0b11000111) | (cfg.gain_bits << 3);
-    if (config2 != data->config2) {
-      (void)mcp_write_reg_8(config, MCP_reg_CONFIG2, config2);
-      data->config2 = config2;
-    }
-
-    uint8_t mux_reg = data->channel_map[i].mux_reg;
-    if (mux_reg != data->mux) {
-      (void)mcp_write_reg_8(config, MCP_reg_MUX, mux_reg);
-      data->mux = mux_reg;
-    }
-
-    // Wait X pulses of mclk for result to come in
-    // or, or wait for IRQ to come in and and make sure IRQ reg says its the
-    // right one
-    k_msleep(1); // silly hack until then
-
-    uint32_t val = 12345;
-    res = mcp_read_reg_24(config, MCP_reg_ADCDATA, &val);
-    if (res != 0) {
-      return res;
-    }
-    *(int32_t *)(sequence->buffer) = val;
-  }
-
-  return 0;
-}
-
-int mcp356x_channel_setup(const struct device *dev,
-                          const struct adc_channel_cfg *channel_cfg) {
-  const struct mcp356x_config *config = dev->config;
-  struct mcp356x_data *data = dev->data;
-
-  uint8_t mux_vin_p = channel_cfg->input_positive;
-  if (mux_vin_p > 15) {
-    LOG_ERR("zephyr,positive invalid for %s channel %d.", dev->name,
-            channel_cfg->channel_id);
-  }
-  uint8_t mux_vin_m = channel_cfg->input_negative;
-  if (mux_vin_m > 15) {
-    LOG_ERR("zephyr,negative invalid for %s channel %d.", dev->name,
-            channel_cfg->channel_id);
-  }
-
-  uint8_t mux_reg = (mux_vin_p << 4) | mux_vin_m;
-  bool differential = channel_cfg->differential;
-  uint8_t gain_bits = 0;
-  switch (channel_cfg->gain) {
-  case ADC_GAIN_1_3:
-    gain_bits = 0b000;
-    break;
-  case ADC_GAIN_1:
-    gain_bits = 0b001;
-    break;
-  case ADC_GAIN_2:
-    gain_bits = 0b010;
-    break;
-  case ADC_GAIN_4:
-    gain_bits = 0b011;
-    break;
-  case ADC_GAIN_8:
-    gain_bits = 0b100;
-    break;
-  case ADC_GAIN_16:
-    gain_bits = 0b101;
-    break;
-  case ADC_GAIN_32:
-    gain_bits = 0b110;
-    break;
-  case ADC_GAIN_64:
-    gain_bits = 0b111;
-    break;
-  default:
-    LOG_ERR("unsupported channel gain '%d'", channel_cfg->gain);
-    return -ENOTSUP;
-  }
-
-  enum adc_reference ref = channel_cfg->reference;
-
-  // VREF Selection
-  uint8_t vref_sel_bits = 0b0;
-  switch (ref) {
-  case ADC_REF_INTERNAL:
-    vref_sel_bits = 0b1;
-    break;
-  case ADC_REF_EXTERNAL0:
-    vref_sel_bits = 0b0;
-    break;
-  default:
-    LOG_ERR("unsupported reference voltage '%d'", ref);
-    return -ENOTSUP;
-  }
-
-  struct channel_map_entry entry = {.mux_reg = mux_reg,
-                                    .differential = differential,
-                                    .gain_bits = gain_bits,
-                                    .reference_bits = ref};
-
-  data->channel_map[channel_cfg->channel_id] = entry;
-
-  return 0;
-}
-
-static const struct adc_driver_api mcp356x_api = {
-    .channel_setup = &mcp356x_channel_setup,
-    .read = &mcp356x_read_channel,
-    .ref_internal = 2400,
-};
-
-int dump_registers(const struct mcp356x_config *config) {
-  int res;
-  const int num_8bts = 6;
-  char *names[] = {"CONFIG0", "CONFIG1", "CONFIG2", "CONFIG3",
-                   "IRQ",     "MUX",     "IRQ"};
-  enum MCP_Reg registers_8bit[] = {
-      MCP_reg_CONFIG0, MCP_reg_CONFIG1, MCP_reg_CONFIG2, MCP_reg_CONFIG3,
-      MCP_reg_IRQ,     MCP_reg_MUX,     MCP_reg_IRQ};
-
-  printk("Registers: ========\n");
-
-  uint32_t adcdata = 0xFF44DE;
-  mcp_read_reg_24(config, MCP_reg_ADCDATA, &adcdata);
-  printk("ADCDATA: %x\n", adcdata);
-
-  for (int reg = 0; reg < num_8bts; reg++) {
-    uint8_t data = 0xcc;
-    res = mcp_read_reg_8(config, registers_8bit[reg], &data);
-    if (res != 0) {
-      return res;
-    }
-    printk("%s: " BYTE_TO_BINARY_PATTERN "\n", names[reg],
-           BYTE_TO_BINARY(data));
-  }
-
-  uint32_t timer = 978;
-  mcp_read_reg_24(config, MCP_reg_TIMER, &timer);
-  printk("TIMER: %d\n", timer);
-
-  return 0;
-}
-
-static int mcp356x_init(const struct device *dev) {
-  const struct mcp356x_config *config = dev->config;
-  struct mcp356x_data *data = dev->data;
-  data->enabled_channels_bitmap = 0;
-
-  if (!device_is_ready(config->bus.bus)) {
-    LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
-    return -ENODEV;
-  }
-  if (config->channels != 1) {
-    LOG_ERR("Only one channel MCP3561 is supported\n");
-    return -ENOTSUP;
-  }
-
-  // Page 91 CONFIG0 ----------------------------------------------------------
-  // VREF Selection done by channel
-  uint8_t vref_sel_bits = 0b1;
-
-  // CLK Selection
-  uint8_t clk_sel_bits = 0b0;
-  switch (config->clock) {
-  case CLK_EXTERNAL:
-    clk_sel_bits = 0b00;
-    break;
-  case CLK_INTERNAL:
-    clk_sel_bits = 0b11;
-    break;
-  case CLK_INTERNAL_NO_BROADCAST:
-    clk_sel_bits = 0b10;
-    break;
-  }
-  // No Current Source/Sink Selection Bits for Sensor Bias
-  // TODO ADC_MODE
-  uint8_t adc_mode = 0b11; //
-  data->config0 =
-      (vref_sel_bits << 7) | (clk_sel_bits << 4) | adc_mode | (1 << 6);
-  mcp_write_reg_8(config, MCP_reg_CONFIG0, data->config0);
-
-  // Page 92 CONFIG1 ----------------------------------------------------------
-  // Configure OSR
-  uint8_t osr_bits = (uint8_t)config->osr;
-
-  // Configure PRE
-  uint8_t prescale_bits = 0;
-  switch (config->prescale) {
-  case PRE_8:
-    prescale_bits = 0b11;
-    break;
-  case PRE_4:
-    prescale_bits = 0b10;
-    break;
-  case PRE_2:
-    prescale_bits = 0b01;
-    break;
-  case PRE_1:
-    prescale_bits = 0b00;
-    break;
-  }
-
-  data->config1 = (prescale_bits << 6) | (osr_bits << 2);
-
-  mcp_write_reg_8(config, MCP_reg_CONFIG1, data->config1);
-
-  // Page 93 CONFIG2 ----------------------------------------------------------
-  // Configure Gain
-  uint8_t gain_bits = 0;
-  uint8_t boost = 0b10; // 1x boost (bias current) (default)
-  uint8_t az_mux = 0b0; // mux auto zero internal (default)
-  uint8_t az_ref = 0b1; // auto zero internal voltage ref (default)
-  uint8_t reserved_bit = 0b1;
-
-  data->config2 = (boost << 6) | (gain_bits << 3) | (az_mux << 2) |
-                  (az_ref << 1) | reserved_bit;
-  mcp_write_reg_8(config, MCP_reg_CONFIG2, data->config2);
-
-  // Page 94 CONFIG3 ----------------------------------------------------------
-  uint8_t conv_mode = 0b11;
-  uint8_t data_format = 0b00; // 24 bit adc data (default)
-  uint8_t crc_format = 0b0;   // 16 bit crc format (default)
-  uint8_t en_crccom = 0b0;    // offset calibration (default)
-  uint8_t en_offcal = 0b0;    // offset calibration (default)
-  uint8_t en_gaincal = 0b0;   // gain calibration (default)
-  data->config3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
-                  (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
-
-  (void)mcp_write_reg_8(config, MCP_reg_CONFIG3, data->config3);
-
-  uint8_t irq_reg =
-      0b00110111; // set irq to active low so we don't need a pull up resistor
-  mcp_write_reg_8(config, MCP_reg_IRQ, irq_reg);
-
-  // Scan register (THIS DRIVER DOES NOT SCAN)
-  uint32_t scan_reg = 0;
-  mcp_write_reg_24(config, MCP_reg_SCAN, scan_reg);
-
-  uint32_t timer_reg = 0;
-  mcp_write_reg_24(config, MCP_reg_TIMER, timer_reg);
-
-  (void)dump_registers(config);
-
-  return 0;
-}
-// Get the DT node that is the instance identified by inst with n channels
-#define INST_DT_MCP356x(inst, n) DT_INST(inst, microchip_mcp356##n)
-
-// Define the init macro for different instances, channel numbers
-#define MCP356x_INIT(instance, compat, channel_num)                            \
-  static struct mcp356x_data mcp356##channel_num##_data_##instance;            \
-                                                                               \
-  static const struct mcp356x_config mcp356##channel_num##_config_##instance = \
-      {.bus = SPI_DT_SPEC_GET(                                                 \
-           INST_DT_MCP356x(instance, channel_num),                             \
-           SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),        \
-       .device_addr =                                                          \
-           DT_PROP(INST_DT_MCP356x(instance, channel_num), device_address),    \
-       .channels = channel_num,                                                \
-       .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
-                                clock_selection),                              \
-       .prescale =                                                             \
-           DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), prescale)}; \
-  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \
-                   &mcp356##channel_num##_data_##instance,                     \
-                   &mcp356##channel_num##_config_##instance, POST_KERNEL,      \
-                   CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
-
-// 1 Channel ADC
-// In the future, add MCP356x_INIT for 2, 4 channel and do foreach for those as
-// well Only will work in devicetree if you add
-// dts/bindings/adc/microchip,mcp356x.yaml
-#define MCP3561_INIT(i) MCP356x_INIT(i, microchip_mcp3561, 1)
-
-#define CALL_WITH_ARG(arg, expr) expr(arg)
-
-#define INST_DT_MCP356X_FOREACH(t, inst_expr)                                  \
-  LISTIFY(DT_NUM_INST_STATUS_OKAY(microchip_mcp##t), CALL_WITH_ARG, (;),       \
-          inst_expr)
-
-INST_DT_MCP356X_FOREACH(3561, MCP3561_INIT);
