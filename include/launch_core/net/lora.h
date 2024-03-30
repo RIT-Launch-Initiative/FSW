@@ -21,11 +21,17 @@
 // 230 Bytes containing port number + data with the remaining 26 meant for headers
 #define LORA_PACKET_DATA_SIZE 230
 
-typedef struct l_lora_packet {
+typedef struct {
     uint16_t port;
     uint8_t payload[LORA_PACKET_DATA_SIZE];
     uint8_t payload_len;
 } l_lora_packet_t;
+
+typedef struct {
+    uint16_t count;
+    int16_t rssi;
+    int8_t snr;
+} l_lora_statistics_t;
 
 /**
  * Transmit a message over LoRa.
