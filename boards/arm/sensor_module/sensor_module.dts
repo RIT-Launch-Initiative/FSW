@@ -176,15 +176,18 @@
         compatible = "st,lsm6dsl";
         reg = <0x6b>;
         status = "okay";
+
+        irq-gpios = <&gpiob 10 GPIO_ACTIVE_LOW>, <&gpiob 12 GPIO_ACTIVE_LOW>;
     };
 
     lis3mdl: lis3mdl@1c {
         compatible = "st,lis3mdl-magn";
         reg = <0x1c>;
         status = "okay";
+
+        irq-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>, <&gpioa 10 GPIO_ACTIVE_LOW>;
     };
 
-    // TODO: This should be MS5607 and we should make a revision overlay
     ms5611: ms5611@77 {
         compatible = "meas,ms5611";
         reg = <0x77>;
