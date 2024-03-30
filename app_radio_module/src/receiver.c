@@ -24,6 +24,9 @@ static K_THREAD_STACK_DEFINE(udp_broadcast_stack, THREAD_STACK_SIZE);
 static struct k_thread udp_broadcast_thread;
 
 static void udp_broadcast_task(void *socket, void *unused1, void *unused2) {
+    ARG_UNUSED(unused1);
+    ARG_UNUSED(unused2);
+
     int sock = POINTER_TO_INT(socket);
     l_lora_packet_t lora_packet = {0};
     l_lora_statistics_t lora_statistics = {0};
