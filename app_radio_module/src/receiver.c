@@ -33,12 +33,25 @@ static void udp_broadcast_task(void *socket, void *unused1, void *unused2) {
     }
 }
 
+static void receiver_cb(const struct device *lora_dev, uint8_t *payload, uint16_t len, int16_t rssi, int8_t snr)
+{
+    ARG_UNUSED(lora_dev);
+	ARG_UNUSED(len);
+
+    // TODO: Determine how long copying l_lora_packet_t takes and if its too long for a callback. Maybe do zbus soon
+    if (k_msgq_put(&udp_broadcast_queue, (l_lora_packet_t *) payload, K_MSEC(5)) < 0) {
+        LOG_ERR("Failed to put received telemetry on the queue");
+    }
+
+    // TODO: Put LoRa stats on a queue too?
+}
+
 int init_lora_unique(const struct device *const lora_dev) {
-    return lora_recv_async(lora_dev, 0); // TODO: Write callback function
+    return lora_recv_async(lora_dev, &receiver_cb);
 }
 
 int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {
-    (void) *udp_socket_list;
+    ARG_UNUSED(*udp_socket_list);
 
     int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, RADIO_MODULE_BASE_PORT);
     if (sock < 0) {
