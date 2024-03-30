@@ -96,7 +96,7 @@ static void tmp_task(void *, void *, void *) {
     }
 
     // Allocate mem for float storage
-    float *float_storage = malloc(sizeof(float));
+    float *float_storage;
 
     // Define the sensor reading arguments
     l_sensor_readings_args_t args = {
