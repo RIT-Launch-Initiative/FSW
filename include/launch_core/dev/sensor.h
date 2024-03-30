@@ -24,15 +24,6 @@ typedef struct {
 } l_sensor_readings_args_t;
 
 /**
- * Command sensor updates and get sensor data from a device.
- * @param dev - Device to read from
- * @param args - Arguments for reading the sensor data
- * @param convert_to_float - Whether to convert the sensor data to floats and store them
- * @return Zephyr status code
- */
-int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_args_t *args, bool convert_to_float);
-
-/**
  * Command sensor updates for a list of devices.
  * @param devs - List of devices to update sensor samples
  * @param num_devs - Number of devices in the list
