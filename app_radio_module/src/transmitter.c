@@ -42,6 +42,11 @@ l_udp_socket_list_t udp_socket_list = {
 // Queues
 K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
 
+// Timers
+struct k_timer gnss_tx_timer;
+static void gnss_tx_on_expire(struct k_timer *timer_id); // Forward Declaration
+K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
+
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
 static struct k_thread udp_rx_thread;
@@ -81,6 +86,12 @@ static void lora_tx_task(void *, void *, void *) {
     }
 }
 
+static void gnss_tx_on_expire(struct k_timer *timer_id) {
+    // push to tx queue
+    printk("GNSS Timer Expired\n");
+}
+
+
 int init_lora_unique(const struct device *const lora_dev) {
     return l_lora_set_tx_rx(lora_dev, true);
 }
@@ -109,6 +120,9 @@ int start_tasks() {
     k_thread_create(&lora_tx_thread, &lora_tx_stack[0], LORA_TX_STACK_SIZE,
                     lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&lora_tx_thread);
+    k_timer_start(&gnss_tx_timer, 
+        K_SECONDS(CONFIG_GNSS_DATA_SAMPLE_INTERVAL), 
+        K_SECONDS(CONFIG_GNSS_DATA_SAMPLE_INTERVAL));
     return 0;
 }
 

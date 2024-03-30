@@ -20,6 +20,12 @@ config LORA_TX_QUEUE_SIZE
 	help
 	  The number of LoRa packets that can be queued for transmission.
 
+config GNSS_DATA_SAMPLE_INTERVAL
+	int "GNSS data sample interval (seconds)"
+	default 1
+	help
+	  The interval at which GNSS data is sampled.
+
 module = APP_RADIO_MODULE
 module-str = APP_RADIO_MODULE
 source "subsys/logging/Kconfig.template.log_config"
