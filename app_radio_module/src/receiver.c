@@ -12,8 +12,16 @@
 #include <zephyr/kernel/thread.h>
 #include <zephyr/logging/log.h>
 
+static void udp_broadcast_task(void *unused0, void *unused1, void *unused2) {
+    while (true) {
+        if (false) { // TODO: Get from queue
+            l_send_udp_broadcast(0, NULL, 0, 0);
+        }
+    }
+}
+
 int init_lora_unique(const struct device *const lora_dev) {
-    return l_lora_set_tx_rx(lora_dev, false);
+    return lora_recv_async(lora_dev, 0); // TODO: Write callback function
 }
 
 int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {
@@ -25,6 +33,8 @@ int start_tasks() {
 }
 
 int main_unique() {
+
+
     return 0;
 }
 
