@@ -12,10 +12,16 @@
 #include <zephyr/kernel/thread.h>
 #include <zephyr/logging/log.h>
 
+// Queues - Name, Entry Size, Queue Size, Alignment
+K_MSGQ_DEFINE(udp_broadcast_queue, sizeof(l_lora_packet_t), 8, 1);
+
 static void udp_broadcast_task(void *unused0, void *unused1, void *unused2) {
+    l_lora_packet_t lora_packet = {0};
+
     while (true) {
-        if (false) { // TODO: Get from queue
-            l_send_udp_broadcast(0, NULL, 0, 0);
+        if (k_msgq_get(&udp_broadcast_queue, &lora_packet, K_FOREVER)) {
+            // TODO: Get a socket
+            l_send_udp_broadcast(0, lora_packet.payload, lora_packet.payload_len, lora_packet.port);
         }
     }
 }

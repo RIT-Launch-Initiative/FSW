@@ -26,7 +26,9 @@ static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
 #define LORA_TX_STACK_SIZE 1024
 
 // Queues
-static struct k_msgq lora_tx_queue;
+//static struct k_msgq lora_tx_queue; // TODO: Investigate if this actually works
+K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
+
 
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
