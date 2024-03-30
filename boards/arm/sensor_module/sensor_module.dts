@@ -98,12 +98,14 @@
     current-speed = <115200>;
     status = "okay";
 
-//    de-gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+    //    de-gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
 };
 
 &spi1 {
-    pinctrl-0 = <&eth_cs_pc4 &spi1_sck_pa5
+    pinctrl-0 = <&spi1_sck_pa5
                  &spi1_miso_pa6 &spi1_mosi_pa7>;
+    cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
+
     pinctrl-names = "default";
     status = "okay";
 
@@ -111,14 +113,14 @@
         compatible = "wiznet,w5500";
         reg = <0x0>;
         spi-max-frequency = <10000000>;
-        int-gpios = <&gpioa 2 GPIO_ACTIVE_LOW>;
-        reset-gpios = <&gpioa 30 GPIO_ACTIVE_HIGH>;
+        int-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+        reset-gpios = <&gpioa 3 GPIO_ACTIVE_LOW>;
     };
 };
 
 &spi2 {
     pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
-    cs-gpios = <&gpioc 9 GPIO_ACTIVE_LOW>;
+    cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
 
     pinctrl-names = "default";
     status = "okay";
@@ -165,21 +167,27 @@
         compatible = "bosch,bmp388";
         reg = <0x76>;
         status = "disabled"; // addr conflict on V1
+
+        int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
+        odr = "100";
     };
 
     lsm6dsl: lsm6dsl@6b {
         compatible = "st,lsm6dsl";
         reg = <0x6b>;
         status = "okay";
+
+        irq-gpios = <&gpiob 10 GPIO_ACTIVE_LOW>, <&gpiob 12 GPIO_ACTIVE_LOW>;
     };
 
     lis3mdl: lis3mdl@1c {
         compatible = "st,lis3mdl-magn";
         reg = <0x1c>;
         status = "okay";
+
+        irq-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>, <&gpioa 10 GPIO_ACTIVE_LOW>;
     };
 
-    // TODO: This should be MS5607 and we should make a revision overlay
     ms5611: ms5611@77 {
         compatible = "meas,ms5611";
         reg = <0x77>;
