@@ -19,9 +19,23 @@ GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
 GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
 
 // Networking
+#define NUM_SOCKETS 4
 #define UDP_RX_STACK_SIZE 1024
 #define UDP_RX_BUFF_LEN 256 // TODO: Make this a KConfig
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
+
+static int udp_sockets[NUM_SOCKETS] = {0};
+static uint16_t udp_socket_ports[NUM_SOCKETS] = {LAUNCH_EVENT_NOTIFICATION_PORT,
+                                                 POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT,
+                                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT,
+                                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT,
+};
+
+l_udp_socket_list_t udp_socket_list = {
+        .sockets = udp_sockets,
+        .ports = udp_socket_ports,
+        .num_sockets = NUM_SOCKETS
+};
 
 #define LORA_TX_STACK_SIZE 1024
 
@@ -71,9 +85,18 @@ int init_lora_unique(const struct device *const lora_dev) {
     return l_lora_set_tx_rx(lora_dev, true);
 }
 
-int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {
+int init_udp_unique() {
+    for (int i = 0; i < udp_socket_list.num_sockets; i++) {
+        udp_socket_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, udp_socket_list.ports[i]);
+        if (udp_socket_list.sockets[i] < 0) {
+            LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
+        } else {
+            l_set_socket_rx_timeout(udp_socket_list.sockets[i], 1);
+        }
+    }
+
     k_thread_create(&udp_rx_thread, &udp_rx_stack[0], UDP_RX_STACK_SIZE,
-                    udp_rx_task, udp_socket_list, udp_rx_buffer, INT_TO_POINTER(UDP_RX_BUFF_LEN),
+                    udp_rx_task, &udp_socket_list, udp_rx_buffer, INT_TO_POINTER(UDP_RX_BUFF_LEN),
                     K_PRIO_PREEMPT(5),
                     0,
                     K_NO_WAIT);

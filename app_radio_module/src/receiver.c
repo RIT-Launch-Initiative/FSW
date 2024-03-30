@@ -63,9 +63,7 @@ int init_lora_unique(const struct device *const lora_dev) {
     return lora_recv_async(lora_dev, &receiver_cb);
 }
 
-int init_udp_unique(l_udp_socket_list_t *udp_socket_list) {
-    ARG_UNUSED(*udp_socket_list);
-
+int init_udp_unique() {
     int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, RADIO_MODULE_BASE_PORT);
     if (sock < 0) {
         LOG_ERR("Failed to create socket for UDP broadcasts. Not sending received LoRa packets");

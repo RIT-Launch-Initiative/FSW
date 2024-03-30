@@ -11,7 +11,7 @@
 
 int init_lora_unique(const struct device *lora_dev);
 
-int init_udp_unique(l_udp_socket_list_t *udp_socket_list);
+int init_udp_unique();
 
 int start_tasks();
 
