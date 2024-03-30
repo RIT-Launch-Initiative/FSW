@@ -1,13 +1,15 @@
-#include "zephyr/kernel/thread.h"
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
 
-#if !defined(RADIO_MODULE_RECEIVER)
-
+// Self Include
 #include "radio_module_functionality.h"
 
+// Launch Includes
 #include <launch_core/dev/gnss.h>
 
+// Zephyr Includes
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
+#include <zephyr/kernel/thread.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(radio_module_txer);

@@ -1,9 +1,11 @@
-#include <zephyr/kernel.h>
+// Application Includes
+#include "radio_module_functionality.h"
 
+// Zephyr Includes
+#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
-#include "radio_module_functionality.h"
 
 #define RADIO_MODULE_IP_ADDR BACKPLANE_IP(RADIO_MODULE_ID, 1, 1) // TODO: KConfig the board revision and #
 
