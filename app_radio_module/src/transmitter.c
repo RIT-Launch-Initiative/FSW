@@ -15,8 +15,8 @@
 LOG_MODULE_REGISTER(radio_module_txer);
 
 // Callbacks
-//GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
-//GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
+GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
 
 // Networking
 #define UDP_RX_STACK_SIZE 1024
@@ -26,9 +26,7 @@ static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
 #define LORA_TX_STACK_SIZE 1024
 
 // Queues
-//static struct k_msgq lora_tx_queue; // TODO: Investigate if this actually works
 K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
-
 
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
@@ -38,7 +36,7 @@ static K_THREAD_STACK_DEFINE(lora_tx_stack, LORA_TX_STACK_SIZE);
 static struct k_thread lora_tx_thread;
 
 static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
-    l_udp_socket_list_t *sock_list = (l_udp_socket_list_t *) socks;
+    l_udp_socket_list_t const *sock_list = (l_udp_socket_list_t *) socks;
     size_t buff_size = POINTER_TO_INT(buff_len);
     int rcv_size = 0;
 

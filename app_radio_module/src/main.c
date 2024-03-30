@@ -12,7 +12,6 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_RADIO_MODULE_LOG_LEVEL);
 
 // Queues
-K_QUEUE_DEFINE(lora_tx_queue);
 K_QUEUE_DEFINE(net_tx_queue);
 
 // Devices
@@ -34,8 +33,6 @@ l_udp_socket_list_t udp_socket_list = {
 
 
 static int init_networking() {
-    k_queue_init(&net_tx_queue);
-
     int ret = l_init_udp_net_stack_by_device(wiznet, RADIO_MODULE_IP_ADDR);
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
