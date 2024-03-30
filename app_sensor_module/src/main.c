@@ -88,10 +88,12 @@ static void tmp_task(void *, void *, void *) {
         uint32_t timestamp = k_uptime_get_32();
 
         int result = l_get_sensor_data(tmp116_device, 1, &channel, &p_temp_sensor_value);
+        // TODO: Fill out temperature float
+
         if (result < 0) {
             LOG_ERR("Failed to get tmp values");
         } else {
-            LOG_INF("Temperature: %f C", *args.float_values[0]);
+            LOG_INF("Temperature: %f C", temperature);
         }
 
         // sleep
