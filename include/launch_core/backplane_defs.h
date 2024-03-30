@@ -28,7 +28,7 @@ typedef enum {
 
 /********** RADIO MODULE **********/
 #define RADIO_MODULE_ID 2
-#define RADIO_MODULE_BASE_PORT 12000;
+#define RADIO_MODULE_BASE_PORT 12000
 
 typedef enum {
     RADIO_MODULE_GNSS_DATA_PORT = 20

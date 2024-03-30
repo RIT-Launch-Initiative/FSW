@@ -6,9 +6,6 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
-
-#define RADIO_MODULE_IP_ADDR BACKPLANE_IP(RADIO_MODULE_ID, 1, 1) // TODO: KConfig the board revision and #
-
 #define NUM_SOCKETS 4
 #define SLEEP_TIME_MS 100
 
