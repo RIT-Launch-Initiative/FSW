@@ -5,6 +5,7 @@
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
 
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -26,11 +27,11 @@ static K_THREAD_STACK_DEFINE(telemetry_processing_stack, STACK_SIZE);
 static struct k_thread telemetry_processing_thread;
 
 // Devices
-//#define LED0_NODE DT_ALIAS(led0)
-//static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-//
-//#define LED1_NODE DT_ALIAS(led1)
-//static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+#define LED0_NODE DT_ALIAS(led0)
+static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+
+#define LED1_NODE DT_ALIAS(led1)
+static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
 static void telemetry_processing_task(void *, void *, void *) {
     sensor_module_ten_hz_telemetry_t ten_hz_telem;
@@ -109,9 +110,26 @@ static int init(void) {
 
 
 int main() {
-    if (!init()) {
-        return -1;
+//    if (!init()) {
+//        return -1;
+//    }
+
+    int ret = l_init_udp_net_stack_default(SENSOR_MODULE_IP_ADDR);
+    if (ret != 0) {
+        LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
     }
+    int sock = l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT);
+    if (sock != 0) {
+        LOG_ERR("Failed to initialize UDP socket: %d", sock);
+    }
+
+    while (true) {
+        l_send_udp_broadcast(sock, "fuck you", 8, SENSOR_MODULE_BASE_PORT);
+        gpio_pin_toggle_dt(&led0);
+        gpio_pin_toggle_dt(&led1);
+        k_msleep(1000);
+    }
+
 
     return 0;
 }
