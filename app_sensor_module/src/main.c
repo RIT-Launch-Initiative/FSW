@@ -71,29 +71,23 @@ static K_THREAD_STACK_DEFINE(tmp_task_stack, STACK_SIZE);
 static struct k_thread tmp_task_thread_data;
 
 static void tmp_task(void *, void *, void *) {
-    l_temperature_data_t temperature = {0};
 
     const struct device *tmp116_device = DEVICE_DT_GET_ANY(ti_tmp116);
     if (!device_is_ready(tmp116_device)) {                             // check if ready
         LOG_ERR("TMP116 sensor not found");
-        return;                                                        // device is not ready 
+        return;                                                        // device is not ready
     }
 
-    // Allocate mem for float storage
-    float *float_storage; // TODO: Brian fix this
+    enum sensor_channel channel = SENSOR_CHAN_AMBIENT_TEMP;
+    l_temperature_data_t temperature = {0};
+    struct sensor_value temp_sensor_value = {0};
+    struct sensor_value *p_temp_sensor_value = &temp_sensor_value;
 
-    // Define the sensor reading arguments
-    l_sensor_readings_args_t args = {
-            .num_readings = 1,
-            .channels = (enum sensor_channel[]) {SENSOR_CHAN_IR}, // TODO: Fix this Brian
-            .values = NULL, // Not used in this case
-            .float_values = &float_storage
-    };
 
     while (true) {
         uint32_t timestamp = k_uptime_get_32();
 
-        int result = l_update_get_sensor_data(tmp116_device, &args, true);
+        int result = l_get_sensor_data(tmp116_device, 1, &channel, &p_temp_sensor_value);
         if (result < 0) {
             LOG_ERR("Failed to get tmp values");
         } else {
@@ -106,8 +100,6 @@ static void tmp_task(void *, void *, void *) {
             k_sleep(K_MSEC(time_to_wait));
         }
     }
-    // free allocated memory
-    k_free(float_storage);
 }
 
 
