@@ -14,13 +14,11 @@
 #include <stdint.h>
 
 /********** GENERAL **********/
-
 static const uint16_t LAUNCH_EVENT_NOTIFICATION_PORT = 9999;
 
 /********** POWER MODULE **********/
-static const uint8_t POWER_MODULE_ID = 1;
-
-static const uint16_t POWER_MODULE_BASE_PORT = 11000;
+#define POWER_MODULE_ID 1
+#define POWER_MODULE_BASE_PORT 11000
 
 typedef enum {
     POWER_MODULE_INA_DATA_PORT = 15,
@@ -29,8 +27,8 @@ typedef enum {
 
 
 /********** RADIO MODULE **********/
-static const uint8_t RADIO_MODULE_ID = 2;
-static const uint16_t RADIO_MODULE_BASE_PORT = 12000;
+#define RADIO_MODULE_ID 2
+#define RADIO_MODULE_BASE_PORT 12000;
 
 typedef enum {
     RADIO_MODULE_GNSS_DATA_PORT = 20
@@ -38,8 +36,8 @@ typedef enum {
 
 
 /********** SENSOR MODULE **********/
-static const uint8_t SENSOR_MODULE_ID = 3;
-static const uint16_t SENSOR_MODULE_BASE_PORT = 13000;
+#define SENSOR_MODULE_ID 3
+#define SENSOR_MODULE_BASE_PORT 13000
 
 typedef enum {
     SENSOR_MODULE_TEN_HZ_DATA_PORT = 10,
