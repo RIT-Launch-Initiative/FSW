@@ -5,6 +5,7 @@
 
 // Launch Includes
 #include <launch_core/dev/gnss.h>
+#include <launch_core/backplane_defs.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
@@ -15,8 +16,8 @@
 LOG_MODULE_REGISTER(radio_module_txer);
 
 // Callbacks
-GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
-GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
+// GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
 
 // Networking
 #define NUM_SOCKETS 4
@@ -46,6 +47,7 @@ K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE,
 struct k_timer gnss_tx_timer;
 static void gnss_tx_on_expire(struct k_timer *timer_id); // Forward Declaration
 K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
+static bool ready_to_tx = false;
 
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
@@ -86,9 +88,33 @@ static void lora_tx_task(void *, void *, void *) {
     }
 }
 
+typedef struct {
+    double latitude;
+    double longitude;
+    double altitude;
+} gnss_data_simple;
+
+static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
+    if (!ready_to_tx) {
+        return; // timer hasnt expired yet
+    }
+    l_lora_packet_t packet = {0};
+    int port_num = RADIO_MODULE_GNSS_DATA_PORT + RADIO_MODULE_BASE_PORT;
+    packet.port = port_num;
+    packet.payload_len = sizeof(gnss_data_simple);
+
+    gnss_data_simple gnss_data = {0};
+    gnss_data.latitude = data->nav_data.latitude / L_GNSS_LATITUDE_DIVISION_FACTOR;
+    gnss_data.longitude = data->nav_data.longitude / L_GNSS_LONGITUDE_DIVISION_FACTOR;
+    gnss_data.altitude = data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
+
+    memcpy(packet.payload, &gnss_data, sizeof(gnss_data_simple));
+    k_msgq_put(&lora_tx_queue, (void*) &packet, K_NO_WAIT);
+    ready_to_tx = false;
+}
+
 static void gnss_tx_on_expire(struct k_timer *timer_id) {
-    // push to tx queue
-    printk("GNSS Timer Expired\n");
+    ready_to_tx = true;
 }
 
 
