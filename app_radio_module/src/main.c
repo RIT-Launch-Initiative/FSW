@@ -27,7 +27,9 @@ static int init_networking() {
     return 0;
 }
 
-static int init() {
+int main() {
+    LOG_DBG("Starting radio module!\n");
+
     if (l_check_device(lora_dev) == 0) {
         init_lora_unique(lora_dev);
     }
@@ -39,15 +41,6 @@ static int init() {
     }
 
     start_tasks();
-
-    return 0;
-}
-
-int main() {
-    LOG_DBG("Starting radio module!\n");
-    if (init()) {
-        return -1;
-    }
 
     return main_unique();
 }
