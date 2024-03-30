@@ -29,11 +29,11 @@ static void udp_broadcast_task(void *socket, void *unused1, void *unused2) {
     l_lora_statistics_t lora_statistics = {0};
 
     while (true) {
-        if (k_msgq_get(&rx_telem_queue, &lora_packet, K_FOREVER)) {
+        if (k_msgq_get(&rx_telem_queue, &lora_packet, K_MSEC(100))) {
             l_send_udp_broadcast(sock, lora_packet.payload, lora_packet.payload_len, lora_packet.port);
         }
 
-        if (k_msgq_get(&statistics_queue, &lora_statistics, K_FOREVER)) {
+        if (k_msgq_get(&statistics_queue, &lora_statistics, K_MSEC(100))) {
             l_send_udp_broadcast(sock, (uint8_t *) &lora_statistics, sizeof(l_lora_statistics_t),
                                  RADIO_MODULE_BASE_PORT);
         }
@@ -57,6 +57,8 @@ static void receiver_cb(const struct device *lora_dev, uint8_t *payload, uint16_
     if (k_msgq_put(&statistics_queue, &statistics, K_MSEC(5)) < 0) {
         LOG_ERR("Failed to queue statistics");
     }
+
+    LOG_INF("Received %d bytes. RSSI: %d SNR: %d", len, rssi, snr);
 }
 
 int init_lora_unique(const struct device *const lora_dev) {
