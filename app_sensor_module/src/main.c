@@ -38,14 +38,14 @@ static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 static void telemetry_processing_task(void *, void *, void *) {
     sensor_module_ten_hz_telemetry_t ten_hz_telem;
     sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
-
+    
     int ten_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
                                           SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
     int hundred_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
                                               SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
 
     while (true) {
-        if (0 == k_msgq_get(&ten_hz_telemetry_queue, &ten_hz_telem, K_NO_WAIT)) {
+if (0 == k_msgq_get(&ten_hz_telemetry_queue, &ten_hz_telem, K_NO_WAIT)) {
             l_send_udp_broadcast(ten_hz_socket, (uint8_t *) &ten_hz_telem, sizeof(sensor_module_ten_hz_telemetry_t),
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
         } else {
@@ -75,7 +75,7 @@ static void tmp_task(void *, void *, void *) {
     const struct device *tmp116_device = DEVICE_DT_GET_ANY(ti_tmp116);
     if (!device_is_ready(tmp116_device)) {                             // check if ready
         LOG_ERR("TMP116 sensor not found");
-        return;                                                        // device is not ready
+        return;                                                        // device is not ready 
     }
 
     enum sensor_channel channel = SENSOR_CHAN_AMBIENT_TEMP;
@@ -93,6 +93,7 @@ static void tmp_task(void *, void *, void *) {
         if (result < 0) {
             LOG_ERR("Failed to get tmp values");
         } else {
+            temperature = sensor_value_to_double(p_temp_sensor_value);
             LOG_INF("Temperature: %f C", temperature);
         }
 
@@ -112,8 +113,8 @@ static void initialize_networks(void) {
     if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
         if (l_create_ip_str(eth_ip, 10, 3, 2, 1) == 0) {
             if (!l_init_udp_net_stack_default(eth_ip)) {
-                LOG_ERR("Failed to initialize network stack");
-            }
+            LOG_ERR("Failed to initialize network stack");
+}
         } else {
             LOG_ERR("Failed to create IP address string");
         }
