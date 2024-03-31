@@ -71,7 +71,7 @@ static K_THREAD_STACK_DEFINE(tmp_task_stack, STACK_SIZE);
 static struct k_thread tmp_task_thread_data;
 
 static void tmp_task(void *, void *, void *) {
-
+    
     const struct device *tmp116_device = DEVICE_DT_GET_ANY(ti_tmp116);
     if (!device_is_ready(tmp116_device)) {                             // check if ready
         LOG_ERR("TMP116 sensor not found");
@@ -113,8 +113,8 @@ static void initialize_networks(void) {
     if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
         if (l_create_ip_str(eth_ip, 10, 3, 2, 1) == 0) {
             if (!l_init_udp_net_stack_default(eth_ip)) {
-            LOG_ERR("Failed to initialize network stack");
-}
+                LOG_ERR("Failed to initialize network stack");
+            }
         } else {
             LOG_ERR("Failed to create IP address string");
         }
@@ -146,13 +146,6 @@ static int init(void) {
 
 
     initialize_networks();
-
-    const struct device *tmp116_device = DEVICE_DT_GET_ANY(ti_tmp116); // get device from tree
-    // TODO: Remove and put in task Brian
-    if (!device_is_ready(tmp116_device)) {
-        LOG_ERR("TMP116 sensor not found");
-        return -1; // Return early if device is not found
-    }
 
     // Tasks
     k_thread_create(&tmp_task_thread_data, tmp_task_stack, STACK_SIZE,
