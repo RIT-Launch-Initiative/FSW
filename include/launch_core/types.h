@@ -37,6 +37,13 @@ typedef struct __attribute__((packed)) {
     float power;
 } l_shunt_data_t;
 
+
+typedef struct __attribute__((packed)) {
+    double latitude;
+    double longitude;
+    double altitude;
+} l_gnss_data_t;
+
 typedef float l_temperature_data_t;
 
 /********** Module Data Types **********/

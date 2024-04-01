@@ -6,6 +6,7 @@
 // Launch Includes
 #include <launch_core/dev/gnss.h>
 #include <launch_core/backplane_defs.h>
+#include <launch_core/types.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
@@ -92,12 +93,6 @@ static void lora_tx_task(void *, void *, void *) {
     }
 }
 
-typedef struct {
-    double latitude;
-    double longitude;
-    double altitude;
-} gnss_data_simple;
-
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
     if (!ready_to_tx) {
         return; // timer hasnt expired yet
@@ -105,14 +100,14 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
     l_lora_packet_t packet = {0};
     int port_num = RADIO_MODULE_GNSS_DATA_PORT + RADIO_MODULE_BASE_PORT;
     packet.port = port_num;
-    packet.payload_len = sizeof(gnss_data_simple);
+    packet.payload_len = sizeof(l_gnss_data_t);
 
-    gnss_data_simple gnss_data = {0};
+    l_gnss_data_t gnss_data = {0};
     gnss_data.latitude = data->nav_data.latitude / L_GNSS_LATITUDE_DIVISION_FACTOR;
     gnss_data.longitude = data->nav_data.longitude / L_GNSS_LONGITUDE_DIVISION_FACTOR;
     gnss_data.altitude = data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
 
-    memcpy(packet.payload, &gnss_data, sizeof(gnss_data_simple));
+    memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
     k_msgq_put(&lora_tx_queue, (void*) &packet, K_NO_WAIT);
     ready_to_tx = false;
 }
