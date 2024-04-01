@@ -130,7 +130,7 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
     if (ret == 0) {
         ret = sendto(sock, buff, len, 0, (struct sockaddr *) &addr, sizeof(addr));
         if (ret < 0) {
-            LOG_ERR("Failed to send broadcast message (%d), (%d)", ret, errno);
+            LOG_ERR("Failed to send broadcast message (%d)", ret);
         }
     }
 
