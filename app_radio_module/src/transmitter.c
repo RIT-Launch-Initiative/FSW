@@ -98,8 +98,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
         return; // timer hasnt expired yet
     }
     l_lora_packet_t packet = {0};
-    int port_num = RADIO_MODULE_GNSS_DATA_PORT + RADIO_MODULE_BASE_PORT;
-    packet.port = port_num;
+    packet.port = RADIO_MODULE_GNSS_DATA_PORT + RADIO_MODULE_BASE_PORT;
     packet.payload_len = sizeof(l_gnss_data_t);
 
     l_gnss_data_t gnss_data = {0};
