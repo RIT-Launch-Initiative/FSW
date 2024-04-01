@@ -15,6 +15,9 @@
 
 LOG_MODULE_REGISTER(radio_module_txer);
 
+// Flags
+static bool ready_to_tx = false;
+
 // Callbacks
 // Forward Declaration
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data);
@@ -49,7 +52,6 @@ K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE,
 struct k_timer gnss_tx_timer;
 static void gnss_tx_on_expire(struct k_timer *timer_id); // Forward Declaration
 K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
-static bool ready_to_tx = false;
 
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
