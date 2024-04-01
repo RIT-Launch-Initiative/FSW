@@ -102,9 +102,9 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
     packet.payload_len = sizeof(l_gnss_data_t);
 
     l_gnss_data_t gnss_data = {0};
-    gnss_data.latitude = data->nav_data.latitude / L_GNSS_LATITUDE_DIVISION_FACTOR;
-    gnss_data.longitude = data->nav_data.longitude / L_GNSS_LONGITUDE_DIVISION_FACTOR;
-    gnss_data.altitude = data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
+    gnss_data.latitude = (double)data->nav_data.latitude / L_GNSS_LATITUDE_DIVISION_FACTOR;
+    gnss_data.longitude = (double)data->nav_data.longitude / L_GNSS_LONGITUDE_DIVISION_FACTOR;
+    gnss_data.altitude = (float)data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
 
     memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
     k_msgq_put(&lora_tx_queue, (void*) &packet, K_NO_WAIT);
