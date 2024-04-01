@@ -392,6 +392,7 @@ static int mcp356x_init(const struct device *dev) {
        .channels = channel_num,                                                \
        .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
                                 clock_selection),                              \
+       .osr = 2,                                                               \
        .prescale =                                                             \
            DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), prescale)}; \
   DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \

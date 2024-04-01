@@ -23,9 +23,6 @@ LOG_MODULE_REGISTER(main);
 #define LED_NODE DT_ALIAS(led)
 const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
 
-#define IRQ_NODE DT_NODELABEL(irq)
-const struct gpio_dt_spec irq = GPIO_DT_SPEC_GET(IRQ_NODE, gpios);
-
 /* Data of ADC io-channels specified in devicetree. */
 
 static const struct adc_dt_spec adc_chan0 =
@@ -89,17 +86,11 @@ int main() {
 
     gpio_pin_toggle_dt(&led);
 
-    // printk("LED toggle\n");
-
     k_msleep(100);
   }
 }
 
 int init_led() {
   // Boilerplate: set up GPIO
-  if (!gpio_is_ready_dt(&irq)) {
-    LOG_ERR("GPIO is not ready\n");
-    return -1;
-  }
   return 0;
 }
