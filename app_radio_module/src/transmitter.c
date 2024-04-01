@@ -149,8 +149,8 @@ int start_tasks() {
                     lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&lora_tx_thread);
     k_timer_start(&gnss_tx_timer, 
-        K_SECONDS(CONFIG_GNSS_DATA_SAMPLE_INTERVAL), 
-        K_SECONDS(CONFIG_GNSS_DATA_SAMPLE_INTERVAL));
+        K_MSEC(CONFIG_GNSS_DATA_TX_INTERVAL), 
+        K_MSEC(CONFIG_GNSS_DATA_TX_INTERVAL));
     return 0;
 }
 
