@@ -41,7 +41,7 @@ typedef struct __attribute__((packed)) {
 typedef struct __attribute__((packed)) {
     double latitude;
     double longitude;
-    double altitude;
+    float altitude;
 } l_gnss_data_t;
 
 typedef float l_temperature_data_t;
