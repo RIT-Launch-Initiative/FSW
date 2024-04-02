@@ -50,9 +50,9 @@ static const enum sensor_channel magnetometer_channels[] = {
         SENSOR_CHAN_MAGN_XYZ,
 };
 
-static const enum sensor_channel temperature_channels[] = {
-        SENSOR_CHAN_AMBIENT_TEMP
-};
+//static const enum sensor_channel temperature_channels[] = {
+//        SENSOR_CHAN_AMBIENT_TEMP
+//};
 
 LOG_MODULE_REGISTER(sensing_tasks);
 
