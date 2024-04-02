@@ -102,8 +102,6 @@ static int init(void) {
                     telemetry_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&telemetry_processing_thread);
 
-    start_sensor_tasks();
-
     return 0;
 }
 
