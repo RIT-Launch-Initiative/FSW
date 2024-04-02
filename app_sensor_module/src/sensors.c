@@ -150,6 +150,11 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         // Populate hundred_hz_telemetry with refreshed data. Need to manually assign due to packing.
         populate_telemetry_struct(&hundred_hz_telemetry, sensors, channels_arr);
 
+        // Put telemetry into queue
+        if (k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_NO_WAIT)) {
+            LOG_ERR("Failed to put data into INA219 processing queue");
+        }
+
         // Sleep until next update time. TODO: Maybe use timers and signals?
         uint32_t time_to_wait = HUNDRED_HZ_UPDATE_TIME - (k_uptime_get_32() - timestamp);
         if (time_to_wait > 0) {
