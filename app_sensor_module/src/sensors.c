@@ -13,6 +13,7 @@
 // Zephyr Includes
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/logging/log.h>
 
 // Constants
 #define SENSOR_READING_STACK_SIZE 1024
@@ -30,7 +31,6 @@ K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_senso
 K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
 
 // Sensor Channels
-
 static const enum sensor_channel barometer_channels[] = {
         SENSOR_CHAN_PRESS,
         SENSOR_CHAN_AMBIENT_TEMP
@@ -53,47 +53,17 @@ static const enum sensor_channel temperature_channels[] = {
         SENSOR_CHAN_AMBIENT_TEMP
 };
 
-static bool check_and_populate(const struct device *dev_to_place, const struct device *dev_arr_space,
-                                             const enum sensor_channel *channels_to_place,
-                                             const enum sensor_channel *channel_arr_space) {
-    if (l_check_device(dev_to_place)) {
-        dev_arr_space = dev_to_place;
-        channel_arr_space = channels_to_place;
-        return true;
+LOG_MODULE_REGISTER(sensing_tasks);
+
+static void check_sensors_ready(const struct device *const *sensor_arr, bool *sensor_ready, uint8_t num_sensors) {
+    for (uint8_t i = 0; i < num_sensors; i++) {
+        if (l_check_device(sensor_arr[i]) == 0) {
+            sensor_ready[i] = true;
+        } else {
+            LOG_INF("Sensor %d not ready", i);
+            sensor_ready[i] = false;
+        }
     }
-
-    return false;
-}
-
-static uint8_t populate_sensor_arr(const struct device **dev_arr, const enum sensor_channel **channels_arr) {
-    uint8_t device_count = 0;
-
-    // TODO: Try and find a way to iterate over this cleanly
-    if (check_and_populate(DEVICE_DT_GET(DT_INST(0, adi_adxl375)), dev_arr[device_count],
-                                         accelerometer_channels, channels_arr[device_count])) {
-        device_count++;
-    }
-    if (check_and_populate(DEVICE_DT_GET(DT_INST(0, meas_ms5611)), dev_arr[device_count],
-                                         barometer_channels, channels_arr[device_count])) {
-        device_count++;
-    }
-
-    if (check_and_populate(DEVICE_DT_GET(DT_INST(0, bosch_bmp388)), dev_arr[device_count],
-                                         barometer_channels, channels_arr[device_count])) {
-        device_count++;
-    }
-
-    if (check_and_populate(DEVICE_DT_GET(DT_INST(0, st_lsm6dsl)), dev_arr[device_count],
-                                         imu_channels, channels_arr[device_count])) {
-        device_count++;
-    }
-
-    if (check_and_populate(DEVICE_DT_GET(DT_INST(0, st_lis3mdl_magn)), dev_arr[device_count],
-                                         magnetometer_channels, channels_arr[device_count])) {
-        device_count++;
-    }
-
-    return device_count;
 }
 
 static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *unused2) {
@@ -101,11 +71,34 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
     ARG_UNUSED(unused1);
     ARG_UNUSED(unused2);
 
-    const struct device *sensor_arr[NUM_HUNDRED_HZ_SENSORS] = {};
-    const enum sensor_channel *channels_arr[NUM_HUNDRED_HZ_SENSORS] = {};
-    const uint8_t num_sensors = populate_sensor_arr(sensor_arr, channels_arr);
+    // Initialize variables for receiving telemetry
+    sensor_module_hundred_hz_telemetry_t hundred_hz_telemetry;
 
-    sensor_module_hundred_hz_telemetry_t telemetry = {};
+    const struct device *sensor_arr[NUM_HUNDRED_HZ_SENSORS] = {
+            DEVICE_DT_GET(DT_INST(0, adi_adxl375)),
+            DEVICE_DT_GET(DT_INST(0, meas_ms5611)),
+            DEVICE_DT_GET(DT_INST(0, bosch_bmp388)),
+            DEVICE_DT_GET(DT_INST(0, st_lsm6dsl)),
+            DEVICE_DT_GET(DT_INST(0, st_lis3mdl_magn))
+    };
+
+    const enum sensor_channel *channels_arr[NUM_HUNDRED_HZ_SENSORS] = {
+            accelerometer_channels,
+            barometer_channels,
+            barometer_channels,
+            imu_channels,
+            magnetometer_channels
+    };
+
+    // Confirm sensors are ready
+    bool sensor_ready[NUM_HUNDRED_HZ_SENSORS] = {false};
+    check_sensors_ready(sensor_arr, sensor_ready, NUM_HUNDRED_HZ_SENSORS);
+
+    while (true) {
+
+    }
+
+
 
 
 }
