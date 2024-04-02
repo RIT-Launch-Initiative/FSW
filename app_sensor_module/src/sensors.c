@@ -55,9 +55,9 @@ static const enum sensor_channel temperature_channels[] = {
 
 LOG_MODULE_REGISTER(sensing_tasks);
 
-static void check_sensors_ready(const struct device *const *sensor_arr, bool *sensor_ready, uint8_t num_sensors) {
+static void check_sensors_ready(const struct device *const *sensors, bool *sensor_ready, uint8_t num_sensors) {
     for (uint8_t i = 0; i < num_sensors; i++) {
-        if (l_check_device(sensor_arr[i]) == 0) {
+        if (l_check_device(sensors[i]) == 0) {
             sensor_ready[i] = true;
         } else {
             LOG_INF("Sensor %d not ready", i);
@@ -73,13 +73,14 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
 
     // Initialize variables for receiving telemetry
     sensor_module_hundred_hz_telemetry_t hundred_hz_telemetry;
+    uint32_t timestamp = 0;
 
-    const struct device *sensor_arr[NUM_HUNDRED_HZ_SENSORS] = {
-            DEVICE_DT_GET(DT_INST(0, adi_adxl375)),
-            DEVICE_DT_GET(DT_INST(0, meas_ms5611)),
-            DEVICE_DT_GET(DT_INST(0, bosch_bmp388)),
-            DEVICE_DT_GET(DT_INST(0, st_lsm6dsl)),
-            DEVICE_DT_GET(DT_INST(0, st_lis3mdl_magn))
+    const struct device *sensors[NUM_HUNDRED_HZ_SENSORS] = {
+            [SENSOR_MODULE_ADXL375] = DEVICE_DT_GET(DT_INST(0, adi_adxl375)),
+            [SENSOR_MODULE_MS5611]  = DEVICE_DT_GET(DT_INST(0, meas_ms5611)),
+            [SENSOR_MODULE_BMP388]  = DEVICE_DT_GET(DT_INST(0, bosch_bmp388)),
+            [SENSOR_MODULE_LSM6DSL] = DEVICE_DT_GET(DT_INST(0, st_lsm6dsl)),
+            [SENSOR_MODULE_LIS3MDL] = DEVICE_DT_GET(DT_INST(0, st_lis3mdl_magn))
     };
 
     const enum sensor_channel *channels_arr[NUM_HUNDRED_HZ_SENSORS] = {
@@ -92,13 +93,18 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
 
     // Confirm sensors are ready
     bool sensor_ready[NUM_HUNDRED_HZ_SENSORS] = {false};
-    check_sensors_ready(sensor_arr, sensor_ready, NUM_HUNDRED_HZ_SENSORS);
+    check_sensors_ready(sensors, sensor_ready, NUM_HUNDRED_HZ_SENSORS);
 
     while (true) {
+        // Refresh sensor data
+        l_update_sensors_safe(sensors, NUM_HUNDRED_HZ_SENSORS, sensor_ready);
+        timestamp = k_uptime_get_32();
+
+        // Get sensor data
+        struct sensor_value sensor_values[3] = {0};
+
 
     }
-
-
 
 
 }
