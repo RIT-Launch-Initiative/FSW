@@ -18,7 +18,7 @@
 // Constants
 #define SENSOR_READING_STACK_SIZE 1024
 #define HUNDRED_HZ_TELEM_PRIORITY 10
-#define NUM_HUNDRED_HZ_SENSORS 5
+#define SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS 5
 
 // Forward Declarations
 static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *unused2);
@@ -75,7 +75,7 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
     sensor_module_hundred_hz_telemetry_t hundred_hz_telemetry;
     uint32_t timestamp = 0;
 
-    const struct device *sensors[NUM_HUNDRED_HZ_SENSORS] = {
+    const struct device *sensors[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {
             [SENSOR_MODULE_ADXL375] = DEVICE_DT_GET(DT_INST(0, adi_adxl375)),
             [SENSOR_MODULE_MS5611]  = DEVICE_DT_GET(DT_INST(0, meas_ms5611)),
             [SENSOR_MODULE_BMP388]  = DEVICE_DT_GET(DT_INST(0, bosch_bmp388)),
@@ -83,25 +83,27 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
             [SENSOR_MODULE_LIS3MDL] = DEVICE_DT_GET(DT_INST(0, st_lis3mdl_magn))
     };
 
-    const enum sensor_channel *channels_arr[NUM_HUNDRED_HZ_SENSORS] = {
-            accelerometer_channels,
-            barometer_channels,
-            barometer_channels,
-            imu_channels,
-            magnetometer_channels
+    const enum sensor_channel *channels_arr[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {
+            [SENSOR_MODULE_ADXL375] = accelerometer_channels,
+            [SENSOR_MODULE_MS5611]  = barometer_channels,
+            [SENSOR_MODULE_BMP388]  = barometer_channels,
+            [SENSOR_MODULE_LSM6DSL] = imu_channels,
+            [SENSOR_MODULE_LIS3MDL] = magnetometer_channels
     };
 
     // Confirm sensors are ready
-    bool sensor_ready[NUM_HUNDRED_HZ_SENSORS] = {false};
-    check_sensors_ready(sensors, sensor_ready, NUM_HUNDRED_HZ_SENSORS);
+    bool sensor_ready[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {false};
+    check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS);
 
     while (true) {
         // Refresh sensor data
-        l_update_sensors_safe(sensors, NUM_HUNDRED_HZ_SENSORS, sensor_ready);
+        l_update_sensors_safe(sensors, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS, sensor_ready);
         timestamp = k_uptime_get_32();
 
         // Get sensor data
         struct sensor_value sensor_values[3] = {0};
+//        for (uint8_t i = 0; )
+        
 
 
     }
