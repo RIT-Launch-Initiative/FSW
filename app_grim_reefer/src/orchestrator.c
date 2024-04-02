@@ -288,9 +288,13 @@ static int cmd_useconds(const struct shell *shell, size_t argc, char **argv) {
   return 0;
 }
 
-static int cmd_dump_fast(const struct shell *shell, size_t argc, char **argv) {}
+static int cmd_dump_fast(const struct shell *shell, size_t argc, char **argv) {
+  return 0;
+}
 
-static int cmd_dump_slow(const struct shell *shell, size_t argc, char **argv) {}
+static int cmd_dump_slow(const struct shell *shell, size_t argc, char **argv) {
+  return 0;
+}
 
 static int cmd_dump_adc(const struct shell *shell, size_t argc, char **argv) {
   // struct fs_file_t adc_file;
@@ -301,6 +305,7 @@ static int cmd_dump_adc(const struct shell *shell, size_t argc, char **argv) {
   // shell_print("Failed to open %s: %d", DATA_ADC_FILEPATH, ret);
   // return ret;
   // }
+  return 0;
 }
 
 static int cmd_override_boost_detect(const struct shell *shell, size_t argc,
@@ -323,6 +328,9 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
     SHELL_CMD(uptime, NULL, "Show uptime in useconds.", cmd_useconds),
     SHELL_CMD(override_boost, NULL, "Pretend boost happened",
               cmd_override_boost_detect),
+    SHELL_CMD(dump_slow, NULL, "Dump slow file.", cmd_dump_slow),
+    SHELL_CMD(dump_fast, NULL, "Dump fast file.", cmd_dump_fast),
+    SHELL_CMD(dump_adc, NULL, "Dump adc file.", cmd_dump_adc),
     SHELL_SUBCMD_SET_END);
 
 /* Creating root (level 0) command "demo" */
