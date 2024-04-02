@@ -8,7 +8,7 @@ LOG_MODULE_REGISTER(storage);
 
 // Initialize message queues
 
-#define QUEUE_SIZE 10
+#define QUEUE_SIZE 100
 K_MSGQ_DEFINE(slow_data_queue, sizeof(struct slow_data), QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_data), QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(fast_data_queue, sizeof(struct fast_data), QUEUE_SIZE, 1);
@@ -18,15 +18,16 @@ K_MSGQ_DEFINE(fast_data_queue, sizeof(struct fast_data), QUEUE_SIZE, 1);
 
 int read_queue_and_write(struct fs_file_t *file, struct k_msgq *queue,
                          void *local_data, unsigned int data_size) {
-  int ret;
-
-  ret = k_msgq_get(queue, local_data, K_NO_WAIT);
-  if (ret == 0) {
-    // write data
-    ret = fs_write(file, local_data, data_size);
-    if (ret < 0) {
-      LOG_ERR("error writing fast file");
-      return ret;
+  int ret = 0;
+  while (ret == 0) {
+    ret = k_msgq_get(queue, local_data, K_NO_WAIT);
+    if (ret == 0) {
+      // write data
+      ret = fs_write(file, local_data, data_size);
+      if (ret < 0) {
+        LOG_ERR("error writing fast file");
+        return ret;
+      }
     }
   }
   return 0;

@@ -44,10 +44,9 @@
             partition = <&external_storage_partition>;
             automount;
 
-            // the binding reccomends defaults for these
             read-size = <16>;
             prog-size = <16>;
-            cache-size = <1024>; // may need to grow for optimization
+            cache-size = <1024>;
             lookahead-size = <32>;
             block-cycles = <(90 * 1000)>;
             // the datasheet gives 100K P-E cycles
@@ -65,7 +64,7 @@
 
         size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75)
         jedec-id = [ ef 40 18  ]; // 0xef4018 (Table 8.1.1, p.22)
-        spi-max-frequency = <(15 * 200000)>; // fR = 50 MHz (Table 9.6, p.65)
+        spi-max-frequency = <(20 * 200000)>; // fR = 50 MHz (Table 9.6, p.65)
         // but sticking to 10 because 50 doesn't work on my hardware, at time of
         // writing
 
