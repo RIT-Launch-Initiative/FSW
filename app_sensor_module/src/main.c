@@ -20,10 +20,7 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 static struct k_msgq ten_hz_telemetry_queue;
 static uint8_t ten_hz_telemetry_queue_buffer[CONFIG_TEN_HZ_QUEUE_SIZE * sizeof(sensor_module_ten_hz_telemetry_t)];
 
-static struct k_msgq hundred_hz_telemetry_queue;
-static uint8_t hundred_hz_telemetry_queue_buffer[
-        CONFIG_HUNDRED_HZ_QUEUE_SIZE * sizeof(sensor_module_hundred_hz_telemetry_t)];
-
+extern struct k_msgq hundred_hz_telem_queue;
 // Threads
 static K_THREAD_STACK_DEFINE(telemetry_processing_stack, STACK_SIZE);
 static struct k_thread telemetry_processing_thread;
@@ -50,7 +47,7 @@ static void telemetry_processing_task(void *, void *, void *) {
             LOG_WRN("Failed to get data from 10 Hz queue");
         }
 
-        if (0 == k_msgq_get(&hundred_hz_telemetry_queue, &hundred_hz_telem, K_NO_WAIT)) {
+        if (0 == k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telem, K_NO_WAIT)) {
             l_send_udp_broadcast(hundred_hz_socket, (uint8_t *) &hundred_hz_telem, sizeof(sensor_module_hundred_hz_telemetry_t),
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
         } else {
@@ -95,9 +92,7 @@ static void initialize_networks(void) {
 static int init(void) {
     k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(sensor_module_ten_hz_telemetry_t),
                 CONFIG_TEN_HZ_QUEUE_SIZE);
-    k_msgq_init(&hundred_hz_telemetry_queue, hundred_hz_telemetry_queue_buffer,
-                sizeof(sensor_module_hundred_hz_telemetry_t),
-                CONFIG_HUNDRED_HZ_QUEUE_SIZE);
+
 
 
     initialize_networks();
