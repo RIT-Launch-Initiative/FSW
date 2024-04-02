@@ -100,13 +100,47 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         l_update_sensors_safe(sensors, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS, sensor_ready);
         timestamp = k_uptime_get_32();
 
-        // Get sensor data
-        struct sensor_value sensor_values[3] = {0};
-//        for (uint8_t i = 0; )
-        
+        // Populate hundred_hz_telemetry with refreshed data. Need to manually assign due to packing.
+        float sensor_values[3] = {0};
+        for (uint8_t i = 0; i < SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS; i++) {
+            switch (i) {
+                case SENSOR_MODULE_ADXL375:
+                    l_get_sensor_data_float(sensors[i], 3, channels_arr[i], sensor_values);
+                    hundred_hz_telemetry.adxl375.accel_x = sensor_values[0];
+                    hundred_hz_telemetry.adxl375.accel_y = sensor_values[1];
+                    hundred_hz_telemetry.adxl375.accel_z = sensor_values[2];
+                    break;
+                case SENSOR_MODULE_LSM6DSL:
+                    l_get_sensor_data_float(sensors[i], 3, channels_arr[i], sensor_values);
+                    hundred_hz_telemetry.lsm6dsl_accel.accel_x = sensor_values[0];
+                    hundred_hz_telemetry.lsm6dsl_accel.accel_y = sensor_values[1];
+                    hundred_hz_telemetry.lsm6dsl_accel.accel_z = sensor_values[2];
 
-
+                    l_get_sensor_data_float(sensors[i], 3, channels_arr[i], sensor_values);
+                    hundred_hz_telemetry.lsm6dsl_gyro.gyro_x = sensor_values[0];
+                    hundred_hz_telemetry.lsm6dsl_gyro.gyro_y = sensor_values[1];
+                    hundred_hz_telemetry.lsm6dsl_gyro.gyro_z = sensor_values[2];
+                    break;
+                case SENSOR_MODULE_LIS3MDL:
+                    l_get_sensor_data_float(sensors[i], 3, channels_arr[i], sensor_values);
+                    hundred_hz_telemetry.lis3mdl.mag_x = sensor_values[0];
+                    hundred_hz_telemetry.lis3mdl.mag_y = sensor_values[1];
+                    hundred_hz_telemetry.lis3mdl.mag_z = sensor_values[2];
+                    break;
+                case SENSOR_MODULE_MS5611:
+                    l_get_sensor_data_float(sensors[i], 2, channels_arr[i], sensor_values);
+                    hundred_hz_telemetry.ms5611.pressure = sensor_values[0];
+                    hundred_hz_telemetry.ms5611.temperature = sensor_values[1];
+                    break;
+                case SENSOR_MODULE_BMP388:
+                    l_get_sensor_data_float(sensors[i], 2, channels_arr[i], sensor_values);
+                    hundred_hz_telemetry.bmp388.pressure = sensor_values[0];
+                    hundred_hz_telemetry.bmp388.temperature = sensor_values[1];
+                    break;
+                default:
+                    LOG_ERR("Invalid sensor index");
+                    break;
+            }
+        }
     }
-
-
 }

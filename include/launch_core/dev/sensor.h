@@ -69,7 +69,7 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
  * @return
  */
 int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
-                            float **values);
+                            float *values);
 
 
 #endif // L_SENSOR_UTILS_H
