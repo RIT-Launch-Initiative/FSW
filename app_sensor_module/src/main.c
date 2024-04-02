@@ -1,3 +1,5 @@
+#include "sensors.h"
+
 #include <launch_core/backplane_defs.h>
 #include <launch_core/types.h>
 #include <launch_core/dev/dev_common.h>
@@ -105,30 +107,17 @@ static int init(void) {
                     telemetry_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&telemetry_processing_thread);
 
+    start_sensor_tasks();
+
     return 0;
 }
 
 
 int main() {
-//    if (!init()) {
-//        return -1;
-//    }
-
-    int ret = l_init_udp_net_stack_default(SENSOR_MODULE_IP_ADDR);
-    if (ret != 0) {
-        LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
-    }
-    int sock = l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT);
-    if (sock != 0) {
-        LOG_ERR("Failed to initialize UDP socket: %d", sock);
+    if (!init()) {
+        return -1;
     }
 
-    while (true) {
-        l_send_udp_broadcast(sock, "fuck you", 8, SENSOR_MODULE_BASE_PORT);
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-        k_msleep(1000);
-    }
 
 
     return 0;
