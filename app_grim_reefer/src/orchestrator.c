@@ -5,6 +5,7 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/fs/littlefs.h>
 #include <zephyr/shell/shell.h>
+#include <zephyr/sys/base64.h>
 #include <zephyr/sys/time_units.h>
 #include <zephyr/sys_clock.h>
 
@@ -288,23 +289,78 @@ static int cmd_useconds(const struct shell *shell, size_t argc, char **argv) {
   return 0;
 }
 
+#define DUMP_BUFFER_LEN (1024 * 8)
+uint8_t dumping_data[DUMP_BUFFER_LEN + 1];
+
+#define READING_BUFFER_LEN (1024)
+uint8_t reading_data[DUMP_BUFFER_LEN];
+
+static int dump_base64(const struct shell *shell, const char *fname) {
+  struct fs_file_t file;
+  int ret;
+  fs_file_t_init(&file);
+
+  ret = fs_open(&file, fname, FS_O_READ);
+  if (ret < 0) {
+    shell_print(shell, "Failed to open %s: %d", fname, ret);
+    return ret;
+  }
+  int read = READING_BUFFER_LEN;
+
+  while (read == READING_BUFFER_LEN) {
+    read = fs_read(&file, reading_data, READING_BUFFER_LEN);
+    if (read < 0) {
+      shell_print(shell, "Failed file read of %s", fname);
+      return -1;
+    }
+    int num_written = 0;
+    ret = base64_encode(dumping_data, DUMP_BUFFER_LEN, &num_written,
+                        reading_data, read);
+    if (ret < 0) {
+      shell_print(shell, "encoding error %d, num_written: %d, read: %d", ret,
+                  num_written, read);
+      return ret;
+    }
+    dumping_data[DUMP_BUFFER_LEN] = 0; // null terminator
+    shell_print(shell, "%s", dumping_data);
+  }
+  fs_close(&file);
+  return 0;
+}
+
 static int cmd_dump_fast(const struct shell *shell, size_t argc, char **argv) {
+  ARG_UNUSED(argc);
+  ARG_UNUSED(argv);
+  if (flight_phase != Phase_Ground && flight_phase != Phase_LaunchDetecting) {
+    shell_print(shell, "I don't even know how you're dumping data mid flight. "
+                       "Wait till on ground");
+    return 0;
+  }
+  dump_base64(shell, DATA_FAST_FILEPATH);
   return 0;
 }
 
 static int cmd_dump_slow(const struct shell *shell, size_t argc, char **argv) {
+  ARG_UNUSED(argc);
+  ARG_UNUSED(argv);
+  if (flight_phase != Phase_Ground && flight_phase != Phase_LaunchDetecting) {
+    shell_print(shell, "I don't even know how you're dumping data mid flight. "
+                       "Wait till on ground");
+    return 0;
+  }
+  dump_base64(shell, DATA_SLOW_FILEPATH);
   return 0;
 }
 
 static int cmd_dump_adc(const struct shell *shell, size_t argc, char **argv) {
-  // struct fs_file_t adc_file;
-  //
-  // fs_file_t_init(&adc_file);
-  // ret = fs_open(&adc_file, DATA_ADC_FILEPATH, FS_O_CREATE | FS_O_R);
-  // if (ret != 0) {
-  // shell_print("Failed to open %s: %d", DATA_ADC_FILEPATH, ret);
-  // return ret;
-  // }
+  ARG_UNUSED(argc);
+  ARG_UNUSED(argv);
+  if (flight_phase != Phase_Ground && flight_phase != Phase_LaunchDetecting) {
+    shell_print(shell, "I don't even know how you're dumping data mid flight. "
+                       "Wait till on ground");
+    return 0;
+  }
+  dump_base64(shell, DATA_ADC_FILEPATH);
   return 0;
 }
 

@@ -13,9 +13,6 @@ K_MSGQ_DEFINE(slow_data_queue, sizeof(struct slow_data), QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_data), QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(fast_data_queue, sizeof(struct fast_data), QUEUE_SIZE, 1);
 
-#define LFS_NODE DT_ALIAS(logfs)
-#define LFS_CACHE_SIZE DT_PROP(LFS_NODE, cache_size)
-
 int read_queue_and_write(struct fs_file_t *file, struct k_msgq *queue,
                          void *local_data, unsigned int data_size) {
   int ret = 0;
