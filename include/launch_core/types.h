@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define FLOAT_ERROR_VALUE FLT_MIN
+
 /****** Primitive Data Types ******/
 // TODO: See if we can support __fp16 in GSW first
 // typedef __fp16 float16_t;

@@ -59,23 +59,28 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
 
 int l_get_accelerometer_data_float(const struct device *const dev, l_accelerometer_data_t *p_accel_data) {
     int ret = 0;
-    struct sensor_value sensor_val = {0};
+    struct sensor_value x_sensor_val = {0};
+    struct sensor_value y_sensor_val = {0};
+    struct sensor_value z_sensor_val = {0};
 
-    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_X, &sensor_val) == 0)) {
-        p_accel_data->accel_x = sensor_value_to_float(&sensor_val);
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_X, &x_sensor_val) == 0)) {
+        p_accel_data->accel_x = sensor_value_to_float(&x_sensor_val);
     } else {
+        p_accel_data->accel_x = FLOAT_ERROR_VALUE;
         ret |= 0b1;
     }
 
-    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_Y, &sensor_val) == 0)) {
-        p_accel_data->accel_y = sensor_value_to_float(&sensor_val);
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_Y, &y_sensor_val) == 0)) {
+        p_accel_data->accel_y = sensor_value_to_float(&y_sensor_val);
     } else {
+        p_accel_data->accel_y = FLOAT_ERROR_VALUE;
         ret |= 0b10;
     }
 
-    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_Z, &sensor_val) == 0)) {
-        p_accel_data->accel_z = sensor_value_to_float(&sensor_val);
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_Z, &z_sensor_val) == 0)) {
+        p_accel_data->accel_z = sensor_value_to_float(&z_sensor_val);
     } else {
+        p_accel_data->accel_z = FLOAT_ERROR_VALUE;
         ret |= 0b100;
     }
 
