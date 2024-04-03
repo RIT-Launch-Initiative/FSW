@@ -94,12 +94,14 @@ int l_get_barometer_data_float(const struct device *const dev, l_barometer_data_
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_PRESS, &sensor_val) == 0)) {
         p_baro_data->pressure = sensor_value_to_float(&sensor_val);
     } else {
+        p_baro_data->pressure = FLOAT_ERROR_VALUE;
         ret |= 0b1;
     }
 
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_AMBIENT_TEMP, &sensor_val) == 0)) {
         p_baro_data->temperature = sensor_value_to_float(&sensor_val);
     } else {
+        p_baro_data->pressure = FLOAT_ERROR_VALUE;
         ret |= 0b10;
     }
 
@@ -113,6 +115,7 @@ int l_get_temp_sensor_data_float(const struct device *const dev, l_temperature_d
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_AMBIENT_TEMP, &sensor_val) == 0)) {
         *p_temp_data = sensor_value_to_float(&sensor_val);
     } else {
+        *p_temp_data = FLOAT_ERROR_VALUE;
         ret |= 0b1;
     }
 
@@ -126,18 +129,21 @@ int l_get_magnetometer_data_float(const struct device *const dev, l_magnetometer
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_MAGN_X, &sensor_val) == 0)) {
         p_magn_data->mag_x = sensor_value_to_float(&sensor_val);
     } else {
+        p_magn_data->mag_x = FLOAT_ERROR_VALUE;
         ret |= 0b1;
     }
 
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_MAGN_Y, &sensor_val) == 0)) {
         p_magn_data->mag_y = sensor_value_to_float(&sensor_val);
     } else {
+        p_magn_data->mag_y = FLOAT_ERROR_VALUE;
         ret |= 0b10;
     }
 
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_MAGN_Z, &sensor_val) == 0)) {
         p_magn_data->mag_z = sensor_value_to_float(&sensor_val);
     } else {
+        p_magn_data->mag_z = FLOAT_ERROR_VALUE;
         ret |= 0b100;
     }
 
@@ -151,18 +157,21 @@ int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_GYRO_X, &sensor_val) == 0)) {
         p_gyro_data->gyro_x = sensor_value_to_float(&sensor_val);
     } else {
+        p_gyro_data->gyro_x = FLOAT_ERROR_VALUE;
         ret |= 0b1;
     }
 
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_GYRO_Y, &sensor_val) == 0)) {
         p_gyro_data->gyro_y = sensor_value_to_float(&sensor_val);
     } else {
+        p_gyro_data->gyro_y = FLOAT_ERROR_VALUE;
         ret |= 0b10;
     }
 
     if (likely(sensor_channel_get(dev, SENSOR_CHAN_GYRO_Z, &sensor_val) == 0)) {
         p_gyro_data->gyro_z = sensor_value_to_float(&sensor_val);
     } else {
+        p_gyro_data->gyro_z = FLOAT_ERROR_VALUE;
         ret |= 0b100;
     }
 

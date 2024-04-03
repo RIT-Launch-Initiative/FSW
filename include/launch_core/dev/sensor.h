@@ -75,6 +75,7 @@ int l_get_sensor_data_float(const struct device *const dev, int num_channels, en
  * Retrieve data from an accelerometer device and assign converted values to a struct
  * @param dev - Device to read from
  * @param p_accel_data - Pointer to an accelerometer data struct
+ * @return Bitfield of failed retrievals
  */
 int l_get_accelerometer_data_float(const struct device *const dev, l_accelerometer_data_t *p_accel_data);
 
@@ -82,6 +83,7 @@ int l_get_accelerometer_data_float(const struct device *const dev, l_acceleromet
  * Retrieve data from an barometer device and assign converted values to a struct
  * @param dev - Device to read from
  * @param p_accel_data - Pointer to an accelerometer data struct
+ * @return Bitfield of failed retrievals
  */
 int l_get_barometer_data_float(const struct device *const dev, l_barometer_data_t *p_baro_data);
 
@@ -89,6 +91,7 @@ int l_get_barometer_data_float(const struct device *const dev, l_barometer_data_
  * Retrieve data from an temperature sensor device and assign converted values to a struct
  * @param dev - Device to read from
  * @param p_accel_data - Pointer to an accelerometer data struct
+ * @return Bitfield of failed retrievals
  */
 int l_get_temp_sensor_data_float(const struct device *const dev, l_temperature_data_t *p_temp_data);
 
@@ -96,6 +99,7 @@ int l_get_temp_sensor_data_float(const struct device *const dev, l_temperature_d
  * Retrieve data from an magnetometer device and assign converted values to a struct
  * @param dev - Device to read from
  * @param p_accel_data - Pointer to an accelerometer data struct
+ * @return Bitfield of failed retrievals
  */
 int l_get_magnetometer_data_float(const struct device *const dev, l_magnetometer_data_t *p_magn_data);
 
@@ -103,6 +107,7 @@ int l_get_magnetometer_data_float(const struct device *const dev, l_magnetometer
  * Retrieve data from an gyroscope device and assign converted values to a struct
  * @param dev - Device to read from
  * @param p_accel_data - Pointer to an accelerometer data struct
+ * @return Bitfield of failed retrievals
  */
 int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_t *p_gyro_data);
 
