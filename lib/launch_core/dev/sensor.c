@@ -114,6 +114,52 @@ int l_get_temp_sensor_data_float(const struct device *const dev, l_temperature_d
     return -ret;
 }
 
-int l_get_magnetometer_data_float(const struct device *const dev, l_magnetometer_data_t *p_magn_data);
+int l_get_magnetometer_data_float(const struct device *const dev, l_magnetometer_data_t *p_magn_data) {
+    int ret = 0;
+    struct sensor_value sensor_val = {0};
 
-int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_t *p_gyro_data);
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_MAGN_X, &sensor_val) == 0)) {
+        p_magn_data->mag_x = sensor_value_to_float(&sensor_val);
+    } else {
+        ret |= 0b1;
+    }
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_MAGN_Y, &sensor_val) == 0)) {
+        p_magn_data->mag_y = sensor_value_to_float(&sensor_val);
+    } else {
+        ret |= 0b10;
+    }
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_MAGN_Z, &sensor_val) == 0)) {
+        p_magn_data->mag_z = sensor_value_to_float(&sensor_val);
+    } else {
+        ret |= 0b100;
+    }
+
+    return -ret;
+}
+
+int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_t *p_gyro_data) {
+    int ret = 0;
+    struct sensor_value sensor_val = {0};
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_GYRO_X, &sensor_val) == 0)) {
+        p_gyro_data->gyro_x = sensor_value_to_float(&sensor_val);
+    } else {
+        ret |= 0b1;
+    }
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_GYRO_Y, &sensor_val) == 0)) {
+        p_gyro_data->gyro_y = sensor_value_to_float(&sensor_val);
+    } else {
+        ret |= 0b10;
+    }
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_GYRO_Z, &sensor_val) == 0)) {
+        p_gyro_data->gyro_z = sensor_value_to_float(&sensor_val);
+    } else {
+        ret |= 0b100;
+    }
+
+    return -ret;
+}
