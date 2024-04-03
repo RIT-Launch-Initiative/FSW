@@ -56,3 +56,34 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
 
     return 0;
 }
+
+int l_get_accelerometer_data_float(const struct device *const dev, l_accelerometer_data_t *p_accel_data)
+{
+    int ret = 0;
+    struct sensor_value sensor_val = {0};
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_X, &sensor_val) == 0)) {
+        p_accel_data->accel_x = sensor_value_to_float(&sensor_val);
+        ret |= 0b1;
+    }
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_Y, &sensor_val) == 0)) {
+        p_accel_data->accel_y = sensor_value_to_float(&sensor_val);
+        ret |= 0b10;
+    }
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_ACCEL_Z, &sensor_val) == 0)) {
+        p_accel_data->accel_z = sensor_value_to_float(&sensor_val);
+        ret |= 0b100;
+    }
+
+    return -ret;
+}
+
+int l_get_barometer_data_float(const struct device *const dev, l_barometer_data_t *p_baro_data);
+
+int l_get_temp_sensor_data_float(const struct device *const dev, l_temperature_data_t *p_temp_data);
+
+int l_get_magnetometer_data_float(const struct device *const dev, l_magnetometer_data_t *p_magn_data);
+
+int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_t *p_gyro_data);
