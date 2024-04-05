@@ -4,56 +4,65 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "zephyr/device.h"
-#include "zephyr/devicetree.h"
-#include <zephyr/drivers/sensor.h>
-#include <zephyr/fs/fs.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/gpio.h>
+// #include <zephyr/fs/fs.h>
+// #include <zephyr/fs/littlefs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
-
-#ifdef BOARD_GRIM_REEFER
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
-#else
-#define CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG 1
-LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
-#endif
 
-static int init(void) { return 0; }
-// Did you break device tree
-#if !DT_NODE_EXISTS(DT_ALIAS(my_adc))
-#error "whoops"
-#endif
+// devicetree gets
+#define LED1_NODE DT_NODELABEL(redled)
+#define LED2_NODE DT_NODELABEL(anotherled)
 
-#if DT_NUM_INST_STATUS_OKAY(microchip_mcp3561) == 0
-#error "mcp3561 adc not in DTS"
-#else
-// #error microchip_mcp3561 has some DT_NUM_INST_STATUS_OKAY(microchip_mcp3561)
-#endif
+const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
 
-/*
- * Get a device structure from a devicetree node with compatible
- * "bosch,bme280". (If there are multiple, just pick one.)
- */
-static const struct device *get_adc(void) {
+#define LDO_EN_NODE DT_NODELABEL(ldo_enable)
+#define CAM_EN_NODE DT_NODELABEL(cam_enable)
 
-  const struct device *const dev = DEVICE_DT_GET_ONE(microchip_mcp3561);
+const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
+const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
-  if (dev == NULL) {
-    /* No such node, or the node does not have status "okay". */
-    printk("\nError: no device found.\n");
-    return NULL;
+static int init(void) {
+  // Init LEDS
+  if (!gpio_is_ready_dt(&led1)) {
+    LOG_ERR("LED 1 is not ready\n");
+    return -1;
   }
-
-  if (!device_is_ready(dev)) {
-    printk("\nError: Device \"%s\" is not ready; "
-           "check the driver initialization logs for errors.\n",
-           dev->name);
-    return NULL;
+  if (gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure LED 1 output pin\n");
+    return -1;
   }
-
-  printk("Found device \"%s\"", dev->name);
-  return dev;
+  if (!gpio_is_ready_dt(&led2)) {
+    LOG_ERR("LED 2 is not ready\n");
+    return -1;
+  }
+  if (gpio_pin_configure_dt(&led2, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure LED 2 output pin\n");
+    return -1;
+  }
+  // Init Enable pins
+  if (!gpio_is_ready_dt(&ldo_enable)) {
+    LOG_ERR("ldo enable pin is not ready\n");
+    return -1;
+  }
+  if (gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure ldo enable output pin\n");
+    return -1;
+  }
+  if (!gpio_is_ready_dt(&cam_enable)) {
+    LOG_ERR("camera enable pin is not ready\n");
+    return -1;
+  }
+  if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure camera enable output pin\n");
+    return -1;
+  }
+  return 0;
 }
 
 int main(void) {
@@ -61,14 +70,9 @@ int main(void) {
     return -1;
   }
 
-  const struct device *dev = get_adc();
-
-  if (dev == NULL) {
-    return 0;
-  }
-
   // Won't run if initializing the network stack failed
   while (true) {
+    // convert_and_send();
 
     k_sleep(K_MSEC(100));
   }
