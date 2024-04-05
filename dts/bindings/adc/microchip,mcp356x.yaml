@@ -1,12 +1,19 @@
-description: Microchip MCP3561 (1 Channel ADC)
+# Common fields for microchip mcp356(1/2/4) ADCs
+include: [adc-controller.yaml, spi-device.yaml]
 
-compatible: "microchip,mcp3561"
+description: Microchip MCP356X (1,2,4 Channel ADCs)
 
-include: microchip,mcp356x-base.yaml
-
+compatible: "microchip,mcp356x"
 
 
 properties:
+  "#io-channel-cells":
+    type: int
+    required: true
+  name:
+    type: string
+
+
   device-address:
     type: int
     required: true
@@ -42,3 +49,6 @@ properties:
       - "PRE_2"
       - "PRE_1"
       
+io-channel-cells:
+  - input
+ 

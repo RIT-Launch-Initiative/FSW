@@ -11,6 +11,7 @@
 #include <zephyr/sys/util.h>
 
 LOG_MODULE_REGISTER(mcp356x);
+#define DT_DRV_COMPAT microchip_mcp356x
 
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)                                                   \
@@ -90,7 +91,6 @@ struct mcp356x_data {
 
 struct mcp356x_config {
   struct spi_dt_spec bus;
-  uint8_t channels;    // 1 2 or 4
   uint8_t device_addr; // Specified on chip packaging. Normally 1
 
   enum OSR osr;
@@ -122,7 +122,7 @@ static int mcp356x_read_channel(const struct device *dev,
 
   if (sequence->buffer_size < 4 * num_channels) {
     LOG_ERR(
-        "MCP3561 buffer must be at least 4 * # of channels read long. Reading "
+        "MCP356x buffer must be at least 4 * # of channels read long. Reading "
         "%d needs %d bytes. was supplied %d",
         num_channels, 4 * num_channels, sequence->buffer_size);
     return -1;
@@ -174,12 +174,12 @@ int mcp356x_channel_setup(const struct device *dev,
   const struct mcp356x_config *config = dev->config;
   struct mcp356x_data *data = dev->data;
 
-  if (channel_cfg->channel_id > 2 * config->channels) {
-    LOG_ERR("register/channel %d of %s invalid. This device supports %d "
-            "differential channels or %d single ended channels. You probably "
-            "didn't mean to have this many channels",
-            channel_cfg->channel_id, dev->name, config->channels,
-            config->channels * 2);
+  if (channel_cfg->channel_id > 8) {
+    LOG_ERR(
+        "register/channel %d of %s invalid. Any mcp356x device supports max 4 "
+        "differential channels or 8 single ended channels. You probably "
+        "didn't mean to have this many channels",
+        channel_cfg->channel_id, dev->name);
     return -ENOTSUP;
   }
 
@@ -300,10 +300,6 @@ static int mcp356x_init(const struct device *dev) {
     LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
     return -ENODEV;
   }
-  if (config->channels != 1) {
-    LOG_ERR("Only one channel MCP3561 is supported\n");
-    return -ENOTSUP;
-  }
 
   // Page 91 CONFIG0 ----------------------------------------------------------
   // VREF Selection done by channel but 1 is the default of the adc
@@ -376,39 +372,27 @@ static int mcp356x_init(const struct device *dev) {
 
   return 0;
 }
-// Get the DT node that is the instance identified by inst with n channels
-#define INST_DT_MCP356x(inst, n) DT_INST(inst, microchip_mcp356##n)
 
-// Define the init macro for different instances, channel numbers
-#define MCP356x_INIT(instance, compat, channel_num)                            \
-  static struct mcp356x_data mcp356##channel_num##_data_##instance;            \
+// Find an instance of an mcp
+#define INST_DT_MCP356x(inst) DT_INST(inst, microchip_mcp356x)
+
+// Initialize an adc device
+#define MCP356X_INIT(instance)                                                 \
+  static struct mcp356x_data mcp356x_data_##instance;                          \
                                                                                \
-  static const struct mcp356x_config mcp356##channel_num##_config_##instance = \
-      {.bus = SPI_DT_SPEC_GET(                                                 \
-           INST_DT_MCP356x(instance, channel_num),                             \
-           SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),        \
-       .device_addr =                                                          \
-           DT_PROP(INST_DT_MCP356x(instance, channel_num), device_address),    \
-       .channels = channel_num,                                                \
-       .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num),        \
-                                clock_selection),                              \
-       .osr = 2,                                                               \
-       .prescale =                                                             \
-           DT_STRING_TOKEN(INST_DT_MCP356x(instance, channel_num), prescale)}; \
-  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance, channel_num), mcp356x_init, NULL, \
-                   &mcp356##channel_num##_data_##instance,                     \
-                   &mcp356##channel_num##_config_##instance, POST_KERNEL,      \
-                   CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
+  static const struct mcp356x_config mcp356x_config_##instance = {             \
+      .bus = SPI_DT_SPEC_GET(                                                  \
+          INST_DT_MCP356x(instance),                                           \
+          SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),         \
+      .device_addr = DT_PROP(INST_DT_MCP356x(instance), device_address),       \
+      .clock = DT_STRING_TOKEN(INST_DT_MCP356x(instance), clock_selection),    \
+      .osr = 2,                                                                \
+      .prescale = DT_STRING_TOKEN(INST_DT_MCP356x(instance), prescale)};       \
+  DEVICE_DT_DEFINE(INST_DT_MCP356x(instance), mcp356x_init, NULL,              \
+                   &mcp356x_data_##instance, &mcp356x_config_##instance,       \
+                   POST_KERNEL, CONFIG_SENSOR_INIT_PRIORITY, &mcp356x_api);
 
-#define MCP3561_INIT(i) MCP356x_INIT(i, microchip_mcp3561, 1)
-
-#define CALL_WITH_ARG(arg, expr) expr(arg)
-
-#define INST_DT_MCP356X_FOREACH(t, inst_expr)                                  \
-  LISTIFY(DT_NUM_INST_STATUS_OKAY(microchip_mcp##t), CALL_WITH_ARG, (;),       \
-          inst_expr)
-
-INST_DT_MCP356X_FOREACH(3561, MCP3561_INIT);
+DT_INST_FOREACH_STATUS_OKAY(MCP356X_INIT)
 
 // Register R/W ===============================================================
 
