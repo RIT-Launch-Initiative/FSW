@@ -1,6 +1,6 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/logging/log.h>
-#include <launch_core/os/Logger.h>
+#include <launch_core/os/logger.h>
 
 LOG_MODULE_REGISTER(slog, CONFIG_LOG_DEFAULT_LEVEL);
 

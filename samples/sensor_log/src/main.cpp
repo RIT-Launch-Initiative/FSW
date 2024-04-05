@@ -8,7 +8,7 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/logging/log.h>
 
-#include <launch_core/os/Logger.h>
+#include <launch_core/os/logger.h>
 // node identifiers
 // NOTE: Hardware prerequisites
 // 	Launch Mikroe Click Shield
