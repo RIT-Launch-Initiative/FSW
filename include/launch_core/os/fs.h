@@ -27,7 +27,7 @@ enum l_fs_log_mode {
 
 typedef struct {
     const char *fname;
-    const size_t width;
+    const off_t width;
     const enum l_fs_log_mode mode;
 
     const size_t size;
@@ -73,7 +73,7 @@ int32_t l_fs_close(l_fs_file_t *p_file);
  * @retval = -ENOTINIT 	logger was never initialized
  * @retval < 0			other errno from fs functions
  */
-int32_t l_fs_write(l_fs_file_t *p_file, uint8_t *src);
+size_t l_fs_write(l_fs_file_t *p_file, uint8_t *src);
 
 /**
  * @brief Read a frame from the device
@@ -81,8 +81,7 @@ int32_t l_fs_write(l_fs_file_t *p_file, uint8_t *src);
  * @param dst 	Buffer to read into (l_fs_file_t *p_fileat least as big as the frame width)
  * @param idx	Frame index to read
  */
-size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx
-);
+size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx);
 
 /**
  * @brief Get the file's size in bytes

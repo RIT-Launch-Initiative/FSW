@@ -75,7 +75,7 @@ size_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
     return ret;
 }
 
-size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx) {
+size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx) {
     int32_t ret = 0;
 
     if (!p_file->initialized) {
@@ -83,8 +83,8 @@ size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx) {
         return -ENOTINIT;
     }
 
-    size_t frame_start = idx * p_file->width;
-    size_t frame_end = frame_start + p_file->width;
+    off_t frame_start = idx * p_file->width;
+    off_t frame_end = frame_start + p_file->width;
 
     if (frame_end > p_file->size) {
         LOG_ERR("Frame %d spans %d to %d, but max size is %d",
