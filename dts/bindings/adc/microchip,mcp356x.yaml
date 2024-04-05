@@ -20,6 +20,7 @@ properties:
     description: |
       Each MCP356X has a device address hardwired in the chip and printed on the package.
       The device address can be used to talk to multiple chips using 1 chip select line (sort of like i2c)
+      This is usually 1 but make sure to check your chip and data sheet for this
 
   clock-selection:
     type: string
@@ -38,7 +39,7 @@ properties:
     type: string
     required: true
     description: |
-      Prescaler setting
+      Prescaler setting for the external or internal clock
       - PRE_8: AMCLK = MCLK/8
       - PRE_4: AMCLK = MCLK/4
       - PRE_2: AMCLK = MCLK/2

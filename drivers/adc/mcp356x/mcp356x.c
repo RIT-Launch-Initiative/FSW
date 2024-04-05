@@ -13,6 +13,9 @@
 LOG_MODULE_REGISTER(mcp356x);
 #define DT_DRV_COMPAT microchip_mcp356x
 
+#define MAX_CHANNELS 8
+
+// Helpers for printing out register information
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)                                                   \
   ((byte)&0x80 ? '1' : '0'), ((byte)&0x40 ? '1' : '0'),                        \
@@ -37,10 +40,10 @@ enum MCP_Reg {
 };
 
 enum CLK_SEL {
-  CLK_EXTERNAL = 0b00,
-  CLK_EXTERNAL2 = 0b01,
-  CLK_INTERNAL_NO_BROADCAST = 0b10,
-  CLK_INTERNAL = 0b11,
+  CLK_EXTERNAL = 0b00,  // Both listen for an external clock on the MCLK Pin
+  CLK_EXTERNAL2 = 0b01, // Both listen for an external clock on the MCLK Pin
+  CLK_INTERNAL_NO_BROADCAST = 0b10, // Use the internal clock
+  CLK_INTERNAL = 0b11, // Use the internal clock and follow it with the MCLK Pin
 };
 
 enum PRE {
@@ -78,7 +81,7 @@ struct channel_map_entry {
 };
 
 struct mcp356x_data {
-  struct channel_map_entry channel_map[8];
+  struct channel_map_entry channel_map[MAX_CHANNELS];
   uint8_t enabled_channels_bitmap;
 
   // Configrations. If these registers match we don't need to rewrite them
@@ -128,7 +131,7 @@ static int mcp356x_read_channel(const struct device *dev,
     return -1;
   }
 
-  for (uint8_t i = 0; i < 8; i++) { // max channels you can have is 8
+  for (uint8_t i = 0; i < MAX_CHANNELS; i++) {
     uint8_t channel_id = i;
     if (((sequence->channels >> channel_id) & 0b1) == 0) {
       continue;
