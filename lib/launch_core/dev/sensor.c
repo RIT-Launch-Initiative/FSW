@@ -58,7 +58,7 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
 }
 
 int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
-                            float *values) {
+                            float **values) {
     struct sensor_value sensor_values[num_channels];
 
     for (int i = 0; i < num_channels; i++) {
@@ -67,7 +67,7 @@ int l_get_sensor_data_float(const struct device *const dev, int num_channels, en
             LOG_ERR("Failed to get sensor data from %s. Errno %d\n", dev->name, ret);
         }
 
-        values[i] = sensor_value_to_float(&sensor_values[i]);
+        *values[i] = sensor_value_to_float(&sensor_values[i]);
     }
 
     return 0;

@@ -65,11 +65,11 @@ int l_get_sensor_data(const struct device *const dev, int num_channels, enum sen
  * @param dev - Device to read from
  * @param num_channels - Number of channels to read
  * @param channels - List of channels to read
- * @param values - List of floats to store the data in
+ * @param values - List of pointers to floats to store the data in
  * @return
  */
 int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
-                            float *values);
+                            float **values);
 
 
 #endif // L_SENSOR_UTILS_H
