@@ -31,29 +31,6 @@ K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_senso
 // Message Queues
 K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
 
-// Sensor Channels
-static const enum sensor_channel barometer_channels[] = {
-        SENSOR_CHAN_PRESS,
-        SENSOR_CHAN_AMBIENT_TEMP
-};
-
-static const enum sensor_channel accelerometer_channels[] = {
-        SENSOR_CHAN_ACCEL_XYZ,
-};
-
-static const enum sensor_channel imu_channels[] = {
-        SENSOR_CHAN_GYRO_XYZ,
-        SENSOR_CHAN_ACCEL_XYZ,
-};
-
-static const enum sensor_channel magnetometer_channels[] = {
-        SENSOR_CHAN_MAGN_XYZ,
-};
-
-//static const enum sensor_channel temperature_channels[] = {
-//        SENSOR_CHAN_AMBIENT_TEMP
-//};
-
 LOG_MODULE_REGISTER(sensing_tasks);
 
 static void check_sensors_ready(const struct device *const *sensors, bool *sensor_ready, uint8_t num_sensors) {
@@ -67,28 +44,6 @@ static void check_sensors_ready(const struct device *const *sensors, bool *senso
     }
 }
 
-static void
-populate_telemetry_struct(sensor_module_hundred_hz_telemetry_t *telemetry, const struct device *const *sensors,
-                          const enum sensor_channel *const *channels_arr) {
-    for (uint8_t i = 0; i < SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS; i++) {
-        switch (i) {
-            case SENSOR_MODULE_ADXL375:
-                break;
-            case SENSOR_MODULE_LSM6DSL:
-                break;
-            case SENSOR_MODULE_LIS3MDL:
-                break;
-            case SENSOR_MODULE_MS5611:
-                break;
-            case SENSOR_MODULE_BMP388:
-                break;
-            default:
-                LOG_ERR("Invalid sensor index");
-                break;
-        }
-    }
-}
-
 static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *unused2) {
     ARG_UNUSED(unused0);
     ARG_UNUSED(unused1);
@@ -98,20 +53,18 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
     sensor_module_hundred_hz_telemetry_t hundred_hz_telemetry;
     uint32_t timestamp = 0;
 
-    const struct device *sensors[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {
-            [SENSOR_MODULE_ADXL375] = DEVICE_DT_GET(DT_INST(0, adi_adxl375)),
-            [SENSOR_MODULE_MS5611]  = DEVICE_DT_GET(DT_INST(0, meas_ms5611)),
-            [SENSOR_MODULE_BMP388]  = DEVICE_DT_GET(DT_INST(0, bosch_bmp388)),
-            [SENSOR_MODULE_LSM6DSL] = DEVICE_DT_GET(DT_INST(0, st_lsm6dsl)),
-            [SENSOR_MODULE_LIS3MDL] = DEVICE_DT_GET(DT_INST(0, st_lis3mdl_magn))
-    };
+    const struct device *adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
+    const struct device *ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
+    const struct device *bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
+    const struct device *lsm6dsl = DEVICE_DT_GET_ONE(st_lsm6dsl);
+    const struct device *lis3mdl = DEVICE_DT_GET_ONE(st_lis3mdl_magn);
 
-    const enum sensor_channel *channels_arr[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {
-            [SENSOR_MODULE_ADXL375] = accelerometer_channels,
-            [SENSOR_MODULE_MS5611]  = barometer_channels,
-            [SENSOR_MODULE_BMP388]  = barometer_channels,
-            [SENSOR_MODULE_LSM6DSL] = imu_channels,
-            [SENSOR_MODULE_LIS3MDL] = magnetometer_channels
+    const struct device *sensors[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {
+            adxl375,
+            ms5611,
+            bmp388,
+            lsm6dsl,
+            lis3mdl
     };
 
     // Confirm sensors are ready
@@ -123,12 +76,16 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         l_update_sensors_safe(sensors, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS, sensor_ready);
         timestamp = k_uptime_get_32();
 
-        // Populate hundred_hz_telemetry with refreshed data. Need to manually assign due to packing.
-        populate_telemetry_struct(&hundred_hz_telemetry, sensors, channels_arr);
+        l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.adxl375);
+        l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_accel);
+        l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.ms5611);
+        l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.bmp388);
+        l_get_gyroscope_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_gyro);
+        l_get_magnetometer_data_float(lis3mdl, &hundred_hz_telemetry.lis3mdl);
 
         // Put telemetry into queue
         if (k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_NO_WAIT)) {
-            LOG_ERR("Failed to put data into INA219 processing queue");
+            LOG_ERR("Failed to put data into sensor processing queue");
         }
 
         // Sleep until next update time. TODO: Maybe use timers and signals?
