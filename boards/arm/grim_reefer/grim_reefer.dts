@@ -23,25 +23,36 @@
 
 	leds: leds {
 		compatible = "gpio-leds";
-		redled: redled{
+		led1: led1{
 			gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+			label = "D1 on board";
 		};
-		anotherled: anotherled{
+		led2: led2{
 			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
 		};
-	};
 
+	};
+	// TOGGLING ONLY CAM, led1, led2 -> 2 leds flash, cam flashes and buzzer goes
+	// TOGGLING ONLY LDO, led1, led2 -> buzzer sounds opposite of leds lighting (pins not set to 0 to start)
+	// TOGGLING ONLY CAMm, led1, led2, all set 0 initially -> 2 leds flash, cam pins flash
+	// TOGGLING ONLY BUZ, led1, led2 all set 0 initally -> 2 leds flash, buzzer does not sound
 	control_gpios{
 		compatible = "gpio-keys";
 		ldo_enable: ldo-enable{
 			gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
-			label = "Enable pin for LDO";
+			label = "Enable pin for LDO"; // THIS SEEMS TO BE THE BUZZER
 		};
 		cam_enable: cam-enable{
-			gpios = <&gpiob 11 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>; // WORKS
 			label = "Enable pin for Cameras";
 
 		};
+		buzzer: buzzer{
+			gpios = <&gpiob 4 (GPIO_ACTIVE_HIGH)>; // AND THIS THE LDO? CANT TEST THAT YET
+			label = "buzzer pin";
+		};
+
+
 	};
 
 
@@ -91,7 +102,6 @@
 	apb2-prescaler = <1>;
 };
 
-// Modify when we finally get UART on REV2
 &usart2 {
 	pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
 	pinctrl-names = "default";

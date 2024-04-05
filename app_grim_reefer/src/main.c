@@ -15,8 +15,8 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 
 // devicetree gets
-#define LED1_NODE DT_NODELABEL(redled)
-#define LED2_NODE DT_NODELABEL(anotherled)
+#define LED1_NODE DT_NODELABEL(led1)
+#define LED2_NODE DT_NODELABEL(led2)
 
 const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
@@ -26,6 +26,9 @@ const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
 
 const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
 const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
+
+#define BUZZER_NODE DT_NODELABEL(buzzer)
+const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZER_NODE, gpios);
 
 static int init(void) {
   // Init LEDS
@@ -37,6 +40,7 @@ static int init(void) {
     LOG_ERR("Unable to configure LED 1 output pin\n");
     return -1;
   }
+
   if (!gpio_is_ready_dt(&led2)) {
     LOG_ERR("LED 2 is not ready\n");
     return -1;
@@ -54,6 +58,7 @@ static int init(void) {
     LOG_ERR("Unable to configure ldo enable output pin\n");
     return -1;
   }
+
   if (!gpio_is_ready_dt(&cam_enable)) {
     LOG_ERR("camera enable pin is not ready\n");
     return -1;
@@ -62,6 +67,22 @@ static int init(void) {
     LOG_ERR("Unable to configure camera enable output pin\n");
     return -1;
   }
+
+  if (!gpio_is_ready_dt(&buzzer)) {
+    LOG_ERR("buzzer pin is not ready\n");
+    return -1;
+  }
+  if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
+    LOG_ERR("Unable to configure buzzer output pin\n");
+    return -1;
+  }
+
+  gpio_pin_set_dt(&led1, 0);
+  gpio_pin_set_dt(&led2, 0);
+  gpio_pin_set_dt(&ldo_enable, 0);
+  gpio_pin_set_dt(&cam_enable, 0);
+  gpio_pin_set_dt(&buzzer, 0);
+
   return 0;
 }
 
@@ -73,8 +94,13 @@ int main(void) {
   // Won't run if initializing the network stack failed
   while (true) {
     // convert_and_send();
-
-    k_sleep(K_MSEC(100));
+    gpio_pin_toggle_dt(&led1);
+    gpio_pin_toggle_dt(&led2);
+    // gpio_pin_toggle_dt(&ldo_enable);
+    // gpio_pin_toggle_dt(&cam_enable);
+    gpio_pin_toggle_dt(&buzzer);
+    printk("LDO\n");
+    k_sleep(K_MSEC(2500));
   }
   return 0;
 }
