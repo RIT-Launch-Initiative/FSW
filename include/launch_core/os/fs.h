@@ -81,7 +81,7 @@ int32_t l_fs_write(l_fs_file_t *p_file, uint8_t *src);
  * @param dst 	Buffer to read into (l_fs_file_t *p_fileat least as big as the frame width)
  * @param idx	Frame index to read
  */
-int32_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx
+size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx
 );
 
 /**
@@ -92,7 +92,7 @@ int32_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx
  * @retval >= 0	the file's size in bytes
  * @retval < 0	fs_stat error
  */
-int32_t l_fs_file_size(l_fs_file_t *p_file);
+size_t l_fs_file_size(l_fs_file_t *p_file);
 
 /**
  * @brief Get the available free space in bytes
@@ -102,7 +102,7 @@ int32_t l_fs_file_size(l_fs_file_t *p_file);
  * @retval >= 0	free space on the filesystem in bytes
  * @retval < 0	fs_statvfs error
  */
-int32_t l_fs_volume_free_space(l_fs_file_t *p_file);
+size_t l_fs_volume_free_space(l_fs_file_t *p_file);
 
 int32_t l_fs_stat(l_fs_file_t *p_file);
 

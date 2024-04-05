@@ -34,7 +34,7 @@ int32_t l_fs_close(l_fs_file_t *p_file) {
     return fs_close(&p_file->file);
 }
 
-int32_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
+size_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
     int32_t ret = 0;
     if (!p_file->initialized) {
         LOG_ERR("Logger for file %s is not initialized", p_file->fname);
@@ -75,7 +75,7 @@ int32_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
     return ret;
 }
 
-int32_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx) {
+size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx) {
     int32_t ret = 0;
 
     if (!p_file->initialized) {
@@ -98,34 +98,32 @@ int32_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, size_t idx) {
         return ret;
     }
 
-    ret = fs_read(&p_file->file, dst, p_file->width);
-    if (ret < 0) {
-        return ret;
-    }
-
-    return ret;
+    return fs_read(&p_file->file, dst, p_file->width);
 }
 
-int32_t l_fs_file_size(l_fs_file_t *p_file) {
+size_t l_fs_file_size(l_fs_file_t *p_file) {
     int32_t ret = 0;
     ret = l_fs_stat(p_file);
     if (ret < 0) {
+        LOG_ERR("Unable to stat file: %d", ret);
         return ret;
     }
 
     return p_file->dirent.size;
 }
 
-int32_t l_fs_volume_free_space(l_fs_file_t *p_file) {
+size_t l_fs_volume_free_space(l_fs_file_t *p_file) {
     int32_t ret = fs_sync(&p_file->file); // otherwise, properties on disk may not reflect
 
     // write or truncate operations
     if (ret < 0) {
+        LOG_ERR("Unable to sync file: %d", ret);
         return ret;
     }
 
     ret = l_fs_stat_vfs(p_file);
     if (ret < 0) {
+        LOG_ERR("Unable to stat vfs: %d", ret);
         return ret;
     }
 
@@ -148,17 +146,17 @@ int32_t l_fs_stat(l_fs_file_t *p_file) {
 }
 
 int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
-	int32_t ret = fs_statvfs(p_file->fname, &p_file->vfs);
-	if (ret < 0) {
-		LOG_ERR("Unable to stat vfs: %d", ret);
-		return ret;
-	}
+    int32_t ret = fs_statvfs(p_file->fname, &p_file->vfs);
+    if (ret < 0) {
+        LOG_ERR("Unable to stat vfs: %d", ret);
+        return ret;
+    }
 
-	LOG_DBG("%s is on a volume with \r\n\t%lu blocks (%lu free) of %lu bytes each", 
-				fname, 
-				vfs.f_blocks, 
-				vfs.f_bfree, 
-				vfs.f_frsize);
+    LOG_DBG("%s is on a volume with \r\n\t%lu blocks (%lu free) of %lu bytes each",
+            fname,
+            vfs.f_blocks,
+            vfs.f_bfree,
+            vfs.f_frsize);
 
-	return ret;
+    return ret;
 }
