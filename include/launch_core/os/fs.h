@@ -22,7 +22,7 @@ typedef struct {
     struct fs_file_t file;
     struct fs_dirent dirent;
     struct fs_statvfs vfs;
-    off_t m_wpos;
+    off_t wpos;
 } l_fs_file_t;
 
 
