@@ -12,12 +12,12 @@ SensorLogger::SensorLogger(
 	fname(fname), width(sample_width), mode(mode), size(n_samples * sample_width) {};
 
 
-int32_t l_fs_init(void) {
+int32_t l_fs_init(l_fs_file_t *p_file) {
 	int32_t ret = 0;
 
-	fs_file_t_init(&file);
+	fs_file_t_init(&p_file->file);
 
-	ret = fs_open(&file, fname, FS_O_CREATE | FS_O_RDWR);
+	ret = fs_open(&p_file->file, fname, FS_O_CREATE | FS_O_RDWR);
 	if (ret < 0) {
 		LOG_ERR("Unable to open/create file: %d", ret);
 		return ret;
@@ -28,60 +28,22 @@ int32_t l_fs_init(void) {
 		return -EDOM;
 	}
 
-	// Idea was to pre-allocate the file using fs_truncate, but this might be a
-	// very expensive operation on LittleFS.
-	/* LOG_INF("Truncating file to %u bytes..", size);
-	ret = fs_truncate(&file, size);
-	if (ret < 0) {
-		return ret;
-	}
-
-	LOG_DBG("Synchronizing file...");
-	ret = fs_sync(&file); // otherwise, properties on disk may not reflect
-							// write or truncate operations
-	if (ret < 0) {
-		return ret;
-	}
-
-	ret = file_size();
-	if (ret < 0) {
-		return ret;
-	}
-
-	if ((size_t) ret < size) { // the file we got isn't big enough
-		LOG_ERR("Could not expand to %u, got %u", size, ret);
-		LOG_INF("Truncating back to zero");
-		ret = fs_truncate(&file, 0);
-		if (ret < 0) {
-			LOG_ERR("Unable to shrink file after too-large request: %d", ret);
-			return ret;
-		}
-		ret = fs_sync(&file);
-		if (ret < 0) {
-			LOG_ERR("Could not sync file: %d", ret);
-			return ret;
-		}
-
-		return -ENOSPC; 
-		// fs_truncate does not error on insufficient space so we have to
-	} */
-
 	m_initalized = true;
 
 	return ret;
 }
 
 
-int32_t l_fs_open(void) {
-	return fs_open(&file, fname, FS_O_RDWR);
+int32_t l_fs_open(l_fs_file_t *p_file) {
+	return fs_open(&p_file->file, fname, FS_O_RDWR);
 }
 
-int32_t l_fs_close(void) {
-	return fs_close(&file); 
+int32_t l_fs_close(l_fs_file_t *p_file) {
+	return fs_close(&p_file->file);
 }
 
 
-int32_t l_fs_write(uint8_t* src) {
+int32_t l_fs_write(l_fs_file_t *p_file, uint8_t* src) {
 	int32_t ret = 0;
 	if (!m_initalized) {
 		LOG_ERR("Logger for file %s is not initialized", fname);
@@ -107,17 +69,17 @@ int32_t l_fs_write(uint8_t* src) {
 
 	// read/write make no garauntees about where the current seek is so m_wpos
 	// keeps track of that
-	ret = fs_seek(&file, m_wpos, FS_SEEK_SET);
+	ret = fs_seek(&p_file->file, m_wpos, FS_SEEK_SET);
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = fs_write(&file, src, width);
+	ret = fs_write(&p_file->file, src, width);
 	if (ret < 0) {
 		return ret;
 	}
 
-	m_wpos = fs_tell(&file);
+	m_wpos = fs_tell(&p_file->file);
 
 	return ret;
 }
@@ -140,12 +102,12 @@ int32_t l_fs_read(uint8_t* dst, size_t idx) {
 	}
 
 	// this class makes no garauntees about where the current seek position is
-	ret = fs_seek(&file, frame_start, FS_SEEK_SET);
+	ret = fs_seek(&p_file->file, frame_start, FS_SEEK_SET);
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = fs_read(&file, dst, width);
+	ret = fs_read(&p_file->file, dst, width);
 	if (ret < 0) {
 		return ret;
 	}
@@ -153,9 +115,9 @@ int32_t l_fs_read(uint8_t* dst, size_t idx) {
 	return ret;
 }
 
-int32_t l_fs_file_size(void) {
+int32_t l_fs_file_size(l_fs_file_t *p_file) {
 	int32_t ret = 0;
-	ret = stat();
+	ret = l_fs_stat(p_file);
 	if (ret < 0) {
 		return ret;
 	}
@@ -163,9 +125,9 @@ int32_t l_fs_file_size(void) {
 	return dirent.size;
 }
 
-int32_t l_fs_volume_free_space(void) {
+int32_t l_fs_volume_free_space(l_fs_file_t *p_file) {
 	int32_t ret = 0;
-	ret = fs_sync(&file); // otherwise, properties on disk may not reflect
+	ret = fs_sync(&p_file->file); // otherwise, properties on disk may not reflect
 							// write or truncate operations
 	if (ret < 0) {
 		return ret;
@@ -180,7 +142,7 @@ int32_t l_fs_volume_free_space(void) {
 
 /// Internal functions
 
-int32_t l_fs_stat(void) {
+int32_t l_fs_stat(l_fs_file_t *p_file) {
 	int32_t ret = fs_stat(fname, &dirent); 
 	if (ret < 0) {
 		LOG_ERR("Unable to stat file: %d", ret);
@@ -193,7 +155,7 @@ int32_t l_fs_stat(void) {
 	return ret;
 }
 
-int32_t l_fs_stat_vfs(void) {
+int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
 	int32_t ret = fs_statvfs(fname, &vfs);		
 	if (ret < 0) {
 		LOG_ERR("Unable to stat vfs: %d", ret);
