@@ -84,7 +84,7 @@ struct mcp356x_data {
   struct channel_map_entry channel_map[MAX_CHANNELS];
   uint8_t enabled_channels_bitmap;
 
-  // Configrations. If these registers match we don't need to rewrite them
+  // Configurations. If these registers match we don't need to rewrite them
   uint8_t config0;
   uint8_t config1;
   uint8_t config2;
@@ -163,12 +163,12 @@ static int mcp356x_read_channel(const struct device *dev,
       k_usleep(10);
     }
 
-    uint32_t val = 12345;
+    uint32_t val;
     res = mcp_read_reg_24(config, MCP_Reg_ADCDATA, &val);
     if (res != 0) {
       return res;
     }
-    sample_array[sample_index] = val; // TODO FIX THIS
+    sample_array[sample_index] = val;
     sample_index++;
   }
 
@@ -252,10 +252,12 @@ int mcp356x_channel_setup(const struct device *dev,
     return -ENOTSUP;
   }
 
-  struct channel_map_entry entry = {.mux_reg = mux_reg,
-                                    .differential = differential,
-                                    .gain_bits = gain_bits,
-                                    .reference_bits = ref};
+  struct channel_map_entry entry = {
+      .mux_reg = mux_reg,
+      .differential = differential,
+      .gain_bits = gain_bits,
+      .reference_bits = ref,
+  };
 
   data->channel_map[channel_cfg->channel_id] = entry;
 
@@ -270,7 +272,7 @@ static const struct adc_driver_api mcp356x_api = {
 
 int dump_registers(const struct mcp356x_config *config) {
   int res;
-  const int num_8bts = 6;
+  const int num_8bit_reg = 6;
   char *names[] = {"CONFIG0", "CONFIG1", "CONFIG2", "CONFIG3",
                    "IRQ",     "MUX",     "IRQ"};
   enum MCP_Reg registers_8bit[] = {
@@ -279,12 +281,12 @@ int dump_registers(const struct mcp356x_config *config) {
 
   printk("Registers: ========\n");
 
-  uint32_t adcdata = 0xFF44DE;
+  uint32_t adcdata = 0;
   mcp_read_reg_24(config, MCP_Reg_ADCDATA, &adcdata);
   printk("ADCDATA: %x\n", adcdata);
 
-  for (int reg = 0; reg < num_8bts; reg++) {
-    uint8_t data = 0xcc;
+  for (int reg = 0; reg < num_8bit_reg; reg++) {
+    uint8_t data = 0;
     res = mcp_read_reg_8(config, registers_8bit[reg], &data);
     if (res != 0) {
       return res;
@@ -293,7 +295,7 @@ int dump_registers(const struct mcp356x_config *config) {
            BYTE_TO_BINARY(data));
   }
 
-  uint32_t timer = 978;
+  uint32_t timer = 0;
   mcp_read_reg_24(config, MCP_Reg_TIMER, &timer);
   printk("TIMER: %d\n", timer);
 
