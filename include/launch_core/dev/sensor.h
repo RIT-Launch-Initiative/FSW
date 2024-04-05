@@ -59,5 +59,55 @@ int l_update_sensors_safe(const struct device *const *devs, int num_devs, const 
 int l_get_sensor_data(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                       struct sensor_value **values);
 
+/**
+ * Get sensor data from a device and convert it to floats
+ * @param dev - Device to read from
+ * @param num_channels - Number of channels to read
+ * @param channels - List of channels to read
+ * @param values - List of floats to store the data in
+ * @return
+ */
+int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
+                            float **values);
+
+/**
+ * Retrieve data from an accelerometer device and assign converted values to a struct
+ * @param dev - Device to read from
+ * @param p_accel_data - Pointer to an accelerometer data struct
+ * @return Bitfield of failed retrievals
+ */
+int l_get_accelerometer_data_float(const struct device *const dev, l_accelerometer_data_t *p_accel_data);
+
+/**
+ * Retrieve data from an barometer device and assign converted values to a struct
+ * @param dev - Device to read from
+ * @param p_accel_data - Pointer to an barometer data struct
+ * @return Bitfield of failed retrievals
+ */
+int l_get_barometer_data_float(const struct device *const dev, l_barometer_data_t *p_baro_data);
+
+/**
+ * Retrieve data from an temperature sensor device and assign converted values to a struct
+ * @param dev - Device to read from
+ * @param p_accel_data - Pointer to an temperature data struct
+ * @return Bitfield of failed retrievals
+ */
+int l_get_temp_sensor_data_float(const struct device *const dev, l_temperature_data_t *p_temp_data);
+
+/**
+ * Retrieve data from an magnetometer device and assign converted values to a struct
+ * @param dev - Device to read from
+ * @param p_accel_data - Pointer to a magnetometer data struct
+ * @return Bitfield of failed retrievals
+ */
+int l_get_magnetometer_data_float(const struct device *const dev, l_magnetometer_data_t *p_magn_data);
+
+/**
+ * Retrieve data from an gyroscope device and assign converted values to a struct
+ * @param dev - Device to read from
+ * @param p_accel_data - Pointer to an gyroscope data struct
+ * @return Bitfield of failed retrievals
+ */
+int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_t *p_gyro_data);
 
 #endif // L_SENSOR_UTILS_H
