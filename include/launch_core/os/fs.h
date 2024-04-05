@@ -7,9 +7,9 @@
 
 #define ENOTINIT 200 // device not initialized
 
-#define L_FS_CREATE_FILE(name, sample_width, n_samples, mode) \
+#define L_FS_CREATE_FILE(name, filename, sample_width, n_samples, mode) \
     l_fs_file_t name = { \
-        .fname = #name, \
+        .fname = #filename, \
         .width = sample_width, \
         .mode = mode, \
         .size = sample_width * n_samples, \
