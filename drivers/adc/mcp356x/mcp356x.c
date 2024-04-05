@@ -131,6 +131,9 @@ static int mcp356x_read_channel(const struct device *dev,
     return -1;
   }
 
+  uint32_t *sample_array = sequence->buffer;
+  uint32_t sample_index = 0;
+
   for (uint8_t i = 0; i < MAX_CHANNELS; i++) {
     uint8_t channel_id = i;
     if (((sequence->channels >> channel_id) & 0b1) == 0) {
@@ -154,19 +157,19 @@ static int mcp356x_read_channel(const struct device *dev,
     if (mux_reg != data->mux) {
       (void)mcp_write_reg_8(config, MCP_Reg_MUX, mux_reg);
       data->mux = mux_reg;
-    }
 
-    // Wait X pulses of mclk for result to come in
-    // or, or wait for IRQ to come in and and make sure IRQ reg says its the
-    // right one
-    k_msleep(1); // silly hack until then
+      // Wait for result to come in after ADC reset because of MUX change
+      // right one
+      k_usleep(10);
+    }
 
     uint32_t val = 12345;
     res = mcp_read_reg_24(config, MCP_Reg_ADCDATA, &val);
     if (res != 0) {
       return res;
     }
-    *(int32_t *)(sequence->buffer) = val;
+    sample_array[sample_index] = val; // TODO FIX THIS
+    sample_index++;
   }
 
   return 0;
