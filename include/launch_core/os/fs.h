@@ -73,7 +73,7 @@ int32_t l_fs_close(l_fs_file_t *p_file);
  * @retval = -ENOTINIT 	logger was never initialized
  * @retval < 0			other errno from fs functions
  */
-size_t l_fs_write(l_fs_file_t *p_file, uint8_t *src);
+size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src);
 
 /**
  * @brief Read a frame from the device

@@ -5,11 +5,9 @@
 LOG_MODULE_REGISTER(l_fs, CONFIG_LOG_DEFAULT_LEVEL);
 
 int32_t l_fs_init(l_fs_file_t *p_file) {
-    int32_t ret = 0;
-
     fs_file_t_init(&p_file->file);
 
-    ret = fs_open(&p_file->file, p_file->fname, FS_O_CREATE | FS_O_RDWR);
+    int32_t ret = fs_open(&p_file->file, p_file->fname, FS_O_CREATE | FS_O_RDWR);
     if (ret < 0) {
         LOG_ERR("Unable to open/create file: %d", ret);
         return ret;
@@ -34,8 +32,7 @@ int32_t l_fs_close(l_fs_file_t *p_file) {
     return fs_close(&p_file->file);
 }
 
-size_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
-    int32_t ret = 0;
+size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src) {
     if (!p_file->initialized) {
         LOG_ERR("Logger for file %s is not initialized", p_file->fname);
         return -ENOTINIT;
@@ -47,20 +44,18 @@ size_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
             case SLOG_ONCE: // error out
                 LOG_WRN("Logger reached end of file");
                 return -ENOSPC;
-                break;
             case SLOG_CIRC: // wrap around
                 LOG_INF("Logger reset to start of file");
                 p_file->wpos = 0;
                 break;
             default:
                 return -ENOTSUP;
-                break;
         }
     }
 
     // read/write make no guarantees about where the current seek is so p_file->wpos
     // keeps track of that
-    ret = fs_seek(&p_file->file, p_file->wpos, FS_SEEK_SET);
+    int32_t ret = fs_seek(&p_file->file, p_file->wpos, FS_SEEK_SET);
     if (ret < 0) {
         return ret;
     }
@@ -76,8 +71,6 @@ size_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
 }
 
 size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx) {
-    int32_t ret = 0;
-
     if (!p_file->initialized) {
         LOG_ERR("Logger for file %s is not initialized", p_file->fname);
         return -ENOTINIT;
@@ -93,7 +86,7 @@ size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx) {
     }
 
     // this class makes no garauntees about where the current seek position is
-    ret = fs_seek(&p_file->file, frame_start, FS_SEEK_SET);
+    int32_t ret = fs_seek(&p_file->file, frame_start, FS_SEEK_SET);
     if (ret < 0) {
         return ret;
     }
@@ -102,8 +95,7 @@ size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx) {
 }
 
 size_t l_fs_file_size(l_fs_file_t *p_file) {
-    int32_t ret = 0;
-    ret = l_fs_stat(p_file);
+    int32_t ret = l_fs_stat(p_file);
     if (ret < 0) {
         LOG_ERR("Unable to stat file: %d", ret);
         return ret;
