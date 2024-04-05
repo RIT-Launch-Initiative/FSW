@@ -110,26 +110,9 @@ static int init(void) {
 
 
 int main() {
-//    if (!init()) {
-//        return -1;
-//    }
-
-    int ret = l_init_udp_net_stack_default(SENSOR_MODULE_IP_ADDR);
-    if (ret != 0) {
-        LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
+    if (!init()) {
+        return -1;
     }
-    int sock = l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT);
-    if (sock != 0) {
-        LOG_ERR("Failed to initialize UDP socket: %d", sock);
-    }
-
-    while (true) {
-        l_send_udp_broadcast(sock, "fuck you", 8, SENSOR_MODULE_BASE_PORT);
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-        k_msleep(1000);
-    }
-
 
     return 0;
 }
