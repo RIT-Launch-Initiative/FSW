@@ -14,6 +14,7 @@ LOG_MODULE_REGISTER(mcp356x);
 #define DT_DRV_COMPAT microchip_mcp356x
 
 #define MAX_CHANNELS 8
+#define MAX_INPUT_CHANNEL 15
 
 // Helpers for printing out register information
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
@@ -193,12 +194,12 @@ int mcp356x_channel_setup(const struct device *dev,
   }
 
   uint8_t mux_vin_p = channel_cfg->input_positive;
-  if (mux_vin_p > 15) {
+  if (mux_vin_p > MAX_INPUT_CHANNEL) {
     LOG_ERR("zephyr,positive invalid for %s channel %d.", dev->name,
             channel_cfg->channel_id);
   }
   uint8_t mux_vin_m = channel_cfg->input_negative;
-  if (mux_vin_m > 15) {
+  if (mux_vin_m > MAX_INPUT_CHANNEL) {
     LOG_ERR("zephyr,negative invalid for %s channel %d.", dev->name,
             channel_cfg->channel_id);
   }
