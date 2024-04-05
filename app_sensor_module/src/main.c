@@ -107,8 +107,14 @@ static int init(void) {
 
 
 int main() {
-    if (!init()) {
+    if (init()) {
         return -1;
+    }
+
+    while (true) {
+        gpio_pin_toggle_dt(&led0);
+        gpio_pin_toggle_dt(&led1);
+        k_msleep(1000);
     }
 
 
