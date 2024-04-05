@@ -12,7 +12,13 @@ endmenu
 
 menuconfig RADIO_MODULE_RECEIVER
 	bool "Radio module is the ground receiver"
-	default y
+	default n
+
+config LORA_TX_QUEUE_SIZE
+	int "LoRa TX queue size"
+	default 16
+	help
+	  The number of LoRa packets that can be queued for transmission.
 
 module = APP_RADIO_MODULE
 module-str = APP_RADIO_MODULE

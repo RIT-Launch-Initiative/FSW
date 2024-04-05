@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Aaron Chan
+ * Copyright (c) 2023 RIT Launch Initiative
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -18,13 +18,20 @@
  * Utility functions for dealing with Zephyr's LoRa library
  */
 
-/**
- * Configure LoRa radio devices for transmission or reception.
- * @param dev - Device to configure
- * @param transmit - True if the device should be configured for transmission. False otherwise
- * @return Zephyr status code
- */
-int l_lora_configure(const struct device *const dev, bool transmit);
+// 230 Bytes containing port number + data with the remaining 26 meant for headers
+#define LORA_PACKET_DATA_SIZE 230
+
+typedef struct {
+    uint16_t port;
+    uint8_t payload[LORA_PACKET_DATA_SIZE];
+    uint8_t payload_len;
+} l_lora_packet_t;
+
+typedef struct {
+    uint16_t count;
+    int16_t rssi;
+    int8_t snr;
+} l_lora_statistics_t;
 
 /**
  * Transmit a message over LoRa.
@@ -33,7 +40,7 @@ int l_lora_configure(const struct device *const dev, bool transmit);
  * @param len - Size of the buffer
  * @return Zephyr status code
  */
-int l_lora_tx(const struct device *const lora_dev, uint8_t *buff, size_t len);
+int l_lora_tx(const struct device *lora_dev, uint8_t *buff, size_t len);
 
 /**
  * Debug callback function for LoRa reception. Should never be called directly
@@ -43,7 +50,62 @@ int l_lora_tx(const struct device *const lora_dev, uint8_t *buff, size_t len);
  * @param rssi - Received signal strength indicator
  * @param snr - Signal to noise ratio
  */
-void l_lora_debug_recv_cb(const struct device *const dev, uint8_t *data, uint16_t size, int16_t rssi, int8_t snr);
+void l_lora_debug_recv_cb(const struct device *dev, uint8_t *data, uint16_t size, int16_t rssi, int8_t snr);
 
+/**
+ * Configure LoRa radio devices for transmission or reception.
+ * @param dev - Device to configure
+ * @param transmit - True if the device should be configured for transmission. False otherwise
+ * @return Zephyr status code
+ */
+int l_lora_set_tx_rx(const struct device *dev, bool transmit);
+
+/**
+ * Set the frequency of the LoRa device
+ * @param dev - Device to configure
+ * @param frequency - Frequency to set the device to
+ * @return Zephyr status code
+ */
+int l_lora_set_frequency(const struct device *dev, uint32_t frequency);
+
+/**
+ * Set the bandwidth of the LoRa device
+ * @param dev - Device to configure
+ * @param bandwidth - Bandwidth to set the device to
+ * @return Zephyr status code
+ */
+int l_lora_set_bandwidth(const struct device *dev, enum lora_signal_bandwidth bandwidth);
+
+/**
+ * Set the data rate of the LoRa device
+ * @param dev - Device to configure
+ * @param data_rate - Data rate to set the device to
+ * @return Zephyr status code
+ */
+int l_lora_set_data_rate(const struct device *dev, enum lora_datarate data_rate);
+
+/**
+ * Set the spreading factor of the LoRa device
+ * @param dev - Device to configure
+ * @param coding_rate - Coding rate to set the device to
+ * @return Zephyr status code
+ */
+int l_lora_set_spreading_factor(const struct device *dev, enum lora_coding_rate coding_rate);
+
+/**
+ * Set the preamble length of the LoRa device
+ * @param dev - Device to configure
+ * @param preamble_len - Preamble length to set the device to
+ * @return Zephyr status code
+ */
+int l_lora_set_preamble_len(const struct device *dev, uint16_t preamble_len);
+
+/**
+ * Set the transmission power of the LoRa device
+ * @param dev - Device to configure
+ * @param tx_power - Transmission power to set the device to
+ * @return Zephyr status code
+ */
+int l_lora_set_tx_power(const struct device *dev, int8_t tx_power);
 
 #endif // L_LORA_UTILS_H_

@@ -1,28 +1,18 @@
-#ifndef SENSORS_H_
-#define SENSORS_H_
+#ifndef SENSOR_MODULE_SENSORS_H
+#define SENSOR_MODULE_SENSORS_H
 
+typedef enum {
+    SENSOR_MODULE_ADXL375 = 0,
+    SENSOR_MODULE_BMP388,
+    SENSOR_MODULE_LIS3MDL,
+    SENSOR_MODULE_LSM6DSL,
+    SENSOR_MODULE_MS5611,
+    SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS
+} sensor_module_hundred_hz_sensor_t;
 
-typedef struct __attribute__((__packed__)) {
-    float pressure_ms5;
-    float temperature_ms5;
+/**
+ * Start tasks for getting sensor data
+ */
+void start_sensor_tasks();
 
-    float pressure_bmp3;
-    float temperature_bmp3;
-
-    float accel_x;
-    float accel_y;
-    float accel_z;
-   
-    float magn_x;
-    float magn_y;
-    float magn_z;
-
-    float gyro_x;
-    float gyro_y;
-    float gyro_z;
-
-    float temperature_tmp;
-} SENSOR_MODULE_DATA_T;
-#endif // !SENSORS_H_
-
-
+#endif //SENSOR_MODULE_SENSORS_H

@@ -1,0 +1,8 @@
+mainmenu "Data logging MWE"
+
+config SENSOR_LOG_DURATION
+	int "Clear the flash area before mounting"
+	help
+		Maximum time to log the magnetometer
+
+source "Kconfig.zephyr"

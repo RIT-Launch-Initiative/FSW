@@ -157,7 +157,7 @@
 
 &spi2 {
     pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
-    cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+    cs-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
     pinctrl-names = "default";
     status = "okay";
 

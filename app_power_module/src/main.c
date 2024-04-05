@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "power_module_defs.h"
-
 #include <launch_core/backplane_defs.h>
+#include <launch_core/types.h>
 
 #include <launch_core/dev/adc.h>
 #include <launch_core/dev/dev_common.h>
@@ -14,17 +13,22 @@
 
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
+#include <launch_core/net/sntp.h>
 
+#include <launch_core/os/time.h>
 #include <zephyr/drivers/gpio.h>
-
+#include <zephyr/net/sntp.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#define SENSOR_READ_STACK_SIZE (512)
+#define SENSOR_READ_STACK_SIZE (640)
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define INA219_UPDATE_TIME_MS (67)
 
+#define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
+
 LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
+
 
 static struct k_msgq ina_processing_queue;
 static uint8_t ina_processing_queue_buffer[CONFIG_INA219_QUEUE_SIZE * sizeof(power_module_telemetry_t)];
@@ -43,6 +47,13 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 //static const struct gpio_dt_spec led3 = GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios);
 //static const struct gpio_dt_spec led_wiznet = GPIO_DT_SPEC_GET(DT_ALIAS(ledwiz), gpios);
 
+static int udp_sockets[1] = {0};
+static int udp_socket_ports[1] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
+static l_udp_socket_list_t udp_socket_list = {
+        .sockets = udp_sockets,
+        .num_sockets = 1
+};
+
 static const enum sensor_channel ina_channels[] = {
         SENSOR_CHAN_CURRENT,
         SENSOR_CHAN_VOLTAGE,
@@ -55,7 +66,7 @@ static const float MV_TO_V_MULTIPLIER = 0.001f;
 
 static void ina_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
-    int16_t vin_adc_data = 0;
+    float vin_adc_data_mv = 0;
     uint16_t temp_vin_adc_data = 0;
 
     const struct device *sensors[] = {
@@ -93,18 +104,17 @@ static void ina_task(void *, void *, void *) {
 
     if (!adc_ready) {
         LOG_ERR("ADC channel %d is not ready", vin_sense_adc.channel_id);
-        sensor_telemetry.vin_adc_data_mv = -0x7FFF;
-
+        sensor_telemetry.vin_adc_data_v = -0x7FFF;
     }
 
     while (true) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
         if (likely(adc_ready)) {
-            if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t * ) & vin_adc_data)) {
-                sensor_telemetry.vin_adc_data_mv = vin_adc_data;
+            if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
+                sensor_telemetry.vin_adc_data_v = (vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN;
             } else {
                 LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
-                sensor_telemetry.vin_adc_data_mv = -0x7FFF;
+                sensor_telemetry.vin_adc_data_v = -0x7FFF;
             }
         }
         sensor_telemetry.timestamp = k_uptime_get_32();
@@ -151,9 +161,30 @@ static void ina_task(void *, void *, void *) {
     }
 }
 
+static void init_networking() {
+    if (l_check_device(wiznet) != 0) {
+        LOG_ERR("Wiznet device not found");
+        return;
+    }
+
+    int ret = l_init_udp_net_stack_default(POWER_MODULE_IP_ADDR);
+    if (ret != 0) {
+        LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
+        return;
+    }
+
+    for (int i = 0; i < udp_socket_list.num_sockets; i++) {
+        udp_socket_list.sockets[i] = l_init_udp_socket(POWER_MODULE_IP_ADDR, udp_socket_ports[i]);
+        if (udp_socket_list.sockets[i] < 0) {
+            LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
+            return;
+        }
+    }
+}
+
 static void ina_queue_processing_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
-    power_module_telemetry_packed_t packed_telemetry = {0};
+    int sock = udp_socket_list.sockets[0];
 
     while (true) {
         if (k_msgq_get(&ina_processing_queue, &sensor_telemetry, K_FOREVER)) {
@@ -161,47 +192,17 @@ static void ina_queue_processing_task(void *, void *, void *) {
             continue;
         }
 
-        packed_telemetry.current_battery = sensor_telemetry.data_battery.current;
-        packed_telemetry.voltage_battery = sensor_telemetry.data_battery.voltage;
-        packed_telemetry.power_battery = sensor_telemetry.data_battery.power;
-
-        packed_telemetry.current_3v3 = sensor_telemetry.data_3v3.current;
-        packed_telemetry.voltage_3v3 = sensor_telemetry.data_3v3.voltage;
-        packed_telemetry.power_3v3 = sensor_telemetry.data_3v3.power;
-
-        packed_telemetry.current_5v0 = sensor_telemetry.data_5v0.current;
-        packed_telemetry.voltage_5v0 = sensor_telemetry.data_5v0.voltage;
-        packed_telemetry.power_5v0 = sensor_telemetry.data_5v0.power;
-
-        packed_telemetry.vin_adc_data_v = (sensor_telemetry.vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN;
-
         // TODO: write to flash when data logging library is ready
-        l_send_udp_broadcast((uint8_t * ) & packed_telemetry, sizeof(power_module_telemetry_packed_t),
+        l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
                              POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
     }
 }
 
 static int init(void) {
-    char ip[MAX_IP_ADDRESS_STR_LEN];
-    int ret = -1;
-
     k_msgq_init(&ina_processing_queue, ina_processing_queue_buffer, sizeof(power_module_telemetry_t),
                 CONFIG_INA219_QUEUE_SIZE);
-    if (0 > l_create_ip_str_default_net_id(ip, POWER_MODULE_ID, 1)) {
-        LOG_ERR("Failed to create IP address string: %d", ret);
-        return -1;
-    }
 
-    if (!l_check_device(wiznet)) {
-        ret = l_init_udp_net_stack(ip);
-        if (ret != 0) {
-            LOG_ERR("Failed to initialize network stack");
-            return ret;
-        }
-    } else {
-        LOG_ERR("Failed to get network device");
-        return ret;
-    }
+    init_networking();
 
     // TODO: Play with these values on rev 2 where we can do more profiling
     k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL,

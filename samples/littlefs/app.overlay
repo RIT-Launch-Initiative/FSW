@@ -1,6 +1,7 @@
 / {
 	chosen {
 		zephyr,console = &usart2;
+		zephyr,shell-uart = &usart2;
 	};
 
 	aliases {
@@ -13,9 +14,9 @@
 		compatible = "zephyr,fstab";
 		lfs1: lfs1 {
 			compatible = "zephyr,fstab,littlefs";
-			mount-point = "/lfs";
-			partition = <&external_storage_partition>;
-			automount;
+			mount-point = "/lfs1";
+			partition = <&ext_storage_1>;
+			automount; // automatically mount during boot-up
 
 			// the binding reccomends defaults for these
 			read-size = <16>;
@@ -23,9 +24,17 @@
 			cache-size = <64>; // may need to grow for optimization
 			lookahead-size = <32>;
 			block-cycles = <(90 * 1000)>; 
-			// the datasheet gives 100K P-E cycles
-			// NOTE: this seems to default to 512 for the mounted filesystem
-			// anyway
+		};
+		lfs2: lfs2 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs2";
+			partition = <&ext_storage_2>;
+
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <64>; 
+			lookahead-size = <32>;
+			block-cycles = <(90 * 1000)>; 
 		};
 	};
 };
@@ -37,9 +46,10 @@
 
 		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75) 
 		jedec-id = [ef 40 18]; // 0xef4018 (Table 8.1.1, p.22)
-		spi-max-frequency = <(10 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
-		// but sticking to 10 because 50 doesn't work on my hardware, at time of
-		// writing
+		spi-max-frequency = <(5 * 1000000)>; 
+		// fR = 50 MHz (Table 9.6, p.65)
+		// 30 MHz for direct connection over headers
+		// 5 MHz for the Launch Mikroe click shield (level-shifting circuiry)
 
 		has-dpd;
 		// Power-down 0xB9 (S 8.2.21)
@@ -52,71 +62,20 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			external_storage_partition: partition@0 {
-				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(128)>; // takes up the whole flash
+			/* NOTE: jedec,spi-nor size is bits, but fixed-partitions address and
+			* size are in bytes.*/
+			ext_storage_1: partition@0 {
+				label = "w25q-storage-1";
+				reg = <0x0 DT_SIZE_M(1)>;
+			};
+			ext_storage_2: partition@100000 {
+				label = "w25q-storage-2";
+				reg = <0x100000 DT_SIZE_M(7)>;
+			};
+			ext_storage_3: partition@800000 {
+				label = "w25q-storage-3";
+				reg = <0x800000 DT_SIZE_M(8)>;
 			};
 		};
 	};
 };
-
-// Everything else is devicetree fragments I found helpful while doing this
-
-/* Fragment from Discovery 1475 board, which has several ST i2c sensors
-
-&i2c2 {
-	pinctrl-0 = <&i2c2_scl_pb10 &i2c2_sda_pb11>;
-	pinctrl-names = "default";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
-
-	lis3mdl-magn@1e {
-		compatible = "st,lis3mdl-magn";
-		reg = <0x1e>;
-	};
-
-	hts221@5f {
-		compatible = "st,hts221";
-		reg = <0x5f>;
-		drdy-gpios = <&gpiod 15 GPIO_ACTIVE_HIGH>;
-	};
-
-	lps22hb-press@5d {
-		compatible = "st,lps22hb-press";
-		reg = <0x5d>;
-	};
-
-	lsm6dsl: lsm6dsl@6a {
-		compatible = "st,lsm6dsl";
-		reg = <0x6a>;
-		irq-gpios = <&gpiod 11 GPIO_ACTIVE_HIGH>;
-	};
-
-	vl53l0x@29 {
-		compatible = "st,vl53l0x";
-		reg = <0x29>;
-		xshut-gpios = <&gpioc 6 GPIO_ACTIVE_LOW>;
-	};
-};
-*/
-
-
-/* Fragment from Adafruit Feather STM32F405, cited by samples/drivers/flash 
-&spi1 {
-	pinctrl-0 = <&spi1_nss_pa15 &spi1_sck_pb3
-		     &spi1_miso_pb4 &spi1_mosi_pb5>;
-	pinctrl-names = "default";
-	status = "okay";
-	cs-gpios = <&gpioa 15 GPIO_ACTIVE_LOW>;
-	gd25q16: gd25q16c@0 {
-		compatible = "jedec,spi-nor";
-		reg = <0>;
-		spi-max-frequency = <80000000>;
-		size = <0x200000>;
-		has-dpd;
-		t-enter-dpd = <20000>;
-		t-exit-dpd = <100000>;
-		jedec-id = [c8 40 15];
-	};
-};
-*/

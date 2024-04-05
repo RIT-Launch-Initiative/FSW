@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Aaron CHan
+# Copyright (c) 2024 RIT Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
 manifest:
@@ -15,12 +15,11 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: main
+      revision: v3.6.0
       import:
         name-allowlist:
           - cmsis
           - hal_stm32
-          - hal_espressif
           - littlefs
           - loramac-node
     - name: ubxlib

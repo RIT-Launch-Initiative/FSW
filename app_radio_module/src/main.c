@@ -1,44 +1,27 @@
-#include <zephyr/kernel.h>
+// Application Includes
+#include "radio_module_functionality.h"
 
+// Zephyr Includes
+#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
-#include <launch_core/backplane_defs.h>
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/net/lora.h>
-#include <launch_core/net/net_common.h>
-#include <launch_core/net/udp.h>
+#define SLEEP_TIME_MS 100
 
-#define SLEEP_TIME_MS   100
-#define LED0_NODE DT_ALIAS(led0)
-#define LED1_NODE DT_ALIAS(led1)
+LOG_MODULE_REGISTER(main, CONFIG_APP_RADIO_MODULE_LOG_LEVEL);
 
-LOG_MODULE_REGISTER(main);
-K_QUEUE_DEFINE(lora_tx_queue);
+// Queues
 K_QUEUE_DEFINE(net_tx_queue);
 
-static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+// Devices
 static const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
-static int init() {
-    char ip[MAX_IP_ADDRESS_STR_LEN];
-    int ret = -1;
-
-    k_queue_init(&net_tx_queue);
-
-    if (!l_check_device(lora_dev)) {
-        l_lora_configure(lora_dev, false);
-    }
-
-    if (0 > l_create_ip_str_default_net_id(ip, RADIO_MODULE_ID, 1)) {
-        LOG_ERR("Failed to create IP address string: %d", ret);
-        return -1;
-    }
-
-    if (!l_check_device(wiznet)) {
-        l_init_udp_net_stack("192.168.1.1");
+static int init_networking() {
+    int ret = l_init_udp_net_stack_by_device(wiznet, RADIO_MODULE_IP_ADDR);
+    if (ret != 0) {
+        LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
+        return ret;
     }
 
     return 0;
@@ -46,26 +29,18 @@ static int init() {
 
 int main() {
     LOG_DBG("Starting radio module!\n");
-    if (init()) {
-        return -1;
+
+    if (l_check_device(lora_dev) == 0) {
+        init_lora_unique(lora_dev);
     }
 
-    while (1) {
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-        k_msleep(100);
+
+    if (l_check_device(wiznet) == 0) {
+        init_networking();
+        init_udp_unique();
     }
 
-    return 0;
+    start_tasks();
+
+    return main_unique();
 }
-
-
-// int main() {
-//     init();
-//     printk("Receiver started\n");
-//     while (1) {
-//         int ret = lora_recv_async(lora_dev, lora_debug_recv_cb);
-//     }
-//
-//     return 0;
-// }
