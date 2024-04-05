@@ -70,6 +70,7 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
     // Confirm sensors are ready
     bool sensor_ready[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {false};
     check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS);
+    return;
 
     while (true) {
         // Refresh sensor data
