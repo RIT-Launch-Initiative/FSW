@@ -203,8 +203,10 @@
         reg = <0x76>;
         status = "okay";
 
-//        int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
-//        odr = "100";
+        int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
+        odr = "100";
+        osr-press = <1>;
+        osr-temp = <1>;
     };
 //
 //    ms5611: ms5611@77 {
