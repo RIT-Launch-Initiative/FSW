@@ -174,7 +174,10 @@ static int mcp356x_read_channel(const struct device *dev,
 
 int mcp356x_channel_setup(const struct device *dev,
                           const struct adc_channel_cfg *channel_cfg) {
-  const struct mcp356x_config *config = dev->config;
+  if (!device_is_ready(dev)) {
+    LOG_ERR("Base mcp356x device is not setup. Can not setup channel");
+    return -ENODEV;
+  }
   struct mcp356x_data *data = dev->data;
 
   if (channel_cfg->channel_id > 8) {
@@ -183,7 +186,7 @@ int mcp356x_channel_setup(const struct device *dev,
         "differential channels or 8 single ended channels. You probably "
         "didn't mean to have this many channels",
         channel_cfg->channel_id, dev->name);
-    return -ENOTSUP;
+    return -ENODEV;
   }
 
   uint8_t mux_vin_p = channel_cfg->input_positive;
