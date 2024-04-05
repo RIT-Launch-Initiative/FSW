@@ -405,8 +405,8 @@ DT_INST_FOREACH_STATUS_OKAY(MCP356X_INIT)
 
 // Register R/W ===============================================================
 
-int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
-                   uint8_t *result) {
+int mcp_read_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                   uint8_t *const result) {
   // Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
@@ -442,8 +442,8 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
   return res;
 }
 
-int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
-                    uint32_t *data) {
+int mcp_read_reg_24(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                    uint32_t *const data) {
   // Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
@@ -485,8 +485,8 @@ int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
   return 0;
 }
 
-int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
-                    uint8_t data) {
+int mcp_write_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                    const uint8_t data) {
   // Write Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t write_command_mask = 0x02;
@@ -511,8 +511,8 @@ int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
 
   return spi_write_dt(&config->bus, &set);
 }
-int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
-                     uint32_t data) {
+int mcp_write_reg_24(const struct mcp356x_config *config,
+                     const enum MCP_Reg reg, const uint32_t data) {
   // Write Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t write_command_mask = 0x02;
