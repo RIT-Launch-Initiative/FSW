@@ -2,46 +2,27 @@
 #include <zephyr/logging/log.h>
 #include <launch_core/os/fs.h>
 
-LOG_MODULE_REGISTER(slog, CONFIG_LOG_DEFAULT_LEVEL);
-
-SensorLogger::SensorLogger(
-        char *p_file
-
-->fname,
-size_t sample_p_file
-->width,
-size_t n_samples,
-enum l_fs_log_mode mode
-):
-p_file->
-fname(p_file
-->fname), p_file->
-width(sample_p_file
-->width),
-mode(mode), size(n_samples *sample_p_file
-->width) {
-};
-
+LOG_MODULE_REGISTER(l_fs, CONFIG_LOG_DEFAULT_LEVEL);
 
 int32_t l_fs_init(l_fs_file_t *p_file) {
     int32_t ret = 0;
 
     fs_file_t_init(&p_file->file);
 
-    ret = fs_open(&p_file->file, p_file->p_file->fname, FS_O_CREATE | FS_O_RDWR);
+    ret = fs_open(&p_file->file, p_file->fname, FS_O_CREATE | FS_O_RDWR);
     if (ret < 0) {
         LOG_ERR("Unable to open/create file: %d", ret);
         return ret;
     }
 
-    if (p_file->size < p_file->p_file->width) {
+    if (p_file->size < p_file->width) {
         LOG_ERR("Not enough space for one frame");
         return -EDOM;
     }
 
     p_file->initialized = true;
 
-    return ret;
+    return 0;
 }
 
 
@@ -53,7 +34,6 @@ int32_t l_fs_close(l_fs_file_t *p_file) {
     return fs_close(&p_file->file);
 }
 
-
 int32_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
     int32_t ret = 0;
     if (!p_file->initialized) {
@@ -61,7 +41,7 @@ int32_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
         return -ENOTINIT;
     }
 
-    if ((p_file->wpos + p_file->width) > size) { // next write will go out-of-bounds
+    if ((p_file->wpos + p_file->width) > p_file->size) { // next write will go out-of-bounds
         fs_sync(&p_file->file);
         switch (p_file->mode) {
             case SLOG_ONCE: // error out
@@ -78,7 +58,7 @@ int32_t l_fs_write(l_fs_file_t *p_file, uint8_t *src) {
         }
     }
 
-    // read/write make no garauntees about where the current seek is so p_file->wpos
+    // read/write make no guarantees about where the current seek is so p_file->wpos
     // keeps track of that
     ret = fs_seek(&p_file->file, p_file->wpos, FS_SEEK_SET);
     if (ret < 0) {

@@ -7,6 +7,19 @@
 
 #define ENOTINIT 200 // device not initialized
 
+#define L_FS_CREATE_FILE(name, sample_width, n_samples, mode) \
+    l_fs_file_t name = { \
+        .fname = #name, \
+        .width = sample_width, \
+        .mode = mode, \
+        .size = sample_width * n_samples, \
+        .initialized = false, \
+        .file = {0}, \
+        .dirent = {0}, \
+        .vfs = {0}, \
+        .wpos = 0 \
+    }
+
 enum l_fs_log_mode {
     SLOG_ONCE,
     SLOG_CIRC
