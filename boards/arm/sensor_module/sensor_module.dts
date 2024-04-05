@@ -154,7 +154,7 @@
     pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pc9>;
     pinctrl-names = "default";
     status = "okay";
-    clock-frequency = <I2C_BITRATE_NORMAL>;
+    clock-frequency = <I2C_BITRATE_FAST>;
 
     // Double check. Too bad HW people can't put down a hex I2C address or any address at all :P (Can reference sensor-module code instead)
     lis3mdl: lis3mdl@1c {
@@ -178,9 +178,9 @@
         };
     };
 
-    adxl375: adxl375@53 {
+    adxl375: adxl375@1D {
         compatible = "adi,adxl375";
-        reg = <0x53>;
+        reg = <0x1D>;
         status = "okay";
     };
 
@@ -192,26 +192,26 @@
         irq-gpios = <&gpiob 10 GPIO_ACTIVE_LOW>, <&gpiob 12 GPIO_ACTIVE_LOW>;
     };
 
-    shtc3: shtc3@70 {
-        compatible = "sensirion,shtc3";
-        reg = <0x70>;
-        status = "okay";
-    };
+//    shtc3: shtc3@70 {
+//        compatible = "sensirion,shtc3";
+//        reg = <0x70>;
+//        status = "okay";
+//    };
 
     bmp388: bmp388@76 {
         compatible = "bosch,bmp388";
         reg = <0x76>;
-        status = "disabled"; // addr conflict on V1
-
-        int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
-        odr = "100";
-    };
-
-    ms5611: ms5611@77 {
-        compatible = "meas,ms5611";
-        reg = <0x77>;
         status = "okay";
+
+//        int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
+//        odr = "100";
     };
+//
+//    ms5611: ms5611@77 {
+//        compatible = "meas,ms5611";
+//        reg = <0x77>;
+//        status = "okay";
+//    };
 
 };
 
