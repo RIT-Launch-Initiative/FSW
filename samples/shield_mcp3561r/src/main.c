@@ -18,21 +18,15 @@
 
 LOG_MODULE_REGISTER(main);
 
-#define ADC_NODE DT_NODELABEL(mcp3561)
-
 #define LED_NODE DT_ALIAS(led)
 const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
 
-/* Data of ADC io-channels specified in devicetree. */
-
+// Data of ADC io-channels specified in devicetree.
 static const struct adc_dt_spec adc_chan0 =
     ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
-int init_led();
 int main() {
-
-  init_led();
-
+  // Setup buffers for reading
   int err;
   uint32_t buf;
   struct adc_sequence sequence = {
@@ -41,7 +35,7 @@ int main() {
       .buffer_size = sizeof(buf),
   };
 
-  /* Configure channel prior to sampling. */
+  // Configure channel prior to sampling.
   if (!adc_is_ready_dt(&adc_chan0)) {
     printk("ADC controller device %s not ready\n", adc_chan0.dev->name);
     return 0;
@@ -53,8 +47,8 @@ int main() {
     return 0;
   }
 
+  // Measure and print tab separated values
   printk("raw hex, raw dec, volts, volts\n");
-
   while (true) {
     sequence.channels = adc_chan0.channel_id;
 
@@ -79,9 +73,4 @@ int main() {
 
     k_msleep(100);
   }
-}
-
-int init_led() {
-  // Boilerplate: set up GPIO
-  return 0;
 }
