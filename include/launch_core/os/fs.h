@@ -18,7 +18,7 @@ typedef struct {
     const enum l_fs_log_mode mode;
 
     const size_t size;
-    bool is_initalized;
+    bool initialized;
     struct fs_file_t file;
     struct fs_dirent dirent;
     struct fs_statvfs vfs;

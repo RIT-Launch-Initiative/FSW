@@ -17,18 +17,18 @@ int32_t l_fs_init(l_fs_file_t *p_file) {
 
 	fs_file_t_init(&p_file->file);
 
-	ret = fs_open(&p_file->file, fname, FS_O_CREATE | FS_O_RDWR);
+	ret = fs_open(&p_file->file, p_file->fname, FS_O_CREATE | FS_O_RDWR);
 	if (ret < 0) {
 		LOG_ERR("Unable to open/create file: %d", ret);
 		return ret;
 	}
 
-	if (size < width) {
+	if (p_file->size < p_file->width) {
 		LOG_ERR("Not enough space for one frame");
 		return -EDOM;
 	}
 
-	m_initalized = true;
+	p_file->initialized = true;
 
 	return ret;
 }
@@ -45,7 +45,7 @@ int32_t l_fs_close(l_fs_file_t *p_file) {
 
 int32_t l_fs_write(l_fs_file_t *p_file, uint8_t* src) {
 	int32_t ret = 0;
-	if (!m_initalized) {
+	if (!p_file->initialized) {
 		LOG_ERR("Logger for file %s is not initialized", fname);
 		return -ENOTINIT;
 	}
@@ -87,7 +87,7 @@ int32_t l_fs_write(l_fs_file_t *p_file, uint8_t* src) {
 int32_t l_fs_read(uint8_t* dst, size_t idx) {
 	int32_t ret = 0;
 
-	if (!m_initalized) {
+	if (!p_file->initialized) {
 		LOG_ERR("Logger for file %s is not initialized", fname);
 		return -ENOTINIT;
 	}
