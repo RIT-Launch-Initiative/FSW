@@ -8,36 +8,36 @@ SensorLogger::SensorLogger(
 		char* fname, 
 		size_t sample_width, 
 		size_t n_samples,
-		enum log_mode mode): 
-	m_fname(fname), m_width(sample_width), m_mode(mode), m_size(n_samples * sample_width) {};
+		enum l_fs_log_mode mode): 
+	fname(fname), width(sample_width), mode(mode), size(n_samples * sample_width) {};
 
 
 int32_t l_fs_init(void) {
 	int32_t ret = 0;
 
-	fs_file_t_init(&m_file);
+	fs_file_t_init(&file);
 
-	ret = fs_open(&m_file, m_fname, FS_O_CREATE | FS_O_RDWR);
+	ret = fs_open(&file, fname, FS_O_CREATE | FS_O_RDWR);
 	if (ret < 0) {
 		LOG_ERR("Unable to open/create file: %d", ret);
 		return ret;
 	}
 
-	if (m_size < m_width) {
+	if (size < width) {
 		LOG_ERR("Not enough space for one frame");
 		return -EDOM;
 	}
 
 	// Idea was to pre-allocate the file using fs_truncate, but this might be a
 	// very expensive operation on LittleFS.
-	/* LOG_INF("Truncating file to %u bytes..", m_size);
-	ret = fs_truncate(&m_file, m_size);
+	/* LOG_INF("Truncating file to %u bytes..", size);
+	ret = fs_truncate(&file, size);
 	if (ret < 0) {
 		return ret;
 	}
 
 	LOG_DBG("Synchronizing file...");
-	ret = fs_sync(&m_file); // otherwise, properties on disk may not reflect
+	ret = fs_sync(&file); // otherwise, properties on disk may not reflect
 							// write or truncate operations
 	if (ret < 0) {
 		return ret;
@@ -48,15 +48,15 @@ int32_t l_fs_init(void) {
 		return ret;
 	}
 
-	if ((size_t) ret < m_size) { // the file we got isn't big enough
-		LOG_ERR("Could not expand to %u, got %u", m_size, ret);
+	if ((size_t) ret < size) { // the file we got isn't big enough
+		LOG_ERR("Could not expand to %u, got %u", size, ret);
 		LOG_INF("Truncating back to zero");
-		ret = fs_truncate(&m_file, 0);
+		ret = fs_truncate(&file, 0);
 		if (ret < 0) {
 			LOG_ERR("Unable to shrink file after too-large request: %d", ret);
 			return ret;
 		}
-		ret = fs_sync(&m_file);
+		ret = fs_sync(&file);
 		if (ret < 0) {
 			LOG_ERR("Could not sync file: %d", ret);
 			return ret;
@@ -73,24 +73,24 @@ int32_t l_fs_init(void) {
 
 
 int32_t l_fs_open(void) {
-	return fs_open(&m_file, m_fname, FS_O_RDWR);
+	return fs_open(&file, fname, FS_O_RDWR);
 }
 
 int32_t l_fs_close(void) {
-	return fs_close(&m_file); 
+	return fs_close(&file); 
 }
 
 
 int32_t l_fs_write(uint8_t* src) {
 	int32_t ret = 0;
 	if (!m_initalized) {
-		LOG_ERR("Logger for file %s is not initialized", m_fname);
+		LOG_ERR("Logger for file %s is not initialized", fname);
 		return -ENOTINIT;
 	}
 
-	if ((m_wpos + m_width) > m_size) { // next write will go out-of-bounds
-		fs_sync(&m_file);
-		switch (m_mode) {
+	if ((m_wpos + width) > size) { // next write will go out-of-bounds
+		fs_sync(&file);
+		switch (mode) {
 			case SLOG_ONCE: // error out
 				LOG_WRN("Logger reached end of file");
 				return -ENOSPC;
@@ -107,17 +107,17 @@ int32_t l_fs_write(uint8_t* src) {
 
 	// read/write make no garauntees about where the current seek is so m_wpos
 	// keeps track of that
-	ret = fs_seek(&m_file, m_wpos, FS_SEEK_SET);
+	ret = fs_seek(&file, m_wpos, FS_SEEK_SET);
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = fs_write(&m_file, src, m_width);
+	ret = fs_write(&file, src, width);
 	if (ret < 0) {
 		return ret;
 	}
 
-	m_wpos = fs_tell(&m_file);
+	m_wpos = fs_tell(&file);
 
 	return ret;
 }
@@ -126,26 +126,26 @@ int32_t l_fs_read(uint8_t* dst, size_t idx) {
 	int32_t ret = 0;
 
 	if (!m_initalized) {
-		LOG_ERR("Logger for file %s is not initialized", m_fname);
+		LOG_ERR("Logger for file %s is not initialized", fname);
 		return -ENOTINIT;
 	}
 
-	size_t frame_start = idx * m_width;
-	size_t frame_end = frame_start + m_width;
+	size_t frame_start = idx * width;
+	size_t frame_end = frame_start + width;
 
-	if (frame_end > m_size) {
+	if (frame_end > size) {
 		LOG_ERR("Frame %d spans %d to %d, but max size is %d", 
-				idx, frame_start, frame_end, m_size);
+				idx, frame_start, frame_end, size);
 		return -EDOM; // could also be EOVERFLOW, EINVAL?
 	}
 
 	// this class makes no garauntees about where the current seek position is
-	ret = fs_seek(&m_file, frame_start, FS_SEEK_SET);
+	ret = fs_seek(&file, frame_start, FS_SEEK_SET);
 	if (ret < 0) {
 		return ret;
 	}
 
-	ret = fs_read(&m_file, dst, m_width);
+	ret = fs_read(&file, dst, width);
 	if (ret < 0) {
 		return ret;
 	}
@@ -160,12 +160,12 @@ int32_t l_fs_file_size(void) {
 		return ret;
 	}
 	
-	return m_dirent.size;
+	return dirent.size;
 }
 
 int32_t l_fs_volume_free_space(void) {
 	int32_t ret = 0;
-	ret = fs_sync(&m_file); // otherwise, properties on disk may not reflect
+	ret = fs_sync(&file); // otherwise, properties on disk may not reflect
 							// write or truncate operations
 	if (ret < 0) {
 		return ret;
@@ -175,34 +175,34 @@ int32_t l_fs_volume_free_space(void) {
 		return ret;
 	}
 	
-	return m_vfs.f_bfree * m_vfs.f_frsize;
+	return vfs.f_bfree * vfs.f_frsize;
 }
 
 /// Internal functions
 
 int32_t l_fs_stat(void) {
-	int32_t ret = fs_stat(m_fname, &m_dirent); 
+	int32_t ret = fs_stat(fname, &dirent); 
 	if (ret < 0) {
 		LOG_ERR("Unable to stat file: %d", ret);
 		return ret;
 	}
 	LOG_INF("%s is a %s of size %d", 
-			m_dirent.name,
-			m_dirent.type == FS_DIR_ENTRY_FILE ? "file" : "directory",
-			m_dirent.size);
+			dirent.name,
+			dirent.type == FS_DIR_ENTRY_FILE ? "file" : "directory",
+			dirent.size);
 	return ret;
 }
 
 int32_t l_fs_stat_vfs(void) {
-	int32_t ret = fs_statvfs(m_fname, &m_vfs);		
+	int32_t ret = fs_statvfs(fname, &vfs);		
 	if (ret < 0) {
 		LOG_ERR("Unable to stat vfs: %d", ret);
 		return ret;
 	}
 	LOG_DBG("%s is on a volume with \r\n\t%lu blocks (%lu free) of %lu bytes each", 
-				m_fname, 
-				m_vfs.f_blocks, 
-				m_vfs.f_bfree, 
-				m_vfs.f_frsize);
+				fname, 
+				vfs.f_blocks, 
+				vfs.f_bfree, 
+				vfs.f_frsize);
 	return ret;
 }
