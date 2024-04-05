@@ -2,14 +2,15 @@
 - Nucleo-F446RE
 - Launch Mikroe Click Shield
 - LIS3MDL, connected to the shield's I2C
-- W25Q128JV, connected to the shield's SPI with CS1
 
-# Current state
-- Able to use filesystem to read a boot counter
-- Figured out necessary kconfig and devicetree entries
+# Demonstrates
+- Reading and decoding a sensor's data
+- The different kinds of time provided by the kernel
+- Creating a thread that starts only after initialization code has run
 
 # References:
+- [Sensor API](https://docs.zephyrproject.org/latest/hardware/peripherals/sensor.html)
 - [LIS3MDL Kconfig options](https://docs.zephyrproject.org/latest/kconfig.html#!CONFIG_LIS3MDL)
-- [JEDEC NOR-SPI bindings](https://docs.zephyrproject.org/latest/build/dts/api/bindings/mtd/jedec%2Cspi-nor.html#std-dtcompatible-jedec-spi-nor)
-- [LittleFS sample](https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/subsys/fs/littlefs)
-- [FSTAB binding](https://docs.zephyrproject.org/latest/build/dts/api/bindings/fs/zephyr,fstab,littlefs.html)
+- [Threads](https://docs.zephyrproject.org/latest/kernel/services/threads/index.html)
+- [Kernel timing](https://docs.zephyrproject.org/latest/kernel/services/timing/clocks.html)
+- [Logging configuration](https://docs.zephyrproject.org/latest/services/logging/index.html)

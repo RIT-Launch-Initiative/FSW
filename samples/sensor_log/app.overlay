@@ -1,22 +1,22 @@
 / {
 	chosen {
 		zephyr,console = &usart2;
-		zephyr,shell-uart = &usart2;
 	};
 
 	aliases {
 		led = &shield_led; 
 		storage = &w25q128;
 		logfs = &lfs1;
+		mag = &lis3mdl;
 	};
 
 	fstab {
 		compatible = "zephyr,fstab";
 		lfs1: lfs1 {
 			compatible = "zephyr,fstab,littlefs";
-			mount-point = "/lfs1";
-			partition = <&ext_storage_1>;
-			automount; // automatically mount during boot-up
+			mount-point = "/lfs";
+			partition = <&external_storage_1>;
+			automount;
 
 			// the binding reccomends defaults for these
 			read-size = <16>;
@@ -24,32 +24,24 @@
 			cache-size = <64>; // may need to grow for optimization
 			lookahead-size = <32>;
 			block-cycles = <(90 * 1000)>; 
-		};
-		lfs2: lfs2 {
-			compatible = "zephyr,fstab,littlefs";
-			mount-point = "/lfs2";
-			partition = <&ext_storage_2>;
-
-			read-size = <16>;
-			prog-size = <16>;
-			cache-size = <64>; 
-			lookahead-size = <32>;
-			block-cycles = <(90 * 1000)>; 
+			// the datasheet gives 100K P-E cycles
+			// NOTE: this seems to default to 512 for the mounted filesystem
+			// anyway
 		};
 	};
 };
 
 &mikrobus_spi {
 	w25q128: w25q128jv@1 {
+		status = "okay";
 		compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
 		reg = <1>; // connected to to connector 1
 
 		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75) 
 		jedec-id = [ef 40 18]; // 0xef4018 (Table 8.1.1, p.22)
-		spi-max-frequency = <(5 * 1000000)>; 
-		// fR = 50 MHz (Table 9.6, p.65)
-		// 30 MHz for direct connection over headers
-		// 5 MHz for the Launch Mikroe click shield (level-shifting circuiry)
+		spi-max-frequency = <(5 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
+		// but sticking to 1 because 50 doesn't work on my hardware, at time of
+		// writing
 
 		has-dpd;
 		// Power-down 0xB9 (S 8.2.21)
@@ -62,20 +54,19 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			/* NOTE: jedec,spi-nor size is bits, but fixed-partitions address and
-			* size are in bytes.*/
-			ext_storage_1: partition@0 {
-				label = "w25q-storage-1";
-				reg = <0x0 DT_SIZE_M(1)>;
-			};
-			ext_storage_2: partition@100000 {
-				label = "w25q-storage-2";
-				reg = <0x100000 DT_SIZE_M(7)>;
-			};
-			ext_storage_3: partition@800000 {
-				label = "w25q-storage-3";
-				reg = <0x800000 DT_SIZE_M(8)>;
+			external_storage_1: partition@0 {
+				label = "w25q-storage";
+				reg = <0 DT_SIZE_M(16)>; // takes up the whole flash
 			};
 		};
 	};
 };
+
+&mikrobus_i2c {
+	lis3mdl: lis3mdl@1c {
+		status = "okay";
+		compatible = "st,lis3mdl-magn";
+		reg = <0x1c>;
+	};
+};
+
