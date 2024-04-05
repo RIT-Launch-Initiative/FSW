@@ -27,10 +27,9 @@ typedef struct {
  * Command sensor updates and get sensor data from a device.
  * @param dev - Device to read from
  * @param args - Arguments for reading the sensor data
- * @param convert_to_float - Whether to convert the sensor data to floats and store them
  * @return Zephyr status code
  */
-int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_args_t *args, bool convert_to_float);
+int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_args_t *args);
 
 /**
  * Command sensor updates for a list of devices.
@@ -59,17 +58,6 @@ int l_update_sensors_safe(const struct device *const *devs, int num_devs, const 
  */
 int l_get_sensor_data(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
                       struct sensor_value **values);
-
-/**
- * Get sensor data from a device and convert it to floats
- * @param dev - Device to read from
- * @param num_channels - Number of channels to read
- * @param channels - List of channels to read
- * @param values - List of floats to store the data in
- * @return
- */
-int l_get_sensor_data_float(const struct device *const dev, int num_channels, enum sensor_channel const *channels,
-                            float **values);
 
 
 #endif // L_SENSOR_UTILS_H
