@@ -3,7 +3,7 @@
 
 config MCP356X
 	bool "MCP356X ADC"
-	default y
+	default n
 	select SPI
 	select ADC_CONFIGURABLE_INPUTS
 	help
