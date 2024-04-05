@@ -25,8 +25,3 @@ reefer:
 clean:
 	rm -rf build
 
-reefer:
-	west build -b grim_reefer app_grim_reefer -p auto 
-
-sim_reefer:
-	west build app_grim_reefer -b native_sim -p auto -- -DOVERLAY_CONFIG=boards/native_sim.conf
