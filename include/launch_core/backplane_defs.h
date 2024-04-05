@@ -31,7 +31,7 @@ typedef enum {
 #define RADIO_MODULE_BASE_PORT 12000
 
 typedef enum {
-    RADIO_MODULE_GNSS_DATA_PORT = 20
+    RADIO_MODULE_GNSS_DATA_PORT = 1
 } l_radio_module_port_offset_t;
 
 
