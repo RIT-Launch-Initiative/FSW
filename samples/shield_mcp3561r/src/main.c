@@ -41,8 +41,7 @@ int main() {
       .buffer_size = sizeof(buf),
   };
 
-  /* Configure channels individually prior to sampling. */
-  // for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
+  /* Configure channel prior to sampling. */
   if (!adc_is_ready_dt(&adc_chan0)) {
     printk("ADC controller device %s not ready\n", adc_chan0.dev->name);
     return 0;
@@ -53,15 +52,10 @@ int main() {
     printk("Could not setup channel (%d)\n", err);
     return 0;
   }
-  // }
 
-  printf("raw hex, raw dec, volts, volts\n");
+  printk("raw hex, raw dec, volts, volts\n");
 
   while (true) {
-    // printk("ADC reading[%u]:\n", count++);
-
-    // printk("- %s, channel %d: \n", adc_chan0.dev->name,
-    // adc_chan0.channel_id);
     sequence.channels = adc_chan0.channel_id;
 
     err = adc_sequence_init_dt(&adc_chan0, &sequence);
@@ -77,11 +71,8 @@ int main() {
     if (!differential) {
       int32_t val = (int32_t)buf;
       float volts = 2.4f * ((float)val) / ((float)0x7fffff);
-      int32_t mv_left = (int32_t)volts;
-      int32_t mv_right = (int32_t)((volts - mv_left) * 10000);
 
-      printk("0x%06x,\t%8d,\t%2.4f V,\t%d.%04d V,\t\r", buf, val, (double)volts,
-             mv_left, mv_right);
+      printk("0x%06x,\t%8d,\t%2.4f V\t\r", buf, val, (double)volts);
     }
 
     gpio_pin_toggle_dt(&led);
