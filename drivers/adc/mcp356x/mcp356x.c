@@ -100,16 +100,16 @@ struct mcp356x_config {
   enum PRE prescale;
   enum CLK_SEL clock;
 };
-int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
-                   uint8_t *result);
+int mcp_read_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                   uint8_t *const result);
 
-int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
-                    uint32_t *data);
-int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
-                    uint8_t data);
+int mcp_read_reg_24(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                    uint32_t *const data);
+int mcp_write_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                    const uint8_t data);
 
-int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
-                     uint32_t data);
+int mcp_write_reg_24(const struct mcp356x_config *config,
+                     const enum MCP_Reg reg, const uint32_t data);
 
 static int mcp356x_read_channel(const struct device *dev,
                                 const struct adc_sequence *sequence) {
