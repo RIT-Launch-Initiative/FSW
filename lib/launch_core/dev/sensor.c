@@ -6,14 +6,10 @@
 
 LOG_MODULE_REGISTER(launch_sensor_utils);
 
-int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_args_t *args, bool convert_to_float) {
+int l_update_get_sensor_data(const struct device *const dev, l_sensor_readings_args_t *args) {
     l_update_sensors(&dev, 1);
 
-    if (convert_to_float) {
-        l_get_sensor_data_float(dev, args->num_readings, args->channels, args->float_values);
-    } else {
-        l_get_sensor_data(dev, args->num_readings, args->channels, args->values);
-    }
+    l_get_sensor_data(dev, args->num_readings, args->channels, args->values);
 
     return 0;
 }
