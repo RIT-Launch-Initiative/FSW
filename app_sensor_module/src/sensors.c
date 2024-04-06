@@ -38,7 +38,6 @@ static void check_sensors_ready(const struct device *const *sensors, bool *senso
         if (l_check_device(sensors[i]) == 0) {
             sensor_ready[i] = true;
         } else {
-            LOG_INF("Sensor %d not ready", i);
             sensor_ready[i] = false;
         }
     }

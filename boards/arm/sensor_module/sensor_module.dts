@@ -156,7 +156,6 @@
     status = "okay";
     clock-frequency = <I2C_BITRATE_FAST>;
 
-    // Double check. Too bad HW people can't put down a hex I2C address or any address at all :P (Can reference sensor-module code instead)
     lis3mdl: lis3mdl@1c {
         compatible = "st,lis3mdl-magn";
         reg = <0x1c>;
