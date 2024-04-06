@@ -69,12 +69,13 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
     // Confirm sensors are ready
     bool sensor_ready[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {false};
     check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS);
-    return;
 
     while (true) {
         // Refresh sensor data
-        l_update_sensors_safe(sensors, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS, sensor_ready);
+//        l_update_sensors_safe(sensors, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS, sensor_ready);
         timestamp = k_uptime_get_32();
+
+        sensor_sample_fetch(adxl375);
 
         l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.adxl375);
         l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_accel);
@@ -82,6 +83,13 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.bmp388);
         l_get_gyroscope_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_gyro);
         l_get_magnetometer_data_float(lis3mdl, &hundred_hz_telemetry.lis3mdl);
+
+        LOG_DBG("ADXL375:\n\tX:%f\n\tY:%f\n\tZ:%f\nLSM6DSL:\n\tX:%f\n\tY:%f\n\tZ:%f\nBMP388:\n\tPressure:%f\n\tTemperature:%f\nLIS3MDL:\n\tX:%f\n\tY:%f\n\tZ:%f",
+                hundred_hz_telemetry.adxl375.accel_x, hundred_hz_telemetry.adxl375.accel_y, hundred_hz_telemetry.adxl375.accel_z,
+                hundred_hz_telemetry.lsm6dsl_accel.accel_x, hundred_hz_telemetry.lsm6dsl_accel.accel_y, hundred_hz_telemetry.lsm6dsl_accel.accel_z,
+                hundred_hz_telemetry.bmp388.pressure, hundred_hz_telemetry.bmp388.temperature,
+                hundred_hz_telemetry.lis3mdl.mag_x, hundred_hz_telemetry.lis3mdl.mag_y, hundred_hz_telemetry.lis3mdl.mag_z);
+
 
         // Put telemetry into queue
         if (k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_NO_WAIT)) {
