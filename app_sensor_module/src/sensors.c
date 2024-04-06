@@ -25,8 +25,8 @@
 static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *unused2);
 
 // Threads
-K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_sensor_reading_task, NULL, NULL, NULL,
-                HUNDRED_HZ_TELEM_PRIORITY, 0, 0);
+//K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_sensor_reading_task, NULL, NULL, NULL,
+//                HUNDRED_HZ_TELEM_PRIORITY, 0, 0);
 
 // Message Queues
 K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
@@ -69,6 +69,8 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
     // Confirm sensors are ready
     bool sensor_ready[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {false};
     check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS);
+
+    return;
 
     while (true) {
         // Refresh sensor data

@@ -110,8 +110,8 @@ static void initialize_networks(void) {
 }
 
 static int init(void) {
-    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(sensor_module_ten_hz_telemetry_t),
-                CONFIG_TEN_HZ_QUEUE_SIZE);
+//    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(sensor_module_ten_hz_telemetry_t),
+//                CONFIG_TEN_HZ_QUEUE_SIZE);
 
 
     initialize_networks();
@@ -127,8 +127,16 @@ static int init(void) {
 
 int main() {
     if (init()) {
-
         return -1;
+    }
+
+
+    while (true) {
+        l_send_udp_broadcast(udp_socket_list.sockets[0], "Launch!", 7,
+                             SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
+        gpio_pin_toggle_dt(&led0);
+        gpio_pin_toggle_dt(&led1);
+        k_msleep(100);
     }
 
     return 0;
