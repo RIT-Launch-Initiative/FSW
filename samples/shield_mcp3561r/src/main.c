@@ -58,16 +58,14 @@ int main() {
     }
     err = adc_read_dt(&adc_chan0, &sequence);
     if (err < 0) {
-      printk("Could not read (%d)\n", err);
+      printk("Could not read adc channel %d (%d)\n", adc_chan0.channel_id, err);
       continue;
     }
-    bool differential = false;
-    if (!differential) {
-      int32_t val = (int32_t)buf;
-      float volts = 2.4f * ((float)val) / ((float)0x7fffff);
 
-      printk("0x%06x,\t%8d,\t%2.4f V\t\r", buf, val, (double)volts);
-    }
+    int32_t val = (int32_t)buf;
+    float volts = 2.4f * ((float)val) / ((float)0x7fffff);
+
+    printk("0x%06x,\t%8d,\t%2.4f V\t\r", buf, val, (double)volts);
 
     gpio_pin_toggle_dt(&led);
 
