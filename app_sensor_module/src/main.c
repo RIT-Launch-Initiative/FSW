@@ -32,6 +32,15 @@ static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 #define LED1_NODE DT_ALIAS(led1)
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
+// Sockets
+static int udp_sockets[1] = {0};
+static int udp_socket_ports[1] = {SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT};
+static l_udp_socket_list_t udp_socket_list = {
+        .sockets = udp_sockets,
+        .num_sockets = 1
+};
+
+
 static void telemetry_processing_task(void *, void *, void *) {
     sensor_module_ten_hz_telemetry_t ten_hz_telem;
     sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
@@ -63,30 +72,41 @@ static void telemetry_processing_task(void *, void *, void *) {
     }
 }
 
-static void initialize_networks(void) {
-    char rs485_ip[MAX_IP_ADDRESS_STR_LEN];
+static void initialize_eth(void) {
+    if (l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500)) != 0) {
+        LOG_ERR("Wiznet device not found");
+        return;
+    }
 
-    if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
-        int ret = l_init_udp_net_stack_default(SENSOR_MODULE_IP_ADDR);
-        if (ret != 0) {
-            LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
+    int ret = l_init_udp_net_stack_default(SENSOR_MODULE_IP_ADDR);
+    if (ret != 0) {
+        LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
+        return;
+    }
+
+    for (int i = 0; i < udp_socket_list.num_sockets; i++) {
+        udp_socket_list.sockets[i] = l_init_udp_socket(SENSOR_MODULE_IP_ADDR, udp_socket_ports[i]);
+        if (udp_socket_list.sockets[i] < 0) {
+            LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
             return;
         }
-    } else {
-        LOG_ERR("Failed to get network device");
     }
+}
 
-    if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {
-        if (l_create_ip_str(rs485_ip, 11, 0, 3, 1) == 0) {
-            if (l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip)) {
-                LOG_ERR("Failed to initialize network stack");
-            }
-        } else {
-            LOG_ERR("Failed to create IP address string");
-        }
-    } else {
-        LOG_ERR("Failed to initialize UART to RS485");;
-    }
+static void initialize_networks(void) {
+    initialize_eth();
+
+//    if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {
+//        if (l_create_ip_str(rs485_ip, 11, 0, 3, 1) == 0) {
+//            if (l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip)) {
+//                LOG_ERR("Failed to initialize network stack");
+//            }
+//        } else {
+//            LOG_ERR("Failed to create IP address string");
+//        }
+//    } else {
+//        LOG_ERR("Failed to initialize UART to RS485");;
+//    }
 }
 
 static int init(void) {

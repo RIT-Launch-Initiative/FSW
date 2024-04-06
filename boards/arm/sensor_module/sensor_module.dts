@@ -164,6 +164,12 @@
         irq-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>, <&gpioa 10 GPIO_ACTIVE_LOW>;
     };
 
+    adxl375: adxl375@1d {
+        compatible = "adi,adxl375";
+        reg = <0x1D>;
+        status = "okay";
+    };
+
     tmp117: tmp117@48 {
         compatible = "ti,tmp116"; // TMP117 Compatible
         reg = <0x48>;
@@ -177,11 +183,6 @@
         };
     };
 
-    adxl375: adxl375@1D {
-        compatible = "adi,adxl375";
-        reg = <0x1D>;
-        status = "okay";
-    };
 
     lsm6dsl: lsm6dsl@6b {
         compatible = "st,lsm6dsl";
