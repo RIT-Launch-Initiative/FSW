@@ -19,6 +19,10 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 	};
+	aliases {
+		storage = &w25q512;
+		logfs = &lfs1;
+	};
 
 
 	leds: leds {
@@ -32,10 +36,7 @@
 		};
 
 	};
-	// TOGGLING ONLY CAM, led1, led2 -> 2 leds flash, cam flashes and buzzer goes
-	// TOGGLING ONLY LDO, led1, led2 -> buzzer sounds opposite of leds lighting (pins not set to 0 to start)
-	// TOGGLING ONLY CAMm, led1, led2, all set 0 initially -> 2 leds flash, cam pins flash
-	// TOGGLING ONLY BUZ, led1, led2 all set 0 initally -> 2 leds flash, buzzer does not sound
+
 	control_gpios{
 		compatible = "gpio-keys";
 		ldo_enable: ldo-enable{

@@ -99,8 +99,7 @@ int main(void) {
     // gpio_pin_toggle_dt(&ldo_enable);
     // gpio_pin_toggle_dt(&cam_enable);
     gpio_pin_toggle_dt(&buzzer);
-    printk("LDO\n");
-    k_sleep(K_MSEC(2500));
+    k_sleep(K_MSEC(500));
   }
   return 0;
 }
