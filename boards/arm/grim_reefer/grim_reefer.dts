@@ -116,41 +116,41 @@
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 
-	ina219_battery@40 {// Load Cell - LDO (5v)
-		status = "okay";
-		compatible = "ti,ina219"; // TODO make this INA260
-		reg = <0x40>;
-		brng = <0>;
-		pg = <0>;
-		sadc = <13>;
-		badc = <13>;
-		shunt-milliohm = <100>;
-		lsb-microamp = <10>;
-	};
-
-	ina219_3v3@41 {// Grim - Buck (3.3v)
-		status = "okay";
-		compatible = "ti,ina219"; // TODO make this INA260
-		reg = <0x41>;
-		brng = <0>;
-		pg = <0>;
-		sadc = <13>;
-		badc = <13>;
-		shunt-milliohm = <100>;
-		lsb-microamp = <10>;
-	};
-
-	ina219_5v0@44 {// Battery (7.4v)
-		status = "okay";
-		compatible = "ti,ina219"; // TODO make this INA260
-		reg = <0x44>;
-		brng = <0>;
-		pg = <0>;
-		sadc = <13>;
-		badc = <13>;
-		shunt-milliohm = <100>;
-		lsb-microamp = <10>;
-	};
+	// ina219_battery@40 {// Load Cell - LDO (5v)
+		// status = "okay";
+		// compatible = "ti,ina219"; // TODO make this INA260
+		// reg = <0x40>;
+		// brng = <0>;
+		// pg = <0>;
+		// sadc = <13>;
+		// badc = <13>;
+		// shunt-milliohm = <100>;
+		// lsb-microamp = <10>;
+	// };
+	//
+	// ina219_3v3@41 {// Grim - Buck (3.3v)
+		// status = "okay";
+		// compatible = "ti,ina219"; // TODO make this INA260
+		// reg = <0x41>;
+		// brng = <0>;
+		// pg = <0>;
+		// sadc = <13>;
+		// badc = <13>;
+		// shunt-milliohm = <100>;
+		// lsb-microamp = <10>;
+	// };
+	//
+	// ina219_5v0@44 {// Battery (7.4v)
+		// status = "okay";
+		// compatible = "ti,ina219"; // TODO make this INA260
+		// reg = <0x44>;
+		// brng = <0>;
+		// pg = <0>;
+		// sadc = <13>;
+		// badc = <13>;
+		// shunt-milliohm = <100>;
+		// lsb-microamp = <10>;
+	// };
 };
 
 &spi1 {
