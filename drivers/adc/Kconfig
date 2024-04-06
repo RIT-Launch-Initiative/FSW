@@ -1,7 +1,6 @@
 # Copyright (c) 2021 Nordic Semiconductor ASA
 # SPDX-License-Identifier: Apache-2.0
 
-menu "Drivers"
-rsource "sensor/Kconfig"
-rsource "adc/Kconfig"
-endmenu
+if ADC
+    rsource "mcp356x/Kconfig"
+endif

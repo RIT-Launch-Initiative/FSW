@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define FLOAT_ERROR_VALUE FLT_MIN
+
 /****** Primitive Data Types ******/
 // TODO: See if we can support __fp16 in GSW first
 // typedef __fp16 float16_t;
@@ -36,6 +38,13 @@ typedef struct __attribute__((packed)) {
     float voltage;
     float power;
 } l_shunt_data_t;
+
+
+typedef struct __attribute__((packed)) {
+    double latitude;
+    double longitude;
+    float altitude;
+} l_gnss_data_t;
 
 typedef float l_temperature_data_t;
 

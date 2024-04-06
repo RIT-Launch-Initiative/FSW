@@ -1,7 +1,7 @@
 / {
     chosen {
         zephyr,console = &uart4;
-		zephyr,shell-uart = &uart4;
+        zephyr,shell-uart = &uart4;
     };
 };
 
@@ -16,6 +16,10 @@
     };
 };
 
-&shtc3 {
-    status = "disabled";
-};
+//&shtc3 {
+//    status = "disabled";
+//};
+
+//&bmp388 {
+//    status = "okay";
+//};
