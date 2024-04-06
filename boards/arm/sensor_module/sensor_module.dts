@@ -20,8 +20,8 @@
         zephyr,console = &uart5;
         zephyr,uart-pipe = &uart5;
 
-        storage = &w25q128;
-        logfs = &lfs1;
+//        storage = &w25q128;
+//        logfs = &lfs1;
     };
 
     leds: leds {
@@ -43,22 +43,22 @@
         };
     };
 
-    fstab {
-        compatible = "zephyr,fstab";
-
-        lfs1: lfs1 {
-            compatible = "zephyr,fstab,littlefs";
-            mount-point = "/lfs";
-            partition = <&external_storage_partition>;
-            automount;
-
-            read-size = <16>;
-            prog-size = <16>;
-            cache-size = <64>;
-            lookahead-size = <32>;
-            block-cycles = <(90 * 1000)>;
-        };
-    };
+//    fstab {
+//        compatible = "zephyr,fstab";
+//
+//        lfs1: lfs1 {
+//            compatible = "zephyr,fstab,littlefs";
+//            mount-point = "/lfs";
+//            partition = <&external_storage_partition>;
+//            automount;
+//
+//            read-size = <16>;
+//            prog-size = <16>;
+//            cache-size = <64>;
+//            lookahead-size = <32>;
+//            block-cycles = <(90 * 1000)>;
+//        };
+//    };
 
     aliases {
         led0 = &red_led_1;
@@ -157,47 +157,12 @@
     clock-frequency = <I2C_BITRATE_FAST>;
 
     // Double check. Too bad HW people can't put down a hex I2C address or any address at all :P (Can reference sensor-module code instead)
-    adxl375: adxl375@53 {
-        compatible = "adi,adxl375";
-        reg = <0x53>;
-        status = "okay";
-    };
-
-    bmp388: bmp388@76 {
-        compatible = "bosch,bmp388";
-        reg = <0x76>;
-        status = "disabled"; // addr conflict on V1
-
-        int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
-        odr = "100";
-    };
-
-    lsm6dsl: lsm6dsl@6b {
-        compatible = "st,lsm6dsl";
-        reg = <0x6b>;
-        status = "okay";
-
-        irq-gpios = <&gpiob 10 GPIO_ACTIVE_LOW>, <&gpiob 12 GPIO_ACTIVE_LOW>;
-    };
-
     lis3mdl: lis3mdl@1c {
         compatible = "st,lis3mdl-magn";
         reg = <0x1c>;
         status = "okay";
 
         irq-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>, <&gpioa 10 GPIO_ACTIVE_LOW>;
-    };
-
-    ms5611: ms5611@77 {
-        compatible = "meas,ms5611";
-        reg = <0x77>;
-        status = "okay";
-    };
-
-    shtc3: shtc3@70 {
-        compatible = "sensirion,shtc3";
-        reg = <0x70>;
-        status = "okay";
     };
 
     tmp117: tmp117@48 {
@@ -212,6 +177,44 @@
             read-only;
         };
     };
+
+    adxl375: adxl375@1D {
+        compatible = "adi,adxl375";
+        reg = <0x1D>;
+        status = "okay";
+    };
+
+    lsm6dsl: lsm6dsl@6b {
+        compatible = "st,lsm6dsl";
+        reg = <0x6b>;
+        status = "okay";
+
+        irq-gpios = <&gpiob 10 GPIO_ACTIVE_LOW>, <&gpiob 12 GPIO_ACTIVE_LOW>;
+    };
+
+//    shtc3: shtc3@70 {
+//        compatible = "sensirion,shtc3";
+//        reg = <0x70>;
+//        status = "okay";
+//    };
+
+    bmp388: bmp388@76 {
+        compatible = "bosch,bmp388";
+        reg = <0x76>;
+        status = "okay";
+
+        int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
+        odr = "100";
+        osr-press = <1>;
+        osr-temp = <1>;
+    };
+//
+//    ms5611: ms5611@77 {
+//        compatible = "meas,ms5611";
+//        reg = <0x77>;
+//        status = "okay";
+//    };
+
 };
 
 &rtc {

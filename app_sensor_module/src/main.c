@@ -98,9 +98,9 @@ static int init(void) {
     initialize_networks();
 
     // Tasks
-    k_thread_create(&telemetry_processing_thread, &telemetry_processing_stack[0], STACK_SIZE,
-                    telemetry_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
-    k_thread_start(&telemetry_processing_thread);
+//    k_thread_create(&telemetry_processing_thread, &telemetry_processing_stack[0], STACK_SIZE,
+//                    telemetry_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
+//    k_thread_start(&telemetry_processing_thread);
 
     return 0;
 }
@@ -110,13 +110,6 @@ int main() {
     if (init()) {
         return -1;
     }
-
-    while (true) {
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-        k_msleep(1000);
-    }
-
 
     return 0;
 }

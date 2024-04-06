@@ -5,6 +5,8 @@
 
 // Launch Includes
 #include <launch_core/dev/gnss.h>
+#include <launch_core/backplane_defs.h>
+#include <launch_core/types.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
@@ -14,9 +16,14 @@
 
 LOG_MODULE_REGISTER(radio_module_txer);
 
+// Flags
+static bool ready_to_tx = false;
+
 // Callbacks
-GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_data_debug_cb);
-GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
+// Forward Declaration
+static void gnss_data_cb(const struct device *dev, const struct gnss_data *data);
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
+// GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
 
 // Networking
 #define NUM_SOCKETS 4
@@ -41,6 +48,11 @@ l_udp_socket_list_t udp_socket_list = {
 
 // Queues
 K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
+
+// Timers
+struct k_timer gnss_tx_timer;
+static void gnss_tx_on_expire(struct k_timer *timer_id); // Forward Declaration
+K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
 
 // Threads
 static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
@@ -81,6 +93,29 @@ static void lora_tx_task(void *, void *, void *) {
     }
 }
 
+static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
+    if (!ready_to_tx) {
+        return; // timer hasnt expired yet
+    }
+    l_lora_packet_t packet = {0};
+    packet.port = RADIO_MODULE_GNSS_DATA_PORT + RADIO_MODULE_BASE_PORT;
+    packet.payload_len = sizeof(l_gnss_data_t);
+
+    l_gnss_data_t gnss_data = {0};
+    gnss_data.latitude = (double)data->nav_data.latitude / (double)L_GNSS_LATITUDE_DIVISION_FACTOR;
+    gnss_data.longitude = (double)data->nav_data.longitude / (double)L_GNSS_LONGITUDE_DIVISION_FACTOR;
+    gnss_data.altitude = (float)data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
+
+    memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
+    k_msgq_put(&lora_tx_queue, (void*) &packet, K_NO_WAIT);
+    ready_to_tx = false;
+}
+
+static void gnss_tx_on_expire(struct k_timer *timer_id) {
+    ready_to_tx = true;
+}
+
+
 int init_lora_unique(const struct device *const lora_dev) {
     return l_lora_set_tx_rx(lora_dev, true);
 }
@@ -109,6 +144,9 @@ int start_tasks() {
     k_thread_create(&lora_tx_thread, &lora_tx_stack[0], LORA_TX_STACK_SIZE,
                     lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&lora_tx_thread);
+    k_timer_start(&gnss_tx_timer, 
+        K_MSEC(CONFIG_GNSS_DATA_TX_INTERVAL), 
+        K_MSEC(CONFIG_GNSS_DATA_TX_INTERVAL));
     return 0;
 }
 
