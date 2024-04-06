@@ -49,6 +49,11 @@ l_udp_socket_list_t udp_socket_list = {
 // Queues
 K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
 
+#ifdef CONFIG_DEBUG
+#define UDP_TX_STACK_SIZE 1024
+K_MSGQ_DEFINE(udp_tx_queue, sizeof(l_gnss_data_t), UDP_TX_STACK_SIZE, 1);
+#endif
+
 // Timers
 struct k_timer gnss_tx_timer;
 static void gnss_tx_on_expire(struct k_timer *timer_id); // Forward Declaration
@@ -108,6 +113,12 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 
     memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
     k_msgq_put(&lora_tx_queue, (void*) &packet, K_NO_WAIT);
+
+    #ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
+    // push to udp tx queue
+    k_msgq_put(&udp_tx_queue, (void*) &gnss_data, K_NO_WAIT);
+    #endif
+
     ready_to_tx = false;
 }
 
