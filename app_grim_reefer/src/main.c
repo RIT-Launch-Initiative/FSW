@@ -7,8 +7,10 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
-// #include <zephyr/fs/fs.h>
-// #include <zephyr/fs/littlefs.h>
+
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
@@ -29,6 +31,9 @@ const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
 #define BUZZER_NODE DT_NODELABEL(buzzer)
 const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZER_NODE, gpios);
+
+#define DBG_SERIAL_NODE DT_ALIAS(debug_serial)
+const struct device *const debug_serial_dev = DEVICE_DT_GET(DBG_SERIAL_NODE);
 
 static int init(void) {
   // Init LEDS
@@ -77,6 +82,11 @@ static int init(void) {
     return -1;
   }
 
+  if (!device_is_ready(debug_serial_dev)) {
+    LOG_ERR("CAMERA SERIAL NOT READY\n");
+    return -1;
+  }
+
   gpio_pin_set_dt(&led1, 0);
   gpio_pin_set_dt(&led2, 0);
   gpio_pin_set_dt(&ldo_enable, 0);
@@ -98,8 +108,8 @@ int main(void) {
     gpio_pin_toggle_dt(&led2);
     // gpio_pin_toggle_dt(&ldo_enable);
     // gpio_pin_toggle_dt(&cam_enable);
-    gpio_pin_toggle_dt(&buzzer);
-    k_sleep(K_MSEC(500));
+    // gpio_pin_toggle_dt(&buzzer);
+    k_sleep(K_MSEC(2500));
   }
   return 0;
 }

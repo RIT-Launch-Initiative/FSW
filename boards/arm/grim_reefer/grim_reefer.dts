@@ -22,6 +22,7 @@
 	aliases {
 		storage = &w25q512;
 		logfs = &lfs1;
+		debug-serial = &uart4;
 	};
 
 
@@ -41,7 +42,7 @@
 		compatible = "gpio-keys";
 		ldo_enable: ldo-enable{
 			gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
-			label = "Enable pin for LDO"; // THIS SEEMS TO BE THE BUZZER
+			label = "Enable pin for LDO";
 		};
 		cam_enable: cam-enable{
 			gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>; // WORKS
@@ -49,7 +50,7 @@
 
 		};
 		buzzer: buzzer{
-			gpios = <&gpiob 4 (GPIO_ACTIVE_HIGH)>; // AND THIS THE LDO? CANT TEST THAT YET
+			gpios = <&gpiob 4 (GPIO_ACTIVE_HIGH)>;
 			label = "buzzer pin";
 		};
 
@@ -77,6 +78,15 @@
 		};
 	};
 };
+
+&uart4 {
+	status = "okay";
+	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
 
 &clk_lsi {
 	status = "okay";
@@ -188,11 +198,39 @@
 };
 
 &spi2 {
-	pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
+	pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
 	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
 	status = "okay";
 	// ADC
+	adc: mcp3561@0 {
+		#io-channel-cells = <1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		status = "okay";
+		compatible = "microchip,mcp356x";
+		reg = <0>;
+		device-address = <1>;
+		clock-selection = "CLK_INTERNAL";
+		prescale = "PRE_1";
+		spi-max-frequency = <DT_FREQ_M(8)>; // pg. 12, Table 1.1 MAX 20MHz
+
+
+		channel@0 {
+			reg = <0>;
+			zephyr,gain = "ADC_GAIN_1";
+			zephyr,reference = "ADC_REF_INTERNAL";
+			zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+
+			zephyr,resolution = <24>;
+
+			zephyr,input-positive = <1>;
+			zephyr,input-negative = <0>;
+
+		};
+	};
+
 };
 
 &rtc {
