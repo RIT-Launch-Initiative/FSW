@@ -112,6 +112,12 @@ int mcp_write_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
 int mcp_write_reg_24(const struct mcp356x_config *config,
                      const enum MCP_Reg reg, const uint32_t data);
 
+uint32_t sign_extend_24_32(uint32_t x) {
+  const int bits = 24;
+  uint32_t m = 1u << (bits - 1);
+  return (x ^ m) - m;
+}
+
 static int mcp356x_read_channel(const struct device *dev,
                                 const struct adc_sequence *sequence) {
   const struct mcp356x_config *config = dev->config;
@@ -169,7 +175,9 @@ static int mcp356x_read_channel(const struct device *dev,
     if (res != 0) {
       return res;
     }
-    sample_array[sample_index] = val;
+    uint32_t signed_value = sign_extend_24_32(val);
+
+    sample_array[sample_index] = signed_value;
     sample_index++;
   }
 
@@ -257,7 +265,7 @@ int mcp356x_channel_setup(const struct device *dev,
       .mux_reg = mux_reg,
       .differential = differential,
       .gain_bits = gain_bits,
-      .reference_bits = ref,
+      .reference_bits = vref_sel_bits,
   };
 
   data->channel_map[channel_cfg->channel_id] = entry;
@@ -347,29 +355,29 @@ static int mcp356x_init(const struct device *dev) {
 
   // Page 93 CONFIG2 ----------------------------------------------------------
   // Configure Gain
-  uint8_t gain_bits = 0;
-  uint8_t boost = 0b10; // 1x boost (bias current) (default)
-  uint8_t az_mux = 0b0; // mux auto zero internal (default)
-  uint8_t az_ref = 0b1; // auto zero internal voltage ref (default)
-  uint8_t reserved_bit = 0b1;
+  static const uint8_t gain_bits = 0;
+  static const uint8_t boost = 0b10; // 1x boost (bias current) (default)
+  static const uint8_t az_mux = 0b0; // mux auto zero internal (default)
+  static const uint8_t az_ref = 0b1; // auto zero internal voltage ref (default)
+  static const uint8_t reserved_bit = 0b1;
 
   data->config2 = (boost << 6) | (gain_bits << 3) | (az_mux << 2) |
                   (az_ref << 1) | reserved_bit;
   mcp_write_reg_8(config, MCP_Reg_CONFIG2, data->config2);
 
   // Page 94 CONFIG3 ----------------------------------------------------------
-  uint8_t conv_mode = 0b11;
-  uint8_t data_format = 0b00; // 24 bit adc data (default)
-  uint8_t crc_format = 0b0;   // 16 bit crc format (default)
-  uint8_t en_crccom = 0b0;    // offset calibration (default)
-  uint8_t en_offcal = 0b0;    // offset calibration (default)
-  uint8_t en_gaincal = 0b0;   // gain calibration (default)
+  static const uint8_t conv_mode = 0b11;
+  static const uint8_t data_format = 0b00; // 24 bit adc data (default)
+  static const uint8_t crc_format = 0b0;   // 16 bit crc format (default)
+  static const uint8_t en_crccom = 0b0;    // offset calibration (default)
+  static const uint8_t en_offcal = 0b0;    // offset calibration (default)
+  static const uint8_t en_gaincal = 0b0;   // gain calibration (default)
   data->config3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
                   (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
 
   (void)mcp_write_reg_8(config, MCP_Reg_CONFIG3, data->config3);
 
-  uint8_t irq_reg =
+  static const uint8_t irq_reg =
       0b00110111; // set irq to active low so we don't need a pull up resistor
   mcp_write_reg_8(config, MCP_Reg_IRQ, irq_reg);
 
