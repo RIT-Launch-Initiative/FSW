@@ -126,6 +126,20 @@
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 
+    bme280: bme280@77 {
+        status = "okay";
+        compatible = "bosch,bme280";
+        reg = <0x77>;
+    };
+
+    lsm6dsl: lsm6dsl@6b {
+        status="okay";
+        compatible="st,lsm6dsl";
+        reg = <0x6b>;
+        irq-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>, <&gpiob 8 GPIO_ACTIVE_LOW>;
+
+    };
+
 	// ina219_battery@40 {// Load Cell - LDO (5v)
 		// status = "okay";
 		// compatible = "ti,ina219"; // TODO make this INA260

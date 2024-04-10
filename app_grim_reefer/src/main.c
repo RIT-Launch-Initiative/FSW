@@ -14,6 +14,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
+
+#include <launch_core/dev/dev_common.h>
+
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 
 // devicetree gets
@@ -35,7 +38,16 @@ const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZER_NODE, gpios);
 #define DBG_SERIAL_NODE DT_ALIAS(debug_serial)
 const struct device *const debug_serial_dev = DEVICE_DT_GET(DBG_SERIAL_NODE);
 
-static int init(void) {
+#define BME280_NODE DT_NODELABEL(bme280)
+const struct device *bme280_dev = DEVICE_DT_GET(BME280_NODE);
+
+#define LSM6DSL_NODE DT_NODELABEL(lsm6dsl)
+const struct device *lsm6dsl_dev = DEVICE_DT_GET(LSM6DSL_NODE);
+
+#define FLASH_NODE DT_NODELABEL(w25q512)
+const struct device *flash_dev = DEVICE_DT_GET(FLASH_NODE);
+
+static int gpio_init(void) {
   // Init LEDS
   if (!gpio_is_ready_dt(&led1)) {
     LOG_ERR("LED 1 is not ready\n");
@@ -96,8 +108,24 @@ static int init(void) {
   return 0;
 }
 
+static int sensor_init(void) {
+  const bool lsm6dsl_found = device_is_ready(lsm6dsl_dev);
+  const bool bme280_found = device_is_ready(lsm6dsl_dev);
+  const bool flash_found = device_is_ready(flash_dev);
+
+  const bool all_good = lsm6dsl_found && bme280_found && flash_found;
+  if (!all_good) {
+    LOG_ERR("Error setting up sensor and flash devices");
+    return -1;
+  }
+  return 0;
+}
+
 int main(void) {
-  if (init()) {
+  if (gpio_init()) {
+    return -1;
+  }
+  if (sensor_init()) {
     return -1;
   }
 
