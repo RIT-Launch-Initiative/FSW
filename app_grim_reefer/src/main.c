@@ -110,10 +110,10 @@ static int gpio_init(void) {
 
 static int sensor_init(void) {
   const bool lsm6dsl_found = device_is_ready(lsm6dsl_dev);
-  const bool bme280_found = device_is_ready(lsm6dsl_dev);
+  const bool bme280_found = device_is_ready(bme280_dev);
   const bool flash_found = device_is_ready(flash_dev);
 
-  const bool all_good = lsm6dsl_found && bme280_found && flash_found;
+  const bool all_good = lsm6dsl_found && flash_found && bme280_found;
   if (!all_good) {
     LOG_ERR("Error setting up sensor and flash devices");
     return -1;
