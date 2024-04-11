@@ -200,6 +200,34 @@ int main(void) {
       .buffer_size = sizeof(buf),
   };
 
+  print_statvfs("/lfs");
+  struct fs_file_t file;
+
+  fs_file_t_init(&file);
+
+  int ret = fs_open(&file, "/lfs/test2.bin", FS_O_CREATE | FS_O_RDWR);
+  if (ret < 0) {
+    LOG_ERR("Failed to open: %d", ret);
+    return ret;
+  }
+  uint32_t timestamp;
+  const int NUM_UINT32S = 15000000;
+  for (int i = 0; i < NUM_UINT32S; i++) {
+    timestamp = k_uptime_get_32();
+    ret = fs_write(&file, &timestamp, sizeof(timestamp));
+    if (ret < 0) {
+      LOG_INF("Failed to write: %d", ret);
+    }
+    if (i % 500 == 0) {
+      LOG_PRINTK("Progress: %d / %d", i, NUM_UINT32S);
+    }
+    if (i % 10000 == 0) {
+      print_statvfs("/lfs");
+      // fflush()
+      //   fs_sync(&file);
+    }
+  }
+
   while (true) {
     // convert_and_send();
     gpio_pin_toggle_dt(&led1);

@@ -73,7 +73,7 @@
 			// the binding reccomends defaults for these
 			read-size = <16>;
 			prog-size = <16>;
-			cache-size = <64>; // may need to grow for optimization
+			cache-size = <1024>; // may need to grow for optimization
 			lookahead-size = <32>;
 			block-cycles = <(90 * 1000)>;
 			// the datasheet gives 100K P-E cycles
