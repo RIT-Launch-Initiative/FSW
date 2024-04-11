@@ -18,6 +18,8 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
 
+#include <zephyr/fs/fs.h>
+
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 
 // devicetree gets
@@ -154,7 +156,35 @@ static int sensor_init(void) {
 
   return 0;
 }
-
+void print_size(size_t size) {
+  if (size < 1024) {
+    LOG_PRINTK("%ud B", size);
+  } else if (size < 1024 * 1024) {
+    LOG_PRINTK("%.2f KiB", ((double)size) / 1024);
+  } else {
+    LOG_PRINTK("%.2f MiB", ((double)size) / (1024 * 1024));
+  }
+}
+/**
+ * @brief Print the stats of the file system the file is on
+ * @param fname		file name
+ */
+void print_statvfs(char *fname) {
+  struct fs_statvfs fs_stat_dst; // destination for file system stats
+  int32_t ret = fs_statvfs(fname, &fs_stat_dst);
+  if (ret < 0) {
+    LOG_ERR("Unable to stat the filesystem of %s: %d", fname, ret);
+  } else {
+    LOG_INF(
+        "%s is on a volume with \r\n\t%lu blocks (%lu free) of %lu bytes each",
+        fname, fs_stat_dst.f_blocks, fs_stat_dst.f_bfree, fs_stat_dst.f_frsize);
+    LOG_PRINTK("\t");
+    print_size(fs_stat_dst.f_blocks * fs_stat_dst.f_frsize);
+    LOG_PRINTK(" (");
+    print_size(fs_stat_dst.f_bfree * fs_stat_dst.f_frsize);
+    LOG_PRINTK(" free)\n");
+  }
+}
 int main(void) {
   if (gpio_init()) {
     return -1;

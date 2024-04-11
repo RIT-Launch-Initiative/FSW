@@ -155,7 +155,7 @@
 		// shunt-milliohm = <100>;
 		// lsb-microamp = <10>;
 	// };
-	//
+	// 
 	// ina219_3v3@41 {// Grim - Buck (3.3v)
 		// status = "okay";
 		// compatible = "ti,ina219"; // TODO make this INA260
@@ -167,7 +167,7 @@
 		// shunt-milliohm = <100>;
 		// lsb-microamp = <10>;
 	// };
-	//
+	// 
 	// ina219_5v0@44 {// Battery (7.4v)
 		// status = "okay";
 		// compatible = "ti,ina219"; // TODO make this INA260
