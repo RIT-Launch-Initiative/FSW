@@ -6,16 +6,17 @@
 
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/gpio.h>
 
+#include <launch_core/dev/dev_common.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
-
-#include <launch_core/dev/dev_common.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 
@@ -46,6 +47,9 @@ const struct device *lsm6dsl_dev = DEVICE_DT_GET(LSM6DSL_NODE);
 
 #define FLASH_NODE DT_NODELABEL(w25q512)
 const struct device *flash_dev = DEVICE_DT_GET(FLASH_NODE);
+
+static const struct adc_dt_spec adc_chan0 =
+    ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
 static int gpio_init(void) {
   // Init LEDS
@@ -113,11 +117,41 @@ static int sensor_init(void) {
   const bool bme280_found = device_is_ready(bme280_dev);
   const bool flash_found = device_is_ready(flash_dev);
 
+  struct sensor_value odr_attr;
+
+  /* set accel/gyro sampling frequency to 104 Hz */
+  odr_attr.val1 = 1666;
+  odr_attr.val2 = 0;
+
+  if (sensor_attr_set(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ,
+                      SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
+    printk("Cannot set sampling frequency for accelerometer.\n");
+    return 0;
+  }
+
+  if (sensor_attr_set(lsm6dsl_dev, SENSOR_CHAN_GYRO_XYZ,
+                      SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
+    printk("Cannot set sampling frequency for gyro.\n");
+    return 0;
+  }
+
   const bool all_good = lsm6dsl_found && flash_found && bme280_found;
   if (!all_good) {
     LOG_ERR("Error setting up sensor and flash devices");
     return -1;
   }
+
+  // Configure channel prior to sampling.
+  if (!adc_is_ready_dt(&adc_chan0)) {
+    LOG_ERR("ADC controller device %s not ready\n", adc_chan0.dev->name);
+    return -1;
+  }
+  //
+  if (adc_channel_setup_dt(&adc_chan0) < 0) {
+    LOG_ERR("Could not setup channel\n");
+    return -1;
+  }
+
   return 0;
 }
 
@@ -129,7 +163,13 @@ int main(void) {
     return -1;
   }
 
-  // Won't run if initializing the network stack failed
+  int32_t buf;
+  struct adc_sequence sequence = {
+      .buffer = &buf,
+      /* buffer size in bytes, not number of samples */
+      .buffer_size = sizeof(buf),
+  };
+
   while (true) {
     // convert_and_send();
     gpio_pin_toggle_dt(&led1);
@@ -137,6 +177,22 @@ int main(void) {
     // gpio_pin_toggle_dt(&ldo_enable);
     // gpio_pin_toggle_dt(&cam_enable);
     // gpio_pin_toggle_dt(&buzzer);
+
+    int err = adc_sequence_init_dt(&adc_chan0, &sequence);
+    if (err < 0) {
+      printk("Could not init adc seq: %d", err);
+    }
+    err = adc_read_dt(&adc_chan0, &sequence);
+    if (err < 0) {
+      printk("Could not read adc channel %d (%d)\n", adc_chan0.channel_id, err);
+      continue;
+    }
+    // int32_t value_mv = (buf * 2400) / (1 << 23);
+    // err = adc_raw_to_millivolts_dt(&adc_chan0, &value_mv);
+    if (err < 0) {
+      LOG_ERR("Could not convert value to mv: Err: %d", err);
+    }
+    printk("Value: %06x, %d mv, res: %d\n", buf, 0, adc_chan0.resolution);
     k_sleep(K_MSEC(2500));
   }
   return 0;

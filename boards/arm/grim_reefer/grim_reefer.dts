@@ -13,6 +13,10 @@
 	model = "Grim Reefer";
 	compatible = "st,stm32f446re-nucleo";
 
+    zephyr,user {
+        io-channels = <&adc 0>;
+    };
+
 	chosen {
 		zephyr,console = &usart2;
 		zephyr,shell-uart = &usart2;
@@ -239,8 +243,8 @@
 
 			zephyr,resolution = <24>;
 
-			zephyr,input-positive = <1>;
-			zephyr,input-negative = <0>;
+			zephyr,input-positive = <0xf>;
+			zephyr,input-negative = <0x8>;
 
 		};
 	};
