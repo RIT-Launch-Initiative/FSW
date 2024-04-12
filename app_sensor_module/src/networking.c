@@ -50,25 +50,22 @@ static void telemetry_broadcast_task(void *, void *, void *) {
         return;
     }
 
+    sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
+
+    int hundred_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
+                                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
+
     while (true) {
-        sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
-
-        int hundred_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
-                                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
-
-        while (true) {
-            if (0 == k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telem, K_NO_WAIT)) {
-                l_send_udp_broadcast(hundred_hz_socket, (uint8_t *) &hundred_hz_telem,
-                                     sizeof(sensor_module_hundred_hz_telemetry_t),
-                                     SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
-            } else {
-                LOG_WRN("Failed to get data from 100 Hz queue");
-            }
-
-
-            // TODO: Extension board support. Need to figure out a robust way of doing this
-
-            // TODO: write to flash when data logging library is ready
+        if (0 == k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telem, K_NO_WAIT)) {
+            l_send_udp_broadcast(hundred_hz_socket, (uint8_t *) &hundred_hz_telem,
+                                 sizeof(sensor_module_hundred_hz_telemetry_t),
+                                 SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
+        } else {
+            LOG_WRN("Failed to get data from 100 Hz queue");
         }
+
+        // TODO: Extension board support. Need to figure out a robust way of doing this
+
+        // TODO: write to flash when data logging library is ready
     }
 }
