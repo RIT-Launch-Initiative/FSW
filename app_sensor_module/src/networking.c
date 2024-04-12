@@ -8,15 +8,6 @@
 
 LOG_MODULE_REGISTER(networking);
 
-
-// Sockets
-static int udp_sockets[1] = {0};
-static int udp_socket_ports[1] = {SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT};
-static l_udp_socket_list_t udp_socket_list = {
-        .sockets = udp_sockets,
-        .num_sockets = 1
-};
-
 static void telemetry_broadcast_task(void *, void *, void *);
 
 K_THREAD_DEFINE(telemetry_broadcast, 1024, telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 0);
@@ -35,17 +26,10 @@ static int initialize_eth(void) {
         return -ENXIO;
     }
 
-    for (int i = 0; i < udp_socket_list.num_sockets; i++) {
-        udp_socket_list.sockets[i] = l_init_udp_socket(SENSOR_MODULE_IP_ADDR, udp_socket_ports[i]);
-        if (udp_socket_list.sockets[i] < 0) {
-            LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
-        }
-    }
-
     return 0;
 }
 
-static void initialize_rs485(void) {
+//static void initialize_rs485(void) {
 //    if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {
 //        if (l_create_ip_str(rs485_ip, 11, 0, 3, 1) == 0) {
 //            if (l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip)) {
@@ -57,8 +41,7 @@ static void initialize_rs485(void) {
 //    } else {
 //        LOG_ERR("Failed to initialize UART to RS485");;
 //    }
-}
-
+//}
 
 
 static void telemetry_broadcast_task(void *, void *, void *) {
@@ -68,11 +51,8 @@ static void telemetry_broadcast_task(void *, void *, void *) {
     }
 
     while (true) {
-        sensor_module_ten_hz_telemetry_t ten_hz_telem;
         sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
 
-        int ten_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
-                                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
         int hundred_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
                                                   SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
 
@@ -84,6 +64,7 @@ static void telemetry_broadcast_task(void *, void *, void *) {
             } else {
                 LOG_WRN("Failed to get data from 100 Hz queue");
             }
+
 
             // TODO: Extension board support. Need to figure out a robust way of doing this
 
