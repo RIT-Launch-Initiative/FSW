@@ -9,7 +9,6 @@
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/dev/sensor.h>
 
-
 // Zephyr Includes
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
