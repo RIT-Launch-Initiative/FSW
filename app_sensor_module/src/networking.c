@@ -10,7 +10,7 @@ LOG_MODULE_REGISTER(networking);
 
 static void telemetry_broadcast_task(void *, void *, void *);
 
-//K_THREAD_DEFINE(telemetry_broadcast, 1024, telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 0);
+K_THREAD_DEFINE(telemetry_broadcast, 1024, telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
 extern struct k_msgq hundred_hz_telem_queue;
 
@@ -70,5 +70,7 @@ static void telemetry_broadcast_task(void *, void *, void *) {
         // TODO: Extension board support. Need to figure out a robust way of doing this
 
         // TODO: write to flash when data logging library is ready
+
+//        k_msleep(10);
     }
 }

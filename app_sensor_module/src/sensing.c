@@ -25,7 +25,7 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
 
 // Threads
 K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_sensor_reading_task, NULL, NULL, NULL,
-                K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, 0);
+                K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, 1000);
 
 // Message Queues
 K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
@@ -121,10 +121,10 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         // TODO: Temporary until we consume
         k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10));
 
-//        // Sleep until next update time. TODO: Maybe use timers and signals?
-        uint32_t time_to_wait = HUNDRED_HZ_UPDATE_TIME - (k_uptime_get_32() - timestamp);
-        if (time_to_wait > 0) {
-            k_sleep(K_MSEC(time_to_wait));
-        }
+        // Sleep until next update time. TODO: Maybe use timers and signals?
+//        uint32_t time_to_wait = HUNDRED_HZ_UPDATE_TIME - (k_uptime_get_32() - timestamp);
+//        if (time_to_wait > 0) {
+//            k_sleep(K_MSEC(time_to_wait));
+//        }
     }
 }
