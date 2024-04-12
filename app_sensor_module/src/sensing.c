@@ -16,7 +16,7 @@
 
 // Constants
 #define SENSOR_READING_STACK_SIZE 1024
-#define HUNDRED_HZ_TELEM_PRIORITY 10
+#define HUNDRED_HZ_TELEM_PRIORITY 5
 #define SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS 4
 #define HUNDRED_HZ_UPDATE_TIME 10
 
@@ -99,8 +99,8 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         sensor_sample_fetch(bmp388);
         sensor_sample_fetch(lsm6dsl);
         sensor_sample_fetch(lis3mdl);
+        LOG_INF("Took %d to get new data", k_uptime_get_32() - timestamp);
 
-        LOG_INF("Updating all sensors took %d", k_uptime_get_32() - timestamp);
         timestamp = k_uptime_get_32();
 
         l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.adxl375);
@@ -114,6 +114,8 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         // Put telemetry into queue
         if (k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10))) {
             LOG_ERR("Failed to put data into sensor processing queue");
+        } else {
+            LOG_INF("Queued telemetry");
         }
 
         // TODO: Temporary until we consume
