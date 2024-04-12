@@ -43,6 +43,24 @@ static void check_sensors_ready(const struct device *const *sensors, bool *senso
     }
 }
 
+static void setup_lsm6dsl() {
+    const struct device *lsm6dsl = DEVICE_DT_GET_ONE(st_lsm6dsl);
+    const struct sensor_value odr_attr = {
+            .val1 = 104,
+            .val2 = 0
+    };
+
+    if (sensor_attr_set(lsm6dsl, SENSOR_CHAN_ACCEL_XYZ,
+                        SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
+        LOG_ERR("Cannot set sampling frequency for LSM6DSL accelerometer.\n");
+    }
+
+    if (sensor_attr_set(lsm6dsl, SENSOR_CHAN_GYRO_XYZ,
+                        SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
+        LOG_ERR("Cannot set sampling frequency for LSM6DSL gyroscope.\n");
+    }
+}
+
 static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *unused2) {
     ARG_UNUSED(unused0);
     ARG_UNUSED(unused1);
@@ -66,6 +84,8 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
             lis3mdl
     };
 
+    setup_lsm6dsl();
+
     // Confirm sensors are ready
     bool sensor_ready[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {false};
     check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS);
@@ -76,6 +96,10 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         timestamp = k_uptime_get_32();
 //        l_update_sensors_safe(sensors, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS, sensor_ready);
 
+        sensor_sample_fetch(adxl375);
+        sensor_sample_fetch(bmp388);
+        sensor_sample_fetch(lsm6dsl);
+        sensor_sample_fetch(lis3mdl);
 
         LOG_INF("Updating all sensors took %d", k_uptime_get_32() - timestamp);
         timestamp = k_uptime_get_32();
