@@ -35,8 +35,8 @@ const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
 const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
 const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
-#define BUZZER_NODE DT_NODELABEL(buzzer)
-const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZER_NODE, gpios);
+// #define BUZZER_NODE DT_NODELABEL(buzzer)
+// const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZER_NODE, gpios);
 
 #define DBG_SERIAL_NODE DT_ALIAS(debug_serial)
 const struct device *const debug_serial_dev = DEVICE_DT_GET(DBG_SERIAL_NODE);
@@ -91,10 +91,10 @@ static int gpio_init(void) {
     return -1;
   }
 
-  if (!gpio_is_ready_dt(&buzzer)) {
-    LOG_ERR("buzzer pin is not ready\n");
-    return -1;
-  }
+  //   if (!gpio_is_ready_dt(&buzzer)) {
+  // LOG_ERR("buzzer pin is not ready\n");
+  // return -1;
+  //   }
   if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
     LOG_ERR("Unable to configure buzzer output pin\n");
     return -1;
@@ -109,7 +109,6 @@ static int gpio_init(void) {
   gpio_pin_set_dt(&led2, 0);
   gpio_pin_set_dt(&ldo_enable, 0);
   gpio_pin_set_dt(&cam_enable, 0);
-  gpio_pin_set_dt(&buzzer, 0);
 
   return 0;
 }
@@ -201,10 +200,6 @@ int main(void) {
   };
 
   // Turn on LDO
-  //   gpio_pin_set_dt(&ldo_enable, 1);
-  while (true) {
-    k_msleep(10);
-  }
   while (true) {
     // convert_and_send();
     gpio_pin_toggle_dt(&led1);

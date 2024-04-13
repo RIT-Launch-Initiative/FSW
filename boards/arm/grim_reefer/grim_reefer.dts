@@ -54,10 +54,10 @@
 			label = "Enable pin for Cameras";
 
 		};
-		buzzer: buzzer{
-			gpios = <&gpiob 4 (GPIO_ACTIVE_HIGH)>;
-			label = "buzzer pin";
-		};
+		// buzzer: buzzer{
+			// gpios = <&gpiob 4 (GPIO_ACTIVE_HIGH)>;
+			// label = "buzzer pin";
+		// };
 
 
 	};
@@ -83,6 +83,8 @@
 		};
 	};
 };
+
+
 
 &uart4 {
 	status = "okay";
@@ -244,8 +246,8 @@
 
 			zephyr,resolution = <24>;
 
-			zephyr,input-positive = <0xf>;
-			zephyr,input-negative = <0x8>;
+			zephyr,input-positive = <0x1>;
+			zephyr,input-negative = <0x0>;
 
 		};
 	};
