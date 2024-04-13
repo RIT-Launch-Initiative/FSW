@@ -200,6 +200,41 @@ int main(void) {
       .buffer_size = sizeof(buf),
   };
 
+  // Turn on LDO
+  //   gpio_pin_set_dt(&ldo_enable, 1);
+  while (true) {
+    k_msleep(10);
+  }
+  while (true) {
+    // convert_and_send();
+    gpio_pin_toggle_dt(&led1);
+    gpio_pin_toggle_dt(&led2);
+    // gpio_pin_toggle_dt(&ldo_enable);
+    // gpio_pin_toggle_dt(&cam_enable);
+    // gpio_pin_toggle_dt(&buzzer);
+
+    int err = adc_sequence_init_dt(&adc_chan0, &sequence);
+    if (err < 0) {
+      printk("Could not init adc seq: %d", err);
+    }
+    err = adc_read_dt(&adc_chan0, &sequence);
+    if (err < 0) {
+      printk("Could not read adc channel %d (%d)\n", adc_chan0.channel_id, err);
+      continue;
+    }
+    // int32_t value_mv = (buf * 2400) / (1 << 23);
+    // err = adc_raw_to_millivolts_dt(&adc_chan0, &value_mv);
+    if (err < 0) {
+      LOG_ERR("Could not convert value to mv: Err: %d", err);
+    }
+    printk("Value: %06x, %d mv, res: %d\n", buf, 0, adc_chan0.resolution);
+    k_sleep(K_MSEC(100));
+  }
+  return 0;
+}
+
+/*
+
   print_statvfs("/lfs");
   struct fs_file_t file;
 
@@ -228,30 +263,4 @@ int main(void) {
     }
   }
 
-  while (true) {
-    // convert_and_send();
-    gpio_pin_toggle_dt(&led1);
-    gpio_pin_toggle_dt(&led2);
-    // gpio_pin_toggle_dt(&ldo_enable);
-    // gpio_pin_toggle_dt(&cam_enable);
-    // gpio_pin_toggle_dt(&buzzer);
-
-    int err = adc_sequence_init_dt(&adc_chan0, &sequence);
-    if (err < 0) {
-      printk("Could not init adc seq: %d", err);
-    }
-    err = adc_read_dt(&adc_chan0, &sequence);
-    if (err < 0) {
-      printk("Could not read adc channel %d (%d)\n", adc_chan0.channel_id, err);
-      continue;
-    }
-    // int32_t value_mv = (buf * 2400) / (1 << 23);
-    // err = adc_raw_to_millivolts_dt(&adc_chan0, &value_mv);
-    if (err < 0) {
-      LOG_ERR("Could not convert value to mv: Err: %d", err);
-    }
-    printk("Value: %06x, %d mv, res: %d\n", buf, 0, adc_chan0.resolution);
-    k_sleep(K_MSEC(2500));
-  }
-  return 0;
-}
+*/
