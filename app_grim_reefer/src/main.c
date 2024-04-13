@@ -184,6 +184,34 @@ void print_statvfs(char *fname) {
     LOG_PRINTK(" free)\n");
   }
 }
+
+#define NUM_SAMPLES 50
+float samples[NUM_SAMPLES] = {0.0f};
+int sample_index = 0;
+float sample_sum = 0;
+
+int samplesi[NUM_SAMPLES] = {0.0f};
+int samplei_index = 0;
+float samplei_sum = 0;
+
+// add a new sample, return the moving avg
+float add_sample(float sample) {
+  float old = samples[sample_index];
+  samples[sample_index] = sample;
+  sample_index = (sample_index + 1) % NUM_SAMPLES;
+  sample_sum -= old;
+  sample_sum += sample;
+  return sample_sum / (float)NUM_SAMPLES;
+}
+
+float add_sample_int(int samplei) {
+  float old = samplesi[samplei_index];
+  samplesi[samplei_index] = samplei;
+  samplei_index = (samplei_index + 1) % NUM_SAMPLES;
+  samplei_sum -= old;
+  samplei_sum += samplei;
+  return samplei_sum / (float)NUM_SAMPLES;
+}
 int main(void) {
   if (gpio_init()) {
     return -1;
@@ -198,32 +226,32 @@ int main(void) {
       /* buffer size in bytes, not number of samples */
       .buffer_size = sizeof(buf),
   };
-
-  // Turn on LDO
+  int frame = 0;
   while (true) {
-    // convert_and_send();
-    gpio_pin_toggle_dt(&led1);
-    gpio_pin_toggle_dt(&led2);
-    // gpio_pin_toggle_dt(&ldo_enable);
-    // gpio_pin_toggle_dt(&cam_enable);
-    // gpio_pin_toggle_dt(&buzzer);
+
+    sequence.channels = adc_chan0.channel_id;
 
     int err = adc_sequence_init_dt(&adc_chan0, &sequence);
     if (err < 0) {
-      printk("Could not init adc seq: %d", err);
+      printk("Could not init seq: %d", err);
     }
     err = adc_read_dt(&adc_chan0, &sequence);
     if (err < 0) {
-      printk("Could not read adc channel %d (%d)\n", adc_chan0.channel_id, err);
+      printk("Could not read (%d)\n", err);
       continue;
     }
-    // int32_t value_mv = (buf * 2400) / (1 << 23);
-    // err = adc_raw_to_millivolts_dt(&adc_chan0, &value_mv);
-    if (err < 0) {
-      LOG_ERR("Could not convert value to mv: Err: %d", err);
-    }
-    printk("Value: %06x, %d mv, res: %d\n", buf, 0, adc_chan0.resolution);
-    k_sleep(K_MSEC(100));
+    int32_t val = buf;
+    float volts = 2.4f * ((float)val) / ((float)0x7fffff);
+
+    float avg = add_sample(volts);
+    int avgi = add_sample_int(val);
+
+    printk("%06d,%06x,%2.5f,%2.5f\n", frame, val, (double)volts, (double)avg);
+    frame++;
+
+    // printk("Im alive\n");
+    gpio_pin_toggle_dt(&led1);
+    k_msleep(100);
   }
   return 0;
 }
