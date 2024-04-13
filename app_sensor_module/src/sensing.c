@@ -95,31 +95,47 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         timestamp = k_uptime_get_32();
 //        l_update_sensors_safe(sensors, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS, sensor_ready);
 
-        sensor_sample_fetch(adxl375);
-        sensor_sample_fetch(bmp388);
+        int ret = sensor_sample_fetch(adxl375);
+        if (ret) {
+            LOG_ERR("Failed to fetch adxl375 data %d", ret);
+        }
+
+        ret = sensor_sample_fetch(bmp388);
+        if (ret) {
+            LOG_ERR("Failed to fetch bmp388 data %d", ret);
+        }
+
         sensor_sample_fetch(lsm6dsl);
+        if (ret) {
+            LOG_ERR("Failed to fetch lsm6dsl data %d", ret);
+        }
+
         sensor_sample_fetch(lis3mdl);
+        if (ret) {
+            LOG_ERR("Failed to fetch lis3mdl data %d", ret);
+        }
+
         LOG_INF("Took %d to get new data", k_uptime_get_32() - timestamp);
 
         timestamp = k_uptime_get_32();
 
-        l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.adxl375);
-        l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_accel);
-//        l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.ms5611);
-        l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.bmp388);
-        l_get_gyroscope_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_gyro);
-        l_get_magnetometer_data_float(lis3mdl, &hundred_hz_telemetry.lis3mdl);
-
-
-        // Put telemetry into queue
-        if (k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10))) {
-            LOG_ERR("Failed to put data into sensor processing queue");
-        } else {
-            LOG_INF("Queued telemetry");
-        }
-
-        // TODO: Temporary until we consume
-        k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10));
+//        l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.adxl375);
+//        l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_accel);
+////        l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.ms5611);
+//        l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.bmp388);
+//        l_get_gyroscope_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_gyro);
+//        l_get_magnetometer_data_float(lis3mdl, &hundred_hz_telemetry.lis3mdl);
+//
+//
+//        // Put telemetry into queue
+//        if (k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10))) {
+//            LOG_ERR("Failed to put data into sensor processing queue");
+//        } else {
+//            LOG_INF("Queued telemetry");
+//        }
+//
+//        // TODO: Temporary until we consume
+//        k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10));
 
         // Sleep until next update time. TODO: Maybe use timers and signals?
 //        uint32_t time_to_wait = HUNDRED_HZ_UPDATE_TIME - (k_uptime_get_32() - timestamp);

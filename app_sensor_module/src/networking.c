@@ -50,6 +50,7 @@ static void telemetry_broadcast_task(void *, void *, void *) {
         LOG_ERR("Failed to initialize Ethernet");
         return;
     }
+    return;
 
     sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
 
