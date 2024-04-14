@@ -35,8 +35,8 @@ const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
 const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
 const struct gpio_dt_spec cam_enable = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
-// #define BUZZER_NODE DT_NODELABEL(buzzer)
-// const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZER_NODE, gpios);
+#define BUZZER_NODE DT_NODELABEL(buzzer)
+const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZER_NODE, gpios);
 
 #define DBG_SERIAL_NODE DT_ALIAS(debug_serial)
 const struct device *const debug_serial_dev = DEVICE_DT_GET(DBG_SERIAL_NODE);
@@ -185,7 +185,7 @@ void print_statvfs(char *fname) {
   }
 }
 
-#define NUM_SAMPLES 50
+#define NUM_SAMPLES 5
 float samples[NUM_SAMPLES] = {0.0f};
 int sample_index = 0;
 float sample_sum = 0;
@@ -219,6 +219,11 @@ int main(void) {
   if (sensor_init()) {
     return -1;
   }
+  //   gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT);
+  while (true) {
+    gpio_pin_toggle_dt(&buzzer);
+    k_msleep(500);
+  }
 
   int32_t buf;
   struct adc_sequence sequence = {
@@ -246,12 +251,13 @@ int main(void) {
     float avg = add_sample(volts);
     int avgi = add_sample_int(val);
 
-    printk("%06d,%06x,%2.5f,%2.5f\n", frame, val, (double)volts, (double)avg);
+    printk("%06d,%06x,%d,%2.8f,%2.8f\n", frame, val, val, (double)volts,
+           (double)avg);
     frame++;
 
     // printk("Im alive\n");
     gpio_pin_toggle_dt(&led1);
-    k_msleep(100);
+    k_msleep(10);
   }
   return 0;
 }

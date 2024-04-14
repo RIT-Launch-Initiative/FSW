@@ -9,6 +9,13 @@
 #include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
+
+&sys_jtrst_pb4 {
+    pinmux = <STM32_PINMUX('B', 4, AF0)>;
+
+};
+
+
 / {
 	model = "Grim Reefer";
 	compatible = "st,stm32f446re-nucleo";
@@ -40,11 +47,10 @@
 		led2: led2{
 			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
 		};
-
-	};
-
-	control_gpios{
-		compatible = "gpio-keys";
+		buzzer: buzzer{
+			gpios = <&gpiob 4 (GPIO_ACTIVE_HIGH )>;
+			label = "buzzer pin";
+		};
 		ldo_enable: ldo-enable{
 			gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
 			label = "Enable pin for LDO";
@@ -54,14 +60,7 @@
 			label = "Enable pin for Cameras";
 
 		};
-		// buzzer: buzzer{
-			// gpios = <&gpiob 4 (GPIO_ACTIVE_HIGH)>;
-			// label = "buzzer pin";
-		// };
-
-
 	};
-
 
 	fstab {
 		compatible = "zephyr,fstab";
@@ -240,7 +239,7 @@
 
 		channel@0 {
 			reg = <0>;
-			zephyr,gain = "ADC_GAIN_1";
+			zephyr,gain = "ADC_GAIN_64";
 			zephyr,reference = "ADC_REF_INTERNAL";
 			zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 
@@ -253,6 +252,7 @@
 	};
 
 };
+
 
 &rtc {
 	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
