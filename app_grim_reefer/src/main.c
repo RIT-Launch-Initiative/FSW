@@ -124,24 +124,6 @@ static int sensor_init(void) {
     return -1;
   }
 
-  struct sensor_value odr_attr;
-
-  odr_attr.val1 = LSM6DSL_ODR;
-  odr_attr.val2 = 0;
-
-  // LSM6DSL
-  if (sensor_attr_set(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ,
-                      SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
-    printk("Cannot set sampling frequency for accelerometer.\n");
-    return 0;
-  }
-
-  if (sensor_attr_set(lsm6dsl_dev, SENSOR_CHAN_GYRO_XYZ,
-                      SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
-    printk("Cannot set sampling frequency for gyro.\n");
-    return 0;
-  }
-
   // ADC
   if (!adc_is_ready_dt(&adc_chan0)) {
     LOG_ERR("ADC controller device %s not ready\n", adc_chan0.dev->name);

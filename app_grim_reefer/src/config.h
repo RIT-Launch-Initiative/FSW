@@ -1,1 +1,0 @@
-#define LSM6DSL_ODR 1666
