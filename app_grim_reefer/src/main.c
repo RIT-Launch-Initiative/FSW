@@ -3,6 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include "config.h"
 
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -91,17 +92,17 @@ static int gpio_init(void) {
     return -1;
   }
 
-  //   if (!gpio_is_ready_dt(&buzzer)) {
-  // LOG_ERR("buzzer pin is not ready\n");
-  // return -1;
-  //   }
-  if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
+  if (!gpio_is_ready_dt(&buzzer)) {
+    LOG_ERR("buzzer pin is not ready\n");
+    return -1;
+  }
+  if (gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_ACTIVE) < 0) {
     LOG_ERR("Unable to configure buzzer output pin\n");
     return -1;
   }
 
   if (!device_is_ready(debug_serial_dev)) {
-    LOG_ERR("CAMERA SERIAL NOT READY\n");
+    LOG_ERR("Debug serial not ready\n");
     return -1;
   }
 
@@ -117,13 +118,18 @@ static int sensor_init(void) {
   const bool lsm6dsl_found = device_is_ready(lsm6dsl_dev);
   const bool bme280_found = device_is_ready(bme280_dev);
   const bool flash_found = device_is_ready(flash_dev);
+  const bool all_good = lsm6dsl_found && flash_found && bme280_found;
+  if (!all_good) {
+    LOG_ERR("Error setting up sensor and flash devices");
+    return -1;
+  }
 
   struct sensor_value odr_attr;
 
-  /* set accel/gyro sampling frequency to 104 Hz */
-  odr_attr.val1 = 1666;
+  odr_attr.val1 = LSM6DSL_ODR;
   odr_attr.val2 = 0;
 
+  // LSM6DSL
   if (sensor_attr_set(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ,
                       SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
     printk("Cannot set sampling frequency for accelerometer.\n");
@@ -136,13 +142,7 @@ static int sensor_init(void) {
     return 0;
   }
 
-  const bool all_good = lsm6dsl_found && flash_found && bme280_found;
-  if (!all_good) {
-    LOG_ERR("Error setting up sensor and flash devices");
-    return -1;
-  }
-
-  // Configure channel prior to sampling.
+  // ADC
   if (!adc_is_ready_dt(&adc_chan0)) {
     LOG_ERR("ADC controller device %s not ready\n", adc_chan0.dev->name);
     return -1;
@@ -229,30 +229,30 @@ int main(void) {
   int frame = 0;
   while (true) {
 
-    sequence.channels = adc_chan0.channel_id;
+    // sequence.channels = adc_chan0.channel_id;
 
-    int err = adc_sequence_init_dt(&adc_chan0, &sequence);
-    if (err < 0) {
-      printk("Could not init seq: %d", err);
-    }
-    err = adc_read_dt(&adc_chan0, &sequence);
-    if (err < 0) {
-      printk("Could not read (%d)\n", err);
-      continue;
-    }
-    int32_t val = buf;
-    float volts = 2.4f * ((float)val) / ((float)0x7fffff);
+    // int err = adc_sequence_init_dt(&adc_chan0, &sequence);
+    // if (err < 0) {
+    //   printk("Could not init seq: %d", err);
+    // }
+    // err = adc_read_dt(&adc_chan0, &sequence);
+    // if (err < 0) {
+    //   printk("Could not read (%d)\n", err);
+    //   continue;
+    // }
+    // int32_t val = buf;
+    // float volts = 2.4f * ((float)val) / ((float)0x7fffff);
 
-    float avg = add_sample(volts);
-    int avgi = add_sample_int(val);
+    // float avg = add_sample(volts);
+    // int avgi = add_sample_int(val);
 
-    printk("%06d,%06x,%d,%2.8f,%2.8f\n", frame, val, val, (double)volts,
-           (double)avg);
-    frame++;
+    // printk("%06d,%06x,%d,%2.8f,%2.8f\n", frame, val, val, (double)volts,
+    //        (double)avg);
+    // frame++;
 
     // printk("Im alive\n");
     gpio_pin_toggle_dt(&led1);
-    k_msleep(10);
+    k_msleep(100);
   }
   return 0;
 }
