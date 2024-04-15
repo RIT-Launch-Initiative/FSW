@@ -244,7 +244,6 @@ int main(void) {
     float volts = 2.4f * ((float)val) / ((float)0x7fffff);
 
     float avg = add_sample(volts);
-    int avgi = add_sample_int(val);
 
     printk("%06d,%06x,%d,%2.8f,%2.8f\n", frame, val, val, (double)volts,
            (double)avg);
