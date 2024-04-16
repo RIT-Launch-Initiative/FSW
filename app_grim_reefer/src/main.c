@@ -20,7 +20,6 @@
 #include <zephyr/storage/flash_map.h>
 
 #include "testing.h"
-#include <zephyr/fs/fs.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 
@@ -111,6 +110,7 @@ static int gpio_init(void) {
   gpio_pin_set_dt(&led2, 0);
   gpio_pin_set_dt(&ldo_enable, 0);
   gpio_pin_set_dt(&cam_enable, 0);
+  gpio_pin_set_dt(&buzzer, 0);
 
   return 0;
 }
@@ -146,6 +146,9 @@ int main(void) {
   if (sensor_init()) {
     return -1;
   }
+  gpio_pin_set_dt(&ldo_enable, 1);
+  gpio_pin_set_dt(&buzzer, 0);
+  adc_printout(&adc_chan0);
   while (true) {
     gpio_pin_toggle_dt(&led1);
     k_msleep(100);

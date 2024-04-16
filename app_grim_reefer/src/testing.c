@@ -1,5 +1,9 @@
 // Code for testing sensors but stuff that was getting in the way in main
 #include "testing.h"
+#include <zephyr/fs/fs.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(grim_test);
 
 #define NUM_SAMPLES 5
 float samples[NUM_SAMPLES] = {0.0f};
@@ -53,8 +57,7 @@ void adc_printout(const struct adc_dt_spec *channel) {
 
     float avg = add_sample(volts);
 
-    printk("%06d,%06x,%d,%2.8f,%2.8f\n", frame, val, val, (double)volts,
-           (double)avg);
+    printk("%06d,%d,%2.8f,%2.8f\n", frame, val, (double)volts, (double)avg);
     frame++;
 
     k_msleep(100);
