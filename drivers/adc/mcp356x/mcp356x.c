@@ -386,8 +386,6 @@ static int mcp356x_init(const struct device *dev) {
   uint32_t timer_reg = 0;
   mcp_write_reg_24(config, MCP_Reg_TIMER, timer_reg);
 
-  (void)dump_registers(config);
-
   return 0;
 }
 
