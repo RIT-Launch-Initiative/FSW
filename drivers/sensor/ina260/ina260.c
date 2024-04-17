@@ -98,7 +98,7 @@ static int ina260_channel_get(const struct device *dev,
     return sensor_value_from_float(val, data->current * 0.00125f);
   case SENSOR_CHAN_POWER: // Want power
     // The Power Register LSB is fixed to 10 mW.
-    return sensor_value_from_float(val, data->current * 0.01f);
+    return sensor_value_from_float(val, data->power * 0.01f);
 
   default:
     LOG_DBG("Channel not supported by device");
