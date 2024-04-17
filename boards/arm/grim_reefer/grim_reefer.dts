@@ -144,42 +144,34 @@
         irq-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>, <&gpiob 8 GPIO_ACTIVE_LOW>;
 
     };
+    ina260_ldo: ina260-ldo@40 {// LDO Load Cell Power - expect 5v
+        status = "okay";
+        compatible = "ti,ina260";
+        reg = <0x40>;
+        average = "AVG_1";
+        v-conv-time = "CONV_TIME_1100US";
+        i-conv-time = "CONV_TIME_1100US";
 
-	// ina219_battery@40 {// Load Cell - LDO (5v)
-		// status = "okay";
-		// compatible = "ti,ina219"; // TODO make this INA260
-		// reg = <0x40>;
-		// brng = <0>;
-		// pg = <0>;
-		// sadc = <13>;
-		// badc = <13>;
-		// shunt-milliohm = <100>;
-		// lsb-microamp = <10>;
-	// };
-	// 
-	// ina219_3v3@41 {// Grim - Buck (3.3v)
-		// status = "okay";
-		// compatible = "ti,ina219"; // TODO make this INA260
-		// reg = <0x41>;
-		// brng = <0>;
-		// pg = <0>;
-		// sadc = <13>;
-		// badc = <13>;
-		// shunt-milliohm = <100>;
-		// lsb-microamp = <10>;
-	// };
-	// 
-	// ina219_5v0@44 {// Battery (7.4v)
-		// status = "okay";
-		// compatible = "ti,ina219"; // TODO make this INA260
-		// reg = <0x44>;
-		// brng = <0>;
-		// pg = <0>;
-		// sadc = <13>;
-		// badc = <13>;
-		// shunt-milliohm = <100>;
-		// lsb-microamp = <10>;
-	// };
+    };
+    ina260_3v3: ina260-3v3@41 { // Grim Logic level - expect 3.3v
+        status = "okay";
+        compatible = "ti,ina260";
+        reg = <0x41>;
+        average = "AVG_1";
+        v-conv-time = "CONV_TIME_1100US";
+        i-conv-time = "CONV_TIME_1100US";
+
+    };
+    ina260_battery: ina260-battery@44 { // Battery level - expect 7.4v
+        status = "okay";
+        compatible = "ti,ina260";
+        reg = <0x44>;
+        average = "AVG_1";
+        v-conv-time = "CONV_TIME_1100US";
+        i-conv-time = "CONV_TIME_1100US";
+
+    };
+
 };
 
 &spi1 {

@@ -51,6 +51,16 @@ const struct device *lsm6dsl_dev = DEVICE_DT_GET(LSM6DSL_NODE);
 #define FLASH_NODE DT_NODELABEL(w25q512)
 const struct device *flash_dev = DEVICE_DT_GET(FLASH_NODE);
 
+// Inas
+#define INA_BAT_NODE DT_NODELABEL(ina260_battery)
+const struct device *ina_bat_dev = DEVICE_DT_GET(INA_BAT_NODE);
+
+#define INA_LDO_NODE DT_NODELABEL(ina260_ldo)
+const struct device *ina_ldo_dev = DEVICE_DT_GET(INA_LDO_NODE);
+
+#define INA_GRIM_NODE DT_NODELABEL(ina260_3v3)
+const struct device *ina_grim_dev = DEVICE_DT_GET(INA_GRIM_NODE);
+
 static const struct adc_dt_spec adc_chan0 =
     ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
@@ -125,6 +135,16 @@ static int sensor_init(void) {
     return -1;
   }
 
+  const bool ina_bat_found = device_is_ready(ina_bat_dev);
+  const bool ina_ldo_found = device_is_ready(ina_ldo_dev);
+  const bool ina_grim_found = device_is_ready(ina_grim_dev);
+  const bool all_good2 = ina_bat_found && ina_ldo_found && ina_grim_found;
+
+  if (!all_good2) {
+    LOG_ERR("Error setting up INA260 devices");
+    return -1;
+  }
+
   // ADC
   if (!adc_is_ready_dt(&adc_chan0)) {
     LOG_ERR("ADC controller device %s not ready\n", adc_chan0.dev->name);
@@ -148,10 +168,9 @@ int main(void) {
   }
   gpio_pin_set_dt(&ldo_enable, 1);
   gpio_pin_set_dt(&buzzer, 0);
-  adc_printout(&adc_chan0);
   while (true) {
     gpio_pin_toggle_dt(&led1);
-    k_msleep(100);
+    k_msleep(2000);
   }
   return 0;
 }
