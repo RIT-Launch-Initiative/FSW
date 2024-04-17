@@ -1,1 +1,0 @@
-#define STORAGE_QUEUE_SIZE 100
