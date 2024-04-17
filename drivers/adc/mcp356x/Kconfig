@@ -1,0 +1,10 @@
+# Copyright (c) 2021 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+config MCP356X
+	bool "MCP356X ADC"
+	default n
+	select SPI
+	select ADC_CONFIGURABLE_INPUTS
+	help
+	  Enable MCP3561/MCP3562/MCP3564 ADC. 1, 2, and 4 bit adcs
