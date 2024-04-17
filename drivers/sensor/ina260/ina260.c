@@ -86,7 +86,6 @@ static int ina260_sample_fetch(const struct device *dev,
 static int ina260_channel_get(const struct device *dev,
                               enum sensor_channel chan,
                               struct sensor_value *val) {
-  const struct ina260_config *cfg = dev->config;
   struct ina260_data *data = dev->data;
 
   switch (chan) {
