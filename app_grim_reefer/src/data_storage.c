@@ -33,10 +33,10 @@ static struct k_poll_event events[NUM_EVENTS] = {
 
 };
 
-#define CHECK_AND_STORE(event, buf, file, filename)                            \
+#define CHECK_AND_STORE(event, data, file, filename)                           \
   if (event.state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {                       \
-    k_msgq_get(event.msgq, &buf, K_NO_WAIT);                                   \
-    int ret = fs_write(&file, &buf, sizeof(buf));                              \
+    k_msgq_get(event.msgq, &data, K_NO_WAIT);                                  \
+    int ret = fs_write(&file, (uint8_t *)(&data), sizeof(data));               \
     if (ret < 0) {                                                             \
       LOG_INF("Error writing %s", filename);                                   \
     }                                                                          \
@@ -52,6 +52,7 @@ void storage_thread_entry_point(void *, void *, void *) {
 
   struct fs_file_t fast_file;
   fs_file_t_init(&fast_file);
+
   int ret = fs_open(&fast_file, "/lfs/fast.bin", FS_O_RDWR | FS_O_CREATE);
   if (ret < 0) {
     LOG_ERR("Failed to open %s", "/lfs/fast.bin");
@@ -65,11 +66,22 @@ void storage_thread_entry_point(void *, void *, void *) {
     k_poll(events, NUM_EVENTS, K_FOREVER);
 
     // Slow data
-    CHECK_AND_STORE(events[0], slow_dat, fast_file, "/lfs/fast.bin")
+    // CHECK_AND_STORE(events[0], slow_dat, fast_file, "/lfs/fast.bin")
     // ADC data
-    CHECK_AND_STORE(events[1], adc_dat, fast_file, "/lfs/fast.bin")
+    // CHECK_AND_STORE(events[1], adc_dat, fast_file, "/lfs/fast.bin")
     // Fast data
-    CHECK_AND_STORE(events[2], fast_dat, fast_file, "/lfs/fast.bin")
+    // CHECK_AND_STORE(events[2], fast_dat, fast_file, "/lfs/fast.bin")
+    if (events[2].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
+      k_msgq_get(events[2].msgq, &fast_dat, K_NO_WAIT);
+      int ret = fs_write(&fast_file, (uint8_t *)(&fast_dat), sizeof(fast_dat));
+      LOG_INF("Sizeof: %d", sizeof(fast_dat));
+      if (ret < 0) {
+        LOG_INF("Error writing %s", "lfs/fast.bin");
+      }
+    }
+    \ 
+  events[2]
+        .state = K_POLL_STATE_NOT_READY;
 
     if (events[3].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
       k_msgq_get(events[3].msgq, &event, K_NO_WAIT);
@@ -83,6 +95,7 @@ void storage_thread_entry_point(void *, void *, void *) {
   if (ret < 0) {
     LOG_ERR("Failed to close file. Uh oh");
   }
+  LOG_INF("Saved Files");
 }
 
 // Setup thread

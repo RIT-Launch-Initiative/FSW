@@ -10,17 +10,17 @@
 #include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/gpio.h>
 
+#include "data_storage.h"
+#include "testing.h"
 #include <launch_core/dev/dev_common.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/uart.h>
+#include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
-
-#include "data_storage.h"
-#include "testing.h"
 
 // TODO MAKE THIS RIGHT
 int32_t timestamp() { return 5; }
@@ -172,7 +172,8 @@ void fatal_buzzer() {
   }
 }
 
-void fast_data_read() {
+volatile int samples_num = 0;
+void fast_data_read(struct k_work *) {
   int ret = 0;
   ret = sensor_sample_fetch(lsm6dsl_dev);
   if (ret < 0) {
@@ -199,17 +200,21 @@ void fast_data_read() {
       .gyro_y = gy,
       .gyro_z = gz,
   };
+  if (samples_num % 1000 == 0) {
+    // LOG_INF("Read: %.2f", ax);
+    ;
+  }
+  samples_num++;
   k_msgq_put(&fast_data_queue, &dat, K_NO_WAIT);
 }
 
-K_SEM_DEFINE(fast_sem, 0, 1);
-K_SEM_DEFINE(slow_sem, 0, 1);
+K_WORK_DEFINE(fast_work, fast_data_read);
+void fast_data_alert(struct k_timer *) { k_work_submit(&fast_work); }
 
-void fast_data_alert(struct k_timer *) { k_sem_give(&fast_sem); }
 K_TIMER_DEFINE(fast_data_timer, fast_data_alert, NULL);
 
-void slow_data_alert(struct k_timer *) { k_sem_give(&slow_sem); }
-K_TIMER_DEFINE(slow_data_timer, slow_data_alert, NULL);
+// void slow_data_alert(struct k_timer *) { k_sem_give(&slow_sem); }
+// K_TIMER_DEFINE(slow_data_timer, slow_data_alert, NULL);
 
 // void fast_data_thread_entry(void *, void *, void *) {
 //   while (true) {
@@ -229,6 +234,10 @@ int main(void) {
   if (sensor_init()) {
     return -1;
   }
+
+  adc_printout(&adc_chan0);
+  return 0;
+
   k_tid_t storage_tid = spawn_data_storage_thread();
   (void)storage_tid;
 
@@ -242,19 +251,22 @@ int main(void) {
   }
   // Storage is ready
   // Start launch detecting
-  //   k_timer_start(&fast_data_timer, K_MSEC(1), K_MSEC(1));
+  k_timer_start(&fast_data_timer, K_MSEC(1), K_MSEC(1));
 
   //   for (int i = 0; i < 10000; i++) {
   // fast_data_read();
   // k_msleep(1);
   //   }
 
-  //   k_msleep(10000);
+  k_msleep(10000);
 
-  //   k_timer_stop(&fast_data_timer);
+  k_timer_stop(&fast_data_timer);
 
   enum flight_event its_so_over = flight_event_main_shutoff;
   k_msgq_put(&flight_events_queue, &its_so_over, K_NO_WAIT);
+
+  LOG_INF("Samples: %d", samples_num);
+  printk("SAPMPLES: %d\n", samples_num);
 
   return 0;
 }
