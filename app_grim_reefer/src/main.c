@@ -19,7 +19,11 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
 
+#include "data_storage.h"
 #include "testing.h"
+
+// TODO MAKE THIS RIGHT
+int32_t timestamp() { return 5; }
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 
@@ -159,6 +163,65 @@ static int sensor_init(void) {
   return 0;
 }
 
+void fatal_buzzer() {
+  gpio_pin_set_dt(&ldo_enable, 1);
+
+  while (true) {
+    gpio_pin_toggle_dt(&buzzer);
+    k_msleep(100);
+  }
+}
+
+void fast_data_read() {
+  int ret = 0;
+  ret = sensor_sample_fetch(lsm6dsl_dev);
+  if (ret < 0) {
+    LOG_WRN("Failed to read IMU: %d", ret);
+    return;
+  }
+  struct sensor_value vals[3];
+  sensor_channel_get(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ, vals);
+  float ax = sensor_value_to_float(&vals[0]);
+  float ay = sensor_value_to_float(&vals[1]);
+  float az = sensor_value_to_float(&vals[2]);
+
+  sensor_channel_get(lsm6dsl_dev, SENSOR_CHAN_GYRO_XYZ, vals);
+  float gx = sensor_value_to_float(&vals[0]);
+  float gy = sensor_value_to_float(&vals[1]);
+  float gz = sensor_value_to_float(&vals[2]);
+
+  struct fast_data dat = {
+      .timestamp = timestamp(),
+      .accel_x = ax,
+      .accel_y = ay,
+      .accel_z = az,
+      .gyro_x = gx,
+      .gyro_y = gy,
+      .gyro_z = gz,
+  };
+  k_msgq_put(&fast_data_queue, &dat, K_NO_WAIT);
+}
+
+K_SEM_DEFINE(fast_sem, 0, 1);
+K_SEM_DEFINE(slow_sem, 0, 1);
+
+void fast_data_alert(struct k_timer *) { k_sem_give(&fast_sem); }
+K_TIMER_DEFINE(fast_data_timer, fast_data_alert, NULL);
+
+void slow_data_alert(struct k_timer *) { k_sem_give(&slow_sem); }
+K_TIMER_DEFINE(slow_data_timer, slow_data_alert, NULL);
+
+// void fast_data_thread_entry(void *, void *, void *) {
+//   while (true) {
+// k_sem_take(&fast_sem, K_FOREVER);
+// fast_data_read();
+// k_sem_give(&fast_sem);
+//   }
+// }
+
+// K_THREAD_DEFINE(fast_data_reading, 1024, fast_data_thread_entry, NULL, NULL,
+// NULL, 25, 0, 0);
+
 int main(void) {
   if (gpio_init()) {
     return -1;
@@ -166,11 +229,32 @@ int main(void) {
   if (sensor_init()) {
     return -1;
   }
-  gpio_pin_set_dt(&ldo_enable, 1);
-  gpio_pin_set_dt(&buzzer, 0);
-  while (true) {
-    gpio_pin_toggle_dt(&led1);
-    k_msleep(2000);
+  k_tid_t storage_tid = spawn_data_storage_thread();
+  (void)storage_tid;
+
+  // Make sure storage is setup
+
+  if (k_event_wait(&storage_setup_finished, 0xFFF, false, K_FOREVER) ==
+      STORAGE_SETUP_FAILED_EVENT) {
+    LOG_ERR("Failed to initialize file system. FATAL ERROR\n");
+    fatal_buzzer();
+    return -1;
   }
+  // Storage is ready
+  // Start launch detecting
+  //   k_timer_start(&fast_data_timer, K_MSEC(1), K_MSEC(1));
+
+  //   for (int i = 0; i < 10000; i++) {
+  // fast_data_read();
+  // k_msleep(1);
+  //   }
+
+  //   k_msleep(10000);
+
+  //   k_timer_stop(&fast_data_timer);
+
+  enum flight_event its_so_over = flight_event_main_shutoff;
+  k_msgq_put(&flight_events_queue, &its_so_over, K_NO_WAIT);
+
   return 0;
 }
