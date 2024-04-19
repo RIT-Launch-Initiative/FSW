@@ -27,9 +27,8 @@ static int ina260_reg_read(const struct device *dev, uint8_t reg_addr,
 static int ina260_reg_write(const struct device *dev, uint8_t addr,
                             uint16_t reg_data) {
   const struct ina260_config *cfg = dev->config;
-  uint8_t tx_buf[3];
+  uint8_t tx_buf[3] = {addr, 0, 0};
 
-  tx_buf[0] = addr;
   sys_put_be16(reg_data, &tx_buf[1]);
 
   return i2c_write_dt(&cfg->bus, tx_buf, sizeof(tx_buf));
@@ -46,6 +45,7 @@ static int ina260_sample_fetch(const struct device *dev,
       chan != SENSOR_CHAN_POWER && chan != SENSOR_CHAN_CURRENT) {
     return -ENOTSUP;
   }
+
   if (cfg->mode < CONT_OFF) {
     LOG_ERR("Triggered Mode not supported\n");
     return -ENOTSUP;
