@@ -74,14 +74,12 @@ void storage_thread_entry_point(void *, void *, void *) {
     if (events[2].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
       k_msgq_get(events[2].msgq, &fast_dat, K_NO_WAIT);
       int ret = fs_write(&fast_file, (uint8_t *)(&fast_dat), sizeof(fast_dat));
-      LOG_INF("Sizeof: %d", sizeof(fast_dat));
+      LOG_INF("Sizeof: %d to %p", sizeof(fast_dat), &fast_file);
       if (ret < 0) {
-        LOG_INF("Error writing %s", "lfs/fast.bin");
+        LOG_INF("Error writing %s : %d", "/lfs/fast.bin", ret);
       }
     }
-    \ 
-  events[2]
-        .state = K_POLL_STATE_NOT_READY;
+    events[2].state = K_POLL_STATE_NOT_READY;
 
     if (events[3].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
       k_msgq_get(events[3].msgq, &event, K_NO_WAIT);

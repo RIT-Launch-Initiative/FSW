@@ -23,7 +23,10 @@
 #include <zephyr/storage/flash_map.h>
 
 // TODO MAKE THIS RIGHT
-int32_t timestamp() { return 5; }
+int32_t timestamp() {
+  int32_t ms = k_uptime_get();
+  return ms * 1000;
+}
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
 
@@ -167,7 +170,7 @@ void fatal_buzzer() {
   gpio_pin_set_dt(&ldo_enable, 1);
 
   while (true) {
-    gpio_pin_toggle_dt(&buzzer);
+    gpio_pin_toggle_dt(&led1);
     k_msleep(100);
   }
 }
@@ -229,15 +232,17 @@ K_TIMER_DEFINE(fast_data_timer, fast_data_alert, NULL);
 
 int main(void) {
   if (gpio_init()) {
+    fatal_buzzer();
     return -1;
   }
   if (sensor_init()) {
+    fatal_buzzer();
     return -1;
   }
 
-  adc_printout(&adc_chan0);
-  return 0;
-
+  //   adc_printout(&adc_chan0);
+  //   return 0;
+  //
   k_tid_t storage_tid = spawn_data_storage_thread();
   (void)storage_tid;
 
@@ -251,12 +256,7 @@ int main(void) {
   }
   // Storage is ready
   // Start launch detecting
-  k_timer_start(&fast_data_timer, K_MSEC(1), K_MSEC(1));
-
-  //   for (int i = 0; i < 10000; i++) {
-  // fast_data_read();
-  // k_msleep(1);
-  //   }
+  k_timer_start(&fast_data_timer, K_MSEC(100), K_MSEC(100));
 
   k_msleep(10000);
 
