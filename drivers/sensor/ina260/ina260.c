@@ -91,13 +91,13 @@ static int ina260_channel_get(const struct device *dev,
   switch (chan) {
   case SENSOR_CHAN_VOLTAGE: // Want volts
     // Full-scale range = 40.96 V (decimal = 32767); LSB = 1.25 mV.
-    return sensor_value_from_float(val, data->v_bus * 0.00125f);
+    return sensor_value_from_float(val, data->v_bus * INA260_VOLTS_PER_LSB);
   case SENSOR_CHAN_CURRENT: // Want Amps
     // The LSB size for the current register is set to 1.25 mA
-    return sensor_value_from_float(val, data->current * 0.00125f);
+    return sensor_value_from_float(val, data->current * INA260_AMPS_PER_LSB);
   case SENSOR_CHAN_POWER: // Want power
     // The Power Register LSB is fixed to 10 mW.
-    return sensor_value_from_float(val, data->power * 0.01f);
+    return sensor_value_from_float(val, data->power * INA260_WATTS_PER_LSB);
 
   default:
     LOG_DBG("Channel not supported by device");
@@ -106,11 +106,6 @@ static int ina260_channel_get(const struct device *dev,
 
   return 0;
 }
-
-static const struct sensor_driver_api ina260_api = {
-    .sample_fetch = ina260_sample_fetch,
-    .channel_get = ina260_channel_get,
-};
 
 static int ina260_init(const struct device *dev) {
   const struct ina260_config *cfg = dev->config;
@@ -139,6 +134,11 @@ static int ina260_init(const struct device *dev) {
   }
   return 0;
 }
+
+static const struct sensor_driver_api ina260_api = {
+    .sample_fetch = ina260_sample_fetch,
+    .channel_get = ina260_channel_get,
+};
 
 #define INA260_INIT(n)                                                         \
   static struct ina260_data ina260_data_##n;                                   \

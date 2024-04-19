@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2024 Richie Sommers
+#  Copyright (c) 2024 Launch Initiative
 #
 #  SPDX-License-Identifier: Apache-2.0
 #
