@@ -97,12 +97,14 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
 #ifdef CONFIG_DEBUG
 static void udp_tx_task(void* socks, void* unused1, void* unused2) {
     l_udp_socket_list_t const * sock_list = (l_udp_socket_list_t *) socks;
+    const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;
+    
     while (1) {
         l_gnss_data_t gnss_data = {0};
         k_msgq_get(&udp_tx_queue, &gnss_data, K_FOREVER);
         /// TODO: change this socket number later once we figure out how to add more
         for (int s = 0; s < sock_list->num_sockets; s++) {
-            l_send_udp_broadcast(sock_list->sockets[s], (uint8_t *) &gnss_data, sizeof(l_gnss_data_t), RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT);
+            l_send_udp_broadcast(sock_list->sockets[s], (uint8_t *) &gnss_data, sizeof(l_gnss_data_t), gnss_port);
         }
     }
 }
