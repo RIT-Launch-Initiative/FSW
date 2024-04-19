@@ -13,14 +13,14 @@ LOG_MODULE_REGISTER(INA260, CONFIG_SENSOR_LOG_LEVEL);
 static int ina260_reg_read(const struct device *dev, uint8_t reg_addr,
                            uint16_t *reg_data) {
   const struct ina260_config *cfg = dev->config;
-  uint8_t rx_buf[2];
-  int rc;
+  uint8_t rx_buf[2] = {0};
 
-  rc = i2c_write_read_dt(&cfg->bus, &reg_addr, sizeof(reg_addr), rx_buf,
-                         sizeof(rx_buf));
+  int rc = i2c_write_read_dt(&cfg->bus, &reg_addr, sizeof(reg_addr), rx_buf,
+                             sizeof(rx_buf));
 
-  *reg_data = sys_get_be16(rx_buf);
-
+  if (rc == 0) {
+    *reg_data = sys_get_be16(rx_buf);
+  }
   return rc;
 }
 
