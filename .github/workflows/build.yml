@@ -26,12 +26,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ matrix.app }}
 
       - name: Cache Python dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: python-${{ runner.os }}-${{ hashFiles('**/*.lock') }}
@@ -44,7 +44,7 @@ jobs:
           python-version: 3.11
 
       - name: Cache Zephyr dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/west
