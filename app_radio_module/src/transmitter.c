@@ -92,10 +92,10 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
 }
 
 #ifdef CONFIG_DEBUG
-static void udp_tx_task(void* socks, void* unused1, void* unused2) {
-    l_udp_socket_list_t const * sock_list = (l_udp_socket_list_t *) socks;
+static void udp_tx_task(void *socks, void *unused1, void *unused2) {
+    l_udp_socket_list_t const *sock_list = (l_udp_socket_list_t *) socks;
     const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;
-    
+
     while (1) {
         l_gnss_data_t gnss_data = {0};
         k_msgq_get(&udp_tx_queue, &gnss_data, K_FOREVER);
@@ -106,7 +106,6 @@ static void udp_tx_task(void* socks, void* unused1, void* unused2) {
     }
 }
 #endif
-
 
 static void lora_tx_task(void *, void *, void *) {
     const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
@@ -134,10 +133,10 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
     memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
     k_msgq_put(&lora_tx_queue, (void *) &packet, K_NO_WAIT);
 
-    #ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
+#ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
     // push to udp tx queue
     k_msgq_put(&udp_tx_queue, (void *) &gnss_data, K_NO_WAIT);
-    #endif
+#endif
 
     ready_to_tx = false;
 }
@@ -160,14 +159,11 @@ int init_udp_unique() {
                     INT_TO_POINTER(UDP_RX_BUFF_LEN), K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&udp_rx_thread);
 
-    #ifdef CONFIG_DEBUG
-    k_thread_create(&udp_tx_thread, &udp_tx_stack[0], UDP_TX_STACK_SIZE,
-                    udp_tx_task, &udp_socket_list, NULL, NULL,
-                    K_PRIO_PREEMPT(6),
-                    0,
-                    K_NO_WAIT);
+#ifdef CONFIG_DEBUG
+    k_thread_create(&udp_tx_thread, &udp_tx_stack[0], UDP_TX_STACK_SIZE, udp_tx_task, &udp_socket_list, NULL, NULL,
+                    K_PRIO_PREEMPT(6), 0, K_NO_WAIT);
     k_thread_start(&udp_tx_thread);
-    #endif
+#endif
 
     return 0;
 }
