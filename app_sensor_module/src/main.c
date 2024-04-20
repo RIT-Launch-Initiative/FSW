@@ -27,8 +27,7 @@ static void initialize_networks(void) {
 
     if (!l_check_device(DEVICE_DT_GET_ONE(wiznet_w5500))) {
         if (l_create_ip_str(eth_ip, 10, 3, 2, 1) == 0) {
-            if (!l_init_udp_net_stack_default(eth_ip)) {
-                LOG_ERR("Failed to initialize network stack");
+            if (!l_init_udp_net_stack_default(eth_ip)) {LOG_ERR("Failed to initialize network stack");
             }
         } else {
             LOG_ERR("Failed to create IP address string");
@@ -36,11 +35,9 @@ static void initialize_networks(void) {
     } else {
         LOG_ERR("Failed to get network device");
     }
-
-    if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {
-        if (l_create_ip_str(rs485_ip, 11, 0, 3, 1) == 0) {
+    if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {if (l_create_ip_str(rs485_ip, 11, 0, 3, 1) == 0) {
             if (l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip)) {
-                LOG_ERR("Failed to initialize network stack");
+  LOG_ERR("Failed to initialize network stack");
             }
         } else {
             LOG_ERR("Failed to create IP address string");
@@ -50,8 +47,7 @@ static void initialize_networks(void) {
     }
 }
 
-static int init(void) {
-    k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(sensor_module_ten_hz_telemetry_t),
+static int init(void) {k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(sensor_module_ten_hz_telemetry_t),
                 CONFIG_TEN_HZ_QUEUE_SIZE);
 
     initialize_networks();
@@ -64,8 +60,10 @@ static int init(void) {
     return 0;
 }
 
-int main() {
-    if (init()) {
+int main(   )
+{
+    if (init())
+    {
         return -1;
     }
 
