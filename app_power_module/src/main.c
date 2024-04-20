@@ -5,30 +5,26 @@
  */
 
 #include <launch_core/backplane_defs.h>
-#include <launch_core/types.h>
-
 #include <launch_core/dev/adc.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/dev/sensor.h>
-
 #include <launch_core/net/net_common.h>
-#include <launch_core/net/udp.h>
 #include <launch_core/net/sntp.h>
-
+#include <launch_core/net/udp.h>
 #include <launch_core/os/time.h>
+#include <launch_core/types.h>
 #include <zephyr/drivers/gpio.h>
-#include <zephyr/net/sntp.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/sntp.h>
 
-#define SENSOR_READ_STACK_SIZE (640)
+#define SENSOR_READ_STACK_SIZE      (640)
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
-#define INA219_UPDATE_TIME_MS (67)
+#define INA219_UPDATE_TIME_MS       (67)
 
 #define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
-
 
 static struct k_msgq ina_processing_queue;
 static uint8_t ina_processing_queue_buffer[CONFIG_INA219_QUEUE_SIZE * sizeof(power_module_telemetry_t)];
@@ -49,20 +45,12 @@ static const struct device *const wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
 
 static int udp_sockets[1] = {0};
 static int udp_socket_ports[1] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
-static l_udp_socket_list_t udp_socket_list = {
-        .sockets = udp_sockets,
-        .num_sockets = 1
-};
+static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = 1};
 
-static const enum sensor_channel ina_channels[] = {
-        SENSOR_CHAN_CURRENT,
-        SENSOR_CHAN_VOLTAGE,
-        SENSOR_CHAN_POWER
-};
+static const enum sensor_channel ina_channels[] = {SENSOR_CHAN_CURRENT, SENSOR_CHAN_VOLTAGE, SENSOR_CHAN_POWER};
 
 static const float ADC_GAIN = 0.09f;
 static const float MV_TO_V_MULTIPLIER = 0.001f;
-
 
 static void ina_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
@@ -70,23 +58,20 @@ static void ina_task(void *, void *, void *) {
     uint16_t temp_vin_adc_data = 0;
 
     const struct device *sensors[] = {
-            DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
-            DEVICE_DT_GET(DT_ALIAS(ina3v3)), // 3v3
-            DEVICE_DT_GET(DT_ALIAS(ina5v0)) // 5v0
+        DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
+        DEVICE_DT_GET(DT_ALIAS(ina3v3)),  // 3v3
+        DEVICE_DT_GET(DT_ALIAS(ina5v0))   // 5v0
     };
 
     const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
     struct adc_sequence vin_sense_sequence = {
-            .buffer = &temp_vin_adc_data,
-            .buffer_size = sizeof(temp_vin_adc_data),
+        .buffer = &temp_vin_adc_data,
+        .buffer_size = sizeof(temp_vin_adc_data),
     };
 
-    const bool ina_device_found[] = {
-            l_check_device(sensors[0]) == 0,
-            l_check_device(sensors[1]) == 0,
-            l_check_device(sensors[2]) == 0
-    };
+    const bool ina_device_found[] = {l_check_device(sensors[0]) == 0, l_check_device(sensors[1]) == 0,
+                                     l_check_device(sensors[2]) == 0};
 
     const bool adc_ready = l_init_adc_channel(&vin_sense_adc, &vin_sense_sequence) == 0;
 
@@ -122,11 +107,7 @@ static void ina_task(void *, void *, void *) {
         struct sensor_value current;
         struct sensor_value voltage;
         struct sensor_value power;
-        struct sensor_value *sensor_values[] = {
-                &current,
-                &voltage,
-                &power
-        };
+        struct sensor_value *sensor_values[] = {&current, &voltage, &power};
 
         if (likely(ina_device_found[0])) {
             l_get_sensor_data(sensors[0], 3, ina_channels, sensor_values);
@@ -210,13 +191,11 @@ static int init(void) {
     k_thread_start(&ina_read_thread);
 
     k_thread_create(&ina_processing_thread, &ina_processing_stack[0], QUEUE_PROCESSING_STACK_SIZE,
-                    ina_queue_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0,
-                    K_NO_WAIT);
+                    ina_queue_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
     k_thread_start(&ina_processing_thread);
 
     return 0;
 }
-
 
 int main(void) {
     if (init()) {
@@ -228,5 +207,4 @@ int main(void) {
     }
 
     return 0;
-
 }
