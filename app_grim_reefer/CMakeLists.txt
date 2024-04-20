@@ -6,5 +6,7 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(grim-reefer LANGUAGES C)
 
+
 FILE(GLOB sources src/*.c)
 target_sources(app PRIVATE ${sources})
+

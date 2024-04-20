@@ -41,24 +41,32 @@ static struct k_poll_event events[NUM_EVENTS] = {
       LOG_INF("Error writing %s", filename);                                   \
     }                                                                          \
   }                                                                            \
-  \ 
+                                                                               \
   event.state = K_POLL_STATE_NOT_READY;
+
+#define OPEN_OR_FAIL(name, filename)                                           \
+  struct fs_file_t name;                                                       \
+  {                                                                            \
+    fs_file_t_init(&name);                                                     \
+    int ret = fs_open(&name, filename, FS_O_RDWR | FS_O_CREATE);               \
+                                                                               \
+    if (ret < 0) {                                                             \
+      LOG_ERR("Error opening %s. %d", filename, ret);                          \
+      k_event_post(&storage_setup_finished, STORAGE_SETUP_FAILED_EVENT);       \
+      return;                                                                  \
+    }                                                                          \
+  }
 
 void storage_thread_entry_point(void *, void *, void *) {
   struct fast_data fast_dat;
   struct slow_data slow_dat;
   struct adc_data adc_dat;
   enum flight_event event;
+  int ret;
 
-  struct fs_file_t fast_file;
-  fs_file_t_init(&fast_file);
-
-  int ret = fs_open(&fast_file, "/lfs/fast.bin", FS_O_RDWR | FS_O_CREATE);
-  if (ret < 0) {
-    LOG_ERR("Failed to open %s", "/lfs/fast.bin");
-    k_event_post(&storage_setup_finished, STORAGE_SETUP_FAILED_EVENT);
-    return;
-  }
+  OPEN_OR_FAIL(fast_file, FAST_FILENAME);
+  OPEN_OR_FAIL(slow_file, SLOW_FILENAME);
+  OPEN_OR_FAIL(adc_file, ADC_FILENAME);
 
   k_event_post(&storage_setup_finished, STORAGE_SETUP_SUCCESS_EVENT);
 
@@ -66,20 +74,11 @@ void storage_thread_entry_point(void *, void *, void *) {
     k_poll(events, NUM_EVENTS, K_FOREVER);
 
     // Slow data
-    // CHECK_AND_STORE(events[0], slow_dat, fast_file, "/lfs/fast.bin")
+    CHECK_AND_STORE(events[0], slow_dat, slow_file, SLOW_FILENAME)
     // ADC data
-    // CHECK_AND_STORE(events[1], adc_dat, fast_file, "/lfs/fast.bin")
+    CHECK_AND_STORE(events[1], adc_dat, adc_file, ADC_FILENAME)
     // Fast data
-    // CHECK_AND_STORE(events[2], fast_dat, fast_file, "/lfs/fast.bin")
-    if (events[2].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
-      k_msgq_get(events[2].msgq, &fast_dat, K_NO_WAIT);
-      int ret = fs_write(&fast_file, (uint8_t *)(&fast_dat), sizeof(fast_dat));
-      LOG_INF("Sizeof: %d to %p", sizeof(fast_dat), &fast_file);
-      if (ret < 0) {
-        LOG_INF("Error writing %s : %d", "/lfs/fast.bin", ret);
-      }
-    }
-    events[2].state = K_POLL_STATE_NOT_READY;
+    CHECK_AND_STORE(events[2], fast_dat, fast_file, FAST_FILENAME)
 
     if (events[3].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
       k_msgq_get(events[3].msgq, &event, K_NO_WAIT);
@@ -91,8 +90,17 @@ void storage_thread_entry_point(void *, void *, void *) {
   LOG_INF("Flight over. Saving files...");
   ret = fs_close(&fast_file);
   if (ret < 0) {
-    LOG_ERR("Failed to close file. Uh oh");
+    LOG_ERR("Failed to fast file. Uh oh");
   }
+  ret = fs_close(&slow_file);
+  if (ret < 0) {
+    LOG_ERR("Failed to slow file. Uh oh");
+  }
+  ret = fs_close(&adc_file);
+  if (ret < 0) {
+    LOG_ERR("Failed to adc file. Uh oh");
+  }
+
   LOG_INF("Saved Files");
 }
 
