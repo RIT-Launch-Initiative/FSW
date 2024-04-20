@@ -1,18 +1,17 @@
 #include "sensors.h"
 
 #include <launch_core/backplane_defs.h>
-#include <launch_core/types.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/dev/uart.h>
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
-
+#include <launch_core/types.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 #define SENSOR_MODULE_IP_ADDR BACKPLANE_IP(SENSOR_MODULE_ID, 2, 1) // TODO: KConfig the board revision and #
-#define STACK_SIZE (512)
+#define STACK_SIZE            (512)
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 
@@ -36,10 +35,10 @@ static void telemetry_processing_task(void *, void *, void *) {
     sensor_module_ten_hz_telemetry_t ten_hz_telem;
     sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
 
-    int ten_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
-                                          SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
-    int hundred_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
-                                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
+    int ten_hz_socket =
+        l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
+    int hundred_hz_socket =
+        l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
 
     while (true) {
         if (0 == k_msgq_get(&ten_hz_telemetry_queue, &ten_hz_telem, K_NO_WAIT)) {
@@ -88,7 +87,8 @@ static void initialize_networks(void) {
             LOG_ERR("Failed to create IP address string");
         }
     } else {
-        LOG_ERR("Failed to initialize UART to RS485");;
+        LOG_ERR("Failed to initialize UART to RS485");
+        ;
     }
 }
 
@@ -96,17 +96,15 @@ static int init(void) {
     k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(sensor_module_ten_hz_telemetry_t),
                 CONFIG_TEN_HZ_QUEUE_SIZE);
 
-
     initialize_networks();
 
     // Tasks
-//    k_thread_create(&telemetry_processing_thread, &telemetry_processing_stack[0], STACK_SIZE,
-//                    telemetry_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
-//    k_thread_start(&telemetry_processing_thread);
+    //    k_thread_create(&telemetry_processing_thread, &telemetry_processing_stack[0], STACK_SIZE,
+    //                    telemetry_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
+    //    k_thread_start(&telemetry_processing_thread);
 
     return 0;
 }
-
 
 int main() {
     if (init()) {
@@ -115,5 +113,3 @@ int main() {
 
     return 0;
 }
-
-
