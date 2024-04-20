@@ -36,8 +36,10 @@ static void telemetry_processing_task(void *, void *, void *) {
     sensor_module_ten_hz_telemetry_t ten_hz_telem;
     sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
 
-    int ten_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
-    int hundred_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
+    int ten_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
+                                          SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
+    int hundred_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
+                                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
 
     while (true) {
         if (0 == k_msgq_get(&ten_hz_telemetry_queue, &ten_hz_telem, K_NO_WAIT)) {
@@ -48,7 +50,8 @@ static void telemetry_processing_task(void *, void *, void *) {
         }
 
         if (0 == k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telem, K_NO_WAIT)) {
-            l_send_udp_broadcast(hundred_hz_socket, (uint8_t *) &hundred_hz_telem, sizeof(sensor_module_hundred_hz_telemetry_t),
+            l_send_udp_broadcast(hundred_hz_socket, (uint8_t *) &hundred_hz_telem,
+                                 sizeof(sensor_module_hundred_hz_telemetry_t),
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
         } else {
             LOG_WRN("Failed to get data from 100 Hz queue");
@@ -92,7 +95,6 @@ static void initialize_networks(void) {
 static int init(void) {
     k_msgq_init(&ten_hz_telemetry_queue, ten_hz_telemetry_queue_buffer, sizeof(sensor_module_ten_hz_telemetry_t),
                 CONFIG_TEN_HZ_QUEUE_SIZE);
-
 
 
     initialize_networks();
