@@ -2,8 +2,8 @@
 #include "radio_module_functionality.h"
 
 // Zephyr Includes
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 #define SLEEP_TIME_MS 100
@@ -33,7 +33,6 @@ int main() {
     if (l_check_device(lora_dev) == 0) {
         init_lora_unique(lora_dev);
     }
-
 
     if (l_check_device(wiznet) == 0) {
         init_networking();
