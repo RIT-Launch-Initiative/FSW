@@ -11,13 +11,13 @@
 
 // Openrocket predicts 75 second flight time for bare L1
 
-#define FLIGHT_TIME_MS (125 * 1000)
+#define FLIGHT_TIME_MS (110 * 1000)
 
 #define FIVE_G_LIMIT_MPS 50
 // 500 samples a sec max
 // 500 / 4 per quarter second
 // 500/4
-#define ACC_BOOST_DETECTION_AVG_SAMPLES 125
+#define ACC_BOOST_DETECTION_AVG_SAMPLES 100
 
 // gyro sens 70
 // accel sens 0.488

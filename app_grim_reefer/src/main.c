@@ -29,8 +29,8 @@
 #include <zephyr/../../drivers/sensor/lsm6dsl/lsm6dsl.h>
 // TODO MAKE THIS RIGHT
 int32_t timestamp() {
-    int32_t ms = k_uptime_get();
-    return ms * 1000;
+    int32_t us = k_ticks_to_us_floor32(k_uptime_ticks());
+    return us;
 }
 
 LOG_MODULE_REGISTER(main);
@@ -145,7 +145,10 @@ static int sensor_init(void) {
         LOG_ERR("Error setting up sensor and flash devices");
         return -1;
     }
-
+    int res = sensor_attr_set(&lsm6dsl, SENSOR_ATTR_SAMPLING_FREQUNC, 0);
+    if (res < 0) {
+        LOG_ERR("sensor attr set mot it");
+    }
     const bool ina_bat_found = device_is_ready(ina_bat_dev);
     const bool ina_ldo_found = device_is_ready(ina_ldo_dev);
     const bool ina_grim_found = device_is_ready(ina_grim_dev);
@@ -206,10 +209,11 @@ volatile int frame = 0;
 void fast_data_read(struct k_work *) {
 
     // Read Data
-    int ret = sensor_sample_fetch_chan(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ);
-    get_likely_or_warn(ret, "Failed to read IMU accel");
-    ret = sensor_sample_fetch_chan(lsm6dsl_dev, SENSOR_CHAN_GYRO_XYZ);
-    get_likely_or_warn(ret, "Failed to read IMU gyro");
+    int ret;
+    // = sensor_sample_fetch_chan(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ);
+    // get_likely_or_warn(ret, "Failed to read IMU accel");
+    // ret = sensor_sample_fetch_chan(lsm6dsl_dev, SENSOR_CHAN_GYRO_XYZ);
+    // get_likely_or_warn(ret, "Failed to read IMU gyro");
     // Store data
 
     struct lsm6dsl_data *data = lsm6dsl_dev->data;
@@ -234,29 +238,16 @@ void fast_data_read(struct k_work *) {
     struct sensor_value accel_vals[3];
     get_likely_or_warn(sensor_channel_get(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ, accel_vals),
                        "Failed to convert accel values");
-    int acc_mag_sqrd = (accel_vals[0].val1 * accel_vals[0].val1) + (accel_vals[1].val1 * accel_vals[1].val1) +
-                       (accel_vals[2].val1 * accel_vals[2].val1);
 
-    float avg = add_sample_int(acc_mag_sqrd);
-    if (avg > FIVE_G_LIMIT_MPS * FIVE_G_LIMIT_MPS) {
-        printk("LAUNCH DETECTED %d\n", acc_mag_sqrd);
+    float avg = add_sample_int(accel_vals[1].val1);
+    // if (frame % 10 == 0) {
+    // printk("%.2f\n", sensor_value_to_float(&accel_vals[1]));
+    // }
+    if (avg > FIVE_G_LIMIT_MPS && !has_launched) {
+        printk("Launch with avg mps2: %f", avg);
         has_launched = true;
     }
     frame++;
-    if (frame % 100 == 0) {
-        printk("avg: %f\n", avg);
-    }
-
-    //   float ay = sensor_value_to_float(&accel_vals[1]);
-    //   float az = sensor_value_to_float(&accel_vals[2]);
-    //   float acc_mag = sqrtf((ax * ax) + (ay * ay) + (az * az));
-    // Only need to read pressure at 100hz
-    //   if (num_samples_fast % 10 == 0) {
-    // struct sensor_value press;
-    // get_likely_or_warn(sensor_sample_fetch_chan(bme280_dev, SENSOR_CHAN_PRESS),
-    //    "unable to fetch pressure");
-    // float pressure = sensor_value_to_float(&press);
-    //   }
 }
 
 volatile int num_samples_slow = 0;
@@ -288,7 +279,7 @@ void slow_data_read(struct k_work *) {
 
     struct slow_data dat = {
         .timestamp = timestamp(),
-        .humidity = humid.val1 * 1000000 + humid.val2,
+        .humidity = press.val1 * 1000000 + press.val2,
         .temperature = temp.val1 * 1000000 + temp.val2,
         .grim_voltage = grim_data->v_bus,
         .grim_current = grim_data->current,
@@ -334,18 +325,28 @@ int main(void) {
     LOG_DBG("Starting launch detection");
     // Storage is ready
     // Start launch detecting
-    gpio_pin_set_dt(&cam_enable, 1);
+    gpio_pin_set_dt(&cam_enable, 0);
     gpio_pin_set_dt(&ldo_enable, 1);
 
     k_timer_start(&fast_data_timer, FAST_DATA_DELAY_MS, FAST_DATA_DELAY_MS);
     k_timer_start(&slow_data_timer, SLOW_DATA_DELAY_MS, SLOW_DATA_DELAY_MS);
 
     // scuffed, use events
+    int buzzer_frame = 0;
     while (!has_launched && !cancelled) {
+        if (buzzer_frame % 500 == 0) {
+            gpio_pin_set_dt(&buzzer, 1);
+        } else if (buzzer_frame % 500 == 20) {
+            gpio_pin_set_dt(&buzzer, 0);
+        }
+
         k_msleep(5);
+        buzzer_frame++;
     }
 
     if (has_launched) {
+        gpio_pin_set_dt(&buzzer, 0);
+
         printk("Launch detected at %lld\n", k_uptime_get());
         k_msleep(FLIGHT_TIME_MS);
     }
@@ -358,14 +359,26 @@ int main(void) {
     }
     LOG_DBG("Samples: %d", num_samples_fast);
     printk("Fast: %d, Slow: %d\n", num_samples_fast, num_samples_slow);
-    printk("Over limit for: %d\n", over_limit_for);
 
-    // save circular buffer
-
+    while (true) {
+        if (buzzer_frame % 500 == 0) {
+            gpio_pin_set_dt(&buzzer, 1);
+        } else if (buzzer_frame % 500 == 20) {
+            gpio_pin_set_dt(&buzzer, 0);
+        } else if (buzzer_frame % 500 == 30) {
+            gpio_pin_set_dt(&buzzer, 1);
+        } else if (buzzer_frame % 500 == 40) {
+            gpio_pin_set_dt(&buzzer, 0);
+        }
+        buzzer_frame++;
+        k_msleep(5);
+    }
     return 0;
 }
 
 // Dumping
+
+#ifdef CONFIG_SHELL
 
 // read from file into this
 #define B64_PER_LINE       (12 * 6)
@@ -432,16 +445,26 @@ static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
 
-    LOG_ERR("NOGO Unimplemented");
     cancelled = true;
 
     return 0;
 }
 
+static int cmd_override(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
+    has_launched = true;
+    return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(dump_subcmds, SHELL_CMD(nogo, NULL, "Cancel launch detection", cmd_nogo),
-                               SHELL_CMD(dump_slow, NULL, "Dump slow file.", cmd_dump_slow),
-                               SHELL_CMD(dump_fast, NULL, "Dump fast file.", cmd_dump_fast),
-                               SHELL_CMD(dump_adc, NULL, "Dump adc file.", cmd_dump_adc), SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(override, NULL, "Dump slow file.", cmd_override),
+                               SHELL_CMD(slow, NULL, "Dump slow file.", cmd_dump_slow),
+                               SHELL_CMD(fast, NULL, "Dump fast file.", cmd_dump_fast),
+                               SHELL_CMD(adc, NULL, "Dump adc file.", cmd_dump_adc), SHELL_SUBCMD_SET_END);
 
 /* Creating root (level 0) command "demo" */
 SHELL_CMD_REGISTER(dump, &dump_subcmds, "Data Dump Commands", NULL);
+
+#endif
