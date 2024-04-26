@@ -17,6 +17,4 @@ int start_tasks();
 
 int main_unique();
 
-
-
 #endif //RADIO_MODULE_FUNCTIONALITY_H

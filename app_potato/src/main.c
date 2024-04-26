@@ -1,16 +1,11 @@
 #include <app_version.h>
-
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/dev/uart.h>
 #include <launch_core/extension_boards.h>
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
-
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
-
 
 LOG_MODULE_REGISTER(app_potato);
 
@@ -32,27 +27,21 @@ static K_QUEUE_DEFINE(slip_tx_queue);
 static void adc_read_task(void *, void *, void *) {
     // Check ADC
 
-
     // Do ADC stuff
     while (1) {
-
     }
 }
-
 
 static void sensor_read_task(void *, void *, void *) {
     // Check devices
 
     // Do sensor stuff
     while (1) {
-
     }
 }
 
-
 static void slip_tx_task(void *, void *, void *) {
     while (1) {
-
     }
 }
 
@@ -87,13 +76,12 @@ static int init(void) {
 
     // Initialize tasks
     // TODO: Maybe prioritize in this order (ADC, SLIP, sensors)
-    k_thread_create(&adc_read_thread, &adc_read_stack[0], POTATO_STACK_SIZE,
-                    adc_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-    k_thread_create(&sensor_read_thread, &sensor_read_stack[0], POTATO_STACK_SIZE,
-                    sensor_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-    k_thread_create(&slip_tx_thread, &slip_tx_stack[0], POTATO_STACK_SIZE,
-                    slip_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-
+    k_thread_create(&adc_read_thread, &adc_read_stack[0], POTATO_STACK_SIZE, adc_read_task, NULL, NULL, NULL,
+                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_create(&sensor_read_thread, &sensor_read_stack[0], POTATO_STACK_SIZE, sensor_read_task, NULL, NULL, NULL,
+                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    k_thread_create(&slip_tx_thread, &slip_tx_stack[0], POTATO_STACK_SIZE, slip_tx_task, NULL, NULL, NULL,
+                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
 
     k_thread_start(&adc_read_thread);
     k_thread_start(&sensor_read_thread);
@@ -105,8 +93,5 @@ static int init(void) {
 int main() {
     init();
 
-
     return 0;
 }
-
-
