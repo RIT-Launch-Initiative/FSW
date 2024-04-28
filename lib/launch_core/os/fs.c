@@ -85,7 +85,7 @@ size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx) {
         return -EDOM; // could also be EOVERFLOW, EINVAL?
     }
 
-    // this class makes no garauntees about where the current seek position is
+    // this class makes no guarantees about where the current seek position is
     int32_t ret = fs_seek(&p_file->file, frame_start, FS_SEEK_SET);
     if (ret < 0) {
         return ret;
