@@ -81,7 +81,7 @@ size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx) {
 
     if (frame_end > p_file->size) {
         LOG_ERR("Frame %d spans %d to %d, but max size is %d",
-                idx, frame_start, frame_end, size);
+                idx, frame_start, frame_end, p_file->size);
         return -EDOM; // could also be EOVERFLOW, EINVAL?
     }
 
@@ -145,10 +145,10 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
     }
 
     LOG_DBG("%s is on a volume with \r\n\t%lu blocks (%lu free) of %lu bytes each",
-            fname,
-            vfs.f_blocks,
-            vfs.f_bfree,
-            vfs.f_frsize);
+            p_file->fname,
+            p_file->vfs.f_blocks,
+            p_file->vfs.f_bfree,
+            p_file->vfs.f_frsize);
 
     return ret;
 }

@@ -6,6 +6,7 @@
 #include <launch_core/dev/uart.h>
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
+#include <launch_core/os/fs.h>
 
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
