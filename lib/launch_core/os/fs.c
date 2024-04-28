@@ -80,7 +80,7 @@ size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx) {
     off_t frame_end = frame_start + p_file->width;
 
     if (frame_end > p_file->size) {
-        LOG_ERR("Frame %d spans %d to %d, but max size is %d",
+        LOG_ERR("Frame %ld spans %ld to %ld, but max size is %d",
                 idx, frame_start, frame_end, p_file->size);
         return -EDOM; // could also be EOVERFLOW, EINVAL?
     }
