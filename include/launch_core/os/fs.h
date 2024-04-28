@@ -107,4 +107,6 @@ int32_t l_fs_stat(l_fs_file_t *p_file);
 
 int32_t l_fs_stat_vfs(l_fs_file_t *p_file);
 
+int32_t l_fs_boot_count_check();
+
 #endif

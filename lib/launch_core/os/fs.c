@@ -152,3 +152,51 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
 
     return ret;
 }
+
+int32_t l_fs_boot_count_check() {
+    // Check if a .boot_count file exists. If not create it
+    struct fs_file_t boot_count_file;
+    int32_t ret = fs_open(&boot_count_file, ".boot_count", FS_O_CREATE | FS_O_RDWR);
+    if (ret < 0) {
+        LOG_ERR("Unable to open/create boot count file: %d", ret);
+        return ret;
+    }
+
+    // If the file was just created, write a 0 to it
+    if (ret == 0) {
+        uint32_t boot_count = 0;
+        ret = fs_write(&boot_count_file, &boot_count, sizeof(boot_count));
+        if (ret < 0) {
+            LOG_ERR("Unable to write boot count: %d", ret);
+            return ret;
+        }
+    }
+
+    // Read the boot count
+    uint32_t boot_count;
+    ret = fs_read(&boot_count_file, &boot_count, sizeof(boot_count));
+    if (ret < 0) {
+        LOG_ERR("Unable to read boot count: %d", ret);
+        return ret;
+    }
+
+    // Increment the boot count
+    boot_count++;
+
+    // Write the boot count
+    ret = fs_seek(&boot_count_file, 0, FS_SEEK_SET);
+    if (ret < 0) {
+        LOG_ERR("Unable to seek to beginning of boot count file: %d", ret);
+        return ret;
+    }
+
+    ret = fs_write(&boot_count_file, &boot_count, sizeof(boot_count));
+    if (ret < 0) {
+        LOG_ERR("Unable to write boot count: %d", ret);
+        return ret;
+    }
+
+    // Close the boot count file
+    return fs_close(&boot_count_file);
+}
+
