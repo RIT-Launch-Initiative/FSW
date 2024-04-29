@@ -32,12 +32,20 @@ static void init_ina_task(const struct device *sensors[3], bool ina_device_found
     }
 }
 
+static bool init_adc_task(const struct adc_dt_spec *p_vin_sense_adc, struct adc_sequence *p_vin_sense_sequence) {
+    const bool adc_ready = l_init_adc_channel(p_vin_sense_adc, p_vin_sense_sequence) == 0;
+
+    if (!adc_ready) {
+        LOG_ERR("ADC channel %d is not ready", vin_sense_adc.channel_id);
+    }
+
+    return adc_ready;
+}
+
 static void ina_task(void *, void *, void *) {
     static const enum sensor_channel ina_channels[] = {SENSOR_CHAN_CURRENT, SENSOR_CHAN_VOLTAGE, SENSOR_CHAN_POWER};
 
     power_module_telemetry_t sensor_telemetry = {0};
-    float vin_adc_data_mv = 0;
-    uint16_t temp_vin_adc_data = 0;
 
     const struct device *sensors[] = {
             DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
@@ -48,32 +56,8 @@ static void ina_task(void *, void *, void *) {
     bool ina_device_found[3] = {false};
     init_ina_task(sensors, ina_device_found);
 
-
-    const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
-
-    struct adc_sequence vin_sense_sequence = {
-            .buffer = &temp_vin_adc_data,
-            .buffer_size = sizeof(temp_vin_adc_data),
-    };
-
-    const bool adc_ready = l_init_adc_channel(&vin_sense_adc, &vin_sense_sequence) == 0;
-
-
-    if (!adc_ready) {
-        LOG_ERR("ADC channel %d is not ready", vin_sense_adc.channel_id);
-        sensor_telemetry.vin_adc_data_v = -0x7FFF;
-    }
-
     while (true) {
         l_update_sensors_safe(sensors, 3, ina_device_found);
-        if (likely(adc_ready)) {
-            if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
-                sensor_telemetry.vin_adc_data_v = (vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN;
-            } else {
-                LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
-                sensor_telemetry.vin_adc_data_v = -0x7FFF;
-            }
-        }
         sensor_telemetry.timestamp = k_uptime_get_32();
 
         l_get_shunt_data_float(sensors[0], &sensor_telemetry.data_battery);
@@ -89,5 +73,27 @@ static void ina_task(void *, void *, void *) {
         if (time_to_wait > 0) {
             k_sleep(K_MSEC(time_to_wait));
         }
+    }
+}
+
+static void adc_task(void *, void *, void *) {
+    float vin_adc_data_mv = 0;
+    uint16_t temp_vin_adc_data = 0;
+
+    const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+    struct adc_sequence vin_sense_sequence = {
+            .buffer = &temp_vin_adc_data,
+            .buffer_size = sizeof(temp_vin_adc_data),
+    };
+
+    if (!init_adc_task(&vin_sense_adc, &vin_sense_sequence)) {
+        return;
+    }
+
+    if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
+        sensor_telemetry.vin_adc_data_v = (vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN;
+    } else {
+        LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
+        sensor_telemetry.vin_adc_data_v = -0x7FFF;
     }
 }
