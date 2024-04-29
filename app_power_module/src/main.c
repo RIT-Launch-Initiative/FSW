@@ -40,8 +40,7 @@ static int udp_socket_ports[1] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA
 static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = 1};
 
 
-static const float ADC_GAIN = 0.09f;
-static const float MV_TO_V_MULTIPLIER = 0.001f;
+
 
 
 

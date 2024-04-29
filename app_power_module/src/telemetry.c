@@ -9,17 +9,15 @@
 #define SENSOR_READ_STACK_SIZE      (640)
 
 
-//    k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL,
-//                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-//    k_thread_start(&ina_read_thread);
-
 LOG_MODULE_REGISTER(telemetry);
 
 static void ina_task(void *, void *, void *);
-
 K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
 extern struct k_msgq ina_processing_queue;
+
+static void adc_task(void *, void *, void *);
+K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
 static void init_ina_task(const struct device *sensors[3], bool ina_device_found[3]) {
     const char *sensor_names[] = {"Battery", "3v3", "5v0"};
@@ -36,15 +34,13 @@ static bool init_adc_task(const struct adc_dt_spec *p_vin_sense_adc, struct adc_
     const bool adc_ready = l_init_adc_channel(p_vin_sense_adc, p_vin_sense_sequence) == 0;
 
     if (!adc_ready) {
-        LOG_ERR("ADC channel %d is not ready", vin_sense_adc.channel_id);
+        LOG_ERR("ADC channel %d is not ready", p_vin_sense_adc->channel_id);
     }
 
     return adc_ready;
 }
 
 static void ina_task(void *, void *, void *) {
-    static const enum sensor_channel ina_channels[] = {SENSOR_CHAN_CURRENT, SENSOR_CHAN_VOLTAGE, SENSOR_CHAN_POWER};
-
     power_module_telemetry_t sensor_telemetry = {0};
 
     const struct device *sensors[] = {
@@ -77,6 +73,9 @@ static void ina_task(void *, void *, void *) {
 }
 
 static void adc_task(void *, void *, void *) {
+    static const float adc_gain = 0.09f;
+    static const float mv_to_v_multiplier = 0.001f;
+
     float vin_adc_data_mv = 0;
     uint16_t temp_vin_adc_data = 0;
 
@@ -89,11 +88,12 @@ static void adc_task(void *, void *, void *) {
     if (!init_adc_task(&vin_sense_adc, &vin_sense_sequence)) {
         return;
     }
+    while (true) {
+        if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
+            LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
+        }
 
-    if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
-        sensor_telemetry.vin_adc_data_v = (vin_adc_data_mv * MV_TO_V_MULTIPLIER) * ADC_GAIN;
-    } else {
-        LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
-        sensor_telemetry.vin_adc_data_v = -0x7FFF;
+        float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
+        // TODO: Put on queue and timer
     }
 }
