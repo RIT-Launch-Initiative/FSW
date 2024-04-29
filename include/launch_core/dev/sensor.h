@@ -110,4 +110,12 @@ int l_get_magnetometer_data_float(const struct device *const dev, l_magnetometer
  */
 int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_t *p_gyro_data);
 
+/**
+ * Retrieve data from an shunt device and assign converted values to a struct
+ * @param dev - Device to read from
+ * @param p_accel_data - Pointer to an shunt data struct
+ * @return Bitfield of failed retrievals
+ */
+int l_get_shunt_data_float(const struct device *const dev, l_shunt_data_t *p_shunt_data);
+
 #endif // L_SENSOR_UTILS_H
