@@ -197,6 +197,12 @@ int32_t l_fs_boot_count_check() {
     }
 
     // Close the boot count file
-    return fs_close(&boot_count_file);
+    ret = fs_close(&boot_count_file);
+    if (ret < 0) {
+        LOG_ERR("Unable to close boot count file: %d", ret);
+        return ret;
+    }
+
+    return boot_count;
 }
 

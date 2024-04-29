@@ -15,6 +15,8 @@
 #include <launch_core/net/udp.h>
 #include <launch_core/net/sntp.h>
 
+#include <launch_core/os/fs.h>
+
 #include <launch_core/os/time.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/net/sntp.h>
@@ -203,6 +205,8 @@ static int init(void) {
                 CONFIG_INA219_QUEUE_SIZE);
 
     init_networking();
+
+    (void)l_fs_boot_count_check();
 
     // TODO: Play with these values on rev 2 where we can do more profiling
     k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL,

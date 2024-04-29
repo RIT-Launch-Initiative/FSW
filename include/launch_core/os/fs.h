@@ -103,10 +103,24 @@ size_t l_fs_file_size(l_fs_file_t *p_file);
  */
 size_t l_fs_volume_free_space(l_fs_file_t *p_file);
 
+/**
+ * @brief Get the file's status
+ * @param p_file File to check
+ * @return 0 on success, < 0 on error
+ */
 int32_t l_fs_stat(l_fs_file_t *p_file);
 
+/**
+ * @brief Get the filesystem's status
+ * @param p_file File to check
+ * @return 0 on success, < 0 on error
+ */
 int32_t l_fs_stat_vfs(l_fs_file_t *p_file);
 
+/**
+ * @brief Get the boot count of the device, to see if FS can be read and written to
+ * @return > 0 for boot count number, < 0 on error
+ */
 int32_t l_fs_boot_count_check();
 
 #endif
