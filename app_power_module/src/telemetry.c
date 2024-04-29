@@ -21,6 +21,17 @@ K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, 
 
 extern struct k_msgq ina_processing_queue;
 
+static void init_ina_task(const struct device *sensors[3], bool ina_device_found[3]) {
+    const char *sensor_names[] = {"Battery", "3v3", "5v0"};
+
+    for (int i = 0; i < 3; i++) {
+        ina_device_found[i] = l_check_device(sensors[i]) == 0;
+        if (!ina_device_found[i]) {
+            LOG_ERR("INA219 %s sensor not found", sensor_names[i]);
+        }
+    }
+}
+
 static void ina_task(void *, void *, void *) {
     static const enum sensor_channel ina_channels[] = {SENSOR_CHAN_CURRENT, SENSOR_CHAN_VOLTAGE, SENSOR_CHAN_POWER};
 
@@ -34,6 +45,10 @@ static void ina_task(void *, void *, void *) {
             DEVICE_DT_GET(DT_ALIAS(ina5v0))   // 5v0
     };
 
+    bool ina_device_found[3] = {false};
+    init_ina_task(sensors, ina_device_found);
+
+
     const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
     struct adc_sequence vin_sense_sequence = {
@@ -41,22 +56,8 @@ static void ina_task(void *, void *, void *) {
             .buffer_size = sizeof(temp_vin_adc_data),
     };
 
-    const bool ina_device_found[] = {l_check_device(sensors[0]) == 0, l_check_device(sensors[1]) == 0,
-                                     l_check_device(sensors[2]) == 0};
-
     const bool adc_ready = l_init_adc_channel(&vin_sense_adc, &vin_sense_sequence) == 0;
 
-    if (!ina_device_found[0]) {
-        LOG_ERR("INA219 battery sensor not found");
-    }
-
-    if (!ina_device_found[1]) {
-        LOG_ERR("INA219 3v3 sensor not found");
-    }
-
-    if (!ina_device_found[2]) {
-        LOG_ERR("INA219 5v0 sensor not found");
-    }
 
     if (!adc_ready) {
         LOG_ERR("ADC channel %d is not ready", vin_sense_adc.channel_id);
