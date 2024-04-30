@@ -7,7 +7,7 @@
 #include <zephyr/drivers/gpio.h>
 
 #define INA219_UPDATE_TIME_MS       (67)
-#define ADC_UPDATE_TIME_MS          (10000)
+#define ADC_UPDATE_TIME_MS          (15)
 #define SENSOR_READ_STACK_SIZE      (1024)
 
 LOG_MODULE_REGISTER(telemetry);
@@ -16,8 +16,8 @@ static void ina_task(void *, void *, void *);
 
 static void adc_task(void *, void *, void *);
 
-K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
-K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
+K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
 K_MSGQ_DEFINE(adc_telemetry_msgq, sizeof(float), 10, 4);

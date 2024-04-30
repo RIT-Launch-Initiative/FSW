@@ -17,7 +17,7 @@ static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_socke
 static void telemetry_broadcast_task(void *, void *, void *);
 
 K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
-                telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
+                telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 extern struct k_msgq ina_telemetry_msgq;
 extern struct k_msgq adc_telemetry_msgq;
