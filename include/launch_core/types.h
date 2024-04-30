@@ -50,11 +50,9 @@ typedef float l_temperature_data_t;
 
 /********** Module Data Types **********/
 typedef struct __attribute__((packed)) {
-    uint32_t timestamp;
     l_shunt_data_t data_battery;
     l_shunt_data_t data_3v3;
     l_shunt_data_t data_5v0;
-    float vin_adc_data_v;
 } power_module_telemetry_t;
 
 typedef struct __attribute__((packed)) {

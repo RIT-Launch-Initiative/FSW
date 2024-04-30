@@ -13,13 +13,13 @@ LOG_MODULE_REGISTER(telemetry);
 
 static void ina_task(void *, void *, void *);
 
-K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
-
 static void adc_task(void *, void *, void *);
 
+K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
-K_MSGQ_DEFINE(power_module_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
+K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
+K_MSGQ_DEFINE(adc_telemetry_msgq, sizeof(float), 10, 4);
 
 K_TIMER_DEFINE(ina_task_timer, NULL, NULL);
 K_TIMER_DEFINE(adc_task_timer, NULL, NULL);
@@ -74,13 +74,11 @@ static void ina_task(void *, void *, void *) {
         k_timer_status_sync(&ina_task_timer);
 
         l_update_sensors_safe(sensors, 3, ina_device_found);
-        sensor_telemetry.timestamp = k_uptime_get_32();
-
         l_get_shunt_data_float(sensors[0], &sensor_telemetry.data_battery);
         l_get_shunt_data_float(sensors[1], &sensor_telemetry.data_3v3);
         l_get_shunt_data_float(sensors[2], &sensor_telemetry.data_5v0);
 
-        if (k_msgq_put(&power_module_telemetry_msgq, &sensor_telemetry, K_NO_WAIT)) {
+        if (k_msgq_put(&ina_telemetry_msgq, &sensor_telemetry, K_NO_WAIT)) {
             LOG_ERR("Failed to put data into INA219 processing queue");
         }
     }
@@ -110,6 +108,6 @@ static void adc_task(void *, void *, void *) {
         }
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
-        // TODO: Put on queue and timer
+        k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT);
     }
 }

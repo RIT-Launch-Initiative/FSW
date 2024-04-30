@@ -7,16 +7,19 @@
 
 #define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
+#define NUM_SOCKETS 1
 
-static int udp_sockets[1] = {0};
-static int udp_socket_ports[1] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
-static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = 1};
+static int udp_sockets[NUM_SOCKETS] = {0};
+static int udp_socket_ports[] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
+static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = NUM_SOCKETS};
 
-static void ina_queue_processing_task(void *, void *, void *);
-K_THREAD_DEFINE(ina_processing_thread, QUEUE_PROCESSING_STACK_SIZE,
-                ina_queue_processing_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 0);
+static void telemetry_broadcast_task(void *, void *, void *);
 
-extern struct k_msgq power_module_telemetry_msgq;
+K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
+                telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 0);
+
+extern struct k_msgq ina_telemetry_msgq;
+extern struct k_msgq adc_telemetry_msgq;
 
 LOG_MODULE_REGISTER(networking);
 
@@ -42,20 +45,31 @@ static void init_networking() {
     }
 }
 
-static void ina_queue_processing_task(void *, void *, void *) {
+static void telemetry_broadcast_task(void *, void *, void *) {
     power_module_telemetry_t sensor_telemetry = {0};
+    float vin_adc_data_v = 0.0f;
     int sock = udp_socket_list.sockets[0];
 
     init_networking();
 
+    // TODO: write to flash when data logging library is ready
+    // TODO: See about delegating logging to another task. Would need to profile. Would probably do with zbus
     while (true) {
-        if (k_msgq_get(&power_module_telemetry_msgq, &sensor_telemetry, K_FOREVER)) {
+        if (k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(66))) {
             LOG_ERR("Failed to get data from INA219 processing queue");
-            continue;
+        } else {
+            l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
+                                 POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
         }
 
-        // TODO: write to flash when data logging library is ready
-        l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
-                             POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+
+        if (k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
+            LOG_ERR("Failed to get data from INA219 processing queue");
+        } else {
+#ifdef CONFIG_DEBUG
+            l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),
+                                 POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
+#endif
+        }
     }
 }
