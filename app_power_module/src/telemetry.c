@@ -57,8 +57,6 @@ static bool init_adc_task(const struct adc_dt_spec *p_vin_sense_adc, struct adc_
 }
 
 static void ina_task(void *, void *, void *) {
-    power_module_telemetry_t sensor_telemetry = {0};
-
     const struct device *sensors[] = {
             DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
             DEVICE_DT_GET(DT_ALIAS(ina3v3)),  // 3v3
@@ -66,6 +64,8 @@ static void ina_task(void *, void *, void *) {
     };
 
     bool ina_device_found[3] = {false};
+    power_module_telemetry_t sensor_telemetry = {0};
+
     if (!init_ina_task(sensors, ina_device_found)) {
         return;
     }
@@ -74,6 +74,7 @@ static void ina_task(void *, void *, void *) {
         k_timer_status_sync(&ina_task_timer);
 
         l_update_sensors_safe(sensors, 3, ina_device_found);
+
         l_get_shunt_data_float(sensors[0], &sensor_telemetry.data_battery);
         l_get_shunt_data_float(sensors[1], &sensor_telemetry.data_3v3);
         l_get_shunt_data_float(sensors[2], &sensor_telemetry.data_5v0);
@@ -87,11 +88,11 @@ static void ina_task(void *, void *, void *) {
 static void adc_task(void *, void *, void *) {
     static const float adc_gain = 0.09f;
     static const float mv_to_v_multiplier = 0.001f;
+    const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
     float vin_adc_data_mv = 0;
     uint16_t temp_vin_adc_data = 0;
 
-    const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
     struct adc_sequence vin_sense_sequence = {
             .buffer = &temp_vin_adc_data,
             .buffer_size = sizeof(temp_vin_adc_data),
@@ -100,6 +101,7 @@ static void adc_task(void *, void *, void *) {
     if (!init_adc_task(&vin_sense_adc, &vin_sense_sequence)) {
         return;
     }
+
     while (true) {
         k_timer_status_sync(&adc_task_timer);
 
