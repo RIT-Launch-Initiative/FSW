@@ -19,7 +19,7 @@ static void adc_task(void *, void *, void *);
 
 K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
-extern struct k_msgq ina_processing_queue;
+K_MSGQ_DEFINE(power_module_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
 
 K_TIMER_DEFINE(ina_task_timer, NULL, NULL);
 K_TIMER_DEFINE(adc_task_timer, NULL, NULL);
@@ -80,7 +80,7 @@ static void ina_task(void *, void *, void *) {
         l_get_shunt_data_float(sensors[1], &sensor_telemetry.data_3v3);
         l_get_shunt_data_float(sensors[2], &sensor_telemetry.data_5v0);
 
-        if (k_msgq_put(&ina_processing_queue, &sensor_telemetry, K_NO_WAIT)) {
+        if (k_msgq_put(&power_module_telemetry_msgq, &sensor_telemetry, K_NO_WAIT)) {
             LOG_ERR("Failed to put data into INA219 processing queue");
         }
     }
