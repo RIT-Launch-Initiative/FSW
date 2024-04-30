@@ -51,7 +51,7 @@ static bool init_adc_task(const struct adc_dt_spec *p_vin_sense_adc, struct adc_
     if (!adc_ready) {
         LOG_ERR("ADC channel %d is not ready", p_vin_sense_adc->channel_id);
     } else {
-        k_timer_start(&ina_task_timer, K_MSEC(ADC_UPDATE_TIME_MS), K_MSEC(ADC_UPDATE_TIME_MS));
+        k_timer_start(&adc_task_timer, K_MSEC(ADC_UPDATE_TIME_MS), K_MSEC(ADC_UPDATE_TIME_MS));
     }
 
     return adc_ready;

@@ -63,7 +63,6 @@ static void telemetry_broadcast_task(void *, void *, void *) {
             l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
             gpio_pin_toggle_dt(&led2);
-
         }
 
 
@@ -72,9 +71,7 @@ static void telemetry_broadcast_task(void *, void *, void *) {
 #ifdef CONFIG_DEBUG
             l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
-
 #endif
-
         }
     }
 }
