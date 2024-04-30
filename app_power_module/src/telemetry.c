@@ -72,13 +72,12 @@ void ina_task(void) {
     bool ina_device_found[3] = {false};
     power_module_telemetry_t sensor_telemetry = {0};
 
-    LOG_DBG("Starting INA219 task");
     if (!init_ina_task(sensors, ina_device_found)) {
         return;
     }
 
     while (true) {
-        k_timer_status_sync(&ina_task_timer);
+        k_timer_status_sync(&ina_task_timer); // TODO: Confirm timing
         gpio_pin_toggle_dt(&led);
 
         l_update_sensors_safe(sensors, 3, ina_device_found);
@@ -107,7 +106,6 @@ void adc_task(void) {
             .buffer_size = sizeof(temp_vin_adc_data),
     };
 
-    LOG_DBG("Starting ADC task");
     if (!init_adc_task(&vin_sense_adc, &vin_sense_sequence)) {
         return;
     }

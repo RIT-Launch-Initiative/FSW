@@ -24,6 +24,8 @@ K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
 extern struct k_msgq ina_telemetry_msgq;
 extern struct k_msgq adc_telemetry_msgq;
 
+
+// TODO: Just use base port for output. Bind to launch events port when we do state machien
 static int udp_sockets[NUM_SOCKETS] = {0};
 static int udp_socket_ports[] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
 static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = NUM_SOCKETS};
@@ -59,7 +61,6 @@ void telemetry_broadcast_task(void) {
     float vin_adc_data_v = 0.0f;
     int sock = udp_socket_list.sockets[0];
 
-    LOG_DBG("Starting telemetry broadcast task");
     init_networking();
 
     // TODO: write to flash when data logging library is ready
@@ -71,6 +72,7 @@ void telemetry_broadcast_task(void) {
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
         }
 
+        // TODO: LED doesn't seem to be blinking. Debug shows this gets skipped, but get function seems successful
         if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led3);
 #ifdef CONFIG_DEBUG
