@@ -7,7 +7,7 @@
 #include <zephyr/drivers/gpio.h>
 
 #define INA219_UPDATE_TIME_MS       (67)
-#define ADC_UPDATE_TIME_MS          (15)
+#define ADC_UPDATE_TIME_MS          (10000)
 #define SENSOR_READ_STACK_SIZE      (1024)
 
 LOG_MODULE_REGISTER(telemetry);
@@ -112,13 +112,14 @@ static void adc_task(void *, void *, void *) {
         k_timer_status_sync(&adc_task_timer);
         gpio_pin_toggle_dt(&led);
 
-        if (0 <= l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
+        if (0 < l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
             LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
+            continue;
         }
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
         if (k_msgq_put(&ina_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
-            LOG_ERR("Failed to put data into ADC processing queue");
+//            LOG_ERR("Failed to put data into ADC processing queue");
         }
     }
 }
