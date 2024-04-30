@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2024 RIT Launch Initiative
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "power_module.h"
+
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/net/udp.h>
 #include <launch_core/net/net_common.h>
@@ -10,17 +18,15 @@
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define NUM_SOCKETS 1
 
-static int udp_sockets[NUM_SOCKETS] = {0};
-static int udp_socket_ports[] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
-static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = NUM_SOCKETS};
-
-static void telemetry_broadcast_task(void *, void *, void *);
-
 K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
                 telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 extern struct k_msgq ina_telemetry_msgq;
 extern struct k_msgq adc_telemetry_msgq;
+
+static int udp_sockets[NUM_SOCKETS] = {0};
+static int udp_socket_ports[] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
+static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = NUM_SOCKETS};
 
 LOG_MODULE_REGISTER(networking);
 
@@ -46,7 +52,7 @@ static void init_networking() {
     }
 }
 
-static void telemetry_broadcast_task(void *, void *, void *) {
+void telemetry_broadcast_task(void) {
     static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
     static const struct gpio_dt_spec led3 = GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios);
     power_module_telemetry_t sensor_telemetry = {0};

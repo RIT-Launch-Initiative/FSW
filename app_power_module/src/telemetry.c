@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2024 RIT Launch Initiative
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "power_module.h"
+
 #include <launch_core/dev/adc.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/dev/sensor.h>
@@ -11,10 +19,6 @@
 #define SENSOR_READ_STACK_SIZE      (1024)
 
 LOG_MODULE_REGISTER(telemetry);
-
-static void ina_task(void *, void *, void *);
-
-static void adc_task(void *, void *, void *);
 
 K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
@@ -57,7 +61,7 @@ static bool init_adc_task(const struct adc_dt_spec *p_vin_sense_adc, struct adc_
     return adc_ready;
 }
 
-static void ina_task(void *, void *, void *) {
+void ina_task(void) {
     const struct device *sensors[] = {
             DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
             DEVICE_DT_GET(DT_ALIAS(ina3v3)),  // 3v3
@@ -89,7 +93,7 @@ static void ina_task(void *, void *, void *) {
     }
 }
 
-static void adc_task(void *, void *, void *) {
+void adc_task(void) {
     static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
     static const float adc_gain = 0.09f;
     static const float mv_to_v_multiplier = 0.001f;
