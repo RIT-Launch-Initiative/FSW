@@ -4,6 +4,7 @@
 #include <launch_core/backplane_defs.h>
 #include <launch_core/types.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/gpio.h>
 
 #define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
@@ -16,7 +17,7 @@ static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_socke
 static void telemetry_broadcast_task(void *, void *, void *);
 
 K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
-                telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 0);
+                telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
 
 extern struct k_msgq ina_telemetry_msgq;
 extern struct k_msgq adc_telemetry_msgq;
@@ -46,6 +47,8 @@ static void init_networking() {
 }
 
 static void telemetry_broadcast_task(void *, void *, void *) {
+    static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
+    static const struct gpio_dt_spec led3 = GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios);
     power_module_telemetry_t sensor_telemetry = {0};
     float vin_adc_data_v = 0.0f;
     int sock = udp_socket_list.sockets[0];
@@ -56,21 +59,22 @@ static void telemetry_broadcast_task(void *, void *, void *) {
     // TODO: write to flash when data logging library is ready
     // TODO: See about delegating logging to another task. Would need to profile. Would probably do with zbus
     while (true) {
-        if (k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(66))) {
-            LOG_ERR("Failed to get data from INA219 processing queue");
-        } else {
+        if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(0))) {
             l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+            gpio_pin_toggle_dt(&led2);
+
         }
 
 
-        if (k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
-            LOG_ERR("Failed to get data from INA219 processing queue");
-        } else {
+        if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(0))) {
+            gpio_pin_toggle_dt(&led3);
 #ifdef CONFIG_DEBUG
             l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
+
 #endif
+
         }
     }
 }
