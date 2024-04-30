@@ -50,6 +50,7 @@ static void telemetry_broadcast_task(void *, void *, void *) {
     float vin_adc_data_v = 0.0f;
     int sock = udp_socket_list.sockets[0];
 
+    LOG_DBG("Starting telemetry broadcast task");
     init_networking();
 
     // TODO: write to flash when data logging library is ready
