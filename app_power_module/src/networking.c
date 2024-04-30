@@ -59,14 +59,13 @@ static void telemetry_broadcast_task(void *, void *, void *) {
     // TODO: write to flash when data logging library is ready
     // TODO: See about delegating logging to another task. Would need to profile. Would probably do with zbus
     while (true) {
-        if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(0))) {
+        if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(10))) {
+            gpio_pin_toggle_dt(&led2);
             l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
-            gpio_pin_toggle_dt(&led2);
         }
 
-
-        if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(0))) {
+        if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led3);
 #ifdef CONFIG_DEBUG
             l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),

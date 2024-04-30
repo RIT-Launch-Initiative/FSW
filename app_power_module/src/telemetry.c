@@ -16,8 +16,8 @@ static void ina_task(void *, void *, void *);
 
 static void adc_task(void *, void *, void *);
 
-K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
-K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
+K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
 K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
 K_MSGQ_DEFINE(adc_telemetry_msgq, sizeof(float), 10, 4);
@@ -119,7 +119,7 @@ static void adc_task(void *, void *, void *) {
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
         if (k_msgq_put(&ina_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
-//            LOG_ERR("Failed to put data into ADC processing queue");
+            LOG_ERR("Failed to put data into ADC processing queue");
         }
     }
 }
