@@ -110,6 +110,8 @@ static void adc_task(void *, void *, void *) {
         }
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
-        k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT);
+        if (k_msgq_put(&ina_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
+            LOG_ERR("Failed to put data into ADC processing queue");
+        }
     }
 }
