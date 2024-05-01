@@ -206,8 +206,6 @@ static int init(void) {
 
     init_networking();
 
-    (void)l_fs_boot_count_check();
-
     // TODO: Play with these values on rev 2 where we can do more profiling
     k_thread_create(&ina_read_thread, &ina_read_stack[0], SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL,
                     K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
@@ -223,9 +221,11 @@ static int init(void) {
 
 
 int main(void) {
-    if (init()) {
-        return -1;
-    }
+//    if (init()) {
+//        return -1;
+//    }
+
+//    l_fs_boot_count_check();
 
     while (true) {
         k_sleep(K_MSEC(100));
