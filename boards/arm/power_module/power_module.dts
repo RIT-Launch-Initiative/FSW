@@ -172,7 +172,7 @@
 
 		size = <DT_SIZE_M(128)>; // w25q128 - 128 MBit (S 11, p.75)
 		jedec-id = [ef 40 18]; // 0xef4018 (Table 8.1.1, p.22)
-		spi-max-frequency = <(5 * 1000000)>; // fR = 50 MHz (Table 9.6, p.65)
+		spi-max-frequency = <(87890)>; // fR = 50 MHz (Table 9.6, p.65)
 
 		has-dpd;
 		// Power-down 0xB9 (S 8.2.21)
