@@ -19,16 +19,13 @@ LOG_MODULE_REGISTER(radio_module_txer);
 // Flags
 static bool ready_to_tx = false;
 
-// Callbacks
 // Forward Declaration
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data);
+
+// Callbacks
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
 // GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), l_gnss_debug_sat_count_cb);
 
-// Networking
-#define NUM_SOCKETS       4
-#define UDP_RX_STACK_SIZE 1024
-#define UDP_RX_BUFF_LEN   256 // TODO: Make this a KConfig
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
 
 static int udp_sockets[NUM_SOCKETS] = {0};
@@ -40,8 +37,6 @@ static uint16_t udp_socket_ports[NUM_SOCKETS] = {
 };
 
 l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .ports = udp_socket_ports, .num_sockets = NUM_SOCKETS};
-
-#define LORA_TX_STACK_SIZE 1024
 
 // Queues
 K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);

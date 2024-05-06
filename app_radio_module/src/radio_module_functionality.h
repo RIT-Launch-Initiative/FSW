@@ -7,7 +7,20 @@
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
 
+// Networking
 #define RADIO_MODULE_IP_ADDR BACKPLANE_IP(RADIO_MODULE_ID, 1, 1) // TODO: KConfig the board revision and #
+#define NUM_SOCKETS       4
+#define UDP_RX_STACK_SIZE 1024
+#define UDP_RX_BUFF_LEN   256 // TODO: Make this a KConfig
+
+# LoRa
+#define LORA_TX_STACK_SIZE 1024
+
+typedef enum {
+    GROUND_STATE = 0,
+    FLIGHT_STATE,
+    DEBUG_STATE
+} TRANSMITTER_STATES;
 
 int init_lora_unique(const struct device *lora_dev);
 
