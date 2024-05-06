@@ -13,14 +13,8 @@
 #define UDP_RX_STACK_SIZE 1024
 #define UDP_RX_BUFF_LEN   256 // TODO: Make this a KConfig
 
-# LoRa
+// LoRa
 #define LORA_TX_STACK_SIZE 1024
-
-typedef enum {
-    GROUND_STATE = 0,
-    FLIGHT_STATE,
-    DEBUG_STATE
-} TRANSMITTER_STATES;
 
 int init_lora_unique(const struct device *lora_dev);
 
