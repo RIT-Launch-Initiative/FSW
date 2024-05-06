@@ -18,8 +18,6 @@
 
 LOG_MODULE_REGISTER(transmitter);
 
-static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
-
 static int udp_sockets[NUM_SOCKETS] = {0};
 static uint16_t udp_socket_ports[NUM_SOCKETS] = {
     LAUNCH_EVENT_NOTIFICATION_PORT,
@@ -34,15 +32,14 @@ l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .ports = udp_sock
 K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
 
 // Threads
-static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len);
-K_THREAD_DEFINE(udp_rx, UDP_RX_STACK_SIZE, udp_rx_task, &udp_socket_list, udp_rx_buffer, INT_TO_POINTER(UDP_RX_BUFF_LEN), K_PRIO_PREEMPT(15), 0, 1000);
+static void udp_rx_task(void *socks);
+K_THREAD_DEFINE(udp_rx_thread, UDP_RX_STACK_SIZE, udp_rx_task, &udp_socket_list, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
 
 static void lora_tx_task(void);
-K_THREAD_DEFINE(lora_tx, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
+K_THREAD_DEFINE(lora_tx_thread, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
 
-static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
+static void udp_rx_task(void *socks) {
     l_udp_socket_list_t const *sock_list = (l_udp_socket_list_t *) socks;
-    size_t buff_size = POINTER_TO_INT(buff_len);
     int rcv_size = 0;
 
     while (true) {
@@ -50,7 +47,7 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
             l_lora_packet_t packet = {0};
 
             packet.port = sock_list->ports[i];
-            rcv_size = l_receive_udp(sock_list->sockets[i], packet.payload, buff_size);
+            rcv_size = l_receive_udp(sock_list->sockets[i], packet.payload, LORA_PACKET_DATA_SIZE);
             if (rcv_size <= 0) {
                 continue;
             }
@@ -84,17 +81,6 @@ int init_udp_unique() {
         }
     }
 
-    k_thread_create(&udp_rx_thread, &udp_rx_stack[0], UDP_RX_STACK_SIZE, udp_rx_task, &udp_socket_list, udp_rx_buffer,
-                    INT_TO_POINTER(UDP_RX_BUFF_LEN), K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
-    k_thread_start(&udp_rx_thread);
-
-    return 0;
-}
-
-int start_tasks() {
-    k_thread_create(&lora_tx_thread, &lora_tx_stack[0], LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL,
-                    K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
-    k_thread_start(&lora_tx_thread);
     return 0;
 }
 

@@ -56,6 +56,7 @@ static void gnss_debug_task(void) {
 #endif
 
 void init_gnss(void) {
+    // TODO: Need a function for configuring timers so we can configure during flight
     k_timer_start(&gnss_tx_timer, K_MSEC(CONFIG_GNSS_DATA_TX_INTERVAL), K_MSEC(CONFIG_GNSS_DATA_TX_INTERVAL));
 }
 
