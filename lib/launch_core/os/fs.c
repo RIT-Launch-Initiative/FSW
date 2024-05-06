@@ -206,3 +206,15 @@ int32_t l_fs_boot_count_check() {
     return boot_count;
 }
 
+int32_t l_fs_format(uintptr_t partition_id) {
+    int ret = fs_mkfs(FS_LITTLEFS, partition_id, NULL, 0);
+
+    if (ret < 0) {
+        LOG_ERR("Format failed with error %d", ret);
+        return ret;
+    }
+
+    LOG_INF("Format successful");
+    return 0;
+}
+
