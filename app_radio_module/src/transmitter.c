@@ -88,12 +88,6 @@ int init_udp_unique() {
                     INT_TO_POINTER(UDP_RX_BUFF_LEN), K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&udp_rx_thread);
 
-#ifdef CONFIG_DEBUG
-    k_thread_create(&udp_tx_thread, &udp_tx_stack[0], UDP_TX_STACK_SIZE, udp_tx_task, &udp_socket_list, NULL, NULL,
-                    K_PRIO_PREEMPT(6), 0, K_NO_WAIT);
-    k_thread_start(&udp_tx_thread);
-#endif
-
     return 0;
 }
 

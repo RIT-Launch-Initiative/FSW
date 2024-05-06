@@ -26,6 +26,9 @@ GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
 // Timers
 struct k_timer gnss_tx_timer;
 
+// External Variables
+extern struct k_msgq lora_tx_queue;
+
 static void gnss_tx_on_expire(struct k_timer *timer_id); // Forward Declaration
 K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
 
@@ -52,7 +55,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 
 #ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
     // push to udp tx queue
-    k_msgq_put(&udp_tx_queue, (void *) &gnss_data, K_NO_WAIT);
+//    k_msgq_put(&udp_tx_queue, (void *) &gnss_data, K_NO_WAIT);
 #endif
 
     ready_to_tx = false;
@@ -61,24 +64,22 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 static void gnss_tx_on_expire(struct k_timer *timer_id) { ready_to_tx = true; }
 
 #ifdef CONFIG_DEBUG
-#define UDP_TX_QUEUE_SIZE 8
-K_MSGQ_DEFINE(udp_tx_queue, sizeof(l_gnss_data_t), UDP_TX_QUEUE_SIZE, 1);
-#define UDP_TX_STACK_SIZE 1024
-static K_THREAD_STACK_DEFINE(udp_tx_stack, UDP_TX_STACK_SIZE);
-static struct k_thread udp_tx_thread;
-#endif
 
-static void gnss_debug_task(void *socks, void *unused1, void *unused2) {
-    l_udp_socket_list_t const *sock_list = (l_udp_socket_list_t *) socks;
+#define UDP_TX_QUEUE_SIZE 8
+#define GNSS_TX_STACK_SIZE 1024
+
+static void gnss_debug_task(void);
+K_MSGQ_DEFINE(gnss_tx_queue, sizeof(l_gnss_data_t), UDP_TX_QUEUE_SIZE, 1);
+K_THREAD_DEFINE(gnss_udp_tx, GNSS_TX_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, 15, 0, 1000);
+
+static void gnss_debug_task(void) {
     const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;
+    int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, gnss_port);
 
     while (1) {
         l_gnss_data_t gnss_data = {0};
-        k_msgq_get(&udp_tx_queue, &gnss_data, K_FOREVER);
-        /// TODO: change this socket number later once we figure out how to add more
-        for (int s = 0; s < sock_list->num_sockets; s++) {
-            l_send_udp_broadcast(sock_list->sockets[s], (uint8_t *) &gnss_data, sizeof(l_gnss_data_t), gnss_port);
-        }
+        k_msgq_get(&gnss_tx_queue, &gnss_data, K_FOREVER);
+        l_send_udp_broadcast(sock, (uint8_t *) &gnss_data, sizeof(l_gnss_data_t), gnss_port);
     }
 }
 
