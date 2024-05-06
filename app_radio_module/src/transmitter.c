@@ -16,7 +16,7 @@
 #include <zephyr/kernel/thread.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(radio_module_txer);
+LOG_MODULE_REGISTER(transmitter);
 
 static uint8_t udp_rx_buffer[UDP_RX_BUFF_LEN];
 
@@ -34,11 +34,11 @@ l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .ports = udp_sock
 K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
 
 // Threads
-static K_THREAD_STACK_DEFINE(udp_rx_stack, UDP_RX_STACK_SIZE);
-static struct k_thread udp_rx_thread;
+static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len);
+K_THREAD_DEFINE(udp_rx, UDP_RX_STACK_SIZE, udp_rx_task, &udp_socket_list, udp_rx_buffer, INT_TO_POINTER(UDP_RX_BUFF_LEN), K_PRIO_PREEMPT(15), 0, 1000);
 
-static K_THREAD_STACK_DEFINE(lora_tx_stack, LORA_TX_STACK_SIZE);
-static struct k_thread lora_tx_thread;
+static void lora_tx_task(void);
+K_THREAD_DEFINE(lora_tx, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
 
 static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
     l_udp_socket_list_t const *sock_list = (l_udp_socket_list_t *) socks;
@@ -62,7 +62,7 @@ static void udp_rx_task(void *socks, void *buff_ptr, void *buff_len) {
     }
 }
 
-static void lora_tx_task(void *, void *, void *) {
+static void lora_tx_task(void) {
     const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 
     while (1) {
