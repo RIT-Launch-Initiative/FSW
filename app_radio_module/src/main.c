@@ -33,6 +33,7 @@ int main() {
 
     if (l_check_device(lora_dev) == 0) {
         init_lora_unique(lora_dev);
+        l_lora_set_tx_power(lora_dev, 30);
     }
 
     if (l_check_device(wiznet) == 0) {

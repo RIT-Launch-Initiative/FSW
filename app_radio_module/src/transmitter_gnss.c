@@ -5,7 +5,6 @@
 #include <launch_core/dev/gnss.h>
 #include <launch_core/types.h>
 
-
 // Zephyr Includes
 #include <zephyr/kernel.h>
 #include <zephyr/kernel/thread.h>
@@ -40,7 +39,7 @@ K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
 static void gnss_debug_task(void);
 
 K_MSGQ_DEFINE(gnss_tx_queue, sizeof(l_gnss_data_t), GNSS_TX_QUEUE_SIZE, 1);
-K_THREAD_DEFINE(gnss_udp_tx, GNSS_TX_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, 15, 0, 1000);
+K_THREAD_DEFINE(gnss_udp_tx, GNSS_TX_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 1000);
 
 static void gnss_debug_task(void) {
     const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;

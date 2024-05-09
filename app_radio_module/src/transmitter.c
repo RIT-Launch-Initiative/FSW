@@ -33,10 +33,10 @@ K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE,
 
 // Threads
 static void udp_rx_task(void *socks);
-K_THREAD_DEFINE(udp_rx_thread, UDP_RX_STACK_SIZE, udp_rx_task, &udp_socket_list, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
+K_THREAD_DEFINE(udp_rx_thread, UDP_RX_STACK_SIZE, udp_rx_task, &udp_socket_list, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 static void lora_tx_task(void);
-K_THREAD_DEFINE(lora_tx_thread, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
+K_THREAD_DEFINE(lora_tx_thread, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 static void udp_rx_task(void *socks) {
     l_udp_socket_list_t const *sock_list = (l_udp_socket_list_t *) socks;
