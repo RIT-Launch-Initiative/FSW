@@ -1,6 +1,8 @@
 #ifndef RADIO_MODULE_TRANSMITTER_SMF_H
 #define RADIO_MODULE_TRANSMITTER_SMF_H
 
+#include <zephyr/smf.h>
+
 typedef enum {
     GROUND_STATE = 0,
     FLIGHT_STATE,
