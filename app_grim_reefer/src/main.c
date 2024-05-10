@@ -22,7 +22,6 @@
 #include <zephyr/shell/shell.h>
 #include <zephyr/storage/flash_map.h>
 #include <zephyr/sys/base64.h>
-
 // Nasty, put these in the right place when you have time
 #include "ina260.h"
 
@@ -129,7 +128,7 @@ static int gpio_init(void) {
 
     gpio_pin_set_dt(&led1, 0);
     gpio_pin_set_dt(&led2, 0);
-    gpio_pin_set_dt(&ldo_enable, 0);
+    gpio_pin_set_dt(&ldo_enable, 1);
     gpio_pin_set_dt(&cam_enable, 0);
     gpio_pin_set_dt(&buzzer, 0);
 
@@ -145,10 +144,10 @@ static int sensor_init(void) {
         LOG_ERR("Error setting up sensor and flash devices");
         return -1;
     }
-    int res = sensor_attr_set(&lsm6dsl, SENSOR_ATTR_SAMPLING_FREQUNC, 0);
-    if (res < 0) {
-        LOG_ERR("sensor attr set mot it");
-    }
+    // int res = sensor_attr_set(&lsm6dsl_dev, SENSOR_ATTR_SAMPLING_FREQUENCY, 0);
+    // if (res < 0) {
+    // LOG_ERR("sensor attr set mot it");
+    // }
     const bool ina_bat_found = device_is_ready(ina_bat_dev);
     const bool ina_ldo_found = device_is_ready(ina_ldo_dev);
     const bool ina_grim_found = device_is_ready(ina_grim_dev);
@@ -312,6 +311,8 @@ int main(void) {
         return -1;
     }
 
+    adc_printout(&adc_chan0);
+
     k_tid_t storage_tid = spawn_data_storage_thread();
     (void) storage_tid;
 
@@ -323,6 +324,30 @@ int main(void) {
         return -1;
     }
     LOG_DBG("Starting launch detection");
+
+    int num_samples = 760000;
+    struct adc_data dat;
+    // struct slow_data dat2;
+    k_msleep(1000);
+    for (int i = 0; i < num_samples; i++) {
+        if (cancelled) {
+            break;
+        }
+        dat.timestamp = i;
+        // dat2.adc_value = 4;
+        // get_likely_or_warn(k_msgq_put(&slow_data_queue, &dat2, K_NO_WAIT), "Failed to send slow message");
+
+        get_likely_or_warn(k_msgq_put(&adc_data_queue, &dat, K_NO_WAIT), "Failed to send adc message");
+        if (i % 1000 == 0) {
+            printk("Sample %d\n", i);
+            // print_statvfs("/lfs/");
+        }
+        k_msleep(1);
+    }
+    enum flight_event its_so_over = flight_event_main_shutoff;
+    k_msgq_put(&flight_events_queue, &its_so_over, K_NO_WAIT);
+
+    return 0;
     // Storage is ready
     // Start launch detecting
     gpio_pin_set_dt(&cam_enable, 0);

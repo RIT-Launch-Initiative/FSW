@@ -34,7 +34,7 @@ struct fast_data {
 
 struct adc_data {
     uint32_t timestamp;
-    uint32_t adc_value;
+    uint32_t adc_value[10];
 };
 
 extern struct k_msgq adc_data_queue;

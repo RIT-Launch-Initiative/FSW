@@ -6,7 +6,7 @@
 
 LOG_MODULE_REGISTER(grim_test);
 
-#define NUM_SAMPLES 5
+#define NUM_SAMPLES 25
 float samples[NUM_SAMPLES] = {0.0f};
 int sample_index = 0;
 float sample_sum = 0;
