@@ -24,4 +24,8 @@ int start_tasks();
 
 int main_unique();
 
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
+void udp_to_lora(int *socks);
+#endif
+
 #endif //RADIO_MODULE_FUNCTIONALITY_H

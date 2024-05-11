@@ -38,6 +38,7 @@ static void boost_detector(struct k_timer *timer_id) {
     static const uint32_t BOOST_THRESHOLD_FT = 500;
     static uint32_t prev_altitude = 0;
 
+    // TODO: Check behavior without lock
     if (first_pass) {
         first_pass = false;
         prev_altitude = gnss_altitude;
@@ -53,6 +54,26 @@ static void boost_detector(struct k_timer *timer_id) {
 
 K_TIMER_DEFINE(boost_detect_timer, boost_detector, NULL);
 
+static uint8_t get_event_notification() {
+    static bool initialized = false;
+
+    // TODO: Not the biggest fan of this code. Refactor this. Along with the extern gnss var :P
+    static int sock = -1;
+    if (!initialized) {
+        initialized = true;
+        int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, LAUNCH_EVENT_NOTIFICATION_PORT);
+        l_set_socket_rx_timeout(sock, 1);
+    }
+
+    uint8_t notif = 0;
+
+    if (l_receive_udp(sock, &notif, 1) == 1) {
+        return notif;
+    }
+
+    return 0;
+}
+
 static void ground_state_entry(void *) {
     LOG_INF("Entered ground state");
     k_timer_start(&boost_detect_timer, K_SECONDS(5), K_SECONDS(5));
@@ -61,26 +82,16 @@ static void ground_state_entry(void *) {
 }
 
 static void ground_state_run(void *) {
-    const int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, LAUNCH_EVENT_NOTIFICATION_PORT);
-    l_set_socket_rx_timeout(sock, 1);
-    uint8_t notif = 0;
-
     while (true) {
-        // Monitor port 9999
-        if (l_receive_udp(sock, &notif, 1) == 1) {
-            // If port 9999 boost detected, go to flight state
-            LOG_INF("Received notification: %d", notif);
-            state_obj.boost_detected = notif == L_BOOST_DETECTED;
-        }
-
         // If GNSS altitude changes, notify everyone and go to flight state
-        // Safe to re-broadcast if received from event port
         if (state_obj.boost_detected) {
-            notif = L_BOOST_DETECTED;
             smf_set_state(SMF_CTX(&state_obj), &transmitter_states[FLIGHT_STATE]);
             l_send_udp_broadcast(sock, &notif, 1, LAUNCH_EVENT_NOTIFICATION_PORT);
             return;
         }
+
+        // Check port 9999 for notifications. If we get one, go to flight state on next iter
+        state_obj.boost_detected = get_event_notification() == L_BOOST_DETECTED;
     }
 }
 
@@ -96,6 +107,7 @@ static void flight_state_entry(void *) {
 static void flight_state_run(void *) {
     while (true) {
         // Listen to all ports
+        udp_to_lora((int *) &udp_socket_list);
 
         // If notified of landing, go back to ground state.
 
