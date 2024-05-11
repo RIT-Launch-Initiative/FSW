@@ -20,7 +20,6 @@ LOG_MODULE_REGISTER(transmitter);
 
 static int udp_sockets[NUM_SOCKETS] = {0};
 static uint16_t udp_socket_ports[NUM_SOCKETS] = {
-    LAUNCH_EVENT_NOTIFICATION_PORT,
     POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT,
     SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT,
     SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT,
@@ -88,9 +87,13 @@ int main_unique() {
     const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
 
+    init_state_machine();
     while (true) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
+
+        run_state_machine();
+
         k_msleep(100);
     }
 

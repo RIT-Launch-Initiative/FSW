@@ -8,4 +8,14 @@ typedef enum {
     FLIGHT_STATE,
 } TRANSMITTER_STATES;
 
+/**
+ * Initializes the state machine
+ */
+void init_state_machine();
+
+/**
+ * Runs through state machine logic
+ */
+void run_state_machine();
+
 #endif //RADIO_MODULE_TRANSMITTER_SMF_H

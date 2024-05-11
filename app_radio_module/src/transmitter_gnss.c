@@ -44,6 +44,10 @@ K_THREAD_DEFINE(gnss_udp_tx, GNSS_TX_STACK_SIZE, gnss_debug_task, NULL, NULL, NU
 static void gnss_debug_task(void) {
     const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;
     int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, gnss_port);
+    if (sock < 0) {
+        LOG_ERR("Failed to initialize UDP socket for GNSS debug task");
+        return;
+    }
 
     while (1) {
         l_gnss_data_t gnss_data = {0};

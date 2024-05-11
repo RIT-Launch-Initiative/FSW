@@ -3,6 +3,9 @@
 
 #include <launch_core/net/udp.h>
 #include <launch_core/backplane_defs.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(transmitter_smf);
 
 // External variables
 extern struct k_timer gnss_tx_timer;
@@ -25,10 +28,8 @@ static const struct smf_state transmitter_states[] = {
 struct s_object {
     struct smf_ctx ctx;
     uint32_t altitude;
+    bool boost_detected;
 } state_obj;
-
-// Boost detection
-static bool boost_detected = false;
 
 static void boost_detector(struct k_timer *timer_id) {
     static const uint32_t BOOST_THRESHOLD = 500; // 500 ft.
@@ -39,14 +40,16 @@ static void boost_detector(struct k_timer *timer_id) {
         return;
     }
 
-    boost_detected = true;
+    state_obj.boost_detected = true;
     k_timer_stop(timer_id);
 }
 
 K_TIMER_DEFINE(boost_detect_timer, boost_detector, NULL);
 
 static void ground_state_entry(void *) {
+    LOG_INF("Entered ground state");
     k_timer_start(&gnss_tx_timer, K_MSEC(5000), K_MSEC(5000));
+    state_obj.boost_detected = false;
 }
 
 static void ground_state_run(void *) {
@@ -57,11 +60,13 @@ static void ground_state_run(void *) {
         // Monitor port 9999
         if (l_receive_udp(sock, &notif, 1) == 1) {
             // If port 9999 boost detected, go to flight state
-            boost_detected = notif == L_BOOST_DETECTED;
+            LOG_INF("Received notification: %d", notif);
+            state_obj.boost_detected = notif == L_BOOST_DETECTED;
         }
 
         // If GNSS altitude changes, notify everyone and go to flight state
-        if (boost_detected) {
+        // Safe to re-broadcast if received from event port
+        if (state_obj.boost_detected) {
             notif = L_BOOST_DETECTED;
             smf_set_state(SMF_CTX(&state_obj), &transmitter_states[FLIGHT_STATE]);
             l_send_udp_broadcast(sock, &notif, 1, LAUNCH_EVENT_NOTIFICATION_PORT);
@@ -74,6 +79,7 @@ static void ground_state_exit(void *) {
 }
 
 static void flight_state_entry(void *) {
+    LOG_INF("Entered flight state");
     // Start timer
 }
 
@@ -89,4 +95,15 @@ static void flight_state_run(void *) {
 
 static void flight_state_exit(void *) {
     // Stop timer
+}
+
+void init_state_machine() {
+    smf_set_initial(SMF_CTX(&state_obj), &transmitter_states[GROUND_STATE]);
+}
+
+void run_state_machine() {
+    static int ret = 0;
+    if (ret == 0) {
+        ret = smf_run_state(SMF_CTX(&state_obj));
+    }
 }

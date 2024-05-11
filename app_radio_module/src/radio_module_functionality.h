@@ -9,7 +9,7 @@
 
 // Networking
 #define RADIO_MODULE_IP_ADDR BACKPLANE_IP(RADIO_MODULE_ID, 1, 1) // TODO: KConfig the board revision and #
-#define NUM_SOCKETS       4
+#define NUM_SOCKETS       3
 #define UDP_RX_STACK_SIZE 1024
 #define UDP_RX_BUFF_LEN   256 // TODO: Make this a KConfig
 
