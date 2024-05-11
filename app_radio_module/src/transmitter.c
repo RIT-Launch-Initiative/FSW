@@ -2,7 +2,6 @@
 
 // Self Include
 #include "radio_module_functionality.h"
-
 #include "transmitter_gnss.h"
 #include "transmitter_smf.h"
 
@@ -20,9 +19,9 @@ LOG_MODULE_REGISTER(transmitter);
 
 static int udp_sockets[NUM_SOCKETS] = {0};
 static uint16_t udp_socket_ports[NUM_SOCKETS] = {
-        POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT,
-        SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT,
-        SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT,
+    POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT,
+    SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT,
+    SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT,
 };
 
 l_udp_socket_list_t sock_list = {.sockets = udp_sockets, .ports = udp_socket_ports, .num_sockets = NUM_SOCKETS};

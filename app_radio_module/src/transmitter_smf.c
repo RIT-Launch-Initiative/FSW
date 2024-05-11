@@ -1,11 +1,11 @@
 #include "transmitter_smf.h"
-#include "transmitter_gnss.h"
+
 #include "radio_module_functionality.h"
+#include "transmitter_gnss.h"
 
-#include <launch_core/net/udp.h>
 #include <launch_core/backplane_defs.h>
+#include <launch_core/net/udp.h>
 #include <launch_core/utils/event_monitor.h>
-
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(transmitter_smf);
@@ -14,18 +14,18 @@ LOG_MODULE_REGISTER(transmitter_smf);
 extern struct k_timer gnss_tx_timer;
 
 // State Machine Variables
-#define DEFINE_STATE_FUNCTIONS(state_name)          \
-static void state_name##_state_entry(void *);       \
-static void state_name##_state_run(void *);         \
-static void state_name##_state_exit(void *);
+#define DEFINE_STATE_FUNCTIONS(state_name)                                                                             \
+    static void state_name##_state_entry(void *);                                                                      \
+    static void state_name##_state_run(void *);                                                                        \
+    static void state_name##_state_exit(void *);
 
 DEFINE_STATE_FUNCTIONS(ground);
 
 DEFINE_STATE_FUNCTIONS(flight);
 
 static const struct smf_state transmitter_states[] = {
-        [GROUND_STATE] = SMF_CREATE_STATE(ground_state_entry, ground_state_run, ground_state_exit),
-        [FLIGHT_STATE] = SMF_CREATE_STATE(flight_state_entry, flight_state_run, flight_state_exit),
+    [GROUND_STATE] = SMF_CREATE_STATE(ground_state_entry, ground_state_run, ground_state_exit),
+    [FLIGHT_STATE] = SMF_CREATE_STATE(flight_state_entry, flight_state_run, flight_state_exit),
 };
 
 struct s_object {
@@ -82,9 +82,7 @@ static void ground_state_exit(void *) {
     return;
 }
 
-static void flight_state_entry(void *) {
-    LOG_INF("Entered flight state");
-}
+static void flight_state_entry(void *) { LOG_INF("Entered flight state"); }
 
 static void flight_state_run(void *) {
     while (true) {

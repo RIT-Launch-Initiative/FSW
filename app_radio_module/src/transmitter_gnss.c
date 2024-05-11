@@ -1,4 +1,5 @@
 #include "transmitter_gnss.h"
+
 #include "radio_module_functionality.h"
 
 // Launch Includes
@@ -59,16 +60,12 @@ static void gnss_debug_task(void) {
 
 #endif
 
-void config_gnss_tx_time(k_timeout_t interval) {
-    k_timer_start(&gnss_tx_timer, interval, interval);
-}
+void config_gnss_tx_time(k_timeout_t interval) { k_timer_start(&gnss_tx_timer, interval, interval); }
 
-static void gnss_tx_on_expire(struct k_timer *timer_id) {
-    ready_to_tx = true;
-}
+static void gnss_tx_on_expire(struct k_timer *timer_id) { ready_to_tx = true; }
 
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
-    gnss_altitude =(float) data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
+    gnss_altitude = (float) data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
 
     if (!ready_to_tx) {
         return; // timer hasnt expired yet
