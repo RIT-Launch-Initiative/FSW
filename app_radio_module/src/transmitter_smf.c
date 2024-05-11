@@ -34,10 +34,14 @@ struct s_object {
 extern float gnss_altitude;
 
 static void boost_detector(struct k_timer *timer_id) {
+    static bool first_pass = true;
     static const uint32_t BOOST_THRESHOLD_FT = 500;
     static uint32_t prev_altitude = 0;
 
-    LOG_INF("Altitude difference: %f - %f = %f", gnss_altitude, prev_altitude, gnss_altitude - prev_altitude);
+    if (first_pass) {
+        first_pass = false;
+        prev_altitude = gnss_altitude;
+    }
 
     if ((gnss_altitude - prev_altitude) < BOOST_THRESHOLD_FT) {
         prev_altitude = gnss_altitude;
