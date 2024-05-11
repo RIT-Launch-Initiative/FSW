@@ -54,26 +54,6 @@ static void boost_detector(struct k_timer *timer_id) {
 
 K_TIMER_DEFINE(boost_detect_timer, boost_detector, NULL);
 
-static uint8_t get_event_notification() {
-    static bool initialized = false;
-
-    // TODO: Not the biggest fan of this code. Refactor this. Along with the extern gnss var :P
-    static int sock = -1;
-    if (!initialized) {
-        initialized = true;
-        int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, LAUNCH_EVENT_NOTIFICATION_PORT);
-        l_set_socket_rx_timeout(sock, 1);
-    }
-
-    uint8_t notif = 0;
-
-    if (l_receive_udp(sock, &notif, 1) == 1) {
-        return notif;
-    }
-
-    return 0;
-}
-
 static void ground_state_entry(void *) {
     LOG_INF("Entered ground state");
     k_timer_start(&boost_detect_timer, K_SECONDS(5), K_SECONDS(5));
