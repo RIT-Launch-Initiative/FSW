@@ -25,7 +25,7 @@ static uint16_t udp_socket_ports[NUM_SOCKETS] = {
         SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT,
 };
 
-l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .ports = udp_socket_ports, .num_sockets = NUM_SOCKETS};
+l_udp_socket_list_t sock_list = {.sockets = udp_sockets, .ports = udp_socket_ports, .num_sockets = NUM_SOCKETS};
 
 // Queues
 K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
@@ -35,15 +35,14 @@ static void lora_tx_task(void);
 
 K_THREAD_DEFINE(lora_tx_thread, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
-void udp_to_lora(int *socks) {
-    l_udp_socket_list_t const *sock_list = (l_udp_socket_list_t *) socks;
+void udp_to_lora() {
     int rcv_size = 0;
 
-    for (int i = 0; i < sock_list->num_sockets; i++) {
+    for (int i = 0; i < sock_list.num_sockets; i++) {
         l_lora_packet_t packet = {0};
 
-        packet.port = sock_list->ports[i];
-        rcv_size = l_receive_udp(sock_list->sockets[i], packet.payload, LORA_PACKET_DATA_SIZE);
+        packet.port = sock_list.ports[i];
+        rcv_size = l_receive_udp(sock_list.sockets[i], packet.payload, LORA_PACKET_DATA_SIZE);
         if (rcv_size <= 0) {
             continue;
         }
@@ -67,12 +66,12 @@ static void lora_tx_task(void) {
 int init_lora_unique(const struct device *const lora_dev) { return l_lora_set_tx_rx(lora_dev, true); }
 
 int init_udp_unique() {
-    for (int i = 0; i < udp_socket_list.num_sockets; i++) {
-        udp_socket_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, udp_socket_list.ports[i]);
-        if (udp_socket_list.sockets[i] < 0) {
-            LOG_ERR("Failed to create UDP socket: %d", udp_socket_list.sockets[i]);
+    for (int i = 0; i < sock_list.num_sockets; i++) {
+        sock_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, sock_list.ports[i]);
+        if (sock_list.sockets[i] < 0) {
+            LOG_ERR("Failed to create UDP socket: %d", sock_list.sockets[i]);
         } else {
-            l_set_socket_rx_timeout(udp_socket_list.sockets[i], 1);
+            l_set_socket_rx_timeout(sock_list.sockets[i], 1);
         }
     }
 

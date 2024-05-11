@@ -89,7 +89,7 @@ static void flight_state_entry(void *) {
 static void flight_state_run(void *) {
     while (true) {
         // Convert UDP to LoRa
-        udp_to_lora((int *) &udp_socket_list);
+        udp_to_lora();
 
         // If notified of landing, go back to ground state.
         if (l_get_event_udp() == L_LANDING_DETECTED) {
