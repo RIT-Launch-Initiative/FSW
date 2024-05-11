@@ -82,12 +82,27 @@ static void ground_state_exit(void *) {
     return;
 }
 
-static void flight_state_entry(void *) { LOG_INF("Entered flight state"); }
+
+// TODO: Not a fan of this code organization. Should probably just make a single timer too.
+static bool can_broadcast = true;
+
+static void broadcast_timer_cb(struct k_timer *timer_id) {
+    can_broadcast = true;
+}
+
+K_TIMER_DEFINE(lora_broadcast_timer, broadcast_timer_cb, NULL);
+static void flight_state_entry(void *) {
+    LOG_INF("Entered flight state");
+    k_timer_start(&lora_broadcast_timer, K_SECONDS(3), K_SECONDS(3));
+}
 
 static void flight_state_run(void *) {
     while (true) {
         // Convert UDP to LoRa
-        udp_to_lora();
+        if (can_broadcast) {
+            udp_to_lora();
+            can_broadcast = false;
+        }
 
         // If notified of landing, go back to ground state.
         if (l_get_event_udp() == L_LANDING_DETECTED) {
@@ -98,7 +113,7 @@ static void flight_state_run(void *) {
 }
 
 static void flight_state_exit(void *) {
-    // Stop timer
+    k_timer_stop(&lora_broadcast_timer);
 }
 
 void init_state_machine() {
