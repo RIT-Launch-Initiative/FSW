@@ -27,6 +27,7 @@ struct k_timer gnss_tx_timer;
 
 // External Variables
 extern struct k_msgq lora_tx_queue;
+float gnss_altitude;
 
 static void gnss_tx_on_expire(struct k_timer *timer_id); // Forward Declaration
 K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
@@ -58,9 +59,8 @@ static void gnss_debug_task(void) {
 
 #endif
 
-void init_gnss(void) {
-    // TODO: Need a function for configuring timers so we can configure during flight
-    k_timer_start(&gnss_tx_timer, K_MSEC(CONFIG_GNSS_DATA_TX_INTERVAL), K_MSEC(CONFIG_GNSS_DATA_TX_INTERVAL));
+void config_gnss_tx_time(k_timeout_t interval) {
+    k_timer_start(&gnss_tx_timer, interval, interval);
 }
 
 static void gnss_tx_on_expire(struct k_timer *timer_id) {
@@ -68,6 +68,8 @@ static void gnss_tx_on_expire(struct k_timer *timer_id) {
 }
 
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
+    gnss_altitude =(float) data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
+
     if (!ready_to_tx) {
         return; // timer hasnt expired yet
     }
@@ -78,7 +80,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
     l_gnss_data_t gnss_data = {0};
     gnss_data.latitude = (double) data->nav_data.latitude / (double) L_GNSS_LATITUDE_DIVISION_FACTOR;
     gnss_data.longitude = (double) data->nav_data.longitude / (double) L_GNSS_LONGITUDE_DIVISION_FACTOR;
-    gnss_data.altitude = (float) data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
+    gnss_data.altitude = gnss_altitude;
 
     // TODO: Eventually make this zbus and use a single bus for both lora and gnss queues to share
     memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));

@@ -1,4 +1,5 @@
 #include "transmitter_smf.h"
+#include "transmitter_gnss.h"
 #include "radio_module_functionality.h"
 
 #include <launch_core/net/udp.h>
@@ -27,33 +28,37 @@ static const struct smf_state transmitter_states[] = {
 
 struct s_object {
     struct smf_ctx ctx;
-    uint32_t altitude;
     bool boost_detected;
 } state_obj;
 
+extern float gnss_altitude;
+
 static void boost_detector(struct k_timer *timer_id) {
-    static const uint32_t BOOST_THRESHOLD = 500; // 500 ft.
+    static const uint32_t BOOST_THRESHOLD_FT = 500;
     static uint32_t prev_altitude = 0;
 
-    if ((state_obj.altitude - prev_altitude) < BOOST_THRESHOLD) {
-        prev_altitude = state_obj.altitude;
+    LOG_INF("Altitude difference: %f - %f = %f", gnss_altitude, prev_altitude, gnss_altitude - prev_altitude);
+
+    if ((gnss_altitude - prev_altitude) < BOOST_THRESHOLD_FT) {
+        prev_altitude = gnss_altitude;
         return;
     }
 
     state_obj.boost_detected = true;
-    k_timer_stop(timer_id);
 }
 
 K_TIMER_DEFINE(boost_detect_timer, boost_detector, NULL);
 
 static void ground_state_entry(void *) {
     LOG_INF("Entered ground state");
-    k_timer_start(&gnss_tx_timer, K_MSEC(5000), K_MSEC(5000));
+    k_timer_start(&boost_detect_timer, K_SECONDS(5), K_SECONDS(5));
+    config_gnss_tx_time(K_SECONDS(5));
     state_obj.boost_detected = false;
 }
 
 static void ground_state_run(void *) {
     const int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, LAUNCH_EVENT_NOTIFICATION_PORT);
+    l_set_socket_rx_timeout(sock, 1);
     uint8_t notif = 0;
 
     while (true) {
@@ -70,17 +75,18 @@ static void ground_state_run(void *) {
             notif = L_BOOST_DETECTED;
             smf_set_state(SMF_CTX(&state_obj), &transmitter_states[FLIGHT_STATE]);
             l_send_udp_broadcast(sock, &notif, 1, LAUNCH_EVENT_NOTIFICATION_PORT);
+            return;
         }
     }
 }
 
 static void ground_state_exit(void *) {
+    k_timer_stop(&boost_detect_timer);
     return;
 }
 
 static void flight_state_entry(void *) {
     LOG_INF("Entered flight state");
-    // Start timer
 }
 
 static void flight_state_run(void *) {
@@ -105,5 +111,8 @@ void run_state_machine() {
     static int ret = 0;
     if (ret == 0) {
         ret = smf_run_state(SMF_CTX(&state_obj));
+        if (ret < 0) {
+            LOG_ERR("Failed to run state machine: %d", ret);
+        }
     }
 }
