@@ -4,6 +4,8 @@
 
 #include <launch_core/net/udp.h>
 #include <launch_core/backplane_defs.h>
+#include <launch_core/utils/event_monitor.h>
+
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(transmitter_smf);
@@ -66,12 +68,12 @@ static void ground_state_run(void *) {
         // If GNSS altitude changes, notify everyone and go to flight state
         if (state_obj.boost_detected) {
             smf_set_state(SMF_CTX(&state_obj), &transmitter_states[FLIGHT_STATE]);
-            l_send_udp_broadcast(sock, &notif, 1, LAUNCH_EVENT_NOTIFICATION_PORT);
+            l_post_event_udp(L_BOOST_DETECTED);
             return;
         }
 
         // Check port 9999 for notifications. If we get one, go to flight state on next iter
-        state_obj.boost_detected = get_event_notification() == L_BOOST_DETECTED;
+        state_obj.boost_detected = l_get_event_udp() == L_BOOST_DETECTED;
     }
 }
 
@@ -86,12 +88,14 @@ static void flight_state_entry(void *) {
 
 static void flight_state_run(void *) {
     while (true) {
-        // Listen to all ports
+        // Convert UDP to LoRa
         udp_to_lora((int *) &udp_socket_list);
 
         // If notified of landing, go back to ground state.
-
-        // If timer expires, dump data over LoRa
+        if (l_get_event_udp() == L_LANDING_DETECTED) {
+            smf_set_state(SMF_CTX(&state_obj), &transmitter_states[GROUND_STATE]);
+            return;
+        }
     }
 }
 
@@ -101,6 +105,7 @@ static void flight_state_exit(void *) {
 
 void init_state_machine() {
     smf_set_initial(SMF_CTX(&state_obj), &transmitter_states[GROUND_STATE]);
+    l_init_event_monitor(RADIO_MODULE_IP_ADDR);
 }
 
 void run_state_machine() {
