@@ -15,6 +15,7 @@
 
 // LoRa
 #define LORA_TX_STACK_SIZE 1024
+#define LORA_LOG_STACK_SIZE 512
 
 int init_lora_unique(const struct device *lora_dev);
 
@@ -25,6 +26,9 @@ int start_tasks();
 int main_unique();
 
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
+/**
+ * Listen for UDP packets and send payloads over LoRa
+ */
 void udp_to_lora();
 #endif
 

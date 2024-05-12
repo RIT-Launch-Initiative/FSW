@@ -5,7 +5,6 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/smf.h>
 
 #define SLEEP_TIME_MS 100
 

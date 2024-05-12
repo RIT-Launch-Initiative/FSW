@@ -12,6 +12,8 @@ LOG_MODULE_REGISTER(transmitter_smf);
 
 // External variables
 extern struct k_timer gnss_tx_timer;
+extern bool logging_enabled;
+
 
 // State Machine Variables
 #define DEFINE_STATE_FUNCTIONS(state_name)                                                                             \
@@ -61,6 +63,7 @@ static void ground_state_entry(void *) {
     k_timer_start(&boost_detect_timer, K_SECONDS(5), K_SECONDS(5));
     config_gnss_tx_time(K_SECONDS(5));
     state_obj.boost_detected = false;
+    logging_enabled = false;
 }
 
 static void ground_state_run(void *) {
@@ -94,6 +97,7 @@ K_TIMER_DEFINE(lora_broadcast_timer, broadcast_timer_cb, NULL);
 static void flight_state_entry(void *) {
     LOG_INF("Entered flight state");
     k_timer_start(&lora_broadcast_timer, K_SECONDS(3), K_SECONDS(3));
+    logging_enabled = true;
 }
 
 static void flight_state_run(void *) {

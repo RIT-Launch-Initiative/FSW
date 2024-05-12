@@ -31,7 +31,6 @@ K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE,
 
 // Threads
 static void lora_tx_task(void);
-
 K_THREAD_DEFINE(lora_tx_thread, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 void udp_to_lora() {
@@ -53,16 +52,16 @@ void udp_to_lora() {
 }
 
 static void lora_tx_task(void) {
-    const struct device *const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
+    const struct device* const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
 
     while (1) {
         l_lora_packet_t packet = {0};
         k_msgq_get(&lora_tx_queue, &packet, K_FOREVER);
-        l_lora_tx(lora_dev, (uint8_t *) &packet, packet.payload_len + sizeof(packet.port));
+        l_lora_tx(lora_dev, (uint8_t*) &packet, packet.payload_len + sizeof(packet.port));
     }
 }
 
-int init_lora_unique(const struct device *const lora_dev) { return l_lora_set_tx_rx(lora_dev, true); }
+int init_lora_unique(const struct device* const lora_dev) { return l_lora_set_tx_rx(lora_dev, true); }
 
 int init_udp_unique() {
     for (int i = 0; i < sock_list.num_sockets; i++) {

@@ -15,9 +15,11 @@ LOG_MODULE_REGISTER(transmitter_gnss);
 
 // Flags
 static bool ready_to_tx = false;
+bool logging_enabled = false;
 
 // Forward Declaration
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data);
+static void gnss_log_task(void);
 
 // Callbacks
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
@@ -36,12 +38,16 @@ K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
 #ifdef CONFIG_DEBUG
 
 #define GNSS_TX_QUEUE_SIZE 8
-#define GNSS_TX_STACK_SIZE 1024
+#define GNSS_TASK_STACK_SIZE 1024
 
 static void gnss_debug_task(void);
 
 K_MSGQ_DEFINE(gnss_tx_queue, sizeof(l_gnss_data_t), GNSS_TX_QUEUE_SIZE, 1);
-K_THREAD_DEFINE(gnss_udp_tx, GNSS_TX_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 1000);
+K_THREAD_DEFINE(gnss_udp_tx, GNSS_TASK_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 1000);
+
+K_MSGQ_DEFINE(gnss_log_queue, sizeof(l_gnss_data_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
+K_THREAD_DEFINE(gnss_log_thread, GNSS_TASK_STACK_SIZE, gnss_log_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+
 
 static void gnss_debug_task(void) {
     const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;
@@ -82,6 +88,9 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
     // TODO: Eventually make this zbus and use a single bus for both lora and gnss queues to share
     memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
     k_msgq_put(&lora_tx_queue, (void *) &packet, K_NO_WAIT);
+    if (logging_enabled) {
+        k_msgq_put(&gnss_log_queue, &packet, K_NO_WAIT);
+    }
 
 #ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
     // push to udp tx queue
@@ -89,4 +98,15 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 #endif
 
     ready_to_tx = false;
+}
+
+
+static void gnss_log_task(void) {
+    l_gnss_data_t data = {};
+    while (1) {
+        if (k_msgq_get(&gnss_log_queue, &data, K_FOREVER)) {
+            // TODO: Implement once logging is done
+        }
+
+    }
 }
