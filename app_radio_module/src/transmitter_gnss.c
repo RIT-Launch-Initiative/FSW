@@ -18,7 +18,7 @@ static bool ready_to_tx = false;
 bool logging_enabled = false;
 
 // Forward Declaration
-static void gnss_data_cb(const struct device *dev, const struct gnss_data *data);
+static void gnss_data_cb(const struct device* dev, const struct gnss_data* data);
 static void gnss_log_task(void);
 
 // Callbacks
@@ -32,7 +32,7 @@ struct k_timer gnss_tx_timer;
 extern struct k_msgq lora_tx_queue;
 float gnss_altitude;
 
-static void gnss_tx_on_expire(struct k_timer *timer_id); // Forward Declaration
+static void gnss_tx_on_expire(struct k_timer* timer_id); // Forward Declaration
 K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
 
 #ifdef CONFIG_DEBUG
@@ -60,7 +60,7 @@ static void gnss_debug_task(void) {
     while (1) {
         l_gnss_data_t gnss_data = {0};
         k_msgq_get(&gnss_tx_queue, &gnss_data, K_FOREVER);
-        l_send_udp_broadcast(sock, (uint8_t *) &gnss_data, sizeof(l_gnss_data_t), gnss_port);
+        l_send_udp_broadcast(sock, (uint8_t*) &gnss_data, sizeof(l_gnss_data_t), gnss_port);
     }
 }
 
@@ -68,9 +68,9 @@ static void gnss_debug_task(void) {
 
 void config_gnss_tx_time(k_timeout_t interval) { k_timer_start(&gnss_tx_timer, interval, interval); }
 
-static void gnss_tx_on_expire(struct k_timer *timer_id) { ready_to_tx = true; }
+static void gnss_tx_on_expire(struct k_timer* timer_id) { ready_to_tx = true; }
 
-static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
+static void gnss_data_cb(const struct device* dev, const struct gnss_data* data) {
     gnss_altitude = (float) data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
 
     if (!ready_to_tx) {
@@ -94,7 +94,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 
 #ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
     // push to udp tx queue
-    k_msgq_put(&gnss_tx_queue, (void *) &gnss_data, K_NO_WAIT);
+    k_msgq_put(&gnss_tx_queue, (void*) &gnss_data, K_NO_WAIT);
 #endif
 
     ready_to_tx = false;
