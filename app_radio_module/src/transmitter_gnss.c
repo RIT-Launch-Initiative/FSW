@@ -87,7 +87,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 
     // TODO: Eventually make this zbus and use a single bus for both lora and gnss queues to share
     memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
-    k_msgq_put(&lora_tx_queue, (void *) &packet, K_NO_WAIT);
+    k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
     if (logging_enabled) {
         k_msgq_put(&gnss_log_queue, &packet, K_NO_WAIT);
     }
@@ -99,7 +99,6 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 
     ready_to_tx = false;
 }
-
 
 static void gnss_log_task(void) {
     l_gnss_data_t data = {};
