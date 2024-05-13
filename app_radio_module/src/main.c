@@ -31,9 +31,6 @@ static int init_networking() {
 
 int main() {
     LOG_DBG("Starting radio module!\n");
-//    l_fs_format(FIXED_PARTITION_ID(external_storage_1));
-
-    l_fs_boot_count_check();
 
     if (l_check_device(lora_dev) == 0) {
         init_lora_unique(lora_dev);

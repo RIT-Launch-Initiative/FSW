@@ -156,7 +156,7 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
 int32_t l_fs_boot_count_check() {
     // Check if a .boot_count file exists. If not create it
     struct fs_file_t boot_count_file;
-    int32_t ret = fs_open(&boot_count_file, ".boot_count", FS_O_CREATE | FS_O_RDWR);
+    int32_t ret = fs_open(&boot_count_file, "/lfs/.boot_count", FS_O_CREATE | FS_O_RDWR);
     if (ret < 0) {
         LOG_ERR("Unable to open/create boot count file: %d", ret);
         return ret;
