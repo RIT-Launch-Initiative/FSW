@@ -3,8 +3,8 @@
 
 #include <launch_core/os/fs.h>
 // Zephyr Includes
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/storage/flash_map.h>
 
@@ -38,7 +38,6 @@ int main() {
     if (l_check_device(lora_dev) == 0) {
         init_lora_unique(lora_dev);
     }
-
 
     if (l_check_device(wiznet) == 0) {
         init_networking();

@@ -173,3 +173,31 @@ int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_
 
     return -ret;
 }
+
+int l_get_shunt_data_float(const struct device *const dev, l_shunt_data_t *p_shunt_data) {
+    int ret = 0;
+    struct sensor_value sensor_val = {0};
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_CURRENT, &sensor_val) == 0)) {
+        p_shunt_data->current = sensor_value_to_float(&sensor_val);
+    } else {
+        p_shunt_data->current = FLOAT_ERROR_VALUE;
+        ret |= 0b1;
+    }
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_VOLTAGE, &sensor_val) == 0)) {
+        p_shunt_data->voltage = sensor_value_to_float(&sensor_val);
+    } else {
+        p_shunt_data->voltage = FLOAT_ERROR_VALUE;
+        ret |= 0b10;
+    }
+
+    if (likely(sensor_channel_get(dev, SENSOR_CHAN_POWER, &sensor_val) == 0)) {
+        p_shunt_data->power = sensor_value_to_float(&sensor_val);
+    } else {
+        p_shunt_data->power = FLOAT_ERROR_VALUE;
+        ret |= 0b100;
+    }
+
+    return -ret;
+}

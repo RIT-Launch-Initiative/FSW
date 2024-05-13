@@ -16,10 +16,10 @@
     };
 };
 
-&shtc3 {
-    status = "disabled";
-};
+//&shtc3 {
+//    status = "disabled";
+//};
 
-&bmp388 {
-    status = "okay";
-};
+//&bmp388 {
+//    status = "okay";
+//};
