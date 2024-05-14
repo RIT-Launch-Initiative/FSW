@@ -17,8 +17,8 @@
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
 
-        storage = &w25q128;
-        logfs = &lfs1;
+//        storage = &w25q128;
+//        logfs = &lfs1;
     };
 
     aliases {
@@ -32,22 +32,22 @@
         compatible = "gpio-leds";
     };
 
-    fstab {
-        compatible = "zephyr,fstab";
-
-        lfs1: lfs1 {
-            compatible = "zephyr,fstab,littlefs";
-            mount-point = "/lfs";
-            partition = <&external_storage_partition>;
-            automount;
-
-            read-size = <16>;
-            prog-size = <16>;
-            cache-size = <64>;
-            lookahead-size = <32>;
-            block-cycles = <(90 * 1000)>;
-        };
-    };
+//    fstab {
+//        compatible = "zephyr,fstab";
+//
+//        lfs1: lfs1 {
+//            compatible = "zephyr,fstab,littlefs";
+//            mount-point = "/lfs";
+//            partition = <&external_storage_partition>;
+//            automount;
+//
+//            read-size = <16>;
+//            prog-size = <16>;
+//            cache-size = <64>;
+//            lookahead-size = <32>;
+//            block-cycles = <(90 * 1000)>;
+//        };
+//    };
 
     zephyr,user {
         io-channels = <&adc1 4>;
