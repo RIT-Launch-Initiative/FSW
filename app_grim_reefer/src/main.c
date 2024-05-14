@@ -310,8 +310,27 @@ int main(void) {
         fatal_buzzer();
         return -1;
     }
+    struct fs_file_t file;
+    fs_file_t_init(&file);
+    const char *fname = "/lfs/test.bin";
+    int ret = fs_open(&file, fname, FS_O_RDWR | FS_O_CREATE);
+    if (ret < 0) {
+        printk("Failed to open %s: %d", fname, ret);
+        return ret;
+    }
 
-    adc_printout(&adc_chan0);
+    for (int64_t i = 0; i < 8000000; i++) {
+        ret = fs_write(&file, &i, sizeof(i));
+        if (ret < 0) {
+            printk("Failed to write %s: %d\n", fname, ret);
+        }
+        if (i % 2000 == 0) {
+            printk("Samples: %lld\n", i);
+            print_statvfs("/lfs");
+        }
+    }
+
+    return 0;
 
     k_tid_t storage_tid = spawn_data_storage_thread();
     (void) storage_tid;

@@ -73,7 +73,7 @@
 			// the binding reccomends defaults for these
 			read-size = <16>;
 			prog-size = <16>;
-			cache-size = <2048>; // may need to grow for optimization
+			cache-size = <64>; // may need to grow for optimization
 			lookahead-size = <32>;
 			block-cycles = <(90 * 1000)>;
 			// the datasheet gives 100K P-E cycles
@@ -200,7 +200,7 @@
 
 			external_storage_partition: partition@0 {
 				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(64)>; // takes up the whole flash
+				reg = <0 DT_SIZE_M(16)>; // takes up the whole flash
 			};
 		};
 	};
