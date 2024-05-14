@@ -302,6 +302,7 @@ void slow_data_alert(struct k_timer *) { k_work_submit(&slow_work); }
 K_TIMER_DEFINE(slow_data_timer, slow_data_alert, NULL);
 
 int main(void) {
+
     if (gpio_init()) {
         fatal_buzzer();
         return -1;
@@ -320,7 +321,9 @@ int main(void) {
     }
 
     for (int64_t i = 0; i < 8000000; i++) {
-        ret = fs_write(&file, &i, sizeof(i));
+        struct adc_data dat;
+        dat.timestamp = i;
+        ret = fs_write(&file, &dat, sizeof(dat));
         if (ret < 0) {
             printk("Failed to write %s: %d\n", fname, ret);
         }
