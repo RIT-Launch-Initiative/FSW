@@ -56,7 +56,7 @@ build/
 # Zephyr files
 .west
 
-
+*cmake-*
 # IDE Files
 .vscode/
 .idea/
