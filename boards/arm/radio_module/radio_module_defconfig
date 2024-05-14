@@ -7,3 +7,7 @@ CONFIG_SOC_SERIES_STM32F4X=y
 CONFIG_SOC_STM32F446XX=y
 CONFIG_ARM_MPU=y
 CONFIG_HW_STACK_PROTECTION=y
+
+# Seems to only be accepted at board level and not app level
+# Need more investigation
+CONFIG_POSIX_MAX_FDS=10

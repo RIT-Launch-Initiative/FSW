@@ -39,7 +39,5 @@ int main() {
         init_udp_unique();
     }
 
-    start_tasks();
-
     return main_unique();
 }
