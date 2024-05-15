@@ -75,56 +75,61 @@ const struct device *ina_grim_dev = DEVICE_DT_GET(INA_GRIM_NODE);
 
 static const struct adc_dt_spec adc_chan0 = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
+#define INIT_GPIO_FAIL      -1
+#define INIT_NOFLASH        -1
+#define INIT_MISSING_SENSOR -2
+#define INIT_OK             0
+
 static int gpio_init(void) {
     // Init LEDS
     if (!gpio_is_ready_dt(&led1)) {
         LOG_ERR("LED 1 is not ready\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
     if (gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE) < 0) {
         LOG_ERR("Unable to configure LED 1 output pin\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
 
     if (!gpio_is_ready_dt(&led2)) {
         LOG_ERR("LED 2 is not ready\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
     if (gpio_pin_configure_dt(&led2, GPIO_OUTPUT_ACTIVE) < 0) {
         LOG_ERR("Unable to configure LED 2 output pin\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
     // Init Enable pins
     if (!gpio_is_ready_dt(&ldo_enable)) {
         LOG_ERR("ldo enable pin is not ready\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
     if (gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_ACTIVE) < 0) {
         LOG_ERR("Unable to configure ldo enable output pin\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
 
     if (!gpio_is_ready_dt(&cam_enable)) {
         LOG_ERR("camera enable pin is not ready\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
     if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
         LOG_ERR("Unable to configure camera enable output pin\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
 
     if (!gpio_is_ready_dt(&buzzer)) {
         LOG_ERR("buzzer pin is not ready\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
     if (gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_ACTIVE) < 0) {
         LOG_ERR("Unable to configure buzzer output pin\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
 
     if (!device_is_ready(debug_serial_dev)) {
         LOG_ERR("Debug serial not ready\n");
-        return -1;
+        return INIT_GPIO_FAIL;
     }
 
     gpio_pin_set_dt(&led1, 0);
@@ -133,53 +138,46 @@ static int gpio_init(void) {
     gpio_pin_set_dt(&cam_enable, 0);
     gpio_pin_set_dt(&buzzer, 0);
 
-    return 0;
+    return INIT_OK;
 }
 
 static int sensor_init(void) {
+    const bool flash_found = device_is_ready(flash_dev);
+    if (!flash_found) {
+        return INIT_NOFLASH;
+    }
+
     const bool lsm6dsl_found = device_is_ready(lsm6dsl_dev);
     const bool bme280_found = device_is_ready(bme280_dev);
-    const bool flash_found = device_is_ready(flash_dev);
-    const bool all_good = lsm6dsl_found && flash_found && bme280_found;
-    if (!all_good) {
-        LOG_ERR("Error setting up sensor and flash devices");
-        return -1;
+    if (!lsm6dsl_found) {
+        LOG_ERR("Error setting up LSM6DSL");
+        return INIT_MISSING_SENSOR;
     }
-    // int res = sensor_attr_set(&lsm6dsl_dev, SENSOR_ATTR_SAMPLING_FREQUENCY, 0);
-    // if (res < 0) {
-    // LOG_ERR("sensor attr set mot it");
-    // }
+    if (!bme280_found) {
+        LOG_ERR("Error setting up BME280");
+        return INIT_MISSING_SENSOR;
+    }
     const bool ina_bat_found = device_is_ready(ina_bat_dev);
     const bool ina_ldo_found = device_is_ready(ina_ldo_dev);
     const bool ina_grim_found = device_is_ready(ina_grim_dev);
-    const bool all_good2 = ina_bat_found && ina_ldo_found && ina_grim_found;
 
-    if (!all_good2) {
+    if (!ina_bat_found || !ina_ldo_found || !ina_grim_found) {
         LOG_ERR("Error setting up INA260 devices");
-        return -1;
+        return INIT_MISSING_SENSOR;
     }
 
     // ADC
     if (!adc_is_ready_dt(&adc_chan0)) {
         LOG_ERR("ADC controller device %s not ready\n", adc_chan0.dev->name);
-        return -1;
+        return INIT_MISSING_SENSOR;
     }
     //
     if (adc_channel_setup_dt(&adc_chan0) < 0) {
-        LOG_ERR("Could not setup channel\n");
-        return -1;
+        LOG_ERR("Could not setup ADC channel\n");
+        return INIT_MISSING_SENSOR;
     }
 
     return 0;
-}
-
-void fatal_buzzer() {
-    gpio_pin_set_dt(&ldo_enable, 1);
-
-    while (true) {
-        gpio_pin_toggle_dt(&buzzer);
-        k_msleep(100);
-    }
 }
 
 float add_sample_int(int samplei) {
@@ -306,9 +304,10 @@ int main(void) {
 
     if (gpio_init() != 0) {
         LOG_ERR("GPIO not setup. Continuing...\n");
+        buzzer_tell(buzzer_cond_missing_sensors);
     }
-    if (sensor_init()) {
-        fatal_buzzer();
+    if (sensor_init() != 0) {
+        LOG_ERR("Some sensors not functional");
         return -1;
     }
     struct fs_file_t file;
@@ -326,35 +325,12 @@ int main(void) {
     // Make sure storage is setup
     if (k_event_wait(&storage_setup_finished, 0xFFFFFFFF, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
         LOG_ERR("Failed to initialize file sysbegin_buzzer_threadtem. FATAL ERROR\n");
-        fatal_buzzer();
-        return -1;
+        buzzer_tell(buzzer_cond_noflash);
+        // VERY VERY BAD
     }
 
     LOG_DBG("Starting launch detection");
 
-    int num_samples = 760000;
-    struct adc_data dat;
-    // struct slow_data dat2;
-    k_msleep(1000);
-    for (int i = 0; i < num_samples; i++) {
-        if (cancelled) {
-            break;
-        }
-        dat.timestamp = i;
-        // dat2.adc_value = 4;
-        // get_likely_or_warn(k_msgq_put(&slow_data_queue, &dat2, K_NO_WAIT), "Failed to send slow message");
-
-        get_likely_or_warn(k_msgq_put(&adc_data_queue, &dat, K_NO_WAIT), "Failed to send adc message");
-        if (i % 1000 == 0) {
-            printk("Sample %d\n", i);
-            // print_statvfs("/lfs/");
-        }
-        k_msleep(1);
-    }
-    enum flight_event its_so_over = flight_event_main_shutoff;
-    k_msgq_put(&flight_events_queue, &its_so_over, K_NO_WAIT);
-
-    return 0;
     // Storage is ready
     // Start launch detecting
     gpio_pin_set_dt(&cam_enable, 0);
@@ -363,25 +339,8 @@ int main(void) {
     k_timer_start(&fast_data_timer, FAST_DATA_DELAY_MS, FAST_DATA_DELAY_MS);
     k_timer_start(&slow_data_timer, SLOW_DATA_DELAY_MS, SLOW_DATA_DELAY_MS);
 
-    // scuffed, use events
-    int buzzer_frame = 0;
-    while (!has_launched && !cancelled) {
-        if (buzzer_frame % 500 == 0) {
-            gpio_pin_set_dt(&buzzer, 1);
-        } else if (buzzer_frame % 500 == 20) {
-            gpio_pin_set_dt(&buzzer, 0);
-        }
+    k_msleep(TOTAL_FLIGHT_TIME_MS);
 
-        k_msleep(5);
-        buzzer_frame++;
-    }
-
-    if (has_launched) {
-        gpio_pin_set_dt(&buzzer, 0);
-
-        printk("Launch detected at %lld\n", k_uptime_get());
-        k_msleep(FLIGHT_TIME_MS);
-    }
     k_timer_stop(&fast_data_timer);
     k_timer_stop(&slow_data_timer);
 
@@ -392,19 +351,8 @@ int main(void) {
     LOG_DBG("Samples: %d", num_samples_fast);
     printk("Fast: %d, Slow: %d\n", num_samples_fast, num_samples_slow);
 
-    while (true) {
-        if (buzzer_frame % 500 == 0) {
-            gpio_pin_set_dt(&buzzer, 1);
-        } else if (buzzer_frame % 500 == 20) {
-            gpio_pin_set_dt(&buzzer, 0);
-        } else if (buzzer_frame % 500 == 30) {
-            gpio_pin_set_dt(&buzzer, 1);
-        } else if (buzzer_frame % 500 == 40) {
-            gpio_pin_set_dt(&buzzer, 0);
-        }
-        buzzer_frame++;
-        k_msleep(5);
-    }
+    LOG_INF("Landed!")
+    buzzer_tell(buzzer_cond_landed);
     return 0;
 }
 

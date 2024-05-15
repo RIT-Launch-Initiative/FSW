@@ -57,9 +57,9 @@ extern void buzzer_entry_point(void *buzzer_gpio, void *, void *) {
 
 K_THREAD_STACK_DEFINE(buzzer_stack_area, BUZZER_THREAD_STACK_SIZE);
 struct k_thread buzzer_thread_data;
-
+static k_tid_t buzzer_tid;
 void begin_buzzer_thread(const struct gpio_dt_spec *buzzer_pin) {
-    k_tid_t my_tid =
+    buzzer_tid =
         k_thread_create(&buzzer_thread_data, buzzer_stack_area, K_THREAD_STACK_SIZEOF(buzzer_stack_area),
                         buzzer_entry_point, (void *) buzzer_pin, NULL, NULL, BUZZER_THREAD_PRIORITY, 0, K_NO_WAIT);
 }

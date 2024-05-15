@@ -9,9 +9,7 @@
 #define FAST_DATA_DELAY_MS K_MSEC(2)
 #define SLOW_DATA_DELAY_MS K_MSEC(1000)
 
-// Openrocket predicts 75 second flight time for bare L1
-
-#define FLIGHT_TIME_MS (110 * 1000)
+#define TOTAL_FLIGHT_TIME_MS (400 * 1000)
 
 #define FIVE_G_LIMIT_MPS 50
 // 500 samples a sec max
