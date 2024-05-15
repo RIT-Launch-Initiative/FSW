@@ -3,6 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include "buzzer.h"
 #include "config.h"
 #include "data_storage.h"
 #include "testing.h"
@@ -31,8 +32,8 @@ int32_t timestamp() {
     int32_t us = k_ticks_to_us_floor32(k_uptime_ticks());
     return us;
 }
-
-LOG_MODULE_REGISTER(main);
+#define MAX_LOG_LEVEL 4
+LOG_MODULE_REGISTER(main, MAX_LOG_LEVEL);
 
 // devicetree gets
 #define LED1_NODE DT_NODELABEL(led1)
@@ -303,9 +304,8 @@ K_TIMER_DEFINE(slow_data_timer, slow_data_alert, NULL);
 
 int main(void) {
 
-    if (gpio_init()) {
-        fatal_buzzer();
-        return -1;
+    if (gpio_init() != 0) {
+        LOG_ERR("GPIO not setup. Continuing...\n");
     }
     if (sensor_init()) {
         fatal_buzzer();
@@ -319,32 +319,17 @@ int main(void) {
         printk("Failed to open %s: %d", fname, ret);
         return ret;
     }
-
-    for (int64_t i = 0; i < 8000000; i++) {
-        struct adc_data dat;
-        dat.timestamp = i;
-        ret = fs_write(&file, &dat, sizeof(dat));
-        if (ret < 0) {
-            printk("Failed to write %s: %d\n", fname, ret);
-        }
-        if (i % 2000 == 0) {
-            printk("Samples: %lld\n", i);
-            print_statvfs("/lfs");
-        }
-    }
-
-    return 0;
-
+    begin_buzzer_thread(&buzzer);
     k_tid_t storage_tid = spawn_data_storage_thread();
     (void) storage_tid;
 
     // Make sure storage is setup
-
-    if (k_event_wait(&storage_setup_finished, 0xFFF, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
-        LOG_ERR("Failed to initialize file system. FATAL ERROR\n");
+    if (k_event_wait(&storage_setup_finished, 0xFFFFFFFF, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
+        LOG_ERR("Failed to initialize file sysbegin_buzzer_threadtem. FATAL ERROR\n");
         fatal_buzzer();
         return -1;
     }
+
     LOG_DBG("Starting launch detection");
 
     int num_samples = 760000;
