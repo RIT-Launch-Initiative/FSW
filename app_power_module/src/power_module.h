@@ -1,6 +1,11 @@
 #ifndef POWER_MODULE_H
 #define POWER_MODULE_H
 
+typedef enum {
+ GROUND_STATE = 0,
+ FLIGHT_STATE,
+} FLIGHT_STATES;
+
 /**
  * Task for reading INA219 sensor data into a queue
  */
