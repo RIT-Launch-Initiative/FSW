@@ -20,8 +20,9 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_POWER_MODULE_LOG_LEVEL);
 
 struct s_object {
     struct smf_ctx ctx;
-    bool enable_logging;
 } state_obj;
+
+bool logging_enabled; // Keep separate from s_object to eliminate extra #includes in other src fiels
 
 DEFINE_STATE_FUNCTIONS(ground);
 DEFINE_STATE_FUNCTIONS(flight);
@@ -33,7 +34,7 @@ static const struct smf_state transmitter_states[] = {
 
 static void ground_state_entry(void *) {
     LOG_INF("Entered ground state");
-    state_obj.enable_logging = false;
+    logging_enabled = false;
 }
 
 static void ground_state_run(void *) {
@@ -46,7 +47,7 @@ static void ground_state_run(void *) {
 }
 static void flight_state_entry(void *) {
     LOG_INF("Entered flight state");
-    state_obj.enable_logging = true;
+    logging_enabled = true;
 }
 
 static void flight_state_run(void *) {

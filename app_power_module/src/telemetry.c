@@ -20,14 +20,22 @@
 
 LOG_MODULE_REGISTER(telemetry);
 
+// Threads
 K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
+// Message Queues
 K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
 K_MSGQ_DEFINE(adc_telemetry_msgq, sizeof(float), 10, 4);
 
+// Timers
 K_TIMER_DEFINE(ina_task_timer, NULL, NULL);
 K_TIMER_DEFINE(adc_task_timer, NULL, NULL);
+
+// Extern variables
+extern bool logging_enabled; // TODO: Should be moved to logging thread, when there's no dup queues
+extern struct k_msgq ina_logging_msgq;
+extern struct k_msgq adc_logging_msgq;
 
 static bool init_ina_task(const struct device *sensors[3], bool ina_device_found[3]) {
     const char *sensor_names[] = {"Battery", "3v3", "5v0"};
@@ -87,7 +95,11 @@ void ina_task(void) {
         l_get_shunt_data_float(sensors[2], &sensor_telemetry.data_5v0);
 
         if (k_msgq_put(&ina_telemetry_msgq, &sensor_telemetry, K_NO_WAIT)) {
-            LOG_ERR("Failed to put data into INA219 processing queue");
+            LOG_ERR("Failed to put data into INA219 UDP queue");
+        }
+
+        if (k_msgq_put(&ina_logging_msgq, &sensor_telemetry, K_NO_WAIT)) {
+            LOG_ERR("Failed to put data into INA219 logging queue");
         }
     }
 }
@@ -121,7 +133,11 @@ void adc_task(void) {
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
         if (k_msgq_put(&ina_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
-            LOG_ERR("Failed to put data into ADC processing queue");
+            LOG_ERR("Failed to put data into ADC UDP queue");
+        }
+
+        if (logging_enabled && k_msgq_put(&ina_logging_msgq, &vin_adc_data_v, K_NO_WAIT)) {
+            LOG_ERR("Failed to put data into ADC logging queue");
         }
     }
 }
