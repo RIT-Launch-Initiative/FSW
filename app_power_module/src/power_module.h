@@ -1,6 +1,11 @@
 #ifndef POWER_MODULE_H
 #define POWER_MODULE_H
 
+#include <launch_core/backplane_defs.h>
+#include <launch_core/net/net_common.h>
+
+#define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
+
 typedef enum {
  GROUND_STATE = 0,
  FLIGHT_STATE,

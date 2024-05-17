@@ -14,7 +14,6 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
 
-#define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define NUM_SOCKETS 1
 
