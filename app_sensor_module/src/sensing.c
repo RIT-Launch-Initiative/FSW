@@ -17,7 +17,7 @@
 #define SENSOR_READING_STACK_SIZE 1024
 #define HUNDRED_HZ_TELEM_PRIORITY 20
 #define SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS 4
-#define HUNDRED_HZ_UPDATE_TIME 10
+#define HUNDRED_HZ_UPDATE_TIME 500 // TODO: Should be 10, but I2C bus dies
 
 // Forward Declarations
 static void hundred_hz_sensor_reading_task(void);

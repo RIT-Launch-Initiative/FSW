@@ -131,26 +131,23 @@ static void init() {
     l_init_event_monitor(SENSOR_MODULE_IP_ADDR);
 }
 
-static void run_state_machine() {
-    static int ret = 0;
-    if (ret == 0) {
-        ret = smf_run_state(SMF_CTX(&state_obj));
-        if (ret < 0) {
-            LOG_ERR("Failed to run state machine: %d", ret);
-        }
-    }
-}
-
 int main() {
     static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
 
     init();
+    return;
 
     while (true) {
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-        run_state_machine();
+        static int ret = 0;
+        if (ret == 0) {
+            ret = smf_run_state(SMF_CTX(&state_obj));
+            if (ret < 0) {
+                LOG_ERR("Failed to run state machine: %d", ret);
+            }
+            gpio_pin_toggle_dt(&led0);
+            gpio_pin_toggle_dt(&led1);
+        }
     }
 
     return 0;

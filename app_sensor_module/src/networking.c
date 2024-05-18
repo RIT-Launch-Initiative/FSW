@@ -15,7 +15,7 @@ LOG_MODULE_REGISTER(networking);
 
 static void telemetry_broadcast_task(void *, void *, void *);
 
-K_THREAD_DEFINE(telemetry_broadcast, 1024, telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
+K_THREAD_DEFINE(telemetry_broadcast, 1024, telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 extern struct k_msgq hundred_hz_telem_queue;
 
@@ -62,8 +62,6 @@ static void telemetry_broadcast_task(void *, void *, void *) {
             l_send_udp_broadcast(hundred_hz_socket, (uint8_t *) &hundred_hz_telem,
                                  sizeof(sensor_module_hundred_hz_telemetry_t),
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
-        } else {
-            LOG_WRN("Failed to get data from 100 Hz queue");
         }
     }
 }
