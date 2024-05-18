@@ -6,7 +6,7 @@
 #define ALTITUDE_VAL_THRESHOLD 500
 
 #define ACCEL_TIME_THRESHOLD K_MSEC(250)
-#define ACCEL_VAL_THRESHOLD 9.81 * 5
+#define ACCEL_VAL_THRESHOLD ((float)(9.81 * 5))
 
 
 // Forward Declares
@@ -50,7 +50,7 @@ static void accel_boost_detect_cb(struct k_timer *) {
     }
 }
 
-void init_boost_detect() {
+void start_boost_detect() {
     k_timer_start(&altitude_boost_detect_timer, ALTITUDE_TIME_THRESHOLD, ALTITUDE_TIME_THRESHOLD);
     k_timer_start(&accel_boost_detect_timer, ACCEL_TIME_THRESHOLD, ACCEL_TIME_THRESHOLD);
 }

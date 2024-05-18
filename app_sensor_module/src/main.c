@@ -10,8 +10,12 @@
 #include <zephyr/kernel.h>
 #include <zephyr/smf.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/http/parser_state.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
+
+#define PRE_MAIN_FLIGHT_DURATION K_SECONDS(178)
+#define POST_MAIN_FLIGHT_DURATION K_SECONDS(46)
 
 #define DEFINE_STATE_FUNCTIONS(state_name)                                                                             \
 static void state_name##_state_entry(void *);                                                                      \
@@ -30,6 +34,11 @@ static const struct smf_state states[] = {
     [LANDING_STATE] = SMF_CREATE_STATE(landing_state_entry, landing_state_run, landing_state_exit),
 };
 
+static void state_transition_timer_cb(struct k_timer*) {
+    // TODO: Implement state transition logic
+}
+
+K_TIMER_DEFINE(state_transition_timer, state_transition_timer_cb, NULL);
 
 struct s_object {
     struct smf_ctx ctx;
@@ -37,6 +46,7 @@ struct s_object {
 
 static void pad_state_entry(void*) {
     LOG_INF("Entering pad state");
+    start_boost_detect();
 }
 
 static void pad_state_run(void*) {
@@ -47,6 +57,8 @@ static void pad_state_run(void*) {
 
 static void pre_main_state_entry(void*) {
     LOG_INF("Entering pre_main state");
+    stop_boost_detect();
+    k_timer_start(&state_transition_timer, PRE_MAIN_FLIGHT_DURATION, PRE_MAIN_FLIGHT_DURATION);
 }
 
 static void pre_main_state_run(void*) {
@@ -57,6 +69,8 @@ static void pre_main_state_run(void*) {
 
 static void post_main_state_entry(void*) {
     LOG_INF("Entering post_main state");
+    k_timer_start(&state_transition_timer, POST_MAIN_FLIGHT_DURATION, POST_MAIN_FLIGHT_DURATION);
+
 }
 
 static void post_main_state_run(void*) {
@@ -78,7 +92,6 @@ static void landing_state_run(void*) {
 
 static void init() {
     init_networking();
-    start_boost_detect();
 
     smf_set_initial(SMF_CTX(&state_obj), &states[PAD_STATE]);
     l_init_event_monitor(SENSOR_MODULE_IP_ADDR);
