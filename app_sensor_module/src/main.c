@@ -112,7 +112,7 @@ static void landing_state_entry(void*) {
 
 static void landing_state_run(void*) {
     while (true) {
-
+        k_sleep(K_FOREVER);
     }
 }
 
@@ -121,6 +121,16 @@ static void init() {
 
     smf_set_initial(SMF_CTX(&state_obj), &states[PAD_STATE]);
     l_init_event_monitor(SENSOR_MODULE_IP_ADDR);
+}
+
+static void run_state_machine() {
+    static int ret = 0;
+    if (ret == 0) {
+        ret = smf_run_state(SMF_CTX(&state_obj));
+        if (ret < 0) {
+            LOG_ERR("Failed to run state machine: %d", ret);
+        }
+    }
 }
 
 int main() {
@@ -132,7 +142,7 @@ int main() {
     while (true) {
         gpio_pin_toggle_dt(&led0);
         gpio_pin_toggle_dt(&led1);
-        k_msleep(100);
+        run_state_machine();
     }
 
     return 0;
