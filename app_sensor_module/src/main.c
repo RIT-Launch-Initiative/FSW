@@ -3,14 +3,13 @@
 
 // Launch Includes
 #include <launch_core/dev/dev_common.h>
+#include <launch_core/utils/event_monitor.h>
 
 // Zephyr Includes
-#include <launch_core/utils/event_monitor.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/smf.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/net/http/parser_state.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 
@@ -27,6 +26,12 @@ DEFINE_STATE_FUNCTIONS(pre_main);
 DEFINE_STATE_FUNCTIONS(post_main);
 DEFINE_STATE_FUNCTIONS(landing);
 
+extern bool boost_detected;
+
+struct s_object {
+    struct smf_ctx ctx;
+} state_obj;
+
 static const struct smf_state states[] = {
     [PAD_STATE] = SMF_CREATE_STATE(pad_state_entry, pad_state_run, pad_state_exit),
     [PRE_MAIN_STATE] = SMF_CREATE_STATE(pre_main_state_entry, pre_main_state_run, pre_main_state_exit),
@@ -34,15 +39,13 @@ static const struct smf_state states[] = {
     [LANDING_STATE] = SMF_CREATE_STATE(landing_state_entry, landing_state_run, landing_state_exit),
 };
 
+
 static void state_transition_timer_cb(struct k_timer*) {
     // TODO: Implement state transition logic
 }
 
 K_TIMER_DEFINE(state_transition_timer, state_transition_timer_cb, NULL);
 
-struct s_object {
-    struct smf_ctx ctx;
-} state_obj;
 
 static void pad_state_entry(void*) {
     LOG_INF("Entering pad state");
@@ -51,7 +54,15 @@ static void pad_state_entry(void*) {
 
 static void pad_state_run(void*) {
     while (true) {
+        // If GNSS altitude changes, notify everyone and go to flight state
+        if (boost_detected) {
+            smf_set_state(SMF_CTX(&state_obj), &transmitter_states[PRE_MAIN_STATE]);
+            l_post_event_udp(L_BOOST_DETECTED);
+            return;
+        }
 
+        // Check port 9999 for notifications. If we get one, go to flight state on next iter
+        boost_detected = l_get_event_udp() == L_BOOST_DETECTED;
     }
 }
 
