@@ -31,6 +31,7 @@ K_TIMER_DEFINE(hundred_hz_timer, NULL, NULL);
 
 // Message Queues
 K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
+K_MSGQ_DEFINE(hundred_hz_log_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 500, 1);
 
 // Variables (for boost detection)
 float accel_z[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};

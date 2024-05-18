@@ -18,9 +18,9 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 #define POST_MAIN_FLIGHT_DURATION K_SECONDS(46)
 
 #define DEFINE_STATE_FUNCTIONS(state_name)                                                                             \
-static void state_name##_state_entry(void *);                                                                      \
-static void state_name##_state_run(void *);                                                                        \
-static void state_name##_state_exit(void *) {}
+    static void state_name##_state_entry(void *);                                                                      \
+    static void state_name##_state_run(void *);                                                                        \
+    static void state_name##_state_exit(void *) {}
 
 DEFINE_STATE_FUNCTIONS(pad);
 DEFINE_STATE_FUNCTIONS(pre_main);
