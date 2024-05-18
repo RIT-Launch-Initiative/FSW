@@ -79,7 +79,7 @@ static void landing_state_run(void*) {
 static void init() {
     init_networking();
 
-    smf_set_initial(SMF_CTX(&state_obj), NULL);
+    smf_set_initial(SMF_CTX(&state_obj), &states[PAD_STATE]);
     l_init_event_monitor(SENSOR_MODULE_IP_ADDR);
 }
 
