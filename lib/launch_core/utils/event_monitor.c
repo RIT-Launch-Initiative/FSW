@@ -9,7 +9,7 @@ LOG_MODULE_REGISTER(event_monitor);
 
 static int sock = -1;
 
-int l_init_event_monitor(const char *ip) {
+int l_init_event_monitor(const char* ip) {
     sock = l_init_udp_socket(ip, LAUNCH_EVENT_NOTIFICATION_PORT);
     if (sock < 0) {
         sock = -1;

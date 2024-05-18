@@ -22,7 +22,7 @@ extern float accel_z[DETECTION_METHOD_PER_SENSOR_COUNT];
 extern float pressure[DETECTION_METHOD_PER_SENSOR_COUNT];
 extern float temperature[DETECTION_METHOD_PER_SENSOR_COUNT];
 
-static void altitude_boost_detect_cb(struct k_timer *) {
+static void altitude_boost_detect_cb(struct k_timer*) {
     static float prev_altitudes[2] = {0};
     static bool first_pass = true;
 
@@ -48,7 +48,7 @@ static void altitude_boost_detect_cb(struct k_timer *) {
     }
 }
 
-static void accel_boost_detect_cb(struct k_timer *) {
+static void accel_boost_detect_cb(struct k_timer*) {
     static float prev_accel_z[2] = {0};
     static bool first_pass = false;
 

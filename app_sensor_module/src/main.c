@@ -77,7 +77,7 @@ static void pre_main_state_run(void*) {
 
 static void post_main_state_entry(void*) {
     LOG_INF("Entering post_main state");
-plif}
+}
 
 static void post_main_state_run(void*) {
     k_sleep(POST_MAIN_FLIGHT_DURATION);

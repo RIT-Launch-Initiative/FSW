@@ -13,7 +13,7 @@
 
 LOG_MODULE_REGISTER(networking);
 
-static void telemetry_broadcast_task(void *, void *, void *);
+static void telemetry_broadcast_task(void*, void*, void*);
 
 K_THREAD_DEFINE(telemetry_broadcast, 1024, telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
@@ -49,7 +49,7 @@ int init_networking(void) {
 //}
 
 
-static void telemetry_broadcast_task(void *, void *, void *) {
+static void telemetry_broadcast_task(void*, void*, void*) {
     LOG_INF("Starting broadcast task");
 
     sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
@@ -59,7 +59,7 @@ static void telemetry_broadcast_task(void *, void *, void *) {
 
     while (true) {
         if (0 == k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telem, K_MSEC(100))) {
-            l_send_udp_broadcast(hundred_hz_socket, (uint8_t *) &hundred_hz_telem,
+            l_send_udp_broadcast(hundred_hz_socket, (uint8_t*) &hundred_hz_telem,
                                  sizeof(sensor_module_hundred_hz_telemetry_t),
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
         }
