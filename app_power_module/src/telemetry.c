@@ -32,7 +32,7 @@ K_TIMER_DEFINE(ina_task_timer, NULL, NULL);
 K_TIMER_DEFINE(adc_task_timer, NULL, NULL);
 
 // Extern variables
-extern bool logging_enabled; // TODO: Should be moved to logging thread, when there's no dup queues
+extern bool logging_enabled;
 extern struct k_msgq ina_logging_msgq;
 extern struct k_msgq adc_logging_msgq;
 
@@ -94,11 +94,15 @@ void ina_task(void) {
         l_get_shunt_data_float(sensors[2], &sensor_telemetry.data_5v0);
 
         if (k_msgq_put(&ina_telemetry_msgq, &sensor_telemetry, K_NO_WAIT)) {
-            LOG_ERR("Failed to put data into INA219 UDP queue");
         }
 
-        if (logging_enabled && k_msgq_put(&ina_logging_msgq, &sensor_telemetry, K_NO_WAIT)) {
-            LOG_ERR("Failed to put data into INA219 logging queue");
+        // Buffer up data for logging before boost. If no space, throw out the oldest entry.
+        if (!logging_enabled && k_msgq_num_free_get(&ina_logging_msgq) == 0) {
+            power_module_telemetry_t throwaway_data;
+            k_msgq_get(&ina_logging_msgq, &throwaway_data, K_NO_WAIT);
+        }
+
+        if (k_msgq_put(&ina_logging_msgq, &sensor_telemetry, K_MSEC(INA219_UPDATE_TIME_MS))) {
         }
     }
 }
@@ -132,11 +136,15 @@ void adc_task(void) {
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
         if (k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
-            LOG_ERR("Failed to put data into ADC UDP queue");
         }
 
-        if (logging_enabled && k_msgq_put(&adc_logging_msgq, &vin_adc_data_v, K_NO_WAIT)) {
-            LOG_ERR("Failed to put data into ADC logging queue");
+        // Buffer up data for logging before boost. If no space, throw out the oldest entry.
+        if (!logging_enabled && k_msgq_num_free_get(&adc_logging_msgq) == 0) {
+            float throwaway_data;
+            k_msgq_get(&adc_logging_msgq, &throwaway_data, K_NO_WAIT);
+        }
+
+        if (k_msgq_put(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(ADC_UPDATE_TIME_MS))) {
         }
 
         k_msleep(15);
