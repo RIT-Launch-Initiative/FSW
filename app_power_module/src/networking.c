@@ -17,21 +17,19 @@
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define NUM_SOCKETS 1
 
-K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
-                telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+// K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
+//                 telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 extern struct k_msgq ina_telemetry_msgq;
 extern struct k_msgq adc_telemetry_msgq;
 
-
-// TODO: Just use base port for output. Bind to launch events port when we do state machien
 static int udp_sockets[NUM_SOCKETS] = {0};
 static int udp_socket_ports[] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT};
 static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = NUM_SOCKETS};
 
 LOG_MODULE_REGISTER(networking);
 
-static void init_networking() {
+void init_networking() {
     const struct device *wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
     if (l_check_device(wiznet) != 0) {
         LOG_ERR("Wiznet device not found");

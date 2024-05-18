@@ -7,7 +7,7 @@
 #define LOGGING_STACK_SIZE 512
 
 static void logging_task(void);
-K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+// K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 // Message queues
 // TODO: Avoid duplicate queues. Fine for now since this isn't too expensive and we have the memory

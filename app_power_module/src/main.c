@@ -59,9 +59,15 @@ static void flight_state_run(void *) {
     }
 }
 
-int main(void) {
+static void init() {
+    init_networking();
+
     smf_set_initial(SMF_CTX(&state_obj), &transmitter_states[GROUND_STATE]);
     l_init_event_monitor(POWER_MODULE_IP_ADDR);
+}
+
+int main(void) {
+    init();
 
     while (true) {
         static int ret = 0;
@@ -72,5 +78,6 @@ int main(void) {
             }
         }
     }
+
     return 0;
 }

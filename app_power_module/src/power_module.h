@@ -12,6 +12,11 @@ typedef enum {
 } FLIGHT_STATES;
 
 /**
+ * Initialize networking
+ */
+void init_networking();
+
+/**
  * Task for reading INA219 sensor data into a queue
  */
 void ina_task(void);
