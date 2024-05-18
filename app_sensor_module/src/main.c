@@ -2,6 +2,7 @@
 #include "sensor_module.h"
 
 // Launch Includes
+#include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/utils/event_monitor.h>
 
@@ -27,6 +28,7 @@ DEFINE_STATE_FUNCTIONS(post_main);
 DEFINE_STATE_FUNCTIONS(landing);
 
 extern bool boost_detected;
+static bool in_flight_transition_event = false;
 
 struct s_object {
     struct smf_ctx ctx;
@@ -41,7 +43,7 @@ static const struct smf_state states[] = {
 
 
 static void state_transition_timer_cb(struct k_timer*) {
-    // TODO: Implement state transition logic
+    in_flight_transition_event = true;
 }
 
 K_TIMER_DEFINE(state_transition_timer, state_transition_timer_cb, NULL);
@@ -56,7 +58,7 @@ static void pad_state_run(void*) {
     while (true) {
         // If GNSS altitude changes, notify everyone and go to flight state
         if (boost_detected) {
-            smf_set_state(SMF_CTX(&state_obj), &transmitter_states[PRE_MAIN_STATE]);
+            smf_set_state(SMF_CTX(&state_obj), &states[PRE_MAIN_STATE]);
             l_post_event_udp(L_BOOST_DETECTED);
             return;
         }
@@ -70,11 +72,18 @@ static void pre_main_state_entry(void*) {
     LOG_INF("Entering pre_main state");
     stop_boost_detect();
     k_timer_start(&state_transition_timer, PRE_MAIN_FLIGHT_DURATION, PRE_MAIN_FLIGHT_DURATION);
+
+    in_flight_transition_event = false;
 }
 
 static void pre_main_state_run(void*) {
     while (true) {
+        if (in_flight_transition_event) {
+            l_post_event_udp(L_MAIN_DEPLOYED);
+            smf_set_state(SMF_CTX(&state_obj), &states[POST_MAIN_STATE]);
 
+            return;
+        }
     }
 }
 
@@ -82,11 +91,17 @@ static void post_main_state_entry(void*) {
     LOG_INF("Entering post_main state");
     k_timer_start(&state_transition_timer, POST_MAIN_FLIGHT_DURATION, POST_MAIN_FLIGHT_DURATION);
 
+    in_flight_transition_event = false;
 }
 
 static void post_main_state_run(void*) {
     while (true) {
+        if (in_flight_transition_event) {
+            l_post_event_udp(L_LANDING_DETECTED);
+            smf_set_state(SMF_CTX(&state_obj), &states[LANDING_STATE]);
 
+            return;
+        }
     }
 }
 
