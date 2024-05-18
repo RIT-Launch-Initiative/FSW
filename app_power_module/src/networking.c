@@ -6,21 +6,21 @@
 
 #include "power_module.h"
 
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/net/udp.h>
-#include <launch_core/net/net_common.h>
 #include <launch_core/backplane_defs.h>
+#include <launch_core/dev/dev_common.h>
+#include <launch_core/net/net_common.h>
+#include <launch_core/net/udp.h>
 #include <launch_core/types.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
 
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
-#define NUM_SOCKETS 1
+#define NUM_SOCKETS                 1
 
 // TODO: Annoying RTOS setup where priority needs to be higher than other tasks and queues need to sleep
 // Otherwise, logging task gets starved during flight
-K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
-                telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(19), 0, 1000);
+K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE, telemetry_broadcast_task, NULL, NULL, NULL,
+                K_PRIO_PREEMPT(19), 0, 1000);
 
 extern struct k_msgq ina_telemetry_msgq;
 extern struct k_msgq adc_telemetry_msgq;
