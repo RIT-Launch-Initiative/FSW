@@ -17,13 +17,15 @@ K_THREAD_DEFINE(logging, LOGGING_STACK_SIZE, log_telemetry_task, NULL, NULL, NUL
 
 // Extern Variables
 extern struct k_msgq hundred_hz_log_queue;
+extern bool logging_enabled;
 
 static void log_telemetry_task(void) {
     sensor_module_hundred_hz_telemetry_t telem;
     while (true) {
-        if (k_msgq_get(&hundred_hz_log_queue, &telem, K_FOREVER)) {
-            // TODO: Wipe this once we actually call loggign stuff
-            LOG_INF("Logged sensor module data");
+        if (!logging_enabled) continue;
+
+        if (k_msgq_get(&hundred_hz_log_queue, &telem, K_MSEC(100))) {
+            // TODO: Wipe this once we actually call logging stuff
         }
     }
 }

@@ -25,6 +25,7 @@ typedef enum {
     SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS
 } sensor_module_hundred_hz_sensor_t;
 
+void init();
 
 int init_networking(void);
 

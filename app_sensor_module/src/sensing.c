@@ -123,14 +123,15 @@ static void hundred_hz_sensor_reading_task(void) {
             k_msgq_get(&hundred_hz_log_queue, &throwaway_data, K_NO_WAIT);
         }
 
-        if (k_msgq_put(&hundred_hz_log_queue, &hundred_hz_telemetry, K_MSEC(HUNDRED_HZ_UPDATE_TIME))) {
+        if (k_msgq_put(&hundred_hz_log_queue, &hundred_hz_telemetry, K_MSEC(10))) {
+            LOG_INF("Queued log data");
         }
 
         // Fill data for boost detection
-        accel_z[0] += 1000;
-        accel_z[1] += 100;
-        // accel_z[0] = hundred_hz_telemetry.adxl375.accel_z;
-        // accel_z[1] = hundred_hz_telemetry.lsm6dsl_accel.accel_z;
+        // TODO: Need to validate on newer hardware. Sus slow trigger time during testing with fake vals.
+        // Faulty bus known to affect how fast this loop executes
+        accel_z[0] = hundred_hz_telemetry.adxl375.accel_z;
+        accel_z[1] = hundred_hz_telemetry.lsm6dsl_accel.accel_z;
 
         pressure[0] = hundred_hz_telemetry.bmp388.pressure;
         temperature[0] = hundred_hz_telemetry.bmp388.temperature;
