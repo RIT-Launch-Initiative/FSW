@@ -79,6 +79,7 @@ static void hundred_hz_sensor_reading_task(void) {
                                                                           //            ms5611,
                                                                           bmp388, lsm6dsl, lis3mdl};
 
+    // Perform any necessary sensor setup
     setup_lsm6dsl();
 
     // Confirm sensors are ready

@@ -2,6 +2,7 @@
 #define SENSOR_MODULE_H
 
 #include <launch_core/net/net_common.h>
+#include <stdbool.h>
 
 #define SENSOR_MODULE_IP_ADDR BACKPLANE_IP(SENSOR_MODULE_ID, 2, 1)
 
@@ -28,5 +29,21 @@ int init_networking(void);
  * Start tasks for getting sensor data
  */
 void start_sensor_tasks();
+
+/**
+ * Check if boost was detected
+ * @return If boost was detected
+ */
+bool get_boost_detected();
+
+/**
+ * Check for a sudden altitude change and set boost_detected if threshold met
+ */
+void check_altitude_change(float pressure, float temperature);
+
+/**
+ * Check for a sudden acceleration change and set boost_detected if threshold met
+ */
+void check_acceleration_change(float accel_z);
 
 #endif //SENSOR_MODULE_H
