@@ -27,7 +27,7 @@ bool logging_enabled; // Keep separate from s_object to eliminate extra #include
 DEFINE_STATE_FUNCTIONS(ground);
 DEFINE_STATE_FUNCTIONS(flight);
 
-static const struct smf_state transmitter_states[] = {
+static const struct smf_state states[] = {
     [GROUND_STATE] = SMF_CREATE_STATE(ground_state_entry, ground_state_run, ground_state_exit),
     [FLIGHT_STATE] = SMF_CREATE_STATE(flight_state_entry, flight_state_run, flight_state_exit),
 };
@@ -40,7 +40,7 @@ static void ground_state_entry(void *) {
 static void ground_state_run(void *) {
     while (true) {
         if (l_get_event_udp() == L_BOOST_DETECTED) {
-            smf_set_state(SMF_CTX(&state_obj), &transmitter_states[FLIGHT_STATE]);
+            smf_set_state(SMF_CTX(&state_obj), &states[FLIGHT_STATE]);
             return;
         }
     }
@@ -53,7 +53,7 @@ static void flight_state_entry(void *) {
 static void flight_state_run(void *) {
     while (true) {
         if (l_get_event_udp() == L_LANDING_DETECTED) {
-            smf_set_state(SMF_CTX(&state_obj), &transmitter_states[GROUND_STATE]);
+            smf_set_state(SMF_CTX(&state_obj), &states[GROUND_STATE]);
             return;
         }
     }
@@ -62,7 +62,7 @@ static void flight_state_run(void *) {
 static void init() {
     init_networking();
 
-    smf_set_initial(SMF_CTX(&state_obj), &transmitter_states[GROUND_STATE]);
+    smf_set_initial(SMF_CTX(&state_obj), &states[GROUND_STATE]);
     l_init_event_monitor(POWER_MODULE_IP_ADDR);
 }
 
