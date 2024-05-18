@@ -2,9 +2,12 @@
 #define SENSOR_MODULE_H
 
 #include <launch_core/net/net_common.h>
+#include <launch_core/types.h>
+
 #include <stdbool.h>
 
 #define SENSOR_MODULE_IP_ADDR BACKPLANE_IP(SENSOR_MODULE_ID, 2, 1)
+#define DETECTION_METHOD_PER_SENSOR_COUNT 2
 
 typedef enum {
     PAD_STATE = 0,
@@ -31,19 +34,19 @@ int init_networking(void);
 void start_sensor_tasks();
 
 /**
+ * Start boost detection timers
+ */
+void start_boost_detect();
+
+/**
+ * Stop boost detection timers
+ */
+void stop_boost_detect();
+
+/**
  * Check if boost was detected
  * @return If boost was detected
  */
 bool get_boost_detected();
-
-/**
- * Check for a sudden altitude change and set boost_detected if threshold met
- */
-void check_altitude_change(float pressure, float temperature);
-
-/**
- * Check for a sudden acceleration change and set boost_detected if threshold met
- */
-void check_acceleration_change(float accel_z);
 
 #endif //SENSOR_MODULE_H

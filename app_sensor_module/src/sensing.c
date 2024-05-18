@@ -32,6 +32,11 @@ K_TIMER_DEFINE(hundred_hz_timer, NULL, NULL);
 // Message Queues
 K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
 
+// Variables (for boost detection)
+float accel_z[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};
+float pressure[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};
+float temperature[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};
+
 LOG_MODULE_REGISTER(sensing_tasks);
 
 static void check_sensors_ready(const struct device* const * sensors, bool* sensor_ready, uint8_t num_sensors) {
@@ -110,5 +115,14 @@ static void hundred_hz_sensor_reading_task(void) {
         } else {
             LOG_INF("Queued telemetry");
         }
+
+        accel_z[0] = hundred_hz_telemetry.adxl375.accel_z;
+        accel_z[1] = hundred_hz_telemetry.lsm6dsl_accel.accel_z;
+
+        pressure[0] = hundred_hz_telemetry.bmp388.pressure;
+        temperature[0] = hundred_hz_telemetry.bmp388.temperature;
+
+        pressure[1] = hundred_hz_telemetry.ms5611.pressure;
+        temperature[1] = hundred_hz_telemetry.ms5611.temperature;
     }
 }
