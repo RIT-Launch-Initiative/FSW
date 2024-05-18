@@ -200,6 +200,8 @@ int32_t l_fs_boot_count_check() {
         return ret;
     }
 
+    LOG_INF("Boot Count: %d", boot_count);
+
     return boot_count;
 }
 

@@ -1,4 +1,5 @@
 #include <launch_core/dev/dev_common.h>
+#include <launch_core/os/fs.h>
 
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
@@ -9,6 +10,8 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 int main() {
     static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
+
+    l_fs_boot_count_check();
 
     while (true) {
         gpio_pin_toggle_dt(&led0);
