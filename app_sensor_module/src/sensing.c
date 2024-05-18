@@ -20,7 +20,7 @@
 #define HUNDRED_HZ_UPDATE_TIME 10
 
 // Forward Declarations
-static void hundred_hz_sensor_reading_task(void* unused0, void* unused1, void* unused2);
+static void hundred_hz_sensor_reading_task(void);
 
 // Threads
 K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_sensor_reading_task, NULL, NULL, NULL,
@@ -62,17 +62,12 @@ static void setup_lsm6dsl() {
     }
 }
 
-static void hundred_hz_sensor_reading_task(void* unused0, void* unused1, void* unused2) {
-    ARG_UNUSED(unused0);
-    ARG_UNUSED(unused1);
-    ARG_UNUSED(unused2);
-
+static void hundred_hz_sensor_reading_task(void) {
     // Initialize timer
     k_timer_start(&hundred_hz_timer, K_MSEC(HUNDRED_HZ_UPDATE_TIME), K_MSEC(HUNDRED_HZ_UPDATE_TIME));
 
     // Initialize variables for receiving telemetry
     sensor_module_hundred_hz_telemetry_t hundred_hz_telemetry;
-    uint32_t timestamp = 0;
 
     const struct device* adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
     //    const struct device *ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
@@ -95,17 +90,11 @@ static void hundred_hz_sensor_reading_task(void* unused0, void* unused1, void* u
         k_timer_status_sync(&hundred_hz_timer);
 
         // Refresh sensor data
-        timestamp = k_uptime_get_32();
-
         for (uint8_t i = 0; i < SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS; i++) {
             if (sensor_sample_fetch(sensors[i])) {
                 LOG_ERR("Failed to fetch %s data %d", sensors[i]->name, i);
             }
         }
-
-        LOG_INF("Took %d to get new data", k_uptime_get_32() - timestamp);
-
-        timestamp = k_uptime_get_32();
 
         l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.adxl375);
         l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.lsm6dsl_accel);
