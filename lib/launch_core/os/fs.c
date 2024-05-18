@@ -144,17 +144,18 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
 
 int32_t l_fs_boot_count_check() {
     static const char *boot_count_fname = "/lfs/.boot_count";
-    struct fs_file_t boot_count_file;
+    struct fs_file_t boot_count_file = {0};
     fs_mode_t flags = FS_O_RDWR;
     uint32_t boot_count = 0;
 
     // Check if a .boot_count file exists. If not create it
-    if (fs_stat(boot_count_fname, NULL)) {
+    int32_t ret = fs_stat(boot_count_fname, NULL);
+    if (ret < 0) {
         LOG_INF("No boot count file found. Creating boot count file.");
         flags |= FS_O_CREATE;
     }
 
-    int32_t ret = fs_open(&boot_count_file, boot_count_fname, flags);
+    ret = fs_open(&boot_count_file, boot_count_fname, flags);
     if (ret < 0) {
         LOG_ERR("Unable to open boot count file: %d", ret);
         return ret;
