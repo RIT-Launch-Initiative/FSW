@@ -134,8 +134,7 @@ void adc_task(void) {
         }
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
-        if (k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
-        }
+        k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT);
 
         // Buffer up data for logging before boost. If no space, throw out the oldest entry.
         if (!logging_enabled && k_msgq_num_free_get(&adc_logging_msgq) == 0) {
@@ -143,8 +142,7 @@ void adc_task(void) {
             k_msgq_get(&adc_logging_msgq, &throwaway_data, K_NO_WAIT);
         }
 
-        if (k_msgq_put(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(ADC_UPDATE_TIME_MS))) {
-        }
+        k_msgq_put(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(ADC_UPDATE_TIME_MS));
 
         k_msleep(15);
     }
