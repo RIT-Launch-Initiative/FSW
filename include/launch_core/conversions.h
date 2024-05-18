@@ -4,24 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#ifndef CONVERSIONS_H
+#define CONVERSIONS_H
+
 #ifndef _MATH_H
 #include <math.h>
 #endif // _MATH_H
-
-/* Constants */
-
-/* Temperature */
-#define CELSIUS_TO_KELVIN 273.15f
-
-/* Pressure */
-#define SEA_LEVEL_PRESSURE_BAR 1.01325f
-
-/* Magic */
-#define HYPSOMETRIC_FORMULA_DENOMINATOR 0.0065f
-#define PRESSURE_MAGIC_EXPONENT 0.190226f
-
-#ifndef CONVERSIONS_H
-#define CONVERSIONS_H
 
 /**
  * @brief Calculate the altitude from the pressure and temperature
