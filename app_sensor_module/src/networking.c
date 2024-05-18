@@ -61,7 +61,6 @@ static void telemetry_broadcast_task(void *, void *, void *) {
             l_send_udp_broadcast(hundred_hz_socket, (uint8_t *) &hundred_hz_telem,
                                  sizeof(sensor_module_hundred_hz_telemetry_t),
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
-            LOG_INF("Sent packet");
         }
     }
 }
