@@ -25,7 +25,7 @@ K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, 
 
 // Message Queues
 K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
-K_MSGQ_DEFINE(adc_telemetry_msgq, sizeof(float), 10, 4);
+K_MSGQ_DEFINE(adc_telemetry_msgq, sizeof(float), 20, 4);
 
 // Timers
 K_TIMER_DEFINE(ina_task_timer, NULL, NULL);
@@ -138,5 +138,7 @@ void adc_task(void) {
         if (logging_enabled && k_msgq_put(&adc_logging_msgq, &vin_adc_data_v, K_NO_WAIT)) {
             LOG_ERR("Failed to put data into ADC logging queue");
         }
+
+        k_msleep(15);
     }
 }

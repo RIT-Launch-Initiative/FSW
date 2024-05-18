@@ -66,7 +66,7 @@ void telemetry_broadcast_task(void) {
         }
 
         // TODO: LED doesn't seem to be blinking. Debug shows this gets skipped, but get function seems successful
-        if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
+        if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(3))) {
             gpio_pin_toggle_dt(&led3);
 #ifdef CONFIG_DEBUG
             l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),

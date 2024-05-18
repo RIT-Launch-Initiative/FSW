@@ -15,7 +15,7 @@ K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL,
 // Message queues
 // TODO: Avoid duplicate queues. Fine for now since this isn't too expensive and we have the memory
 K_MSGQ_DEFINE(ina_logging_msgq, sizeof(power_module_telemetry_t), 10, 4);
-K_MSGQ_DEFINE(adc_logging_msgq, sizeof(float), 10, 4);
+K_MSGQ_DEFINE(adc_logging_msgq, sizeof(float), 20, 4);
 
 static void init_logging(void) {}
 
@@ -30,7 +30,7 @@ static void logging_task(void) {
             LOG_INF("Logged INA219 data");
         }
 
-        if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(10))) {
+        if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(3))) {
             LOG_INF("Logged ADC data");
         }
     }
