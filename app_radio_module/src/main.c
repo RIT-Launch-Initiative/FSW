@@ -1,10 +1,12 @@
 // Application Includes
 #include "radio_module_functionality.h"
 
+#include <launch_core/os/fs.h>
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/storage/flash_map.h>
 
 #define SLEEP_TIME_MS 100
 
