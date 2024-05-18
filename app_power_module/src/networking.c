@@ -17,8 +17,8 @@
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define NUM_SOCKETS 1
 
-// K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
-//                 telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
+                telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 extern struct k_msgq ina_telemetry_msgq;
 extern struct k_msgq adc_telemetry_msgq;
@@ -58,10 +58,6 @@ void telemetry_broadcast_task(void) {
     float vin_adc_data_v = 0.0f;
     int sock = udp_socket_list.sockets[0];
 
-    init_networking();
-
-    // TODO: write to flash when data logging library is ready
-    // TODO: See about delegating logging to another task. Would need to profile. Would probably do with zbus
     while (true) {
         if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led2);

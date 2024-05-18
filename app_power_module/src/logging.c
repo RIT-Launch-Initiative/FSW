@@ -3,11 +3,14 @@
 
 // Zephyr Includes
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 #define LOGGING_STACK_SIZE 512
 
+LOG_MODULE_REGISTER(logging);
+
 static void logging_task(void);
-// K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 // Message queues
 // TODO: Avoid duplicate queues. Fine for now since this isn't too expensive and we have the memory
@@ -24,9 +27,11 @@ static void logging_task(void) {
 
     while (true) {
         if (!k_msgq_get(&ina_logging_msgq, &sensor_telemetry, K_MSEC(10))) {
+            LOG_INF("Logged INA219 data");
         }
 
         if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(10))) {
+            LOG_INF("Logged ADC data");
         }
     }
 }

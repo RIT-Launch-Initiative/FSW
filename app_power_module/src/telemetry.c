@@ -21,8 +21,8 @@
 LOG_MODULE_REGISTER(telemetry);
 
 // Threads
-// K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
-// K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
+K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
+K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
 // Message Queues
 K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
@@ -98,7 +98,7 @@ void ina_task(void) {
             LOG_ERR("Failed to put data into INA219 UDP queue");
         }
 
-        if (k_msgq_put(&ina_logging_msgq, &sensor_telemetry, K_NO_WAIT)) {
+        if (logging_enabled && k_msgq_put(&ina_logging_msgq, &sensor_telemetry, K_NO_WAIT)) {
             LOG_ERR("Failed to put data into INA219 logging queue");
         }
     }
