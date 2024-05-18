@@ -1,9 +1,7 @@
 /*
- * Copyright (c) 2023 Aaron Chan
+ * Copyright (c) 2024 RIT Launch Initiative
  *
  * SPDX-License-Identifier: Apache-2.0
- * 
- * Authors: Nate Aquino
  */
 
 #ifndef _MATH_H
@@ -25,7 +23,6 @@
 #ifndef CONVERSIONS_H
 #define CONVERSIONS_H
 
-/* Altitude from Pressure and Temperature */
 /**
  * @brief Calculate the altitude from the pressure and temperature
  * @param pressure The pressure in bar
