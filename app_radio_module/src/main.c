@@ -32,6 +32,8 @@ static int init_networking() {
 int main() {
     LOG_DBG("Starting radio module!\n");
 
+    l_fs_boot_count_check();
+
     if (l_check_device(lora_dev) == 0) {
         init_lora_unique(lora_dev);
     }

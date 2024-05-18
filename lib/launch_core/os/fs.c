@@ -1,6 +1,6 @@
+#include <launch_core/os/fs.h>
 #include <zephyr/fs/fs.h>
 #include <zephyr/logging/log.h>
-#include <launch_core/os/fs.h>
 
 LOG_MODULE_REGISTER(l_fs, CONFIG_LOG_DEFAULT_LEVEL);
 
@@ -23,14 +23,9 @@ int32_t l_fs_init(l_fs_file_t *p_file) {
     return 0;
 }
 
+int32_t l_fs_open(l_fs_file_t *p_file) { return fs_open(&p_file->file, p_file->fname, FS_O_RDWR); }
 
-int32_t l_fs_open(l_fs_file_t *p_file) {
-    return fs_open(&p_file->file, p_file->fname, FS_O_RDWR);
-}
-
-int32_t l_fs_close(l_fs_file_t *p_file) {
-    return fs_close(&p_file->file);
-}
+int32_t l_fs_close(l_fs_file_t *p_file) { return fs_close(&p_file->file); }
 
 size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src) {
     if (!p_file->initialized) {
@@ -80,8 +75,7 @@ size_t l_fs_read(l_fs_file_t *p_file, uint8_t *dst, off_t idx) {
     off_t frame_end = frame_start + p_file->width;
 
     if (frame_end > p_file->size) {
-        LOG_ERR("Frame %ld spans %ld to %ld, but max size is %d",
-                idx, frame_start, frame_end, p_file->size);
+        LOG_ERR("Frame %ld spans %ld to %ld, but max size is %d", idx, frame_start, frame_end, p_file->size);
         return -EDOM; // could also be EOVERFLOW, EINVAL?
     }
 
@@ -129,10 +123,8 @@ int32_t l_fs_stat(l_fs_file_t *p_file) {
         return ret;
     }
 
-    LOG_INF("%s is a %s of size %d",
-            p_file->dirent.name,
-            p_file->dirent.type == FS_DIR_ENTRY_FILE ? "file" : "directory",
-            p_file->dirent.size);
+    LOG_INF("%s is a %s of size %d", p_file->dirent.name,
+            p_file->dirent.type == FS_DIR_ENTRY_FILE ? "file" : "directory", p_file->dirent.size);
 
     return ret;
 }
@@ -144,27 +136,34 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
         return ret;
     }
 
-    LOG_DBG("%s is on a volume with \r\n\t%lu blocks (%lu free) of %lu bytes each",
-            p_file->fname,
-            p_file->vfs.f_blocks,
-            p_file->vfs.f_bfree,
-            p_file->vfs.f_frsize);
+    LOG_DBG("%s is on a volume with \r\n\t%lu blocks (%lu free) of %lu bytes each", p_file->fname, p_file->vfs.f_blocks,
+            p_file->vfs.f_bfree, p_file->vfs.f_frsize);
 
     return ret;
 }
 
 int32_t l_fs_boot_count_check() {
+    static const char *boot_count_fname = "/lfs/.boot_count";
+    struct fs_file_t boot_count_file = {0};
+    fs_mode_t flags = FS_O_RDWR;
+    uint32_t boot_count = 0;
+
     // Check if a .boot_count file exists. If not create it
-    struct fs_file_t boot_count_file;
-    int32_t ret = fs_open(&boot_count_file, "/lfs/.boot_count", FS_O_CREATE | FS_O_RDWR);
+    int32_t ret = fs_stat(boot_count_fname, NULL);
     if (ret < 0) {
-        LOG_ERR("Unable to open/create boot count file: %d", ret);
+        LOG_INF("No boot count file found. Creating boot count file.");
+        flags |= FS_O_CREATE;
+    }
+
+    ret = fs_open(&boot_count_file, boot_count_fname, flags);
+    if (ret < 0) {
+        LOG_ERR("Unable to open boot count file: %d", ret);
         return ret;
     }
 
     // If the file was just created, write a 0 to it
-    if (ret == 0) {
-        uint32_t boot_count = 0;
+    if (flags & FS_O_CREATE) {
+        LOG_INF("Writing initial 0 to boot count file.");
         ret = fs_write(&boot_count_file, &boot_count, sizeof(boot_count));
         if (ret < 0) {
             LOG_ERR("Unable to write boot count: %d", ret);
@@ -173,7 +172,6 @@ int32_t l_fs_boot_count_check() {
     }
 
     // Read the boot count
-    uint32_t boot_count;
     ret = fs_read(&boot_count_file, &boot_count, sizeof(boot_count));
     if (ret < 0) {
         LOG_ERR("Unable to read boot count: %d", ret);
@@ -203,6 +201,8 @@ int32_t l_fs_boot_count_check() {
         return ret;
     }
 
+    LOG_INF("Boot Count: %d", boot_count);
+
     return boot_count;
 }
 
@@ -217,4 +217,3 @@ int32_t l_fs_format(uintptr_t partition_id) {
     LOG_INF("Format successful");
     return 0;
 }
-
