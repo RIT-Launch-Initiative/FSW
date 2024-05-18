@@ -25,7 +25,7 @@ static void log_telemetry_task(void) {
         if (!logging_enabled) continue;
 
         if (k_msgq_get(&hundred_hz_log_queue, &telem, K_MSEC(100))) {
-            // TODO: Wipe this once we actually call logging stuff
+            // TODO: Call data logging functions
         }
     }
 }

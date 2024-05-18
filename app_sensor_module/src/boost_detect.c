@@ -1,5 +1,9 @@
 #include "sensor_module.h"
 
+// Launch Includes
+#include <launch_core/conversions.h>
+
+// Zephyr Includes
 #include <zephyr/kernel.h>
 
 #define ALTITUDE_TIME_THRESHOLD K_SECONDS(5)
@@ -37,7 +41,7 @@ static void altitude_boost_detect_cb(struct k_timer*) {
 
     for (int i = 0; i < DETECTION_METHOD_PER_SENSOR_COUNT; i++) {
         // TODO: Function for calculating altitude from press and temp
-        float altitude = pressure[i] + temperature[i];
+        float altitude = l_altitude_conversion(pressure[i], temperature[i]);
 
         if ((altitude - prev_altitudes[i]) < ALTITUDE_VAL_THRESHOLD) {
             prev_altitudes[i] = altitude;
