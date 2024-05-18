@@ -6,7 +6,9 @@
 
 #include "power_module.h"
 
+#include <launch_core/os/fs.h>
 #include <launch_core/utils/event_monitor.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/smf.h>
@@ -64,6 +66,8 @@ static void init() {
 
     smf_set_initial(SMF_CTX(&state_obj), &states[GROUND_STATE]);
     l_init_event_monitor(POWER_MODULE_IP_ADDR);
+
+    l_fs_boot_count_check();
 }
 
 int main(void) {
