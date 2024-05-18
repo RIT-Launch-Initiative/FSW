@@ -2,6 +2,7 @@
 #include <launch_core/types.h>
 
 // Zephyr Includes
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -23,6 +24,9 @@ static void init_logging(void) {}
 extern bool logging_enabled;
 
 static void logging_task(void) {
+    static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
+    static const struct gpio_dt_spec led3 = GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios);
+
     power_module_telemetry_t sensor_telemetry;
     float vin_adc_data_v;
 
@@ -35,10 +39,12 @@ static void logging_task(void) {
 
         if (!k_msgq_get(&ina_logging_msgq, &sensor_telemetry, K_MSEC(10))) {
             LOG_INF("Logged INA219 data");
+            gpio_pin_toggle_dt(&led1);
         }
 
         if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(3))) {
             LOG_INF("Logged ADC data");
+            gpio_pin_toggle_dt(&led3);
         }
     }
 }

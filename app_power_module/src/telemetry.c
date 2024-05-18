@@ -4,12 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Self Include
 #include "power_module.h"
 
+// Launch Includes
 #include <launch_core/dev/adc.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/dev/sensor.h>
-#include <zephyr/drivers/gpio.h>
+
+// Zephyr Includes
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -74,7 +77,6 @@ void ina_task(void) {
         DEVICE_DT_GET(DT_ALIAS(ina3v3)),  // 3v3
         DEVICE_DT_GET(DT_ALIAS(ina5v0))   // 5v0
     };
-    static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 
     bool ina_device_found[3] = {false};
     power_module_telemetry_t sensor_telemetry = {0};
@@ -85,7 +87,6 @@ void ina_task(void) {
 
     while (true) {
         k_timer_status_sync(&ina_task_timer); // TODO: Confirm timing
-        gpio_pin_toggle_dt(&led);
 
         l_update_sensors_safe(sensors, 3, ina_device_found);
 
@@ -108,7 +109,6 @@ void ina_task(void) {
 }
 
 void adc_task(void) {
-    static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
     static const float adc_gain = 0.09f;
     static const float mv_to_v_multiplier = 0.001f;
     const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
@@ -127,7 +127,6 @@ void adc_task(void) {
 
     while (true) {
         k_timer_status_sync(&adc_task_timer);
-        gpio_pin_toggle_dt(&led);
 
         if (0 < l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
             LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
