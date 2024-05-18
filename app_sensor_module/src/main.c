@@ -14,8 +14,8 @@
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 
-#define PRE_MAIN_FLIGHT_DURATION K_SECONDS(178)
-#define POST_MAIN_FLIGHT_DURATION K_SECONDS(46)
+#define PRE_MAIN_FLIGHT_DURATION K_SECONDS(10)
+#define POST_MAIN_FLIGHT_DURATION K_SECONDS(5)
 
 #define DEFINE_STATE_FUNCTIONS(state_name)                                                                             \
     static void state_name##_state_entry(void *);                                                                      \
@@ -28,6 +28,7 @@ DEFINE_STATE_FUNCTIONS(post_main);
 DEFINE_STATE_FUNCTIONS(landing);
 
 extern bool boost_detected;
+extern bool logging_enabled;
 static bool in_flight_transition_event = false;
 
 struct s_object {
@@ -74,6 +75,7 @@ static void pre_main_state_entry(void*) {
     k_timer_start(&state_transition_timer, PRE_MAIN_FLIGHT_DURATION, PRE_MAIN_FLIGHT_DURATION);
 
     in_flight_transition_event = false;
+    logging_enabled = true;
 }
 
 static void pre_main_state_run(void*) {
@@ -111,6 +113,12 @@ static void landing_state_entry(void*) {
 }
 
 static void landing_state_run(void*) {
+    // Sleep for an extra minute and ensure we get all our data!
+    k_sleep(K_SECONDS(60));
+    logging_enabled = false;
+
+    // TODO: Disable sensors
+
     while (true) {
         k_sleep(K_FOREVER);
     }

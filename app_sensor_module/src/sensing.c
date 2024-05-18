@@ -33,6 +33,8 @@ K_TIMER_DEFINE(hundred_hz_timer, NULL, NULL);
 K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
 K_MSGQ_DEFINE(hundred_hz_log_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 500, 1);
 
+bool logging_enabled = false;
+
 // Variables (for boost detection)
 float accel_z[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};
 float pressure[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};
@@ -113,10 +115,18 @@ static void hundred_hz_sensor_reading_task(void) {
         // Put telemetry into queue
         if (k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10))) {
             LOG_ERR("Failed to put data into sensor processing queue");
-        } else {
-            LOG_INF("Queued telemetry");
         }
 
+        // Buffer up data for logging before boost. If no space, throw out the oldest entry.
+        if (!logging_enabled && k_msgq_num_free_get(&hundred_hz_log_queue) == 0) {
+            sensor_module_hundred_hz_telemetry_t throwaway_data;
+            k_msgq_get(&hundred_hz_log_queue, &throwaway_data, K_NO_WAIT);
+        }
+
+        if (k_msgq_put(&hundred_hz_log_queue, &hundred_hz_telemetry, K_MSEC(HUNDRED_HZ_UPDATE_TIME))) {
+        }
+
+        // Fill data for boost detection
         accel_z[0] = hundred_hz_telemetry.adxl375.accel_z;
         accel_z[1] = hundred_hz_telemetry.lsm6dsl_accel.accel_z;
 
