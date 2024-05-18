@@ -29,6 +29,6 @@
  * @param temperature_c The temperature in degrees Celsius
  * @return The altitude in meters
 */
-float l_altitude_conversion(float pressure_kpa, float temperature_c);
+double l_altitude_conversion(double pressure_kpa, double temperature_c);
 
 #endif //CONVERSIONS_H
