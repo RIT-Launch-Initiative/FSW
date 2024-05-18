@@ -17,6 +17,8 @@
 #define QUEUE_PROCESSING_STACK_SIZE (1024)
 #define NUM_SOCKETS 1
 
+// TODO: Annoying RTOS setup where priority needs to be higher than other tasks and queues need to sleep
+// Otherwise, logging task gets starved during flight
 K_THREAD_DEFINE(telemetry_broadcast, QUEUE_PROCESSING_STACK_SIZE,
                 telemetry_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(19), 0, 1000);
 
@@ -60,16 +62,15 @@ void telemetry_broadcast_task(void) {
     int sock = udp_socket_list.sockets[0];
 
     while (true) {
-        if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_NO_WAIT)) {
+        if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led0);
             l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
         }
 
-        if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
+        if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led2);
 #ifdef CONFIG_DEBUG
-
             l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
 #endif
