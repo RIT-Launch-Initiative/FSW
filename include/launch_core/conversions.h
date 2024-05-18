@@ -25,10 +25,10 @@
 
 /**
  * @brief Calculate the altitude from the pressure and temperature
- * @param pressure The pressure in bar
- * @param temperature The temperature in degrees Celsius
+ * @param pressure_kpa The pressure in kPa
+ * @param temperature_c The temperature in degrees Celsius
  * @return The altitude in meters
 */
-inline float l_alt_fr_press_temp(float pressure, float temperature);
+float l_altitude_conversion(float pressure_kpa, float temperature_c);
 
 #endif //CONVERSIONS_H
