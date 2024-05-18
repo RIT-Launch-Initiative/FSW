@@ -29,7 +29,6 @@ DEFINE_STATE_FUNCTIONS(landing);
 
 extern bool boost_detected;
 extern bool logging_enabled;
-static bool in_flight_transition_event = false;
 
 struct s_object {
     struct smf_ctx ctx;
@@ -43,13 +42,6 @@ static const struct smf_state states[] = {
 };
 
 
-static void state_transition_timer_cb(struct k_timer*) {
-    in_flight_transition_event = true;
-}
-
-K_TIMER_DEFINE(state_transition_timer, state_transition_timer_cb, NULL);
-
-
 static void pad_state_entry(void*) {
     LOG_INF("Entering pad state");
     start_boost_detect();
@@ -57,54 +49,41 @@ static void pad_state_entry(void*) {
 
 static void pad_state_run(void*) {
     while (true) {
+        // Check port 9999 for notifications. If we get one, go to flight state on next iter
+        bool received_boost_notif = l_get_event_udp() == L_BOOST_DETECTED;
+
         // If GNSS altitude changes, notify everyone and go to flight state
-        if (boost_detected) {
+        if (boost_detected || received_boost_notif) {
             smf_set_state(SMF_CTX(&state_obj), &states[PRE_MAIN_STATE]);
             l_post_event_udp(L_BOOST_DETECTED);
             return;
         }
-
-        // Check port 9999 for notifications. If we get one, go to flight state on next iter
-        boost_detected = l_get_event_udp() == L_BOOST_DETECTED;
     }
 }
 
 static void pre_main_state_entry(void*) {
     LOG_INF("Entering pre_main state");
     stop_boost_detect();
-    k_timer_start(&state_transition_timer, PRE_MAIN_FLIGHT_DURATION, PRE_MAIN_FLIGHT_DURATION);
 
-    in_flight_transition_event = false;
     logging_enabled = true;
 }
 
 static void pre_main_state_run(void*) {
-    while (true) {
-        if (in_flight_transition_event) {
-            l_post_event_udp(L_MAIN_DEPLOYED);
-            smf_set_state(SMF_CTX(&state_obj), &states[POST_MAIN_STATE]);
+    k_sleep(PRE_MAIN_FLIGHT_DURATION);
 
-            return;
-        }
-    }
+    l_post_event_udp(L_MAIN_DEPLOYED);
+    smf_set_state(SMF_CTX(&state_obj), &states[POST_MAIN_STATE]);
 }
 
 static void post_main_state_entry(void*) {
     LOG_INF("Entering post_main state");
-    k_timer_start(&state_transition_timer, POST_MAIN_FLIGHT_DURATION, POST_MAIN_FLIGHT_DURATION);
-
-    in_flight_transition_event = false;
-}
+plif}
 
 static void post_main_state_run(void*) {
-    while (true) {
-        if (in_flight_transition_event) {
-            l_post_event_udp(L_LANDING_DETECTED);
-            smf_set_state(SMF_CTX(&state_obj), &states[LANDING_STATE]);
+    k_sleep(POST_MAIN_FLIGHT_DURATION);
 
-            return;
-        }
-    }
+    l_post_event_udp(L_LANDING_DETECTED);
+    smf_set_state(SMF_CTX(&state_obj), &states[LANDING_STATE]);
 }
 
 
@@ -132,11 +111,7 @@ static void init() {
 }
 
 int main() {
-    static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
-
     init();
-    return;
 
     while (true) {
         static int ret = 0;
@@ -145,8 +120,6 @@ int main() {
             if (ret < 0) {
                 LOG_ERR("Failed to run state machine: %d", ret);
             }
-            gpio_pin_toggle_dt(&led0);
-            gpio_pin_toggle_dt(&led1);
         }
     }
 

@@ -36,14 +36,15 @@ static void altitude_boost_detect_cb(struct k_timer *) {
     }
 
     for (int i = 0; i < DETECTION_METHOD_PER_SENSOR_COUNT; i++) {
-        if ((pressure[i] - prev_altitudes[i]) < ALTITUDE_VAL_THRESHOLD) {
-            // TODO: Function for calculating altitude from press and temp
-            prev_altitudes[i] = pressure[i] + temperature[i];
+        // TODO: Function for calculating altitude from press and temp
+        float altitude = pressure[i] + temperature[i];
+
+        if ((altitude - prev_altitudes[i]) < ALTITUDE_VAL_THRESHOLD) {
+            prev_altitudes[i] = altitude;
             continue;
         }
 
         boost_detected = true;
-        return;
     }
 }
 
@@ -66,7 +67,6 @@ static void accel_boost_detect_cb(struct k_timer *) {
         }
 
         boost_detected = true;
-        return;
     }
 }
 

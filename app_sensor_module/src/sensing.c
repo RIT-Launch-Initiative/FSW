@@ -127,8 +127,10 @@ static void hundred_hz_sensor_reading_task(void) {
         }
 
         // Fill data for boost detection
-        accel_z[0] = hundred_hz_telemetry.adxl375.accel_z;
-        accel_z[1] = hundred_hz_telemetry.lsm6dsl_accel.accel_z;
+        accel_z[0] += 1000;
+        accel_z[1] += 100;
+        // accel_z[0] = hundred_hz_telemetry.adxl375.accel_z;
+        // accel_z[1] = hundred_hz_telemetry.lsm6dsl_accel.accel_z;
 
         pressure[0] = hundred_hz_telemetry.bmp388.pressure;
         temperature[0] = hundred_hz_telemetry.bmp388.temperature;
