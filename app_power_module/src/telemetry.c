@@ -9,14 +9,13 @@
 #include <launch_core/dev/adc.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/dev/sensor.h>
-#include <zephyr/kernel.h>
-
-#include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
-#define INA219_UPDATE_TIME_MS       (67)
-#define ADC_UPDATE_TIME_MS          (15)
-#define SENSOR_READ_STACK_SIZE      (1024)
+#define INA219_UPDATE_TIME_MS  (67)
+#define ADC_UPDATE_TIME_MS     (15)
+#define SENSOR_READ_STACK_SIZE (1024)
 
 LOG_MODULE_REGISTER(telemetry);
 
@@ -71,9 +70,9 @@ static bool init_adc_task(const struct adc_dt_spec *p_vin_sense_adc, struct adc_
 
 void ina_task(void) {
     const struct device *sensors[] = {
-            DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
-            DEVICE_DT_GET(DT_ALIAS(ina3v3)),  // 3v3
-            DEVICE_DT_GET(DT_ALIAS(ina5v0))   // 5v0
+        DEVICE_DT_GET(DT_ALIAS(inabatt)), // Battery
+        DEVICE_DT_GET(DT_ALIAS(ina3v3)),  // 3v3
+        DEVICE_DT_GET(DT_ALIAS(ina5v0))   // 5v0
     };
     static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 
@@ -114,8 +113,8 @@ void adc_task(void) {
     uint16_t temp_vin_adc_data = 0;
 
     struct adc_sequence vin_sense_sequence = {
-            .buffer = &temp_vin_adc_data,
-            .buffer_size = sizeof(temp_vin_adc_data),
+        .buffer = &temp_vin_adc_data,
+        .buffer_size = sizeof(temp_vin_adc_data),
     };
 
     if (!init_adc_task(&vin_sense_adc, &vin_sense_sequence)) {
@@ -132,11 +131,11 @@ void adc_task(void) {
         }
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
-        if (k_msgq_put(&ina_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
+        if (k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT)) {
             LOG_ERR("Failed to put data into ADC UDP queue");
         }
 
-        if (logging_enabled && k_msgq_put(&ina_logging_msgq, &vin_adc_data_v, K_NO_WAIT)) {
+        if (logging_enabled && k_msgq_put(&adc_logging_msgq, &vin_adc_data_v, K_NO_WAIT)) {
             LOG_ERR("Failed to put data into ADC logging queue");
         }
     }

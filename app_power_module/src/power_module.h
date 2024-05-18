@@ -7,8 +7,8 @@
 #define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 
 typedef enum {
- GROUND_STATE = 0,
- FLIGHT_STATE,
+    GROUND_STATE = 0,
+    FLIGHT_STATE,
 } FLIGHT_STATES;
 
 /**
