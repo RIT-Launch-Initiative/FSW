@@ -80,7 +80,7 @@ static void boost_state_entry(void*) {
 }
 
 static void boost_state_run(void*) {
-
+    while (!state_transition) k_msleep(10);
 }
 
 static void coast_state_entry(void*) {
@@ -90,7 +90,7 @@ static void coast_state_entry(void*) {
 }
 
 static void coast_state_run(void*) {
-
+    while (!state_transition) k_sleep(K_MSEC(10));
 }
 
 static void apogee_state_entry(void*) {
@@ -101,7 +101,7 @@ static void apogee_state_entry(void*) {
 }
 
 static void apogee_state_run(void*) {
-
+    while (!state_transition) k_msleep(10);
 }
 
 static void main_state_entry(void*) {
@@ -111,7 +111,7 @@ static void main_state_entry(void*) {
 }
 
 static void main_state_run(void*) {
-
+    while (!state_transition) k_msleep(10);
 }
 
 static void landing_state_entry(void*) {
@@ -120,7 +120,7 @@ static void landing_state_entry(void*) {
 }
 
 static void landing_state_run(void*) {
-
+    k_sleep(K_FOREVER);
 }
 
 int main() {
