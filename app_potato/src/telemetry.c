@@ -52,8 +52,7 @@ void configure_telemetry_rate(uint32_t frequency) {
 }
 
 static void telemetry_read_task(void*) {
-    // const struct device* lps22 = device_get_binding(DEVICE_DT_GET_ONE(st_lps22hhtr));
-    const struct device* lps22 = NULL; // TODO: Fill DTS
+    const struct device* lps22 = DEVICE_DT_GET_ANY(st_lps22hhtr);
     potato_raw_telemetry_t raw_telemetry = {0};
 
     k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
