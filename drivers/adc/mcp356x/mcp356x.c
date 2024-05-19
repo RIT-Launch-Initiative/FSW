@@ -14,6 +14,7 @@ LOG_MODULE_REGISTER(mcp356x);
 #define DT_DRV_COMPAT microchip_mcp356x
 
 #define MAX_CHANNELS 8
+#define MAX_INPUT_CHANNEL 15
 
 // Helpers for printing out register information
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
@@ -84,7 +85,7 @@ struct mcp356x_data {
   struct channel_map_entry channel_map[MAX_CHANNELS];
   uint8_t enabled_channels_bitmap;
 
-  // Configrations. If these registers match we don't need to rewrite them
+  // Configurations. If these registers match we don't need to rewrite them
   uint8_t config0;
   uint8_t config1;
   uint8_t config2;
@@ -100,16 +101,16 @@ struct mcp356x_config {
   enum PRE prescale;
   enum CLK_SEL clock;
 };
-int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
-                   uint8_t *result);
+int mcp_read_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                   uint8_t *const result);
 
-int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
-                    uint32_t *data);
-int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
-                    uint8_t data);
+int mcp_read_reg_24(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                    uint32_t *const data);
+int mcp_write_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                    const uint8_t data);
 
-int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
-                     uint32_t data);
+int mcp_write_reg_24(const struct mcp356x_config *config,
+                     const enum MCP_Reg reg, const uint32_t data);
 
 uint32_t sign_extend_24_32(uint32_t x) {
   const int bits = 24;
@@ -169,15 +170,14 @@ static int mcp356x_read_channel(const struct device *dev,
       k_usleep(10);
     }
 
-    uint32_t reg_value = 12345;
-    res = mcp_read_reg_24(config, MCP_Reg_ADCDATA, &reg_value);
+    uint32_t val;
+    res = mcp_read_reg_24(config, MCP_Reg_ADCDATA, &val);
     if (res != 0) {
       return res;
     }
+    uint32_t signed_value = sign_extend_24_32(val);
 
-    uint32_t value = sign_extend_24_32(reg_value);
-
-    sample_array[sample_index] = value; // TODO FIX THIS
+    sample_array[sample_index] = signed_value;
     sample_index++;
   }
 
@@ -202,12 +202,12 @@ int mcp356x_channel_setup(const struct device *dev,
   }
 
   uint8_t mux_vin_p = channel_cfg->input_positive;
-  if (mux_vin_p > 15) {
+  if (mux_vin_p > MAX_INPUT_CHANNEL) {
     LOG_ERR("zephyr,positive invalid for %s channel %d.", dev->name,
             channel_cfg->channel_id);
   }
   uint8_t mux_vin_m = channel_cfg->input_negative;
-  if (mux_vin_m > 15) {
+  if (mux_vin_m > MAX_INPUT_CHANNEL) {
     LOG_ERR("zephyr,negative invalid for %s channel %d.", dev->name,
             channel_cfg->channel_id);
   }
@@ -261,10 +261,12 @@ int mcp356x_channel_setup(const struct device *dev,
     return -ENOTSUP;
   }
 
-  struct channel_map_entry entry = {.mux_reg = mux_reg,
-                                    .differential = differential,
-                                    .gain_bits = gain_bits,
-                                    .reference_bits = ref};
+  struct channel_map_entry entry = {
+      .mux_reg = mux_reg,
+      .differential = differential,
+      .gain_bits = gain_bits,
+      .reference_bits = vref_sel_bits,
+  };
 
   data->channel_map[channel_cfg->channel_id] = entry;
 
@@ -279,7 +281,7 @@ static const struct adc_driver_api mcp356x_api = {
 
 int dump_registers(const struct mcp356x_config *config) {
   int res;
-  const int num_8bts = 6;
+  const int num_8bit_reg = 6;
   char *names[] = {"CONFIG0", "CONFIG1", "CONFIG2", "CONFIG3",
                    "IRQ",     "MUX",     "IRQ"};
   enum MCP_Reg registers_8bit[] = {
@@ -288,12 +290,12 @@ int dump_registers(const struct mcp356x_config *config) {
 
   printk("Registers: ========\n");
 
-  uint32_t adcdata = 0xFF44DE;
+  uint32_t adcdata = 0;
   mcp_read_reg_24(config, MCP_Reg_ADCDATA, &adcdata);
   printk("ADCDATA: %x\n", adcdata);
 
-  for (int reg = 0; reg < num_8bts; reg++) {
-    uint8_t data = 0xcc;
+  for (int reg = 0; reg < num_8bit_reg; reg++) {
+    uint8_t data = 0;
     res = mcp_read_reg_8(config, registers_8bit[reg], &data);
     if (res != 0) {
       return res;
@@ -302,7 +304,7 @@ int dump_registers(const struct mcp356x_config *config) {
            BYTE_TO_BINARY(data));
   }
 
-  uint32_t timer = 978;
+  uint32_t timer = 0;
   mcp_read_reg_24(config, MCP_Reg_TIMER, &timer);
   printk("TIMER: %d\n", timer);
 
@@ -353,29 +355,29 @@ static int mcp356x_init(const struct device *dev) {
 
   // Page 93 CONFIG2 ----------------------------------------------------------
   // Configure Gain
-  uint8_t gain_bits = 0;
-  uint8_t boost = 0b10; // 1x boost (bias current) (default)
-  uint8_t az_mux = 0b0; // mux auto zero internal (default)
-  uint8_t az_ref = 0b1; // auto zero internal voltage ref (default)
-  uint8_t reserved_bit = 0b1;
+  static const uint8_t gain_bits = 0;
+  static const uint8_t boost = 0b10; // 1x boost (bias current) (default)
+  static const uint8_t az_mux = 0b0; // mux auto zero internal (default)
+  static const uint8_t az_ref = 0b1; // auto zero internal voltage ref (default)
+  static const uint8_t reserved_bit = 0b1;
 
   data->config2 = (boost << 6) | (gain_bits << 3) | (az_mux << 2) |
                   (az_ref << 1) | reserved_bit;
   mcp_write_reg_8(config, MCP_Reg_CONFIG2, data->config2);
 
   // Page 94 CONFIG3 ----------------------------------------------------------
-  uint8_t conv_mode = 0b11;
-  uint8_t data_format = 0b00; // 24 bit adc data (default)
-  uint8_t crc_format = 0b0;   // 16 bit crc format (default)
-  uint8_t en_crccom = 0b0;    // offset calibration (default)
-  uint8_t en_offcal = 0b0;    // offset calibration (default)
-  uint8_t en_gaincal = 0b0;   // gain calibration (default)
+  static const uint8_t conv_mode = 0b11;
+  static const uint8_t data_format = 0b00; // 24 bit adc data (default)
+  static const uint8_t crc_format = 0b0;   // 16 bit crc format (default)
+  static const uint8_t en_crccom = 0b0;    // offset calibration (default)
+  static const uint8_t en_offcal = 0b0;    // offset calibration (default)
+  static const uint8_t en_gaincal = 0b0;   // gain calibration (default)
   data->config3 = (conv_mode << 6) | (data_format << 4) | (crc_format << 3) |
                   (en_crccom << 2) | (en_offcal << 1) | en_gaincal;
 
   (void)mcp_write_reg_8(config, MCP_Reg_CONFIG3, data->config3);
 
-  uint8_t irq_reg =
+  static const uint8_t irq_reg =
       0b00110111; // set irq to active low so we don't need a pull up resistor
   mcp_write_reg_8(config, MCP_Reg_IRQ, irq_reg);
 
@@ -385,8 +387,6 @@ static int mcp356x_init(const struct device *dev) {
 
   uint32_t timer_reg = 0;
   mcp_write_reg_24(config, MCP_Reg_TIMER, timer_reg);
-
-  (void)dump_registers(config);
 
   return 0;
 }
@@ -414,8 +414,8 @@ DT_INST_FOREACH_STATUS_OKAY(MCP356X_INIT)
 
 // Register R/W ===============================================================
 
-int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
-                   uint8_t *result) {
+int mcp_read_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                   uint8_t *const result) {
   // Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
@@ -451,8 +451,8 @@ int mcp_read_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
   return res;
 }
 
-int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
-                    uint32_t *data) {
+int mcp_read_reg_24(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                    uint32_t *const data) {
   // Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t sread_command_mask = 0x01;
@@ -494,8 +494,8 @@ int mcp_read_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
   return 0;
 }
 
-int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
-                    uint8_t data) {
+int mcp_write_reg_8(const struct mcp356x_config *config, const enum MCP_Reg reg,
+                    const uint8_t data) {
   // Write Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t write_command_mask = 0x02;
@@ -520,8 +520,8 @@ int mcp_write_reg_8(const struct mcp356x_config *config, enum MCP_Reg reg,
 
   return spi_write_dt(&config->bus, &set);
 }
-int mcp_write_reg_24(const struct mcp356x_config *config, enum MCP_Reg reg,
-                     uint32_t data) {
+int mcp_write_reg_24(const struct mcp356x_config *config,
+                     const enum MCP_Reg reg, const uint32_t data) {
   // Write Constants
   static const uint8_t command_addr_pos = 2;
   static const uint8_t write_command_mask = 0x02;

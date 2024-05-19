@@ -3,24 +3,37 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include "buzzer.h"
+#include "config.h"
+#include "data_storage.h"
+#include "testing.h"
 
+#include <launch_core/dev/dev_common.h>
+#include <math.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/gpio.h>
-
-#include <launch_core/dev/dev_common.h>
-#include <zephyr/device.h>
-#include <zephyr/devicetree.h>
+#include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/uart.h>
+#include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/shell/shell.h>
 #include <zephyr/storage/flash_map.h>
+#include <zephyr/sys/base64.h>
+// Nasty, put these in the right place when you have time
+#include "ina260.h"
 
-#include <zephyr/fs/fs.h>
-
-LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL_DBG);
+#include <zephyr/../../drivers/sensor/lsm6dsl/lsm6dsl.h>
+// TODO MAKE THIS RIGHT
+int32_t timestamp() {
+    int32_t us = k_ticks_to_us_floor32(k_uptime_ticks());
+    return us;
+}
+#define MAX_LOG_LEVEL 4
+LOG_MODULE_REGISTER(main, MAX_LOG_LEVEL);
 
 // devicetree gets
 #define LED1_NODE DT_NODELABEL(led1)
@@ -50,208 +63,388 @@ const struct device *lsm6dsl_dev = DEVICE_DT_GET(LSM6DSL_NODE);
 #define FLASH_NODE DT_NODELABEL(w25q512)
 const struct device *flash_dev = DEVICE_DT_GET(FLASH_NODE);
 
-static const struct adc_dt_spec adc_chan0 =
-    ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+// Inas
+#define INA_BAT_NODE DT_NODELABEL(ina260_battery)
+const struct device *ina_bat_dev = DEVICE_DT_GET(INA_BAT_NODE);
+
+#define INA_LDO_NODE DT_NODELABEL(ina260_ldo)
+const struct device *ina_ldo_dev = DEVICE_DT_GET(INA_LDO_NODE);
+
+#define INA_GRIM_NODE DT_NODELABEL(ina260_3v3)
+const struct device *ina_grim_dev = DEVICE_DT_GET(INA_GRIM_NODE);
+
+static const struct adc_dt_spec adc_chan0 = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+
+#define INIT_GPIO_FAIL      -1
+#define INIT_NOFLASH        -1
+#define INIT_MISSING_SENSOR -2
+#define INIT_OK             0
 
 static int gpio_init(void) {
-  // Init LEDS
-  if (!gpio_is_ready_dt(&led1)) {
-    LOG_ERR("LED 1 is not ready\n");
-    return -1;
-  }
-  if (gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE) < 0) {
-    LOG_ERR("Unable to configure LED 1 output pin\n");
-    return -1;
-  }
+    // Init LEDS
+    if (!gpio_is_ready_dt(&led1)) {
+        LOG_ERR("LED 1 is not ready\n");
+        return INIT_GPIO_FAIL;
+    }
+    if (gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE) < 0) {
+        LOG_ERR("Unable to configure LED 1 output pin\n");
+        return INIT_GPIO_FAIL;
+    }
 
-  if (!gpio_is_ready_dt(&led2)) {
-    LOG_ERR("LED 2 is not ready\n");
-    return -1;
-  }
-  if (gpio_pin_configure_dt(&led2, GPIO_OUTPUT_ACTIVE) < 0) {
-    LOG_ERR("Unable to configure LED 2 output pin\n");
-    return -1;
-  }
-  // Init Enable pins
-  if (!gpio_is_ready_dt(&ldo_enable)) {
-    LOG_ERR("ldo enable pin is not ready\n");
-    return -1;
-  }
-  if (gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_ACTIVE) < 0) {
-    LOG_ERR("Unable to configure ldo enable output pin\n");
-    return -1;
-  }
+    if (!gpio_is_ready_dt(&led2)) {
+        LOG_ERR("LED 2 is not ready\n");
+        return INIT_GPIO_FAIL;
+    }
+    if (gpio_pin_configure_dt(&led2, GPIO_OUTPUT_ACTIVE) < 0) {
+        LOG_ERR("Unable to configure LED 2 output pin\n");
+        return INIT_GPIO_FAIL;
+    }
+    // Init Enable pins
+    if (!gpio_is_ready_dt(&ldo_enable)) {
+        LOG_ERR("ldo enable pin is not ready\n");
+        return INIT_GPIO_FAIL;
+    }
+    if (gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_ACTIVE) < 0) {
+        LOG_ERR("Unable to configure ldo enable output pin\n");
+        return INIT_GPIO_FAIL;
+    }
 
-  if (!gpio_is_ready_dt(&cam_enable)) {
-    LOG_ERR("camera enable pin is not ready\n");
-    return -1;
-  }
-  if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
-    LOG_ERR("Unable to configure camera enable output pin\n");
-    return -1;
-  }
+    if (!gpio_is_ready_dt(&cam_enable)) {
+        LOG_ERR("camera enable pin is not ready\n");
+        return INIT_GPIO_FAIL;
+    }
+    if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
+        LOG_ERR("Unable to configure camera enable output pin\n");
+        return INIT_GPIO_FAIL;
+    }
 
-  //   if (!gpio_is_ready_dt(&buzzer)) {
-  // LOG_ERR("buzzer pin is not ready\n");
-  // return -1;
-  //   }
-  if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
-    LOG_ERR("Unable to configure buzzer output pin\n");
-    return -1;
-  }
+    if (!gpio_is_ready_dt(&buzzer)) {
+        LOG_ERR("buzzer pin is not ready\n");
+        return INIT_GPIO_FAIL;
+    }
+    if (gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_ACTIVE) < 0) {
+        LOG_ERR("Unable to configure buzzer output pin\n");
+        return INIT_GPIO_FAIL;
+    }
 
-  if (!device_is_ready(debug_serial_dev)) {
-    LOG_ERR("CAMERA SERIAL NOT READY\n");
-    return -1;
-  }
+    if (!device_is_ready(debug_serial_dev)) {
+        LOG_ERR("Debug serial not ready\n");
+        return INIT_GPIO_FAIL;
+    }
 
-  gpio_pin_set_dt(&led1, 0);
-  gpio_pin_set_dt(&led2, 0);
-  gpio_pin_set_dt(&ldo_enable, 0);
-  gpio_pin_set_dt(&cam_enable, 0);
+    gpio_pin_set_dt(&led1, 0);
+    gpio_pin_set_dt(&led2, 0);
+    gpio_pin_set_dt(&ldo_enable, 1);
+    gpio_pin_set_dt(&cam_enable, 0);
+    gpio_pin_set_dt(&buzzer, 0);
 
-  return 0;
+    return INIT_OK;
 }
 
 static int sensor_init(void) {
-  const bool lsm6dsl_found = device_is_ready(lsm6dsl_dev);
-  const bool bme280_found = device_is_ready(bme280_dev);
-  const bool flash_found = device_is_ready(flash_dev);
+    const bool flash_found = device_is_ready(flash_dev);
+    if (!flash_found) {
+        return INIT_NOFLASH;
+    }
 
-  struct sensor_value odr_attr;
+    const bool lsm6dsl_found = device_is_ready(lsm6dsl_dev);
+    const bool bme280_found = device_is_ready(bme280_dev);
+    if (!lsm6dsl_found) {
+        LOG_ERR("Error setting up LSM6DSL");
+        return INIT_MISSING_SENSOR;
+    }
+    if (!bme280_found) {
+        LOG_ERR("Error setting up BME280");
+        return INIT_MISSING_SENSOR;
+    }
+    const bool ina_bat_found = device_is_ready(ina_bat_dev);
+    const bool ina_ldo_found = device_is_ready(ina_ldo_dev);
+    const bool ina_grim_found = device_is_ready(ina_grim_dev);
 
-  /* set accel/gyro sampling frequency to 104 Hz */
-  odr_attr.val1 = 1666;
-  odr_attr.val2 = 0;
+    if (!ina_bat_found || !ina_ldo_found || !ina_grim_found) {
+        LOG_ERR("Error setting up INA260 devices");
+        return INIT_MISSING_SENSOR;
+    }
 
-  if (sensor_attr_set(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ,
-                      SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
-    printk("Cannot set sampling frequency for accelerometer.\n");
+    // ADC
+    if (!adc_is_ready_dt(&adc_chan0)) {
+        LOG_ERR("ADC controller device %s not ready\n", adc_chan0.dev->name);
+        return INIT_MISSING_SENSOR;
+    }
+    //
+    if (adc_channel_setup_dt(&adc_chan0) < 0) {
+        LOG_ERR("Could not setup ADC channel\n");
+        return INIT_MISSING_SENSOR;
+    }
+
     return 0;
-  }
-
-  if (sensor_attr_set(lsm6dsl_dev, SENSOR_CHAN_GYRO_XYZ,
-                      SENSOR_ATTR_SAMPLING_FREQUENCY, &odr_attr) < 0) {
-    printk("Cannot set sampling frequency for gyro.\n");
-    return 0;
-  }
-
-  const bool all_good = lsm6dsl_found && flash_found && bme280_found;
-  if (!all_good) {
-    LOG_ERR("Error setting up sensor and flash devices");
-    return -1;
-  }
-
-  // Configure channel prior to sampling.
-  if (!adc_is_ready_dt(&adc_chan0)) {
-    LOG_ERR("ADC controller device %s not ready\n", adc_chan0.dev->name);
-    return -1;
-  }
-  //
-  if (adc_channel_setup_dt(&adc_chan0) < 0) {
-    LOG_ERR("Could not setup channel\n");
-    return -1;
-  }
-
-  return 0;
-}
-void print_size(size_t size) {
-  if (size < 1024) {
-    LOG_PRINTK("%ud B", size);
-  } else if (size < 1024 * 1024) {
-    LOG_PRINTK("%.2f KiB", ((double)size) / 1024);
-  } else {
-    LOG_PRINTK("%.2f MiB", ((double)size) / (1024 * 1024));
-  }
-}
-/**
- * @brief Print the stats of the file system the file is on
- * @param fname		file name
- */
-void print_statvfs(char *fname) {
-  struct fs_statvfs fs_stat_dst; // destination for file system stats
-  int32_t ret = fs_statvfs(fname, &fs_stat_dst);
-  if (ret < 0) {
-    LOG_ERR("Unable to stat the filesystem of %s: %d", fname, ret);
-  } else {
-    LOG_INF(
-        "%s is on a volume with \r\n\t%lu blocks (%lu free) of %lu bytes each",
-        fname, fs_stat_dst.f_blocks, fs_stat_dst.f_bfree, fs_stat_dst.f_frsize);
-    LOG_PRINTK("\t");
-    print_size(fs_stat_dst.f_blocks * fs_stat_dst.f_frsize);
-    LOG_PRINTK(" (");
-    print_size(fs_stat_dst.f_bfree * fs_stat_dst.f_frsize);
-    LOG_PRINTK(" free)\n");
-  }
-}
-
-#define NUM_SAMPLES 5
-float samples[NUM_SAMPLES] = {0.0f};
-int sample_index = 0;
-float sample_sum = 0;
-
-int samplesi[NUM_SAMPLES] = {0.0f};
-int samplei_index = 0;
-float samplei_sum = 0;
-
-// add a new sample, return the moving avg
-float add_sample(float sample) {
-  float old = samples[sample_index];
-  samples[sample_index] = sample;
-  sample_index = (sample_index + 1) % NUM_SAMPLES;
-  sample_sum -= old;
-  sample_sum += sample;
-  return sample_sum / (float)NUM_SAMPLES;
 }
 
 float add_sample_int(int samplei) {
-  float old = samplesi[samplei_index];
-  samplesi[samplei_index] = samplei;
-  samplei_index = (samplei_index + 1) % NUM_SAMPLES;
-  samplei_sum -= old;
-  samplei_sum += samplei;
-  return samplei_sum / (float)NUM_SAMPLES;
+
+    static int samplesi[ACC_BOOST_DETECTION_AVG_SAMPLES] = {0.0f};
+    static int samplei_index = 0;
+    static int samplei_sum = 0;
+
+    float old = samplesi[samplei_index];
+    samplesi[samplei_index] = samplei;
+    samplei_index = (samplei_index + 1) % ACC_BOOST_DETECTION_AVG_SAMPLES;
+    samplei_sum -= old;
+    samplei_sum += samplei;
+    return samplei_sum / (float) ACC_BOOST_DETECTION_AVG_SAMPLES;
 }
-int main(void) {
-  if (gpio_init()) {
-    return -1;
-  }
-  if (sensor_init()) {
-    return -1;
-  }
 
-  int32_t buf;
-  struct adc_sequence sequence = {
-      .buffer = &buf,
-      /* buffer size in bytes, not number of samples */
-      .buffer_size = sizeof(buf),
-  };
-  int frame = 0;
-  while (true) {
-
-    sequence.channels = adc_chan0.channel_id;
-
-    int err = adc_sequence_init_dt(&adc_chan0, &sequence);
-    if (err < 0) {
-      printk("Could not init seq: %d", err);
+#define get_likely_or_warn(res, msg)                                                                                   \
+    if (unlikely(res < 0)) {                                                                                           \
+        LOG_WRN("%s: %d", msg, res);                                                                                   \
     }
-    err = adc_read_dt(&adc_chan0, &sequence);
-    if (err < 0) {
-      printk("Could not read (%d)\n", err);
-      continue;
+volatile int num_samples_fast = 0;
+volatile int timestamp_over_limit = -1;
+volatile int over_limit_for = 0;
+
+volatile bool has_launched = false;
+volatile int frame = 0;
+void fast_data_read(struct k_work *) {
+
+    // Read Data
+    int ret;
+    // = sensor_sample_fetch_chan(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ);
+    // get_likely_or_warn(ret, "Failed to read IMU accel");
+    // ret = sensor_sample_fetch_chan(lsm6dsl_dev, SENSOR_CHAN_GYRO_XYZ);
+    // get_likely_or_warn(ret, "Failed to read IMU gyro");
+    // Store data
+
+    struct lsm6dsl_data *data = lsm6dsl_dev->data;
+    struct fast_data dat = {
+        .timestamp = timestamp(),
+        .accel_x = data->accel_sample_x,
+        .accel_y = data->accel_sample_y,
+        .accel_z = data->accel_sample_z,
+        .gyro_x = data->gyro_sample_x,
+        .gyro_y = data->gyro_sample_y,
+        .gyro_z = data->gyro_sample_z,
+    };
+
+    if (has_launched) {
+        ret = k_msgq_put(&fast_data_queue, &dat, K_NO_WAIT);
+        get_likely_or_warn(ret, "Failed to send fast message");
+        num_samples_fast++;
+    } else {
+        // send to circular buf
     }
-    int32_t val = buf;
-    float volts = 2.4f * ((float)val) / ((float)0x7fffff);
+    // Launch Detect
+    struct sensor_value accel_vals[3];
+    get_likely_or_warn(sensor_channel_get(lsm6dsl_dev, SENSOR_CHAN_ACCEL_XYZ, accel_vals),
+                       "Failed to convert accel values");
 
-    float avg = add_sample(volts);
-
-    printk("%06d,%06x,%d,%2.8f,%2.8f\n", frame, val, val, (double)volts,
-           (double)avg);
+    float avg = add_sample_int(accel_vals[1].val1);
+    // if (frame % 10 == 0) {
+    // printk("%.2f\n", sensor_value_to_float(&accel_vals[1]));
+    // }
+    if (avg > FIVE_G_LIMIT_MPS && !has_launched) {
+        printk("Launch with avg mps2: %f", avg);
+        has_launched = true;
+    }
     frame++;
-
-    // printk("Im alive\n");
-    gpio_pin_toggle_dt(&led1);
-    k_msleep(10);
-  }
-  return 0;
 }
+
+volatile int num_samples_slow = 0;
+volatile bool cancelled = false;
+void slow_data_read(struct k_work *) {
+    if (!has_launched) {
+        return;
+    }
+    struct sensor_value temp;
+    struct sensor_value press;
+    struct sensor_value humid;
+    // BME is read by fast sensor thread for event detection. No need to fetch
+    // it here just read it
+    get_likely_or_warn(sensor_sample_fetch(bme280_dev), "Unable to fetch bme280 readings");
+
+    get_likely_or_warn(sensor_channel_get(bme280_dev, SENSOR_CHAN_AMBIENT_TEMP, &temp), "Unable to read ambient temp");
+    get_likely_or_warn(sensor_channel_get(bme280_dev, SENSOR_CHAN_PRESS, &press), "Unable to read pressure");
+
+    get_likely_or_warn(sensor_channel_get(bme280_dev, SENSOR_CHAN_HUMIDITY, &humid), "Unable to read humidity");
+
+    // Voltages
+    get_likely_or_warn(sensor_sample_fetch(ina_bat_dev), "Unable to fetch battery INA");
+    get_likely_or_warn(sensor_sample_fetch(ina_grim_dev), "Unable to fetch battery INA");
+    get_likely_or_warn(sensor_sample_fetch(ina_ldo_dev), "Unable to fetch LDO INA");
+
+    struct ina260_data *bat_data = ina_bat_dev->data;
+    struct ina260_data *ldo_data = ina_ldo_dev->data;
+    struct ina260_data *grim_data = ina_grim_dev->data;
+
+    struct slow_data dat = {
+        .timestamp = timestamp(),
+        .humidity = press.val1 * 1000000 + press.val2,
+        .temperature = temp.val1 * 1000000 + temp.val2,
+        .grim_voltage = grim_data->v_bus,
+        .grim_current = grim_data->current,
+
+        .load_cell_voltage = ldo_data->v_bus,
+        .load_cell_current = ldo_data->current,
+
+        .bat_voltage = bat_data->v_bus,
+        .bat_current = bat_data->current,
+    };
+    get_likely_or_warn(k_msgq_put(&slow_data_queue, &dat, K_NO_WAIT), "Failed to send slow message");
+    num_samples_slow++;
+}
+
+K_WORK_DEFINE(fast_work, fast_data_read);
+void fast_data_alert(struct k_timer *) { k_work_submit(&fast_work); }
+K_TIMER_DEFINE(fast_data_timer, fast_data_alert, NULL);
+
+K_WORK_DEFINE(slow_work, slow_data_read);
+void slow_data_alert(struct k_timer *) { k_work_submit(&slow_work); }
+K_TIMER_DEFINE(slow_data_timer, slow_data_alert, NULL);
+
+int main(void) {
+
+    if (gpio_init() != 0) {
+        LOG_ERR("GPIO not setup. Continuing...\n");
+        buzzer_tell(buzzer_cond_missing_sensors);
+    }
+    if (sensor_init() != 0) {
+        LOG_ERR("Some sensors not functional");
+        return -1;
+    }
+    struct fs_file_t file;
+    fs_file_t_init(&file);
+    const char *fname = "/lfs/test.bin";
+    int ret = fs_open(&file, fname, FS_O_RDWR | FS_O_CREATE);
+    if (ret < 0) {
+        printk("Failed to open %s: %d", fname, ret);
+        return ret;
+    }
+    begin_buzzer_thread(&buzzer);
+    k_tid_t storage_tid = spawn_data_storage_thread();
+    (void) storage_tid;
+
+    // Make sure storage is setup
+    if (k_event_wait(&storage_setup_finished, 0xFFFFFFFF, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
+        LOG_ERR("Failed to initialize file sysbegin_buzzer_threadtem. FATAL ERROR\n");
+        buzzer_tell(buzzer_cond_noflash);
+        // VERY VERY BAD
+    }
+
+    LOG_DBG("Starting launch detection");
+
+    // Storage is ready
+    // Start launch detecting
+    gpio_pin_set_dt(&cam_enable, 0);
+    gpio_pin_set_dt(&ldo_enable, 1);
+
+    k_timer_start(&fast_data_timer, FAST_DATA_DELAY_MS, FAST_DATA_DELAY_MS);
+    k_timer_start(&slow_data_timer, SLOW_DATA_DELAY_MS, SLOW_DATA_DELAY_MS);
+
+    k_msleep(TOTAL_FLIGHT_TIME_MS);
+
+    k_timer_stop(&fast_data_timer);
+    k_timer_stop(&slow_data_timer);
+
+    if (has_launched) {
+        enum flight_event its_so_over = flight_event_main_shutoff;
+        k_msgq_put(&flight_events_queue, &its_so_over, K_NO_WAIT);
+    }
+    LOG_DBG("Samples: %d", num_samples_fast);
+    printk("Fast: %d, Slow: %d\n", num_samples_fast, num_samples_slow);
+
+    LOG_INF("Landed!")
+    buzzer_tell(buzzer_cond_landed);
+    return 0;
+}
+
+// Dumping
+
+#ifdef CONFIG_SHELL
+
+// read from file into this
+#define B64_PER_LINE       (12 * 6)
+#define READING_BUFFER_LEN B64_PER_LINE
+uint8_t reading_data[READING_BUFFER_LEN];
+
+// dump base64 data here before printing
+#define DUMP_BUFFER_LEN (B64_PER_LINE * 8)
+uint8_t dumping_data[DUMP_BUFFER_LEN + 1];
+
+static int dump_base64(const struct shell *shell, const char *fname) {
+    struct fs_file_t file;
+    int ret;
+    fs_file_t_init(&file);
+
+    ret = fs_open(&file, fname, FS_O_READ);
+    if (ret < 0) {
+        shell_print(shell, "Failed to open %s: %d", fname, ret);
+        return ret;
+    }
+    int read = READING_BUFFER_LEN;
+
+    while (read == READING_BUFFER_LEN) {
+        read = fs_read(&file, reading_data, READING_BUFFER_LEN);
+        if (read < 0) {
+            shell_print(shell, "Failed file read of %s", fname);
+            return -1;
+        }
+        int num_written = 0;
+        ret = base64_encode(dumping_data, DUMP_BUFFER_LEN, &num_written, reading_data, read);
+        if (ret < 0) {
+            shell_print(shell, "encoding error %d, num_written: %d, read: %d", ret, num_written, read);
+            return ret;
+        }
+        dumping_data[DUMP_BUFFER_LEN] = 0; // null terminator
+        shell_print(shell, "%s", dumping_data);
+    }
+    fs_close(&file);
+    return 0;
+}
+
+static int cmd_dump_fast(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    dump_base64(shell, FAST_FILENAME);
+    return 0;
+}
+
+static int cmd_dump_slow(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    dump_base64(shell, SLOW_FILENAME);
+    return 0;
+}
+
+static int cmd_dump_adc(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    dump_base64(shell, ADC_FILENAME);
+    return 0;
+}
+
+static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
+    cancelled = true;
+
+    return 0;
+}
+
+static int cmd_override(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
+    has_launched = true;
+    return 0;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(dump_subcmds, SHELL_CMD(nogo, NULL, "Cancel launch detection", cmd_nogo),
+                               SHELL_CMD(override, NULL, "Dump slow file.", cmd_override),
+                               SHELL_CMD(slow, NULL, "Dump slow file.", cmd_dump_slow),
+                               SHELL_CMD(fast, NULL, "Dump fast file.", cmd_dump_fast),
+                               SHELL_CMD(adc, NULL, "Dump adc file.", cmd_dump_adc), SHELL_SUBCMD_SET_END);
+
+/* Creating root (level 0) command "demo" */
+SHELL_CMD_REGISTER(dump, &dump_subcmds, "Data Dump Commands", NULL);
+
+#endif

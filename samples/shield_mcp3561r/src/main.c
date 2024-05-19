@@ -40,7 +40,7 @@ int main() {
     printk("ADC controller device %s not ready\n", adc_chan0.dev->name);
     return 0;
   }
-  //
+
   err = adc_channel_setup_dt(&adc_chan0);
   if (err < 0) {
     printk("Could not setup channel (%d)\n", err);

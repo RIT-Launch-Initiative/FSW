@@ -73,8 +73,8 @@
 			// the binding reccomends defaults for these
 			read-size = <16>;
 			prog-size = <16>;
-			cache-size = <1024>; // may need to grow for optimization
-			lookahead-size = <32>;
+			cache-size = <2048>; // may need to grow for optimization
+			lookahead-size = <128>;
 			block-cycles = <(90 * 1000)>;
 			// the datasheet gives 100K P-E cycles
 			// NOTE: this seems to default to 512 for the mounted filesystem
@@ -82,7 +82,6 @@
 		};
 	};
 };
-
 
 
 &uart4 {
@@ -144,42 +143,34 @@
         irq-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>, <&gpiob 8 GPIO_ACTIVE_LOW>;
 
     };
+    ina260_ldo: ina260-ldo@40 {// LDO Load Cell Power - expect 5v
+        status = "okay";
+        compatible = "ti,ina260";
+        reg = <0x40>;
+        average = "AVG_1";
+        v-conv-time = "CONV_TIME_1100US";
+        i-conv-time = "CONV_TIME_1100US";
 
-	// ina219_battery@40 {// Load Cell - LDO (5v)
-		// status = "okay";
-		// compatible = "ti,ina219"; // TODO make this INA260
-		// reg = <0x40>;
-		// brng = <0>;
-		// pg = <0>;
-		// sadc = <13>;
-		// badc = <13>;
-		// shunt-milliohm = <100>;
-		// lsb-microamp = <10>;
-	// };
-	// 
-	// ina219_3v3@41 {// Grim - Buck (3.3v)
-		// status = "okay";
-		// compatible = "ti,ina219"; // TODO make this INA260
-		// reg = <0x41>;
-		// brng = <0>;
-		// pg = <0>;
-		// sadc = <13>;
-		// badc = <13>;
-		// shunt-milliohm = <100>;
-		// lsb-microamp = <10>;
-	// };
-	// 
-	// ina219_5v0@44 {// Battery (7.4v)
-		// status = "okay";
-		// compatible = "ti,ina219"; // TODO make this INA260
-		// reg = <0x44>;
-		// brng = <0>;
-		// pg = <0>;
-		// sadc = <13>;
-		// badc = <13>;
-		// shunt-milliohm = <100>;
-		// lsb-microamp = <10>;
-	// };
+    };
+    ina260_3v3: ina260-3v3@41 { // Grim Logic level - expect 3.3v
+        status = "okay";
+        compatible = "ti,ina260";
+        reg = <0x41>;
+        average = "AVG_1";
+        v-conv-time = "CONV_TIME_1100US";
+        i-conv-time = "CONV_TIME_1100US";
+
+    };
+    ina260_battery: ina260-battery@44 { // Battery level - expect 7.4v
+        status = "okay";
+        compatible = "ti,ina260";
+        reg = <0x44>;
+        average = "AVG_1";
+        v-conv-time = "CONV_TIME_1100US";
+        i-conv-time = "CONV_TIME_1100US";
+
+    };
+
 };
 
 &spi1 {
@@ -194,7 +185,8 @@
 
 		size = <DT_SIZE_M(512)>; // w25q512 - 512 MBit (S 9.4, p.92)
 		jedec-id = [ ef 40 20  ]; // 0xef4020 (Table 8.1.1, p.25)
-		spi-max-frequency = <(30 * 1000000)>; // fR = 50 MHz (Table 9.6, p.86)
+		spi-max-frequency = <DT_FREQ_M(50)>; // fR = 50 MHz (Table 9.6, p.86)
+        
 
 		has-dpd;
 		// Power-down 0xB9 (S 8.2.21)
@@ -209,7 +201,7 @@
 
 			external_storage_partition: partition@0 {
 				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(512)>; // takes up the whole flash
+				reg = <0 DT_SIZE_M(64)>; // takes up the whole flash
 			};
 		};
 	};
@@ -238,7 +230,7 @@
 
 		channel@0 {
 			reg = <0>;
-			zephyr,gain = "ADC_GAIN_64";
+			zephyr,gain = "ADC_GAIN_8";
 			zephyr,reference = "ADC_REF_INTERNAL";
 			zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 

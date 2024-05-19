@@ -1,0 +1,107 @@
+# Copyright (c) 2024 Richard Sommers
+# SPDX-License-Identifier: Apache-2.0
+# datasheet: http://www.ti.com/lit/ds/symlink/ina260.pdf
+
+description: Texas Instruments Bidirectional Current/Power Sensor
+
+compatible: "ti,ina260"
+
+include: [sensor-device.yaml, i2c-device.yaml]
+
+properties:
+
+  average:
+    type: string
+    required: true
+    description: |
+      Averaging Mode. 
+      Determines the number of samples that are collected and averaged. 
+      The following shows all the AVG bit settings and related number of averages for each bit setting
+      - AVG_1: Average of 1 samples 
+      - AVG_4: Average of 4 samples 
+      - AVG_16: Average of 16 samples 
+      - AVG_64: Average of 64 samples 
+      - AVG_128: Average of 128 samples 
+      - AVG_256: Average of 256 samples 
+      - AVG_512: Average of 512 samples 
+      - AVG_1024: Average of 1024 samples 
+
+    enum:
+      - "AVG_1"
+      - "AVG_4"
+      - "AVG_16"
+      - "AVG_64"
+      - "AVG_128"
+      - "AVG_256"
+      - "AVG_512"
+      - "AVG_1024"
+
+  mode:
+    type: string
+    description: |
+      Operating Mode
+      Selects continuous, triggered, or power-down mode of operation. These bits default to
+      continuous shunt and bus measurement mode. The following shows mode settings
+      - TRIG_OFF
+      - TRIG_CURRENT
+      - TRIG_VOLTAGE
+      - TRIG_BOTH
+      - CONT_OFF
+      - CONT_CURRENT
+      - CONT_VOLTAGE
+      - CONT_BOTH
+    default: "CONT_BOTH"
+    enum:
+      - "TRIG_OFF"
+      - "TRIG_CURRENT"
+      - "TRIG_VOLTAGE"
+      - "TRIG_BOTH"
+      - "CONT_OFF"
+      - "CONT_CURRENT"
+      - "CONT_VOLTAGE"
+      - "CONT_BOTH"
+
+  v-conv-time:
+    type: string
+    required: true
+    description: |
+      Bus Voltage Conversion Time 
+      - CONV_TIME_140US
+      - CONV_TIME_204US
+      - CONV_TIME_332US
+      - CONV_TIME_588US
+      - CONV_TIME_1100US
+      - CONV_TIME_2116US
+      - CONV_TIME_4156US
+      - CONV_TIME_8244US
+    enum:
+      - "CONV_TIME_140US"
+      - "CONV_TIME_204US"
+      - "CONV_TIME_332US"
+      - "CONV_TIME_588US"
+      - "CONV_TIME_1100US"
+      - "CONV_TIME_2116US"
+      - "CONV_TIME_4156US"
+      - "CONV_TIME_8244US"
+  i-conv-time:
+    type: string
+    required: true
+    description: |
+      Shunt Current Conversion Time 
+      - CONV_TIME_140US
+      - CONV_TIME_204US
+      - CONV_TIME_332US
+      - CONV_TIME_588US
+      - CONV_TIME_1100US
+      - CONV_TIME_2116US
+      - CONV_TIME_4156US
+      - CONV_TIME_8244US
+    enum:
+      - "CONV_TIME_140US"
+      - "CONV_TIME_204US"
+      - "CONV_TIME_332US"
+      - "CONV_TIME_588US"
+      - "CONV_TIME_1100US"
+      - "CONV_TIME_2116US"
+      - "CONV_TIME_4156US"
+      - "CONV_TIME_8244US"

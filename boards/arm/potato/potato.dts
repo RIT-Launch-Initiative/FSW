@@ -20,7 +20,7 @@
         zephyr,uart-pipe = &uart5;
 
         storage = &w25q128;
-        logfs = &lfs1;
+        logfs = &lfs1;  
     };
 
     leds: leds {
