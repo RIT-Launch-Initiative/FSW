@@ -109,8 +109,6 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
             LOG_ERR("Failed to fetch lis3mdl data %d", ret);
         }
 
-        LOG_INF("Took %d to get new data", k_uptime_get_32() - timestamp);
-
         timestamp = k_uptime_get_32();
 
         l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.adxl375);
@@ -124,8 +122,6 @@ static void hundred_hz_sensor_reading_task(void *unused0, void *unused1, void *u
         // Put telemetry into queue
         if (k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10))) {
             LOG_ERR("Failed to put data into sensor processing queue");
-        } else {
-            LOG_INF("Queued telemetry");
         }
 
         // Sleep until next update time. TODO: Maybe use timers and signals?

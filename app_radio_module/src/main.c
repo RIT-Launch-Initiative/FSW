@@ -1,10 +1,12 @@
 // Application Includes
 #include "radio_module_functionality.h"
 
+#include <launch_core/os/fs.h>
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/storage/flash_map.h>
 
 #define SLEEP_TIME_MS 100
 
@@ -29,6 +31,8 @@ static int init_networking() {
 
 int main() {
     LOG_DBG("Starting radio module!\n");
+
+    l_fs_boot_count_check();
 
     if (l_check_device(lora_dev) == 0) {
         init_lora_unique(lora_dev);

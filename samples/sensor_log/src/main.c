@@ -8,7 +8,7 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/logging/log.h>
 
-#include <launch_core/os/Logger.h>
+#include <launch_core/os/fs.h>
 // node identifiers
 // NOTE: Hardware prerequisites
 // 	Launch Mikroe Click Shield
@@ -42,9 +42,9 @@ SensorLogger detect_buffer{
 	boost_samples_path, 
 	sizeof(struct txyz), 
 	N_CIRC_SAMPLES, 
-	SLOG_CIRC};
+	SLOG_CIRC);
 
-SensorLogger flight_log{
+L_FS_CREATE_FILE flight_log{
 	flight_samples_path,
 	sizeof(struct txyz),
 	N_ONCE_SAMPLES,
