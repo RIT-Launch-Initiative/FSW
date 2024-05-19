@@ -22,4 +22,15 @@ typedef struct __attribute__((packed)) {
     potato_telemetry_t telemetry;
 } logging_packet_t;
 
+/**
+ * Configure telemetry rate for POTATO
+ * @param frequency - Frequency of sensor sampling
+ */
+void configure_telemetry_rate(uint32_t frequency);
+
+/**
+ * Bin a telemetry file for flight phase transitions
+ */
+void bin_telemetry_file();
+
 #endif //POTATO_H

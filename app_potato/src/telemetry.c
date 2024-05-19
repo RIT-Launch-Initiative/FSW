@@ -42,6 +42,12 @@ static void convert_raw_telemetry(potato_raw_telemetry_t* raw_telem, potato_tele
     telem->load = raw_telem->load;
 }
 
+void configure_telemetry_rate(uint32_t frequency) {
+    // TODO: Configure sensor speeds and timer
+
+    // TODO: Trigger creating a new file at that task rate
+}
+
 static void telemetry_read_task(void*) {
     // const struct device* lps22 = device_get_binding(DEVICE_DT_GET_ONE(st_lps22hhtr));
     const struct device* lps22 = NULL; // TODO: Fill DTS
@@ -81,6 +87,5 @@ static void telemetry_processing_task(void*) {
         }
 
         k_msgq_put(&logging_queue, &raw_telem_processing_queue, K_FOREVER);
-
     }
 }
