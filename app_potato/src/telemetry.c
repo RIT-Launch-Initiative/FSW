@@ -12,8 +12,13 @@
 #define TELEMETRY_STACK_SIZE 512
 
 // Threads
-static void sensor_read_task(void*);
-K_THREAD_DEFINE(sensor_read_thread, TELEMETRY_STACK_SIZE, sensor_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
+static void telemetry_read_task(void*);
+K_THREAD_DEFINE(telem_read_thread, TELEMETRY_STACK_SIZE, telemetry_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
+                1000);
+
+static void telemetry_processing_task(void*);
+K_THREAD_DEFINE(telem_process_thread, TELEMETRY_STACK_SIZE, telemetry_processing_task, NULL, NULL, NULL,
+                K_PRIO_PREEMPT(20), 0,
                 1000);
 
 // Timers
@@ -37,7 +42,7 @@ static void convert_raw_telemetry(potato_raw_telemetry_t* raw_telem, potato_tele
     telem->load = raw_telem->load;
 }
 
-static void sensor_read_task(void*) {
+static void telemetry_read_task(void*) {
     // const struct device* lps22 = device_get_binding(DEVICE_DT_GET_ONE(st_lps22hhtr));
     const struct device* lps22 = NULL; // TODO: Fill DTS
     potato_raw_telemetry_t raw_telemetry = {0};

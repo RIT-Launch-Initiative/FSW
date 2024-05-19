@@ -9,20 +9,11 @@
 
 LOG_MODULE_REGISTER(app_potato);
 
-// Threads
-#define POTATO_STACK_SIZE (512)
-
-static K_THREAD_STACK_DEFINE(adc_read_stack, POTATO_STACK_SIZE);
-static struct k_thread adc_read_thread;
-
-static K_THREAD_STACK_DEFINE(sensor_read_stack, POTATO_STACK_SIZE);
-static struct k_thread sensor_read_thread;
-// TODO: Might just be a process task that sends over SLIP, but also logs data
-static K_THREAD_STACK_DEFINE(slip_tx_stack, POTATO_STACK_SIZE);
-static struct k_thread slip_tx_thread;
-
 // Queues
 static K_QUEUE_DEFINE(slip_tx_queue);
+
+// Extern Variables
+bool logging_enabled = false;
 
 
 int init_slip_network(void) {
