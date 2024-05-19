@@ -13,23 +13,22 @@ LOG_MODULE_REGISTER(INA260, CONFIG_SENSOR_LOG_LEVEL);
 static int ina260_reg_read(const struct device *dev, uint8_t reg_addr,
                            uint16_t *reg_data) {
   const struct ina260_config *cfg = dev->config;
-  uint8_t rx_buf[2];
-  int rc;
+  uint8_t rx_buf[2] = {0};
 
-  rc = i2c_write_read_dt(&cfg->bus, &reg_addr, sizeof(reg_addr), rx_buf,
-                         sizeof(rx_buf));
+  int rc = i2c_write_read_dt(&cfg->bus, &reg_addr, sizeof(reg_addr), rx_buf,
+                             sizeof(rx_buf));
 
-  *reg_data = sys_get_be16(rx_buf);
-
+  if (rc == 0) {
+    *reg_data = sys_get_be16(rx_buf);
+  }
   return rc;
 }
 
 static int ina260_reg_write(const struct device *dev, uint8_t addr,
                             uint16_t reg_data) {
   const struct ina260_config *cfg = dev->config;
-  uint8_t tx_buf[3];
+  uint8_t tx_buf[3] = {addr, 0, 0};
 
-  tx_buf[0] = addr;
   sys_put_be16(reg_data, &tx_buf[1]);
 
   return i2c_write_dt(&cfg->bus, tx_buf, sizeof(tx_buf));
@@ -46,6 +45,7 @@ static int ina260_sample_fetch(const struct device *dev,
       chan != SENSOR_CHAN_POWER && chan != SENSOR_CHAN_CURRENT) {
     return -ENOTSUP;
   }
+
   if (cfg->mode < CONT_OFF) {
     LOG_ERR("Triggered Mode not supported\n");
     return -ENOTSUP;
@@ -91,13 +91,13 @@ static int ina260_channel_get(const struct device *dev,
   switch (chan) {
   case SENSOR_CHAN_VOLTAGE: // Want volts
     // Full-scale range = 40.96 V (decimal = 32767); LSB = 1.25 mV.
-    return sensor_value_from_float(val, data->v_bus * 0.00125f);
+    return sensor_value_from_float(val, data->v_bus * INA260_VOLTS_PER_LSB);
   case SENSOR_CHAN_CURRENT: // Want Amps
     // The LSB size for the current register is set to 1.25 mA
-    return sensor_value_from_float(val, data->current * 0.00125f);
+    return sensor_value_from_float(val, data->current * INA260_AMPS_PER_LSB);
   case SENSOR_CHAN_POWER: // Want power
     // The Power Register LSB is fixed to 10 mW.
-    return sensor_value_from_float(val, data->power * 0.01f);
+    return sensor_value_from_float(val, data->power * INA260_WATTS_PER_LSB);
 
   default:
     LOG_DBG("Channel not supported by device");
@@ -106,11 +106,6 @@ static int ina260_channel_get(const struct device *dev,
 
   return 0;
 }
-
-static const struct sensor_driver_api ina260_api = {
-    .sample_fetch = ina260_sample_fetch,
-    .channel_get = ina260_channel_get,
-};
 
 static int ina260_init(const struct device *dev) {
   const struct ina260_config *cfg = dev->config;
@@ -139,6 +134,11 @@ static int ina260_init(const struct device *dev) {
   }
   return 0;
 }
+
+static const struct sensor_driver_api ina260_api = {
+    .sample_fetch = ina260_sample_fetch,
+    .channel_get = ina260_channel_get,
+};
 
 #define INA260_INIT(n)                                                         \
   static struct ina260_data ina260_data_##n;                                   \

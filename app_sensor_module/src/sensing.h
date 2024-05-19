@@ -1,5 +1,5 @@
-#ifndef SENSOR_MODULE_SENSORS_H
-#define SENSOR_MODULE_SENSORS_H
+#ifndef SENSOR_MODULE_SENSING_H
+#define SENSOR_MODULE_SENSING_H
 
 typedef enum {
     SENSOR_MODULE_ADXL375 = 0,
@@ -15,4 +15,4 @@ typedef enum {
  */
 void start_sensor_tasks();
 
-#endif //SENSOR_MODULE_SENSORS_H
+#endif //SENSOR_MODULE_SENSING_H

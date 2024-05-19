@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Richard Sommers
+ * Copyright (c) 2024 Launch Initiative
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,6 +7,10 @@
 #ifndef ZEPHYR_DRIVERS_SENSOR_INA260_INA260_H_
 #define ZEPHYR_DRIVERS_SENSOR_INA260_INA260_H_
 #include <zephyr/drivers/i2c.h>
+
+#define INA260_VOLTS_PER_LSB (0.00125)
+#define INA260_AMPS_PER_LSB (0.00125)
+#define INA260_WATTS_PER_LSB (0.01)
 
 /* Device register addresses */
 #define INA260_REG_CONF 0x00
@@ -33,15 +37,6 @@ enum ina260_mode {
   CONT_VOLTAGE = 0b110,
   CONT_BOTH = 0b111,
 };
-
-/* Others */
-#define INA260_SIGN_BIT(x) ((x) >> 15) & 0x1
-#define INA260_V_BUS_MUL 0.004
-#define INA260_SI_MUL 0.00001
-#define INA260_POWER_MUL 20
-#define INA260_WAIT_STARTUP 40
-#define INA260_WAIT_MSR_RETRY 100
-#define INA260_SCALING_FACTOR 4096000
 
 enum average_samples {
   AVG_1 = 0b000,

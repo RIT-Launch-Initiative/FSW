@@ -16,6 +16,14 @@
 /********** GENERAL **********/
 static const uint16_t LAUNCH_EVENT_NOTIFICATION_PORT = 9999;
 
+typedef enum {
+    L_BOOST_DETECTED = 'b',
+    L_APOGEE_DETECTED = 'a',
+    L_DROGUE_DEPLOYED = 'd',
+    L_MAIN_DEPLOYED = 'm',
+    L_LANDING_DETECTED = 'l',
+} l_event_notification_t;
+
 /********** POWER MODULE **********/
 #define POWER_MODULE_ID 1
 #define POWER_MODULE_BASE_PORT 11000

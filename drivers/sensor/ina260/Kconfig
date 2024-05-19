@@ -1,6 +1,6 @@
 # Texas Instruments Bidirectional Current/Power Sensor
 
-# Copyright (c) 2024 Richard Sommers
+# Copyright (c) 2024 Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
 menuconfig INA260

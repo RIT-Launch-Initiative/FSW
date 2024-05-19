@@ -64,9 +64,7 @@ static void receiver_cb(const struct device *lora_dev, uint8_t *payload, uint16_
     LOG_INF("Received %d bytes. RSSI: %d SNR: %d", len, rssi, snr);
 }
 
-int init_lora_unique(const struct device *const lora_dev) {
-    return lora_recv_async(lora_dev, &receiver_cb);
-}
+int init_lora_unique(const struct device *const lora_dev) { return lora_recv_async(lora_dev, &receiver_cb); }
 
 int init_udp_unique() {
     int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, RADIO_MODULE_BASE_PORT);
@@ -75,24 +73,13 @@ int init_udp_unique() {
         return sock;
     }
 
-    k_thread_create(&udp_broadcast_thread, &udp_broadcast_stack[0], THREAD_STACK_SIZE,
-                    udp_broadcast_task, INT_TO_POINTER(sock), NULL, NULL,
-                    K_PRIO_PREEMPT(5),
-                    0,
-                    K_NO_WAIT);
+    k_thread_create(&udp_broadcast_thread, &udp_broadcast_stack[0], THREAD_STACK_SIZE, udp_broadcast_task,
+                    INT_TO_POINTER(sock), NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
     k_thread_start(&udp_broadcast_thread);
 
     return 0;
 }
 
-int start_tasks() {
-    return 0;
-}
-
-int main_unique() {
-
-
-    return 0;
-}
+int main_unique() { return 0; }
 
 #endif

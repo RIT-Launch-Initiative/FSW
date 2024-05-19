@@ -26,3 +26,5 @@ SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: 'true'
 TabWidth: '4'
 UseTab: Never
+
+...
