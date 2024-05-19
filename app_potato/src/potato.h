@@ -5,6 +5,14 @@
 
 #include <launch_core/types.h>
 
+typedef enum {
+    PAD_STATE = 0,
+    COAST_STATE,
+    APOGEE_STATE,
+    MAIN_STATE,
+    LANDING_STATE
+} FLIGHT_STATES;
+
 typedef struct __attribute__((packed)) {
     l_barometer_data_t lps22_data;
     float load;
