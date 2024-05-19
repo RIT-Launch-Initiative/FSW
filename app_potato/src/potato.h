@@ -7,6 +7,7 @@
 
 typedef enum {
     PAD_STATE = 0,
+    BOOST_STATE,
     COAST_STATE,
     APOGEE_STATE,
     MAIN_STATE,
@@ -29,6 +30,12 @@ typedef struct __attribute__((packed)) {
     potato_raw_telemetry_t raw_telemetry;
     potato_telemetry_t telemetry;
 } logging_packet_t;
+
+/**
+ * Get byte from serial indicating event
+ * @return Event byte
+ */
+uint8_t get_event_from_serial();
 
 /**
  * Configure telemetry rate for POTATO

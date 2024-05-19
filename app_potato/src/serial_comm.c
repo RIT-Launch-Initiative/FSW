@@ -10,23 +10,31 @@ LOG_MODULE_REGISTER(serial_comm);
 static void receive_serial(void);
 K_THREAD_DEFINE(serial_rx_thread, SERIAL_TASK_STACK_SIZE, receive_serial, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
+// Global Variables
+static uint8_t event_byte = 0;
+
 static bool init_serial() {
 
     return true;
 }
 
-static void receive_serial(void) {
-    uint8_t receive_char = 0;
+uint8_t get_event_from_serial() {
+    uint8_t ret = 0;
 
+    if (event_byte) {
+        ret = event_byte;
+        event_byte = 0;
+    }
+
+    return ret;
+}
+
+static void receive_serial(void) {
     if (!init_serial()) {
         return;
     }
 
     while (true) {
-        // TODO: Read from serial
-
-        switch (receive_char) {
-
-        }
+        // TODO: Read from serial and set event_byte
     }
 }

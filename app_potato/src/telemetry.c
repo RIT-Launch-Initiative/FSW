@@ -48,7 +48,7 @@ static void convert_raw_telemetry(potato_raw_telemetry_t* raw_telem, potato_tele
 void configure_telemetry_rate(uint32_t frequency) {
     // TODO: Configure sensor speeds and timer
 
-    // TODO: Trigger creating a new file at that task rate
+    bin_telemetry_file();
 }
 
 static void telemetry_read_task(void*) {
