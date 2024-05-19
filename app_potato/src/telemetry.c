@@ -20,12 +20,13 @@ K_THREAD_DEFINE(sensor_read_thread, TELEMETRY_STACK_SIZE, sensor_read_task, NULL
 K_TIMER_DEFINE(lps22_timer, NULL, NULL);
 
 // Queues
-K_MSGQ_DEFINE(raw_telem_log_queue, sizeof(potato_raw_telemetry_t), 500, 1);
+K_MSGQ_DEFINE(raw_telem_processing_queue, sizeof(potato_raw_telemetry_t), 16, 1);
 
 // Global Variables
 float boost_detection_altitude = 0.0f;
 
 // External Variables
+extern struct k_msgq logging_queue;
 extern bool logging_enabled;
 
 static void convert_raw_telemetry(potato_raw_telemetry_t* raw_telem, potato_telemetry_t* telem) {
@@ -51,31 +52,30 @@ static void sensor_read_task(void*) {
         raw_telemetry.timestamp = k_uptime_get_32();
         l_get_barometer_data_float(lps22, &raw_telemetry.lps22_data);
 
-        // Buffer up data for logging before boost. If no space, throw out the oldest entry.
-        if (!logging_enabled && k_msgq_num_free_get(&raw_telem_log_queue) == 0) {
-            potato_raw_telemetry_t throwaway_data;
-            k_msgq_get(&raw_telem_log_queue, &throwaway_data, K_NO_WAIT);
-        }
-
-        k_msgq_put(&raw_telem_log_queue, &raw_telem_log_queue, K_NO_WAIT);
+        k_msgq_put(&raw_telem_processing_queue, &raw_telem_processing_queue, K_NO_WAIT);
     }
 }
 
 static void telemetry_processing_task(void*) {
     potato_raw_telemetry_t raw_telemetry = {0};
     potato_telemetry_t processed_telemetry = {0};
+
     while (true) {
-        // TODO: This won't keep data buffered for logging. Need to fix.
-        if (k_msgq_get(&raw_telem_log_queue, &raw_telemetry, K_FOREVER) != 0) {
-            continue;
+        if (k_msgq_get(&raw_telem_processing_queue, &raw_telemetry, K_FOREVER) != 0) continue;
+
+        // Boost detection calculation. Can assume no boost if logging isn't enabled
+        if (!logging_enabled) {
+            convert_raw_telemetry(&raw_telemetry, &processed_telemetry);
+            boost_detection_altitude = processed_telemetry.altitude;
         }
 
-        convert_raw_telemetry(&raw_telemetry, &processed_telemetry);
-        boost_detection_altitude = processed_telemetry.altitude;
-
-        if (logging_enabled) {
-            // TODO: Filesystem calls
-
+        // Buffer up data for logging before boost. If no space, throw out the oldest entry.
+        if (!logging_enabled && k_msgq_num_free_get(&logging_queue) == 0) {
+            potato_raw_telemetry_t throwaway_data;
+            k_msgq_get(&logging_queue, &throwaway_data, K_NO_WAIT);
         }
+
+        k_msgq_put(&logging_queue, &raw_telem_processing_queue, K_FOREVER);
+
     }
 }
