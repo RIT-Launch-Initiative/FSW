@@ -142,7 +142,7 @@
 	clock-frequency = <I2C_BITRATE_FAST>;
 
 	lps22hh: lps22hh@5d {
-        compatible = "st,lps22hhtr";x
+        compatible = "st,lps22hhtr";
         reg = <0x5d>;
         status = "okay";
     };
