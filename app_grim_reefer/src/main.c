@@ -306,19 +306,18 @@ int main(void) {
         LOG_ERR("GPIO not setup. Continuing...\n");
         buzzer_tell(buzzer_cond_missing_sensors);
     }
-    if (sensor_init() != 0) {
+    int ret = sensor_init();
+    if (ret != 0) {
         LOG_ERR("Some sensors not functional");
-        return -1;
+        if (ret == INIT_NOFLASH) {
+            buzzer_tell(buzzer_cond_noflash);
+        } else {
+            buzzer_tell(buzzer_cond_missing_sensors);
+        }
     }
-    struct fs_file_t file;
-    fs_file_t_init(&file);
-    const char *fname = "/lfs/test.bin";
-    int ret = fs_open(&file, fname, FS_O_RDWR | FS_O_CREATE);
-    if (ret < 0) {
-        printk("Failed to open %s: %d", fname, ret);
-        return ret;
-    }
+
     begin_buzzer_thread(&buzzer);
+
     k_tid_t storage_tid = spawn_data_storage_thread();
     (void) storage_tid;
 
@@ -331,27 +330,7 @@ int main(void) {
 
     LOG_DBG("Starting launch detection");
 
-    // Storage is ready
-    // Start launch detecting
-    gpio_pin_set_dt(&cam_enable, 0);
-    gpio_pin_set_dt(&ldo_enable, 1);
-
-    k_timer_start(&fast_data_timer, FAST_DATA_DELAY_MS, FAST_DATA_DELAY_MS);
-    k_timer_start(&slow_data_timer, SLOW_DATA_DELAY_MS, SLOW_DATA_DELAY_MS);
-
-    k_msleep(TOTAL_FLIGHT_TIME_MS);
-
-    k_timer_stop(&fast_data_timer);
-    k_timer_stop(&slow_data_timer);
-
-    if (has_launched) {
-        enum flight_event its_so_over = flight_event_main_shutoff;
-        k_msgq_put(&flight_events_queue, &its_so_over, K_NO_WAIT);
-    }
-    LOG_DBG("Samples: %d", num_samples_fast);
-    printk("Fast: %d, Slow: %d\n", num_samples_fast, num_samples_slow);
-
-    LOG_INF("Landed!")
+    LOG_INF("Landed!");
     buzzer_tell(buzzer_cond_landed);
     return 0;
 }
@@ -438,13 +417,13 @@ static int cmd_override(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
-SHELL_STATIC_SUBCMD_SET_CREATE(dump_subcmds, SHELL_CMD(nogo, NULL, "Cancel launch detection", cmd_nogo),
+SHELL_STATIC_SUBCMD_SET_CREATE(control_subcmds, SHELL_CMD(nogo, NULL, "Cancel launch detection", cmd_nogo),
                                SHELL_CMD(override, NULL, "Dump slow file.", cmd_override),
-                               SHELL_CMD(slow, NULL, "Dump slow file.", cmd_dump_slow),
-                               SHELL_CMD(fast, NULL, "Dump fast file.", cmd_dump_fast),
-                               SHELL_CMD(adc, NULL, "Dump adc file.", cmd_dump_adc), SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(dump_slow, NULL, "Dump slow file.", cmd_dump_slow),
+                               SHELL_CMD(dump_fast, NULL, "Dump fast file.", cmd_dump_fast),
+                               SHELL_CMD(dump_adc, NULL, "Dump adc file.", cmd_dump_adc), SHELL_SUBCMD_SET_END);
 
 /* Creating root (level 0) command "demo" */
-SHELL_CMD_REGISTER(dump, &dump_subcmds, "Data Dump Commands", NULL);
+SHELL_CMD_REGISTER(control, &control_subcmds, "Data Dump Commands", NULL);
 
 #endif
