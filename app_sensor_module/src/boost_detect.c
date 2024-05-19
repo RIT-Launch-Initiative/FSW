@@ -31,16 +31,16 @@ static void altitude_boost_detect_cb(struct k_timer*) {
     static bool first_pass = true;
 
     if (first_pass) {
-        // TODO: Function for calculating altitude from press and temp
         first_pass = false;
-        prev_altitudes[0] = -1.0f;
-        prev_altitudes[1] = -1.0f;
+
+        for (int i = 0; i < DETECTION_METHOD_PER_SENSOR_COUNT; i++) {
+            prev_altitudes[i] = l_altitude_conversion(pressure[i], temperature[i]);
+        }
 
         return;
     }
 
     for (int i = 0; i < DETECTION_METHOD_PER_SENSOR_COUNT; i++) {
-        // TODO: Function for calculating altitude from press and temp
         float altitude = l_altitude_conversion(pressure[i], temperature[i]);
 
         if ((altitude - prev_altitudes[i]) < ALTITUDE_VAL_THRESHOLD) {
