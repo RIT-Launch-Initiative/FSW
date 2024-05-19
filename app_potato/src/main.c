@@ -1,8 +1,4 @@
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/dev/uart.h>
-#include <launch_core/extension_boards.h>
-#include <launch_core/net/net_common.h>
-#include <launch_core/net/udp.h>
+
 #include <launch_core/os/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -14,7 +10,9 @@ static K_QUEUE_DEFINE(slip_tx_queue);
 
 // Global Variables
 bool logging_enabled = false;
-uint32_t boot_count;
+uint32_t boot_count = -1;
+
+
 
 
 int main() {

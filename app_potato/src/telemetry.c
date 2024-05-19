@@ -8,8 +8,11 @@
 // Zephyr Includes
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/logging/log.h>
 
 #define TELEMETRY_STACK_SIZE 512
+
+LOG_MODULE_REGISTER(telemetry);
 
 // Threads
 static void telemetry_read_task(void*);

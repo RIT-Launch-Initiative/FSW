@@ -2,11 +2,14 @@
 #include "potato.h"
 
 // Launch Includes
+#include <launch_core/os/fs.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 #define LOGGING_THREAD_STACK_SIZE 512
+LOG_MODULE_REGISTER(data_logger);
 
 // Message Queues
 K_MSGQ_DEFINE(logging_queue, sizeof(logging_packet_t), 500, 1);
@@ -23,6 +26,7 @@ static void logging_task(void*) {
     logging_packet_t log_packet = {0};
 
     // Use the boot count to create a new directory for the logs
+    while (boot_count == -1) continue; // Block until we get a boot count
 
     // Create file for logging
 
@@ -38,7 +42,7 @@ void bin_telemetry_file() {
 
     // Close current file (MIGHT NEED TO LOCK LOGGING THREAD)
 
-    // Create new file
+    // Create new file and update global pointer for logging thread
     file_count++;
 
     // Log the file count and the frequency in another file for reference
