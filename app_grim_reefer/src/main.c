@@ -6,9 +6,11 @@
 #include "buzzer.h"
 #include "config.h"
 #include "data_storage.h"
+#include "ina260.h"
 
 #include <launch_core/dev/dev_common.h>
 #include <math.h>
+#include <zephyr/../../drivers/sensor/lsm6dsl/lsm6dsl.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/adc.h>
@@ -21,11 +23,6 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/storage/flash_map.h>
-#include <zephyr/sys/base64.h>
-// Nasty, put these in the right place when you have time
-#include "ina260.h"
-
-#include <zephyr/../../drivers/sensor/lsm6dsl/lsm6dsl.h>
 // TODO MAKE THIS RIGHT
 int32_t timestamp() {
     int32_t us = k_ticks_to_us_floor32(k_uptime_ticks());
