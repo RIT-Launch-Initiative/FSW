@@ -22,6 +22,9 @@ K_TIMER_DEFINE(lps22_timer, NULL, NULL);
 // Queues
 K_MSGQ_DEFINE(raw_telem_log_queue, sizeof(potato_raw_telemetry_t), 500, 1);
 
+// Global Variables
+float boost_detection_altitude = 0.0f;
+
 // External Variables
 extern bool logging_enabled;
 
@@ -55,5 +58,24 @@ static void sensor_read_task(void*) {
         }
 
         k_msgq_put(&raw_telem_log_queue, &raw_telem_log_queue, K_NO_WAIT);
+    }
+}
+
+static void telemetry_processing_task(void*) {
+    potato_raw_telemetry_t raw_telemetry = {0};
+    potato_telemetry_t processed_telemetry = {0};
+    while (true) {
+        // TODO: This won't keep data buffered for logging. Need to fix.
+        if (k_msgq_get(&raw_telem_log_queue, &raw_telemetry, K_FOREVER) != 0) {
+            continue;
+        }
+
+        convert_raw_telemetry(&raw_telemetry, &processed_telemetry);
+        boost_detection_altitude = processed_telemetry.altitude;
+
+        if (logging_enabled) {
+            // TODO: Filesystem calls
+
+        }
     }
 }
