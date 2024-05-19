@@ -6,7 +6,6 @@
 #include "buzzer.h"
 #include "config.h"
 #include "data_storage.h"
-#include "testing.h"
 
 #include <launch_core/dev/dev_common.h>
 #include <math.h>

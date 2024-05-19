@@ -1,5 +1,4 @@
 #pragma once
-#include "flight.h"
 
 #include <stdint.h>
 #include <zephyr/kernel.h>
