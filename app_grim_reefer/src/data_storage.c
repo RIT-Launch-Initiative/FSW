@@ -50,9 +50,9 @@ static struct k_poll_event events[NUM_EVENTS] = {
     }
 
 void storage_thread_entry_point(void *, void *, void *) {
-    struct fast_data fast_dat;
-    struct slow_data slow_dat;
-    struct adc_data adc_dat;
+    struct fast_data fast_dat = {0};
+    struct slow_data slow_dat = {0};
+    struct adc_data adc_dat = {0};
     enum flight_event event;
     int ret;
 

@@ -71,62 +71,41 @@ const struct device *ina_grim_dev = DEVICE_DT_GET(INA_GRIM_NODE);
 
 static const struct adc_dt_spec adc_chan0 = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
-#define INIT_GPIO_FAIL      -1
-#define INIT_NOFLASH        -1
-#define INIT_MISSING_SENSOR -2
-#define INIT_OK             0
+/**
+ * Check if a gpio is ready or return a status code indicating that its not.
+ * gpio: gpio_dt_spec
+ * name: a string describing this pin. gpio_dt_spec only knows the name of its gpio controller device so make this a friendlier name
+*/
+#define CHECK_GPIO_OUTPUT(gpio, name)                                                                                  \
+    if (!gpio_is_ready_dt(&gpio)) {                                                                                    \
+        LOG_ERR("%s is not ready", name);                                                                              \
+        return -ENODEV;                                                                                                \
+    }                                                                                                                  \
+    if (gpio_pin_configure_dt(&gpio, GPIO_OUTPUT_ACTIVE) < 0) {                                                        \
+        LOG_ERR("Unable to configure %s output pin\n", name);                                                          \
+        return -ENODEV;                                                                                                \
+    }
 
+/**
+ * Check if a given device is ready. Returning -ENODEV if it's not
+*/
+#define CHECK_DEVICE_READY(dev)                                                                                        \
+    if (!device_is_ready(dev)) {                                                                                       \
+        LOG_ERR("Device %s is not ready.", dev->name);                                                                 \
+        return -ENODEV;                                                                                                \
+    }
+
+/**
+ * @brief Setup all the gpio pins needed for flight
+ * @return -ENODEV if a GPIO couldnt be setup. 0 otherwise
+ */
 static int gpio_init(void) {
     // Init LEDS
-    if (!gpio_is_ready_dt(&led1)) {
-        LOG_ERR("LED 1 is not ready\n");
-        return INIT_GPIO_FAIL;
-    }
-    if (gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE) < 0) {
-        LOG_ERR("Unable to configure LED 1 output pin\n");
-        return INIT_GPIO_FAIL;
-    }
-
-    if (!gpio_is_ready_dt(&led2)) {
-        LOG_ERR("LED 2 is not ready\n");
-        return INIT_GPIO_FAIL;
-    }
-    if (gpio_pin_configure_dt(&led2, GPIO_OUTPUT_ACTIVE) < 0) {
-        LOG_ERR("Unable to configure LED 2 output pin\n");
-        return INIT_GPIO_FAIL;
-    }
-    // Init Enable pins
-    if (!gpio_is_ready_dt(&ldo_enable)) {
-        LOG_ERR("ldo enable pin is not ready\n");
-        return INIT_GPIO_FAIL;
-    }
-    if (gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_ACTIVE) < 0) {
-        LOG_ERR("Unable to configure ldo enable output pin\n");
-        return INIT_GPIO_FAIL;
-    }
-
-    if (!gpio_is_ready_dt(&cam_enable)) {
-        LOG_ERR("camera enable pin is not ready\n");
-        return INIT_GPIO_FAIL;
-    }
-    if (gpio_pin_configure_dt(&cam_enable, GPIO_OUTPUT_ACTIVE) < 0) {
-        LOG_ERR("Unable to configure camera enable output pin\n");
-        return INIT_GPIO_FAIL;
-    }
-
-    if (!gpio_is_ready_dt(&buzzer)) {
-        LOG_ERR("buzzer pin is not ready\n");
-        return INIT_GPIO_FAIL;
-    }
-    if (gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_ACTIVE) < 0) {
-        LOG_ERR("Unable to configure buzzer output pin\n");
-        return INIT_GPIO_FAIL;
-    }
-
-    if (!device_is_ready(debug_serial_dev)) {
-        LOG_ERR("Debug serial not ready\n");
-        return INIT_GPIO_FAIL;
-    }
+    CHECK_GPIO_OUTPUT(led1, "led1");
+    CHECK_GPIO_OUTPUT(led2, "led2");
+    CHECK_GPIO_OUTPUT(ldo_enable, "ldo_enable");
+    CHECK_GPIO_OUTPUT(cam_enable, "cam_enable");
+    CHECK_GPIO_OUTPUT(buzzer, "buzzer");
 
     gpio_pin_set_dt(&led1, 0);
     gpio_pin_set_dt(&led2, 0);
@@ -134,44 +113,36 @@ static int gpio_init(void) {
     gpio_pin_set_dt(&cam_enable, 0);
     gpio_pin_set_dt(&buzzer, 0);
 
-    return INIT_OK;
+    return 0;
 }
-
+/**
+ * @brief Initialize flash and all sensors. Flash, bme280, adc, and inas
+ * @return -EIO if flash is not found. -ENODEV if any sensor isn't ready. 0 if all ok 
+ */
 static int sensor_init(void) {
     const bool flash_found = device_is_ready(flash_dev);
     if (!flash_found) {
-        return INIT_NOFLASH;
+        return -EIO;
     }
+    CHECK_DEVICE_READY(lsm6dsl_dev)
+    CHECK_DEVICE_READY(bme280_dev)
 
-    const bool lsm6dsl_found = device_is_ready(lsm6dsl_dev);
-    const bool bme280_found = device_is_ready(bme280_dev);
-    if (!lsm6dsl_found) {
-        LOG_ERR("Error setting up LSM6DSL");
-        return INIT_MISSING_SENSOR;
-    }
-    if (!bme280_found) {
-        LOG_ERR("Error setting up BME280");
-        return INIT_MISSING_SENSOR;
-    }
-    const bool ina_bat_found = device_is_ready(ina_bat_dev);
-    const bool ina_ldo_found = device_is_ready(ina_ldo_dev);
-    const bool ina_grim_found = device_is_ready(ina_grim_dev);
-
-    if (!ina_bat_found || !ina_ldo_found || !ina_grim_found) {
-        LOG_ERR("Error setting up INA260 devices");
-        return INIT_MISSING_SENSOR;
-    }
+    CHECK_DEVICE_READY(ina_bat_dev)
+    CHECK_DEVICE_READY(ina_ldo_dev)
+    CHECK_DEVICE_READY(ina_grim_dev)
 
     // ADC
     if (!adc_is_ready_dt(&adc_chan0)) {
         LOG_ERR("ADC controller device %s not ready\n", adc_chan0.dev->name);
-        return INIT_MISSING_SENSOR;
+        return -ENODEV;
     }
-    //
-    if (adc_channel_setup_dt(&adc_chan0) < 0) {
-        LOG_ERR("Could not setup ADC channel\n");
-        return INIT_MISSING_SENSOR;
+    int ret = adc_channel_setup_dt(&adc_chan0);
+    if (ret < 0) {
+        LOG_ERR("Could not setup ADC channel: %d\n", ret);
+        return -ENODEV;
     }
+
+    CHECK_DEVICE_READY(debug_serial_dev)
 
     return 0;
 }
@@ -183,18 +154,17 @@ int main(void) {
         buzzer_tell(buzzer_cond_missing_sensors);
     }
     int ret = sensor_init();
-    if (ret == INIT_NOFLASH) {
+    if (ret == -EIO) {
         LOG_ERR("Flash is not functional");
         buzzer_tell(buzzer_cond_noflash);
-    } else if (ret == INIT_MISSING_SENSOR) {
+    } else if (ret == -ENODEV) {
         LOG_ERR("Some sensors not functional");
         buzzer_tell(buzzer_cond_missing_sensors);
     }
 
     begin_buzzer_thread(&buzzer);
 
-    k_tid_t storage_tid = spawn_data_storage_thread();
-    (void) storage_tid;
+    (void) spawn_data_storage_thread();
 
     // Make sure storage is setup
     if (k_event_wait(&storage_setup_finished, 0xFFFFFFFF, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
