@@ -11,34 +11,49 @@
 
 #define TELEMETRY_STACK_SIZE 512
 
-static void sensor_read_task(void *);
-K_THREAD_DEFINE(sensor_read_thread, TELEMETRY_STACK_SIZE, sensor_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+// Threads
+static void sensor_read_task(void*);
+K_THREAD_DEFINE(sensor_read_thread, TELEMETRY_STACK_SIZE, sensor_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
+                1000);
 
+// Timers
 K_TIMER_DEFINE(lps22_timer, NULL, NULL);
 
-static convert_raw_telemetry(potato_raw_telemetry_t &raw_telem, potato_telemetry_t &telem) {
-    telem.timestamp = raw_telem.timestamp;
-    telem.altitude = l_altitude_conversion(raw_telem.lps22_data.pressure, raw_telem.lps22_data.temperature);
+// Queues
+K_MSGQ_DEFINE(raw_telem_log_queue, sizeof(potato_raw_telemetry_t), 500, 1);
+
+// External Variables
+extern bool logging_enabled;
+
+static void convert_raw_telemetry(potato_raw_telemetry_t* raw_telem, potato_telemetry_t* telem) {
+    telem->timestamp = raw_telem->timestamp;
+    telem->altitude = l_altitude_conversion(raw_telem->lps22_data.pressure, raw_telem->lps22_data.temperature);
 
     // TODO: Update
-    telem.load = raw_telem.load;
+    telem->load = raw_telem->load;
 }
 
-static void sensor_read_task(void *) {
-    const struct device *lps22 = device_get_binding(DEVICE_DT_GET_ONE(st_lps22hhtr));
+static void sensor_read_task(void*) {
+    // const struct device* lps22 = device_get_binding(DEVICE_DT_GET_ONE(st_lps22hhtr));
+    const struct device* lps22 = NULL; // TODO: Fill DTS
     potato_raw_telemetry_t raw_telemetry = {0};
-    potato_telemetry_t processed_telemetry = {0};
 
     k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
 
     while (1) {
-        k_timer_status_sync(&lps22);
+        k_timer_status_sync(&lps22_timer);
 
         sensor_sample_fetch(lps22);
         // TODO: Get ADC data
         raw_telemetry.timestamp = k_uptime_get_32();
         l_get_barometer_data_float(lps22, &raw_telemetry.lps22_data);
 
-        convert_raw_telemetry(raw_telemetry, processed_telemetry);
+        // Buffer up data for logging before boost. If no space, throw out the oldest entry.
+        if (!logging_enabled && k_msgq_num_free_get(&raw_telem_log_queue) == 0) {
+            potato_raw_telemetry_t throwaway_data;
+            k_msgq_get(&raw_telem_log_queue, &throwaway_data, K_NO_WAIT);
+        }
+
+        k_msgq_put(&raw_telem_log_queue, &raw_telem_log_queue, K_NO_WAIT);
     }
 }
