@@ -31,7 +31,7 @@ K_TIMER_DEFINE(lps22_timer, NULL, NULL);
 K_MSGQ_DEFINE(raw_telem_processing_queue, sizeof(potato_raw_telemetry_t), 16, 1);
 
 // Global Variables
-float boost_detection_altitude = 0.0f;
+float boost_detection_altitude = -0xFFFF;
 
 // External Variables
 extern struct k_msgq logging_queue;

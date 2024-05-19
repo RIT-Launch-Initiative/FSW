@@ -59,13 +59,13 @@ static void update_state_transition_timer(uint32_t duration_seconds) {
 
 static void pad_state_entry(void*) {
     LOG_INF("Entering pad state");
+    start_boost_detect();
 }
 
 static void pad_state_run(void*) {
     while (true) {
         bool received_boost_notif = (L_BOOST_DETECTED == get_event_from_serial());
 
-        // If GNSS altitude changes, notify everyone and go to flight state
         if (boost_detected || received_boost_notif) {
             smf_set_state(SMF_CTX(&state_obj), &states[BOOST_STATE]);
             return;
@@ -77,10 +77,12 @@ static void boost_state_entry(void*) {
     LOG_INF("Entering boost state");
     // TODO: Should get rid of magic numbers. Maybe create a directory of flight configurations with constants?
     update_state_transition_timer(3);
+    stop_boost_detect();
 }
 
 static void boost_state_run(void*) {
     while (!state_transition) k_msleep(10);
+    smf_set_state(SMF_CTX(&state_obj), &states[COAST_STATE]);
 }
 
 static void coast_state_entry(void*) {
@@ -91,6 +93,7 @@ static void coast_state_entry(void*) {
 
 static void coast_state_run(void*) {
     while (!state_transition) k_sleep(K_MSEC(10));
+    smf_set_state(SMF_CTX(&state_obj), &states[APOGEE_STATE]);
 }
 
 static void apogee_state_entry(void*) {
@@ -102,6 +105,7 @@ static void apogee_state_entry(void*) {
 
 static void apogee_state_run(void*) {
     while (!state_transition) k_msleep(10);
+    smf_set_state(SMF_CTX(&state_obj), &states[MAIN_STATE]);
 }
 
 static void main_state_entry(void*) {
@@ -112,14 +116,18 @@ static void main_state_entry(void*) {
 
 static void main_state_run(void*) {
     while (!state_transition) k_msleep(10);
+    smf_set_state(SMF_CTX(&state_obj), &states[LANDING_STATE]);
 }
 
 static void landing_state_entry(void*) {
     LOG_INF("Entering landing state");
-
 }
 
 static void landing_state_run(void*) {
+    // Sleep for an extra minute and ensure we get all our data!
+    k_sleep(K_SECONDS(60));
+    logging_enabled = false;
+
     k_sleep(K_FOREVER);
 }
 
