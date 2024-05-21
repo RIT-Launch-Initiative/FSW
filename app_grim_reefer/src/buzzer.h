@@ -18,4 +18,8 @@ enum buzzer_cond {
  * already being beeped out 
  */
 void buzzer_tell(enum buzzer_cond cond);
+/**
+ * @brief Begin the buzzer thread after gpio's have been setup
+ * @param buzzer_pin the gpio pin that goes to the buzzer transistor
+*/
 void begin_buzzer_thread(const struct gpio_dt_spec *buzzer_pin);

@@ -50,6 +50,11 @@ static struct k_poll_event events[NUM_EVENTS] = {
     }
 
 void storage_thread_entry_point(void *, void *, void *) {
+    while (true){
+        
+    }
+
+
     struct fast_data fast_dat = {0};
     struct slow_data slow_dat = {0};
     struct adc_data adc_dat = {0};
@@ -62,7 +67,7 @@ void storage_thread_entry_point(void *, void *, void *) {
 
     k_event_post(&storage_setup_finished, STORAGE_SETUP_SUCCESS_EVENT);
 
-    for (;;) {
+    while (true) {
         k_poll(events, NUM_EVENTS, K_FOREVER);
 
         // Slow data
@@ -82,15 +87,15 @@ void storage_thread_entry_point(void *, void *, void *) {
     LOG_INF("Flight over. Saving files...");
     ret = fs_close(&fast_file);
     if (ret < 0) {
-        LOG_ERR("Failed to fast file. Uh oh");
+        LOG_ERR("Failed to save fast file. %d", ret);
     }
     ret = fs_close(&slow_file);
     if (ret < 0) {
-        LOG_ERR("Failed to slow file. Uh oh");
+        LOG_ERR("Failed to save slow file. %d", ret);
     }
     ret = fs_close(&adc_file);
     if (ret < 0) {
-        LOG_ERR("Failed to adc file. Uh oh");
+        LOG_ERR("Failed to save adc file. %d", ret);
     }
 
     LOG_INF("Saved Files");
