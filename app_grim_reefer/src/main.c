@@ -135,6 +135,8 @@ static int sensor_init(void) {
     return 0;
 }
 
+#define EVENT_FILTER_ALL 0xFFFFFFFF
+
 int main(void) {
 
     if (gpio_init() != 0) {
@@ -155,7 +157,7 @@ int main(void) {
     (void) spawn_data_storage_thread();
 
     // Make sure storage is setup
-    if (k_event_wait(&storage_setup_finished, 0xFFFFFFFF, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
+    if (k_event_wait(&storage_setup_finished, EVENT_FILTER_ALL, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
         LOG_ERR("Failed to initialize file sysbegin_buzzer_threadtem. FATAL ERROR\n");
         buzzer_tell(buzzer_cond_noflash);
         // VERY VERY BAD
