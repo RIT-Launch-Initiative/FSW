@@ -1,3 +1,6 @@
+#ifndef REEFER_INLCUDE_BUZZER_H
+#define REEFER_INLCUDE_BUZZER_H
+
 #include <zephyr/drivers/gpio.h>
 
 // Closer to zero get precedence
@@ -23,3 +26,5 @@ void buzzer_tell(enum buzzer_cond cond);
  * @param buzzer_pin the gpio pin that goes to the buzzer transistor
 */
 void begin_buzzer_thread(const struct gpio_dt_spec *buzzer_pin);
+
+#endif

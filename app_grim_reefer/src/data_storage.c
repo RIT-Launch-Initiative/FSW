@@ -50,11 +50,6 @@ static struct k_poll_event events[NUM_EVENTS] = {
     }
 
 void storage_thread_entry_point(void *, void *, void *) {
-    while (true){
-        
-    }
-
-
     struct fast_data fast_dat = {0};
     struct slow_data slow_dat = {0};
     struct adc_data adc_dat = {0};

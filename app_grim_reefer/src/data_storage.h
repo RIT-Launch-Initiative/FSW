@@ -1,4 +1,5 @@
-#pragma once
+#ifndef REEFER_INLCUDE_DATA_STORAGE_H
+#define REEFER_INLCUDE_DATA_STORAGE_H
 
 #include <stdint.h>
 #include <zephyr/kernel.h>
@@ -47,3 +48,5 @@ extern struct k_msgq flight_events_queue;
 extern struct k_event storage_setup_finished;
 
 k_tid_t spawn_data_storage_thread();
+
+#endif
