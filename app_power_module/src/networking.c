@@ -68,16 +68,16 @@ void telemetry_broadcast_task(void) {
     while (true) {
         if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led2);
-            l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
-                                 POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
+            // l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(power_module_telemetry_t),
+                                 // POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
         }
 
         // TODO: LED doesn't seem to be blinking. Debug shows this gets skipped, but get function seems successful
         if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led3);
 #ifdef CONFIG_DEBUG
-            l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),
-                                 POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
+            // l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),
+                                 // POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
 #endif
         }
     }
