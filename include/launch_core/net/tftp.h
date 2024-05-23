@@ -8,7 +8,7 @@
 /* chmod +666 on created files                       */
 /****                   END                      ****/
 
-#ifndef  L_TFTP_H
+#ifndef L_TFTP_H
 #define L_TFTP_H
 
 #include <zephyr/net/tftp.h>
@@ -29,6 +29,6 @@ int l_tftp_init(struct tftpc *client, const char *server_host_name);
 * @param buffer - Buffer of data to send over TFTP
 * @param buffer_size - Size of the buffer
 */
-int l_tftp_put(struct tftpc *const client, const char *const filename, const uint8_t* buff, const size_t buff_size);
+int l_tftp_put(struct tftpc *const client, const char *const filename, const uint8_t *buff, const size_t buff_size);
 
 #endif //L_TFTP_H

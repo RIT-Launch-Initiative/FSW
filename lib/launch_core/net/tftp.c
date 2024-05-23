@@ -1,5 +1,4 @@
 #include <launch_core/net/tftp.h>
-
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(l_tftp);
@@ -29,8 +28,8 @@ int l_tftp_init(struct tftpc *client, const char *server_host_name) {
     return 0;
 }
 
-int l_tftp_put(struct tftpc *const client, const char *const filename, const uint8_t* buff, const size_t buff_size) {
-    static const char* mode = "octet";
+int l_tftp_put(struct tftpc *const client, const char *const filename, const uint8_t *buff, const size_t buff_size) {
+    static const char *mode = "octet";
 
     int ret = tftp_put(client, filename, mode, buff, buff_size);
     if (ret < 0) {
@@ -41,4 +40,3 @@ int l_tftp_put(struct tftpc *const client, const char *const filename, const uin
 }
 
 // TODO: Maybe another function that takes a l_fs_file_t? Forces a dependency between net and os libs though
-
