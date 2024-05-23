@@ -12,12 +12,12 @@ static int sock = -1;
 int l_init_event_monitor(const char *ip) {
     sock = l_init_udp_socket(ip, LAUNCH_EVENT_NOTIFICATION_PORT);
     if (sock < 0) {
-        sock = -1;
+        return sock;
     }
 
     int ret = l_set_socket_rx_timeout(sock, 1);
-    if (ret == -1) {
-        return -1;
+    if (ret < 0) {
+        return ret;
     }
 
     return sock;
