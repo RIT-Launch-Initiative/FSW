@@ -1,3 +1,13 @@
+/****                   README                      ****/
+/* Requires a TFTP server to be setup on host machine */
+/* For Linux, you can use tftpd-hpa                   */
+/* Can set wherever you want files to be stored       */
+/* Default is /tftpboot or /var/lib/tftpboot          */
+/* Due to Zephyr limits, files must be created first */
+/* Make sure permissions are set up                  */
+/* chmod +666 on created files                       */
+/****                   END                      ****/
+
 #ifndef  L_TFTP_H
 #define L_TFTP_H
 
