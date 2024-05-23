@@ -29,15 +29,16 @@ int l_tftp_init(struct tftpc *client, const char *server_host_name) {
     return 0;
 }
 
-int l_tftp_put(struct tftpc *const client, const char *const filename) {
+int l_tftp_put(struct tftpc *const client, const char *const filename, const uint8_t* buff, const size_t buff_size) {
     static const char* mode = "octet";
-    static const uint8_t* test_data = "Hello, World!";
 
-    int ret = tftp_put(client, filename, mode, test_data, 13);
+    int ret = tftp_put(client, filename, mode, buff, buff_size);
     if (ret < 0) {
         LOG_ERR("Failed to put file through TFTP");
     }
 
     return ret;
 }
+
+// TODO: Maybe another function that takes a l_fs_file_t? Forces a dependency between net and os libs though
 

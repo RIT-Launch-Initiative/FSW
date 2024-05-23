@@ -17,11 +17,5 @@ int main(void) {
     struct tftpc client;
     k_msleep(5000);
 
-    l_fs_boot_count_check();
-
-    l_tftp_init(&client, "10.0.0.0");
-    l_tftp_put(&client, "test.txt");
-
-
     return 0;
 }
