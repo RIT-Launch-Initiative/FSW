@@ -74,7 +74,7 @@ void storage_thread_entry_point(void *, void *, void *) {
 
         if (events[3].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
             k_msgq_get(events[3].msgq, &event, K_NO_WAIT);
-            if (event == flight_event_main_shutoff) {
+            if (event == flight_event_shutoff) {
                 break;
             }
         }

@@ -7,6 +7,7 @@
 #include "buzzer.h"
 #include "config.h"
 #include "data_storage.h"
+#include "flight.h"
 
 #include <math.h>
 #include <zephyr/device.h>
@@ -16,6 +17,7 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/smf.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL);
 
@@ -134,6 +136,36 @@ static int sensor_init(void) {
 
     return 0;
 }
+enum flight_state { PAD_STATE, FLIGHT_STATE, LANDED_STATE };
+const struct smf_state flight_states[];
+struct {
+    struct smf_ctx ctx;
+    /* All User Defined Data Follows */
+} s_obj;
+
+static void pad_state_entry(void *o) {}
+static void flight_state_entry(void *o) {}
+static void landed_state_entry(void *o) {
+    // Stop logging, start telling
+    enum flight_event event = flight_event_shutoff;
+    k_msgq_put(&flight_events_queue, &event, K_FOREVER);
+    buzzer_tell(buzzer_cond_landed);
+}
+
+static void pad_state_run(void *o) { smf_set_state(SMF_CTX(&s_obj), &flight_states[FLIGHT_STATE]); }
+static void flight_state_run(void *o) { smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]); }
+static void landed_state_run(void *o) {
+    // smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
+}
+
+static void pad_state_exit(void *o) {}
+static void flight_state_exit(void *o) {}
+static void landed_state_exit(void *o) {}
+
+const struct smf_state flight_states[] = {
+    [PAD_STATE] = SMF_CREATE_STATE(pad_state_entry, pad_state_run, pad_state_exit),
+    [FLIGHT_STATE] = SMF_CREATE_STATE(flight_state_entry, flight_state_run, flight_state_exit),
+    [LANDED_STATE] = SMF_CREATE_STATE(landed_state_entry, landed_state_run, landed_state_exit)};
 
 #define EVENT_FILTER_ALL 0xFFFFFFFF
 
@@ -163,9 +195,16 @@ int main(void) {
         // VERY VERY BAD
     }
 
-    LOG_DBG("Starting launch detection");
-
-    LOG_INF("Landed!");
-    buzzer_tell(buzzer_cond_landed);
+    smf_set_initial(SMF_CTX(&s_obj), &flight_states[PAD_STATE]);
+    while (1) {
+        /* State machine terminates if a non-zero value is returned */
+        int ret = smf_run_state(SMF_CTX(&s_obj));
+        if (ret) {
+            /* handle return code and terminate state machine */
+            LOG_INF("smg run error: %d", ret);
+            break;
+        }
+        k_msleep(1);
+    }
     return 0;
 }
