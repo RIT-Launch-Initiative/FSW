@@ -13,10 +13,6 @@ K_THREAD_DEFINE(serial_rx_thread, SERIAL_TASK_STACK_SIZE, receive_serial, NULL, 
 // Global Variables
 static uint8_t event_byte = 0;
 
-static bool init_serial() {
-
-    return true;
-}
 
 uint8_t get_event_from_serial() {
     uint8_t ret = 0;
@@ -30,9 +26,7 @@ uint8_t get_event_from_serial() {
 }
 
 static void receive_serial(void) {
-    if (!init_serial()) {
-        return;
-    }
+    // TODO: Initialize RS485 here
 
     while (true) {
         // TODO: Read from serial and set event_byte

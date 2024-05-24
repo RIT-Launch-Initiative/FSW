@@ -41,7 +41,7 @@ static void convert_raw_telemetry(potato_raw_telemetry_t* raw_telem, potato_tele
     telem->timestamp = raw_telem->timestamp;
     telem->altitude = l_altitude_conversion(raw_telem->lps22_data.pressure, raw_telem->lps22_data.temperature);
 
-    // TODO: Update
+    // TODO: Update to convert raw value to digital
     telem->load = raw_telem->load;
 }
 

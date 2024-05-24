@@ -49,7 +49,7 @@ struct s_object {
     struct smf_ctx ctx;
 } state_obj;
 
-static void signal_state_transition() { state_transition = true; }
+static inline void signal_state_transition() { state_transition = true; }
 K_TIMER_DEFINE(state_transition_timer, signal_state_transition, NULL);
 
 static void update_state_transition_timer(uint32_t duration_seconds) {
@@ -81,7 +81,9 @@ static void boost_state_entry(void*) {
 }
 
 static void boost_state_run(void*) {
-    while (!state_transition) k_msleep(10);
+    while (!state_transition) {
+        k_msleep(10);
+    }
     smf_set_state(SMF_CTX(&state_obj), &states[COAST_STATE]);
 }
 
@@ -92,7 +94,9 @@ static void coast_state_entry(void*) {
 }
 
 static void coast_state_run(void*) {
-    while (!state_transition) k_sleep(K_MSEC(10));
+    while (!state_transition) {
+        k_sleep(K_MSEC(10));
+    }
     smf_set_state(SMF_CTX(&state_obj), &states[APOGEE_STATE]);
 }
 
@@ -104,18 +108,23 @@ static void apogee_state_entry(void*) {
 }
 
 static void apogee_state_run(void*) {
-    while (!state_transition) k_msleep(10);
+    while (!state_transition) {
+        k_msleep(10);
+    }
     smf_set_state(SMF_CTX(&state_obj), &states[MAIN_STATE]);
 }
 
 static void main_state_entry(void*) {
     LOG_INF("Entering main chute state");
-    configure_telemetry_rate(21); // TODO
+    configure_telemetry_rate(21); // TODO: Update with proper telemetry rates
     update_state_transition_timer(46);
 }
 
 static void main_state_run(void*) {
-    while (!state_transition) k_msleep(10);
+    while (!state_transition) {
+        k_msleep(10);
+    }
+
     smf_set_state(SMF_CTX(&state_obj), &states[LANDING_STATE]);
 }
 
