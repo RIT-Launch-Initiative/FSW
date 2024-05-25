@@ -67,13 +67,11 @@ int32_t l_fs_close(l_fs_file_t *p_file);
  * @brief Seek to the appropriate (l_fs_file_t *p_filebased on the logging mode) point and write
  * the buffer
  *
- * @param src 	buffer to write (l_fs_file_t *p_fileassumed fixed-width, with the initialized width)
- *
- * @retval = 0 			success
- * @retval = -ENOTINIT 	logger was never initialized
- * @retval < 0			other errno from fs functions
+ * @param[in] p_file 	pointer to file handle
+ * @param[in] src 	buffer to write (l_fs_file_t *p_fileassumed fixed-width, with the initialized width)
+ * @param[out] err_flag 	Pointer to error flag
  */
-size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src);
+size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src, int32_t *err_flag);
 
 /**
  * @brief Read a frame from the device

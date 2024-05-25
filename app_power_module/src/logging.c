@@ -44,7 +44,7 @@ static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     static l_fs_file_t ina_file = {
         .fname = ina_file_name,
         .width = sizeof(power_module_telemetry_t),
-        .mode = FS_O_RDWR,
+        .mode = SLOG_ONCE,
         .size = sizeof(power_module_telemetry_t) * 10,
         .initialized = false,
         .file = {0},
@@ -56,7 +56,7 @@ static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     static l_fs_file_t adc_file = {
         .fname = adc_file_name,
         .width = sizeof(float),
-        .mode = FS_O_RDWR,
+        .mode = SLOG_ONCE,
         .size = sizeof(float) * 10,
         .initialized = false,
         .file = {0},
@@ -93,10 +93,10 @@ static void logging_task(void) {
 
     init_logging(&ina_file, &adc_file);
 
-    while (true) {
-        bool ina_out_of_space = false;
-        bool adc_out_of_space = false;
+    bool ina_out_of_space = false;
+    bool adc_out_of_space = false;
 
+    while (true) {
         if (!logging_enabled) {
             continue;
         }
@@ -106,14 +106,20 @@ static void logging_task(void) {
             LOG_INF("Logged INA219 data");
             gpio_pin_toggle_dt(&led1);
 
-            ina_out_of_space = l_fs_write(ina_file, (const uint8_t *) &sensor_telemetry) == -ENOSPC;
+            int32_t err_flag = 0;
+            l_fs_write(ina_file, (const uint8_t *) &sensor_telemetry, &err_flag);
+            ina_out_of_space = err_flag == -ENOSPC;
+            LOG_INF("%d", err_flag);
         }
 
         if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(3)) && (adc_file != NULL) && (!adc_out_of_space)) {
             LOG_INF("Logged ADC data");
             gpio_pin_toggle_dt(&led3);
 
-            adc_out_of_space = l_fs_write(adc_file, (const uint8_t *) &vin_adc_data_v) == -ENOSPC;
+            int32_t err_flag = 0;
+            l_fs_write(adc_file, (const uint8_t *) &vin_adc_data_v, &err_flag);
+            adc_out_of_space = err_flag == -ENOSPC;
+            LOG_INF("%d", err_flag);
         }
 
         if (ina_out_of_space && adc_out_of_space) {
