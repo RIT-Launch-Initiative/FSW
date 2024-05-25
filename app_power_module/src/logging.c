@@ -8,7 +8,7 @@
 #include <zephyr/logging/log.h>
 
 #define LOGGING_STACK_SIZE 2048
-#define MAX_DIR_NAME_LEN   11
+#define MAX_DIR_NAME_LEN   10 // 4 number boot count + 5 for "/lfs/" + 1 for end slash
 #define MAX_FILE_NAME_LEN  3
 
 LOG_MODULE_REGISTER(logging);
@@ -27,8 +27,9 @@ static void init_logging(l_fs_file_t *p_ina_file, l_fs_file_t *p_adc_file) {
 
     // Create directory with boot count
     char dir_name[MAX_DIR_NAME_LEN] = "";
-    snprintf(dir_name, sizeof(dir_name), "%d", boot_count);
+    snprintf(dir_name, sizeof(dir_name), "/lfs/%d", boot_count);
     LOG_INF("Logging files to %s", dir_name);
+    fs_mkdir(dir_name);
 
     // Create filenames
     static char ina_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
@@ -88,7 +89,7 @@ static void logging_task(void) {
     power_module_telemetry_t sensor_telemetry;
     float vin_adc_data_v;
 
-    init_logging(&ina_file, &adc_file);
+    init_logging(ina_file, adc_file);
 
     while (true) {
         if (!logging_enabled) {

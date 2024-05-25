@@ -123,6 +123,18 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file);
  */
 int32_t l_fs_boot_count_check();
 
+/**
+ * Format a partition
+ * @param partition_id ID of the partition to format
+ * @return Zephyr status code
+ */
 int32_t l_fs_format(uintptr_t partition_id);
+
+/**
+ * Create a directory
+ * @param dir_name Directory name
+ * @return Zephyr status code
+ */
+int32_t l_fs_mkdir(const char *dir_name);
 
 #endif
