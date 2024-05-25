@@ -196,8 +196,8 @@ static void logging_task(void) {
         if (ina_out_of_space && adc_out_of_space) {
             LOG_ERR("Out of space on both INA219 and ADC files. Stopping logging.");
             logging_enabled = false;
-            l_fs_close(&ina_file);
-            l_fs_close(&adc_file);
+            l_fs_close(ina_file);
+            l_fs_close(adc_file);
             // Return out of this task?
         }
     }
