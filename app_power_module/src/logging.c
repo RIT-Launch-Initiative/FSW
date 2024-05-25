@@ -22,7 +22,7 @@ K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL,
 K_MSGQ_DEFINE(ina_logging_msgq, sizeof(power_module_telemetry_t), 50, 4);
 K_MSGQ_DEFINE(adc_logging_msgq, sizeof(float), 200, 4);
 
-static void init_logging(l_fs_file_t *p_ina_file, l_fs_file_t *p_adc_file) {
+static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     uint32_t boot_count = l_fs_boot_count_check();
 
     // Create directory with boot count
@@ -69,11 +69,13 @@ static void init_logging(l_fs_file_t *p_ina_file, l_fs_file_t *p_adc_file) {
 
     // Initialize files
     if (l_fs_init(&ina_file) == 0) {
-        p_ina_file = &ina_file;
+        LOG_INF("Successfully created file for storing INA219 data.");
+        *p_ina_file = &ina_file;
     }
 
     if (l_fs_init(&adc_file) == 0) {
-        p_adc_file = &adc_file;
+        LOG_INF("Successfully created file for storing ADC data.");
+        *p_adc_file = &adc_file;
     }
 }
 
@@ -89,19 +91,19 @@ static void logging_task(void) {
     power_module_telemetry_t sensor_telemetry;
     float vin_adc_data_v;
 
-    init_logging(ina_file, adc_file);
+    init_logging(&ina_file, &adc_file);
 
     while (true) {
         if (!logging_enabled) {
             continue;
         }
 
-        if (!k_msgq_get(&ina_logging_msgq, &sensor_telemetry, K_MSEC(10))) {
+        if (!k_msgq_get(&ina_logging_msgq, &sensor_telemetry, K_MSEC(10)) && (ina_file != NULL)) {
             LOG_INF("Logged INA219 data");
             gpio_pin_toggle_dt(&led1);
         }
 
-        if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(3))) {
+        if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(3)) && (adc_file != NULL)) {
             LOG_INF("Logged ADC data");
             gpio_pin_toggle_dt(&led3);
         }
