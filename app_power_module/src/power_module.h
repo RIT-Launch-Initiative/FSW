@@ -3,6 +3,7 @@
 
 #include <launch_core/backplane_defs.h>
 #include <launch_core/net/net_common.h>
+#include <stddef.h>
 
 #define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 
@@ -30,5 +31,9 @@ void adc_task(void);
  * Task for broadcasting data from a queue over UDP
  */
 void telemetry_broadcast_task(void);
+
+#ifdef CONFIG_DEBUG
+void tftp_send_last_logs(const char* fname, uint8_t *buff, size_t buff_size);
+#endif
 
 #endif //POWER_MODULE_H

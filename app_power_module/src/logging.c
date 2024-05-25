@@ -1,3 +1,6 @@
+// Self Include
+#include "power_module.h"
+
 // Launch Includes
 #include <launch_core/os/fs.h>
 #include <launch_core/types.h>
@@ -11,6 +14,9 @@
 #define MAX_DIR_NAME_LEN   10 // 4 number boot count + 5 for "/lfs/" + 1 for end slash
 #define MAX_FILE_NAME_LEN  3
 
+#define INA_SAMPLE_COUNT 10
+#define ADC_SAMPLE_COUNT 10
+
 LOG_MODULE_REGISTER(logging);
 
 static void logging_task(void);
@@ -21,6 +27,34 @@ K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL,
 // Easier for now since we also need to buffer data before launch
 K_MSGQ_DEFINE(ina_logging_msgq, sizeof(power_module_telemetry_t), 50, 4);
 K_MSGQ_DEFINE(adc_logging_msgq, sizeof(float), 200, 4);
+
+#ifdef CONFIG_DEBUG
+static void send_last_log(uint32_t current_boot_count) {
+    // Open /lfs/current_boot_count-1 directory
+    char dir_name[MAX_DIR_NAME_LEN] = "";
+    snprintf(dir_name, sizeof(dir_name), "/lfs/%d", current_boot_count - 1);
+
+    // Setup output file names
+    char output_dir_name[MAX_DIR_NAME_LEN] = "";
+    snprintf(dir_name, sizeof(dir_name), "power_module/%d", current_boot_count - 1);
+
+    char ina_output_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
+    snprintf(ina_output_file_name, sizeof(ina_output_file_name), "%s/ina", dir_name);
+
+    char adc_output_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
+    snprintf(adc_output_file_name, sizeof(adc_output_file_name), "%s/adc", dir_name);
+
+    // Read INA into buffer
+    char ina_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
+    snprintf(ina_file_name, sizeof(ina_file_name), "%s/ina", dir_name);
+
+
+    // Read ADC into buffer
+
+
+
+}
+#endif
 
 static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     uint32_t boot_count = l_fs_boot_count_check();

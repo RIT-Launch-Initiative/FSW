@@ -9,6 +9,7 @@
 #include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/net/net_common.h>
+#include <launch_core/net/tftp.h>
 #include <launch_core/net/udp.h>
 #include <launch_core/types.h>
 #include <zephyr/drivers/gpio.h>
@@ -30,6 +31,17 @@ static int udp_socket_ports[] = {POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_
 static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_sockets = NUM_SOCKETS};
 
 LOG_MODULE_REGISTER(networking);
+
+#ifdef CONFIG_DEBUG
+#include <launch_core/net/tftp.h>
+void tftp_send_last_logs(const char* fname, uint8_t *buff, size_t buff_size) {
+    struct tftpc client = {};
+
+    if (l_tftp_init(&client, "10.0.0.0") == 0) {
+        l_tftp_put(&client, fname, buff, buff_size);
+    }
+}
+#endif
 
 void init_networking() {
     const struct device *wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
