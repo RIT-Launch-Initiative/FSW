@@ -45,7 +45,7 @@ static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
         .fname = ina_file_name,
         .width = sizeof(power_module_telemetry_t),
         .mode = FS_O_RDWR,
-        .size = sizeof(power_module_telemetry_t) * ina_samples,
+        .size = sizeof(power_module_telemetry_t) * 10,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -57,7 +57,7 @@ static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
         .fname = adc_file_name,
         .width = sizeof(float),
         .mode = FS_O_RDWR,
-        .size = sizeof(float) * adc_samples,
+        .size = sizeof(float) * 10,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -94,18 +94,32 @@ static void logging_task(void) {
     init_logging(&ina_file, &adc_file);
 
     while (true) {
+        bool ina_out_of_space = false;
+        bool adc_out_of_space = false;
+
         if (!logging_enabled) {
             continue;
         }
 
-        if (!k_msgq_get(&ina_logging_msgq, &sensor_telemetry, K_MSEC(10)) && (ina_file != NULL)) {
+        if (!k_msgq_get(&ina_logging_msgq, &sensor_telemetry, K_MSEC(10)) && (ina_file != NULL) &&
+            (!ina_out_of_space)) {
             LOG_INF("Logged INA219 data");
             gpio_pin_toggle_dt(&led1);
+
+            ina_out_of_space = l_fs_write(ina_file, (const uint8_t *) &sensor_telemetry) == -ENOSPC;
         }
 
-        if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(3)) && (adc_file != NULL)) {
+        if (!k_msgq_get(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(3)) && (adc_file != NULL) && (!adc_out_of_space)) {
             LOG_INF("Logged ADC data");
             gpio_pin_toggle_dt(&led3);
+
+            adc_out_of_space = l_fs_write(adc_file, (const uint8_t *) &vin_adc_data_v) == -ENOSPC;
+        }
+
+        if (ina_out_of_space && adc_out_of_space) {
+            LOG_ERR("Out of space on both INA219 and ADC files. Stopping logging.");
+            logging_enabled = false;
+            // Return out of this task?
         }
     }
 }
