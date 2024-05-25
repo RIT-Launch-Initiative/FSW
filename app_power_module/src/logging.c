@@ -72,17 +72,21 @@ static void send_last_log(const uint32_t boot_count_to_get) {
         .wpos = 0,
     };
 
+    l_fs_init(&ina_file);
+    l_fs_init(&adc_file);
+
+
     // Simplest to just call directly and assume sample count
     power_module_telemetry_t ina_data[INA_SAMPLE_COUNT] = {0};
     if (fs_read(&ina_file.file, &ina_data, INA_SAMPLE_COUNT)) {
-        tftp_send_last_logs(ina_output_file_name, (uint8_t *) &ina_data, sizeof(ina_data));
+        tftp_send_last_logs(ina_output_file_name, (uint8_t *) &ina_data, sizeof(ina_data) * INA_SAMPLE_COUNT);
     } else {
         LOG_ERR("Failed to read INA data from file.");
     }
 
-    power_module_telemetry_t adc_data[INA_SAMPLE_COUNT] = {0};
+    float adc_data[ADC_SAMPLE_COUNT] = {0};
     if (fs_read(&adc_file.file, &adc_data, ADC_SAMPLE_COUNT)) {
-        tftp_send_last_logs(adc_output_file_name, (uint8_t *) &adc_data, sizeof(adc_data));
+        tftp_send_last_logs(adc_output_file_name, (uint8_t *) &adc_data, sizeof(adc_data) * ADC_SAMPLE_COUNT);
     } else {
         LOG_ERR("Failed to read ADC data from file.");
     }
@@ -91,7 +95,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
 
 static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     uint32_t boot_count = l_fs_boot_count_check();
-    send_last_log(63); // TODO: Update to be last bootcount. Using 63 for testing
+    send_last_log(87); // TODO: Update to be last bootcount. Using 63 for testing
     // Create directory with boot count
     char dir_name[MAX_DIR_NAME_LEN] = "";
     snprintf(dir_name, sizeof(dir_name), "/lfs/%d", boot_count);
@@ -192,6 +196,8 @@ static void logging_task(void) {
         if (ina_out_of_space && adc_out_of_space) {
             LOG_ERR("Out of space on both INA219 and ADC files. Stopping logging.");
             logging_enabled = false;
+            l_fs_close(&ina_file);
+            l_fs_close(&adc_file);
             // Return out of this task?
         }
     }
