@@ -143,6 +143,13 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
 }
 
 int32_t l_fs_boot_count_check() {
+    static bool boot_count_checked = false;
+    if (boot_count_checked) {
+        LOG_WRN("Boot count already checked");
+        return -EALREADY;
+    }
+    boot_count_checked = true;
+
     static const char *boot_count_fname = "/lfs/.boot_count";
     struct fs_file_t boot_count_file = {0};
     fs_mode_t flags = FS_O_RDWR;

@@ -20,15 +20,15 @@
         .wpos = 0 \
     }
 
-enum l_fs_log_mode {
+typedef enum {
     SLOG_ONCE,
     SLOG_CIRC
-};
+} l_fs_log_mode_t;
 
 typedef struct {
     const char *fname;
     const off_t width;
-    const enum l_fs_log_mode mode;
+    const l_fs_log_mode_t mode;
 
     const size_t size;
     bool initialized;

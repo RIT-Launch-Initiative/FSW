@@ -67,7 +67,6 @@ static void init() {
     smf_set_initial(SMF_CTX(&state_obj), &states[GROUND_STATE]);
     l_init_event_monitor(POWER_MODULE_IP_ADDR);
 
-    l_fs_boot_count_check();
 }
 
 int main(void) {
