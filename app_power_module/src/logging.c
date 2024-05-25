@@ -10,7 +10,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#define LOGGING_STACK_SIZE 2048
+#define LOGGING_STACK_SIZE 4096
 #define MAX_DIR_NAME_LEN   10 // 4 number boot count + 5 for "/lfs/" + 1 for end slash
 #define MAX_FILE_NAME_LEN  3
 
@@ -29,36 +29,69 @@ K_MSGQ_DEFINE(ina_logging_msgq, sizeof(power_module_telemetry_t), 50, 4);
 K_MSGQ_DEFINE(adc_logging_msgq, sizeof(float), 200, 4);
 
 #ifdef CONFIG_DEBUG
-static void send_last_log(uint32_t current_boot_count) {
+static void send_last_log(const uint32_t boot_count_to_get) {
+    LOG_INF("Attempting to send last logs over TFTP");
     // Open /lfs/current_boot_count-1 directory
     char dir_name[MAX_DIR_NAME_LEN] = "";
-    snprintf(dir_name, sizeof(dir_name), "/lfs/%d", current_boot_count - 1);
+    snprintf(dir_name, sizeof(dir_name), "/lfs/%d", boot_count_to_get);
 
     // Setup output file names
-    char output_dir_name[MAX_DIR_NAME_LEN] = "";
-    snprintf(dir_name, sizeof(dir_name), "power_module/%d", current_boot_count - 1);
-
-    char ina_output_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
-    snprintf(ina_output_file_name, sizeof(ina_output_file_name), "%s/ina", dir_name);
+    char ina_output_file_name[MAX_FILE_NAME_LEN + 4] = "";
+    snprintf(ina_output_file_name, sizeof(ina_output_file_name), "ina_%d", boot_count_to_get);
 
     char adc_output_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
-    snprintf(adc_output_file_name, sizeof(adc_output_file_name), "%s/adc", dir_name);
+    snprintf(adc_output_file_name, sizeof(adc_output_file_name), "adc_%d", boot_count_to_get);
+    LOG_INF("Writing last logs to %s and %s", ina_output_file_name, adc_output_file_name);
 
     // Read INA into buffer
     char ina_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
     snprintf(ina_file_name, sizeof(ina_file_name), "%s/ina", dir_name);
+    l_fs_file_t ina_file = {
+        .fname = ina_file_name,
+        .width = sizeof(power_module_telemetry_t),
+        .mode = SLOG_ONCE,
+        .size = sizeof(power_module_telemetry_t) * 10,
+        .initialized = false,
+        .file = {0},
+        .dirent = {0},
+        .vfs = {0},
+        .wpos = 0,
+    };
 
+    char adc_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
+    snprintf(adc_file_name, sizeof(adc_file_name), "%s/adc", dir_name);
+    l_fs_file_t adc_file = {
+        .fname = adc_file_name,
+        .width = sizeof(float),
+        .mode = SLOG_ONCE,
+        .size = sizeof(float) * 10,
+        .initialized = false,
+        .file = {0},
+        .dirent = {0},
+        .vfs = {0},
+        .wpos = 0,
+    };
 
-    // Read ADC into buffer
+    // Simplest to just call directly and assume sample count
+    power_module_telemetry_t ina_data[INA_SAMPLE_COUNT] = {0};
+    if (fs_read(&ina_file.file, &ina_data, INA_SAMPLE_COUNT)) {
+        tftp_send_last_logs(ina_output_file_name, (uint8_t *) &ina_data, sizeof(ina_data));
+    } else {
+        LOG_ERR("Failed to read INA data from file.");
+    }
 
-
-
+    power_module_telemetry_t adc_data[INA_SAMPLE_COUNT] = {0};
+    if (fs_read(&adc_file.file, &adc_data, ADC_SAMPLE_COUNT)) {
+        tftp_send_last_logs(adc_output_file_name, (uint8_t *) &adc_data, sizeof(adc_data));
+    } else {
+        LOG_ERR("Failed to read ADC data from file.");
+    }
 }
 #endif
 
 static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     uint32_t boot_count = l_fs_boot_count_check();
-
+    send_last_log(63); // TODO: Update to be last bootcount. Using 63 for testing
     // Create directory with boot count
     char dir_name[MAX_DIR_NAME_LEN] = "";
     snprintf(dir_name, sizeof(dir_name), "/lfs/%d", boot_count);
