@@ -14,7 +14,7 @@
 #include <zephyr/net/tftp.h>
 
 #define L_TFTP_PORT "69"
-
+#define L_DEFAULT_SERVER_IP "10.0.0.0"
 /**
 * Initialize the TFTP client
 * @param client - Pointer to the client to initialize
@@ -30,5 +30,15 @@ int l_tftp_init(struct tftpc *client, const char *server_host_name);
 * @param buffer_size - Size of the buffer
 */
 int l_tftp_put(struct tftpc *const client, const char *const filename, const uint8_t *buff, const size_t buff_size);
+
+/**
+* Initialize and put a file onto a TFTP server in octet mode.
+* @param client - IP address of the TFTP server
+* @param filename - Name of the file to put
+* @param buffer - Buffer of data to send over TFTP
+* @param buffer_size - Size of the buffer
+*/
+int l_tftp_init_and_put(const char *ip, const char* fname, uint8_t *buff, size_t buff_size);
+
 
 #endif //L_TFTP_H

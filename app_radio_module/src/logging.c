@@ -26,13 +26,6 @@ K_MSGQ_DEFINE(gps_logging_msgq, sizeof(l_gnss_data_t), 10, 4);
 
 #ifdef CONFIG_DEBUG
 #include <launch_core/net/tftp.h>
-static void tftp_send_last_logs(const char* fname, uint8_t *buff, size_t buff_size) {
-    struct tftpc client = {};
-
-    if (l_tftp_init(&client, "10.0.0.0") == 0) {
-        l_tftp_put(&client, fname, buff, buff_size);
-    }
-}
 
 static void send_last_log(const uint32_t boot_count_to_get) {
     LOG_INF("Attempting to send last logs over TFTP");
@@ -63,7 +56,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     size_t gnss_log_file_size = l_fs_file_size(&gnss_file);
     LOG_INF("Previous GNSS Log File Size: %d", gnss_log_file_size);
     if ((l_fs_init(&gnss_file) == 0) && fs_read(&gnss_file.file, &gnss_data, gnss_log_file_size)) {
-        tftp_send_last_logs(gnss_output_file_name, (uint8_t *) &gnss_data, gnss_log_file_size);
+        l_tftp_init_and_put(L_DEFAULT_SERVER_IP, gnss_output_file_name, (uint8_t*) &gnss_data, gnss_log_file_size);
         l_fs_close(&gnss_file);
     } else {
         LOG_ERR("Failed to read GNSS data from file.");
@@ -71,7 +64,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
 }
 #endif
 
-static void init_logging(l_fs_file_t **p_gnss_file) {
+static void init_logging(l_fs_file_t** p_gnss_file) {
     uint32_t boot_count = l_fs_boot_count_check();
 #ifdef CONFIG_DEBUG
     send_last_log(boot_count);
@@ -111,7 +104,7 @@ static void init_logging(l_fs_file_t **p_gnss_file) {
 extern bool logging_enabled;
 
 static void logging_task(void) {
-    l_fs_file_t *gnss_file = NULL;
+    l_fs_file_t* gnss_file = NULL;
 
     l_gnss_data_t gnss_data;
 
@@ -129,7 +122,7 @@ static void logging_task(void) {
             LOG_INF("Logged GNSS data");
 
             int32_t err_flag = 0;
-            l_fs_write(gnss_file, (const uint8_t *) &gnss_data, &err_flag);
+            l_fs_write(gnss_file, (const uint8_t*) &gnss_data, &err_flag);
             gnss_out_of_space = err_flag == -ENOSPC;
             LOG_INF("%d", err_flag);
         }

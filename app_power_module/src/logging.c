@@ -14,7 +14,7 @@
 #define MAX_DIR_NAME_LEN   10 // 4 number boot count + 5 for "/lfs/" + 1 for end slash
 #define MAX_FILE_NAME_LEN  3
 
-#define INA_SAMPLE_COUNT 4600 // 15 samples per second for 5 minutes (rounded to nearest hundred)
+#define INA_SAMPLE_COUNT 4600  // 15 samples per second for 5 minutes (rounded to nearest hundred)
 #define ADC_SAMPLE_COUNT 20000 // 6.6 samples per second for 5 minutes
 
 LOG_MODULE_REGISTER(logging);
@@ -30,14 +30,6 @@ K_MSGQ_DEFINE(adc_logging_msgq, sizeof(float), 200, 4);
 
 #ifdef CONFIG_DEBUG
 #include <launch_core/net/tftp.h>
-static void tftp_send_last_logs(const char* fname, uint8_t *buff, size_t buff_size) {
-    struct tftpc client = {};
-
-    if (l_tftp_init(&client, "10.0.0.0") == 0) {
-        l_tftp_put(&client, fname, buff, buff_size);
-    }
-}
-
 static void send_last_log(const uint32_t boot_count_to_get) {
     LOG_INF("Attempting to send last logs over TFTP");
     // Open /lfs/current_boot_count-1 directory
@@ -85,7 +77,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     size_t ina_log_file_size = l_fs_file_size(&ina_file);
     LOG_INF("Previous INA219 Log File Size: %d", ina_log_file_size);
     if ((l_fs_init(&ina_file) == 0) && fs_read(&ina_file.file, &ina_data, ina_log_file_size)) {
-        tftp_send_last_logs(ina_output_file_name, (uint8_t *) &ina_data, ina_log_file_size);
+        l_tftp_init_and_put(L_DEFAULT_SERVER_IP, ina_output_file_name, (uint8_t *) &ina_data, ina_log_file_size);
         l_fs_close(&ina_file);
     } else {
         LOG_ERR("Failed to read INA data from file.");
@@ -95,7 +87,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     size_t adc_log_file_size = l_fs_file_size(&adc_file);
     LOG_INF("Previous ADC Log File Size: %d", adc_log_file_size);
     if ((l_fs_init(&adc_file) == 0) && fs_read(&adc_file.file, &adc_data, adc_log_file_size)) {
-        tftp_send_last_logs(adc_output_file_name, (uint8_t *) &adc_data, adc_log_file_size);
+        l_tftp_init_and_put(L_DEFAULT_SERVER_IP, adc_output_file_name, (uint8_t *) &adc_data, adc_log_file_size);
         l_fs_close(&adc_file);
     } else {
         LOG_ERR("Failed to read ADC data from file.");
