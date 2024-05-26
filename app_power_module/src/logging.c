@@ -72,21 +72,22 @@ static void send_last_log(const uint32_t boot_count_to_get) {
         .wpos = 0,
     };
 
-    l_fs_init(&ina_file);
-    l_fs_init(&adc_file);
-
-
-    // Simplest to just call directly and assume sample count
     power_module_telemetry_t ina_data[INA_SAMPLE_COUNT] = {0};
-    if (fs_read(&ina_file.file, &ina_data, INA_SAMPLE_COUNT)) {
-        tftp_send_last_logs(ina_output_file_name, (uint8_t *) &ina_data, sizeof(ina_data) * INA_SAMPLE_COUNT);
+    size_t ina_log_file_size = l_fs_file_size(&ina_file);
+    LOG_INF("Previous INA219 Log File Size: %d", ina_log_file_size);
+    if ((l_fs_init(&ina_file) == 0) && fs_read(&ina_file.file, &ina_data, ina_log_file_size)) {
+        tftp_send_last_logs(ina_output_file_name, (uint8_t *) &ina_data, ina_log_file_size);
+        l_fs_close(&ina_file);
     } else {
         LOG_ERR("Failed to read INA data from file.");
     }
 
     float adc_data[ADC_SAMPLE_COUNT] = {0};
-    if (fs_read(&adc_file.file, &adc_data, ADC_SAMPLE_COUNT)) {
-        tftp_send_last_logs(adc_output_file_name, (uint8_t *) &adc_data, sizeof(adc_data) * ADC_SAMPLE_COUNT);
+    size_t adc_log_file_size = l_fs_file_size(&adc_file);
+    LOG_INF("Previous ADC Log File Size: %d", adc_log_file_size);
+    if ((l_fs_init(&adc_file) == 0) && fs_read(&adc_file.file, &adc_data, adc_log_file_size)) {
+        tftp_send_last_logs(adc_output_file_name, (uint8_t *) &adc_data, adc_log_file_size);
+        l_fs_close(&adc_file);
     } else {
         LOG_ERR("Failed to read ADC data from file.");
     }
