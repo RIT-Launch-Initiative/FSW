@@ -1,3 +1,4 @@
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
 #ifndef RADIO_MODULE_TRANSMITTER_SMF_H
 #define RADIO_MODULE_TRANSMITTER_SMF_H
 
@@ -19,3 +20,4 @@ void init_state_machine();
 void run_state_machine();
 
 #endif //RADIO_MODULE_TRANSMITTER_SMF_H
+#endif //CONFIG_RADIO_MODULE_RECEIVER

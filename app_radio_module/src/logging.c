@@ -1,6 +1,4 @@
-// Self Include
-#include "radio_module_functionality.h"
-
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
 // Launch Includes
 #include <launch_core/os/fs.h>
 #include <launch_core/types.h>
@@ -22,7 +20,7 @@ static void logging_task(void);
 K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 // Message queues
-K_MSGQ_DEFINE(gps_logging_msgq, sizeof(l_gnss_data_t), 10, 4);
+K_MSGQ_DEFINE(gnss_logging_msgq, sizeof(l_gnss_data_t), 10, 4);
 
 #ifdef CONFIG_DEBUG
 #include <launch_core/net/tftp.h>
@@ -117,7 +115,7 @@ static void logging_task(void) {
             continue;
         }
 
-        if (!k_msgq_get(&gps_logging_msgq, &gnss_data, K_MSEC(10)) && (gnss_file != NULL) &&
+        if (!k_msgq_get(&gnss_logging_msgq, &gnss_data, K_MSEC(10)) && (gnss_file != NULL) &&
             (!gnss_out_of_space)) {
             LOG_INF("Logged GNSS data");
 
@@ -135,3 +133,4 @@ static void logging_task(void) {
         }
     }
 }
+#endif

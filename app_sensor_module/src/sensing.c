@@ -31,7 +31,10 @@ K_TIMER_DEFINE(hundred_hz_timer, NULL, NULL);
 
 // Message Queues
 K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
-K_MSGQ_DEFINE(hundred_hz_log_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 500, 1);
+
+// Extern Variables
+extern struct k_msgq hun_hz_logging_msgq;
+extern struct k_msgq ten_hz_logging_msgq;
 
 bool logging_enabled = false;
 
@@ -116,12 +119,12 @@ static void hundred_hz_sensor_reading_task(void) {
         k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10));
 
         // Buffer up data for logging before boost. If no space, throw out the oldest entry.
-        if (!logging_enabled && k_msgq_num_free_get(&hundred_hz_log_queue) == 0) {
+        if (!logging_enabled && k_msgq_num_free_get(&hun_hz_logging_msgq) == 0) {
             sensor_module_hundred_hz_telemetry_t throwaway_data;
-            k_msgq_get(&hundred_hz_log_queue, &throwaway_data, K_NO_WAIT);
+            k_msgq_get(&hun_hz_logging_msgq, &throwaway_data, K_NO_WAIT);
         }
 
-        k_msgq_put(&hundred_hz_log_queue, &hundred_hz_telemetry, K_MSEC(10));
+        k_msgq_put(&hun_hz_logging_msgq, &hundred_hz_telemetry, K_MSEC(10));
 
         // Fill data for boost detection
         // TODO: Need to validate on newer hardware. Sus slow trigger time during testing with fake vals.
