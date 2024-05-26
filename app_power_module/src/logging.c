@@ -1,6 +1,3 @@
-// Self Include
-#include "power_module.h"
-
 // Launch Includes
 #include <launch_core/os/fs.h>
 #include <launch_core/types.h>

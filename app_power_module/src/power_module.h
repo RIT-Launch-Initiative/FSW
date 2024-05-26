@@ -3,7 +3,6 @@
 
 #include <launch_core/backplane_defs.h>
 #include <launch_core/net/net_common.h>
-#include <stddef.h>
 
 #define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 
