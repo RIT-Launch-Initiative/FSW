@@ -32,8 +32,4 @@ void adc_task(void);
  */
 void telemetry_broadcast_task(void);
 
-#ifdef CONFIG_DEBUG
-void tftp_send_last_logs(const char* fname, uint8_t *buff, size_t buff_size);
-#endif
-
 #endif //POWER_MODULE_H

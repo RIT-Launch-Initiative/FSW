@@ -29,6 +29,15 @@ K_MSGQ_DEFINE(ina_logging_msgq, sizeof(power_module_telemetry_t), 50, 4);
 K_MSGQ_DEFINE(adc_logging_msgq, sizeof(float), 200, 4);
 
 #ifdef CONFIG_DEBUG
+#include <launch_core/net/tftp.h>
+static void tftp_send_last_logs(const char* fname, uint8_t *buff, size_t buff_size) {
+    struct tftpc client = {};
+
+    if (l_tftp_init(&client, "10.0.0.0") == 0) {
+        l_tftp_put(&client, fname, buff, buff_size);
+    }
+}
+
 static void send_last_log(const uint32_t boot_count_to_get) {
     LOG_INF("Attempting to send last logs over TFTP");
     // Open /lfs/current_boot_count-1 directory

@@ -32,17 +32,6 @@ static l_udp_socket_list_t udp_socket_list = {.sockets = udp_sockets, .num_socke
 
 LOG_MODULE_REGISTER(networking);
 
-#ifdef CONFIG_DEBUG
-#include <launch_core/net/tftp.h>
-void tftp_send_last_logs(const char* fname, uint8_t *buff, size_t buff_size) {
-    struct tftpc client = {};
-
-    if (l_tftp_init(&client, "10.0.0.0") == 0) {
-        l_tftp_put(&client, fname, buff, buff_size);
-    }
-}
-#endif
-
 void init_networking() {
     const struct device *wiznet = DEVICE_DT_GET_ONE(wiznet_w5500);
     if (l_check_device(wiznet) != 0) {
