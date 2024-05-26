@@ -14,8 +14,8 @@
 #define MAX_DIR_NAME_LEN   10 // 4 number boot count + 5 for "/lfs/" + 1 for end slash
 #define MAX_FILE_NAME_LEN  3
 
-#define INA_SAMPLE_COUNT 10
-#define ADC_SAMPLE_COUNT 10
+#define INA_SAMPLE_COUNT 4600 // 15 samples per second for 5 minutes (rounded to nearest hundred)
+#define ADC_SAMPLE_COUNT 20000 // 6.6 samples per second for 5 minutes
 
 LOG_MODULE_REGISTER(logging);
 
@@ -96,7 +96,9 @@ static void send_last_log(const uint32_t boot_count_to_get) {
 
 static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     uint32_t boot_count = l_fs_boot_count_check();
-    send_last_log(87); // TODO: Update to be last bootcount. Using 63 for testing
+#ifdef CONFIG_DEBUG
+    send_last_log(boot_count);
+#endif
     // Create directory with boot count
     char dir_name[MAX_DIR_NAME_LEN] = "";
     snprintf(dir_name, sizeof(dir_name), "/lfs/%d", boot_count);
@@ -111,13 +113,11 @@ static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     snprintf(adc_file_name, sizeof(adc_file_name), "%s/adc", dir_name);
 
     // Initialize structs
-    const uint32_t ina_samples = 4600;  // 15 samples per second for 5 minutes (rounded to nearest hundred)
-    const uint32_t adc_samples = 20000; // 6.6 samples per second for 5 minutes
     static l_fs_file_t ina_file = {
         .fname = ina_file_name,
         .width = sizeof(power_module_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(power_module_telemetry_t) * 10,
+        .size = sizeof(power_module_telemetry_t) * INA_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -129,7 +129,7 @@ static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
         .fname = adc_file_name,
         .width = sizeof(float),
         .mode = SLOG_ONCE,
-        .size = sizeof(float) * 10,
+        .size = sizeof(float) * ADC_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -199,7 +199,7 @@ static void logging_task(void) {
             logging_enabled = false;
             l_fs_close(ina_file);
             l_fs_close(adc_file);
-            // Return out of this task?
+            return;
         }
     }
 }
