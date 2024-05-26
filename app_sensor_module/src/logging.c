@@ -10,8 +10,8 @@
 #define MAX_DIR_NAME_LEN   10 // 4 number boot count + 5 for "/lfs/" + 1 for end slash
 #define MAX_FILE_NAME_LEN  3
 
-#define HUN_HZ_SAMPLE_COUNT 4600  // 15 samples per second for 5 minutes (rounded to nearest hundred)
-#define TEN_HZ_SAMPLE_COUNT 20000 // 6.6 samples per second for 5 minutes
+#define HUN_HZ_SAMPLE_COUNT 30000  // 100 samples per second for 5 minutes (rounded to nearest hundred)
+#define TEN_HZ_SAMPLE_COUNT 300 // 1 sample per second for 5 minutes
 
 LOG_MODULE_REGISTER(logging);
 
@@ -24,6 +24,7 @@ K_MSGQ_DEFINE(ten_hz_logging_msgq, sizeof(sensor_module_ten_hz_telemetry_t), 200
 
 #ifdef CONFIG_DEBUG
 #include <launch_core/net/tftp.h>
+
 static void send_last_log(const uint32_t boot_count_to_get) {
     LOG_INF("Attempting to send last logs over TFTP");
     // Open /lfs/current_boot_count-1 directory
@@ -71,7 +72,8 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     size_t hun_hz_log_file_size = l_fs_file_size(&hun_hz_file);
     LOG_INF("Previous 100Hz Log File Size: %d", hun_hz_log_file_size);
     if ((l_fs_init(&hun_hz_file) == 0) && fs_read(&hun_hz_file.file, &hun_hz_data, hun_hz_log_file_size)) {
-        l_tftp_init_and_put(L_DEFAULT_SERVER_IP, hun_hz_output_file_name, (uint8_t *) &hun_hz_data, hun_hz_log_file_size);
+        l_tftp_init_and_put(L_DEFAULT_SERVER_IP, hun_hz_output_file_name, (uint8_t*) &hun_hz_data,
+                            hun_hz_log_file_size);
         l_fs_close(&hun_hz_file);
     } else {
         LOG_ERR("Failed to read INA data from file.");
@@ -81,7 +83,8 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     size_t ten_hz_log_file_size = l_fs_file_size(&ten_hz_file);
     LOG_INF("Previous 10Hz Log File Size: %d", ten_hz_log_file_size);
     if ((l_fs_init(&ten_hz_file) == 0) && fs_read(&ten_hz_file.file, &ten_hz_data, ten_hz_log_file_size)) {
-        l_tftp_init_and_put(L_DEFAULT_SERVER_IP, ten_hz_output_file_name, (uint8_t *) &ten_hz_data, ten_hz_log_file_size);
+        l_tftp_init_and_put(L_DEFAULT_SERVER_IP, ten_hz_output_file_name, (uint8_t*) &ten_hz_data,
+                            ten_hz_log_file_size);
         l_fs_close(&ten_hz_file);
     } else {
         LOG_ERR("Failed to read 10Hz data from file.");
@@ -89,7 +92,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
 }
 #endif
 
-static void init_logging(l_fs_file_t **p_hun_hz_file, l_fs_file_t **p_ten_hz_file) {
+static void init_logging(l_fs_file_t** p_hun_hz_file, l_fs_file_t** p_ten_hz_file) {
     uint32_t boot_count = l_fs_boot_count_check();
 #ifdef CONFIG_DEBUG
     send_last_log(boot_count);
@@ -149,8 +152,8 @@ static void init_logging(l_fs_file_t **p_hun_hz_file, l_fs_file_t **p_ten_hz_fil
 extern bool logging_enabled;
 
 static void logging_task(void) {
-    l_fs_file_t *hun_hz_file = NULL;
-    l_fs_file_t *ten_hz_file = NULL;
+    l_fs_file_t* hun_hz_file = NULL;
+    l_fs_file_t* ten_hz_file = NULL;
 
     sensor_module_hundred_hz_telemetry_t hun_hz_telem;
     sensor_module_ten_hz_telemetry_t ten_hz_telem;
@@ -170,16 +173,17 @@ static void logging_task(void) {
             LOG_INF("Logged 100Hz data");
 
             int32_t err_flag = 0;
-            l_fs_write(hun_hz_file, (const uint8_t *) &hun_hz_telem, &err_flag);
+            l_fs_write(hun_hz_file, (const uint8_t*) &hun_hz_telem, &err_flag);
             hun_hz_out_of_space = err_flag == -ENOSPC;
             LOG_INF("%d", err_flag);
         }
 
-        if (!k_msgq_get(&ten_hz_logging_msgq, &ten_hz_telem, K_MSEC(3)) && (ten_hz_file != NULL) && (!ten_hz_out_of_space)) {
+        if (!k_msgq_get(&ten_hz_logging_msgq, &ten_hz_telem, K_MSEC(3)) && (ten_hz_file != NULL) && (!
+                ten_hz_out_of_space)) {
             LOG_INF("Logged 10Hz data");
 
             int32_t err_flag = 0;
-            l_fs_write(ten_hz_file, (const uint8_t *) &ten_hz_telem, &err_flag);
+            l_fs_write(ten_hz_file, (const uint8_t*) &ten_hz_telem, &err_flag);
             ten_hz_out_of_space = err_flag == -ENOSPC;
             LOG_INF("%d", err_flag);
         }
