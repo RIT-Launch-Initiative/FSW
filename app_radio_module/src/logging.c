@@ -42,7 +42,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
         .fname = gnss_file_name,
         .width = sizeof(l_gnss_data_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(l_gnss_data_t) * 10,
+        .size = sizeof(l_gnss_data_t) * GNSS_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
