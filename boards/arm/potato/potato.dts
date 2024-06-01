@@ -13,18 +13,34 @@
     model = "Potato";
     compatible = "st,stm32f446re-nucleo";
 
+    zephyr,user {
+    };
+
     chosen {
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
-        zephyr,console = &uart5;
+        zephyr,console = &uart4;
+        zephyr,shell-uart = &uart4;
+
         zephyr,uart-pipe = &uart5;
 
         storage = &w25q128;
-        logfs = &lfs1;  
+        logfs = &lfs1;
     };
 
     leds: leds {
         compatible = "gpio-leds";
+
+        led1: led1 {
+            gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+            label = "USER LED1 (not near stm)";
+        };
+
+        led2: led2 {
+            gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+            label = "USER LED2 (near stm)";
+        };
+
     };
 
     fstab {
@@ -65,6 +81,13 @@
     apb2-prescaler = <1>;
 };
 
+&uart4 {
+    pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
+    pinctrl-names = "default";
+    current-speed = <115200>;
+    status = "okay";
+};
+
 &uart5 {
     pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
     pinctrl-names = "default";
@@ -72,9 +95,17 @@
     status = "okay";
 };
 
+&spi1 {
+    pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
+    cs-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
+
+    pinctrl-names = "default";
+    status = "okay";
+};
+
 &spi2 {
-    pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
-    cs-gpios = <&gpioc 9 GPIO_ACTIVE_LOW>;
+    pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
+    cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
 
     pinctrl-names = "default";
     status = "okay";
@@ -85,7 +116,7 @@
 
         spi-max-frequency = <(10 * 1000 * 1000)>;
         size = <DT_SIZE_M(128)>;
-        jedec-id = [ef 40 18];
+        jedec-id = [ ef 40 18  ];
 
         has-dpd;
         t-enter-dpd = <(3 * 1000)>;
@@ -98,7 +129,7 @@
 
             external_storage_partition: partition@0 {
                 label = "w25q-storage";
-                reg = <0 DT_SIZE_M(128)>;
+                reg = <0 DT_SIZE_M(16)>;
             };
         };
     };
@@ -109,6 +140,12 @@
     pinctrl-names = "default";
     status = "okay";
     clock-frequency = <I2C_BITRATE_FAST>;
+
+    lps22hh: lps22hh@5d {
+        compatible = "st,lps22hhtr";
+        reg = <0x5d>;
+        status = "okay";
+    };
 };
 
 &rtc {

@@ -1,98 +1,158 @@
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/dev/uart.h>
-#include <launch_core/extension_boards.h>
-#include <launch_core/net/net_common.h>
-#include <launch_core/net/udp.h>
+// Self Include
+#include "potato.h"
+
+// Launch Includes
+#include <launch_core/backplane_defs.h>
 #include <launch_core/os/fs.h>
+
+// Zephyr Includes
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/smf.h>
 
 LOG_MODULE_REGISTER(app_potato);
-
-// Threads
-#define POTATO_STACK_SIZE (512)
-
-static K_THREAD_STACK_DEFINE(adc_read_stack, POTATO_STACK_SIZE);
-static struct k_thread adc_read_thread;
-
-static K_THREAD_STACK_DEFINE(sensor_read_stack, POTATO_STACK_SIZE);
-static struct k_thread sensor_read_thread;
-// TODO: Might just be a process task that sends over SLIP, but also logs data
-static K_THREAD_STACK_DEFINE(slip_tx_stack, POTATO_STACK_SIZE);
-static struct k_thread slip_tx_thread;
 
 // Queues
 static K_QUEUE_DEFINE(slip_tx_queue);
 
-static void adc_read_task(void *, void *, void *) {
-    // Check ADC
+// Extern Variables
+extern bool boost_detected;
 
-    // Do ADC stuff
-    while (1) {
+// Global Variables
+bool logging_enabled = false;
+bool state_transition = true;
+uint32_t boot_count = -1;
+
+// State Machine
+#define DEFINE_STATE_FUNCTIONS(state_name)                                                                             \
+    static void state_name##_state_entry(void *);                                                                      \
+    static void state_name##_state_run(void *);                                                                        \
+    static void state_name##_state_exit(void *) {}
+
+DEFINE_STATE_FUNCTIONS(pad);
+DEFINE_STATE_FUNCTIONS(boost);
+DEFINE_STATE_FUNCTIONS(coast);
+DEFINE_STATE_FUNCTIONS(apogee);
+DEFINE_STATE_FUNCTIONS(main);
+DEFINE_STATE_FUNCTIONS(landing);
+
+static const struct smf_state states[] = {
+    [PAD_STATE] = SMF_CREATE_STATE(pad_state_entry, pad_state_run, pad_state_exit),
+    [BOOST_STATE] = SMF_CREATE_STATE(boost_state_entry, boost_state_run, boost_state_exit),
+    [COAST_STATE] = SMF_CREATE_STATE(coast_state_entry, coast_state_run, coast_state_exit),
+    [APOGEE_STATE] = SMF_CREATE_STATE(apogee_state_entry, apogee_state_run, apogee_state_exit),
+    [MAIN_STATE] = SMF_CREATE_STATE(main_state_entry, main_state_run, main_state_exit),
+    [LANDING_STATE] = SMF_CREATE_STATE(landing_state_entry, landing_state_run, landing_state_exit),
+};
+
+struct s_object {
+    struct smf_ctx ctx;
+} state_obj;
+
+static inline void signal_state_transition() { state_transition = true; }
+K_TIMER_DEFINE(state_transition_timer, signal_state_transition, NULL);
+
+static void update_state_transition_timer(uint32_t duration_seconds) {
+    k_timer_start(&state_transition_timer, K_SECONDS(duration_seconds), K_SECONDS(duration_seconds));
+    state_transition = false;
+}
+
+static void pad_state_entry(void*) {
+    LOG_INF("Entering pad state");
+    start_boost_detect();
+}
+
+static void pad_state_run(void*) {
+    while (true) {
+        bool received_boost_notif = (L_BOOST_DETECTED == get_event_from_serial());
+
+        if (boost_detected || received_boost_notif) {
+            smf_set_state(SMF_CTX(&state_obj), &states[BOOST_STATE]);
+            return;
+        }
     }
 }
 
-static void sensor_read_task(void *, void *, void *) {
-    // Check devices
-
-    // Do sensor stuff
-    while (1) {
-    }
+static void boost_state_entry(void*) {
+    LOG_INF("Entering boost state");
+    // TODO: Should get rid of magic numbers. Maybe create a directory of flight configurations with constants?
+    update_state_transition_timer(3);
+    stop_boost_detect();
 }
 
-static void slip_tx_task(void *, void *, void *) {
-    while (1) {
+static void boost_state_run(void*) {
+    while (!state_transition) {
+        k_msleep(10);
     }
+    smf_set_state(SMF_CTX(&state_obj), &states[COAST_STATE]);
 }
 
-int init_slip_network(void) {
-    char rs485_ip[MAX_IP_ADDRESS_STR_LEN];
-
-    int ret = l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0;
-    if (ret != 0) {
-        LOG_ERR("Failed to initialize UART to RS485");
-        return ret;
-    }
-
-    ret = l_create_ip_str(rs485_ip, 11, 1, 2, 1) != 0;
-    if (ret != 0) {
-        LOG_ERR("Failed to create IP address string");
-        return ret;
-    }
-
-    ret = l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip);
-    if (ret != 0) {
-        LOG_ERR("Failed to initialize network stack");
-    }
-
-    return ret;
+static void coast_state_entry(void*) {
+    LOG_INF("Entering coast state");
+    configure_telemetry_rate(1337); // TODO
+    update_state_transition_timer(23);
 }
 
-static int init(void) {
-    if (init_slip_network() == 0) {
-        // Arbitrate with connected module over SLIP
-        initiate_arbitration(POTATO_EXTENSION_BOARD_ID, 0);
+static void coast_state_run(void*) {
+    while (!state_transition) {
+        k_sleep(K_MSEC(10));
+    }
+    smf_set_state(SMF_CTX(&state_obj), &states[APOGEE_STATE]);
+}
+
+static void apogee_state_entry(void*) {
+    LOG_INF("Entering apogee state");
+    configure_telemetry_rate(420); // TODO
+    update_state_transition_timer(152);
+
+}
+
+static void apogee_state_run(void*) {
+    while (!state_transition) {
+        k_msleep(10);
+    }
+    smf_set_state(SMF_CTX(&state_obj), &states[MAIN_STATE]);
+}
+
+static void main_state_entry(void*) {
+    LOG_INF("Entering main chute state");
+    configure_telemetry_rate(21); // TODO: Update with proper telemetry rates
+    update_state_transition_timer(46);
+}
+
+static void main_state_run(void*) {
+    while (!state_transition) {
+        k_msleep(10);
     }
 
-    // Initialize tasks
-    // TODO: Maybe prioritize in this order (ADC, SLIP, sensors)
-    k_thread_create(&adc_read_thread, &adc_read_stack[0], POTATO_STACK_SIZE, adc_read_task, NULL, NULL, NULL,
-                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-    k_thread_create(&sensor_read_thread, &sensor_read_stack[0], POTATO_STACK_SIZE, sensor_read_task, NULL, NULL, NULL,
-                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
-    k_thread_create(&slip_tx_thread, &slip_tx_stack[0], POTATO_STACK_SIZE, slip_tx_task, NULL, NULL, NULL,
-                    K_PRIO_PREEMPT(10), 0, K_NO_WAIT);
+    smf_set_state(SMF_CTX(&state_obj), &states[LANDING_STATE]);
+}
 
-    k_thread_start(&adc_read_thread);
-    k_thread_start(&sensor_read_thread);
-    k_thread_start(&slip_tx_thread);
+static void landing_state_entry(void*) {
+    LOG_INF("Entering landing state");
+}
 
-    return 0;
+static void landing_state_run(void*) {
+    // Sleep for an extra minute and ensure we get all our data!
+    k_sleep(K_SECONDS(60));
+    logging_enabled = false;
+
+    k_sleep(K_FOREVER);
 }
 
 int main() {
-    init();
-    l_fs_boot_count_check();
+    boot_count = l_fs_boot_count_check();
+
+    while (true) {
+        k_msleep(100);
+        static int ret = 0;
+        if (ret == 0) {
+            ret = smf_run_state(SMF_CTX(&state_obj));
+            if (ret < 0) {
+                LOG_ERR("Failed to run state machine: %d", ret);
+            }
+        }
+    }
 
     return 0;
 }
