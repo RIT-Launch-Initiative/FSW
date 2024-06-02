@@ -87,8 +87,7 @@ void start_boost_detect(const struct device* imu, const struct device* altimeter
     k_timer_start(&accel_boost_detect_timer, K_MSEC(1), K_MSEC(1));
     k_timer_start(&altitude_boost_detect_timer, K_MSEC(10), K_MSEC(10));
 
-    int r = k_event_set(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT);
-    LOG_INF("Post event R: %d", r);
+    k_event_set(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT);
 }
 
 void stop_boost_detect() {

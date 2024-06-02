@@ -36,8 +36,6 @@ extern struct k_msgq adc_data_queue;
 extern struct k_msgq fast_data_queue;
 extern struct k_msgq slow_data_queue;
 
-extern struct k_msgq data_storage_control_queue;
-
 void start_data_storage_thread();
 
 int wait_for_data_storage_thread();
