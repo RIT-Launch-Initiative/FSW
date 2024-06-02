@@ -7,9 +7,11 @@
 
 // Launch Core Includes
 #include <launch_core/conversions.h>
+#include <launch_core/dev/dev_common.h>
 #include <launch_core/types.h>
 
 // Zephyr Includes
+#include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(boost_detect, CONFIG_APP_GRIM_REEFER_LOG_LEVEL);
@@ -33,11 +35,12 @@ K_THREAD_DEFINE(altimeter_boost_thread, 1024, altitude_boost_reading_task, NULL,
 K_THREAD_DEFINE(accel_boost_thread, 1024, accel_boost_reading_task, NULL, NULL, NULL, BOOST_DETECT_IMU_PRIORITY, 0,
                 1000);
 
-// Rolling buffers for data recovery
 volatile bool boost_detected = false;
+// Rolling buffers
 
 struct fast_data accel_buffer[ACCEL_BUFFER_SIZE] = {0};
 int accel_buffer_index = 0;
+float accel_running_sum = {0.0};
 
 struct altitude_data {
     uint32_t timestamp;
@@ -46,6 +49,14 @@ struct altitude_data {
 
 struct altitude_data altitude_buffer[ALTITUDE_BUFFER_SIZE] = {0};
 int altitude_buffer_index;
+
+int read_channel_to_float(const struct device* dev, enum sensor_channel chan, float* fval) {
+    struct sensor_value val = {0};
+    int ret = sensor_channel_get(dev, chan, &val);
+    float v = sensor_value_to_float(&val);
+    *fval = v;
+    return ret;
+}
 
 static void altitude_boost_reading_task(void) {
     k_event_wait(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT, false, K_FOREVER);
@@ -60,13 +71,12 @@ static void altitude_boost_reading_task(void) {
             LOG_ERR("No altitude device given to detect launch with, %p", altimeter_dev);
             continue;
         }
-        // Read sensor, save to buffer
-        printk("Read sensor\n");
-        boost_detected = true;
     }
 }
 
 static void accel_boost_reading_task(void) {
+
+    struct fast_data data = {0};
 
     k_event_wait(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT, false, K_FOREVER);
     while (true) {
@@ -80,8 +90,38 @@ static void accel_boost_reading_task(void) {
             LOG_ERR("No IMU device given to detect launch with, %p", imu_dev);
             continue;
         }
-        printk("Read iMU\n");
-        boost_detected = true;
+        // Read sensor
+        sensor_sample_fetch(imu_dev);
+        float x, y, z = 0;
+        read_channel_to_float(imu_dev, SENSOR_CHAN_ACCEL_X, &x);
+        read_channel_to_float(imu_dev, SENSOR_CHAN_ACCEL_Y, &y);
+        read_channel_to_float(imu_dev, SENSOR_CHAN_ACCEL_Z, &z);
+        data.acc.accel_x = x;
+        data.acc.accel_y = y;
+        data.acc.accel_z = z;
+
+        read_channel_to_float(imu_dev, SENSOR_CHAN_GYRO_X, &x);
+        read_channel_to_float(imu_dev, SENSOR_CHAN_GYRO_Y, &y);
+        read_channel_to_float(imu_dev, SENSOR_CHAN_GYRO_Z, &z);
+        data.gyro.gyro_x = x;
+        data.gyro.gyro_y = y;
+        data.gyro.gyro_z = z;
+
+        data.timestamp = k_uptime_get();
+        // Add to circular buffer
+        struct fast_data oldest = accel_buffer[accel_buffer_index];
+        accel_buffer[accel_buffer_index] = data;
+        accel_buffer_index = (accel_buffer_index + 1) % ARRAY_SIZE(accel_buffer);
+
+        // Do acceleration calcs
+        float reading = data.acc.IMU_UP_AXIS;
+        float last_reading = oldest.acc.IMU_UP_AXIS;
+        accel_running_sum -= last_reading;
+        accel_running_sum += reading;
+        float avg = accel_running_sum / ACCEL_BUFFER_SIZE;
+        if (avg > ACCEL_VAL_THRESHOLD) {
+            boost_detected = true;
+        }
     }
 }
 
@@ -91,8 +131,8 @@ void start_boost_detect(const struct device* imu, const struct device* altimeter
     k_timer_user_data_set(&accel_boost_detect_timer, (void*) imu);
     k_timer_user_data_set(&altitude_boost_detect_timer, (void*) altimeter);
 
-    k_timer_start(&accel_boost_detect_timer, K_MSEC(1), K_MSEC(1));
-    k_timer_start(&altitude_boost_detect_timer, K_MSEC(10), K_MSEC(10));
+    k_timer_start(&accel_boost_detect_timer, FAST_DATA_DELAY, FAST_DATA_DELAY);
+    k_timer_start(&altitude_boost_detect_timer, K_MSEC(20), K_MSEC(20));
 
     k_event_set(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT);
 }
