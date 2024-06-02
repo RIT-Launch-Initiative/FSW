@@ -60,6 +60,9 @@ const struct device *ina_grim_dev = DEVICE_DT_GET(INA_GRIM_NODE);
 
 static const struct adc_dt_spec adc_chan0 = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
+// Thread Communication
+extern struct k_msgq flight_events_queue;
+
 /**
  * Check if a gpio is ready or return a status code indicating that its not.
  * gpio: gpio_dt_spec
