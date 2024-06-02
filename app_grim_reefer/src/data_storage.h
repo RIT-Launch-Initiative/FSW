@@ -36,10 +36,14 @@ extern struct k_msgq adc_data_queue;
 extern struct k_msgq fast_data_queue;
 extern struct k_msgq slow_data_queue;
 
-void start_data_storage_thread();
-
-int wait_for_data_storage_thread();
-
+/**
+ * @brief Open files, setup thread and get ready for data to start streaming in
+ * @return 0 if setup correctly. 1 if not
+ */
+int start_data_storage_thread();
+/**
+ * @brief Stop accepting new data and save everything to disk
+ */
 void finish_data_storage();
 
 #endif

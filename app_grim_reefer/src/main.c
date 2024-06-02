@@ -147,6 +147,7 @@ struct {
     /* All User Defined Data Follows */
 } s_obj;
 
+// On Pad, boost detecting
 static void pad_state_entry(void *o) {
     LOG_INF("On Pad");
     start_boost_detect(lsm6dsl_dev, bme280_dev);
@@ -158,6 +159,7 @@ static void pad_state_run(void *o) {
 }
 static void pad_state_exit(void *o) { stop_boost_detect(); }
 
+// In flight, data sampling
 static void flight_state_entry(void *o) {
     LOG_INF("Flight Started");
     // Turn on Cameras and ADC
@@ -174,6 +176,7 @@ static void flight_state_run(void *o) {
 }
 static void flight_state_exit(void *o) {}
 
+// Landed, saving files and waiting for cameras
 static void landed_state_entry(void *o) {
     // Stop logging, start saving
     LOG_INF("Landed");
@@ -217,14 +220,12 @@ int main(void) {
     begin_buzzer_thread(&buzzer);
 #endif
 
-    start_data_storage_thread();
-
-    if (wait_for_data_storage_thread() != 0) {
+    if (start_data_storage_thread() != 0) {
         LOG_ERR("Failed to initialize data storage. FATAL ERROR\n");
         buzzer_tell(buzzer_cond_noflash);
     }
-    LOG_INF("Setup storage");
 
+    // Begin State machine
     smf_set_initial(SMF_CTX(&s_obj), &flight_states[PAD_STATE]);
     while (1) {
         /* State machine terminates if a non-zero value is returned */
@@ -238,7 +239,6 @@ int main(void) {
     }
     LOG_INF("Shutoff Cameras");
     gpio_pin_set_dt(&cam_enable, 0);
-    gpio_pin_set_dt(&ldo_enable, 0);
     LOG_INF("Its all over");
     return 0;
 }

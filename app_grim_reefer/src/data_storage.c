@@ -115,17 +115,15 @@ void storage_thread_entry_point() {
 }
 
 #define EVENT_FILTER_ALL 0xFFFFFFFF
-int wait_for_data_storage_thread() {
+
+int start_data_storage_thread() {
+    enum control_event event = BEGIN_STORAGE;
+    k_msgq_put(&data_storage_control_queue, &event, K_FOREVER);
     if (k_event_wait(&storage_setup_finished, EVENT_FILTER_ALL, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
-        // VERY VERY BAD - payload will get no data
+        // VERY VERY BAD - payload will log no data
         return 1;
     }
     return 0;
-}
-
-void start_data_storage_thread() {
-    enum control_event event = BEGIN_STORAGE;
-    k_msgq_put(&data_storage_control_queue, &event, K_FOREVER);
 }
 
 void finish_data_storage() {
