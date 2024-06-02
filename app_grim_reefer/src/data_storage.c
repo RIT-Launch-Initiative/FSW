@@ -108,3 +108,12 @@ k_tid_t spawn_data_storage_thread() {
     k_thread_name_set(my_tid, "storage");
     return my_tid;
 }
+
+#define EVENT_FILTER_ALL 0xFFFFFFFF
+int wait_for_data_storage_thread() {
+    if (k_event_wait(&storage_setup_finished, EVENT_FILTER_ALL, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
+        // VERY VERY BAD - payload will get no data
+        return 1;
+    }
+    return 0;
+}

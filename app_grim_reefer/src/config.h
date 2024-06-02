@@ -6,6 +6,8 @@
 // Use buzzer or led for status
 #define PEOPLE_ARE_SLEEPING
 
+#define DEBUG_FLIGHT
+
 // Storage Thread
 #define STORAGE_QUEUE_SIZE        150
 #define STORAGE_THREAD_STACK_SIZE 2048
@@ -27,8 +29,14 @@
 #define ACCEL_VAL_THRESHOLD  ((float) (9.81 * 5))
 
 // Flight Events
-#define TOTAL_FLIGHT_TIME_MS K_SEC(400)
-#define CAMERA_EXTRA_TIME    K_MIN(12)
+#ifdef DEBUG_FLIGHT
+#define TOTAL_FLIGHT_TIME K_SECONDS(40)
+#define CAMERA_EXTRA_TIME K_SECONDS(12)
+#else
+#define TOTAL_FLIGHT_TIME K_SECONDS(400)
+#define CAMERA_EXTRA_TIME K_MINUTES(12)
+
+#endif
 
 // FS Setup
 #define ADC_FILENAME  "/lfs/adc.bin"

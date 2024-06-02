@@ -138,7 +138,8 @@ static int sensor_init(void) {
 }
 
 // Flight Phase
-
+K_TIMER_DEFINE(flight_duration_timer, NULL, NULL);
+K_TIMER_DEFINE(camera_extra_timer, NULL, NULL);
 // State Machine Setup
 enum flight_state { PAD_STATE, FLIGHT_STATE, LANDED_STATE };
 const struct smf_state flight_states[];
@@ -163,10 +164,15 @@ static void flight_state_entry(void *o) {
     // Turn on Cameras and ADC
     gpio_pin_set_dt(&ldo_enable, 1);
     gpio_pin_set_dt(&cam_enable, 1);
+    k_timer_start(&flight_duration_timer, TOTAL_FLIGHT_TIME, K_NO_WAIT);
 }
 static void flight_state_run(void *o) {
-    smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
-    if (k_timer) }
+
+    if (k_timer_status_get(&flight_duration_timer) > 0) {
+        // timer has expired
+        smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
+    }
+}
 static void flight_state_exit(void *o) {}
 
 static void landed_state_entry(void *o) {
@@ -175,23 +181,22 @@ static void landed_state_entry(void *o) {
     enum flight_event event = flight_event_shutoff;
     k_msgq_put(&flight_events_queue, &event, K_FOREVER);
     buzzer_tell(buzzer_cond_landed);
+    k_timer_start(&camera_extra_timer, CAMERA_EXTRA_TIME, K_NO_WAIT);
+    save_boost_data();
 }
 static void landed_state_run(void *o) {
-    // If extra time gone by, shutdown cameras
-    // smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
+    if (k_timer_status_get(&camera_extra_timer) > 0) {
+        // timer has expired
+        smf_set_terminate(SMF_CTX(&s_obj), 1);
+    }
 }
 
-static void landed_state_exit(void *o) {
-    gpio_pin_set_dt(&ldo_enable, 1);
-    gpio_pin_set_dt(&cam_enable, 1);
-}
+static void landed_state_exit(void *o) {}
 
 const struct smf_state flight_states[] = {
     [PAD_STATE] = SMF_CREATE_STATE(pad_state_entry, pad_state_run, pad_state_exit),
     [FLIGHT_STATE] = SMF_CREATE_STATE(flight_state_entry, flight_state_run, flight_state_exit),
     [LANDED_STATE] = SMF_CREATE_STATE(landed_state_entry, landed_state_run, landed_state_exit)};
-
-#define EVENT_FILTER_ALL 0xFFFFFFFF
 
 int main(void) {
 
@@ -216,11 +221,9 @@ int main(void) {
 
     (void) spawn_data_storage_thread();
 
-    // Make sure storage is setup
-    if (k_event_wait(&storage_setup_finished, EVENT_FILTER_ALL, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
-        LOG_ERR("Failed to initialize file sysbegin_buzzer_threadtem. FATAL ERROR\n");
+    if (wait_for_data_storage_thread() != 0) {
+        LOG_ERR("Failed to initialize data storage. FATAL ERROR\n");
         buzzer_tell(buzzer_cond_noflash);
-        // VERY VERY BAD - payload will get no data
     }
 
     smf_set_initial(SMF_CTX(&s_obj), &flight_states[PAD_STATE]);
@@ -229,10 +232,14 @@ int main(void) {
         int ret = smf_run_state(SMF_CTX(&s_obj));
         if (ret) {
             /* handle return code and terminate state machine */
-            LOG_INF("smg run error: %d", ret);
+            LOG_INF("smg return code: %d", ret);
             break;
         }
         k_msleep(1);
     }
+    LOG_INF("Its all over");
+    LOG_INF("Shutoff Cameras");
+    gpio_pin_set_dt(&ldo_enable, 1);
+    gpio_pin_set_dt(&cam_enable, 1);
     return 0;
 }

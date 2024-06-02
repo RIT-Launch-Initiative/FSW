@@ -44,4 +44,6 @@ extern struct k_event storage_setup_finished;
 
 k_tid_t spawn_data_storage_thread();
 
+int wait_for_data_storage_thread();
+
 #endif
