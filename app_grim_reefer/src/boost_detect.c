@@ -26,7 +26,6 @@ K_TIMER_DEFINE(accel_boost_detect_timer, NULL, NULL);
 
 // Events
 #define BEGIN_BOOST_DETECT_EVENT 2
-#define EVENT_FILTER_ALL         0xFFFFFFFF
 K_EVENT_DEFINE(begin_boost_detect);
 
 // Threads
@@ -57,8 +56,23 @@ int read_channel_to_float(const struct device* dev, enum sensor_channel chan, fl
     *fval = v;
     return ret;
 }
+// RIP Kconfig - WRONG I THINK
+double l_altitude_conversion(double pressure_kpa, double temperature_c) {
+    static const double R = 8.31447;   // Universal gas constant in J/(mol·K)
+    static const double g = 9.80665;   // Standard acceleration due to gravity in m/s^2
+    static const double M = 0.0289644; // Molar mass of Earth's air in kg/mol
+    static const double L = 0.0065;    // Temperature lapse rate in K/m
+    static const double T0 = 288.15;   // Standard temperature at sea level in K
+    static const double P0 = 101325;   // Standard pressure at sea level in Pa
+
+    double temp = temperature_c + 273.15;
+    double press = pressure_kpa * 1000; // Convert kPa to Pa
+    return ((R * T0) / (g * M)) * log(P0 / press * pow((temp + L * 0.5) / T0, -g * M / (R * L)));
+}
 
 static void altitude_boost_reading_task(void) {
+    struct altitude_data data = {0};
+
     k_event_wait(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT, false, K_FOREVER);
     while (true) {
         k_timer_status_sync(&altitude_boost_detect_timer);
@@ -70,6 +84,31 @@ static void altitude_boost_reading_task(void) {
         if (altimeter_dev == NULL) {
             LOG_ERR("No altitude device given to detect launch with, %p", altimeter_dev);
             continue;
+        }
+        // Read Sensor
+        sensor_sample_fetch(altimeter_dev);
+        float press = 0;
+        float temp = 0;
+        read_channel_to_float(altimeter_dev, SENSOR_CHAN_PRESS, &press);
+        read_channel_to_float(altimeter_dev, SENSOR_CHAN_AMBIENT_TEMP, &temp);
+        data.barom.pressure = press;
+        data.barom.temperature = temp;
+        data.timestamp = k_uptime_get();
+        // Write to buffer
+        struct altitude_data oldest = altitude_buffer[altitude_buffer_index];
+        altitude_buffer[altitude_buffer_index] = data;
+        altitude_buffer_index = (altitude_buffer_index + 1) % ARRAY_SIZE(altitude_buffer);
+        // Do altitude calcs
+        if (oldest.timestamp == 0) {
+            // these checks are invalid if the comparison value is uninitialized
+            continue;
+        }
+        double old_alt = l_altitude_conversion(oldest.barom.pressure, oldest.barom.temperature);
+        double alt = l_altitude_conversion(press, temp);
+        if (fabs(alt - old_alt) > ALTITUDE_VAL_THRESHOLD) {
+            LOG_INF("Altitude Boost Detect");
+            boost_detected = true;
+            break;
         }
     }
 }
@@ -120,7 +159,9 @@ static void accel_boost_reading_task(void) {
         accel_running_sum += reading;
         float avg = accel_running_sum / ACCEL_BUFFER_SIZE;
         if (avg > ACCEL_VAL_THRESHOLD) {
+            LOG_INF("Accel Boost Detect");
             boost_detected = true;
+            break;
         }
     }
 }
@@ -132,7 +173,7 @@ void start_boost_detect(const struct device* imu, const struct device* altimeter
     k_timer_user_data_set(&altitude_boost_detect_timer, (void*) altimeter);
 
     k_timer_start(&accel_boost_detect_timer, FAST_DATA_DELAY, FAST_DATA_DELAY);
-    k_timer_start(&altitude_boost_detect_timer, K_MSEC(20), K_MSEC(20));
+    k_timer_start(&altitude_boost_detect_timer, K_MSEC(10), K_MSEC(10));
 
     k_event_set(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT);
 }
