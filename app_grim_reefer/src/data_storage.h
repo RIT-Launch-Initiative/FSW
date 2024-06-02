@@ -37,12 +37,6 @@ struct adc_data {
     uint32_t adc_value[10];
 };
 
-extern struct k_msgq adc_data_queue;
-extern struct k_msgq fast_data_queue;
-extern struct k_msgq slow_data_queue;
-
-extern struct k_msgq flight_events_queue;
-
 #define STORAGE_SETUP_SUCCESS_EVENT 0x1
 #define STORAGE_SETUP_FAILED_EVENT  0x2
 extern struct k_event storage_setup_finished;
