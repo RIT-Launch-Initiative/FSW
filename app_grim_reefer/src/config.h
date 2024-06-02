@@ -12,10 +12,10 @@
 #define STORAGE_THREAD_PRIORITY   25
 
 // Sensor Reading
-#define FAST_DATA_DELAY_MS K_MSEC(2)
-#define SLOW_DATA_DELAY_MS K_MSEC(1000)
 
-#define TOTAL_FLIGHT_TIME_MS (400 * 1000)
+#define ADC_DATA_DELAY  K_USEC(100)
+#define FAST_DATA_DELAY K_MSEC(2)
+#define SLOW_DATA_DELAY K_MSEC(1000)
 
 // Boost Detection
 #define ALTITUDE_BUFFER_SIZE    500
@@ -26,15 +26,16 @@
 #define ACCEL_TIME_THRESHOLD K_MSEC(250)
 #define ACCEL_VAL_THRESHOLD  ((float) (9.81 * 5))
 
-#define DETECTION_METHOD_PER_SENSOR_COUNT 2
+// Flight Events
+#define TOTAL_FLIGHT_TIME_MS K_SEC(400)
+#define CAMERA_EXTRA_TIME    K_MIN(12)
 
 // FS Setup
 #define ADC_FILENAME  "/lfs/adc.bin"
 #define FAST_FILENAME "/lfs/fast.bin"
 #define SLOW_FILENAME "/lfs/slow.bin"
 
-#define PRELAUNCH_ACCEL_FILENAME "/lfs/pre_accel.bin"
-#define PRELAUNCH_ALT_FILENAME   "/lfs/pre_accel.bin"
-#define PRELAUNCH_TEMP_FILENAME  "/lfs/pre_accel.bin"
+#define PRELAUNCH_ACCEL_FILENAME "/lfs/pre_imu.bin"
+#define PRELAUNCH_ALT_FILENAME   "/lfs/pre_altitude.bin"
 
 #endif

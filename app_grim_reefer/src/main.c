@@ -21,7 +21,7 @@
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL);
 
-// devicetree gets
+// Device Tree Gets
 #define LED1_NODE DT_NODELABEL(led1)
 #define LED2_NODE DT_NODELABEL(led2)
 
@@ -136,6 +136,10 @@ static int sensor_init(void) {
 
     return 0;
 }
+
+// Flight Phase
+
+// State Machine Setup
 enum flight_state { PAD_STATE, FLIGHT_STATE, LANDED_STATE };
 const struct smf_state flight_states[];
 struct {
@@ -144,10 +148,27 @@ struct {
 } s_obj;
 
 static void pad_state_entry(void *o) {
-    LOG_INF("On Pad\n");
+    LOG_INF("On Pad");
     start_boost_detect(lsm6dsl_dev, bme280_dev);
 }
-static void flight_state_entry(void *o) { LOG_INF("Flight Started"); }
+static void pad_state_run(void *o) {
+    if (get_boost_detected()) {
+        smf_set_state(SMF_CTX(&s_obj), &flight_states[FLIGHT_STATE]);
+    }
+}
+static void pad_state_exit(void *o) { stop_boost_detect(); }
+
+static void flight_state_entry(void *o) {
+    LOG_INF("Flight Started");
+    // Turn on Cameras and ADC
+    gpio_pin_set_dt(&ldo_enable, 1);
+    gpio_pin_set_dt(&cam_enable, 1);
+}
+static void flight_state_run(void *o) {
+    smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
+    if (k_timer) }
+static void flight_state_exit(void *o) {}
+
 static void landed_state_entry(void *o) {
     // Stop logging, start telling
     LOG_INF("Landed");
@@ -155,18 +176,15 @@ static void landed_state_entry(void *o) {
     k_msgq_put(&flight_events_queue, &event, K_FOREVER);
     buzzer_tell(buzzer_cond_landed);
 }
-
-static void pad_state_run(void *o) { smf_set_state(SMF_CTX(&s_obj), &flight_states[FLIGHT_STATE]); }
-
-static void pad_state_exit(void *o) { stop_boost_detect(); }
-
-static void flight_state_run(void *o) { smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]); }
 static void landed_state_run(void *o) {
+    // If extra time gone by, shutdown cameras
     // smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
 }
 
-static void flight_state_exit(void *o) {}
-static void landed_state_exit(void *o) {}
+static void landed_state_exit(void *o) {
+    gpio_pin_set_dt(&ldo_enable, 1);
+    gpio_pin_set_dt(&cam_enable, 1);
+}
 
 const struct smf_state flight_states[] = {
     [PAD_STATE] = SMF_CREATE_STATE(pad_state_entry, pad_state_run, pad_state_exit),
