@@ -22,7 +22,6 @@ K_TIMER_DEFINE(accel_boost_detect_timer, NULL, NULL);
 
 // Events
 #define BEGIN_BOOST_DETECT_EVENT 2
-#define EVENT_FILTER_ALL         0xFFFFFFFF
 K_EVENT_DEFINE(begin_boost_detect);
 
 // Threads
