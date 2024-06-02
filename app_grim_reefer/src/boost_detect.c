@@ -3,6 +3,8 @@
 #include "config.h"
 #include "data_storage.h"
 
+#include <zephyr/fs/fs.h>
+
 // Launch Core Includes
 #include <launch_core/conversions.h>
 #include <launch_core/types.h>
@@ -34,10 +36,15 @@ K_THREAD_DEFINE(accel_boost_thread, 1024, accel_boost_reading_task, NULL, NULL, 
 // Rolling buffers for data recovery
 volatile bool boost_detected = false;
 
-struct fast_data accel_buffer[ACCEL_BUFFER_SIZE];
+struct fast_data accel_buffer[ACCEL_BUFFER_SIZE] = {0};
 int accel_buffer_index = 0;
 
-l_barometer_data_t altitude_buffer[ALTITUDE_BUFFER_SIZE];
+struct altitude_data {
+    uint32_t timestamp;
+    l_barometer_data_t barom;
+};
+
+struct altitude_data altitude_buffer[ALTITUDE_BUFFER_SIZE] = {0};
 int altitude_buffer_index;
 
 static void altitude_boost_reading_task(void) {
@@ -98,4 +105,27 @@ void stop_boost_detect() {
 
 bool get_boost_detected() { return boost_detected; }
 
-void save_boost_data() { LOG_INF("Saving boost TODO"); }
+void save_full_buffer(uint8_t* data, size_t length, const char* filename) {
+    struct fs_file_t file;
+    fs_file_t_init(&file);
+    int ret = fs_open(&file, filename, FS_O_RDWR | FS_O_CREATE);
+
+    if (ret < 0) {
+        LOG_ERR("Error opening %s. %d", filename, ret);
+        return;
+    }
+    ret = fs_write(&file, data, length);
+    if (ret < 0) {
+        LOG_INF("Error writing %s", filename);
+    }
+    ret = fs_close(&file);
+    if (ret < 0) {
+        LOG_ERR("Failed to save adc file. %d", ret);
+    }
+    LOG_INF("Saved %s", filename);
+}
+
+void save_boost_data() {
+    save_full_buffer((uint8_t*) accel_buffer, sizeof(accel_buffer), PRELAUNCH_ACCEL_FILENAME);
+    save_full_buffer((uint8_t*) altitude_buffer, sizeof(altitude_buffer), PRELAUNCH_ALT_FILENAME);
+}
