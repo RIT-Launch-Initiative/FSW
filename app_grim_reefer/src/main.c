@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "boost_detect.h"
 #include "buzzer.h"
 #include "config.h"
 #include "data_storage.h"
 #include "flight.h"
 
 #include <math.h>
-#include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/gpio.h>
@@ -143,22 +143,28 @@ struct {
     /* All User Defined Data Follows */
 } s_obj;
 
-static void pad_state_entry(void *o) {}
-static void flight_state_entry(void *o) {}
+static void pad_state_entry(void *o) {
+    LOG_INF("On Pad\n");
+    start_boost_detect(lsm6dsl_dev, bme280_dev);
+}
+static void flight_state_entry(void *o) { LOG_INF("Flight Started"); }
 static void landed_state_entry(void *o) {
     // Stop logging, start telling
+    LOG_INF("Landed");
     enum flight_event event = flight_event_shutoff;
     k_msgq_put(&flight_events_queue, &event, K_FOREVER);
     buzzer_tell(buzzer_cond_landed);
 }
 
 static void pad_state_run(void *o) { smf_set_state(SMF_CTX(&s_obj), &flight_states[FLIGHT_STATE]); }
+
+static void pad_state_exit(void *o) { stop_boost_detect(); }
+
 static void flight_state_run(void *o) { smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]); }
 static void landed_state_run(void *o) {
     // smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
 }
 
-static void pad_state_exit(void *o) {}
 static void flight_state_exit(void *o) {}
 static void landed_state_exit(void *o) {}
 
@@ -184,7 +190,11 @@ int main(void) {
         buzzer_tell(buzzer_cond_missing_sensors);
     }
 
+#ifdef PEOPLE_ARE_SLEEPING
+    begin_buzzer_thread(&led1);
+#else
     begin_buzzer_thread(&buzzer);
+#endif
 
     (void) spawn_data_storage_thread();
 
@@ -192,7 +202,7 @@ int main(void) {
     if (k_event_wait(&storage_setup_finished, EVENT_FILTER_ALL, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
         LOG_ERR("Failed to initialize file sysbegin_buzzer_threadtem. FATAL ERROR\n");
         buzzer_tell(buzzer_cond_noflash);
-        // VERY VERY BAD
+        // VERY VERY BAD - payload will get no data
     }
 
     smf_set_initial(SMF_CTX(&s_obj), &flight_states[PAD_STATE]);

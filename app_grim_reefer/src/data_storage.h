@@ -1,9 +1,9 @@
 #ifndef REEFER_INLCUDE_DATA_STORAGE_H
 #define REEFER_INLCUDE_DATA_STORAGE_H
 
+#include <launch_core/types.h>
 #include <stdint.h>
 #include <zephyr/kernel.h>
-
 struct slow_data {
     uint32_t timestamp;
 
@@ -23,13 +23,8 @@ struct slow_data {
 struct fast_data {
     uint32_t timestamp;
 
-    uint32_t accel_x;
-    uint32_t accel_y;
-    uint32_t accel_z;
-
-    uint32_t gyro_x;
-    uint32_t gyro_y;
-    uint32_t gyro_z;
+    l_accelerometer_data_t acc;
+    l_gyroscope_data_t gyro;
 };
 
 struct adc_data {
