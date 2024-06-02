@@ -36,14 +36,12 @@ extern struct k_msgq adc_data_queue;
 extern struct k_msgq fast_data_queue;
 extern struct k_msgq slow_data_queue;
 
-extern struct k_msgq flight_events_queue;
+extern struct k_msgq data_storage_control_queue;
 
-#define STORAGE_SETUP_SUCCESS_EVENT 0x1
-#define STORAGE_SETUP_FAILED_EVENT  0x2
-extern struct k_event storage_setup_finished;
-
-k_tid_t spawn_data_storage_thread();
+void start_data_storage_thread();
 
 int wait_for_data_storage_thread();
+
+void finish_data_storage();
 
 #endif

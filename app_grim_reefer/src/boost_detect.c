@@ -20,9 +20,16 @@ static void accel_boost_reading_task(void);
 K_TIMER_DEFINE(altitude_boost_detect_timer, NULL, NULL);
 K_TIMER_DEFINE(accel_boost_detect_timer, NULL, NULL);
 
+// Events
+#define BEGIN_BOOST_DETECT_EVENT 2
+#define EVENT_FILTER_ALL         0xFFFFFFFF
+K_EVENT_DEFINE(begin_boost_detect);
+
 // Threads
-K_THREAD_DEFINE(altimeter_boost_thread, 1024, altitude_boost_reading_task, NULL, NULL, NULL, 1, 0, 1000);
-K_THREAD_DEFINE(accel_boost_thread, 1024, accel_boost_reading_task, NULL, NULL, NULL, 1, 0, 1000);
+K_THREAD_DEFINE(altimeter_boost_thread, 1024, altitude_boost_reading_task, NULL, NULL, NULL, BOOST_DETECT_ALT_PRIORITY,
+                0, 1000);
+K_THREAD_DEFINE(accel_boost_thread, 1024, accel_boost_reading_task, NULL, NULL, NULL, BOOST_DETECT_IMU_PRIORITY, 0,
+                1000);
 
 // Rolling buffers for data recovery
 volatile bool boost_detected = false;
@@ -34,11 +41,12 @@ l_barometer_data_t altitude_buffer[ALTITUDE_BUFFER_SIZE];
 int altitude_buffer_index;
 
 static void altitude_boost_reading_task(void) {
+    k_event_wait(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT, false, K_FOREVER);
     while (true) {
+        k_timer_status_sync(&altitude_boost_detect_timer);
         if (boost_detected) {
             break;
         }
-        k_timer_status_sync(&altitude_boost_detect_timer);
         const struct device* altimeter_dev = (const struct device*) k_timer_user_data_get(&altitude_boost_detect_timer);
 
         if (altimeter_dev == NULL) {
@@ -52,12 +60,13 @@ static void altitude_boost_reading_task(void) {
 }
 
 static void accel_boost_reading_task(void) {
+
+    k_event_wait(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT, false, K_FOREVER);
     while (true) {
+        k_timer_status_sync(&accel_boost_detect_timer);
         if (boost_detected) {
             break;
         }
-
-        k_timer_status_sync(&accel_boost_detect_timer);
         const struct device* imu_dev = (const struct device*) k_timer_user_data_get(&accel_boost_detect_timer);
 
         if (imu_dev == NULL) {
@@ -77,6 +86,9 @@ void start_boost_detect(const struct device* imu, const struct device* altimeter
 
     k_timer_start(&accel_boost_detect_timer, K_MSEC(1), K_MSEC(1));
     k_timer_start(&altitude_boost_detect_timer, K_MSEC(10), K_MSEC(10));
+
+    int r = k_event_set(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT);
+    LOG_INF("Post event R: %d", r);
 }
 
 void stop_boost_detect() {

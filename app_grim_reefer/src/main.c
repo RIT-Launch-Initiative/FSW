@@ -8,7 +8,6 @@
 #include "buzzer.h"
 #include "config.h"
 #include "data_storage.h"
-#include "flight.h"
 
 #include <math.h>
 #include <zephyr/devicetree.h>
@@ -176,12 +175,12 @@ static void flight_state_run(void *o) {
 static void flight_state_exit(void *o) {}
 
 static void landed_state_entry(void *o) {
-    // Stop logging, start telling
+    // Stop logging, start saving
     LOG_INF("Landed");
-    enum flight_event event = flight_event_shutoff;
-    k_msgq_put(&flight_events_queue, &event, K_FOREVER);
-    buzzer_tell(buzzer_cond_landed);
     k_timer_start(&camera_extra_timer, CAMERA_EXTRA_TIME, K_NO_WAIT);
+
+    finish_data_storage();
+    buzzer_tell(buzzer_cond_landed);
     save_boost_data();
 }
 static void landed_state_run(void *o) {
@@ -190,7 +189,6 @@ static void landed_state_run(void *o) {
         smf_set_terminate(SMF_CTX(&s_obj), 1);
     }
 }
-
 static void landed_state_exit(void *o) {}
 
 const struct smf_state flight_states[] = {
@@ -219,12 +217,13 @@ int main(void) {
     begin_buzzer_thread(&buzzer);
 #endif
 
-    (void) spawn_data_storage_thread();
+    start_data_storage_thread();
 
     if (wait_for_data_storage_thread() != 0) {
         LOG_ERR("Failed to initialize data storage. FATAL ERROR\n");
         buzzer_tell(buzzer_cond_noflash);
     }
+    LOG_INF("Setup storage");
 
     smf_set_initial(SMF_CTX(&s_obj), &flight_states[PAD_STATE]);
     while (1) {
@@ -237,9 +236,9 @@ int main(void) {
         }
         k_msleep(1);
     }
-    LOG_INF("Its all over");
     LOG_INF("Shutoff Cameras");
-    gpio_pin_set_dt(&ldo_enable, 1);
-    gpio_pin_set_dt(&cam_enable, 1);
+    gpio_pin_set_dt(&cam_enable, 0);
+    gpio_pin_set_dt(&ldo_enable, 0);
+    LOG_INF("Its all over");
     return 0;
 }
