@@ -214,7 +214,7 @@ int main(void) {
         buzzer_tell(buzzer_cond_missing_sensors);
     }
 
-#ifdef PEOPLE_ARE_SLEEPING
+#ifdef BUZZER_USE_LED
     begin_buzzer_thread(&led1);
 #else
     begin_buzzer_thread(&buzzer);

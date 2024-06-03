@@ -4,10 +4,10 @@
 #include <zephyr/kernel.h>
 
 // Use buzzer or led for status
-#define PEOPLE_ARE_SLEEPING
+#define BUZZER_USE_LED
 
 // Use short timers so you don't get bored
-#define DEBUG_FLIGHT
+#define SMALL_FLIGHT
 
 // Storage Thread
 #define STORAGE_QUEUE_SIZE        150
@@ -29,10 +29,13 @@
 
 #define ACCEL_BUFFER_SIZE    250
 #define ACCEL_TIME_THRESHOLD K_MSEC(250)
-#define ACCEL_VAL_THRESHOLD  ((float) (9.81 * 5))
-
+#ifdef SMALL_FLIGHT
+#define ACCEL_VAL_THRESHOLD ((float) (9.81 * .5))
+#else
+#define ACCEL_VAL_THRESHOLD ((float) (9.81 * 5))
+#endif
 // Flight Events
-#ifdef DEBUG_FLIGHT
+#ifdef SMALL_FLIGHT
 #define TOTAL_FLIGHT_TIME K_SECONDS(20)
 #define CAMERA_EXTRA_TIME K_SECONDS(5)
 #else
