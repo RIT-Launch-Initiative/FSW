@@ -121,7 +121,7 @@ int start_data_storage_thread() {
     k_msgq_put(&data_storage_control_queue, &event, K_FOREVER);
     if (k_event_wait(&storage_setup_finished, EVENT_FILTER_ALL, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
         // VERY VERY BAD - payload will log no data
-        return 1;
+        return -1;
     }
     return 0;
 }

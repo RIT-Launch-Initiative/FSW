@@ -4,10 +4,10 @@
 #include <zephyr/kernel.h>
 
 // Use buzzer or led for status
-#define PEOPLE_ARE_SLEEPING
+#define BUZZER_USE_LED
 
 // Use short timers so you don't get bored
-#define DEBUG_FLIGHT
+#define SHORT_FLIGHT
 
 // Storage Thread
 #define STORAGE_QUEUE_SIZE        150
@@ -22,7 +22,7 @@
 #define SLOW_READ_PRIORITY -1
 
 // Sensor Reading
-#define ADC_DATA_DELAY   K_USEC(250) /// MAKE THIS FASTER
+#define ADC_DATA_DELAY   K_USEC(150) /// MAKE THIS FASTER
 #define ALTIM_DATA_DELAY K_MSEC(1)
 #define FAST_DATA_DELAY  K_MSEC(2)
 #define SLOW_DATA_DELAY  K_MSEC(1000)
@@ -33,20 +33,19 @@
 
 #define IMU_UP_AXIS       accel_z
 #define ACCEL_BUFFER_SIZE 250
-#ifdef DEBUG_FLIGHT
+#ifdef SHORT_FLIGHT
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * .5))
 #else
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * 5))
 #endif
 // Flight Events
-// #ifdef DEBUG_FLIGHT
-// #define TOTAL_FLIGHT_TIME K_SECONDS(10)
-// #define CAMERA_EXTRA_TIME K_SECONDS(5)
-// #else
+#ifdef SHORT_FLIGHT
+#define TOTAL_FLIGHT_TIME K_SECONDS(10)
+#define CAMERA_EXTRA_TIME K_SECONDS(5)
+#else
 #define TOTAL_FLIGHT_TIME K_SECONDS(400)
 #define CAMERA_EXTRA_TIME K_MINUTES(12)
-
-// #endif
+#endif
 
 // FS Setup
 #define ADC_FILENAME  "/lfs/adc.bin"

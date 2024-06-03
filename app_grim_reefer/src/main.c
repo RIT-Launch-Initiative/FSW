@@ -234,7 +234,7 @@ int main(void) {
     data_devices.slow.ina_grim = ina_grim_dev;
     data_devices.chan = &adc_chan0;
 
-#ifdef PEOPLE_ARE_SLEEPING
+#ifdef BUZZER_USE_LED
     begin_buzzer_thread(&led1);
 #else
     begin_buzzer_thread(&buzzer);
