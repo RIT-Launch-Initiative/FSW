@@ -7,6 +7,7 @@
 #include "boost_detect.h"
 #include "buzzer.h"
 #include "config.h"
+#include "data_reading.h"
 #include "data_storage.h"
 
 #include <math.h>
@@ -59,6 +60,9 @@ const struct device *ina_ldo_dev = DEVICE_DT_GET(INA_LDO_NODE);
 const struct device *ina_grim_dev = DEVICE_DT_GET(INA_GRIM_NODE);
 
 static const struct adc_dt_spec adc_chan0 = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+
+// Cannnot be statically initialized :(
+struct data_devices data_devices = {0};
 
 /**
  * Check if a gpio is ready or return a status code indicating that its not.
@@ -147,6 +151,8 @@ struct {
     /* All User Defined Data Follows */
 } s_obj;
 
+extern bool flight_over;
+
 // On Pad, boost detecting
 static void pad_state_entry(void *o) {
     LOG_INF("On Pad");
@@ -157,7 +163,10 @@ static void pad_state_run(void *o) {
         smf_set_state(SMF_CTX(&s_obj), &flight_states[FLIGHT_STATE]);
     }
 }
-static void pad_state_exit(void *o) { stop_boost_detect(); }
+static void pad_state_exit(void *o) {
+    stop_boost_detect();
+    save_boost_data();
+}
 
 // In flight, data sampling
 static void flight_state_entry(void *o) {
@@ -166,6 +175,8 @@ static void flight_state_entry(void *o) {
     gpio_pin_set_dt(&ldo_enable, 1);
     gpio_pin_set_dt(&cam_enable, 1);
     k_timer_start(&flight_duration_timer, TOTAL_FLIGHT_TIME, K_NO_WAIT);
+
+    start_data_reading(&data_devices);
 }
 static void flight_state_run(void *o) {
 
@@ -174,7 +185,10 @@ static void flight_state_run(void *o) {
         smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
     }
 }
-static void flight_state_exit(void *o) {}
+static void flight_state_exit(void *o) {
+    flight_over = true;
+    stop_data_reading();
+}
 
 // Landed, saving files and waiting for cameras
 static void landed_state_entry(void *o) {
@@ -184,7 +198,6 @@ static void landed_state_entry(void *o) {
 
     finish_data_storage();
     buzzer_tell(buzzer_cond_landed);
-    save_boost_data();
 }
 static void landed_state_run(void *o) {
     if (k_timer_status_get(&camera_extra_timer) > 0) {
@@ -213,6 +226,13 @@ int main(void) {
         LOG_ERR("Some sensors not functional");
         buzzer_tell(buzzer_cond_missing_sensors);
     }
+
+    data_devices.fast.imu = lsm6dsl_dev;
+    data_devices.slow.altim = bme280_dev;
+    data_devices.slow.ina_adc = ina_ldo_dev;
+    data_devices.slow.ina_bat = ina_bat_dev;
+    data_devices.slow.ina_grim = ina_grim_dev;
+    data_devices.chan = &adc_chan0;
 
 #ifdef PEOPLE_ARE_SLEEPING
     begin_buzzer_thread(&led1);

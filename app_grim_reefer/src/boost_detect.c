@@ -49,7 +49,7 @@ struct altitude_data {
 struct altitude_data altitude_buffer[ALTITUDE_BUFFER_SIZE] = {0};
 int altitude_buffer_index;
 
-int read_channel_to_float(const struct device* dev, enum sensor_channel chan, float* fval) {
+static int read_channel_to_float(const struct device* dev, enum sensor_channel chan, float* fval) {
     struct sensor_value val = {0};
     int ret = sensor_channel_get(dev, chan, &val);
     float v = sensor_value_to_float(&val);
@@ -173,7 +173,7 @@ void start_boost_detect(const struct device* imu, const struct device* altimeter
     k_timer_user_data_set(&altitude_boost_detect_timer, (void*) altimeter);
 
     k_timer_start(&accel_boost_detect_timer, FAST_DATA_DELAY, FAST_DATA_DELAY);
-    k_timer_start(&altitude_boost_detect_timer, K_MSEC(10), K_MSEC(10));
+    k_timer_start(&altitude_boost_detect_timer, ALTIM_DATA_DELAY, ALTIM_DATA_DELAY);
 
     k_event_set(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT);
 }

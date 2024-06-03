@@ -17,10 +17,15 @@
 #define BOOST_DETECT_IMU_PRIORITY -1
 #define BOOST_DETECT_ALT_PRIORITY -1
 
+#define ADC_READ_PRIORITY  1
+#define FAST_READ_PRIORITY -1
+#define SLOW_READ_PRIORITY -1
+
 // Sensor Reading
-#define ADC_DATA_DELAY  K_USEC(100)
-#define FAST_DATA_DELAY K_MSEC(2)
-#define SLOW_DATA_DELAY K_MSEC(1000)
+#define ADC_DATA_DELAY   K_USEC(250) /// MAKE THIS FASTER
+#define ALTIM_DATA_DELAY K_MSEC(1)
+#define FAST_DATA_DELAY  K_MSEC(2)
+#define SLOW_DATA_DELAY  K_MSEC(1000)
 
 // Boost Detection
 #define ALTITUDE_BUFFER_SIZE   500
@@ -34,14 +39,14 @@
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * 5))
 #endif
 // Flight Events
-#ifdef DEBUG_FLIGHT
-#define TOTAL_FLIGHT_TIME K_SECONDS(20)
-#define CAMERA_EXTRA_TIME K_SECONDS(5)
-#else
+// #ifdef DEBUG_FLIGHT
+// #define TOTAL_FLIGHT_TIME K_SECONDS(10)
+// #define CAMERA_EXTRA_TIME K_SECONDS(5)
+// #else
 #define TOTAL_FLIGHT_TIME K_SECONDS(400)
 #define CAMERA_EXTRA_TIME K_MINUTES(12)
 
-#endif
+// #endif
 
 // FS Setup
 #define ADC_FILENAME  "/lfs/adc.bin"

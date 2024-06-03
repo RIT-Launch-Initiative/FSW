@@ -7,8 +7,8 @@
 struct slow_data {
     uint32_t timestamp;
 
-    uint32_t humidity;
-    uint32_t temperature;
+    float humidity;
+    float temperature;
 
     uint16_t grim_voltage; // LSB =  1.25 mV
     uint16_t grim_current; // LSB =  1.25 mA
