@@ -9,6 +9,10 @@
 // Use short timers so you don't get bored
 #define SHORT_FLIGHT
 
+// Use to .5 G for boost detect if directional
+// doesnt effect non directional bc that can be shaken to trigger
+#define EASY_BOOST_DETECT
+
 // Storage Thread
 #define STORAGE_QUEUE_SIZE        150
 #define STORAGE_THREAD_STACK_SIZE 2048
@@ -33,7 +37,7 @@
 
 #define IMU_UP_AXIS       accel_z
 #define ACCEL_BUFFER_SIZE 250
-#ifdef SHORT_FLIGHT
+#ifdef EASY_BOOST_DETECT
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * .5))
 #else
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * 5))

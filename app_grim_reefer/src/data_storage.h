@@ -32,10 +32,6 @@ struct adc_data {
     uint32_t adc_value[10];
 };
 
-extern struct k_msgq adc_data_queue;
-extern struct k_msgq fast_data_queue;
-extern struct k_msgq slow_data_queue;
-
 /**
  * @brief Open files, setup thread and get ready for data to start streaming in
  * @return 0 if setup correctly. -1 if not

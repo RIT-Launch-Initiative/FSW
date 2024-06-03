@@ -63,6 +63,13 @@ K_THREAD_DEFINE(storage_thread, STORAGE_THREAD_STACK_SIZE, storage_thread_entry_
         }                                                                                                              \
     }
 
+void print_file_size(struct fs_file_t *fil, int entry_size, const char *name) {
+    int fil_size = fs_tell(fil);
+    int adc_entries = fil_size / entry_size;
+
+    printk("%s: %d bytes of size %d. %d entries\n", name, fil_size, entry_size, adc_entries);
+}
+
 void storage_thread_entry_point() {
     struct fast_data fast_dat = {0};
     struct slow_data slow_dat = {0};
@@ -97,21 +104,30 @@ void storage_thread_entry_point() {
             }
         }
     }
+
     LOG_INF("Flight over. Saving files...");
+    print_file_size(&adc_file, sizeof(struct adc_data), "ADC");
+    print_file_size(&fast_file, sizeof(struct fast_data), "fast");
+    print_file_size(&slow_file, sizeof(struct slow_data), "slow");
+
     ret = fs_close(&fast_file);
     if (ret < 0) {
         LOG_ERR("Failed to save fast file. %d", ret);
     }
+    LOG_INF("Saved Fast");
     ret = fs_close(&slow_file);
     if (ret < 0) {
         LOG_ERR("Failed to save slow file. %d", ret);
     }
+    LOG_INF("Saved Slow");
     ret = fs_close(&adc_file);
     if (ret < 0) {
         LOG_ERR("Failed to save adc file. %d", ret);
     }
+    LOG_INF("Saved ADC");
 
-    LOG_INF("Saved Files");
+    printk("Saved Files");
+    return;
 }
 
 #define EVENT_FILTER_ALL 0xFFFFFFFF

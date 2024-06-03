@@ -52,6 +52,9 @@ static void adc_reading_task(void) {
     const struct adc_dt_spec* chan = devs->chan;
     LOG_INF("Adc chan %p", chan);
     while (true) {
+        if (flight_over) {
+            break;
+        }
         k_timer_status_sync(&adc_timer);
         // Read ADC
         (void) adc_sequence_init_dt(chan, &sequence);
@@ -102,6 +105,9 @@ static void slow_reading_task(void) {
     const struct data_devices* devs = (struct data_devices*) k_timer_user_data_get(&slow_timer);
     struct slow_data data = {0};
     while (true) {
+        if (flight_over) {
+            break;
+        }
         k_timer_status_sync(&slow_timer);
         // Read inas
         data.timestamp = k_uptime_get();
@@ -138,4 +144,11 @@ void start_data_reading(const struct data_devices* devs) {
     k_timer_start(&slow_timer, SLOW_DATA_DELAY, SLOW_DATA_DELAY);
     k_event_set(&begin_reading, BEGIN_READING_EVENT);
 }
-void stop_data_reading() {}
+void stop_data_reading() {
+    flight_over = true;
+    k_sleep(SLOW_DATA_DELAY); // Wait for all to quit
+    LOG_INF("Stop data reading");
+    k_timer_stop(&adc_timer);
+    k_timer_stop(&fast_timer);
+    k_timer_stop(&slow_timer);
+}

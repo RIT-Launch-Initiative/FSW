@@ -163,10 +163,7 @@ static void pad_state_run(void *o) {
         smf_set_state(SMF_CTX(&s_obj), &flight_states[FLIGHT_STATE]);
     }
 }
-static void pad_state_exit(void *o) {
-    stop_boost_detect();
-    save_boost_data();
-}
+static void pad_state_exit(void *o) { stop_boost_detect(); }
 
 // In flight, data sampling
 static void flight_state_entry(void *o) {
@@ -175,6 +172,7 @@ static void flight_state_entry(void *o) {
     gpio_pin_set_dt(&ldo_enable, 1);
     gpio_pin_set_dt(&cam_enable, 1);
     k_timer_start(&flight_duration_timer, TOTAL_FLIGHT_TIME, K_NO_WAIT);
+    save_boost_data();
 
     start_data_reading(&data_devices);
 }
