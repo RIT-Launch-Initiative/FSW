@@ -5,6 +5,11 @@
 
 #include <launch_core/types.h>
 
+#define LPS22_PRESSURE_REGISTER 0
+#define LPS22_TEMPERATURE_REGISTER (LPS22_PRESSURE_REGISTER + 2)
+#define ADC_REGISTER (LPS22_TEMPERATURE_REGISTER + 2)
+
+
 typedef enum
 {
     PAD_STATE = 0,

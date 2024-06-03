@@ -143,6 +143,8 @@ static void landing_state_run(void*) {
 int main() {
     boot_count = l_fs_boot_count_check();
 
+    init_modbus_server();
+
     while (true) {
         k_msleep(100);
         static int ret = 0;
