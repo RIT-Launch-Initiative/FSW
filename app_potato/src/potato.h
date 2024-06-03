@@ -63,4 +63,17 @@ void configure_telemetry_rate(uint32_t frequency);
  */
 void bin_telemetry_file();
 
+/**
+ * Initialize a Modbus Server
+ */
+int init_modbus_server(void);
+
+/**
+ * Place a float into an input register
+ * @param addr - Address of the register
+ * @param value - Value to place in the register
+ * @return 0 on success, negative error code on failure
+ */
+int insert_float_to_input_reg(uint16_t addr, float value);
+
 #endif //POTATO_H
