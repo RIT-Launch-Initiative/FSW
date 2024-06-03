@@ -21,6 +21,7 @@ extern bool boost_detected;
 // Global Variables
 bool logging_enabled = false;
 bool state_transition = true;
+volatile uint8_t event_byte = 0;
 uint32_t boot_count = -1;
 
 // State Machine
@@ -64,7 +65,7 @@ static void pad_state_entry(void*) {
 
 static void pad_state_run(void*) {
     while (true) {
-        bool received_boost_notif = (L_BOOST_DETECTED == get_event_from_serial());
+        bool received_boost_notif = (L_BOOST_DETECTED == event_byte);
 
         if (boost_detected || received_boost_notif) {
             smf_set_state(SMF_CTX(&state_obj), &states[BOOST_STATE]);

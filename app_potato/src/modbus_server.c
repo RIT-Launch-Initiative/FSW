@@ -1,6 +1,9 @@
 // Self Include
 #include "potato.h"
 
+// Launch Includes
+#include <launch_core/backplane_defs.h>
+
 // Zephyr Includes
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
@@ -12,6 +15,19 @@
 LOG_MODULE_REGISTER(modbus_server, LOG_LEVEL_INF);
 
 static uint16_t input_reg[8] = {0};
+static uint8_t event_byte;
+
+// Note: This function does not adhere to the Modbus standard
+// Simplest way to notify POTATO that boost occurred though over RS485
+static int coil_wr(uint16_t addr, bool boost_detected) {
+    if (addr != 0) {
+        return -ENOTSUP;
+    }
+
+    event_byte = boost_detected ? L_BOOST_DETECTED : 0;
+
+    return 0;
+}
 
 static int input_reg_rd(uint16_t addr, uint16_t* reg) {
     if (addr >= ARRAY_SIZE(input_reg)) {
@@ -41,6 +57,7 @@ int insert_float_to_input_reg(uint16_t addr, float value) {
 int init_modbus_server(void) {
     static struct modbus_user_callbacks mbs_cbs = {
         .input_reg_rd = input_reg_rd,
+        .coil_wr = coil_wr
     };
 
     const static struct modbus_iface_param server_param = {
