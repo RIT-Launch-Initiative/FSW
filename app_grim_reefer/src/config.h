@@ -13,6 +13,11 @@
 // doesnt effect non directional bc that can be shaken to trigger
 #define EASY_BOOST_DETECT
 
+// If here, use 1 axis boost detection, if not use magnitude
+#define IMU_BOOST_DETECTION_MODE_AXIS
+// which axis to use. accel_x, accel_y, accel_z
+#define IMU_UP_AXIS accel_z
+
 // Storage Thread
 #define STORAGE_QUEUE_SIZE        150
 #define STORAGE_THREAD_STACK_SIZE 2048
@@ -37,16 +42,16 @@
 #define ALTITUDE_BUFFER_SIZE   500
 #define ALTITUDE_VAL_THRESHOLD 500
 
-#define IMU_UP_AXIS       accel_z
 #define ACCEL_BUFFER_SIZE 250
 #ifdef EASY_BOOST_DETECT
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * .5))
 #else
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * 5))
 #endif
+
 // Flight Events
 #ifdef SHORT_FLIGHT
-#define TOTAL_FLIGHT_TIME K_SECONDS(10)
+#define TOTAL_FLIGHT_TIME K_SECONDS(20)
 #define CAMERA_EXTRA_TIME K_SECONDS(5)
 #else
 #define TOTAL_FLIGHT_TIME K_SECONDS(400)
