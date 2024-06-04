@@ -30,9 +30,9 @@ K_EVENT_DEFINE(begin_boost_detect);
 
 // Threads
 K_THREAD_DEFINE(altimeter_boost_thread, 1024, altitude_boost_reading_task, NULL, NULL, NULL, BOOST_DETECT_ALT_PRIORITY,
-                0, 1000);
+                0, THREAD_START_DELAY);
 K_THREAD_DEFINE(accel_boost_thread, 1024, accel_boost_reading_task, NULL, NULL, NULL, BOOST_DETECT_IMU_PRIORITY, 0,
-                1000);
+                THREAD_START_DELAY);
 
 volatile bool boost_detected = false;
 // Rolling buffers

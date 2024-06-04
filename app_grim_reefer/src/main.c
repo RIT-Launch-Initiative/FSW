@@ -177,11 +177,8 @@ static void flight_state_entry(void *o) {
     start_data_reading(&data_devices);
 }
 static void flight_state_run(void *o) {
-
-    if (k_timer_status_get(&flight_duration_timer) > 0) {
-        // timer has expired
-        smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
-    }
+    k_timer_status_sync(&flight_duration_timer);
+    smf_set_state(SMF_CTX(&s_obj), &flight_states[LANDED_STATE]);
 }
 static void flight_state_exit(void *o) {
     flight_over = true;

@@ -68,7 +68,7 @@
             // the binding reccomends defaults for these
             read-size = <16>;
             prog-size = <16>;
-            cache-size = <2048>; // may need to grow for optimization
+            cache-size = <4096>; // may need to grow for optimization
             lookahead-size = <128>;
             block-cycles = <(90 * 1000)>;
             // the datasheet gives 100K P-E cycles
@@ -168,11 +168,21 @@
 
 };
 
+&dma2 {
+    status = "okay";
+};
+
 &spi1 {
     pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
     cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
     pinctrl-names = "default";
     status = "okay";
+
+
+    dmas = <&dma2 5 3 0x28440 0x03>,
+           <&dma2 2 3 0x28480 0x03>;
+    dma-names = "tx", "rx";
+
 
     w25q512: w25q512jv@0 {
         compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
@@ -181,7 +191,6 @@
         size = <DT_SIZE_M(512)>; // w25q512 - 512 MBit (S 9.4, p.92)
         jedec-id = [ ef 40 20  ]; // 0xef4020 (Table 8.1.1, p.25)
         spi-max-frequency = <DT_FREQ_M(50)>; // fR = 50 MHz (Table 9.6, p.86)
-
 
         has-dpd;
         // Power-down 0xB9 (S 8.2.21)
@@ -220,7 +229,7 @@
         device-address = <1>;
         clock-selection = "CLK_INTERNAL";
         prescale = "PRE_1";
-        spi-max-frequency = <DT_FREQ_M(8)>; // pg. 12, Table 1.1 MAX 20MHz
+        spi-max-frequency = <DT_FREQ_M(10)>; // pg. 12, Table 1.1 MAX 20MHz
 
 
         channel@0 {

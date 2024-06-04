@@ -30,9 +30,9 @@ K_TIMER_DEFINE(slow_timer, NULL, NULL);
 K_EVENT_DEFINE(begin_reading);
 
 // Threads
-K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, ADC_READ_PRIORITY, 0, 1000);
-K_THREAD_DEFINE(fast_thread, 1024, fast_reading_task, NULL, NULL, NULL, FAST_READ_PRIORITY, 0, 1000);
-K_THREAD_DEFINE(slow_thread, 1024, slow_reading_task, NULL, NULL, NULL, SLOW_READ_PRIORITY, 0, 1000);
+K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, ADC_READ_PRIORITY, 0, THREAD_START_DELAY);
+K_THREAD_DEFINE(fast_thread, 1024, fast_reading_task, NULL, NULL, NULL, FAST_READ_PRIORITY, 0, THREAD_START_DELAY);
+K_THREAD_DEFINE(slow_thread, 1024, slow_reading_task, NULL, NULL, NULL, SLOW_READ_PRIORITY, 0, THREAD_START_DELAY);
 static int read_channel_to_float(const struct device* dev, enum sensor_channel chan, float* fval) {
     struct sensor_value val = {0};
     int ret = sensor_channel_get(dev, chan, &val);
@@ -51,6 +51,7 @@ static void adc_reading_task(void) {
     const struct data_devices* devs = (struct data_devices*) k_timer_user_data_get(&adc_timer);
     const struct adc_dt_spec* chan = devs->chan;
     LOG_INF("Adc chan %p", chan);
+
     while (true) {
         if (flight_over) {
             break;

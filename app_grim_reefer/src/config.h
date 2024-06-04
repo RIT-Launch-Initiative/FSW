@@ -21,13 +21,15 @@
 #define BOOST_DETECT_IMU_PRIORITY -1
 #define BOOST_DETECT_ALT_PRIORITY -1
 
-#define ADC_READ_PRIORITY  1
+#define ADC_READ_PRIORITY  -1
 #define FAST_READ_PRIORITY -1
 #define SLOW_READ_PRIORITY -1
 
+#define THREAD_START_DELAY 100
+
 // Sensor Reading
-#define ADC_DATA_DELAY   K_USEC(150) /// MAKE THIS FASTER
-#define ALTIM_DATA_DELAY K_MSEC(1)
+#define ADC_DATA_DELAY   K_USEC(101) /// For some reason 100 locks up the shell
+#define ALTIM_DATA_DELAY K_MSEC(10)
 #define FAST_DATA_DELAY  K_MSEC(2)
 #define SLOW_DATA_DELAY  K_MSEC(1000)
 
