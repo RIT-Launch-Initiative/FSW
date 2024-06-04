@@ -45,15 +45,32 @@ static int dump_base64(const struct shell *shell, const char *fname) {
     fs_close(&file);
     return 0;
 }
-
+#define SEPARATOR "********\n"
 static int cmd_dump_file(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
-    if (argc < 2) {
-        shell_print(shell, "usage: grim file filename");
+    if (argc < 1) {
+        shell_print(shell, "usage: grim dump filename: dump specific file");
+        shell_print(shell, "usage: grim dump: dump all files");
         return -1;
     }
-    dump_base64(shell, argv[1]);
+    // Dump All
+    if (argc == 1) {
+        dump_base64(shell, SLOW_FILENAME);
+        shell_print(shell, SEPARATOR);
+        dump_base64(shell, FAST_FILENAME);
+        shell_print(shell, SEPARATOR);
+        dump_base64(shell, ADC_FILENAME);
+        shell_print(shell, SEPARATOR);
+        dump_base64(shell, PRELAUNCH_ACCEL_FILENAME);
+        shell_print(shell, SEPARATOR);
+        dump_base64(shell, PRELAUNCH_ALT_FILENAME);
+    }
+    // Dump Specific
+    if (argc > 1) {
+        dump_base64(shell, argv[1]);
+        return 0;
+    }
     return 0;
 }
 

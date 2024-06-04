@@ -58,16 +58,9 @@ static int read_channel_to_float(const struct device* dev, enum sensor_channel c
 }
 // RIP Kconfig - WRONG I THINK
 double l_altitude_conversion(double pressure_kpa, double temperature_c) {
-    static const double R = 8.31447;   // Universal gas constant in J/(mol·K)
-    static const double g = 9.80665;   // Standard acceleration due to gravity in m/s^2
-    static const double M = 0.0289644; // Molar mass of Earth's air in kg/mol
-    static const double L = 0.0065;    // Temperature lapse rate in K/m
-    static const double T0 = 288.15;   // Standard temperature at sea level in K
-    static const double P0 = 101325;   // Standard pressure at sea level in Pa
-
-    double temp = temperature_c + 273.15;
-    double press = pressure_kpa * 1000; // Convert kPa to Pa
-    return ((R * T0) / (g * M)) * log(P0 / press * pow((temp + L * 0.5) / T0, -g * M / (R * L)));
+    double pressure = pressure_kpa * 10;
+    double altitude = (1 - pow(pressure / 1013.25, 0.190284)) * 145366.45 * 0.3048;
+    return altitude;
 }
 
 static void altitude_boost_reading_task(void) {
@@ -105,6 +98,7 @@ static void altitude_boost_reading_task(void) {
         }
         double old_alt = l_altitude_conversion(oldest.barom.pressure, oldest.barom.temperature);
         double alt = l_altitude_conversion(press, temp);
+        printk("alt: %f", alt);
         if (fabs(alt - old_alt) > ALTITUDE_VAL_THRESHOLD) {
             LOG_INF("Altitude Boost Detect");
             boost_detected = true;

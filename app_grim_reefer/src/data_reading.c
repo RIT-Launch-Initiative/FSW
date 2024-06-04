@@ -60,13 +60,15 @@ static void adc_reading_task(void) {
         // Read ADC
         (void) adc_sequence_init_dt(chan, &sequence);
         adc_read_dt(chan, &sequence);
+        if (count == 0) {
+            data.timestamp = k_uptime_get();
+        }
         data.adc_value[count] = adc_reading;
         count++;
         if (count == 10) {
             // send it
             k_msgq_put(&adc_data_queue, &data, K_NO_WAIT);
             count = 0;
-            data.timestamp = k_uptime_get();
         }
     }
 }
