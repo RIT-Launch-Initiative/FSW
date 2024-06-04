@@ -84,6 +84,7 @@ static void fast_reading_task(void) {
         // Read imu
         data.timestamp = k_uptime_get();
         sensor_sample_fetch(imu_dev);
+        sensor_sample_fetch(devs->fast.altim);
         float x, y, z = 0;
         read_channel_to_float(imu_dev, SENSOR_CHAN_ACCEL_X, &x);
         read_channel_to_float(imu_dev, SENSOR_CHAN_ACCEL_Y, &y);
@@ -98,6 +99,7 @@ static void fast_reading_task(void) {
         data.gyro.gyro_x = x;
         data.gyro.gyro_y = y;
         data.gyro.gyro_z = z;
+        read_channel_to_float(devs->fast.altim, SENSOR_CHAN_PRESS, &data.pressure);
         k_msgq_put(&fast_data_queue, &data, K_NO_WAIT);
     }
 }
@@ -112,7 +114,6 @@ static void slow_reading_task(void) {
         k_timer_status_sync(&slow_timer);
         // Read inas
         data.timestamp = k_uptime_get();
-        sensor_sample_fetch(devs->slow.altim);
         sensor_sample_fetch(devs->slow.ina_adc);
         sensor_sample_fetch(devs->slow.ina_grim);
         sensor_sample_fetch(devs->slow.ina_bat);

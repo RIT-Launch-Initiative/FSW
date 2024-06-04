@@ -223,6 +223,7 @@ int main(void) {
     }
 
     data_devices.fast.imu = lsm6dsl_dev;
+    data_devices.fast.altim = bme280_dev;
     data_devices.slow.altim = bme280_dev;
     data_devices.slow.ina_adc = ina_ldo_dev;
     data_devices.slow.ina_bat = ina_bat_dev;

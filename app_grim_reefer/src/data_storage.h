@@ -25,6 +25,7 @@ struct fast_data {
 
     l_accelerometer_data_t acc;
     l_gyroscope_data_t gyro;
+    float pressure;
 };
 
 struct adc_data {
