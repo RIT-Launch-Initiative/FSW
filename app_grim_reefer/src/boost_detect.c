@@ -98,7 +98,6 @@ static void altitude_boost_reading_task(void) {
         }
         double old_alt = l_altitude_conversion(oldest.barom.pressure, oldest.barom.temperature);
         double alt = l_altitude_conversion(press, temp);
-        printk("alt: %f", alt);
         if (fabs(alt - old_alt) > ALTITUDE_VAL_THRESHOLD) {
             LOG_INF("Altitude Boost Detect");
             boost_detected = true;
@@ -106,6 +105,8 @@ static void altitude_boost_reading_task(void) {
         }
     }
 }
+
+#define MAG_SQRED(v) (v.accel_x * v.accel_x + v.accel_y * v.accel_y + v.accel_z * v.accel_z)
 
 static void accel_boost_reading_task(void) {
 
@@ -147,6 +148,8 @@ static void accel_boost_reading_task(void) {
         accel_buffer_index = (accel_buffer_index + 1) % ARRAY_SIZE(accel_buffer);
 
         // Do acceleration calcs
+
+#ifdef IMU_BOOST_DETECTION_MODE_AXIS
         float reading = data.acc.IMU_UP_AXIS;
         float last_reading = oldest.acc.IMU_UP_AXIS;
         accel_running_sum -= last_reading;
@@ -157,6 +160,19 @@ static void accel_boost_reading_task(void) {
             boost_detected = true;
             break;
         }
+#else
+        float reading = MAG_SQRED(data.acc);
+        float last_reading = MAG_SQRED(oldest.acc);
+        accel_running_sum -= last_reading;
+        accel_running_sum += reading;
+
+        float avg = accel_running_sum / ACCEL_BUFFER_SIZE;
+        if (avg > ACCEL_VAL_THRESHOLD * ACCEL_VAL_THRESHOLD) {
+            LOG_INF("Accel Boost Detect");
+            boost_detected = true;
+            break;
+        }
+#endif
     }
 }
 

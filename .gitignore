@@ -63,3 +63,9 @@ build/
 .cache/
 zephyr-windows.code-workspace
 flash.bin
+app_grim_reefer/extra/data/all.cap
+app_grim_reefer/extra/out/adc.csv
+app_grim_reefer/extra/out/fast.csv
+app_grim_reefer/extra/out/pre_alt.csv
+app_grim_reefer/extra/out/pre_imu.csv
+app_grim_reefer/extra/out/slow.csv
