@@ -69,3 +69,9 @@ app_grim_reefer/extra/out/fast.csv
 app_grim_reefer/extra/out/pre_alt.csv
 app_grim_reefer/extra/out/pre_imu.csv
 app_grim_reefer/extra/out/slow.csv
+app_grim_reefer/extra/data/lall2.cap
+app_grim_reefer/extra/out2/adc.csv
+app_grim_reefer/extra/out2/fast.csv
+app_grim_reefer/extra/out2/pre_alt.csv
+app_grim_reefer/extra/out2/pre_imu.csv
+app_grim_reefer/extra/out2/slow.csv

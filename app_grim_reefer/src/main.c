@@ -157,7 +157,7 @@ bool flight_cancelled = false;
 // On Pad, boost detecting
 static void pad_state_entry(void *o) {
     LOG_INF("On Pad");
-    start_boost_detect(lsm6dsl_dev, bme280_dev);
+    start_boost_detect(lsm6dsl_dev, bme280_dev, ina_bat_dev);
 }
 static void pad_state_run(void *o) {
     if (get_boost_detected()) {
@@ -174,9 +174,9 @@ static void flight_state_entry(void *o) {
     gpio_pin_set_dt(&cam_enable, 1);
     buzzer_tell(buzzer_cond_launched);
     k_timer_start(&flight_duration_timer, TOTAL_FLIGHT_TIME, K_NO_WAIT);
-    save_boost_data();
-
     start_data_reading(&data_devices);
+
+    save_boost_data();
 }
 static void flight_state_run(void *o) {
     k_timer_status_sync(&flight_duration_timer);
@@ -204,6 +204,32 @@ static void landed_state_run(void *o) {
 }
 static void landed_state_exit(void *o) {}
 
+void describe_flight() {
+    printk("Config Parameters:\n");
+#ifdef BUZZER_USE_LED
+    printk("  Buzzer:                    LED\n");
+#else
+    printk("  Buzzer:                    Out Loud\n");
+#endif
+#ifdef SHORT_FLIGHT
+    printk("  Flight Mode:               Short\n");
+#else
+    printk("  Flight Mode:               Full\n");
+#endif
+
+    printk("Boost Detect Parameters:\n");
+#ifdef IMU_BOOST_DETECTION_MODE_AXIS
+    printk("  Mode:                      %s\n", #IMU_UP_AXIS);
+#else
+    printk("  Mode:                      Magnitude\n");
+#endif
+    printk("  Accelaration threshold:    %.2f G\n", (double) ACCEL_VAL_THRESHOLD / 9.81);
+    printk("  Altitude threshold:        %.2f ft\n", ((double) ALTITUDE_VAL_THRESHOLD) * 3.28084);
+
+    printk("  Accelaration buffer size:  %d\n", ACCEL_BUFFER_SIZE);
+    printk("  Altitude buffer size:      %d\n", ALTITUDE_BUFFER_SIZE);
+}
+
 const struct smf_state flight_states[] = {
     [PAD_STATE] = SMF_CREATE_STATE(pad_state_entry, pad_state_run, pad_state_exit),
     [FLIGHT_STATE] = SMF_CREATE_STATE(flight_state_entry, flight_state_run, flight_state_exit),
@@ -223,6 +249,8 @@ int main(void) {
         LOG_ERR("Some sensors not functional");
         buzzer_tell(buzzer_cond_missing_sensors);
     }
+
+    describe_flight();
 
     data_devices.fast.imu = lsm6dsl_dev;
     data_devices.fast.altim = bme280_dev;
@@ -253,13 +281,13 @@ int main(void) {
         int ret = smf_run_state(SMF_CTX(&s_obj));
         if (ret) {
             /* handle return code and terminate state machine */
-            LOG_INF("smg return code: %d", ret);
+            LOG_INF("smf return code: %d", ret);
             break;
         }
         k_msleep(1);
     }
     LOG_INF("Shutoff Cameras");
     gpio_pin_set_dt(&cam_enable, 0);
-    printk("Its all over");
+    printk("Its all over\n");
     return 0;
 }

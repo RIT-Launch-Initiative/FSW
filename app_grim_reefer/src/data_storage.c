@@ -54,7 +54,7 @@ K_THREAD_DEFINE(storage_thread, STORAGE_THREAD_STACK_SIZE, storage_thread_entry_
     struct fs_file_t name;                                                                                             \
     {                                                                                                                  \
         fs_file_t_init(&name);                                                                                         \
-        int ret = fs_open(&name, filename, FS_O_RDWR | FS_O_CREATE);                                                   \
+        int ret = fs_open(&name, filename, FS_O_WRITE | FS_O_CREATE);                                                  \
                                                                                                                        \
         if (ret < 0) {                                                                                                 \
             LOG_ERR("Error opening %s. %d", filename, ret);                                                            \

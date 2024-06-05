@@ -1,10 +1,10 @@
 #include "boost_detect.h"
 
+#include "buzzer.h"
 #include "config.h"
 #include "data_storage.h"
 
 #include <zephyr/fs/fs.h>
-
 // Launch Core Includes
 #include <launch_core/conversions.h>
 #include <launch_core/dev/dev_common.h>
@@ -19,10 +19,12 @@ LOG_MODULE_REGISTER(boost_detect, CONFIG_APP_GRIM_REEFER_LOG_LEVEL);
 // Forward Declares
 static void altitude_boost_reading_task(void);
 static void accel_boost_reading_task(void);
+static void battery_read_task(void);
 
 // Timers
 K_TIMER_DEFINE(altitude_boost_detect_timer, NULL, NULL);
 K_TIMER_DEFINE(accel_boost_detect_timer, NULL, NULL);
+K_TIMER_DEFINE(battery_timer, NULL, NULL);
 
 // Events
 #define BEGIN_BOOST_DETECT_EVENT 2
@@ -32,6 +34,8 @@ K_EVENT_DEFINE(begin_boost_detect);
 K_THREAD_DEFINE(altimeter_boost_thread, 1024, altitude_boost_reading_task, NULL, NULL, NULL, BOOST_DETECT_ALT_PRIORITY,
                 0, THREAD_START_DELAY);
 K_THREAD_DEFINE(accel_boost_thread, 1024, accel_boost_reading_task, NULL, NULL, NULL, BOOST_DETECT_IMU_PRIORITY, 0,
+                THREAD_START_DELAY);
+K_THREAD_DEFINE(battery_thread, 1024, battery_read_task, NULL, NULL, NULL, BOOST_DETECT_IMU_PRIORITY, 0,
                 THREAD_START_DELAY);
 
 volatile bool boost_detected = false;
@@ -57,7 +61,6 @@ static int read_channel_to_float(const struct device* dev, enum sensor_channel c
     *fval = v;
     return ret;
 }
-// RIP Kconfig - WRONG I THINK
 double l_altitude_conversion(double pressure_kpa, double temperature_c) {
     double pressure = pressure_kpa * 10;
     double altitude = (1 - pow(pressure / 1013.25, 0.190284)) * 145366.45 * 0.3048;
@@ -177,14 +180,37 @@ static void accel_boost_reading_task(void) {
     }
 }
 
-void start_boost_detect(const struct device* imu, const struct device* altimeter) {
+static void battery_read_task(void) {
+    k_event_wait(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT, false, K_FOREVER);
+    const struct device* ina = k_timer_user_data_get(&battery_timer);
+    int count_below = 0;
+    while (!flight_cancelled && !boost_detected) {
+        k_timer_status_sync(&battery_timer);
+        sensor_sample_fetch(ina);
+        float voltage = 0;
+        read_channel_to_float(ina, SENSOR_CHAN_VOLTAGE, &voltage);
+
+        if (voltage < (float) LOW_BATTERY_VOLTAGE) {
+            count_below++;
+        }
+
+        if (count_below > 4) {
+            buzzer_tell(buzzer_cond_low_battery);
+            break;
+        }
+    }
+}
+
+void start_boost_detect(const struct device* imu, const struct device* altimeter, const struct device* battery_ina) {
     LOG_INF("Starting Boost Detection: %p, %p", imu, altimeter);
 
     k_timer_user_data_set(&accel_boost_detect_timer, (void*) imu);
     k_timer_user_data_set(&altitude_boost_detect_timer, (void*) altimeter);
+    k_timer_user_data_set(&battery_timer, (void*) battery_ina);
 
     k_timer_start(&accel_boost_detect_timer, FAST_DATA_DELAY, FAST_DATA_DELAY);
     k_timer_start(&altitude_boost_detect_timer, ALTIM_DATA_DELAY, ALTIM_DATA_DELAY);
+    k_timer_start(&battery_timer, K_SECONDS(1), K_SECONDS(1));
 
     k_event_set(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT);
 }
@@ -193,6 +219,7 @@ void stop_boost_detect() {
     LOG_INF("Ending Boost Detection");
     k_timer_stop(&altitude_boost_detect_timer);
     k_timer_stop(&accel_boost_detect_timer);
+    k_timer_stop(&battery_timer);
 }
 
 bool get_boost_detected() { return boost_detected; }
@@ -200,7 +227,7 @@ bool get_boost_detected() { return boost_detected; }
 void save_full_buffer(uint8_t* data, size_t length, const char* filename) {
     struct fs_file_t file;
     fs_file_t_init(&file);
-    int ret = fs_open(&file, filename, FS_O_RDWR | FS_O_CREATE);
+    int ret = fs_open(&file, filename, FS_O_WRITE | FS_O_CREATE);
 
     if (ret < 0) {
         LOG_ERR("Error opening %s. %d", filename, ret);

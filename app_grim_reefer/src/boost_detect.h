@@ -9,7 +9,7 @@
  * @param imu the imu device to watch for the spike in acceleration
  * @param altimeter the altimeter device to watch for a fast change in height
 */
-void start_boost_detect(const struct device* imu, const struct device* altimeter);
+void start_boost_detect(const struct device* imu, const struct device* altimeter, const struct device* battery_ina);
 /**
  * stop_boost_detect
  * Tell the system to stop watching for boost detection
