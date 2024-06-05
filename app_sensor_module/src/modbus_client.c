@@ -48,7 +48,9 @@ int write_boost_detect_byte_modbus(uint8_t event_byte) {
     return modbus_write_coil(modbus_client_iface, POTATO_NODE, BOOST_DETECT_ADDR, event_byte == L_BOOST_DETECTED);
 }
 
+#ifdef CONFIG_IREC_2024_DEMO
 int read_potato_telemetry(float *pressure, float *temperature, float *load) {
     float data[3] = {0};
     return modbus_read_input_regs(modbus_client_iface, POTATO_NODE, LPS22_PRESSURE_REGISTER, (uint16_t *) data, sizeof(data));
 }
+#endif
