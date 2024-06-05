@@ -14,6 +14,10 @@
 // TODO: Use backplane_defs in other PR once merged
 #define POTATO_NODE 1
 #define BOOST_DETECT_ADDR 0
+#define LPS22_PRESSURE_REGISTER 1
+#define LPS22_TEMPERATURE_REGISTER LPS22_PRESSURE_REGISTER + 1
+#define ADC_REGISTER LPS22_TEMPERATURE_REGISTER + 1
+
 LOG_MODULE_REGISTER(modbus_client);
 
 // Globals
@@ -44,7 +48,7 @@ int write_boost_detect_byte_modbus(uint8_t event_byte) {
     return modbus_write_coil(modbus_client_iface, POTATO_NODE, BOOST_DETECT_ADDR, event_byte == L_BOOST_DETECTED);
 }
 
-int read_potato_telemetry() {
-
-    return 0;
+int read_potato_telemetry(float *pressure, float *temperature, float *load) {
+    float data[3] = {0};
+    return modbus_read_input_regs(modbus_client_iface, POTATO_NODE, LPS22_PRESSURE_REGISTER, (uint16_t *) data, sizeof(data));
 }
