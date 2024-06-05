@@ -10,7 +10,8 @@ enum buzzer_cond {
     buzzer_cond_low_battery = 1,
     buzzer_cond_missing_sensors = 2,
     buzzer_cond_landed = 3,
-    buzzer_cond_ok = 4,
+    buzzer_cond_launched = 4,
+    buzzer_cond_ok = 5,
 
 };
 

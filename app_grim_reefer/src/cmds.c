@@ -74,11 +74,13 @@ static int cmd_dump_file(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
+extern bool flight_cancelled;
+
 static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
 
-    // cancelled = true;
+    flight_cancelled = true;
 
     return 0;
 }

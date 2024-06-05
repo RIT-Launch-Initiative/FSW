@@ -35,6 +35,7 @@ K_THREAD_DEFINE(accel_boost_thread, 1024, accel_boost_reading_task, NULL, NULL, 
                 THREAD_START_DELAY);
 
 volatile bool boost_detected = false;
+extern bool flight_cancelled;
 // Rolling buffers
 
 struct fast_data accel_buffer[ACCEL_BUFFER_SIZE] = {0};
@@ -69,7 +70,7 @@ static void altitude_boost_reading_task(void) {
     k_event_wait(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT, false, K_FOREVER);
     while (true) {
         k_timer_status_sync(&altitude_boost_detect_timer);
-        if (boost_detected) {
+        if (boost_detected || flight_cancelled) {
             break;
         }
         const struct device* altimeter_dev = (const struct device*) k_timer_user_data_get(&altitude_boost_detect_timer);
@@ -115,7 +116,7 @@ static void accel_boost_reading_task(void) {
     k_event_wait(&begin_boost_detect, BEGIN_BOOST_DETECT_EVENT, false, K_FOREVER);
     while (true) {
         k_timer_status_sync(&accel_boost_detect_timer);
-        if (boost_detected) {
+        if (boost_detected || flight_cancelled) {
             break;
         }
         const struct device* imu_dev = (const struct device*) k_timer_user_data_get(&accel_boost_detect_timer);

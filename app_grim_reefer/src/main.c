@@ -152,6 +152,7 @@ struct {
 } s_obj;
 
 extern bool flight_over;
+bool flight_cancelled = false;
 
 // On Pad, boost detecting
 static void pad_state_entry(void *o) {
@@ -171,6 +172,7 @@ static void flight_state_entry(void *o) {
     // Turn on Cameras and ADC
     gpio_pin_set_dt(&ldo_enable, 1);
     gpio_pin_set_dt(&cam_enable, 1);
+    buzzer_tell(buzzer_cond_launched);
     k_timer_start(&flight_duration_timer, TOTAL_FLIGHT_TIME, K_NO_WAIT);
     save_boost_data();
 
@@ -245,6 +247,9 @@ int main(void) {
     smf_set_initial(SMF_CTX(&s_obj), &flight_states[PAD_STATE]);
     while (1) {
         /* State machine terminates if a non-zero value is returned */
+        if (flight_cancelled) {
+            smf_set_terminate(SMF_CTX(&s_obj), 1);
+        }
         int ret = smf_run_state(SMF_CTX(&s_obj));
         if (ret) {
             /* handle return code and terminate state machine */
@@ -255,6 +260,6 @@ int main(void) {
     }
     LOG_INF("Shutoff Cameras");
     gpio_pin_set_dt(&cam_enable, 0);
-    LOG_INF("Its all over");
+    printk("Its all over");
     return 0;
 }
