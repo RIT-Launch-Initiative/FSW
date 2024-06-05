@@ -7,7 +7,7 @@
 #define SHORT_FLIGHT
 
 // Use to .5 G for boost detect if directional
-// doesnt effect non directional bc that can be shaken to trigger
+// doesnt effect non directional bc that can be shaken to trigger even at 5G
 // #define EASY_BOOST_DETECT
 
 // Level at which to warn low battery. in volts

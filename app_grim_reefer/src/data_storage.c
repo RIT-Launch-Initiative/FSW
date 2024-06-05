@@ -126,7 +126,7 @@ void storage_thread_entry_point() {
     }
     LOG_INF("Saved ADC");
 
-    printk("Saved Files");
+    printk("Saved Files\n");
     return;
 }
 
