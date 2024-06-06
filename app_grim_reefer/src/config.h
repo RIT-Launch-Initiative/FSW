@@ -3,8 +3,11 @@
 
 #include <zephyr/kernel.h>
 
+// Use buzzer or led for status
+#define BUZZER_USE_LED
+
 // Use short timers so you don't get bored
-#define SHORT_FLIGHT
+// #define SHORT_FLIGHT
 
 // Use to .5 G for boost detect if directional
 // doesnt effect non directional bc that can be shaken to trigger even at 5G
@@ -23,15 +26,15 @@
 // METERS (500 ft)
 #define ALTITUDE_VAL_THRESHOLD 152.4
 
-#define ACCEL_BUFFER_SIZE 120
+#define ACCEL_BUFFER_SIZE 110
+
+// ============= YOU SHOULDNT HAVE TO CHANGE ANYTHING BELOW HERE =============
+
 #ifdef EASY_BOOST_DETECT
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * .5))
 #else
 #define ACCEL_VAL_THRESHOLD ((float) (9.81 * 5))
 #endif
-
-// Use buzzer or led for status
-#define BUZZER_USE_LED
 
 // Sensor Reading
 #define ADC_DATA_DELAY   K_USEC(101) /// For some reason 100 locks up the shell
