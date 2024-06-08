@@ -22,7 +22,7 @@ K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL,
 // Message queues
 K_MSGQ_DEFINE(gnss_logging_msgq, sizeof(l_gnss_data_t), 10, 4);
 
-#ifdef CONFIG_DEBUG
+#ifdef CONFIG_SEND_LAST_LOG
 #include <launch_core/net/tftp.h>
 
 static void send_last_log(const uint32_t boot_count_to_get) {
@@ -64,6 +64,9 @@ static void send_last_log(const uint32_t boot_count_to_get) {
 
 static void init_logging(l_fs_file_t** p_gnss_file) {
     uint32_t boot_count = l_fs_boot_count_check();
+#ifdef CONFIG_SEND_LAST_LOG
+    send_last_log(boot_count);
+#endif
 
     // Create directory with boot count
     char dir_name[MAX_DIR_NAME_LEN] = "";
