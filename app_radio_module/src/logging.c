@@ -64,9 +64,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
 
 static void init_logging(l_fs_file_t** p_gnss_file) {
     uint32_t boot_count = l_fs_boot_count_check();
-#ifdef CONFIG_DEBUG
-    send_last_log(boot_count);
-#endif
+
     // Create directory with boot count
     char dir_name[MAX_DIR_NAME_LEN] = "";
     snprintf(dir_name, sizeof(dir_name), "/lfs/%d", boot_count);

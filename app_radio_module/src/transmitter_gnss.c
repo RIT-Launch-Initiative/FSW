@@ -77,7 +77,7 @@ static void gnss_data_cb(const struct device* dev, const struct gnss_data* data)
 
 #ifdef CONFIG_DEBUG
 static void gnss_debug_task(void);
-K_THREAD_DEFINE(gnss_udp_tx, GNSS_TASK_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 1000);
+K_THREAD_DEFINE(gnss_udp_tx, GNSS_TASK_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 static void gnss_debug_task(void) {
     const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;
