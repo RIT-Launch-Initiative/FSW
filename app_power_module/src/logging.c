@@ -12,7 +12,7 @@
 #define MAX_FILE_NAME_LEN  3
 
 #define INA_SAMPLE_COUNT 4600  // 15 samples per second for 5 minutes (rounded to nearest hundred)
-#define ADC_SAMPLE_COUNT 20000 // 6.6 samples per second for 5 minutes
+#define ADC_SAMPLE_COUNT 16000 // 50 samples per second for 5 minutes (rounded to nearest thousand)
 
 LOG_MODULE_REGISTER(logging);
 
