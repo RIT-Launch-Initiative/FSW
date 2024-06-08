@@ -70,6 +70,7 @@ int32_t l_fs_close(l_fs_file_t *p_file);
  * @param[in] p_file 	pointer to file handle
  * @param[in] src 	buffer to write (l_fs_file_t *p_fileassumed fixed-width, with the initialized width)
  * @param[out] err_flag 	Pointer to error flag
+ * @return Number of bytes written
  */
 size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src, int32_t *err_flag);
 
