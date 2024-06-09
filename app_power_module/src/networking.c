@@ -4,13 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// Self Include
 #include "power_module.h"
 
+// Launch Includes
 #include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
 #include <launch_core/net/net_common.h>
 #include <launch_core/net/udp.h>
 #include <launch_core/types.h>
+
+// Zephyr Includes
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 

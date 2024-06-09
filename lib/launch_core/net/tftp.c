@@ -39,4 +39,15 @@ int l_tftp_put(struct tftpc *const client, const char *const filename, const uin
     return ret;
 }
 
+int l_tftp_init_and_put(const char *ip, const char *fname, uint8_t *buff, size_t buff_size) {
+    struct tftpc client = {};
+
+    int ret = l_tftp_init(&client, ip);
+    if (ret) {
+        return ret;
+    }
+
+    return l_tftp_put(&client, fname, buff, buff_size);
+}
+
 // TODO: Maybe another function that takes a l_fs_file_t? Forces a dependency between net and os libs though

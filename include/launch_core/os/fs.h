@@ -20,15 +20,15 @@
         .wpos = 0 \
     }
 
-enum l_fs_log_mode {
+typedef enum {
     SLOG_ONCE,
     SLOG_CIRC
-};
+} l_fs_log_mode_t;
 
 typedef struct {
     const char *fname;
     const off_t width;
-    const enum l_fs_log_mode mode;
+    const l_fs_log_mode_t mode;
 
     const size_t size;
     bool initialized;
@@ -67,13 +67,12 @@ int32_t l_fs_close(l_fs_file_t *p_file);
  * @brief Seek to the appropriate (l_fs_file_t *p_filebased on the logging mode) point and write
  * the buffer
  *
- * @param src 	buffer to write (l_fs_file_t *p_fileassumed fixed-width, with the initialized width)
- *
- * @retval = 0 			success
- * @retval = -ENOTINIT 	logger was never initialized
- * @retval < 0			other errno from fs functions
+ * @param[in] p_file 	pointer to file handle
+ * @param[in] src 	buffer to write (l_fs_file_t *p_fileassumed fixed-width, with the initialized width)
+ * @param[out] err_flag 	Pointer to error flag
+ * @return Number of bytes written
  */
-size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src);
+size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src, int32_t *err_flag);
 
 /**
  * @brief Read a frame from the device
@@ -123,6 +122,18 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file);
  */
 int32_t l_fs_boot_count_check();
 
+/**
+ * Format a partition
+ * @param partition_id ID of the partition to format
+ * @return Zephyr status code
+ */
 int32_t l_fs_format(uintptr_t partition_id);
+
+/**
+ * Create a directory
+ * @param dir_name Directory name
+ * @return Zephyr status code
+ */
+int32_t l_fs_mkdir(const char *dir_name);
 
 #endif
