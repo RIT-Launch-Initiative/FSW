@@ -22,8 +22,8 @@ K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL,
 // Message queues
 // TODO: Avoid duplicate queues. Fine for now since this isn't too expensive and we have the memory.
 // Easier for now since we also need to buffer data before launch
-K_MSGQ_DEFINE(ina_logging_msgq, sizeof(power_module_telemetry_t), 50, 4);
-K_MSGQ_DEFINE(adc_logging_msgq, sizeof(float), 200, 4);
+K_MSGQ_DEFINE(ina_logging_msgq, sizeof(timed_power_module_telemetry_t), 50, 4);
+K_MSGQ_DEFINE(adc_logging_msgq, sizeof(timed_adcdata_t), 200, 4);
 
 #ifdef CONFIG_SEND_LAST_LOG
 #include <launch_core/net/tftp.h>
@@ -46,9 +46,9 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     snprintf(ina_file_name, sizeof(ina_file_name), "%s/ina", dir_name);
     l_fs_file_t ina_file = {
         .fname = ina_file_name,
-        .width = sizeof(power_module_telemetry_t),
+        .width = sizeof(timed_power_module_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(power_module_telemetry_t) * INA_SAMPLE_COUNT,
+        .size = sizeof(timed_power_module_telemetry_t) * INA_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -60,9 +60,9 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     snprintf(adc_file_name, sizeof(adc_file_name), "%s/adc", dir_name);
     l_fs_file_t adc_file = {
         .fname = adc_file_name,
-        .width = sizeof(float),
+        .width = sizeof(timed_adcdata_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(float) * ADC_SAMPLE_COUNT,
+        .size = sizeof(timed_adcdata_t) * ADC_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -70,7 +70,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
         .wpos = 0,
     };
 
-    power_module_telemetry_t ina_data[INA_SAMPLE_COUNT] = {0};
+    timed_power_module_telemetry_t ina_data[INA_SAMPLE_COUNT] = {0};
     size_t ina_log_file_size = l_fs_file_size(&ina_file);
     LOG_INF("Previous INA219 Log File Size: %d", ina_log_file_size);
     if ((l_fs_init(&ina_file) == 0) && fs_read(&ina_file.file, &ina_data, ina_log_file_size)) {
@@ -80,7 +80,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
         LOG_ERR("Failed to read INA data from file.");
     }
 
-    float adc_data[ADC_SAMPLE_COUNT] = {0};
+    timed_adcdata_t adc_data[ADC_SAMPLE_COUNT] = {0};
     size_t adc_log_file_size = l_fs_file_size(&adc_file);
     LOG_INF("Previous ADC Log File Size: %d", adc_log_file_size);
     if ((l_fs_init(&adc_file) == 0) && fs_read(&adc_file.file, &adc_data, adc_log_file_size)) {
@@ -113,9 +113,9 @@ static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
     // Initialize structs
     static l_fs_file_t ina_file = {
         .fname = ina_file_name,
-        .width = sizeof(power_module_telemetry_t),
+        .width = sizeof(timed_power_module_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(power_module_telemetry_t) * INA_SAMPLE_COUNT,
+        .size = sizeof(timed_power_module_telemetry_t) * INA_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -125,9 +125,9 @@ static void init_logging(l_fs_file_t **p_ina_file, l_fs_file_t **p_adc_file) {
 
     static l_fs_file_t adc_file = {
         .fname = adc_file_name,
-        .width = sizeof(float),
+        .width = sizeof(timed_adcdata_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(float) * ADC_SAMPLE_COUNT,
+        .size = sizeof(timed_adcdata_t) * ADC_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -158,8 +158,8 @@ static void logging_task(void) {
     l_fs_file_t *ina_file = NULL;
     l_fs_file_t *adc_file = NULL;
 
-    power_module_telemetry_t sensor_telemetry;
-    float vin_adc_data_v;
+    timed_power_module_telemetry_t sensor_telemetry;
+    timed_adcdata_t vin_adc_data_v;
 
     init_logging(&ina_file, &adc_file);
 
