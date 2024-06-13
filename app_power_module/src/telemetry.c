@@ -27,8 +27,8 @@ K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, 
 K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
 // Message Queues
-K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(timed_power_module_telemetry_t), 10, 4);
-K_MSGQ_DEFINE(adc_telemetry_msgq, sizeof(timed_adcdata_t), 20, 4);
+K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
+K_MSGQ_DEFINE(adc_telemetry_msgq, sizeof(float), 20, 4);
 
 // Timers
 K_TIMER_DEFINE(ina_task_timer, NULL, NULL);
@@ -93,9 +93,9 @@ void ina_task(void) {
         l_get_shunt_data_float(sensors[0], &sensor_telemetry.data.data_battery);
         l_get_shunt_data_float(sensors[1], &sensor_telemetry.data.data_3v3);
         l_get_shunt_data_float(sensors[2], &sensor_telemetry.data.data_5v0);
-        sensor_telemetry.timestamp = k_uptime_ticks();
+        sensor_telemetry.timestamp = k_uptime_get();
 
-        if (k_msgq_put(&ina_telemetry_msgq, &sensor_telemetry, K_NO_WAIT)) {
+        if (k_msgq_put(&ina_telemetry_msgq, &sensor_telemetry.data, K_NO_WAIT)) {
         }
 
         // Buffer up data for logging before boost. If no space, throw out the oldest entry.
@@ -135,15 +135,15 @@ void adc_task(void) {
         }
 
         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
-        timed_adcdata_t data = {.timestamp = k_uptime_ticks(), .data = vin_adc_data_v};
         k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT);
 
         // Buffer up data for logging before boost. If no space, throw out the oldest entry.
         if (!logging_enabled && k_msgq_num_free_get(&adc_logging_msgq) == 0) {
-            timed_adcdata_t throwaway_data;
+            timed_adc_telemetry_t throwaway_data;
             k_msgq_get(&adc_logging_msgq, &throwaway_data, K_NO_WAIT);
         }
 
+        timed_adc_telemetry_t data = {.timestamp = k_uptime_get(), .data = vin_adc_data_v};
         k_msgq_put(&adc_logging_msgq, &data, K_MSEC(ADC_UPDATE_TIME_MS));
 
         k_msleep(15);

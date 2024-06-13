@@ -62,7 +62,7 @@ void telemetry_broadcast_task(void) {
     static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
 
     timed_power_module_telemetry_t sensor_telemetry = {0};
-    timed_adcdata_t vin_adc_data_v = {0};
+    timed_adc_telemetry_t vin_adc_data_v = {0};
     int sock = udp_socket_list.sockets[0];
 
     while (true) {
@@ -75,7 +75,7 @@ void telemetry_broadcast_task(void) {
         if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led2);
 #ifdef CONFIG_DEBUG
-            l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(timed_adcdata_t),
+            l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(timed_adc_telemetry_t),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
 #endif
         }

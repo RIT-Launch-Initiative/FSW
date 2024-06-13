@@ -68,26 +68,4 @@ typedef struct __attribute__((packed)) {
 
 typedef l_temperature_data_t sensor_module_ten_hz_telemetry_t;
 
-/********** Timestamped Module Data Types **********/
-typedef struct __attribute__((packed)) {
-    uint32_t timestamp;
-    power_module_telemetry_t data;
-} timed_power_module_telemetry_t;
-
-typedef struct __attribute__((packed)) {
-    uint32_t timestamp;
-    sensor_module_hundred_hz_telemetry_t data;
-
-} timed_sensor_module_hundred_hz_telemetry_t;
-
-typedef struct __attribute__((packed)) {
-    uint32_t timestamp;
-    sensor_module_ten_hz_telemetry_t data;
-} timed_sensor_module_ten_hz_telemetry_t;
-
-typedef struct __attribute__((packed)) {
-    uint32_t timestamp;
-    float data;
-} timed_adcdata_t;
-
 #endif

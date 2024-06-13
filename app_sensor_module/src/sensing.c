@@ -102,7 +102,7 @@ static void hundred_hz_sensor_reading_task(void) {
                 LOG_ERR("Failed to fetch %s data %d", sensors[i]->name, i);
             }
         }
-        hundred_hz_telemetry.timestamp = k_uptime_ticks();
+        hundred_hz_telemetry.timestamp = k_uptime_get();
         l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.data.adxl375);
         l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_accel);
         // l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.ms5611);
