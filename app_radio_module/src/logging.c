@@ -40,9 +40,9 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     snprintf(gnss_file_name, sizeof(gnss_file_name), "%s/gnss", dir_name);
     l_fs_file_t gnss_file = {
         .fname = gnss_file_name,
-        .width = sizeof(l_gnss_data_t),
+        .width = sizeof(l_gnss_time_sync_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(l_gnss_data_t) * GNSS_SAMPLE_COUNT,
+        .size = sizeof(l_gnss_time_sync_t) * GNSS_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -50,7 +50,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
         .wpos = 0,
     };
 
-    l_gnss_data_t gnss_data[GNSS_SAMPLE_COUNT] = {0};
+    l_gnss_time_sync_t gnss_data[GNSS_SAMPLE_COUNT] = {0};
     size_t gnss_log_file_size = l_fs_file_size(&gnss_file);
     LOG_INF("Previous GNSS Log File Size: %d", gnss_log_file_size);
     if ((l_fs_init(&gnss_file) == 0) && fs_read(&gnss_file.file, &gnss_data, gnss_log_file_size)) {
@@ -81,9 +81,9 @@ static void init_logging(l_fs_file_t** p_gnss_file) {
     // Initialize structs
     static l_fs_file_t gnss_file = {
         .fname = gnss_file_name,
-        .width = sizeof(l_gnss_data_t),
+        .width = sizeof(l_gnss_time_sync_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(l_gnss_data_t) * GNSS_SAMPLE_COUNT,
+        .size = sizeof(l_gnss_time_sync_t) * GNSS_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -105,7 +105,7 @@ extern bool logging_enabled;
 static void logging_task(void) {
     l_fs_file_t* gnss_file = NULL;
 
-    l_gnss_data_t gnss_data;
+    l_gnss_time_sync_t gnss_data;
 
     init_logging(&gnss_file);
 
@@ -116,8 +116,7 @@ static void logging_task(void) {
             continue;
         }
 
-        if (!k_msgq_get(&gnss_logging_msgq, &gnss_data, K_MSEC(10)) && (gnss_file != NULL) &&
-            (!gnss_out_of_space)) {
+        if (!k_msgq_get(&gnss_logging_msgq, &gnss_data, K_MSEC(10)) && (gnss_file != NULL) && (!gnss_out_of_space)) {
             LOG_INF("Logged GNSS data");
 
             int32_t err_flag = 0;

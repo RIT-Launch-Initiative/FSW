@@ -45,6 +45,12 @@ typedef struct __attribute__((packed)) {
     float altitude;
 } l_gnss_data_t;
 
+typedef struct __attribute__((packed)) {
+    uint64_t cpu_time_ms;
+    uint64_t gnss_time;
+    l_gnss_data_t gnss_data;
+} l_gnss_time_sync_t;
+
 typedef float l_temperature_data_t;
 
 /********** Module Data Types **********/

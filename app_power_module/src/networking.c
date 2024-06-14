@@ -75,7 +75,7 @@ void telemetry_broadcast_task(void) {
         if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led2);
 #ifdef CONFIG_DEBUG
-            l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(timed_adc_telemetry_t),
+            l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
 #endif
         }
