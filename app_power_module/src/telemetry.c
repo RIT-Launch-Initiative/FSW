@@ -79,7 +79,7 @@ void ina_task(void) {
     };
 
     bool ina_device_found[3] = {false};
-    power_module_telemetry_t sensor_telemetry = {0};
+    timed_power_module_telemetry_t sensor_telemetry = {0};
 
     if (!init_ina_task(sensors, ina_device_found)) {
         return;
@@ -90,16 +90,17 @@ void ina_task(void) {
 
         l_update_sensors_safe(sensors, 3, ina_device_found);
 
-        l_get_shunt_data_float(sensors[0], &sensor_telemetry.data_battery);
-        l_get_shunt_data_float(sensors[1], &sensor_telemetry.data_3v3);
-        l_get_shunt_data_float(sensors[2], &sensor_telemetry.data_5v0);
+        l_get_shunt_data_float(sensors[0], &sensor_telemetry.data.data_battery);
+        l_get_shunt_data_float(sensors[1], &sensor_telemetry.data.data_3v3);
+        l_get_shunt_data_float(sensors[2], &sensor_telemetry.data.data_5v0);
+        sensor_telemetry.timestamp = k_uptime_get();
 
-        if (k_msgq_put(&ina_telemetry_msgq, &sensor_telemetry, K_NO_WAIT)) {
+        if (k_msgq_put(&ina_telemetry_msgq, &sensor_telemetry.data, K_NO_WAIT)) {
         }
 
         // Buffer up data for logging before boost. If no space, throw out the oldest entry.
         if (!logging_enabled && k_msgq_num_free_get(&ina_logging_msgq) == 0) {
-            power_module_telemetry_t throwaway_data;
+            timed_power_module_telemetry_t throwaway_data;
             k_msgq_get(&ina_logging_msgq, &throwaway_data, K_NO_WAIT);
         }
 
@@ -138,11 +139,12 @@ void adc_task(void) {
 
         // Buffer up data for logging before boost. If no space, throw out the oldest entry.
         if (!logging_enabled && k_msgq_num_free_get(&adc_logging_msgq) == 0) {
-            float throwaway_data;
+            timed_adc_telemetry_t throwaway_data;
             k_msgq_get(&adc_logging_msgq, &throwaway_data, K_NO_WAIT);
         }
 
-        k_msgq_put(&adc_logging_msgq, &vin_adc_data_v, K_MSEC(ADC_UPDATE_TIME_MS));
+        timed_adc_telemetry_t data = {.timestamp = k_uptime_get(), .data = vin_adc_data_v};
+        k_msgq_put(&adc_logging_msgq, &data, K_MSEC(ADC_UPDATE_TIME_MS));
 
         k_msleep(15);
     }

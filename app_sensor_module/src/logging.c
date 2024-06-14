@@ -1,3 +1,6 @@
+// Self Include
+#include "sensor_module.h"
+
 // Launch Includes
 #include <launch_core/os/fs.h>
 #include <launch_core/types.h>
@@ -10,8 +13,9 @@
 #define MAX_DIR_NAME_LEN   10 // 4 number boot count + 5 for "/lfs/" + 1 for end slash
 #define MAX_FILE_NAME_LEN  3
 
-#define HUN_HZ_SAMPLE_COUNT 30000  // 100 samples per second for 5 minutes (rounded to nearest hundred)
-#define TEN_HZ_SAMPLE_COUNT 300 // 1 sample per second for 5 minutes
+#define HUN_HZ_SAMPLE_COUNT 30000         // 100 samples per second for 5 minutes (rounded to nearest hundred)
+#define TEN_HZ_SAMPLE_COUNT 300           // 1 sample per second for 5 minutes
+#define GNSS_SAMPLE_COUNT   (10 * 60 / 2) // 1 samples every 2 seconds for 10 minutes
 
 LOG_MODULE_REGISTER(logging);
 
@@ -19,8 +23,9 @@ static void logging_task(void);
 K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 // Message queues
-K_MSGQ_DEFINE(hun_hz_logging_msgq, sizeof(sensor_module_hundred_hz_telemetry_t), 50, 4);
-K_MSGQ_DEFINE(ten_hz_logging_msgq, sizeof(sensor_module_ten_hz_telemetry_t), 200, 4);
+K_MSGQ_DEFINE(hun_hz_logging_msgq, sizeof(timed_sensor_module_hundred_hz_telemetry_t), 50, 4);
+K_MSGQ_DEFINE(ten_hz_logging_msgq, sizeof(timed_sensor_module_ten_hz_telemetry_t), 200, 4);
+K_MSGQ_DEFINE(gnss_logging_msgq, sizeof(l_gnss_time_sync_t), 200, 4);
 
 #ifdef CONFIG_DEBUG
 #include <launch_core/net/tftp.h>
@@ -44,9 +49,9 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     snprintf(hun_hz_file_name, sizeof(hun_hz_file_name), "%s/hun", dir_name);
     l_fs_file_t hun_hz_file = {
         .fname = hun_hz_file_name,
-        .width = sizeof(sensor_module_hundred_hz_telemetry_t),
+        .width = sizeof(timed_sensor_module_hundred_hz_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(sensor_module_hundred_hz_telemetry_t) * HUN_HZ_SAMPLE_COUNT,
+        .size = sizeof(timed_sensor_module_hundred_hz_telemetry_t) * HUN_HZ_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -58,9 +63,9 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     snprintf(ten_hz_file_name, sizeof(ten_hz_file_name), "%s/ten", dir_name);
     l_fs_file_t ten_hz_file = {
         .fname = ten_hz_file_name,
-        .width = sizeof(sensor_module_ten_hz_telemetry_t),
+        .width = sizeof(timed_sensor_module_ten_hz_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(sensor_module_ten_hz_telemetry_t) * TEN_HZ_SAMPLE_COUNT,
+        .size = sizeof(timed_sensor_module_ten_hz_telemetry_t) * TEN_HZ_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -68,7 +73,21 @@ static void send_last_log(const uint32_t boot_count_to_get) {
         .wpos = 0,
     };
 
-    sensor_module_hundred_hz_telemetry_t hun_hz_data[HUN_HZ_SAMPLE_COUNT] = {0};
+    static char gnss_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
+    snprintf(gnss_file_name, sizeof(gnss_file_name), "%s/gns", dir_name);
+    static l_fs_file_t gnss_file = {
+        .fname = gnss_file_name,
+        .width = sizeof(l_gnss_time_sync_t),
+        .mode = SLOG_ONCE,
+        .size = sizeof(l_gnss_time_sync_t) * GNSS_SAMPLE_COUNT,
+        .initialized = false,
+        .file = {0},
+        .dirent = {0},
+        .vfs = {0},
+        .wpos = 0,
+    };
+
+    timed_sensor_module_hundred_hz_telemetry_t hun_hz_data[HUN_HZ_SAMPLE_COUNT] = {0};
     size_t hun_hz_log_file_size = l_fs_file_size(&hun_hz_file);
     LOG_INF("Previous 100Hz Log File Size: %d", hun_hz_log_file_size);
     if ((l_fs_init(&hun_hz_file) == 0) && fs_read(&hun_hz_file.file, &hun_hz_data, hun_hz_log_file_size)) {
@@ -79,7 +98,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
         LOG_ERR("Failed to read INA data from file.");
     }
 
-    sensor_module_ten_hz_telemetry_t ten_hz_data[TEN_HZ_SAMPLE_COUNT] = {0};
+    timed_sensor_module_ten_hz_telemetry_t ten_hz_data[TEN_HZ_SAMPLE_COUNT] = {0};
     size_t ten_hz_log_file_size = l_fs_file_size(&ten_hz_file);
     LOG_INF("Previous 10Hz Log File Size: %d", ten_hz_log_file_size);
     if ((l_fs_init(&ten_hz_file) == 0) && fs_read(&ten_hz_file.file, &ten_hz_data, ten_hz_log_file_size)) {
@@ -89,10 +108,20 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     } else {
         LOG_ERR("Failed to read 10Hz data from file.");
     }
+
+    timed_sensor_module_ten_hz_telemetry_t gnss_data[TEN_HZ_SAMPLE_COUNT] = {0};
+    size_t gnss_log_file_size = l_fs_file_size(&gnss_file);
+    LOG_INF("Previous gnss Log File Size: %d", gnss_log_file_size);
+    if ((l_fs_init(&gnss_file) == 0) && fs_read(&gnss_file.file, &gnss_data, gnss_log_file_size)) {
+        l_tftp_init_and_put(L_DEFAULT_SERVER_IP, gnss_file_name, (uint8_t*) &gnss_data, gnss_log_file_size);
+        l_fs_close(&gnss_file);
+    } else {
+        LOG_ERR("Failed to read gnss data from file.");
+    }
 }
 #endif
 
-static void init_logging(l_fs_file_t** p_hun_hz_file, l_fs_file_t** p_ten_hz_file) {
+static void init_logging(l_fs_file_t** p_hun_hz_file, l_fs_file_t** p_ten_hz_file, l_fs_file_t** p_gnss_file) {
     uint32_t boot_count = l_fs_boot_count_check();
 #ifdef CONFIG_DEBUG
     send_last_log(boot_count);
@@ -110,12 +139,15 @@ static void init_logging(l_fs_file_t** p_hun_hz_file, l_fs_file_t** p_ten_hz_fil
     static char ten_hz_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
     snprintf(ten_hz_file_name, sizeof(ten_hz_file_name), "%s/ten", dir_name);
 
+    static char gnss_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
+    snprintf(gnss_file_name, sizeof(gnss_file_name), "%s/gns", dir_name);
+
     // Initialize structs
     static l_fs_file_t hun_hz_file = {
         .fname = hun_hz_file_name,
-        .width = sizeof(sensor_module_hundred_hz_telemetry_t),
+        .width = sizeof(timed_sensor_module_hundred_hz_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(sensor_module_hundred_hz_telemetry_t) * HUN_HZ_SAMPLE_COUNT,
+        .size = sizeof(timed_sensor_module_hundred_hz_telemetry_t) * HUN_HZ_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -125,9 +157,9 @@ static void init_logging(l_fs_file_t** p_hun_hz_file, l_fs_file_t** p_ten_hz_fil
 
     static l_fs_file_t ten_hz_file = {
         .fname = ten_hz_file_name,
-        .width = sizeof(sensor_module_ten_hz_telemetry_t),
+        .width = sizeof(timed_sensor_module_ten_hz_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(sensor_module_ten_hz_telemetry_t) * TEN_HZ_SAMPLE_COUNT,
+        .size = sizeof(timed_sensor_module_ten_hz_telemetry_t) * TEN_HZ_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -135,7 +167,19 @@ static void init_logging(l_fs_file_t** p_hun_hz_file, l_fs_file_t** p_ten_hz_fil
         .wpos = 0,
     };
 
-    LOG_INF("Creating files %s and %s", hun_hz_file_name, ten_hz_file_name);
+    static l_fs_file_t gnss_file = {
+        .fname = gnss_file_name,
+        .width = sizeof(l_gnss_time_sync_t),
+        .mode = SLOG_ONCE,
+        .size = sizeof(l_gnss_time_sync_t) * GNSS_SAMPLE_COUNT,
+        .initialized = false,
+        .file = {0},
+        .dirent = {0},
+        .vfs = {0},
+        .wpos = 0,
+    };
+
+    LOG_INF("Creating files %s, %s, and %s", hun_hz_file_name, ten_hz_file_name, gnss_file_name);
 
     // Initialize files
     if (l_fs_init(&hun_hz_file) == 0) {
@@ -147,6 +191,11 @@ static void init_logging(l_fs_file_t** p_hun_hz_file, l_fs_file_t** p_ten_hz_fil
         LOG_INF("Successfully created file for storing 10Hz data.");
         *p_ten_hz_file = &ten_hz_file;
     }
+
+    if (l_fs_init(&gnss_file) == 0) {
+        LOG_INF("Successfully created file for storing GNSS data.");
+        *p_gnss_file = &gnss_file;
+    }
 }
 
 extern bool logging_enabled;
@@ -154,14 +203,17 @@ extern bool logging_enabled;
 static void logging_task(void) {
     l_fs_file_t* hun_hz_file = NULL;
     l_fs_file_t* ten_hz_file = NULL;
+    l_fs_file_t* gnss_file = NULL;
 
-    sensor_module_hundred_hz_telemetry_t hun_hz_telem;
-    sensor_module_ten_hz_telemetry_t ten_hz_telem;
+    timed_sensor_module_hundred_hz_telemetry_t hun_hz_telem;
+    timed_sensor_module_ten_hz_telemetry_t ten_hz_telem;
+    l_gnss_time_sync_t gnss_telem;
 
-    init_logging(&hun_hz_file, &ten_hz_file);
+    init_logging(&hun_hz_file, &ten_hz_file, &gnss_file);
 
     bool hun_hz_out_of_space = false;
     bool ten_hz_out_of_space = false;
+    bool gnss_out_of_space = false;
 
     while (true) {
         if (!logging_enabled) {
@@ -178,8 +230,8 @@ static void logging_task(void) {
             LOG_INF("%d", err_flag);
         }
 
-        if (!k_msgq_get(&ten_hz_logging_msgq, &ten_hz_telem, K_MSEC(3)) && (ten_hz_file != NULL) && (!
-                ten_hz_out_of_space)) {
+        if (!k_msgq_get(&ten_hz_logging_msgq, &ten_hz_telem, K_MSEC(3)) && (ten_hz_file != NULL) &&
+            (!ten_hz_out_of_space)) {
             LOG_INF("Logged 10Hz data");
 
             int32_t err_flag = 0;
@@ -188,11 +240,21 @@ static void logging_task(void) {
             LOG_INF("%d", err_flag);
         }
 
-        if (hun_hz_out_of_space && ten_hz_out_of_space) {
-            LOG_ERR("Out of space on both 100Hz and 10Hz files. Stopping logging.");
+        if (!k_msgq_get(&gnss_logging_msgq, &gnss_telem, K_MSEC(3)) && (gnss_file != NULL) && (!gnss_out_of_space)) {
+            LOG_INF("Logged gnss sync data");
+
+            int32_t err_flag = 0;
+            l_fs_write(gnss_file, (const uint8_t*) &gnss_telem, &err_flag);
+            gnss_out_of_space = err_flag == -ENOSPC;
+            LOG_INF("%d", err_flag);
+        }
+
+        if (hun_hz_out_of_space && ten_hz_out_of_space && gnss_out_of_space) {
+            LOG_ERR("Out of space on 100Hz, 10Hz files and GNSS files. Stopping logging.");
             logging_enabled = false;
             l_fs_close(hun_hz_file);
             l_fs_close(ten_hz_file);
+            l_fs_close(gnss_file);
             return;
         }
     }

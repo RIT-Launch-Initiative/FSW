@@ -2,8 +2,8 @@
 #include "sensor_module.h"
 
 // Launch Includes
-#include <launch_core/types.h>
 #include <launch_core/dev/dev_common.h>
+#include <launch_core/types.h>
 
 // Zephyr Includes
 #include <launch_core/backplane_defs.h>
@@ -48,14 +48,13 @@ int init_networking(void) {
 //    }
 //}
 
-
 static void telemetry_broadcast_task(void*, void*, void*) {
     LOG_INF("Starting broadcast task");
 
-    sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
+    timed_sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
 
-    int hundred_hz_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR,
-                                              SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
+    int hundred_hz_socket =
+        l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
 
     while (true) {
         if (0 == k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telem, K_MSEC(100))) {
