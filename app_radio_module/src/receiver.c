@@ -18,16 +18,21 @@ LOG_MODULE_REGISTER(radio_module_rxer);
 K_MSGQ_DEFINE(rx_telem_queue, sizeof(l_lora_packet_t), 8, 1);
 K_MSGQ_DEFINE(statistics_queue, sizeof(l_lora_packet_t), 8, 1);
 
+// Forward Declares
+static void udp_broadcast_task(void);
+
 // Threads
 #define THREAD_STACK_SIZE 1024
-static K_THREAD_STACK_DEFINE(udp_broadcast_stack, THREAD_STACK_SIZE);
-static struct k_thread udp_broadcast_thread;
+K_THREAD_DEFINE(udp_bcast_thread, THREAD_STACK_SIZE, udp_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
-static void udp_broadcast_task(void *socket, void *unused1, void *unused2) {
-    ARG_UNUSED(unused1);
-    ARG_UNUSED(unused2);
 
-    int sock = POINTER_TO_INT(socket);
+static void udp_broadcast_task(void) {
+    int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, RADIO_MODULE_BASE_PORT);
+    if (sock < 0) {
+        LOG_ERR("Failed to create socket for UDP broadcasts. Not sending received LoRa packets");
+        return;
+    }
+
     l_lora_packet_t lora_packet = {0};
     l_lora_statistics_t lora_statistics = {0};
 
@@ -67,16 +72,6 @@ static void receiver_cb(const struct device *lora_dev, uint8_t *payload, uint16_
 int init_lora_unique(const struct device *const lora_dev) { return lora_recv_async(lora_dev, &receiver_cb); }
 
 int init_udp_unique() {
-    int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, RADIO_MODULE_BASE_PORT);
-    if (sock < 0) {
-        LOG_ERR("Failed to create socket for UDP broadcasts. Not sending received LoRa packets");
-        return sock;
-    }
-
-    k_thread_create(&udp_broadcast_thread, &udp_broadcast_stack[0], THREAD_STACK_SIZE, udp_broadcast_task,
-                    INT_TO_POINTER(sock), NULL, NULL, K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
-    k_thread_start(&udp_broadcast_thread);
-
     return 0;
 }
 
