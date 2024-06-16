@@ -132,7 +132,7 @@
 
         spi-max-frequency = <(10 * 1000 * 1000)>;
         size = <DT_SIZE_M(512)>;
-        jedec-id = [ef 40 18];
+        jedec-id = [ef 40 20];
 
         has-dpd;
         t-enter-dpd = <(3 * 1000)>;

@@ -12,7 +12,6 @@
 #define ACCEL_TIME_THRESHOLD K_MSEC(250)
 #define ACCEL_VAL_THRESHOLD ((float)(9.81 * 5))
 
-
 // Forward Declares
 static void altitude_boost_detect_cb(struct k_timer*);
 static void accel_boost_detect_cb(struct k_timer*);

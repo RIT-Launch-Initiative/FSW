@@ -27,7 +27,7 @@ K_MSGQ_DEFINE(hun_hz_logging_msgq, sizeof(timed_sensor_module_hundred_hz_telemet
 K_MSGQ_DEFINE(ten_hz_logging_msgq, sizeof(timed_sensor_module_ten_hz_telemetry_t), 200, 4);
 K_MSGQ_DEFINE(gnss_logging_msgq, sizeof(l_gnss_time_sync_t), 200, 4);
 
-#ifdef CONFIG_DEBUG
+#ifdef CONFIG_SEND_LAST_LOG
 #include <launch_core/net/tftp.h>
 
 static void send_last_log(const uint32_t boot_count_to_get) {
@@ -104,6 +104,7 @@ static void send_last_log(const uint32_t boot_count_to_get) {
     if ((l_fs_init(&ten_hz_file) == 0) && fs_read(&ten_hz_file.file, &ten_hz_data, ten_hz_log_file_size)) {
         l_tftp_init_and_put(L_DEFAULT_SERVER_IP, ten_hz_output_file_name, (uint8_t*) &ten_hz_data,
                             ten_hz_log_file_size);
+
         l_fs_close(&ten_hz_file);
     } else {
         LOG_ERR("Failed to read 10Hz data from file.");
