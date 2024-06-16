@@ -33,6 +33,7 @@ K_EVENT_DEFINE(begin_reading);
 K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, ADC_READ_PRIORITY, 0, THREAD_START_DELAY);
 K_THREAD_DEFINE(fast_thread, 1024, fast_reading_task, NULL, NULL, NULL, FAST_READ_PRIORITY, 0, THREAD_START_DELAY);
 K_THREAD_DEFINE(slow_thread, 1024, slow_reading_task, NULL, NULL, NULL, SLOW_READ_PRIORITY, 0, THREAD_START_DELAY);
+
 static int read_channel_to_float(const struct device* dev, enum sensor_channel chan, float* fval) {
     struct sensor_value val = {0};
     int ret = sensor_channel_get(dev, chan, &val);

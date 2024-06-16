@@ -8,6 +8,7 @@ struct fast_devices {
     const struct device* imu;
     const struct device* altim;
 };
+
 struct slow_devices {
     const struct device* altim;
     const struct device* ina_bat;
