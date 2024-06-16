@@ -131,7 +131,7 @@
         reg = <0>;
 
         spi-max-frequency = <(10 * 1000 * 1000)>;
-        size = <DT_SIZE_M(128)>;
+        size = <DT_SIZE_M(512)>;
         jedec-id = [ef 40 18];
 
         has-dpd;
@@ -145,7 +145,7 @@
 
             external_storage_partition: partition@0 {
                 label = "w25q-storage";
-                reg = <0 DT_SIZE_M(16)>;
+                reg = <0 DT_SIZE_M(64)>;
             };
         };
     };
@@ -209,12 +209,12 @@
         osr-press = <1>;
         osr-temp = <1>;
     };
-//
-//    ms5611: ms5611@77 {
-//        compatible = "meas,ms5611";
-//        reg = <0x77>;
-//        status = "okay";
-//    };
+
+    ms5611: ms5611@77 {
+        compatible = "meas,ms5611";
+        reg = <0x77>;
+        status = "okay";
+    };
 
 };
 

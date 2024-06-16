@@ -80,6 +80,9 @@ int init_udp_unique() {
     return 0;
 }
 
-int main_unique() { return 0; }
+int main_unique() {
+    LOG_INF("Started radio module RECEIVER");
+    return 0;
+}
 
 #endif

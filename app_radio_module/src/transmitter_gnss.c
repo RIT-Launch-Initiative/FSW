@@ -1,3 +1,4 @@
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
 #include "transmitter_gnss.h"
 
 #include "radio_module_functionality.h"
@@ -94,4 +95,5 @@ static void gnss_debug_task(void) {
     }
 }
 
+#endif
 #endif
