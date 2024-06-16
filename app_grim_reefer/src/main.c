@@ -9,6 +9,7 @@
 #include "config.h"
 #include "data_reading.h"
 #include "data_storage.h"
+#include "zephyr/toolchain.h"
 
 #include <math.h>
 #include <zephyr/devicetree.h>
@@ -18,6 +19,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/smf.h>
+
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL);
 
@@ -219,7 +221,7 @@ void describe_flight() {
 
     printk("Boost Detect Parameters:\n");
 #ifdef IMU_BOOST_DETECTION_MODE_AXIS
-    printk("  Mode:                      %s\n", #IMU_UP_AXIS);
+    printk("  Mode:                      %s\n", STRINGIFY(IMU_UP_AXIS));
 #else
     printk("  Mode:                      Magnitude\n");
 #endif
