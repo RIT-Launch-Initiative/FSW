@@ -51,7 +51,7 @@ void udp_to_lora() {
 
         packet.payload_len = (uint8_t) rcv_size;
         k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
-        LOG_INF("Finished putting on queue");
+        LOG_INF("Sent packet of %d for port %d", packet.payload_len, packet.port);
     }
 }
 

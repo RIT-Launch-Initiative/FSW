@@ -71,6 +71,7 @@ K_TIMER_DEFINE(boost_detect_timer, boost_detector, NULL);
 static void ground_state_entry(void *) {
     LOG_INF("Entered ground state");
     k_timer_start(&boost_detect_timer, K_SECONDS(5), K_SECONDS(5));
+    k_timer_start(&lora_broadcast_timer, K_SECONDS(5), K_SECONDS(5));
     config_gnss_tx_time(K_SECONDS(5));
     state_obj.boost_detected = false;
     logging_enabled = false;

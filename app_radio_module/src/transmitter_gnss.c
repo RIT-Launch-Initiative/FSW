@@ -75,7 +75,6 @@ static void gnss_data_cb(const struct device* dev, const struct gnss_data* data)
 
 #ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
     // push to udp tx queue
-    LOG_INF("Put on queue");
     k_msgq_put(&gnss_tx_queue, (void*) &gnss_data, K_NO_WAIT);
 #endif
 
