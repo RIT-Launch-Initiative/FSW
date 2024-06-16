@@ -38,6 +38,15 @@ struct s_object {
 
 extern float gnss_altitude;
 
+// TODO: Not a fan of this code organization. Should probably just make a single timer too.
+static bool can_broadcast = true;
+
+static void broadcast_timer_cb(struct k_timer *timer_id) {
+    can_broadcast = true;
+}
+
+K_TIMER_DEFINE(lora_broadcast_timer, broadcast_timer_cb, NULL);
+
 static void boost_detector(struct k_timer *timer_id) {
     static bool first_pass = true;
     static const uint32_t BOOST_THRESHOLD_FT = 500;
@@ -76,6 +85,11 @@ static void ground_state_run(void *) {
             return;
         }
 
+        if (can_broadcast) {
+            udp_to_lora();
+            can_broadcast = false;
+        }
+
         // Check port 9999 for notifications. If we get one, go to flight state on next iter
         state_obj.boost_detected = l_get_event_udp() == L_BOOST_DETECTED;
     }
@@ -87,14 +101,7 @@ static void ground_state_exit(void *) {
 }
 
 
-// TODO: Not a fan of this code organization. Should probably just make a single timer too.
-static bool can_broadcast = true;
 
-static void broadcast_timer_cb(struct k_timer *timer_id) {
-    can_broadcast = true;
-}
-
-K_TIMER_DEFINE(lora_broadcast_timer, broadcast_timer_cb, NULL);
 static void flight_state_entry(void *) {
     LOG_INF("Entered flight state");
     k_timer_start(&lora_broadcast_timer, K_SECONDS(3), K_SECONDS(3));

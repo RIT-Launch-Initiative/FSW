@@ -33,6 +33,10 @@ K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE,
 static void lora_tx_task(void);
 K_THREAD_DEFINE(lora_tx_thread, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
+static void state_machine_task(void);
+K_THREAD_DEFINE(state_machine_thread, 1024, state_machine_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+
+
 void udp_to_lora() {
     int rcv_size = 0;
 
@@ -76,19 +80,17 @@ int init_udp_unique() {
     return 0;
 }
 
-int main_unique() {
-    const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
-
+static void state_machine_task(void) {
     init_state_machine();
     while (true) {
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-
         run_state_machine();
 
         k_msleep(100);
     }
+}
+
+int main_unique() {
+
 
     return 0;
 }

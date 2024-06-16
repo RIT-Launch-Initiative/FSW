@@ -24,6 +24,8 @@ static int init_networking() {
     if (ret != 0) {
         LOG_ERR("Failed to initialize UDP networking stack: %d", ret);
         return ret;
+    } else {
+        LOG_INF("Initialized networking stack");
     }
 
     return 0;

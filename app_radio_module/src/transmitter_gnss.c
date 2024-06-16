@@ -1,3 +1,4 @@
+#include <zephyr/drivers/gpio.h>
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
 #include "transmitter_gnss.h"
 
@@ -28,6 +29,8 @@ K_MSGQ_DEFINE(gnss_tx_queue, sizeof(l_gnss_data_t), GNSS_TX_QUEUE_SIZE, 1);
 static bool ready_to_tx = false;
 bool logging_enabled = false;
 
+// LEDs (can't be defined in cb)
+static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 
 // Callbacks
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnss_data_cb);
@@ -47,6 +50,8 @@ void config_gnss_tx_time(k_timeout_t interval) { k_timer_start(&gnss_tx_timer, i
 static void gnss_tx_on_expire(struct k_timer* timer_id) { ready_to_tx = true; }
 
 static void gnss_data_cb(const struct device* dev, const struct gnss_data* data) {
+    gpio_pin_toggle_dt(&led0);
+
     gnss_altitude = (float) data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
 
     if (!ready_to_tx) {
@@ -70,6 +75,7 @@ static void gnss_data_cb(const struct device* dev, const struct gnss_data* data)
 
 #ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
     // push to udp tx queue
+    LOG_INF("Put on queue");
     k_msgq_put(&gnss_tx_queue, (void*) &gnss_data, K_NO_WAIT);
 #endif
 
@@ -81,6 +87,7 @@ static void gnss_debug_task(void);
 K_THREAD_DEFINE(gnss_udp_tx, GNSS_TASK_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 static void gnss_debug_task(void) {
+    LOG_INF("Started GNSS Debug task");
     const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;
     int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, gnss_port);
     if (sock < 0) {
