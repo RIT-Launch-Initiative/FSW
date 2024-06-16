@@ -37,11 +37,11 @@ static void udp_broadcast_task(void) {
     l_lora_statistics_t lora_statistics = {0};
 
     while (true) {
-        if (k_msgq_get(&rx_telem_queue, &lora_packet, K_MSEC(100))) {
+        if (k_msgq_get(&rx_telem_queue, &lora_packet, K_MSEC(100)) == 0) {
             l_send_udp_broadcast(sock, lora_packet.payload, lora_packet.payload_len, lora_packet.port);
         }
 
-        if (k_msgq_get(&statistics_queue, &lora_statistics, K_MSEC(100))) {
+        if (k_msgq_get(&statistics_queue, &lora_statistics, K_MSEC(100)) == 0) {
             l_send_udp_broadcast(sock, (uint8_t *) &lora_statistics, sizeof(l_lora_statistics_t),
                                  RADIO_MODULE_BASE_PORT);
         }
