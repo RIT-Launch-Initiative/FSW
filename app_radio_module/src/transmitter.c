@@ -7,7 +7,6 @@
 
 // Launch Includes
 #include <launch_core/backplane_defs.h>
-#include <launch_core/types.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
@@ -38,6 +37,7 @@ K_THREAD_DEFINE(state_machine_thread, 1024, state_machine_task, NULL, NULL, NULL
 
 
 void udp_to_lora() {
+    static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
     int rcv_size = 0;
 
     for (int i = 0; i < sock_list.num_sockets; i++) {
@@ -49,6 +49,7 @@ void udp_to_lora() {
             continue;
         }
 
+        gpio_pin_toggle_dt(&led1);
         packet.payload_len = (uint8_t) rcv_size;
         k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
         LOG_INF("Sent packet of %d for port %d", packet.payload_len, packet.port);
@@ -90,8 +91,6 @@ static void state_machine_task(void) {
 }
 
 int main_unique() {
-
-
     return 0;
 }
 

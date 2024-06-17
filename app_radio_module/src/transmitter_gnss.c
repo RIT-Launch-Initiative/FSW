@@ -10,7 +10,6 @@
 
 // Zephyr Includes
 #include <zephyr/kernel.h>
-#include <zephyr/kernel/thread.h>
 #include <zephyr/logging/log.h>
 
 #define GNSS_TX_QUEUE_SIZE 8
@@ -51,7 +50,6 @@ static void gnss_tx_on_expire(struct k_timer* timer_id) { ready_to_tx = true; }
 
 static void gnss_data_cb(const struct device* dev, const struct gnss_data* data) {
     gpio_pin_toggle_dt(&led0);
-
     gnss_altitude = (float) data->nav_data.altitude / L_GNSS_ALTITUDE_DIVISION_FACTOR;
 
     if (!ready_to_tx) {
@@ -66,7 +64,7 @@ static void gnss_data_cb(const struct device* dev, const struct gnss_data* data)
     gnss_data.longitude = (double) data->nav_data.longitude / (double) L_GNSS_LONGITUDE_DIVISION_FACTOR;
     gnss_data.altitude = gnss_altitude;
 
-    // TODO: Eventually make this zbus and use a single bus for both lora and gnss queues to share
+    LOG_INF("Queuing GNSS packet");
     memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
     k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
     if (logging_enabled) {

@@ -40,19 +40,20 @@ static void udp_broadcast_task(void) {
 
     while (true) {
         if (k_msgq_get(&rx_telem_queue, &lora_packet, K_MSEC(100)) == 0) {
+            LOG_INF("Received for port %d", lora_packet.port);
             l_send_udp_broadcast(sock, lora_packet.payload, lora_packet.payload_len, lora_packet.port);
             gpio_pin_toggle_dt(&led0);
         }
 
         if (k_msgq_get(&statistics_queue, &lora_statistics, K_MSEC(100)) == 0) {
-            l_send_udp_broadcast(sock, (uint8_t *) &lora_statistics, sizeof(l_lora_statistics_t),
+            l_send_udp_broadcast(sock, (uint8_t*) &lora_statistics, sizeof(l_lora_statistics_t),
                                  RADIO_MODULE_BASE_PORT);
             gpio_pin_toggle_dt(&led1);
         }
     }
 }
 
-static void receiver_cb(const struct device *lora_dev, uint8_t *payload, uint16_t len, int16_t rssi, int8_t snr) {
+static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_t len, int16_t rssi, int8_t snr) {
     ARG_UNUSED(lora_dev);
     ARG_UNUSED(len);
 
@@ -61,7 +62,14 @@ static void receiver_cb(const struct device *lora_dev, uint8_t *payload, uint16_
     statistics.rssi = rssi;
     statistics.snr = snr;
 
-    LOG_INF("Received payload of %d bytes for port %d", len - 2, payload[0] << 8 | payload[1]);
+    l_lora_packet_t lora_packet = {
+        .port = sys_get_be16(payload),
+        .payload_len = len - 2
+    };
+
+    memcpy(lora_packet.payload, &payload[2], len - 2);
+
+    LOG_INF("Received payload of %d bytes for port %d", lora_packet.payload_len, lora_packet.port);
 
     // TODO: Determine how long copying l_lora_packet_t takes and if its too long for a callback. Maybe do zbus soon
     if (k_msgq_put(&rx_telem_queue, payload, K_MSEC(5)) < 0) {
@@ -75,7 +83,7 @@ static void receiver_cb(const struct device *lora_dev, uint8_t *payload, uint16_
     LOG_INF("Received %d bytes. RSSI: %d SNR: %d", len, rssi, snr);
 }
 
-int init_lora_unique(const struct device *const lora_dev) { return lora_recv_async(lora_dev, &receiver_cb); }
+int init_lora_unique(const struct device* const lora_dev) { return lora_recv_async(lora_dev, &receiver_cb); }
 
 int init_udp_unique() {
     return 0;
