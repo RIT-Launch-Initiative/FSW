@@ -59,16 +59,14 @@ void init_networking() {
 
 void telemetry_broadcast_task(void) {
     static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
 
-    timed_power_module_telemetry_t sensor_telemetry = {0};
-    timed_adc_telemetry_t vin_adc_data_v = {0};
+    power_module_telemetry_t sensor_telemetry = {0};
     int sock = udp_socket_list.sockets[0];
 
     while (true) {
         if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led0);
-            l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry.data, sizeof(sensor_telemetry.data),
+            l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(sensor_telemetry),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
         }
     }

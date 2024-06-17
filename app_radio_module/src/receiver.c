@@ -68,7 +68,7 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
     statistics.rssi = rssi;
     statistics.snr = snr;
 
-    volatile l_lora_packet_t lora_packet = {
+    l_lora_packet_t lora_packet = {
         .port = sys_get_le16(payload), // Get the first 2 bytes as the port
         .payload_len = len - 2         // Subtract the 2 bytes used for the port
     };
