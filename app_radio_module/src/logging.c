@@ -113,7 +113,7 @@ static void logging_task(void) {
 
     while (true) {
         if (!logging_enabled) {
-            continue;
+            k_msleep(1000);
         }
 
         if (!k_msgq_get(&gnss_logging_msgq, &gnss_data, K_MSEC(10)) && (gnss_file != NULL) && (!gnss_out_of_space)) {
