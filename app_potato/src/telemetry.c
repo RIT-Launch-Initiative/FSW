@@ -52,11 +52,11 @@ void configure_telemetry_rate(uint32_t frequency) {
 }
 
 static void telemetry_read_task(void*) {
-    const struct device* lps22 = DEVICE_DT_GET_ONE(st_lps22hh);
+    const struct device* lps22 = DEVICE_DT_GET_ONE(st_lis2mdl);
     // potato_raw_telemetry_t raw_telemetry = {0};
 
     // k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
-    sensor_sample_fetch(lps22);
+    // sensor_sample_fetch(lps22);
 
     // while (1) {
     //     k_timer_status_sync(&lps22_timer);
