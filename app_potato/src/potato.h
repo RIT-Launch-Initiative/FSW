@@ -9,12 +9,12 @@
 
 typedef enum { PAD_STATE = 0, BOOST_STATE, COAST_STATE, APOGEE_STATE, MAIN_STATE, LANDING_STATE } FLIGHT_STATES;
 
-typedef struct __attribute__((packed)) {
-    uint8_t data[3];
-} adc_data_t;
+typedef uint8_t adc_data_t[3];
 
-#define I32_TO_ADCDATA(v32)                                                                                            \
-    { v32 & 0xff, (v32 >> 8) & 0xff, (v32 >> 16) & 0xff }
+#define ASSIGN_V32_TO_ADCDATA(v32, data)                                                                               \
+    data[0] = v32 & 0xff;                                                                                              \
+    data[1] = (v32 >> 8) & 0xff;                                                                                       \
+    data[2] = (v32 >> 16) & 0xff;
 
 typedef struct __attribute__((packed)) {
     l_barometer_data_t lps22_data;

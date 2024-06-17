@@ -33,7 +33,9 @@ K_TIMER_DEFINE(lps22_timer, NULL, NULL);
 K_TIMER_DEFINE(adc_timer, NULL, NULL);
 
 // Queues
+#define ADC_QUEUE_SIZE 100
 K_MSGQ_DEFINE(raw_telem_processing_queue, sizeof(potato_raw_telemetry_t), 16, 1);
+K_MSGQ_DEFINE(adc_telem_processing_queue, sizeof(potato_adc_telemetry_t), ADC_QUEUE_SIZE, 1);
 
 // Global Variables
 float boost_detection_altitude = -0xFFFF;
@@ -73,32 +75,44 @@ static void telemetry_read_task(void*) {
     // }
 }
 static void adc_read_task(void*) {
-    /* Data of ADC io-channels specified in devicetree. */
     static const struct adc_dt_spec adc_chan0 = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
     int32_t buf = 0;
     struct adc_sequence sequence = {
         .buffer = &buf,
-        /* buffer size in bytes, not number of samples */
         .buffer_size = sizeof(buf),
     };
     sequence.channels = adc_chan0.channel_id;
+    potato_adc_telemetry_t adc_data = {0};
 
     int err = adc_sequence_init_dt(&adc_chan0, &sequence);
     if (err < 0) {
         LOG_ERR("Could not init adc channel sequence: %d", err);
     }
+
     k_timer_start(&adc_timer, ADC_PERIOD, ADC_PERIOD);
+
+    int i = 0;
 
     while (1) {
         k_timer_status_sync(&adc_timer);
 
+        if (i == 0) {
+            adc_data.timestamp = k_uptime_get();
+        }
         err = adc_read_dt(&adc_chan0, &sequence);
         if (err < 0) {
             LOG_ERR("Could not read adc chan0 (%d)\n", err);
             continue;
         }
-        k_msgq_put(&raw_telem_processing_queue, &raw_telem_processing_queue, K_NO_WAIT);
+
+        ASSIGN_V32_TO_ADCDATA(buf, adc_data.data[i]);
+        i++;
+
+        if (i == ADC_READINGS_PER_PACKET) {
+            k_msgq_put(&adc_telem_processing_queue, &adc_data, K_NO_WAIT);
+            i = 0;
+        }
     }
 }
 
