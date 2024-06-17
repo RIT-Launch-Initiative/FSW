@@ -36,6 +36,8 @@ static void state_machine_task(void);
 K_THREAD_DEFINE(state_machine_thread, 1024, state_machine_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 static bool eth_init = false;
 
+extern bool lora_can_transmit;
+
 void udp_to_lora() {
     static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
     int rcv_size = 0;
@@ -55,11 +57,11 @@ void udp_to_lora() {
         transmitted = true;
         packet.payload_len = (uint8_t) rcv_size;
         k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
-        LOG_INF("Sent packet of %d for port %d", packet.payload_len, packet.port);
     }
 
     if (transmitted) {
         gpio_pin_toggle_dt(&led1);
+        lora_can_transmit = false;
     }
 }
 

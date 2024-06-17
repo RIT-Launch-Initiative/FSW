@@ -18,6 +18,10 @@ LOG_MODULE_REGISTER(radio_module_rxer);
 K_MSGQ_DEFINE(rx_telem_queue, sizeof(l_lora_packet_t), 8, 1);
 K_MSGQ_DEFINE(statistics_queue, sizeof(l_lora_packet_t), 8, 1);
 
+// LEDs
+static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
+
 // Forward Declares
 static void udp_broadcast_task(void);
 
@@ -57,25 +61,27 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
     ARG_UNUSED(lora_dev);
     ARG_UNUSED(len);
 
+    gpio_pin_toggle_dt(&led0);
+
     static l_lora_statistics_t statistics = {0};
     statistics.count++;
     statistics.rssi = rssi;
     statistics.snr = snr;
 
-    l_lora_packet_t lora_packet = {
-        .port = sys_get_be16(payload),
-        .payload_len = len - 2
+    volatile l_lora_packet_t lora_packet = {
+        .port = sys_get_le16(payload), // Get the first 2 bytes as the port
+        .payload_len = len - 2         // Subtract the 2 bytes used for the port
     };
 
-    memcpy(lora_packet.payload, &payload[2], len - 2);
+    memcpy(lora_packet.payload, payload + 2, lora_packet.payload_len);
 
     LOG_INF("Received payload of %d bytes for port %d", lora_packet.payload_len, lora_packet.port);
 
-    if (k_msgq_put(&rx_telem_queue, payload, K_MSEC(5)) < 0) {
+    if (k_msgq_put(&rx_telem_queue, (void*) &lora_packet, K_NO_WAIT) < 0) {
         LOG_ERR("Failed to queue received telemetry");
     }
 
-    if (k_msgq_put(&statistics_queue, &statistics, K_MSEC(5)) < 0) {
+    if (k_msgq_put(&statistics_queue, &statistics, K_NO_WAIT) < 0) {
         LOG_ERR("Failed to queue statistics");
     }
 

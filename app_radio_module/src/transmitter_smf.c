@@ -39,10 +39,10 @@ struct s_object {
 extern float gnss_altitude;
 
 // TODO: Not a fan of this code organization. Should probably just make a single timer too.
-static bool can_broadcast = true;
+bool lora_can_transmit = true;
 
 static void broadcast_timer_cb(struct k_timer *timer_id) {
-    can_broadcast = true;
+    lora_can_transmit = true;
 }
 
 K_TIMER_DEFINE(lora_broadcast_timer, broadcast_timer_cb, NULL);
@@ -86,10 +86,8 @@ static void ground_state_run(void *) {
             return;
         }
 
-        if (can_broadcast) {
-            udp_to_lora();
-            can_broadcast = false;
-        }
+        udp_to_lora();
+
 
         // Check port 9999 for notifications. If we get one, go to flight state on next iter
         state_obj.boost_detected = l_get_event_udp() == L_BOOST_DETECTED;
@@ -112,10 +110,7 @@ static void flight_state_entry(void *) {
 static void flight_state_run(void *) {
     while (true) {
         // Convert UDP to LoRa
-        if (can_broadcast) {
-            udp_to_lora();
-            can_broadcast = false;
-        }
+        udp_to_lora();
 
         // If notified of landing, go back to ground state.
         if (l_get_event_udp() == L_LANDING_DETECTED) {
