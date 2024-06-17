@@ -37,6 +37,21 @@ static void logging_task(void*) {
     }
 }
 
+static void adc_logging_task(void*) {
+    potato_adc_telemetry_t log_packet = {0};
+
+    // Use the boot count to create a new directory for the logs
+    while (boot_count == -1) continue; // Block until we get a boot count
+
+    // Create file for logging
+
+    while (1) {
+        if (k_msgq_get(&logging_queue, &log_packet, K_FOREVER)) continue;
+
+        // TODO: Filesystem logging calls
+    }
+}
+
 void bin_telemetry_file() {
     static uint8_t file_count = 0;
 
@@ -46,5 +61,4 @@ void bin_telemetry_file() {
     file_count++;
 
     // Log the file count and the frequency in another file for reference
-
 }
