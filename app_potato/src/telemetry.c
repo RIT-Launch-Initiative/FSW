@@ -52,21 +52,22 @@ void configure_telemetry_rate(uint32_t frequency) {
 }
 
 static void telemetry_read_task(void*) {
-    const struct device* lps22 = DEVICE_DT_GET_ANY(st_lps22hh);
-    potato_raw_telemetry_t raw_telemetry = {0};
+    const struct device* lps22 = DEVICE_DT_GET_ONE(st_lps22hh);
+    // potato_raw_telemetry_t raw_telemetry = {0};
 
-    k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
+    // k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
+    sensor_sample_fetch(lps22);
 
-    while (1) {
-        k_timer_status_sync(&lps22_timer);
-
-        sensor_sample_fetch(lps22);
-        // TODO: Get ADC data
-        raw_telemetry.timestamp = k_uptime_get_32();
-        l_get_barometer_data_float(lps22, &raw_telemetry.lps22_data);
-
-        k_msgq_put(&raw_telem_processing_queue, &raw_telem_processing_queue, K_NO_WAIT);
-    }
+    // while (1) {
+    //     k_timer_status_sync(&lps22_timer);
+    //
+    //     sensor_sample_fetch(lps22);
+    //     // TODO: Get ADC data
+    //     raw_telemetry.timestamp = k_uptime_get_32();
+    //     l_get_barometer_data_float(lps22, &raw_telemetry.lps22_data);
+    //
+    //     k_msgq_put(&raw_telem_processing_queue, &raw_telem_processing_queue, K_NO_WAIT);
+    // }
 }
 
 static void telemetry_processing_task(void*) {

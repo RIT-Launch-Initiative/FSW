@@ -173,6 +173,9 @@
         compatible = "st,lps22hhtr";
         reg = <0x5d>;
         status = "okay";
+      	odr = <6>;
+
+		drdy-gpios = <&gpioc 4 GPIO_ACTIVE_HIGH>;
     };
 };
 
