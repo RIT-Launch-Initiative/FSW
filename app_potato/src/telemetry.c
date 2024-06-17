@@ -2,12 +2,13 @@
 #include "potato.h"
 
 // Launch Includes
-#include <launch_core/dev/sensor.h>
 #include <launch_core/conversions.h>
+#include <launch_core/dev/sensor.h>
 
 // Zephyr Includes
-#include <zephyr/kernel.h>
+#include <zephyr/devicetree.h>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 #define TELEMETRY_STACK_SIZE 512
@@ -21,11 +22,11 @@ K_THREAD_DEFINE(telem_read_thread, TELEMETRY_STACK_SIZE, telemetry_read_task, NU
 
 static void telemetry_processing_task(void*);
 K_THREAD_DEFINE(telem_process_thread, TELEMETRY_STACK_SIZE, telemetry_processing_task, NULL, NULL, NULL,
-                K_PRIO_PREEMPT(20), 0,
-                1000);
+                K_PRIO_PREEMPT(20), 0, 1000);
 
 // Timers
 K_TIMER_DEFINE(lps22_timer, NULL, NULL);
+K_TIMER_DEFINE(adc_timer, NULL, NULL);
 
 // Queues
 K_MSGQ_DEFINE(raw_telem_processing_queue, sizeof(potato_raw_telemetry_t), 16, 1);
@@ -52,7 +53,8 @@ void configure_telemetry_rate(uint32_t frequency) {
 }
 
 static void telemetry_read_task(void*) {
-    const struct device* lps22 = DEVICE_DT_GET_ONE(st_lps22hh);
+
+    const struct device* lps22 = DEVICE_DT_GET(DT_NODELABEL(lps22hh));
     // potato_raw_telemetry_t raw_telemetry = {0};
 
     // k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
@@ -68,6 +70,11 @@ static void telemetry_read_task(void*) {
     //
     //     k_msgq_put(&raw_telem_processing_queue, &raw_telem_processing_queue, K_NO_WAIT);
     // }
+}
+static void adc_read_task(void*) {
+    while (1) {
+        k_timer_status_sync(&adc_timer);
+    }
 }
 
 static void telemetry_processing_task(void*) {
