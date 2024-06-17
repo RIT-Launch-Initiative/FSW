@@ -68,16 +68,8 @@ void telemetry_broadcast_task(void) {
     while (true) {
         if (!k_msgq_get(&ina_telemetry_msgq, &sensor_telemetry, K_MSEC(10))) {
             gpio_pin_toggle_dt(&led0);
-            l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry, sizeof(timed_power_module_telemetry_t),
+            l_send_udp_broadcast(sock, (uint8_t *) &sensor_telemetry.data, sizeof(sensor_telemetry.data),
                                  POWER_MODULE_BASE_PORT + POWER_MODULE_INA_DATA_PORT);
-        }
-
-        if (!k_msgq_get(&adc_telemetry_msgq, &vin_adc_data_v, K_MSEC(10))) {
-            gpio_pin_toggle_dt(&led2);
-#ifdef CONFIG_DEBUG
-            l_send_udp_broadcast(sock, (uint8_t *) &vin_adc_data_v, sizeof(float),
-                                 POWER_MODULE_BASE_PORT + POWER_MODULE_ADC_DATA_PORT);
-#endif
         }
     }
 }
