@@ -71,7 +71,6 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
 
     LOG_INF("Received payload of %d bytes for port %d", lora_packet.payload_len, lora_packet.port);
 
-    // TODO: Determine how long copying l_lora_packet_t takes and if its too long for a callback. Maybe do zbus soon
     if (k_msgq_put(&rx_telem_queue, payload, K_MSEC(5)) < 0) {
         LOG_ERR("Failed to queue received telemetry");
     }
