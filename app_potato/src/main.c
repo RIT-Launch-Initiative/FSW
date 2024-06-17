@@ -70,6 +70,7 @@ static void pad_state_run(void *) {
             smf_set_state(SMF_CTX(&state_obj), &states[BOOST_STATE]);
             return;
         }
+        k_msleep(1);
     }
 }
 
@@ -139,6 +140,7 @@ static void landing_state_run(void *) {
 
 int main() {
     boot_count = l_fs_boot_count_check();
+    smf_set_initial(SMF_CTX(&state_obj), &states[PAD_STATE]);
 
     while (true) {
         k_msleep(100);

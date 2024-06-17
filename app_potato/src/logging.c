@@ -3,8 +3,9 @@
 
 // Launch Includes
 #include <launch_core/os/fs.h>
-
+#include <zephyr/fs/fs.h>
 // Zephyr Includes
+#include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -22,11 +23,22 @@ K_THREAD_DEFINE(data_log_thread, LOGGING_THREAD_STACK_SIZE, logging_task, NULL, 
 // Extern Variables
 extern uint32_t boot_count;
 
+#define MAX_FILE_LEN 16
+
 static void logging_task(void*) {
     logging_packet_t log_packet = {0};
 
     // Use the boot count to create a new directory for the logs
-    while (boot_count == -1) continue; // Block until we get a boot count
+    while (boot_count == -1) {
+        k_msleep(1);
+        continue;
+    } // Block until we get a boot count
+    static char dir_name[MAX_FILE_LEN] = {0};
+    snprintf(dir_name, sizeof(dir_name), "/lfs/%02d");
+    fs_mkdir(dir_name);
+
+    static char dir_name[MAX_FILE_LEN] = {0};
+    snprintf(dir_name, sizeof(dir_name), "/lfs/%02d/dat");
 
     // Create file for logging
 
@@ -34,6 +46,7 @@ static void logging_task(void*) {
         if (k_msgq_get(&logging_queue, &log_packet, K_FOREVER)) continue;
 
         // TODO: Filesystem logging calls
+        k_msleep(1);
     }
 }
 
@@ -41,8 +54,12 @@ static void adc_logging_task(void*) {
     potato_adc_telemetry_t log_packet = {0};
 
     // Use the boot count to create a new directory for the logs
-    while (boot_count == -1) continue; // Block until we get a boot count
-
+    while (boot_count == -1) {
+        k_msleep(1);
+        continue;
+    } // Block until we get a boot count
+    // block a little while longer bc the other logging task makes the directory
+    k_msleep(500);
     // Create file for logging
 
     while (1) {

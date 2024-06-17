@@ -56,13 +56,13 @@ void configure_telemetry_rate(uint32_t frequency) {
 }
 
 static void telemetry_read_task(void*) {
-
+#ifdef BOARD_POTATO
     const struct device* lps22 = DEVICE_DT_GET(DT_NODELABEL(lps22hh));
     // potato_raw_telemetry_t raw_telemetry = {0};
 
     // k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
     sensor_sample_fetch(lps22);
-
+#endif
     // while (1) {
     //     k_timer_status_sync(&lps22_timer);
     //
@@ -83,6 +83,9 @@ static void adc_read_task(void*) {
         .buffer_size = sizeof(buf),
     };
     sequence.channels = adc_chan0.channel_id;
+    sequence.resolution = 16;
+#ifndef BOARD_POTATO
+#endif
     potato_adc_telemetry_t adc_data = {0};
 
     int err = adc_sequence_init_dt(&adc_chan0, &sequence);
