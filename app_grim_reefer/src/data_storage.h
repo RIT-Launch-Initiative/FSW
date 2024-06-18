@@ -1,14 +1,14 @@
 #ifndef REEFER_INLCUDE_DATA_STORAGE_H
 #define REEFER_INLCUDE_DATA_STORAGE_H
 
+#include <launch_core/types.h>
 #include <stdint.h>
 #include <zephyr/kernel.h>
-
 struct slow_data {
     uint32_t timestamp;
 
-    uint32_t humidity;
-    uint32_t temperature;
+    float humidity;
+    float temperature;
 
     uint16_t grim_voltage; // LSB =  1.25 mV
     uint16_t grim_current; // LSB =  1.25 mA
@@ -23,13 +23,9 @@ struct slow_data {
 struct fast_data {
     uint32_t timestamp;
 
-    uint32_t accel_x;
-    uint32_t accel_y;
-    uint32_t accel_z;
-
-    uint32_t gyro_x;
-    uint32_t gyro_y;
-    uint32_t gyro_z;
+    l_accelerometer_data_t acc;
+    l_gyroscope_data_t gyro;
+    float pressure;
 };
 
 struct adc_data {
@@ -37,10 +33,14 @@ struct adc_data {
     uint32_t adc_value[10];
 };
 
-#define STORAGE_SETUP_SUCCESS_EVENT 0x1
-#define STORAGE_SETUP_FAILED_EVENT  0x2
-extern struct k_event storage_setup_finished;
-
-k_tid_t spawn_data_storage_thread();
+/**
+ * @brief Open files, setup thread and get ready for data to start streaming in
+ * @return 0 if setup correctly. -1 if not
+ */
+int start_data_storage_thread();
+/**
+ * @brief Stop accepting new data and save everything to disk
+ */
+void finish_data_storage();
 
 #endif
