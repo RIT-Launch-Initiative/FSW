@@ -9,6 +9,7 @@
 #include <launch_core/backplane_defs.h>
 #include <launch_core/net/udp.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(networking);
@@ -34,22 +35,9 @@ int init_networking(void) {
     return 0;
 }
 
-//static void initialize_rs485(void) {
-//    if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {
-//        if (l_create_ip_str(rs485_ip, 11, 0, 3, 1) == 0) {
-//            if (l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip)) {
-//                LOG_ERR("Failed to initialize network stack");
-//            }
-//        } else {
-//            LOG_ERR("Failed to create IP address string");
-//        }
-//    } else {
-//        LOG_ERR("Failed to initialize UART to RS485");;
-//    }
-//}
-
 static void telemetry_broadcast_task(void*, void*, void*) {
     LOG_INF("Starting broadcast task");
+    static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
 
     timed_sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
 
@@ -62,6 +50,7 @@ static void telemetry_broadcast_task(void*, void*, void*) {
 #endif
 
     while (true) {
+        gpio_pin_toggle_dt(&led1);
         if (0 == k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telem, K_MSEC(100))) {
             l_send_udp_broadcast(hundred_hz_socket, (uint8_t*) &hundred_hz_telem,
                                  sizeof(sensor_module_hundred_hz_telemetry_t),

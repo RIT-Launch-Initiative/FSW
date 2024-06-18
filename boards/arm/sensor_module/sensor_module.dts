@@ -220,7 +220,6 @@
         reg = <0x77>;
         status = "okay";
     };
-
 };
 
 &rtc {

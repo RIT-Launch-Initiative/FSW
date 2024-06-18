@@ -20,7 +20,7 @@
 LOG_MODULE_REGISTER(logging);
 
 static void logging_task(void);
-K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(15), 0, 1000);
 
 // Message queues
 K_MSGQ_DEFINE(hun_hz_logging_msgq, sizeof(timed_sensor_module_hundred_hz_telemetry_t), 50, 4);
@@ -216,6 +216,7 @@ static void logging_task(void) {
 
     while (true) {
         if (!logging_enabled) {
+            k_msleep(100);
             continue;
         }
 

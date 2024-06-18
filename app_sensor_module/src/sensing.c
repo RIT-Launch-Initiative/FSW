@@ -11,6 +11,7 @@
 // Zephyr Includes
 #include <zephyr/devicetree.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 
 // Constants
@@ -69,6 +70,7 @@ static void setup_lsm6dsl() {
 }
 
 static void hundred_hz_sensor_reading_task(void) {
+    static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     // Initialize timer
     k_timer_start(&hundred_hz_timer, K_MSEC(HUNDRED_HZ_UPDATE_TIME), K_MSEC(HUNDRED_HZ_UPDATE_TIME));
 
@@ -85,7 +87,8 @@ static void hundred_hz_sensor_reading_task(void) {
                                                                           ms5611,
                                                                           bmp388,
                                                                           lsm6dsl,
-                                                                          lis3mdl};
+                                                                          lis3mdl,
+                                                                          };
 
     // Perform any necessary sensor setup
     setup_lsm6dsl();
@@ -95,22 +98,23 @@ static void hundred_hz_sensor_reading_task(void) {
     check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS);
 
     while (true) {
-        // TODO: Use sensor interrupts instead of timer
-        k_timer_status_sync(&hundred_hz_timer);
-
         // Refresh sensor data
+        gpio_pin_toggle_dt(&led0);
+        uint32_t start = k_uptime_get();
         for (uint8_t i = 0; i < SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS; i++) {
             if (sensor_sample_fetch(sensors[i])) {
                 LOG_ERR("Failed to fetch %s data %d", sensors[i]->name, i);
             }
         }
         hundred_hz_telemetry.timestamp = k_uptime_get();
+        LOG_INF("Took %d to fetch", hundred_hz_telemetry.timestamp - start);
         l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.data.adxl375);
         l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_accel);
         l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.data.ms5611);
         l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.data.bmp388);
         l_get_gyroscope_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_gyro);
         l_get_magnetometer_data_float(lis3mdl, &hundred_hz_telemetry.data.lis3mdl);
+        LOG_INF("Queueing data");
 
         // Put telemetry into queue
         k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10));
