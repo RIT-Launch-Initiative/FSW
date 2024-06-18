@@ -2,6 +2,7 @@
     chosen {
         zephyr,console = &uart0;
         zephyr,shell-uart = &uart0;
+        zephyr,uart-pipe = &uart1;
 
         storage = &flash0;
         logfs = &lfs1;
@@ -47,6 +48,20 @@
 
 };
 
+&uart0 {
+    status = "okay";
+};
+
+&uart1 {
+    status = "okay";
+    modbus0 {
+        compatible = "zephyr,modbus-serial";
+        status = "okay";
+
+        de-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
+        re-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+    };
+};
 
 
 &adc0 {

@@ -6,9 +6,9 @@
 
 // Zephyr Includes
 #include <zephyr/kernel.h>
-#include <zephyr/sys/util.h>
-#include <zephyr/modbus/modbus.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/modbus/modbus.h>
+#include <zephyr/sys/util.h>
 
 #define MODBUS_NODE DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_modbus_serial)
 
@@ -46,9 +46,9 @@ int insert_adc_data_to_input_reg(uint16_t addr, adc_data_t* data) {
         return -ENOTSUP;
     }
 
-    input_reg[addr] = data[0];
-    input_reg[addr + 1] = data[1];
-    input_reg[addr + 2] = data[2];
+    input_reg[addr] = data->parts[0];
+    input_reg[addr + 1] = data->parts[1];
+    input_reg[addr + 2] = data->parts[2];
 
     return 0;
 }
@@ -65,23 +65,21 @@ int insert_float_to_input_reg(uint16_t addr, float value) {
     return 0;
 }
 
-
 int init_modbus_server(void) {
-    static struct modbus_user_callbacks mbs_cbs = {
-        .input_reg_rd = input_reg_rd,
-        .coil_wr = coil_wr
-    };
+    static struct modbus_user_callbacks mbs_cbs = {.input_reg_rd = input_reg_rd, .coil_wr = coil_wr};
 
     const static struct modbus_iface_param server_param = {
         .mode = MODBUS_MODE_RTU,
-        .server = {
-            .user_cb = &mbs_cbs,
-            .unit_id = 1,
-        },
-        .serial = {
-            .baud = 115200,
-            .parity = UART_CFG_PARITY_NONE,
-        },
+        .server =
+            {
+                .user_cb = &mbs_cbs,
+                .unit_id = 1,
+            },
+        .serial =
+            {
+                .baud = 115200,
+                .parity = UART_CFG_PARITY_NONE,
+            },
     };
 
     const char iface_name[] = {DEVICE_DT_NAME(MODBUS_NODE)};

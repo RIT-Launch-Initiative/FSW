@@ -95,13 +95,13 @@
     current-speed = <115200>;
     status = "okay";
 
-	modbus0 {
-		compatible = "zephyr,modbus-serial";
-		status = "okay";
+    modbus0 {
+        compatible = "zephyr,modbus-serial";
+        status = "okay";
 
-		de-gpios = <&gpioc 10 GPIO_ACTIVE_LOW>;
-		re-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
-	};
+        de-gpios = <&gpioc 10 GPIO_ACTIVE_LOW>;
+        re-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
+    };
 };
 
 &spi1 {
