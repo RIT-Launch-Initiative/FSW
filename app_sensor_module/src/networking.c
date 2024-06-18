@@ -9,6 +9,7 @@
 #include <launch_core/backplane_defs.h>
 #include <launch_core/net/udp.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/logging/log.h>
 
@@ -52,6 +53,8 @@ int init_networking(void) {
 //}
 
 static int32_t read_potato_data() {
+    static const struct gpio_dt_spec rs485_enable = GPIO_DT_SPEC_GET(DT_ALIAS(de), gpios);
+    gpio_pin_set_dt(&rs485_enable, 0);
     int32_t result = 0;
     LOG_INF("Starting POTATO Read");
     uint8_t byte = 0;

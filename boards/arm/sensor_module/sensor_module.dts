@@ -43,7 +43,7 @@
         };
 
         de_pin: de_pin {
-            gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
             label = "DE";
         };
     };
@@ -68,6 +68,7 @@
     aliases {
         led0 = &red_led_1;
         led1 = &red_led_2;
+        de = &de_pin;
     };
 };
 
