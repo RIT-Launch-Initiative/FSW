@@ -69,9 +69,8 @@ static void telemetry_broadcast_task(void*, void*, void*) {
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
 
 #ifdef CONFIG_IREC_2024_DEMO
-            float potato_data[3] = {0};
-            read_potato_telemetry(&potato_data[0], &potato_data[1], &potato_data[2]);
-            l_send_udp_broadcast(potato_socket, (const uint8_t*) potato_data, sizeof(potato_data), SENSOR_MODULE_BASE_PORT);
+            // TODO(aaron) read potato data
+            // l_send_udp_broadcast(potato_socket, (const uint8_t*) potato_data, sizeof(potato_data), SENSOR_MODULE_BASE_PORT);
 
 #endif
         }

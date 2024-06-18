@@ -90,7 +90,6 @@ void bin_telemetry_file();
  */
 int init_modbus_server(void);
 
-int insert_adc_data_to_input_reg(uint16_t addr, adc_data_t* data);
 
 /**
  * Place a float into an input register

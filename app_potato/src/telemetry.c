@@ -135,7 +135,7 @@ static void adc_read_task(void*) {
         }
 
         ASSIGN_V32_TO_ADCDATA(buf, adc_data.data[i]);
-        insert_adc_data_to_input_reg(ADC_REGISTER, adc_data.data[i]);
+        // TODO(aaron): Send over UART
 #ifdef CONFIG_BOARD_NATIVE_SIM
         adc_data.data[i][0] = 0xff;
 #endif

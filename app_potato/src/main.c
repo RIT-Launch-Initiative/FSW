@@ -168,9 +168,6 @@ int main() {
     //         }
     //     }
     // }
-    if (init_modbus_server()) {
-        LOG_ERR("Failed to init modbus server");
-    }
 
     return 0;
 }
