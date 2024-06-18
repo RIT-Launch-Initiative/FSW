@@ -11,6 +11,7 @@
         io-channels = <&adc0 0>;
     };
     aliases {
+        adc-dev = &adc0;
     };
 
     leds: leds {

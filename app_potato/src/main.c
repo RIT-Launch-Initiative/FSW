@@ -73,12 +73,27 @@ static void pad_state_run(void *) {
         k_msleep(1);
     }
 }
+#if 0
+#define BOOST_TRANS_TIME         3
+#define COAST_TRANS_TIME         23
+#define APOGEE_TRANS_TIME        152
+#define MAIN_TRANS_TIME          46
+#define LANDING_STATE_EXTRA_TIME 60
+#else
+#define BOOST_TRANS_TIME         1
+#define COAST_TRANS_TIME         5
+#define APOGEE_TRANS_TIME        5
+#define MAIN_TRANS_TIME          5
+#define LANDING_STATE_EXTRA_TIME 5
+
+#endif
 
 static void boost_state_entry(void *) {
     LOG_INF("Entering boost state");
     // TODO: Should get rid of magic numbers. Maybe create a directory of flight configurations with constants?
-    update_state_transition_timer(3);
+    update_state_transition_timer(BOOST_TRANS_TIME);
     stop_boost_detect();
+    logging_enabled = true;
 }
 
 static void boost_state_run(void *) {
@@ -91,7 +106,7 @@ static void boost_state_run(void *) {
 static void coast_state_entry(void *) {
     LOG_INF("Entering coast state");
     configure_telemetry_rate(1337); // TODO
-    update_state_transition_timer(23);
+    update_state_transition_timer(COAST_TRANS_TIME);
 }
 
 static void coast_state_run(void *) {
@@ -104,7 +119,7 @@ static void coast_state_run(void *) {
 static void apogee_state_entry(void *) {
     LOG_INF("Entering apogee state");
     configure_telemetry_rate(420); // TODO
-    update_state_transition_timer(152);
+    update_state_transition_timer(APOGEE_TRANS_TIME);
 }
 
 static void apogee_state_run(void *) {
@@ -117,7 +132,7 @@ static void apogee_state_run(void *) {
 static void main_state_entry(void *) {
     LOG_INF("Entering main chute state");
     configure_telemetry_rate(21); // TODO: Update with proper telemetry rates
-    update_state_transition_timer(46);
+    update_state_transition_timer(MAIN_TRANS_TIME);
 }
 
 static void main_state_run(void *) {
@@ -132,13 +147,14 @@ static void landing_state_entry(void *) { LOG_INF("Entering landing state"); }
 
 static void landing_state_run(void *) {
     // Sleep for an extra minute and ensure we get all our data!
-    k_sleep(K_SECONDS(60));
+    k_sleep(K_SECONDS(LANDING_STATE_EXTRA_TIME));
     logging_enabled = false;
-
+    LOG_INF("Stopped Logging");
     k_sleep(K_FOREVER);
 }
 
 int main() {
+
     boot_count = l_fs_boot_count_check();
     smf_set_initial(SMF_CTX(&state_obj), &states[PAD_STATE]);
 

@@ -16,10 +16,10 @@ typedef uint8_t adc_data_t[3];
     data[1] = (v32 >> 8) & 0xff;                                                                                       \
     data[2] = (v32 >> 16) & 0xff;
 
-typedef struct __attribute__((packed)) {
-    l_barometer_data_t lps22_data;
-    uint32_t timestamp;
-} potato_raw_telemetry_t;
+// typedef struct __attribute__((packed)) {
+// l_barometer_data_t lps22_data;
+// uint32_t timestamp;
+// } potato_raw_telemetry_t;
 
 typedef struct __attribute__((packed)) {
     float altitude;
@@ -31,10 +31,16 @@ typedef struct __attribute__((packed)) {
     uint32_t timestamp;
 } potato_adc_telemetry_t;
 
-typedef struct __attribute__((packed)) {
-    potato_raw_telemetry_t raw_telemetry;
-    potato_telemetry_t telemetry;
-} logging_packet_t;
+// typedef struct __attribute__((packed)) {
+// potato_raw_telemetry_t raw_telemetry;
+// potato_telemetry_t telemetry;
+// } logging_packet_t;
+
+// Worlds worst orchestration
+#define SPIN_WHILE(val, ms)                                                                                            \
+    while (val) {                                                                                                      \
+        k_msleep(ms);                                                                                                  \
+    }
 
 /**
  * Start boost detection checking
