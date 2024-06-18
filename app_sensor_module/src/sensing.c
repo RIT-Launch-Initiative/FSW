@@ -23,8 +23,8 @@
 static void hundred_hz_sensor_reading_task(void);
 
 // Threads
-K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_sensor_reading_task, NULL, NULL, NULL,
-                K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, 1000);
+// K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_sensor_reading_task, NULL, NULL, NULL,
+                // K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, 1000);
 
 // Timers
 K_TIMER_DEFINE(hundred_hz_timer, NULL, NULL);

@@ -11,6 +11,7 @@
 #include <zephyr/drivers/adc/adc_emul.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/uart.h>
 #include <zephyr/logging/log.h>
 
 #define TELEMETRY_STACK_SIZE 512
@@ -135,7 +136,11 @@ static void adc_read_task(void*) {
         }
 
         ASSIGN_V32_TO_ADCDATA(buf, adc_data.data[i]);
-        // TODO(aaron): Send over UART
+        uart_poll_out(DEVICE_DT_GET(DT_NODELABEL(uart5)), '\n');
+        uart_poll_out(DEVICE_DT_GET(DT_NODELABEL(uart5)), adc_data.data[i]);
+        uart_poll_out(DEVICE_DT_GET(DT_NODELABEL(uart5)), adc_data.data[i]);
+        uart_poll_out(DEVICE_DT_GET(DT_NODELABEL(uart5)), adc_data.data[i]);
+
 #ifdef CONFIG_BOARD_NATIVE_SIM
         adc_data.data[i][0] = 0xff;
 #endif
