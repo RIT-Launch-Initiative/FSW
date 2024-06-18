@@ -15,8 +15,10 @@ void buzzer_entry_point(void *, void *, void *);
 struct k_thread buzzer_thread_data;
 K_THREAD_STACK_DEFINE(buzzer_stack_area, BUZZER_THREAD_STACK_SIZE);
 void begin_buzzer_thread(const struct gpio_dt_spec *buzzer_pin) {
-    (void) k_thread_create(&buzzer_thread_data, buzzer_stack_area, K_THREAD_STACK_SIZEOF(buzzer_stack_area),
-                           buzzer_entry_point, (void *) buzzer_pin, NULL, NULL, BUZZER_THREAD_PRIORITY, 0, K_NO_WAIT);
+    k_tid_t tid =
+        k_thread_create(&buzzer_thread_data, buzzer_stack_area, K_THREAD_STACK_SIZEOF(buzzer_stack_area),
+                        buzzer_entry_point, (void *) buzzer_pin, NULL, NULL, BUZZER_THREAD_PRIORITY, 0, K_NO_WAIT);
+    k_thread_name_set(tid, "buzzer");
 }
 
 void buzzer_tell(enum buzzer_cond cond) { k_msgq_put(&buzzer_msgq, &cond, K_MSEC(10)); }
@@ -31,11 +33,9 @@ void buzzer_tell(enum buzzer_cond cond) { k_msgq_put(&buzzer_msgq, &cond, K_MSEC
 #define SILENCE_LENGTH  16
 
 const uint16_t beepcodes[] = {
-    [buzzer_cond_noflash] = 0b1010101010101010,
-    [buzzer_cond_low_battery] = 0b1110001110001110,
-    [buzzer_cond_missing_sensors] = 0b1100000011000000,
-    [buzzer_cond_landed] = 0b1111111100000000,
-    [buzzer_cond_ok] = 0b0000000000000000,
+    [buzzer_cond_noflash] = 0b1010101010101010,         [buzzer_cond_landed] = 0b1100110011001100,
+    [buzzer_cond_launched] = 0b1110001110001110,        [buzzer_cond_low_battery] = 0b1111000011110000,
+    [buzzer_cond_missing_sensors] = 0b1111111100000000, [buzzer_cond_ok] = 0b1000000000000000,
 };
 
 void buzzer_entry_point(void *buzzer_gpio, void *, void *) {

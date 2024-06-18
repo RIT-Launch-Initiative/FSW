@@ -1,7 +1,6 @@
 #include "data_storage.h"
 
 #include "config.h"
-#include "flight.h"
 
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
@@ -9,22 +8,37 @@
 
 LOG_MODULE_REGISTER(storage);
 
-K_EVENT_DEFINE(storage_setup_finished);
+enum control_event { BEGIN_STORAGE, FINISH_STORAGE };
 
+// Communication channels
 K_MSGQ_DEFINE(slow_data_queue, sizeof(struct slow_data), STORAGE_QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_data), STORAGE_QUEUE_SIZE, 1);
 K_MSGQ_DEFINE(fast_data_queue, sizeof(struct fast_data), STORAGE_QUEUE_SIZE, 1);
-K_MSGQ_DEFINE(flight_events_queue, sizeof(enum flight_event), 5, 1);
+K_MSGQ_DEFINE(data_storage_control_queue, sizeof(enum control_event), 5, 1);
 
+#define STORAGE_SETUP_SUCCESS_EVENT 0x1
+#define STORAGE_SETUP_FAILED_EVENT  0x2
+K_EVENT_DEFINE(storage_setup_finished);
+
+// Events that this thread handles
 #define NUM_EVENTS 4
 static struct k_poll_event events[NUM_EVENTS] = {
     K_POLL_EVENT_STATIC_INITIALIZER(K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &slow_data_queue, 0),
     K_POLL_EVENT_STATIC_INITIALIZER(K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &adc_data_queue, 0),
     K_POLL_EVENT_STATIC_INITIALIZER(K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &fast_data_queue, 0),
-    K_POLL_EVENT_STATIC_INITIALIZER(K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &flight_events_queue, 0),
+    K_POLL_EVENT_STATIC_INITIALIZER(K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY,
+                                    &data_storage_control_queue, 0),
 
 };
 
+// Forward Declarations
+void storage_thread_entry_point(void);
+
+// Threads
+K_THREAD_DEFINE(storage_thread, STORAGE_THREAD_STACK_SIZE, storage_thread_entry_point, NULL, NULL, NULL,
+                STORAGE_THREAD_PRIORITY, 0, 1000);
+
+// Helpers to deal with doing the same thing for many files
 #define CHECK_AND_STORE(event, data, file, filename)                                                                   \
     if (event.state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {                                                             \
         k_msgq_get(event.msgq, &data, K_NO_WAIT);                                                                      \
@@ -40,7 +54,7 @@ static struct k_poll_event events[NUM_EVENTS] = {
     struct fs_file_t name;                                                                                             \
     {                                                                                                                  \
         fs_file_t_init(&name);                                                                                         \
-        int ret = fs_open(&name, filename, FS_O_RDWR | FS_O_CREATE);                                                   \
+        int ret = fs_open(&name, filename, FS_O_WRITE | FS_O_CREATE);                                                  \
                                                                                                                        \
         if (ret < 0) {                                                                                                 \
             LOG_ERR("Error opening %s. %d", filename, ret);                                                            \
@@ -49,12 +63,23 @@ static struct k_poll_event events[NUM_EVENTS] = {
         }                                                                                                              \
     }
 
-void storage_thread_entry_point(void *, void *, void *) {
+void print_file_size(struct fs_file_t *fil, int entry_size, const char *name) {
+    int fil_size = fs_tell(fil);
+    int adc_entries = fil_size / entry_size;
+
+    printk("%s: %d bytes of size %d. %d entries\n", name, fil_size, entry_size, adc_entries);
+}
+
+void storage_thread_entry_point() {
     struct fast_data fast_dat = {0};
     struct slow_data slow_dat = {0};
     struct adc_data adc_dat = {0};
-    enum flight_event event;
+    enum control_event event = 0;
     int ret;
+
+    do {
+        k_msgq_get(&data_storage_control_queue, &event, K_FOREVER);
+    } while (event != BEGIN_STORAGE);
 
     OPEN_OR_FAIL(fast_file, FAST_FILENAME);
     OPEN_OR_FAIL(slow_file, SLOW_FILENAME);
@@ -74,37 +99,51 @@ void storage_thread_entry_point(void *, void *, void *) {
 
         if (events[3].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
             k_msgq_get(events[3].msgq, &event, K_NO_WAIT);
-            if (event == flight_event_main_shutoff) {
+            if (event == FINISH_STORAGE) {
                 break;
             }
         }
     }
+
     LOG_INF("Flight over. Saving files...");
+    print_file_size(&adc_file, sizeof(struct adc_data), "ADC");
+    print_file_size(&fast_file, sizeof(struct fast_data), "fast");
+    print_file_size(&slow_file, sizeof(struct slow_data), "slow");
+
     ret = fs_close(&fast_file);
     if (ret < 0) {
         LOG_ERR("Failed to save fast file. %d", ret);
     }
+    LOG_INF("Saved Fast");
     ret = fs_close(&slow_file);
     if (ret < 0) {
         LOG_ERR("Failed to save slow file. %d", ret);
     }
+    LOG_INF("Saved Slow");
     ret = fs_close(&adc_file);
     if (ret < 0) {
         LOG_ERR("Failed to save adc file. %d", ret);
     }
+    LOG_INF("Saved ADC");
 
-    LOG_INF("Saved Files");
+    printk("Saved Files\n");
+    return;
 }
 
-// Setup thread
+#define EVENT_FILTER_ALL 0xFFFFFFFF
 
-K_THREAD_STACK_DEFINE(storage_thread_stack_area, STORAGE_THREAD_STACK_SIZE);
-struct k_thread storage_thread_data;
+int start_data_storage_thread() {
+    enum control_event event = BEGIN_STORAGE;
+    k_msgq_put(&data_storage_control_queue, &event, K_FOREVER);
+    if (k_event_wait(&storage_setup_finished, EVENT_FILTER_ALL, false, K_FOREVER) == STORAGE_SETUP_FAILED_EVENT) {
+        // VERY VERY BAD - payload will log no data
+        return -1;
+    }
+    return 0;
+}
 
-k_tid_t spawn_data_storage_thread() {
-    k_tid_t my_tid = k_thread_create(&storage_thread_data, storage_thread_stack_area,
-                                     K_THREAD_STACK_SIZEOF(storage_thread_stack_area), storage_thread_entry_point, NULL,
-                                     NULL, NULL, STORAGE_THREAD_PRIORITY, 0, K_NO_WAIT);
-    k_thread_name_set(my_tid, "storage");
-    return my_tid;
+void finish_data_storage() {
+    enum control_event event = FINISH_STORAGE;
+    k_msgq_put(&data_storage_control_queue, &event, K_FOREVER);
+    k_msleep(1000);
 }
