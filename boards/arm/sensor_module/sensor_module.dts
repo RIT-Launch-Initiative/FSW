@@ -41,6 +41,11 @@
             gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
             label = "Wiznet LED";
         };
+
+        de_pin: de_pin {
+            gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
+            label = "DE";
+        };
     };
 
     fstab {
@@ -97,13 +102,6 @@
     pinctrl-names = "default";
     current-speed = <115200>;
     status = "okay";
-
-    modbus0 {
-		compatible = "zephyr,modbus-serial";
-		status = "okay";
-
-		de-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
-	};
 };
 
 &spi1 {

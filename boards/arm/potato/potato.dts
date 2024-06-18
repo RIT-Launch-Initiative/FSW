@@ -42,6 +42,15 @@
             label = "USER LED2 (near stm)";
         };
 
+        de_pin: de_pin {
+		    gpios = <&gpioc 10 GPIO_ACTIVE_LOW>;
+            label = "DE";
+        };
+
+        re_pin: re_pin {
+            gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
+            label = "DE";
+        };
     };
 
     fstab {
@@ -94,14 +103,6 @@
     pinctrl-names = "default";
     current-speed = <115200>;
     status = "okay";
-
-	modbus0 {
-		compatible = "zephyr,modbus-serial";
-		status = "okay";
-
-		de-gpios = <&gpioc 10 GPIO_ACTIVE_LOW>;
-		re-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
-	};
 };
 
 &spi1 {

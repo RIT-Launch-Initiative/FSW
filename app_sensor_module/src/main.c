@@ -132,11 +132,8 @@ static void smf_task() {
 }
 
 int main() {
-<<<<<<< HEAD
-=======
     l_fs_boot_count_check();
     init_modbus_client();
 
->>>>>>> main
     return 0;
 }
