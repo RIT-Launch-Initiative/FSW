@@ -101,9 +101,8 @@ int init_udp_unique() {
 int main_unique() {
     LOG_INF("Started radio module RECEIVER");
 
-
-    uint8_t data[255];
     while (true) {
+        uint8_t data[255] = {0};
         int16_t rssi = 0;
         int8_t snr = 0;
         lora_recv(lora, data, sizeof(data), K_FOREVER, &rssi, &snr);
