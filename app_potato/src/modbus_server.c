@@ -41,6 +41,18 @@ static int input_reg_rd(uint16_t addr, uint16_t* reg) {
     return 0;
 }
 
+int insert_adc_data_to_input_reg(uint16_t addr, adc_data_t* data) {
+    if (addr + 2 >= ARRAY_SIZE(input_reg)) {
+        return -ENOTSUP;
+    }
+
+    input_reg[addr] = data[0];
+    input_reg[addr + 1] = data[1];
+    input_reg[addr + 2] = data[2];
+
+    return 0;
+}
+
 int insert_float_to_input_reg(uint16_t addr, float value) {
     uint16_t reg[2] = {0};
 

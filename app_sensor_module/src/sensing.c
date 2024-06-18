@@ -16,8 +16,8 @@
 // Constants
 #define SENSOR_READING_STACK_SIZE            1024
 #define HUNDRED_HZ_TELEM_PRIORITY            20
-#define SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS 4
-#define HUNDRED_HZ_UPDATE_TIME               500 // TODO: Should be 10, but I2C bus dies
+#define SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS 5
+#define HUNDRED_HZ_UPDATE_TIME               100 // TODO: Should be 10, but I2C bus dies
 
 // Forward Declarations
 static void hundred_hz_sensor_reading_task(void);
@@ -76,14 +76,16 @@ static void hundred_hz_sensor_reading_task(void) {
     timed_sensor_module_hundred_hz_telemetry_t hundred_hz_telemetry;
 
     const struct device* adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
-    //    const struct device *ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
-    const struct device* bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
+    const struct device* ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
+    // const struct device* bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
     const struct device* lsm6dsl = DEVICE_DT_GET_ONE(st_lsm6dsl);
     const struct device* lis3mdl = DEVICE_DT_GET_ONE(st_lis3mdl_magn);
 
     const struct device* sensors[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {adxl375,
-                                                                          //            ms5611,
-                                                                          bmp388, lsm6dsl, lis3mdl};
+                                                                          ms5611,
+                                                                          // bmp388,
+                                                                          lsm6dsl,
+                                                                          lis3mdl};
 
     // Perform any necessary sensor setup
     setup_lsm6dsl();
@@ -105,8 +107,8 @@ static void hundred_hz_sensor_reading_task(void) {
         hundred_hz_telemetry.timestamp = k_uptime_get();
         l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.data.adxl375);
         l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_accel);
-        // l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.ms5611);
-        l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.data.bmp388);
+        l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.data.ms5611);
+        // l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.data.bmp388);
         l_get_gyroscope_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_gyro);
         l_get_magnetometer_data_float(lis3mdl, &hundred_hz_telemetry.data.lis3mdl);
 

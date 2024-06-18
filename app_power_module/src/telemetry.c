@@ -24,7 +24,7 @@ LOG_MODULE_REGISTER(telemetry);
 
 // Threads
 K_THREAD_DEFINE(ina_thread, SENSOR_READ_STACK_SIZE, ina_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
-K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
+// K_THREAD_DEFINE(adc_thread, SENSOR_READ_STACK_SIZE, adc_task, NULL, NULL, NULL, K_PRIO_PREEMPT(10), 0, 1000);
 
 // Message Queues
 K_MSGQ_DEFINE(ina_telemetry_msgq, sizeof(power_module_telemetry_t), 10, 4);
@@ -59,17 +59,17 @@ static bool init_ina_task(const struct device *sensors[3], bool ina_device_found
     return true;
 }
 
-static bool init_adc_task(const struct adc_dt_spec *p_vin_sense_adc, struct adc_sequence *p_vin_sense_sequence) {
-    const bool adc_ready = l_init_adc_channel(p_vin_sense_adc, p_vin_sense_sequence) == 0;
-
-    if (!adc_ready) {
-        LOG_ERR("ADC channel %d is not ready", p_vin_sense_adc->channel_id);
-    } else {
-        k_timer_start(&adc_task_timer, K_MSEC(ADC_UPDATE_TIME_MS), K_MSEC(ADC_UPDATE_TIME_MS));
-    }
-
-    return adc_ready;
-}
+// static bool init_adc_task(const struct adc_dt_spec *p_vin_sense_adc, struct adc_sequence *p_vin_sense_sequence) {
+//     const bool adc_ready = l_init_adc_channel(p_vin_sense_adc, p_vin_sense_sequence) == 0;
+//
+//     if (!adc_ready) {
+//         LOG_ERR("ADC channel %d is not ready", p_vin_sense_adc->channel_id);
+//     } else {
+//         k_timer_start(&adc_task_timer, K_MSEC(ADC_UPDATE_TIME_MS), K_MSEC(ADC_UPDATE_TIME_MS));
+//     }
+//
+//     return adc_ready;
+// }
 
 void ina_task(void) {
     const struct device *sensors[] = {
@@ -109,43 +109,43 @@ void ina_task(void) {
     }
 }
 
-void adc_task(void) {
-    static const float adc_gain = 0.09f;
-    static const float mv_to_v_multiplier = 0.001f;
-    const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
-
-    float vin_adc_data_mv = 0;
-    uint16_t temp_vin_adc_data = 0;
-
-    struct adc_sequence vin_sense_sequence = {
-        .buffer = &temp_vin_adc_data,
-        .buffer_size = sizeof(temp_vin_adc_data),
-    };
-
-    if (!init_adc_task(&vin_sense_adc, &vin_sense_sequence)) {
-        return;
-    }
-
-    while (true) {
-        k_timer_status_sync(&adc_task_timer);
-
-        if (0 < l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
-            LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
-            continue;
-        }
-
-        float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
-        k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT);
-
-        // Buffer up data for logging before boost. If no space, throw out the oldest entry.
-        if (!logging_enabled && k_msgq_num_free_get(&adc_logging_msgq) == 0) {
-            timed_adc_telemetry_t throwaway_data;
-            k_msgq_get(&adc_logging_msgq, &throwaway_data, K_NO_WAIT);
-        }
-
-        timed_adc_telemetry_t data = {.timestamp = k_uptime_get(), .data = vin_adc_data_v};
-        k_msgq_put(&adc_logging_msgq, &data, K_MSEC(ADC_UPDATE_TIME_MS));
-
-        k_msleep(15);
-    }
-}
+// void adc_task(void) {
+//     static const float adc_gain = 0.09f;
+//     static const float mv_to_v_multiplier = 0.001f;
+//     const struct adc_dt_spec vin_sense_adc = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+//
+//     float vin_adc_data_mv = 0;
+//     uint16_t temp_vin_adc_data = 0;
+//
+//     struct adc_sequence vin_sense_sequence = {
+//         .buffer = &temp_vin_adc_data,
+//         .buffer_size = sizeof(temp_vin_adc_data),
+//     };
+//
+//     if (!init_adc_task(&vin_sense_adc, &vin_sense_sequence)) {
+//         return;
+//     }
+//
+//     while (true) {
+//         k_timer_status_sync(&adc_task_timer);
+//
+//         if (0 < l_read_adc_mv(&vin_sense_adc, &vin_sense_sequence, (int32_t *) &vin_adc_data_mv)) {
+//             LOG_ERR("Failed to read ADC value from %d", vin_sense_adc.channel_id);
+//             continue;
+//         }
+//
+//         float vin_adc_data_v = (vin_adc_data_mv * mv_to_v_multiplier) * adc_gain;
+//         k_msgq_put(&adc_telemetry_msgq, &vin_adc_data_v, K_NO_WAIT);
+//
+//         // Buffer up data for logging before boost. If no space, throw out the oldest entry.
+//         if (!logging_enabled && k_msgq_num_free_get(&adc_logging_msgq) == 0) {
+//             timed_adc_telemetry_t throwaway_data;
+//             k_msgq_get(&adc_logging_msgq, &throwaway_data, K_NO_WAIT);
+//         }
+//
+//         timed_adc_telemetry_t data = {.timestamp = k_uptime_get(), .data = vin_adc_data_v};
+//         k_msgq_put(&adc_logging_msgq, &data, K_MSEC(ADC_UPDATE_TIME_MS));
+//
+//         k_msleep(15);
+//     }
+// }

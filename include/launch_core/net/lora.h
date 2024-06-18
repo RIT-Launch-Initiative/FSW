@@ -27,7 +27,7 @@ typedef struct {
     uint8_t payload_len;
 } l_lora_packet_t;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint16_t count;
     int16_t rssi;
     int8_t snr;

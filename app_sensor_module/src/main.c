@@ -123,7 +123,7 @@ static void smf_task() {
     while (true) {
         static int ret = 0;
         if (ret == 0) {
-            ret = smf_run_state(SMF_CTX(&state_obj));
+            //         ret = smf_run_state(SMF_CTX(&state_obj)); // TODO: Causes some random UART logger overrun
             if (ret < 0) {
                 LOG_ERR("Failed to run state machine: %d", ret);
             }
@@ -132,8 +132,11 @@ static void smf_task() {
 }
 
 int main() {
+<<<<<<< HEAD
+=======
     l_fs_boot_count_check();
     init_modbus_client();
 
+>>>>>>> main
     return 0;
 }

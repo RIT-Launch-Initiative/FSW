@@ -7,7 +7,6 @@
 
 // Launch Includes
 #include <launch_core/backplane_defs.h>
-#include <launch_core/types.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
@@ -33,8 +32,17 @@ K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE,
 static void lora_tx_task(void);
 K_THREAD_DEFINE(lora_tx_thread, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
+static void state_machine_task(void);
+K_THREAD_DEFINE(state_machine_thread, 1024, state_machine_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+static bool eth_init = false;
+
+extern bool lora_can_transmit;
+
 void udp_to_lora() {
+    static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
     int rcv_size = 0;
+
+    bool transmitted = false;
 
     for (int i = 0; i < sock_list.num_sockets; i++) {
         l_lora_packet_t packet = {0};
@@ -42,12 +50,18 @@ void udp_to_lora() {
         packet.port = sock_list.ports[i];
         rcv_size = l_receive_udp(sock_list.sockets[i], packet.payload, LORA_PACKET_DATA_SIZE);
         if (rcv_size <= 0) {
+            LOG_INF("Receive err: %d", errno);
             continue;
         }
 
+        transmitted = true;
         packet.payload_len = (uint8_t) rcv_size;
         k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
-        LOG_INF("Finished putting on queue");
+    }
+
+    if (transmitted) {
+        gpio_pin_toggle_dt(&led1);
+        lora_can_transmit = false;
     }
 }
 
@@ -64,8 +78,12 @@ static void lora_tx_task(void) {
 int init_lora_unique(const struct device* const lora_dev) { return l_lora_set_tx_rx(lora_dev, true); }
 
 int init_udp_unique() {
+    if (eth_init) {
+        return;
+    }
+
     for (int i = 0; i < sock_list.num_sockets; i++) {
-        sock_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, sock_list.ports[i]);
+        sock_list.sockets[i] = l_init_udp_socket(INADDR_ANY, sock_list.ports[i]);
         if (sock_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", sock_list.sockets[i]);
         } else {
@@ -73,23 +91,20 @@ int init_udp_unique() {
         }
     }
 
+    eth_init = true;
     return 0;
 }
 
-int main_unique() {
-    const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
-
+static void state_machine_task(void) {
     init_state_machine();
     while (true) {
-        gpio_pin_toggle_dt(&led0);
-        gpio_pin_toggle_dt(&led1);
-
         run_state_machine();
 
         k_msleep(100);
     }
+}
 
+int main_unique() {
     return 0;
 }
 
