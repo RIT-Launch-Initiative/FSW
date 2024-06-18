@@ -57,16 +57,17 @@ static int32_t read_potato_data() {
     uint8_t byte = 0;
 
     while (byte != '\n') {
-        uart_poll_in(uart_dev, &byte);
+        while(uart_poll_in(uart_dev, &byte));
+        LOG_INF("Got %x", byte);
     }
 
-    uart_poll_in(uart_dev, &byte);
+    while (uart_poll_in(uart_dev, &byte));
     result |= byte;
 
-    uart_poll_in(uart_dev, &byte);
+    while (uart_poll_in(uart_dev, &byte));
     result |= byte << 8;
 
-    uart_poll_in(uart_dev, &byte);
+    while (uart_poll_in(uart_dev, &byte));
     result |= byte << 16;
 
     LOG_INF("Got %d", result);

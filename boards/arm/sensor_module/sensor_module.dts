@@ -43,7 +43,7 @@
         };
 
         de_pin: de_pin {
-            gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
+            gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
             label = "DE";
         };
     };
@@ -100,8 +100,9 @@
 &uart5 {
     pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
     pinctrl-names = "default";
-    current-speed = <115200>;
+    current-speed = <9600>;
     status = "okay";
+    tx-rx-swap;
 };
 
 &spi1 {

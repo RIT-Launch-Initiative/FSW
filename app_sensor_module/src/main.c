@@ -43,7 +43,7 @@ static const struct smf_state states[] = {
 };
 
 static void smf_task(void);
-K_THREAD_DEFINE(smf, 1024, smf_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+// K_THREAD_DEFINE(smf, 1024, smf_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 
 static void pad_state_entry(void*) {
@@ -131,6 +131,7 @@ static void smf_task() {
 }
 
 int main() {
+    init_networking();
     l_fs_boot_count_check();
 
     return 0;
