@@ -18,9 +18,9 @@
 LOG_MODULE_REGISTER(telemetry);
 
 // Threads
-static void telemetry_read_task(void*);
-K_THREAD_DEFINE(telem_read_thread, TELEMETRY_STACK_SIZE, telemetry_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
-                1000);
+// static void telemetry_read_task(void*);
+// K_THREAD_DEFINE(telem_read_thread, TELEMETRY_STACK_SIZE, telemetry_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
+// 1000);
 
 static void adc_read_task(void*);
 K_THREAD_DEFINE(adc_read_thread, TELEMETRY_STACK_SIZE, adc_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
@@ -116,10 +116,10 @@ static void adc_read_task(void*) {
 
     LOG_INF("ADC Reader Ready");
 #ifdef CONFIG_DEBUG
-    SPIN_WHILE(!boost_detected, 1); // TODO(aaron)
+    // SPIN_WHILE(!boost_detected, 1); // TODO(aaron)
 #endif
     k_timer_start(&adc_timer, ADC_PERIOD, ADC_PERIOD);
-    //
+
     int i = 0;
 
     while (1) {
@@ -135,9 +135,7 @@ static void adc_read_task(void*) {
         }
 
         ASSIGN_V32_TO_ADCDATA(buf, adc_data.data[i]);
-
-
-
+        insert_adc_data_to_input_reg(ADC_REGISTER, adc_data.data[i]);
 #ifdef CONFIG_BOARD_NATIVE_SIM
         adc_data.data[i][0] = 0xff;
 #endif

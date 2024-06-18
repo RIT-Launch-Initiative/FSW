@@ -7,9 +7,9 @@
 #define ADC_READINGS_PER_PACKET 10
 #define ADC_PERIOD              K_USEC(101)
 
-#define LPS22_PRESSURE_REGISTER 0
-#define LPS22_TEMPERATURE_REGISTER (LPS22_PRESSURE_REGISTER + 2)
-#define ADC_REGISTER (LPS22_TEMPERATURE_REGISTER + 2)
+#define ADC_REGISTER 0
+#define LPS22_PRESSURE_REGISTER (ADC_REGISTER + 3)
+#define LPS22_TEMPERATURE_REGISTER (LPS22_TEMPERATURE_REGISTER + 2)
 
 
 typedef enum
@@ -29,17 +29,20 @@ typedef uint8_t adc_data_t[3];
     data[1] = (v32 >> 8) & 0xff;                                                                                       \
     data[2] = (v32 >> 16) & 0xff;
 
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__((packed))
+{
     l_barometer_data_t lps22_data;
     uint32_t timestamp;
 } potato_raw_telemetry_t;
 
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__((packed))
+{
     float altitude;
     uint32_t timestamp;
 } potato_telemetry_t;
 
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__((packed))
+{
     adc_data_t data[ADC_READINGS_PER_PACKET];
     uint32_t timestamp;
 } potato_adc_telemetry_t;
@@ -86,6 +89,8 @@ void bin_telemetry_file();
  * Initialize a Modbus Server
  */
 int init_modbus_server(void);
+
+int insert_adc_data_to_input_reg(uint16_t addr, adc_data_t* data);
 
 /**
  * Place a float into an input register
