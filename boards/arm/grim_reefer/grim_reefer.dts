@@ -68,7 +68,7 @@
             // the binding reccomends defaults for these
             read-size = <16>;
             prog-size = <16>;
-            cache-size = <2048>; // may need to grow for optimization
+            cache-size = <4096>; // may need to grow for optimization
             lookahead-size = <128>;
             block-cycles = <(90 * 1000)>;
             // the datasheet gives 100K P-E cycles
@@ -96,17 +96,20 @@
     status = "okay";
 };
 
+
 &pll {
-    div-m = <8>;
-    mul-n = <90>;
+    div-m = <16>; // must be set to 16 to match clk_hsi 16mz
+    mul-n = <180>;
     div-p = <2>;
     clocks = <&clk_hsi>;
     status = "okay";
 };
 
+// SystemCoreClock = ((INPUT_CLOCK (HSE_OR_HSI_IN_HZ) / PLL_M) * PLL_N) / PLL_P
+// https: //stm32f4-discovery.net/2015/01/properly-set-clock-speed-stm32f4xx-devices/
 &rcc {
     clocks = <&pll>;
-    clock-frequency = <DT_FREQ_M(45)>;
+    clock-frequency = <DT_FREQ_M(45)>; // (16MHz / 16) * 180 / 2
     ahb-prescaler = <2>;
     apb1-prescaler = <2>;
     apb2-prescaler = <1>;
@@ -123,7 +126,7 @@
     pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
     pinctrl-names = "default";
     status = "okay";
-    clock-frequency = <I2C_BITRATE_FAST>;
+    clock-frequency = <I2C_BITRATE_STANDARD>;
 
     bme280: bme280@77 {
         status = "okay";
@@ -168,11 +171,21 @@
 
 };
 
+&dma2 {
+    status = "okay";
+};
+
 &spi1 {
     pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
     cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
     pinctrl-names = "default";
     status = "okay";
+
+
+    dmas = <&dma2 5 3 0x28440 0x03>,
+           <&dma2 2 3 0x28480 0x03>;
+    dma-names = "tx", "rx";
+
 
     w25q512: w25q512jv@0 {
         compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
@@ -181,7 +194,6 @@
         size = <DT_SIZE_M(512)>; // w25q512 - 512 MBit (S 9.4, p.92)
         jedec-id = [ ef 40 20  ]; // 0xef4020 (Table 8.1.1, p.25)
         spi-max-frequency = <DT_FREQ_M(50)>; // fR = 50 MHz (Table 9.6, p.86)
-
 
         has-dpd;
         // Power-down 0xB9 (S 8.2.21)
@@ -220,7 +232,7 @@
         device-address = <1>;
         clock-selection = "CLK_INTERNAL";
         prescale = "PRE_1";
-        spi-max-frequency = <DT_FREQ_M(8)>; // pg. 12, Table 1.1 MAX 20MHz
+        spi-max-frequency = <DT_FREQ_M(10)>; // pg. 12, Table 1.1 MAX 20MHz
 
 
         channel@0 {

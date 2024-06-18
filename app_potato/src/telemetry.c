@@ -71,9 +71,23 @@ static void telemetry_read_task(void*) {
     //     k_msgq_put(&raw_telem_processing_queue, &raw_telem_processing_queue, K_NO_WAIT);
     // }
 }
+
 static void adc_read_task(void*) {
+    static const struct device *lps22 = DEVICE_DT_GET_ONE(st_lps22hh);
+    potato_raw_telemetry_t raw_telemetry = {0};
+
     while (1) {
         k_timer_status_sync(&adc_timer);
+
+        sensor_sample_fetch(lps22);
+        // TODO: Get ADC data
+        raw_telemetry.timestamp = k_uptime_get_32();
+        l_get_barometer_data_float(lps22, &raw_telemetry.lps22_data);
+
+        k_msgq_put(&raw_telem_processing_queue, &raw_telem_processing_queue, K_NO_WAIT);
+        insert_float_to_input_reg(LPS22_PRESSURE_REGISTER, raw_telemetry.lps22_data.pressure);
+        insert_float_to_input_reg(LPS22_TEMPERATURE_REGISTER, raw_telemetry.lps22_data.temperature);
+        insert_float_to_input_reg(ADC_REGISTER, raw_telemetry.load);
     }
 }
 

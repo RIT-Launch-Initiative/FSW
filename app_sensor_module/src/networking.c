@@ -56,12 +56,24 @@ static void telemetry_broadcast_task(void*, void*, void*) {
     int hundred_hz_socket =
         l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
 
+#ifdef CONFIG_IREC_2024_DEMO
+
+    int potato_socket = l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT);
+#endif
+
     while (true) {
         if (0 == k_msgq_get(&hundred_hz_telem_queue, &hundred_hz_telem, K_MSEC(100))) {
             LOG_INF("Sending telem");
             l_send_udp_broadcast(hundred_hz_socket, (uint8_t*) &hundred_hz_telem,
                                  sizeof(sensor_module_hundred_hz_telemetry_t),
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
+
+#ifdef CONFIG_IREC_2024_DEMO
+            float potato_data[3] = {0};
+            read_potato_telemetry(&potato_data[0], &potato_data[1], &potato_data[2]);
+            l_send_udp_broadcast(potato_socket, (const uint8_t*) potato_data, sizeof(potato_data), SENSOR_MODULE_BASE_PORT);
+
+#endif
         }
     }
 }
