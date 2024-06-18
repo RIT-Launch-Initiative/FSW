@@ -9,7 +9,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#define LOGGING_THREAD_STACK_SIZE 1024
+#define LOGGING_THREAD_STACK_SIZE 2048
 LOG_MODULE_REGISTER(data_logger);
 
 // Message Queues
