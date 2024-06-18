@@ -112,7 +112,7 @@ static void adc_read_task(void *) {
 
     LOG_INF("ADC Reader Ready");
     // ADC isn't needed for boost detection
-    SPIN_WHILE(!boost_detected, 1);
+    // SPIN_WHILE(!boost_detected, 1); // TODO(aaron)
 
     k_timer_start(&adc_timer, ADC_PERIOD, ADC_PERIOD);
     //
@@ -131,6 +131,7 @@ static void adc_read_task(void *) {
         }
 
         ASSIGN_V32_TO_ADCDATA(buf, adc_data.data[i]);
+        LOG_INF("%d - %f", buf, buf / (4096.0 * 5.0)); // TODO(aaron)
 #ifdef CONFIG_BOARD_NATIVE_SIM
         adc_data.data[i][0] = 0xff;
 #endif
@@ -139,6 +140,8 @@ static void adc_read_task(void *) {
         if (i == ADC_READINGS_PER_PACKET) {
             k_msgq_put(&adc_logging_queue, &adc_data, K_NO_WAIT);
             i = 0;
+
+
         }
     }
 }
