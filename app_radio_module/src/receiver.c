@@ -88,7 +88,11 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
     LOG_INF("Received %d bytes. RSSI: %d SNR: %d", len, rssi, snr);
 }
 
-int init_lora_unique(const struct device* const lora_dev) { return lora_recv_async(lora_dev, &receiver_cb); }
+static const struct device* lora = NULL;
+int init_lora_unique(const struct device* const lora_dev) {
+    lora = lora_dev;
+    // return lora_recv_async(lora_dev, &receiver_cb);
+}
 
 int init_udp_unique() {
     return 0;
@@ -96,6 +100,17 @@ int init_udp_unique() {
 
 int main_unique() {
     LOG_INF("Started radio module RECEIVER");
+
+
+    uint8_t data[255];
+    while (true) {
+        int16_t rssi = 0;
+        int8_t snr = 0;
+        lora_recv(lora, data, sizeof(data), K_FOREVER, &rssi, &snr);
+        receiver_cb(lora, data, sizeof(data), rssi, snr);
+    }
+
+
     return 0;
 }
 
