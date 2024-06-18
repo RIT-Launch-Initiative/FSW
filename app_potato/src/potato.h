@@ -5,6 +5,11 @@
 
 #include <launch_core/types.h>
 
+#define LPS22_PRESSURE_REGISTER 0
+#define LPS22_TEMPERATURE_REGISTER (LPS22_PRESSURE_REGISTER + 2)
+#define ADC_REGISTER (LPS22_TEMPERATURE_REGISTER + 2)
+
+
 typedef enum
 {
     PAD_STATE = 0,
@@ -62,5 +67,18 @@ void configure_telemetry_rate(uint32_t frequency);
  * Bin a telemetry file for flight phase transitions
  */
 void bin_telemetry_file();
+
+/**
+ * Initialize a Modbus Server
+ */
+int init_modbus_server(void);
+
+/**
+ * Place a float into an input register
+ * @param addr - Address of the register
+ * @param value - Value to place in the register
+ * @return 0 on success, negative error code on failure
+ */
+int insert_float_to_input_reg(uint16_t addr, float value);
 
 #endif //POTATO_H

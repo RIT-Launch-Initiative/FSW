@@ -67,6 +67,9 @@ static void telemetry_read_task(void*) {
         l_get_barometer_data_float(lps22, &raw_telemetry.lps22_data);
 
         k_msgq_put(&raw_telem_processing_queue, &raw_telem_processing_queue, K_NO_WAIT);
+        insert_float_to_input_reg(LPS22_PRESSURE_REGISTER, raw_telemetry.lps22_data.pressure);
+        insert_float_to_input_reg(LPS22_TEMPERATURE_REGISTER, raw_telemetry.lps22_data.temperature);
+        insert_float_to_input_reg(ADC_REGISTER, raw_telemetry.load);
     }
 }
 

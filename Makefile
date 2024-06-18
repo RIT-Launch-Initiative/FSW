@@ -21,6 +21,8 @@ potato:
 reefer:
 	west build -b grim_reefer app_grim_reefer -p auto -DOVERLAY_CONFIG=debug.conf
 
+reefer_rel:
+	west build -b grim_reefer app_grim_reefer -p auto
 
 # Modules (Release)
 power-rel:
