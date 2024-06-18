@@ -62,6 +62,7 @@ static void pad_state_run(void*) {
         if (boost_detected || received_boost_notif) {
             smf_set_state(SMF_CTX(&state_obj), &states[PRE_MAIN_STATE]);
             l_post_event_udp(L_BOOST_DETECTED);
+            write_boost_detect_byte_modbus(L_BOOST_DETECTED);
             return;
         }
     }
@@ -132,6 +133,7 @@ static void smf_task() {
 
 int main() {
     l_fs_boot_count_check();
+    init_modbus_client();
 
     return 0;
 }

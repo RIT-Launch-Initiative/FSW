@@ -27,3 +27,9 @@ config EXTENSION_BOARD_QUEUE_SIZE
     help
       The number of samples that can be stored in the extension board telemetry processing queue
 
+config IREC_2024_DEMO
+    bool "IREC 2024 Demo"
+    default y
+    help
+      Enable the IREC 2024 Demo (reading POTATO telemetry and sending over UDP)
+
