@@ -9,6 +9,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/smf.h>
+#include <zephyr/drivers/gpio.h>
 
 LOG_MODULE_REGISTER(app_potato);
 
@@ -142,7 +143,12 @@ static void landing_state_run(void*) {
 }
 
 int main() {
+    static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
     boot_count = l_fs_boot_count_check();
+
+    gpio_pin_set_dt(&led0, 1);
+    gpio_pin_set_dt(&led1, 1);
 
     init_modbus_server();
 

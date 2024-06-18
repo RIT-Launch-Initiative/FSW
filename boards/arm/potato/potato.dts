@@ -62,6 +62,8 @@
     };
 
     aliases {
+        led0 = &led1;
+        led1 = &led2;
     };
 };
 
