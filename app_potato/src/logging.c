@@ -14,7 +14,7 @@ LOG_MODULE_REGISTER(data_logger);
 
 // Message Queues
 
-K_MSGQ_DEFINE(logging_queue, sizeof(potato_telemetry_t), 500, 1);
+K_MSGQ_DEFINE(logging_queue, sizeof(potato_raw_telemetry_t), 500, 1);
 K_MSGQ_DEFINE(adc_logging_queue, sizeof(potato_adc_telemetry_t), 500, 1);
 
 // Threads
@@ -35,7 +35,7 @@ extern bool logging_enabled;
 #define ADC_SAMPLE_COUNT  20000
 
 static void logging_task(void*) {
-    potato_telemetry_t packet = {0};
+    potato_raw_telemetry_t packet = {0};
     int err = 0;
 
     // Block until we get a boot count
@@ -51,9 +51,9 @@ static void logging_task(void*) {
 
     l_fs_file_t fil_file = {
         .fname = fil_name,
-        .width = sizeof(potato_telemetry_t),
+        .width = sizeof(potato_raw_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(potato_telemetry_t) * DATA_SAMPLE_COUNT,
+        .size = sizeof(potato_raw_telemetry_t) * DATA_SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
@@ -61,6 +61,7 @@ static void logging_task(void*) {
         .wpos = 0,
     };
     l_fs_init(&fil_file);
+    LOG_INF("Sensor Log Ready");
 
     SPIN_WHILE(!logging_enabled, 1);
 

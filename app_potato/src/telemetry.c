@@ -18,14 +18,14 @@
 LOG_MODULE_REGISTER(telemetry);
 
 // Threads
-static void telemetry_read_task(void*);
+static void telemetry_read_task(void *);
 K_THREAD_DEFINE(telem_read_thread, TELEMETRY_STACK_SIZE, telemetry_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
                 1000);
 
-static void adc_read_task(void*);
+static void adc_read_task(void *);
 K_THREAD_DEFINE(adc_read_thread, TELEMETRY_STACK_SIZE, adc_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
-static void telemetry_processing_task(void*);
+static void telemetry_processing_task(void *);
 K_THREAD_DEFINE(telem_process_thread, TELEMETRY_STACK_SIZE, telemetry_processing_task, NULL, NULL, NULL,
                 K_PRIO_PREEMPT(20), 0, 1000);
 
@@ -36,7 +36,7 @@ K_TIMER_DEFINE(adc_timer, NULL, NULL);
 // Queues
 extern struct k_msgq logging_queue;
 extern struct k_msgq adc_logging_queue;
-K_MSGQ_DEFINE(boost_queue, sizeof(potato_telemetry_t), 500, 1);
+K_MSGQ_DEFINE(boost_queue, sizeof(potato_raw_telemetry_t), 500, 1);
 
 // Global Variables
 float boost_detection_altitude = -0xFFFF;
@@ -57,12 +57,21 @@ void configure_telemetry_rate(uint32_t frequency) {
     bin_telemetry_file();
 }
 
-static void telemetry_read_task(void*) {
-    potato_telemetry_t telemetry = {0};
-#ifdef CONFIG_BOARD_POTATO
-    const struct device* lps22 = DEVICE_DT_GET(DT_NODELABEL(lps22hh));
+void read_lps(potato_raw_telemetry_t *telem, const struct device *dev) {
+#ifdef CONFIG_BOARD_NATIVE_SIM
+    telem->lps22_data.pressure = 50;
+#else
+    sensor_sample_fetch(dev);
+    l_get_barometer_data_float(dev, &telem->lps22_data);
+#endif
+}
 
-    sensor_sample_fetch(lps22);
+static void telemetry_read_task(void *) {
+    potato_raw_telemetry_t raw_telemetry = {0};
+#ifdef CONFIG_BOARD_POTATO
+    const struct device *lps22 = DEVICE_DT_GET(DT_NODELABEL(lps22hh));
+#else
+    const struct device *lps22 = NULL;
 #endif
     LOG_INF("Sensor Reader Ready");
 
@@ -70,23 +79,22 @@ static void telemetry_read_task(void*) {
     k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
     while (!boost_detected) {
         k_timer_status_sync(&lps22_timer);
-        telemetry.timestamp = k_uptime_get();
-        // l_get_barometer_data_float(lps22, &raw_telemetry.lps22_data);
 
-        k_msgq_put(&boost_queue, &telemetry, K_NO_WAIT);
+        read_lps(&raw_telemetry, lps22);
+        raw_telemetry.timestamp = k_uptime_get();
+
+        k_msgq_put(&boost_queue, &raw_telemetry, K_NO_WAIT);
     }
     while (logging_enabled) {
         k_timer_status_sync(&lps22_timer);
 
-        // sensor_sample_fetch(lps22);
-        // TODO: Get ADC data
-        telemetry.timestamp = k_uptime_get();
-        // l_get_barometer_data_float(lps22, &raw_telemetry.lps22_data);
+        read_lps(&raw_telemetry, lps22);
+        raw_telemetry.timestamp = k_uptime_get();
 
-        k_msgq_put(&logging_queue, &telemetry, K_NO_WAIT);
+        k_msgq_put(&logging_queue, &raw_telemetry, K_NO_WAIT);
     }
 }
-static void adc_read_task(void*) {
+static void adc_read_task(void *) {
     static const struct adc_dt_spec adc_chan0 = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
     int32_t buf = 0;
     struct adc_sequence sequence = {
@@ -134,27 +142,30 @@ static void adc_read_task(void*) {
         }
     }
 }
-
-static void telemetry_processing_task(void*) {
-    // potato_raw_telemetry_t raw_telemetry = {0};
-    // potato_telemetry_t processed_telemetry = {0};
-
-    while (true) {
-        k_msleep(1);
-        // if (k_msgq_get(&raw_telem_processing_queue, &raw_telemetry, K_FOREVER) != 0) continue;
-
-        // // Boost detection calculation. Can assume no boost if logging isn't enabled
-        // if (!logging_enabled) {
-        //     convert_raw_telemetry(&raw_telemetry, &processed_telemetry);
-        //     boost_detection_altitude = processed_telemetry.altitude;
-        // }
-
-        // // Buffer up data for logging before boost. If no space, throw out the oldest entry.
-        // if (!logging_enabled && k_msgq_num_free_get(&logging_queue) == 0) {
-        //     potato_raw_telemetry_t throwaway_data;
-        //     k_msgq_get(&logging_queue, &throwaway_data, K_NO_WAIT);
-        // }
-
-        // k_msgq_put(&logging_queue, &raw_telem_processing_queue, K_FOREVER);
+double my_altitude_conversion(double pressure_kpa, double temperature_c) {
+    double pressure = pressure_kpa * 10;
+    double altitude = (1 - pow(pressure / 1013.25, 0.190284)) * 145366.45 * 0.3048;
+    return altitude;
+}
+static void telemetry_processing_task(void *) {
+    potato_raw_telemetry_t telemetry = {0};
+    //
+    while (!boost_detected) {
+        if (k_msgq_get(&boost_queue, &telemetry, K_MSEC(1)) != 0) {
+            // some error
+            continue;
+        }
+        // If boost queue is receiving data, can assume no boost has happened
+        float altitude = my_altitude_conversion(telemetry.lps22_data.pressure, telemetry.lps22_data.temperature);
+        boost_detection_altitude = altitude;
+        //
+        // // Buffer up data for logging before boost.
+        //If no space, throw out the oldest entry.
+        if (k_msgq_num_free_get(&boost_queue) == 0) {
+            potato_raw_telemetry_t throwaway_data;
+            k_msgq_get(&logging_queue, &throwaway_data, K_NO_WAIT);
+        }
+        // Add next sample
+        k_msgq_put(&logging_queue, &telemetry, K_FOREVER);
     }
 }

@@ -16,10 +16,10 @@ typedef uint8_t adc_data_t[3];
     data[1] = (v32 >> 8) & 0xff;                                                                                       \
     data[2] = (v32 >> 16) & 0xff;
 
-// typedef struct __attribute__((packed)) {
-// l_barometer_data_t lps22_data;
-// uint32_t timestamp;
-// } potato_raw_telemetry_t;
+typedef struct __attribute__((packed)) {
+    l_barometer_data_t lps22_data;
+    uint32_t timestamp;
+} potato_raw_telemetry_t;
 
 typedef struct __attribute__((packed)) {
     float altitude;
