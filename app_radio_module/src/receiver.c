@@ -18,6 +18,9 @@ LOG_MODULE_REGISTER(radio_module_rxer);
 K_MSGQ_DEFINE(rx_telem_queue, sizeof(l_lora_packet_t), 8, 1);
 K_MSGQ_DEFINE(statistics_queue, sizeof(l_lora_packet_t), 8, 1);
 
+static void reset_recv_async(struct k_timer*);
+K_TIMER_DEFINE(recv_heartbeat, reset_recv_async, NULL);
+
 // LEDs
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
@@ -104,6 +107,8 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
     ARG_UNUSED(len);
 
     gpio_pin_toggle_dt(&led0);
+    // Reset the heartbeat timer
+    k_timer_start(&recv_heartbeat, K_MSEC(10000), K_NO_WAIT);
 
     static l_lora_statistics_t statistics = {0};
     statistics.count++;
@@ -131,9 +136,16 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
 }
 
 static const struct device* lora = NULL;
+static void reset_recv_async(struct k_timer*) {
+    lora_recv_async(lora, NULL);
+    k_timer_start(&recv_heartbeat, K_SECONDS(10), K_SECONDS(0));
+    lora_recv_async(lora, &receiver_cb);
+}
+
+
 int init_lora_unique(const struct device* const lora_dev) {
     lora = lora_dev;
-    // return lora_recv_async(lora_dev, &receiver_cb);
+    reset_recv_async(NULL);
     return 0;
 }
 
@@ -143,16 +155,6 @@ int init_udp_unique() {
 
 int main_unique() {
     LOG_INF("Started radio module RECEIVER");
-
-    while (true) {
-        uint8_t data[255] = {0};
-        int16_t rssi = 0;
-        int8_t snr = 0;
-        lora_recv(lora, data, sizeof(data), K_FOREVER, &rssi, &snr);
-        receiver_cb(lora, data, sizeof(data), rssi, snr);
-    }
-
-
     return 0;
 }
 
