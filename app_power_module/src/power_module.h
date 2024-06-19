@@ -3,6 +3,7 @@
 
 #include <launch_core/backplane_defs.h>
 #include <launch_core/net/net_common.h>
+#include <launch_core/types.h>
 
 #define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 
@@ -10,6 +11,16 @@ typedef enum {
     GROUND_STATE = 0,
     FLIGHT_STATE,
 } FLIGHT_STATES;
+
+typedef struct __attribute__((packed)) {
+    uint64_t timestamp;
+    power_module_telemetry_t data;
+} timed_power_module_telemetry_t;
+
+typedef struct __attribute__((packed)) {
+    uint64_t timestamp;
+    float data;
+} timed_adc_telemetry_t;
 
 /**
  * Initialize networking

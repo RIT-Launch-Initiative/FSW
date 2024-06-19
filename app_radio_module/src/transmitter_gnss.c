@@ -19,14 +19,9 @@ LOG_MODULE_REGISTER(transmitter_gnss);
 // Forward Declaration
 static void gnss_tx_on_expire(struct k_timer* timer_id);
 static void gnss_data_cb(const struct device* dev, const struct gnss_data* data);
-static void gnss_log_task(void);
 
 // Message Queues
 K_MSGQ_DEFINE(gnss_tx_queue, sizeof(l_gnss_data_t), GNSS_TX_QUEUE_SIZE, 1);
-K_MSGQ_DEFINE(gnss_log_queue, sizeof(l_gnss_data_t), CONFIG_LORA_TX_QUEUE_SIZE, 1);
-
-// Threads
-K_THREAD_DEFINE(gnss_log_thread, GNSS_TASK_STACK_SIZE, gnss_log_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 // Flags
 static bool ready_to_tx = false;
@@ -43,6 +38,7 @@ K_TIMER_DEFINE(gnss_tx_timer, gnss_tx_on_expire, NULL);
 
 // External Variables
 extern struct k_msgq lora_tx_queue;
+extern struct k_msgq gnss_logging_msgq;
 float gnss_altitude;
 
 void config_gnss_tx_time(k_timeout_t interval) { k_timer_start(&gnss_tx_timer, interval, interval); }
@@ -68,7 +64,7 @@ static void gnss_data_cb(const struct device* dev, const struct gnss_data* data)
     memcpy(packet.payload, &gnss_data, sizeof(l_gnss_data_t));
     k_msgq_put(&lora_tx_queue, &packet, K_NO_WAIT);
     if (logging_enabled) {
-        k_msgq_put(&gnss_log_queue, &packet, K_NO_WAIT);
+        k_msgq_put(&gnss_logging_msgq, &packet, K_NO_WAIT);
     }
 
 #ifdef CONFIG_DEBUG // if debugging is on tx gnss over ethernet
@@ -79,19 +75,9 @@ static void gnss_data_cb(const struct device* dev, const struct gnss_data* data)
     ready_to_tx = false;
 }
 
-static void gnss_log_task(void) {
-    l_gnss_data_t data = {};
-    while (1) {
-        if (k_msgq_get(&gnss_log_queue, &data, K_FOREVER)) {
-            // TODO: Implement once logging is done
-        }
-
-    }
-}
-
 #ifdef CONFIG_DEBUG
 static void gnss_debug_task(void);
-K_THREAD_DEFINE(gnss_udp_tx, GNSS_TASK_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 1000);
+K_THREAD_DEFINE(gnss_udp_tx, GNSS_TASK_STACK_SIZE, gnss_debug_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 static void gnss_debug_task(void) {
     const uint16_t gnss_port = RADIO_MODULE_BASE_PORT + RADIO_MODULE_GNSS_DATA_PORT;
@@ -101,7 +87,7 @@ static void gnss_debug_task(void) {
         return;
     }
 
-    while (1) {
+    while (true) {
         l_gnss_data_t gnss_data = {0};
         k_msgq_get(&gnss_tx_queue, &gnss_data, K_FOREVER);
         l_send_udp_broadcast(sock, (uint8_t*) &gnss_data, sizeof(l_gnss_data_t), gnss_port);

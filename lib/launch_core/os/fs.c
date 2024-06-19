@@ -27,10 +27,11 @@ int32_t l_fs_open(l_fs_file_t *p_file) { return fs_open(&p_file->file, p_file->f
 
 int32_t l_fs_close(l_fs_file_t *p_file) { return fs_close(&p_file->file); }
 
-size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src) {
+size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src, int32_t *err_flag) {
     if (!p_file->initialized) {
         LOG_ERR("Logger for file %s is not initialized", p_file->fname);
-        return -ENOTINIT;
+        *err_flag = -ENOTINIT;
+        return 0;
     }
 
     if ((p_file->wpos + p_file->width) > p_file->size) { // next write will go out-of-bounds
@@ -38,13 +39,14 @@ size_t l_fs_write(l_fs_file_t *p_file, const uint8_t *const src) {
         switch (p_file->mode) {
             case SLOG_ONCE: // error out
                 LOG_WRN("Logger reached end of file");
-                return -ENOSPC;
+                *err_flag = -ENOSPC;
+                return 0;
             case SLOG_CIRC: // wrap around
                 LOG_INF("Logger reset to start of file");
                 p_file->wpos = 0;
                 break;
             default:
-                return -ENOTSUP;
+                *err_flag = -ENOTSUP;
         }
     }
 
@@ -143,6 +145,13 @@ int32_t l_fs_stat_vfs(l_fs_file_t *p_file) {
 }
 
 int32_t l_fs_boot_count_check() {
+    static bool boot_count_checked = false;
+    if (boot_count_checked) {
+        LOG_WRN("Boot count already checked");
+        return -EALREADY;
+    }
+    boot_count_checked = true;
+
     static const char *boot_count_fname = "/lfs/.boot_count";
     struct fs_file_t boot_count_file = {0};
     fs_mode_t flags = FS_O_RDWR;

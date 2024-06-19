@@ -3,18 +3,12 @@
 
 #include <launch_core/net/net_common.h>
 #include <launch_core/types.h>
-
 #include <stdbool.h>
 
-#define SENSOR_MODULE_IP_ADDR BACKPLANE_IP(SENSOR_MODULE_ID, 2, 1)
+#define SENSOR_MODULE_IP_ADDR             BACKPLANE_IP(SENSOR_MODULE_ID, 2, 1)
 #define DETECTION_METHOD_PER_SENSOR_COUNT 2
 
-typedef enum {
-    PAD_STATE = 0,
-    PRE_MAIN_STATE,
-    POST_MAIN_STATE,
-    LANDING_STATE
-} FLIGHT_STATES;
+typedef enum { PAD_STATE = 0, PRE_MAIN_STATE, POST_MAIN_STATE, LANDING_STATE } FLIGHT_STATES;
 
 typedef enum {
     SENSOR_MODULE_ADXL375 = 0,
@@ -24,6 +18,16 @@ typedef enum {
     SENSOR_MODULE_MS5611,
     SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS
 } sensor_module_hundred_hz_sensor_t;
+
+typedef struct __attribute__((packed)) {
+    uint64_t timestamp;
+    sensor_module_hundred_hz_telemetry_t data;
+} timed_sensor_module_hundred_hz_telemetry_t;
+
+typedef struct __attribute__((packed)) {
+    uint64_t timestamp;
+    sensor_module_ten_hz_telemetry_t data;
+} timed_sensor_module_ten_hz_telemetry_t;
 
 void init();
 

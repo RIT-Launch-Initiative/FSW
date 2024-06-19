@@ -1,3 +1,4 @@
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
 #include "transmitter_smf.h"
 
 #include "radio_module_functionality.h"
@@ -134,3 +135,4 @@ void run_state_machine() {
         }
     }
 }
+#endif
