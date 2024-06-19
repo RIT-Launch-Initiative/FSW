@@ -17,8 +17,14 @@
 
 LOG_MODULE_REGISTER(logging);
 
+#ifdef CONFIG_DEBUG
+#define THREAD_START_TIME 0
+#else
+#define THREAD_START_TIME 60000 * 5 // 5 minutes
+#endif
+
 static void logging_task(void);
-K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 60000 * 5);
+K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, THREAD_START_TIME);
 
 // Message queues
 K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_telemetry_t), 1000, 4);

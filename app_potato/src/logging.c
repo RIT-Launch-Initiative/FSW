@@ -17,9 +17,16 @@ LOG_MODULE_REGISTER(data_logger);
 K_MSGQ_DEFINE(adc_logging_queue, sizeof(potato_adc_telemetry_t), 1000, 1);
 
 // Threads
+#ifdef CONFIG_DEBUG
+#define THREAD_START_TIME 0
+#else
+#define THREAD_START_TIME 60000 * 5 // 5 minutes
+#endif
+
+
 static void adc_logging_task(void*);
 K_THREAD_DEFINE(adc_log_thread, LOGGING_THREAD_STACK_SIZE, adc_logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
-                1000);
+                THREAD_START_TIME);
 
 // Extern Variables
 extern uint32_t boot_count;
