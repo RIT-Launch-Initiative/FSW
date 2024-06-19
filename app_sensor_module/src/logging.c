@@ -13,21 +13,27 @@
 #define MAX_DIR_NAME_LEN   10 // 4 number boot count + 5 for "/lfs/" + 1 for end slash
 #define MAX_FILE_NAME_LEN  3
 
-#define HUN_HZ_SAMPLE_COUNT 30000         // 100 samples per second for 5 minutes (rounded to nearest hundred)
-
 LOG_MODULE_REGISTER(logging);
 
 #ifdef CONFIG_DEBUG
 #define THREAD_START_TIME 0
+#define SAMPLE_COUNT 10
 #else
 #define THREAD_START_TIME 60000 * 5 // 5 minutes
+#define SAMPLE_COUNT 512000000 / sizeof(sensor_module_telemetry_t)
 #endif
 
 static void logging_task(void);
 K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, THREAD_START_TIME);
 
 // Message queues
-K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_telemetry_t), 1000, 4);
+#ifdef CONFIG_DEBUG
+#define QUEUE_SIZE 100
+#else
+#define QUEUE_SIZE 1000
+#endif
+
+K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_telemetry_t), QUEUE_SIZE, 4);
 
 static void init_logging(l_fs_file_t** p_telem_file) {
     uint32_t boot_count = l_fs_boot_count_check();
@@ -47,7 +53,7 @@ static void init_logging(l_fs_file_t** p_telem_file) {
         .fname = telem_file_name,
         .width = sizeof(sensor_module_telemetry_t),
         .mode = SLOG_ONCE,
-        .size = sizeof(sensor_module_telemetry_t) * HUN_HZ_SAMPLE_COUNT,
+        .size = sizeof(sensor_module_telemetry_t) * SAMPLE_COUNT,
         .initialized = false,
         .file = {0},
         .dirent = {0},
