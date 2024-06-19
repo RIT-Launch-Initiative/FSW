@@ -29,6 +29,8 @@
     };
     aliases {
         sensor-mod = &uart5;
+        led0 = &led1;
+        led1 = &led2;
     };
 
     leds: leds {

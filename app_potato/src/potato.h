@@ -4,9 +4,13 @@
 #include <launch_core/types.h>
 #include <stdint.h>
 
-#define ADC_READINGS_PER_PACKET 10
-// Assume no barom
-#define ADC_PERIOD K_USEC(300)
+// #ifdef CONFIG_DEBUG
+// #define ADC_SAMPLE_COUNT 10
+// #define THREAD_START_TIME 0
+// #else
+#define ADC_SAMPLE_COUNT (128000000 / sizeof(potato_adc_telemetry_t))
+#define THREAD_START_TIME 60000 * 5 // 5 minutes
+// #endif
 
 typedef enum { PAD_STATE = 0, BOOST_STATE, COAST_STATE, APOGEE_STATE, MAIN_STATE, LANDING_STATE } FLIGHT_STATES;
 

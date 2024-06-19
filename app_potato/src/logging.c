@@ -13,15 +13,7 @@
 LOG_MODULE_REGISTER(data_logger);
 
 // Message Queues
-#define ADC_LOG_FILE_SIZE (120000000 / sizeof(potato_adc_telemetry_t))
 K_MSGQ_DEFINE(adc_logging_queue, sizeof(potato_adc_telemetry_t), 1000, 1);
-
-// Threads
-#ifdef CONFIG_DEBUG
-#define THREAD_START_TIME 0
-#else
-#define THREAD_START_TIME 60000 * 5 // 5 minutes
-#endif
 
 
 static void adc_logging_task(void*);
@@ -36,7 +28,6 @@ extern bool logging_enabled;
 
 #define DATA_SAMPLE_COUNT 20000
 // assume no barom
-#define ADC_SAMPLE_COUNT 18000000000000
 #define ADC_SAMPLE_TIME 1 // 1 Hz to fill above in 5 hours
 
 static void adc_logging_task(void*) {
@@ -74,6 +65,8 @@ static void adc_logging_task(void*) {
     while (true) {
         if (0 == k_msgq_get(&adc_logging_queue, &packet, K_SECONDS(1))) {
             l_fs_write(&fil_file, (uint8_t*) &packet, &err);
+            LOG_INF("Writing to fs");
+
             if (err == -ENOSPC) {
                 break;
             }

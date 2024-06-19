@@ -15,16 +15,8 @@
 
 LOG_MODULE_REGISTER(logging);
 
-#ifdef CONFIG_DEBUG
-#define THREAD_START_TIME 0
-#define SAMPLE_COUNT 10
-#else
-#define THREAD_START_TIME 60000 * 5 // 5 minutes
-#define SAMPLE_COUNT 512000000 / sizeof(sensor_module_telemetry_t)
-#endif
-
 static void logging_task(void);
-K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, THREAD_START_TIME);
+K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, THREAD_START_TIME);
 
 // Message queues
 #ifdef CONFIG_DEBUG
@@ -63,7 +55,7 @@ static void init_logging(l_fs_file_t** p_telem_file) {
 
     // Initialize files
     if (l_fs_init(&telem_file) == 0) {
-        LOG_INF("Successfully created file for storing 100Hz data.");
+        LOG_INF("Successfully created file for storing data.");
         *p_telem_file = &telem_file;
     }
 }
@@ -80,7 +72,9 @@ static void logging_task(void) {
 
     bool out_of_space = false;
 
+        int i = 0;
     while (true) {
+        i++;
         if (!k_msgq_get(&telem_logging_msgq, &telem, K_MSEC(10)) && (telem_file != NULL)) {
             LOG_INF("Logged data");
 
@@ -90,6 +84,7 @@ static void logging_task(void) {
         }
 
         if (out_of_space) {
+            LOG_INF("Out of space %d", i);
             l_fs_close(telem_file);
             return;
         }

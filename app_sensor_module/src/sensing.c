@@ -23,7 +23,7 @@ static void hundred_hz_sensor_reading_task(void);
 
 // Threads
 K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_sensor_reading_task, NULL, NULL, NULL,
-                K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, 60000 * 5);
+                K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, SENSOR_READ_THREAD_START_TIME);
 
 // Message Queues
 K_MSGQ_DEFINE(telem_queue, sizeof(sensor_module_telemetry_t), 16, 1);
@@ -59,8 +59,10 @@ static void setup_lsm6dsl() {
 }
 
 static void hundred_hz_sensor_reading_task(void) {
+    LOG_INF("Starting sensor task");
     // Initialize variables for receiving telemetry
     sensor_module_telemetry_t telemetry;
+
 
     const struct device* adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
     const struct device* ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
@@ -70,11 +72,11 @@ static void hundred_hz_sensor_reading_task(void) {
     const struct device* tmp117 = DEVICE_DT_GET_ONE(ti_tmp116);
 
     const struct device* sensors[SENSOR_MODULE_SENSOR_COUNT] = {adxl375,
-                                                                          ms5611,
-                                                                          bmp388,
-                                                                          lsm6dsl,
-                                                                          lis3mdl,
-                                                                          tmp117};
+                                                                  ms5611,
+                                                                  bmp388,
+                                                                  lsm6dsl,
+                                                                  lis3mdl,
+                                                                  tmp117};
 
     // Perform any necessary sensor setup
     setup_lsm6dsl();
@@ -84,6 +86,7 @@ static void hundred_hz_sensor_reading_task(void) {
     check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_SENSOR_COUNT);
 
     while (true) {
+        uint32_t start = k_uptime_get();
         // Refresh sensor data
         for (uint8_t i = 0; i < SENSOR_MODULE_SENSOR_COUNT; i++) {
             if (sensor_sample_fetch(sensors[i])) {
@@ -102,6 +105,7 @@ static void hundred_hz_sensor_reading_task(void) {
         l_temperature_data_t temperature_data = {0};
         l_get_temp_sensor_data_float(tmp117, &temperature_data);
         telemetry.tmp117 = temperature_data;
+        LOG_INF("Took %d to read", k_uptime_get() - start);
 
         // Put telemetry into queue
         k_msgq_put(&telem_queue, &telemetry, K_MSEC(10));

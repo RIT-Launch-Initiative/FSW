@@ -8,6 +8,16 @@
 #define SENSOR_MODULE_IP_ADDR             BACKPLANE_IP(SENSOR_MODULE_ID, 2, 1)
 #define DETECTION_METHOD_PER_SENSOR_COUNT 2
 
+#ifdef CONFIG_DEBUG
+#define THREAD_START_TIME 0
+#define SAMPLE_COUNT 10
+#define SENSOR_READ_THREAD_START_TIME 0
+#else
+#define THREAD_START_TIME 60000 * 5 // 5 minutes
+#define SAMPLE_COUNT 512000000 / sizeof(sensor_module_telemetry_t)
+#define SENSOR_READ_THREAD_START_TIME 60000 * 5
+#endif
+
 typedef enum { PAD_STATE = 0, PRE_MAIN_STATE, POST_MAIN_STATE, LANDING_STATE } FLIGHT_STATES;
 
 typedef enum {

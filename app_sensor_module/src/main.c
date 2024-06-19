@@ -11,7 +11,6 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/smf.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 
@@ -20,7 +19,6 @@ void init() {
 }
 
 int main() {
-    l_fs_boot_count_check();
-
+    init();
     return 0;
 }

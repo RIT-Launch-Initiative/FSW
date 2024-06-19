@@ -26,9 +26,6 @@ static void adc_read_task(void*);
 K_THREAD_DEFINE(adc_read_thread, TELEMETRY_STACK_SIZE, adc_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
 // Timers
-K_TIMER_DEFINE(lps22_timer, NULL, NULL);
-K_TIMER_DEFINE(adc_timer, NULL, NULL);
-
 // Queues
 extern struct k_msgq logging_queue;
 extern struct k_msgq adc_logging_queue;
@@ -59,9 +56,8 @@ static void adc_read_task(void*) {
     }
 
     LOG_INF("ADC Reader Ready");
-#ifdef CONFIG_DEBUG
-    // SPIN_WHILE(!boost_detected, 1); // TODO(aaron)
-#endif
+
+
     while (1) {
         adc_data.timestamp = k_uptime_get();
         err = adc_read_dt(&adc_chan0, &sequence);
@@ -75,7 +71,6 @@ static void adc_read_task(void*) {
 #ifdef CONFIG_BOARD_NATIVE_SIM
         adc_data.data[i].parts[0] = 0xff;
 #endif
-
         k_msgq_put(&adc_logging_queue, &adc_data, K_NO_WAIT);
         k_msleep(10);
     }
