@@ -23,7 +23,7 @@ static void logging_task(void);
 K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 1000);
 
 // Message queues
-K_MSGQ_DEFINE(ten_hz_logging_msgq, sizeof(sensor_module_telemetry_t), 10000, 4);
+K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_telemetry_t), 10000, 4);
 
 static void init_logging(l_fs_file_t** p_telem_file) {
     uint32_t boot_count = l_fs_boot_count_check();
@@ -74,46 +74,21 @@ static void logging_task(void) {
 
     init_logging(&telem_file);
 
-    bool hun_hz_out_of_space = false;
-    bool ten_hz_out_of_space = false;
-    bool gnss_out_of_space = false;
+    bool out_of_space = false;
 
     while (true) {
         if (!k_msgq_get(&telem_logging_msgq, &hun_hz_telem, K_MSEC(10)) && (telem_file != NULL) &&
-            (!hun_hz_out_of_space)) {
-            LOG_INF("Logged 100Hz data");
+            (!out_of_space)) {
+            LOG_INF("Logged data");
 
             int32_t err_flag = 0;
             l_fs_write(telem_file, (const uint8_t*) &hun_hz_telem, &err_flag);
-            hun_hz_out_of_space = err_flag == -ENOSPC;
-            LOG_INF("%d", err_flag);
+            out_of_space = err_flag == -ENOSPC;
         }
 
-        if (!k_msgq_get(&ten_hz_logging_msgq, &ten_hz_telem, K_MSEC(3)) && (ten_hz_file != NULL) &&
-            (!ten_hz_out_of_space)) {
-            LOG_INF("Logged 10Hz data");
-
-            int32_t err_flag = 0;
-            l_fs_write(ten_hz_file, (const uint8_t*) &ten_hz_telem, &err_flag);
-            ten_hz_out_of_space = err_flag == -ENOSPC;
-            LOG_INF("%d", err_flag);
-        }
-
-        if (!k_msgq_get(&gnss_logging_msgq, &gnss_telem, K_MSEC(3)) && (gnss_file != NULL) && (!gnss_out_of_space)) {
-            LOG_INF("Logged gnss sync data");
-
-            int32_t err_flag = 0;
-            l_fs_write(gnss_file, (const uint8_t*) &gnss_telem, &err_flag);
-            gnss_out_of_space = err_flag == -ENOSPC;
-            LOG_INF("%d", err_flag);
-        }
-
-        if (hun_hz_out_of_space && ten_hz_out_of_space && gnss_out_of_space) {
+        if (out_of_space) {
             LOG_ERR("Out of space on 100Hz, 10Hz files and GNSS files. Stopping logging.");
-            logging_enabled = false;
             l_fs_close(telem_file);
-            l_fs_close(ten_hz_file);
-            l_fs_close(gnss_file);
             return;
         }
     }
