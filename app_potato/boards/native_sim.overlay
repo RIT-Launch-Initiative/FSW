@@ -12,6 +12,7 @@
     };
     aliases {
         adc-dev = &adc0;
+        sensor-mod = &uart1;
     };
 
     leds: leds {
@@ -22,6 +23,15 @@
         anotherled: anotherled{
             gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
         };
+        de_hack: de_hack {
+            gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
+            label = "DE HACK";
+        };
+        re_hack: re_hack {
+            gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
+            label = "RE HACK";
+        };
+
     };
 
 
@@ -47,6 +57,20 @@
 
 };
 
+&uart0 {
+    status = "okay";
+};
+
+&uart1 {
+    status = "okay";
+    modbus0 {
+        compatible = "zephyr,modbus-serial";
+        status = "okay";
+
+        de-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
+        re-gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+    };
+};
 
 
 &adc0 {

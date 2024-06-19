@@ -73,7 +73,7 @@ static void telemetry_read_task(void*) {
 #ifdef CONFIG_BOARD_POTATO
     const struct device* lps22 = DEVICE_DT_GET(DT_NODELABEL(lps22hh));
 #else
-    const struct device *lps22 = NULL;
+    const struct device* lps22 = NULL;
 #endif
     LOG_INF("Sensor Reader Ready");
 
@@ -135,9 +135,9 @@ static void adc_read_task(void*) {
         }
 
         ASSIGN_V32_TO_ADCDATA(buf, adc_data.data[i]);
-        insert_adc_data_to_input_reg(ADC_REGISTER, adc_data.data[i]);
+
 #ifdef CONFIG_BOARD_NATIVE_SIM
-        adc_data.data[i][0] = 0xff;
+        adc_data.data[i].parts[0] = 0xff;
 #endif
         i++;
 

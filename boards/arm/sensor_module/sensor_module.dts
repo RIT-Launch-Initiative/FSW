@@ -17,13 +17,20 @@
     chosen {
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
-        zephyr,console = &uart5;
-        zephyr,uart-pipe = &uart5;
+
+        // These might mess with sending data to potato?
+        // overwritten in v2 overlay anyway
+        // zephyr,console = &uart5;
+        // zephyr,uart-pipe = &uart5;
 
         storage = &w25q128;
         logfs = &lfs1;
     };
-
+    aliases {
+        led0 = &red_led_1;
+        led1 = &red_led_2;
+        topotato = &uart5;
+    };
     leds: leds {
         compatible = "gpio-leds";
 
@@ -41,6 +48,11 @@
             gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
             label = "Wiznet LED";
         };
+        de_hack: de_hack {
+            gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+            label = "DE HACK";
+        };
+
     };
 
     fstab {
@@ -60,10 +72,7 @@
         };
     };
 
-    aliases {
-        led0 = &red_led_1;
-        led1 = &red_led_2;
-    };
+
 };
 
 &clk_lsi {
@@ -76,12 +85,12 @@
 };
 
 //&pll {
-//	div-m = <8>;
-//	mul-n = <384>;
-//	div-p = <2>;
-//	div-q = <2>;
-//	clocks = <&clk_hsi>;
-//	status = "okay";
+    //    div-m = <8>;
+    //    mul-n = <384>;
+    //    div-p = <2>;
+    //    div-q = <2>;
+    //    clocks = <&clk_hsi>;
+    //    status = "okay";
 //};
 
 &rcc {
@@ -98,17 +107,11 @@
     current-speed = <115200>;
     status = "okay";
 
-    modbus0 {
-		compatible = "zephyr,modbus-serial";
-		status = "okay";
-
-		de-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
-	};
 };
 
 &spi1 {
     pinctrl-0 = <&spi1_sck_pa5
-                 &spi1_miso_pa6 &spi1_mosi_pa7>;
+    &spi1_miso_pa6 &spi1_mosi_pa7>;
     cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
 
     pinctrl-names = "default";
@@ -137,7 +140,7 @@
 
         spi-max-frequency = <(10 * 1000 * 1000)>;
         size = <DT_SIZE_M(512)>;
-        jedec-id = [ef 40 20];
+        jedec-id = [ ef 40 20  ];
 
         has-dpd;
         t-enter-dpd = <(3 * 1000)>;

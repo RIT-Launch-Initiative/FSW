@@ -4,18 +4,18 @@
 // Launch Includes
 #include <launch_core/backplane_defs.h>
 #include <launch_core/dev/dev_common.h>
-#include <launch_core/utils/event_monitor.h>
 #include <launch_core/os/fs.h>
+#include <launch_core/utils/event_monitor.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
-#include <zephyr/smf.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/smf.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_SENSOR_MODULE_LOG_LEVEL);
 
-#define PRE_MAIN_FLIGHT_DURATION K_SECONDS(178)
+#define PRE_MAIN_FLIGHT_DURATION  K_SECONDS(178)
 #define POST_MAIN_FLIGHT_DURATION K_SECONDS(46)
 
 #define DEFINE_STATE_FUNCTIONS(state_name)                                                                             \
@@ -45,13 +45,12 @@ static const struct smf_state states[] = {
 static void smf_task(void);
 K_THREAD_DEFINE(smf, 1024, smf_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
-
-static void pad_state_entry(void*) {
+static void pad_state_entry(void *) {
     LOG_INF("Entering pad state");
     start_boost_detect();
 }
 
-static void pad_state_run(void*) {
+static void pad_state_run(void *) {
     while (true) {
         // Check port 9999 for notifications. If we get one, go to flight state on next iter
         // TODO: Validate on new hardware. This functionality was validated on p. and r. mod
@@ -68,37 +67,32 @@ static void pad_state_run(void*) {
     }
 }
 
-static void pre_main_state_entry(void*) {
+static void pre_main_state_entry(void *) {
     LOG_INF("Entering pre_main state");
     stop_boost_detect();
 
     logging_enabled = true;
 }
 
-static void pre_main_state_run(void*) {
+static void pre_main_state_run(void *) {
     k_sleep(PRE_MAIN_FLIGHT_DURATION);
 
     l_post_event_udp(L_MAIN_DEPLOYED);
     smf_set_state(SMF_CTX(&state_obj), &states[POST_MAIN_STATE]);
 }
 
-static void post_main_state_entry(void*) {
-    LOG_INF("Entering post_main state");
-}
+static void post_main_state_entry(void *) { LOG_INF("Entering post_main state"); }
 
-static void post_main_state_run(void*) {
+static void post_main_state_run(void *) {
     k_sleep(POST_MAIN_FLIGHT_DURATION);
 
     l_post_event_udp(L_LANDING_DETECTED);
     smf_set_state(SMF_CTX(&state_obj), &states[LANDING_STATE]);
 }
 
+static void landing_state_entry(void *) { LOG_INF("Entering landing state"); }
 
-static void landing_state_entry(void*) {
-    LOG_INF("Entering landing state");
-}
-
-static void landing_state_run(void*) {
+static void landing_state_run(void *) {
     // Sleep for an extra minute and ensure we get all our data!
     k_sleep(K_SECONDS(60));
     logging_enabled = false;

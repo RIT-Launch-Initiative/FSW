@@ -20,7 +20,7 @@ K_MSGQ_DEFINE(adc_logging_queue, sizeof(potato_adc_telemetry_t), 500, 1);
 // Threads
 static void logging_task(void*);
 // K_THREAD_DEFINE(data_log_thread, LOGGING_THREAD_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
-                // 1000);
+// 1000);
 static void adc_logging_task(void*);
 K_THREAD_DEFINE(adc_log_thread, LOGGING_THREAD_STACK_SIZE, adc_logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
                 1000);
@@ -32,7 +32,8 @@ extern bool logging_enabled;
 #define MAX_FILE_LEN 16
 
 #define DATA_SAMPLE_COUNT 20000
-#define ADC_SAMPLE_COUNT  20000
+// assume no barom
+#define ADC_SAMPLE_COUNT 1800000
 
 static void logging_task(void*) {
     potato_raw_telemetry_t packet = {0};
@@ -40,11 +41,8 @@ static void logging_task(void*) {
 
     // Block until we get a boot count
     SPIN_WHILE(boot_count == -1, 1);
-
-    // Use the boot count to create a new directory for the logs
-    static char dir_name[MAX_FILE_LEN] = {0};
-    snprintf(dir_name, sizeof(dir_name), "/lfs/%02d", boot_count);
-    fs_mkdir(dir_name);
+    // block a little while longer bc the other logging task makes the directory
+    k_msleep(500);
 
     static char fil_name[MAX_FILE_LEN] = {0};
     snprintf(fil_name, sizeof(fil_name), "/lfs/%02d/dat", boot_count);
@@ -92,8 +90,10 @@ static void adc_logging_task(void*) {
 
     // block until we get a boot count
     SPIN_WHILE(boot_count == -1, 1)
-    // block a little while longer bc the other logging task makes the directory
-    k_msleep(500);
+    // Use the boot count to create a new directory for the logs
+    static char dir_name[MAX_FILE_LEN] = {0};
+    snprintf(dir_name, sizeof(dir_name), "/lfs/%02d", boot_count);
+    fs_mkdir(dir_name);
 
     static char fil_name[MAX_FILE_LEN] = {0};
     snprintf(fil_name, sizeof(fil_name), "/lfs/%02d/adc", boot_count);
