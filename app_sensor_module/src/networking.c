@@ -34,20 +34,6 @@ int init_networking(void) {
     return 0;
 }
 
-//static void initialize_rs485(void) {
-//    if (l_uart_init_rs485(DEVICE_DT_GET(DT_NODELABEL(uart5))) != 0) {
-//        if (l_create_ip_str(rs485_ip, 11, 0, 3, 1) == 0) {
-//            if (l_init_udp_net_stack_by_device(DEVICE_DT_GET(DT_NODELABEL(uart5)), rs485_ip)) {
-//                LOG_ERR("Failed to initialize network stack");
-//            }
-//        } else {
-//            LOG_ERR("Failed to create IP address string");
-//        }
-//    } else {
-//        LOG_ERR("Failed to initialize UART to RS485");;
-//    }
-//}
-
 static void telemetry_broadcast_task(void*, void*, void*) {
     LOG_INF("Starting broadcast task");
 
