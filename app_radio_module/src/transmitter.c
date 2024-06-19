@@ -1,3 +1,4 @@
+#include <launch_core/utils/event_monitor.h>
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
 
 // Self Include
@@ -32,10 +33,13 @@ K_MSGQ_DEFINE(lora_tx_queue, sizeof(l_lora_packet_t), CONFIG_LORA_TX_QUEUE_SIZE,
 static void lora_tx_task(void);
 K_THREAD_DEFINE(lora_tx_thread, LORA_TX_STACK_SIZE, lora_tx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
+static void lora_rx_task(void);
+K_THREAD_DEFINE(lora_rx_thread, LORA_TX_STACK_SIZE, lora_rx_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
+
 static void state_machine_task(void);
 K_THREAD_DEFINE(state_machine_thread, 1024, state_machine_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
-static bool eth_init = false;
 
+static bool eth_init = false;
 extern bool lora_can_transmit;
 
 void udp_to_lora() {
@@ -50,7 +54,6 @@ void udp_to_lora() {
         packet.port = sock_list.ports[i];
         rcv_size = l_receive_udp(sock_list.sockets[i], packet.payload, LORA_PACKET_DATA_SIZE);
         if (rcv_size <= 0) {
-            LOG_INF("Receive err: %d", errno);
             continue;
         }
 
@@ -71,19 +74,36 @@ static void lora_tx_task(void) {
     while (1) {
         l_lora_packet_t packet = {0};
         k_msgq_get(&lora_tx_queue, &packet, K_FOREVER);
-        l_lora_tx(lora_dev, (uint8_t*) &packet, packet.payload_len + sizeof(packet.port));
+        l_lora_tx(lora_dev, (uint8_t*)&packet, packet.payload_len + sizeof(packet.port));
     }
 }
 
-int init_lora_unique(const struct device* const lora_dev) { return l_lora_set_tx_rx(lora_dev, true); }
+// New task to handle LoRa reception
+static void lora_rx_task(void) {
+    const struct device* const lora_dev = DEVICE_DT_GET_ONE(semtech_sx1276);
+
+    while (1) {
+        uint8_t buff[7];
+        if (lora_recv(lora_dev, buff, 7, K_FOREVER, NULL, NULL) > 0) {
+            if (strncmp(buff, "Launch!", 7) == 0) {
+                LOG_INF("Received 'Launch!' command.");
+                return;
+            }
+        }
+    }
+}
+
+int init_lora_unique(const struct device* const lora_dev) {
+    return l_lora_set_tx_rx(lora_dev, true);
+}
 
 int init_udp_unique() {
     if (eth_init) {
-        return;
+        return 0;
     }
 
     for (int i = 0; i < sock_list.num_sockets; i++) {
-        sock_list.sockets[i] = l_init_udp_socket(INADDR_ANY, sock_list.ports[i]);
+        sock_list.sockets[i] = l_init_udp_socket(RADIO_MODULE_IP_ADDR, sock_list.ports[i]);
         if (sock_list.sockets[i] < 0) {
             LOG_ERR("Failed to create UDP socket: %d", sock_list.sockets[i]);
         } else {
@@ -99,7 +119,6 @@ static void state_machine_task(void) {
     init_state_machine();
     while (true) {
         run_state_machine();
-
         k_msleep(100);
     }
 }
