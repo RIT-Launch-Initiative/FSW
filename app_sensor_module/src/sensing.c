@@ -16,8 +16,7 @@
 // Constants
 #define SENSOR_READING_STACK_SIZE            1024
 #define HUNDRED_HZ_TELEM_PRIORITY            20
-#define SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS 5
-#define HUNDRED_HZ_UPDATE_TIME               100 // TODO: Should be 10, but I2C bus dies
+#define SENSOR_MODULE_SENSOR_COUNT 6
 
 // Forward Declarations
 static void hundred_hz_sensor_reading_task(void);
@@ -68,23 +67,25 @@ static void hundred_hz_sensor_reading_task(void) {
     const struct device* bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
     const struct device* lsm6dsl = DEVICE_DT_GET_ONE(st_lsm6dsl);
     const struct device* lis3mdl = DEVICE_DT_GET_ONE(st_lis3mdl_magn);
+    const struct device* tmp117 = DEVICE_DT_GET_ONE(ti_tmp116);
 
-    const struct device* sensors[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {adxl375,
+    const struct device* sensors[SENSOR_MODULE_SENSOR_COUNT] = {adxl375,
                                                                           ms5611,
                                                                           bmp388,
                                                                           lsm6dsl,
-                                                                          lis3mdl};
+                                                                          lis3mdl,
+                                                                          tmp117};
 
     // Perform any necessary sensor setup
     setup_lsm6dsl();
 
     // Confirm sensors are ready
-    bool sensor_ready[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {false};
-    check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS);
+    bool sensor_ready[SENSOR_MODULE_SENSOR_COUNT] = {false};
+    check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_SENSOR_COUNT);
 
     while (true) {
         // Refresh sensor data
-        for (uint8_t i = 0; i < SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS; i++) {
+        for (uint8_t i = 0; i < SENSOR_MODULE_SENSOR_COUNT; i++) {
             if (sensor_sample_fetch(sensors[i])) {
                 LOG_ERR("Failed to fetch %s data %d", sensors[i]->name, i);
             }
@@ -96,6 +97,7 @@ static void hundred_hz_sensor_reading_task(void) {
         l_get_barometer_data_float(ms5611, &telemetry.ms5611);
         l_get_barometer_data_float(bmp388, &telemetry.bmp388);
         l_get_magnetometer_data_float(lis3mdl, &telemetry.lis3mdl);
+        l_get_temp_sensor_data_float(tmp117, &telemetry.tmp117);
 
         // Put telemetry into queue
         k_msgq_put(&telem_queue, &telemetry, K_MSEC(10));
