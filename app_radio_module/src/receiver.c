@@ -26,16 +26,12 @@ static const struct device* lora;
 // Forward Declares
 static void udp_broadcast_task(void);
 
-// Threads
-#define THREAD_STACK_SIZE 1024
-K_THREAD_DEFINE(udp_bcast_thread, THREAD_STACK_SIZE, udp_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
-
 static void udp_cmd_listener_task(void);
 
 // Threads
 #define THREAD_STACK_SIZE 2048
 K_THREAD_DEFINE(udp_bcast_thread, THREAD_STACK_SIZE, udp_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
-// K_THREAD_DEFINE(udp_cmd_thread, THREAD_STACK_SIZE, udp_cmd_listener_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
+K_THREAD_DEFINE(udp_cmd_thread, THREAD_STACK_SIZE, udp_cmd_listener_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
 int sock = -1;
 
 static void init_udp_sock() {
@@ -81,7 +77,8 @@ static void udp_cmd_listener_task(void) {
 
     while (true) {
         uint8_t buff[7] = {0};
-        if (l_receive_udp(sock, buff, sizeof(buff)) > 0) {
+        int rcv_size = l_receive_udp(sock, buff, sizeof(buff));
+        if (rcv_size > 0) {
             LOG_INF("Received: %s", buff);
             if (strncmp(buff, "Launch!", 7)) {
                 l_lora_tx(lora, buff, sizeof(buff));
@@ -137,6 +134,7 @@ static const struct device* lora = NULL;
 int init_lora_unique(const struct device* const lora_dev) {
     lora = lora_dev;
     // return lora_recv_async(lora_dev, &receiver_cb);
+    return 0;
 }
 
 int init_udp_unique() {
