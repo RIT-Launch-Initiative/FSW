@@ -14,8 +14,6 @@
 #define MAX_FILE_NAME_LEN  3
 
 #define HUN_HZ_SAMPLE_COUNT 30000         // 100 samples per second for 5 minutes (rounded to nearest hundred)
-#define TEN_HZ_SAMPLE_COUNT 300           // 1 sample per second for 5 minutes
-#define GNSS_SAMPLE_COUNT   (10 * 60 / 2) // 1 samples every 2 seconds for 10 minutes
 
 LOG_MODULE_REGISTER(logging);
 
@@ -23,7 +21,7 @@ static void logging_task(void);
 K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 1000);
 
 // Message queues
-K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_telemetry_t), 10000, 4);
+K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_telemetry_t), 1000, 4);
 
 static void init_logging(l_fs_file_t** p_telem_file) {
     uint32_t boot_count = l_fs_boot_count_check();
@@ -37,12 +35,6 @@ static void init_logging(l_fs_file_t** p_telem_file) {
     // Create filenames
     static char telem_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
     snprintf(telem_file_name, sizeof(telem_file_name), "%s/hun", dir_name);
-
-    static char ten_hz_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
-    snprintf(ten_hz_file_name, sizeof(ten_hz_file_name), "%s/ten", dir_name);
-
-    static char gnss_file_name[MAX_DIR_NAME_LEN + MAX_FILE_NAME_LEN + 1] = "";
-    snprintf(gnss_file_name, sizeof(gnss_file_name), "%s/gns", dir_name);
 
     // Initialize structs
     static l_fs_file_t telem_file = {
@@ -62,32 +54,30 @@ static void init_logging(l_fs_file_t** p_telem_file) {
         LOG_INF("Successfully created file for storing 100Hz data.");
         *p_telem_file = &telem_file;
     }
-
 }
 
 static void logging_task(void) {
     l_fs_file_t* telem_file = NULL;
 
-    sensor_module_telemetry_t hun_hz_telem;
-    timed_sensor_module_ten_hz_telemetry_t ten_hz_telem;
-    l_gnss_time_sync_t gnss_telem;
+    sensor_module_telemetry_t telem;
 
-    init_logging(&telem_file);
+    while (telem_file == NULL) {
+        init_logging(&telem_file);
+        k_msleep(1000);
+    }
 
     bool out_of_space = false;
 
     while (true) {
-        if (!k_msgq_get(&telem_logging_msgq, &hun_hz_telem, K_MSEC(10)) && (telem_file != NULL) &&
-            (!out_of_space)) {
+        if (!k_msgq_get(&telem_logging_msgq, &telem, K_MSEC(10)) && (telem_file != NULL)) {
             LOG_INF("Logged data");
 
             int32_t err_flag = 0;
-            l_fs_write(telem_file, (const uint8_t*) &hun_hz_telem, &err_flag);
+            l_fs_write(telem_file, (const uint8_t*) &telem, &err_flag);
             out_of_space = err_flag == -ENOSPC;
         }
 
         if (out_of_space) {
-            LOG_ERR("Out of space on 100Hz, 10Hz files and GNSS files. Stopping logging.");
             l_fs_close(telem_file);
             return;
         }
