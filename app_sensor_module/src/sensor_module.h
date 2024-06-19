@@ -30,7 +30,7 @@ typedef struct __attribute__((packed)) {
     l_gyroscope_data_t lsm6dsl_gyro;
 
     l_magnetometer_data_t lis3mdl;
-    float tmp117;
+    l_temperature_data_t tmp117;
 } sensor_module_telemetry_t;
 
 typedef struct __attribute__((packed)) {

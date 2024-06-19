@@ -23,7 +23,7 @@ static void hundred_hz_sensor_reading_task(void);
 
 // Threads
 K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_sensor_reading_task, NULL, NULL, NULL,
-                K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, 1000);
+                K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, 60000 * 5);
 
 // Message Queues
 K_MSGQ_DEFINE(telem_queue, sizeof(sensor_module_telemetry_t), 16, 1);
@@ -97,7 +97,11 @@ static void hundred_hz_sensor_reading_task(void) {
         l_get_barometer_data_float(ms5611, &telemetry.ms5611);
         l_get_barometer_data_float(bmp388, &telemetry.bmp388);
         l_get_magnetometer_data_float(lis3mdl, &telemetry.lis3mdl);
-        l_get_temp_sensor_data_float(tmp117, &telemetry.tmp117);
+
+        // Avoid unaligned access
+        l_temperature_data_t temperature_data = {0};
+        l_get_temp_sensor_data_float(tmp117, &temperature_data);
+        telemetry.tmp117 = temperature_data;
 
         // Put telemetry into queue
         k_msgq_put(&telem_queue, &telemetry, K_MSEC(10));

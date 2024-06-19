@@ -18,7 +18,7 @@
 LOG_MODULE_REGISTER(logging);
 
 static void logging_task(void);
-K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 1000);
+K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 60000 * 5);
 
 // Message queues
 K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_telemetry_t), 1000, 4);
