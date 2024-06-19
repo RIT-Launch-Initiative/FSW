@@ -62,34 +62,21 @@ static void adc_read_task(void*) {
 #ifdef CONFIG_DEBUG
     // SPIN_WHILE(!boost_detected, 1); // TODO(aaron)
 #endif
-    k_timer_start(&adc_timer, ADC_PERIOD, ADC_PERIOD);
-
-    int i = 0;
-
     while (1) {
-        k_timer_status_sync(&adc_timer);
-
-        if (i == 0) {
-            adc_data.timestamp = k_uptime_get();
-        }
+        adc_data.timestamp = k_uptime_get();
         err = adc_read_dt(&adc_chan0, &sequence);
         if (err < 0) {
             LOG_ERR("Could not read adc chan0 (%d)\n", err);
             continue;
         }
 
-        ASSIGN_V32_TO_ADCDATA(buf, adc_data.data[i]);
+        ASSIGN_V32_TO_ADCDATA(buf, adc_data.data);
 
 #ifdef CONFIG_BOARD_NATIVE_SIM
         adc_data.data[i].parts[0] = 0xff;
 #endif
-        i++;
 
-        if (i == ADC_READINGS_PER_PACKET) {
-            k_msgq_put(&adc_logging_queue, &adc_data, K_NO_WAIT);
-            i = 0;
-        }
-
-        k_sleep(K_SECONDS(1));
+        k_msgq_put(&adc_logging_queue, &adc_data, K_NO_WAIT);
+        k_msleep(10);
     }
 }
