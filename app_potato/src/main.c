@@ -68,6 +68,7 @@ static void pad_state_run(void *) {
         bool received_boost_notif = (L_BOOST_DETECTED == event_byte);
 
         if (boost_detected || received_boost_notif) {
+            boost_detected = true; // can stop caring about boost detecting if we got notif
             smf_set_state(SMF_CTX(&state_obj), &states[BOOST_STATE]);
             return;
         }
@@ -156,20 +157,17 @@ static void landing_state_run(void *) {
 
 int main() {
     boot_count = l_fs_boot_count_check();
-    // smf_set_initial(SMF_CTX(&state_obj), &states[PAD_STATE]);
-    //
-    // while (true) {
-    //     k_msleep(100);
-    //     static int ret = 0;
-    //     if (ret == 0) {
-    //         ret = smf_run_state(SMF_CTX(&state_obj));
-    //         if (ret < 0) {
-    //             LOG_ERR("Failed to run state machine: %d", ret);
-    //         }
-    //     }
-    // }
-    if (init_modbus_server()) {
-        LOG_ERR("Failed to init modbus server");
+    smf_set_initial(SMF_CTX(&state_obj), &states[PAD_STATE]);
+
+    while (true) {
+        k_msleep(100);
+        static int ret = 0;
+        if (ret == 0) {
+            ret = smf_run_state(SMF_CTX(&state_obj));
+            if (ret < 0) {
+                LOG_ERR("Failed to run state machine: %d", ret);
+            }
+        }
     }
 
     return 0;

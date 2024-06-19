@@ -7,7 +7,7 @@
 #define BUZZER_USE_LED
 
 // Use short timers so you don't get bored
-// #define SHORT_FLIGHT
+#define SHORT_FLIGHT
 
 // Use to .5 G for boost detect if directional
 // doesnt effect non directional bc that can be shaken to trigger even at 5G
@@ -17,7 +17,7 @@
 #define LOW_BATTERY_VOLTAGE (4.1)
 
 // If here, use 1 axis boost detection, if not use magnitude
-// #define IMU_BOOST_DETECTION_MODE_AXIS
+#define IMU_BOOST_DETECTION_MODE_AXIS
 // which axis to use. accel_x, accel_y, accel_z
 #define IMU_UP_AXIS accel_z
 
