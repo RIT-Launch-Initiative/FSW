@@ -21,8 +21,17 @@ typedef enum {
 
 typedef struct __attribute__((packed)) {
     uint64_t timestamp;
-    sensor_module_hundred_hz_telemetry_t data;
-} timed_sensor_module_hundred_hz_telemetry_t;
+    l_accelerometer_data_t adxl375;
+    l_accelerometer_data_t lsm6dsl_accel;
+
+    l_barometer_data_t ms5611;
+    l_barometer_data_t bmp388;
+
+    l_gyroscope_data_t lsm6dsl_gyro;
+
+    l_magnetometer_data_t lis3mdl;
+    l_temperature_data_t tmp117;
+} sensor_module_telemetry_t;
 
 typedef struct __attribute__((packed)) {
     uint64_t timestamp;

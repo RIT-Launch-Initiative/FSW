@@ -77,7 +77,7 @@ static void hundred_hz_sensor_reading_task(void) {
 
     const struct device* adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
     const struct device* ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
-    // const struct device* bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
+    const struct device* bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
     const struct device* lsm6dsl = DEVICE_DT_GET_ONE(st_lsm6dsl);
     const struct device* lis3mdl = DEVICE_DT_GET_ONE(st_lis3mdl_magn);
 
@@ -108,7 +108,7 @@ static void hundred_hz_sensor_reading_task(void) {
         l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.data.adxl375);
         l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_accel);
         l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.data.ms5611);
-        // l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.data.bmp388);
+        l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.data.bmp388);
         l_get_gyroscope_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_gyro);
         l_get_magnetometer_data_float(lis3mdl, &hundred_hz_telemetry.data.lis3mdl);
 
