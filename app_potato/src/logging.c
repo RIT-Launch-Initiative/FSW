@@ -32,7 +32,8 @@ extern bool logging_enabled;
 #define MAX_FILE_LEN 16
 
 #define DATA_SAMPLE_COUNT 20000
-#define ADC_SAMPLE_COUNT  20000
+// assume no barom
+#define ADC_SAMPLE_COUNT 1800000
 
 static void logging_task(void*) {
     potato_raw_telemetry_t packet = {0};

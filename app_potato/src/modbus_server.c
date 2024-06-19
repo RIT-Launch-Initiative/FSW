@@ -5,92 +5,35 @@
 #include <launch_core/backplane_defs.h>
 
 // Zephyr Includes
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/modbus/modbus.h>
 #include <zephyr/sys/util.h>
 
-#define MODBUS_NODE DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_modbus_serial)
+LOG_MODULE_REGISTER(sensor_comms, LOG_LEVEL_INF);
 
-LOG_MODULE_REGISTER(modbus_server, LOG_LEVEL_INF);
+#define SMOD_STACK_SIZE 1024
+static void smod_read_task(void*);
+K_THREAD_DEFINE(smod_read_thread, SMOD_STACK_SIZE, smod_read_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
-static uint16_t input_reg[8] = {0};
-static uint8_t event_byte;
+extern volatile uint8_t event_byte;
 
-// Note: This function does not adhere to the Modbus standard
-// Simplest way to notify POTATO that boost occurred though over RS485
-static int coil_wr(uint16_t addr, bool boost_detected) {
-    if (addr != 0) {
-        return -ENOTSUP;
+static void smod_read_task(void*) {
+    const struct device* from_smod = DEVICE_DT_GET(DT_ALIAS(sensor_mod));
+    static const struct gpio_dt_spec de_hack = GPIO_DT_SPEC_GET(DT_NODELABEL(de_hack), gpios);
+    static const struct gpio_dt_spec re_hack = GPIO_DT_SPEC_GET(DT_NODELABEL(re_hack), gpios);
+    gpio_pin_set_dt(&de_hack, 0);
+    gpio_pin_set_dt(&re_hack, 0);
+
+    unsigned char inbyte = 0x0;
+    LOG_INF("Listening for sensor mod");
+
+    while (true) {
+        // 0 if got char, -1 otherwise
+        if (0 == uart_poll_in(from_smod, &inbyte)) {
+            event_byte = inbyte;
+        }
+        k_msleep(200);
     }
-
-    event_byte = boost_detected ? L_BOOST_DETECTED : 0;
-
-    return 0;
-}
-
-static int input_reg_rd(uint16_t addr, uint16_t* reg) {
-    if (addr >= ARRAY_SIZE(input_reg)) {
-        return -ENOTSUP;
-    }
-
-    *reg = input_reg[addr];
-
-    LOG_INF("Input register read, addr %u", addr);
-
-    return 0;
-}
-
-int insert_adc_data_to_input_reg(uint16_t addr, adc_data_t* data) {
-    if (addr + 2 >= ARRAY_SIZE(input_reg)) {
-        return -ENOTSUP;
-    }
-
-    input_reg[addr] = data->parts[0];
-    input_reg[addr + 1] = data->parts[1];
-    input_reg[addr + 2] = data->parts[2];
-
-    return 0;
-}
-
-int insert_float_to_input_reg(uint16_t addr, float value) {
-    uint16_t reg[2] = {0};
-
-    if (addr + 1 >= ARRAY_SIZE(input_reg)) {
-        return -ENOTSUP;
-    }
-
-    memcpy(&reg[addr], &value, sizeof(uint16_t));
-
-    return 0;
-}
-
-int init_modbus_server(void) {
-    static struct modbus_user_callbacks mbs_cbs = {.input_reg_rd = input_reg_rd, .coil_wr = coil_wr};
-
-    const static struct modbus_iface_param server_param = {
-        .mode = MODBUS_MODE_RTU,
-        .server =
-            {
-                .user_cb = &mbs_cbs,
-                .unit_id = 1,
-            },
-        .serial =
-            {
-                .baud = 115200,
-                .parity = UART_CFG_PARITY_NONE,
-            },
-    };
-
-    const char iface_name[] = {DEVICE_DT_NAME(MODBUS_NODE)};
-    int iface;
-
-    iface = modbus_iface_get_by_name(iface_name);
-
-    if (iface < 0) {
-        LOG_ERR("Failed to get iface index for %s", iface_name);
-        return iface;
-    }
-
-    return modbus_init_server(iface, server_param);
 }

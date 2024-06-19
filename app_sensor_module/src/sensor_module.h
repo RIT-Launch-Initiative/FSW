@@ -59,7 +59,7 @@ int init_modbus_client(void);
 int write_boost_detect_byte_modbus(uint8_t event_byte);
 
 #ifdef CONFIG_IREC_2024_DEMO
-int read_potato_telemetry(float *pressure, float *temperature, float *load);
+// int read_potato_telemetry(float *pressure, float *temperature, float *load);
 #endif
 
 #endif //SENSOR_MODULE_H

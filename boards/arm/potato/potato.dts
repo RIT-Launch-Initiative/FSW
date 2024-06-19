@@ -23,10 +23,12 @@
         zephyr,console = &uart4;
         zephyr,shell-uart = &uart4;
 
-        zephyr,uart-pipe = &uart5;
 
         storage = &w25q128;
         logfs = &lfs1;
+    };
+    aliases {
+        sensor-mod = &uart5;
     };
 
     leds: leds {
@@ -40,6 +42,14 @@
         led2: led2 {
             gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
             label = "USER LED2 (near stm)";
+        };
+        de_hack: de_hack {
+            gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+            label = "DE HACK";
+        };
+        re_hack: re_hack {
+            gpios = <&gpioc 10 GPIO_ACTIVE_HIGH>;
+            label = "RE HACK";
         };
 
     };
@@ -61,8 +71,7 @@
         };
     };
 
-    aliases {
-    };
+
 };
 
 &clk_lsi {
@@ -95,13 +104,6 @@
     current-speed = <115200>;
     status = "okay";
 
-    modbus0 {
-        compatible = "zephyr,modbus-serial";
-        status = "okay";
-
-        de-gpios = <&gpioc 10 GPIO_ACTIVE_LOW>;
-        re-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
-    };
 };
 
 &spi1 {
