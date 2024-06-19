@@ -24,7 +24,7 @@ static void smod_read_task(void*) {
     static const struct gpio_dt_spec de_hack = GPIO_DT_SPEC_GET(DT_NODELABEL(de_hack), gpios);
     static const struct gpio_dt_spec re_hack = GPIO_DT_SPEC_GET(DT_NODELABEL(re_hack), gpios);
     gpio_pin_set_dt(&de_hack, 0);
-    gpio_pin_set_dt(&re_hack, 0);
+    gpio_pin_set_dt(&re_hack, 1);
 
     unsigned char inbyte = 0x0;
     LOG_INF("Listening for sensor mod");

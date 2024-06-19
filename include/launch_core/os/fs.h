@@ -30,7 +30,7 @@ typedef struct {
     const off_t width;
     const l_fs_log_mode_t mode;
 
-    const size_t size;
+    const uint64_t size;
     bool initialized;
     struct fs_file_t file;
     struct fs_dirent dirent;

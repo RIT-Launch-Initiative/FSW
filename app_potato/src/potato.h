@@ -30,8 +30,8 @@ typedef struct __attribute__((packed)) {
 } potato_telemetry_t;
 
 typedef struct __attribute__((packed)) {
-    adc_data_t data[ADC_READINGS_PER_PACKET];
     uint32_t timestamp;
+    adc_data_t data;
 } potato_adc_telemetry_t;
 
 // typedef struct __attribute__((packed)) {
@@ -46,45 +46,9 @@ typedef struct __attribute__((packed)) {
     }
 
 /**
- * Start boost detection checking
- */
-void start_boost_detect();
-
-/**
- * Stop boost detection checking
- */
-void stop_boost_detect();
-
-/**
  * Get byte from serial indicating event
  * @return Event byte
  */
 uint8_t get_event_from_serial();
-
-/**
- * Configure telemetry rate for POTATO
- * @param frequency - Frequency of sensor sampling
- */
-void configure_telemetry_rate(uint32_t frequency);
-
-/**
- * Bin a telemetry file for flight phase transitions
- */
-void bin_telemetry_file();
-
-/**
- * Initialize a Modbus Server
- */
-int init_modbus_server(void);
-
-int insert_adc_data_to_input_reg(uint16_t addr, adc_data_t* data);
-
-/**
- * Place a float into an input register
- * @param addr - Address of the register
- * @param value - Value to place in the register
- * @return 0 on success, negative error code on failure
- */
-int insert_float_to_input_reg(uint16_t addr, float value);
 
 #endif //POTATO_H

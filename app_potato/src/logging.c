@@ -13,14 +13,10 @@
 LOG_MODULE_REGISTER(data_logger);
 
 // Message Queues
-
-K_MSGQ_DEFINE(logging_queue, sizeof(potato_raw_telemetry_t), 500, 1);
-K_MSGQ_DEFINE(adc_logging_queue, sizeof(potato_adc_telemetry_t), 500, 1);
+#define ADC_LOG_FILE_SIZE (120000000 / sizeof(potato_adc_telemetry_t))
+K_MSGQ_DEFINE(adc_logging_queue, sizeof(potato_adc_telemetry_t), 1000, 1);
 
 // Threads
-static void logging_task(void*);
-// K_THREAD_DEFINE(data_log_thread, LOGGING_THREAD_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
-// 1000);
 static void adc_logging_task(void*);
 K_THREAD_DEFINE(adc_log_thread, LOGGING_THREAD_STACK_SIZE, adc_logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
                 1000);
@@ -33,56 +29,8 @@ extern bool logging_enabled;
 
 #define DATA_SAMPLE_COUNT 20000
 // assume no barom
-#define ADC_SAMPLE_COUNT 1800000
-
-static void logging_task(void*) {
-    potato_raw_telemetry_t packet = {0};
-    int err = 0;
-
-    // Block until we get a boot count
-    SPIN_WHILE(boot_count == -1, 1);
-    // block a little while longer bc the other logging task makes the directory
-    k_msleep(500);
-
-    static char fil_name[MAX_FILE_LEN] = {0};
-    snprintf(fil_name, sizeof(fil_name), "/lfs/%02d/dat", boot_count);
-
-    l_fs_file_t fil_file = {
-        .fname = fil_name,
-        .width = sizeof(potato_raw_telemetry_t),
-        .mode = SLOG_ONCE,
-        .size = sizeof(potato_raw_telemetry_t) * DATA_SAMPLE_COUNT,
-        .initialized = false,
-        .file = {0},
-        .dirent = {0},
-        .vfs = {0},
-        .wpos = 0,
-    };
-    l_fs_init(&fil_file);
-    LOG_INF("Sensor Log Ready");
-
-    SPIN_WHILE(!logging_enabled, 1);
-
-    LOG_INF("Accepting Sensor Data");
-    bool out_of_space = false;
-
-    // Create file for logging
-    while (logging_enabled && !out_of_space) {
-        if (0 == k_msgq_get(&logging_queue, &packet, K_SECONDS(1))) {
-            l_fs_write(&fil_file, (uint8_t*) &packet, &err);
-            out_of_space = err == -ENOSPC;
-        }
-    }
-    LOG_INF("Stop Accepting Sensor Data");
-    // Flush any remaining messages to file
-    while (0 == k_msgq_get(&logging_queue, &packet, K_NO_WAIT) && !out_of_space) {
-        l_fs_write(&fil_file, (uint8_t*) &packet, &err);
-        out_of_space = err == -ENOSPC;
-    }
-
-    l_fs_close(&fil_file);
-    LOG_INF("Sensor Data File Closed");
-}
+#define ADC_SAMPLE_COUNT 18000000000000
+#define ADC_SAMPLE_TIME 1 // 1 Hz to fill above in 5 hours
 
 static void adc_logging_task(void*) {
     potato_adc_telemetry_t packet = {0};
@@ -114,29 +62,16 @@ static void adc_logging_task(void*) {
     LOG_INF("ADC Log Ready");
 
     // wait for flight to start saving this data
-    SPIN_WHILE(!logging_enabled, 1)
     LOG_INF("Accepting ADC Data");
     // Create file for logging
-    while (logging_enabled) {
+    while (true) {
         if (0 == k_msgq_get(&adc_logging_queue, &packet, K_SECONDS(1))) {
             l_fs_write(&fil_file, (uint8_t*) &packet, &err);
+            if (err == -ENOSPC) {
+                break;
+            }
         }
     }
     LOG_INF("Stop Accepting ADC Data");
-    // Flush any remaining messages to the file
-    while (0 == k_msgq_get(&adc_logging_queue, &packet, K_NO_WAIT)) {
-        l_fs_write(&fil_file, (uint8_t*) &packet, &err);
-    }
     l_fs_close(&fil_file);
-}
-
-void bin_telemetry_file() {
-    static uint8_t file_count = 0;
-
-    // Close current file (MIGHT NEED TO LOCK LOGGING THREAD)
-
-    // Create new file and update global pointer for logging thread
-    file_count++;
-
-    // Log the file count and the frequency in another file for reference
 }

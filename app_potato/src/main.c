@@ -150,25 +150,13 @@ static void landing_state_entry(void *) { LOG_INF("Entering landing state"); }
 static void landing_state_run(void *) {
     // Sleep for an extra minute and ensure we get all our data!
     k_sleep(K_SECONDS(LANDING_STATE_EXTRA_TIME));
-    logging_enabled = false;
+    // logging_enabled = false;
     LOG_INF("Stopped Logging");
     k_sleep(K_FOREVER);
 }
 
 int main() {
     boot_count = l_fs_boot_count_check();
-    smf_set_initial(SMF_CTX(&state_obj), &states[PAD_STATE]);
-
-    while (true) {
-        k_msleep(100);
-        static int ret = 0;
-        if (ret == 0) {
-            ret = smf_run_state(SMF_CTX(&state_obj));
-            if (ret < 0) {
-                LOG_ERR("Failed to run state machine: %d", ret);
-            }
-        }
-    }
-
+    logging_enabled = true;
     return 0;
 }
