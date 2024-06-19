@@ -26,13 +26,11 @@ static const struct device* lora;
 // Forward Declares
 static void udp_broadcast_task(void);
 
-static void udp_cmd_listener_task(void);
-
 // Threads
 #define THREAD_STACK_SIZE 2048
 K_THREAD_DEFINE(udp_bcast_thread, THREAD_STACK_SIZE, udp_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
-K_THREAD_DEFINE(udp_cmd_thread, THREAD_STACK_SIZE, udp_cmd_listener_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
 int sock = -1;
+static const struct device* lora = NULL;
 
 static void init_udp_sock() {
     if (sock == -1) {
@@ -72,33 +70,6 @@ static void udp_broadcast_task(void) {
     }
 }
 
-static void udp_cmd_listener_task(void) {
-    init_udp_sock();
-
-    while (true) {
-        uint8_t buff[7] = {0};
-        int rcv_size = l_receive_udp(sock, buff, sizeof(buff));
-        if (rcv_size > 0) {
-            LOG_INF("Received: %s", buff);
-            if (strncmp(buff, "Launch!", 7)) {
-                l_lora_tx(lora, buff, sizeof(buff));
-
-                for (int i = 0; i < 10; i++) {
-                    gpio_pin_toggle_dt(&led0);
-                    gpio_pin_toggle_dt(&led1);
-                    k_msleep(10);
-                }
-
-                break; // Should not transmit if we go into a launch state
-            } else {
-                LOG_WRN("Invalid command send to radio module. Ignoring...");
-            }
-        }
-
-        k_msleep(100);
-    }
-}
-
 static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_t len, int16_t rssi, int8_t snr) {
     ARG_UNUSED(lora_dev);
     ARG_UNUSED(len);
@@ -130,7 +101,6 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
     LOG_INF("Received %d bytes. RSSI: %d SNR: %d", len, rssi, snr);
 }
 
-static const struct device* lora = NULL;
 int init_lora_unique(const struct device* const lora_dev) {
     lora = lora_dev;
     // return lora_recv_async(lora_dev, &receiver_cb);
@@ -144,14 +114,25 @@ int init_udp_unique() {
 int main_unique() {
     LOG_INF("Started radio module RECEIVER");
 
-    while (true) {
-        uint8_t data[255] = {0};
-        int16_t rssi = 0;
-        int8_t snr = 0;
-        lora_recv(lora, data, sizeof(data), K_FOREVER, &rssi, &snr);
-        receiver_cb(lora, data, sizeof(data), rssi, snr);
-    }
+    init_udp_sock();
 
+    while (true) {
+        uint8_t buff[255] = {};
+        if (l_receive_udp(sock, buff, 255) > 0) {
+            if (strncmp(buff, "Launch!", 7) == 0) {
+                LOG_INF("Received Launch! message");
+                l_lora_tx(lora, buff, 7);
+            } else {
+                LOG_INF("Received message: %s", buff);
+            }
+        }
+
+        // uint8_t data[255] = {0};
+        // int16_t rssi = 0;
+        // int8_t snr = 0;
+        // lora_recv(lora, data, sizeof(data), K_FOREVER, &rssi, &snr);
+        // receiver_cb(lora, data, sizeof(data), rssi, snr);
+    }
 
     return 0;
 }
