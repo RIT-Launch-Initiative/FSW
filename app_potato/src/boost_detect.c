@@ -7,7 +7,7 @@
 #include <zephyr/kernel.h>
 
 #define ALTITUDE_TIME_THRESHOLD K_SECONDS(5)
-#define ALTITUDE_VAL_THRESHOLD 500
+#define ALTITUDE_VAL_THRESHOLD  500
 
 // Forward Declares
 static void altitude_boost_detect_cb(struct k_timer*);
@@ -40,6 +40,4 @@ void start_boost_detect() {
     k_timer_start(&altitude_boost_detect_timer, ALTITUDE_TIME_THRESHOLD, ALTITUDE_TIME_THRESHOLD);
 }
 
-void stop_boost_detect() {
-    k_timer_stop(&altitude_boost_detect_timer);
-}
+void stop_boost_detect() { k_timer_stop(&altitude_boost_detect_timer); }

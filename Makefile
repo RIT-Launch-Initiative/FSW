@@ -16,7 +16,8 @@ sensor:
 
 # Extension boards
 potato:
-	west build -b potato app_potato -p auto -DOVERLAY_CONFIG=debug.conf
+	west build -b potato app_potato -p auto -DOVERLAY_CONFIG=debug.conf -DCONFIG_COMPILER_SAVE_TEMPS=y
+
 
 reefer:
 	west build -b grim_reefer app_grim_reefer -p auto -DOVERLAY_CONFIG=debug.conf
@@ -33,7 +34,7 @@ radio-rel:
 
 radio-rcv-rel:
 	west build -b radio_module app_radio_module -p auto -DCONFIG_RADIO_MODULE_RECEIVER=y
-
+  
 sensor-rel:
 	west build -b sensor_module@2 app_sensor_module -p auto
 

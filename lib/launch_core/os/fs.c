@@ -158,7 +158,8 @@ int32_t l_fs_boot_count_check() {
     uint32_t boot_count = 0;
 
     // Check if a .boot_count file exists. If not create it
-    int32_t ret = fs_stat(boot_count_fname, NULL);
+    struct fs_dirent ignore;
+    int32_t ret = fs_stat(boot_count_fname, &ignore);
     if (ret < 0) {
         LOG_INF("No boot count file found. Creating boot count file.");
         flags |= FS_O_CREATE;

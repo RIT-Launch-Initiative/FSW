@@ -21,6 +21,7 @@ K_MSGQ_DEFINE(statistics_queue, sizeof(l_lora_packet_t), 8, 1);
 // LEDs
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
+static const struct device* lora;
 
 // Forward Declares
 static void udp_broadcast_task(void);
@@ -29,11 +30,29 @@ static void udp_broadcast_task(void);
 #define THREAD_STACK_SIZE 1024
 K_THREAD_DEFINE(udp_bcast_thread, THREAD_STACK_SIZE, udp_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 1000);
 
+static void udp_cmd_listener_task(void);
+
+// Threads
+#define THREAD_STACK_SIZE 2048
+K_THREAD_DEFINE(udp_bcast_thread, THREAD_STACK_SIZE, udp_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
+// K_THREAD_DEFINE(udp_cmd_thread, THREAD_STACK_SIZE, udp_cmd_listener_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
+int sock = -1;
+
+static void init_udp_sock() {
+    if (sock == -1) {
+        sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, RADIO_MODULE_BASE_PORT);
+        if (sock >= 0) {
+            l_set_socket_rx_timeout(sock, 10);
+        }
+    }
+}
+
 static void udp_broadcast_task(void) {
     static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
 
-    int sock = l_init_udp_socket(RADIO_MODULE_IP_ADDR, RADIO_MODULE_BASE_PORT);
+    init_udp_sock();
+
     if (sock < 0) {
         LOG_ERR("Failed to create socket for UDP broadcasts. Not sending received LoRa packets");
         return;
@@ -54,6 +73,32 @@ static void udp_broadcast_task(void) {
                                  RADIO_MODULE_BASE_PORT);
             gpio_pin_toggle_dt(&led1);
         }
+    }
+}
+
+static void udp_cmd_listener_task(void) {
+    init_udp_sock();
+
+    while (true) {
+        uint8_t buff[7] = {0};
+        if (l_receive_udp(sock, buff, sizeof(buff)) > 0) {
+            LOG_INF("Received: %s", buff);
+            if (strncmp(buff, "Launch!", 7)) {
+                l_lora_tx(lora, buff, sizeof(buff));
+
+                for (int i = 0; i < 10; i++) {
+                    gpio_pin_toggle_dt(&led0);
+                    gpio_pin_toggle_dt(&led1);
+                    k_msleep(10);
+                }
+
+                break; // Should not transmit if we go into a launch state
+            } else {
+                LOG_WRN("Invalid command send to radio module. Ignoring...");
+            }
+        }
+
+        k_msleep(100);
     }
 }
 
