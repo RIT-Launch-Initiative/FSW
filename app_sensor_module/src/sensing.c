@@ -30,18 +30,12 @@ K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_senso
 K_TIMER_DEFINE(hundred_hz_timer, NULL, NULL);
 
 // Message Queues
-K_MSGQ_DEFINE(hundred_hz_telem_queue, sizeof(timed_sensor_module_hundred_hz_telemetry_t), 16, 1);
+K_MSGQ_DEFINE(telem_queue, sizeof(sensor_module_telemetry_t), 16, 1);
 
 // Extern Variables
-extern struct k_msgq hun_hz_logging_msgq;
-extern struct k_msgq ten_hz_logging_msgq;
+extern struct k_msgq telem_logging_msgq;
 
 bool logging_enabled = false;
-
-// Variables (for boost detection)
-float accel_z[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};
-float pressure[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};
-float temperature[DETECTION_METHOD_PER_SENSOR_COUNT] = {0};
 
 LOG_MODULE_REGISTER(sensing_tasks);
 
@@ -73,7 +67,7 @@ static void hundred_hz_sensor_reading_task(void) {
     k_timer_start(&hundred_hz_timer, K_MSEC(HUNDRED_HZ_UPDATE_TIME), K_MSEC(HUNDRED_HZ_UPDATE_TIME));
 
     // Initialize variables for receiving telemetry
-    timed_sensor_module_hundred_hz_telemetry_t hundred_hz_telemetry;
+    sensor_module_telemetry_t telemetry;
 
     const struct device* adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
     const struct device* ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
@@ -83,7 +77,7 @@ static void hundred_hz_sensor_reading_task(void) {
 
     const struct device* sensors[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {adxl375,
                                                                           ms5611,
-                                                                          // bmp388,
+                                                                          bmp388,
                                                                           lsm6dsl,
                                                                           lis3mdl};
 
@@ -95,7 +89,6 @@ static void hundred_hz_sensor_reading_task(void) {
     check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS);
 
     while (true) {
-        // TODO: Use sensor interrupts instead of timer
         k_timer_status_sync(&hundred_hz_timer);
 
         // Refresh sensor data
@@ -104,35 +97,16 @@ static void hundred_hz_sensor_reading_task(void) {
                 LOG_ERR("Failed to fetch %s data %d", sensors[i]->name, i);
             }
         }
-        hundred_hz_telemetry.timestamp = k_uptime_get();
-        l_get_accelerometer_data_float(adxl375, &hundred_hz_telemetry.data.adxl375);
-        l_get_accelerometer_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_accel);
-        l_get_barometer_data_float(ms5611, &hundred_hz_telemetry.data.ms5611);
-        l_get_barometer_data_float(bmp388, &hundred_hz_telemetry.data.bmp388);
-        l_get_gyroscope_data_float(lsm6dsl, &hundred_hz_telemetry.data.lsm6dsl_gyro);
-        l_get_magnetometer_data_float(lis3mdl, &hundred_hz_telemetry.data.lis3mdl);
+        telemetry.timestamp = k_uptime_get();
+        l_get_accelerometer_data_float(adxl375, &telemetry.adxl375);
+        l_get_accelerometer_data_float(lsm6dsl, &telemetry.lsm6dsl_accel);
+        l_get_barometer_data_float(ms5611, &telemetry.ms5611);
+        l_get_barometer_data_float(bmp388, &telemetry.bmp388);
+        l_get_gyroscope_data_float(lsm6dsl, &telemetry.lsm6dsl_gyro);
+        l_get_magnetometer_data_float(lis3mdl, &telemetry.lis3mdl);
 
         // Put telemetry into queue
-        k_msgq_put(&hundred_hz_telem_queue, &hundred_hz_telemetry, K_MSEC(10));
-
-        // Buffer up data for logging before boost. If no space, throw out the oldest entry.
-        if (!logging_enabled && k_msgq_num_free_get(&hun_hz_logging_msgq) == 0) {
-            timed_sensor_module_hundred_hz_telemetry_t throwaway_data;
-            k_msgq_get(&hun_hz_logging_msgq, &throwaway_data, K_NO_WAIT);
-        }
-
-        k_msgq_put(&hun_hz_logging_msgq, &hundred_hz_telemetry, K_MSEC(10));
-
-        // Fill data for boost detection
-        // TODO: Need to validate on newer hardware. Sus slow trigger time during testing with fake vals.
-        // Faulty bus known to affect how fast this loop executes
-        accel_z[0] = hundred_hz_telemetry.data.adxl375.accel_z;
-        accel_z[1] = hundred_hz_telemetry.data.lsm6dsl_accel.accel_z;
-
-        pressure[0] = hundred_hz_telemetry.data.bmp388.pressure;
-        temperature[0] = hundred_hz_telemetry.data.bmp388.temperature;
-
-        pressure[1] = hundred_hz_telemetry.data.ms5611.pressure;
-        temperature[1] = hundred_hz_telemetry.data.ms5611.temperature;
+        k_msgq_put(&telem_queue, &telemetry, K_MSEC(10));
+        k_msgq_put(&telem_logging_msgq, &telemetry, K_MSEC(10));
     }
 }
