@@ -77,13 +77,13 @@ static void hundred_hz_sensor_reading_task(void) {
 
     const struct device* adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
     const struct device* ms5611 = DEVICE_DT_GET_ONE(meas_ms5611);
-    // const struct device* bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
+    const struct device* bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
     const struct device* lsm6dsl = DEVICE_DT_GET_ONE(st_lsm6dsl);
     const struct device* lis3mdl = DEVICE_DT_GET_ONE(st_lis3mdl_magn);
 
     const struct device* sensors[SENSOR_MODULE_NUM_HUNDRED_HZ_SENSORS] = {adxl375,
                                                                           ms5611,
-                                                                          // bmp388,
+                                                                          bmp388,
                                                                           lsm6dsl,
                                                                           lis3mdl};
 

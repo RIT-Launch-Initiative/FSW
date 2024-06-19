@@ -201,12 +201,6 @@
         irq-gpios = <&gpiob 10 GPIO_ACTIVE_LOW>, <&gpiob 12 GPIO_ACTIVE_LOW>;
     };
 
-    //    shtc3: shtc3@70 {
-        //        compatible = "sensirion,shtc3";
-        //        reg = <0x70>;
-        //        status = "okay";
-    //    };
-
     bmp388: bmp388@76 {
         compatible = "bosch,bmp388";
         reg = <0x76>;

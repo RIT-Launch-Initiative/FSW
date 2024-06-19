@@ -126,7 +126,5 @@ static void smf_task() {
 }
 
 int main() {
-    l_fs_boot_count_check();
-
     return 0;
 }

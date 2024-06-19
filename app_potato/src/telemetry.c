@@ -70,7 +70,6 @@ void read_lps(potato_raw_telemetry_t* telem, const struct device* dev) {
 }
 
 static void telemetry_read_task(void*) {
-    potato_raw_telemetry_t raw_telemetry = {0};
 #ifdef CONFIG_BOARD_POTATO
     const struct device* lps22 = DEVICE_DT_GET(DT_NODELABEL(lps22hh));
 #else
@@ -80,6 +79,7 @@ static void telemetry_read_task(void*) {
 
     // Start firing immediatly, we're needed for boost detect
     k_timer_start(&lps22_timer, K_MSEC(100), K_MSEC(100));
+    sensor_sample_fetch(lps22);
     while (!boost_detected) {
         k_timer_status_sync(&lps22_timer);
 

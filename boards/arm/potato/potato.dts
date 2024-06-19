@@ -109,7 +109,6 @@
 &spi1 {
     pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
     cs-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
-
     pinctrl-names = "default";
     status = "okay";
 
@@ -135,7 +134,6 @@
             zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 
             zephyr,resolution = <24>;
-
             zephyr,input-positive = <0x0>;
             zephyr,input-negative = <0x1>;
         };
