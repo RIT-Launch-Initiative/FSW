@@ -1,4 +1,4 @@
-#include <launch_core/dev/adc.h>
+#include <launch_core_classic/dev/adc.h>
 
 #include <zephyr/logging/log.h>
 #include <zephyr/kernel.h>

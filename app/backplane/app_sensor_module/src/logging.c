@@ -2,8 +2,8 @@
 #include "sensor_module.h"
 
 // Launch Includes
-#include <launch_core/os/fs.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/os/fs.h>
+#include <launch_core_classic/types.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>

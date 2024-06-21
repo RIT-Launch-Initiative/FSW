@@ -1,4 +1,4 @@
-#include <launch_core/dev/uart.h>
+#include <launch_core_classic/dev/uart.h>
 
 LOG_MODULE_REGISTER(launch_uart_utils);
 

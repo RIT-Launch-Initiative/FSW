@@ -1,7 +1,7 @@
 #ifndef REEFER_INLCUDE_DATA_STORAGE_H
 #define REEFER_INLCUDE_DATA_STORAGE_H
 
-#include <launch_core/types.h>
+#include <launch_core_classic/types.h>
 #include <stdint.h>
 #include <zephyr/kernel.h>
 struct slow_data {

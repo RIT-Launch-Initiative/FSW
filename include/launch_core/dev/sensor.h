@@ -12,7 +12,7 @@
 #define L_SENSOR_UTILS_H
 
 #include <float.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/types.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
 

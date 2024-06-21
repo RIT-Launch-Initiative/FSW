@@ -6,8 +6,8 @@
 
 #include "power_module.h"
 
-#include <launch_core/os/fs.h>
-#include <launch_core/utils/event_monitor.h>
+#include <launch_core_classic/os/fs.h>
+#include <launch_core_classic/utils/event_monitor.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>

@@ -2,8 +2,8 @@
 #include "potato.h"
 
 // Launch Includes
-#include <launch_core/conversions.h>
-#include <launch_core/dev/sensor.h>
+#include <launch_core_classic/conversions.h>
+#include <launch_core_classic/dev/sensor.h>
 
 // Zephyr Includes
 #include <zephyr/devicetree.h>

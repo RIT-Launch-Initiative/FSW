@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <launch_core/dev/gnss.h>
+#include <launch_core_classic/dev/gnss.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(launch_gnss);

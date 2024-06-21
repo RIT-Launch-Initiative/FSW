@@ -6,9 +6,9 @@
 
 #include <zephyr/fs/fs.h>
 // Launch Core Includes
-#include <launch_core/conversions.h>
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/conversions.h>
+#include <launch_core_classic/dev/dev_common.h>
+#include <launch_core_classic/types.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/sensor.h>

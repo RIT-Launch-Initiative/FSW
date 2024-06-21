@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <launch_core/net/lora.h>
+#include <launch_core_classic/net/lora.h>
 
 #include <zephyr/drivers/lora.h>
 #include <zephyr/kernel.h>

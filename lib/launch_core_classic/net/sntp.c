@@ -1,5 +1,5 @@
-#include <launch_core/net/sntp.h>
-#include <launch_core/os/time.h>
+#include <launch_core_classic/net/sntp.h>
+#include <launch_core_classic/os/time.h>
 
 #include <zephyr/logging/log.h>
 #include <zephyr/net/sntp.h>

@@ -1,8 +1,8 @@
 #ifndef SENSOR_MODULE_H
 #define SENSOR_MODULE_H
 
-#include <launch_core/net/net_common.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/net/net_common.h>
+#include <launch_core_classic/types.h>
 #include <stdbool.h>
 
 #define SENSOR_MODULE_IP_ADDR             BACKPLANE_IP(SENSOR_MODULE_ID, 2, 1)

@@ -4,7 +4,7 @@
 #include "radio_module_functionality.h"
 
 // Launch Includes
-#include <launch_core/net/lora.h>
+#include <launch_core_classic/net/lora.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>

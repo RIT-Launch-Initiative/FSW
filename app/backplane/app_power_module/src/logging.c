@@ -2,8 +2,8 @@
 #include "power_module.h"
 
 // Launch Includes
-#include <launch_core/os/fs.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/os/fs.h>
+#include <launch_core_classic/types.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
@@ -30,7 +30,7 @@ K_MSGQ_DEFINE(adc_logging_msgq, sizeof(timed_adc_telemetry_t), 200, 4);
 K_MSGQ_DEFINE(gnss_logging_msgq, sizeof(l_gnss_time_sync_t), 200, 4);
 
 #ifdef CONFIG_SEND_LAST_LOG
-#include <launch_core/net/tftp.h>
+#include <launch_core_classic/net/tftp.h>
 static void send_last_log(const uint32_t boot_count_to_get) {
     LOG_INF("Attempting to send last logs over TFTP");
     // Open /lfs/current_boot_count-1 directory

@@ -6,7 +6,7 @@
 #include "transmitter_smf.h"
 
 // Launch Includes
-#include <launch_core/backplane_defs.h>
+#include <launch_core_classic/backplane_defs.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>

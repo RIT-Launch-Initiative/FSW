@@ -1,7 +1,7 @@
 // Application Includes
 #include "radio_module_functionality.h"
 
-#include <launch_core/os/fs.h>
+#include <launch_core_classic/os/fs.h>
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>

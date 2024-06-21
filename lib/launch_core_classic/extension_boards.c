@@ -6,7 +6,7 @@
  */
 
 
-#include <launch_core/extension_boards.h>
+#include <launch_core_classic/extension_boards.h>
 
 #include <zephyr/logging/log.h>
 

@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 // Launch Includes
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/dev/sensor.h>
+#include <launch_core_classic/dev/dev_common.h>
+#include <launch_core_classic/dev/sensor.h>
 
 // Zephyr Includes
 #include <zephyr/devicetree.h>

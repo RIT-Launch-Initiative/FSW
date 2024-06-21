@@ -4,9 +4,9 @@
 #include "radio_module_functionality.h"
 #include "transmitter_gnss.h"
 
-#include <launch_core/backplane_defs.h>
-#include <launch_core/net/udp.h>
-#include <launch_core/utils/event_monitor.h>
+#include <launch_core_classic/backplane_defs.h>
+#include <launch_core_classic/net/udp.h>
+#include <launch_core_classic/utils/event_monitor.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(transmitter_smf);

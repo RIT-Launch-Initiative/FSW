@@ -8,11 +8,11 @@
 #include "power_module.h"
 
 // Launch Includes
-#include <launch_core/backplane_defs.h>
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/net/net_common.h>
-#include <launch_core/net/udp.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/backplane_defs.h>
+#include <launch_core_classic/dev/dev_common.h>
+#include <launch_core_classic/net/net_common.h>
+#include <launch_core_classic/net/udp.h>
+#include <launch_core_classic/types.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>

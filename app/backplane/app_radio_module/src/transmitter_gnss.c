@@ -5,8 +5,8 @@
 #include "radio_module_functionality.h"
 
 // Launch Includes
-#include <launch_core/dev/gnss.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/dev/gnss.h>
+#include <launch_core_classic/types.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>

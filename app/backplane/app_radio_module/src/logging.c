@@ -1,7 +1,7 @@
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
 // Launch Includes
-#include <launch_core/os/fs.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/os/fs.h>
+#include <launch_core_classic/types.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>
@@ -23,7 +23,7 @@ K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL,
 K_MSGQ_DEFINE(gnss_logging_msgq, sizeof(l_gnss_data_t), 10, 4);
 
 #ifdef CONFIG_SEND_LAST_LOG
-#include <launch_core/net/tftp.h>
+#include <launch_core_classic/net/tftp.h>
 
 static void send_last_log(const uint32_t boot_count_to_get) {
     LOG_INF("Attempting to send last logs over TFTP");

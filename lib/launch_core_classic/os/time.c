@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <launch_core/os/time.h>
+#include <launch_core_classic/os/time.h>
 #include <zephyr/kernel.h>
 
 static uint32_t time_of_day_ms = 0;

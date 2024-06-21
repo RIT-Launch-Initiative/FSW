@@ -1,5 +1,5 @@
 menu "Libraries"
 
-rsource "launch_core/Kconfig"
+rsource "launch_core_classic/Kconfig"
 
 endmenu

@@ -1,4 +1,4 @@
-#include <launch_core/dev/sensor.h>
+#include <launch_core_classic/dev/sensor.h>
 
 #include <zephyr/device.h>
 #include <zephyr/logging/log.h>

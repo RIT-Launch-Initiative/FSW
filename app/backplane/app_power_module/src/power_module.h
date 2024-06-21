@@ -1,9 +1,9 @@
 #ifndef POWER_MODULE_H
 #define POWER_MODULE_H
 
-#include <launch_core/backplane_defs.h>
-#include <launch_core/net/net_common.h>
-#include <launch_core/types.h>
+#include <launch_core_classic/backplane_defs.h>
+#include <launch_core_classic/net/net_common.h>
+#include <launch_core_classic/types.h>
 
 #define POWER_MODULE_IP_ADDR BACKPLANE_IP(POWER_MODULE_ID, 2, 1) // TODO: Make this configurable
 

@@ -1,7 +1,7 @@
 #ifndef POTATO_H
 #define POTATO_H
 
-#include <launch_core/types.h>
+#include <launch_core_classic/types.h>
 #include <stdint.h>
 
 // #ifdef CONFIG_DEBUG

@@ -1,4 +1,4 @@
-#include <launch_core/conversions.h>
+#include <launch_core_classic/conversions.h>
 
 double l_altitude_conversion(double pressure_kpa, double temperature_c) {
     static const double R = 8.31447; // Universal gas constant in J/(mol·K)

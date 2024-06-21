@@ -2,10 +2,10 @@
 #include "sensor_module.h"
 
 // Launch Includes
-#include <launch_core/backplane_defs.h>
-#include <launch_core/dev/dev_common.h>
-#include <launch_core/os/fs.h>
-#include <launch_core/utils/event_monitor.h>
+#include <launch_core_classic/backplane_defs.h>
+#include <launch_core_classic/dev/dev_common.h>
+#include <launch_core_classic/os/fs.h>
+#include <launch_core_classic/utils/event_monitor.h>
 
 // Zephyr Includes
 #include <zephyr/drivers/gpio.h>

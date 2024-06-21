@@ -2,7 +2,7 @@
 #include "potato.h"
 
 // Launch Includes
-#include <launch_core/os/fs.h>
+#include <launch_core_classic/os/fs.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>

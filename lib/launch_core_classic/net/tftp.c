@@ -1,4 +1,4 @@
-#include <launch_core/net/tftp.h>
+#include <launch_core_classic/net/tftp.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(l_tftp);
