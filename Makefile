@@ -11,6 +11,9 @@ power:
 radio:
 	west build -b radio_module app_radio_module -p auto -DOVERLAY_CONFIG=debug.conf
 
+radio-rcv:
+	west build -b radio_module app_radio_module -p auto -DOVERLAY_CONFIG=debug.conf -DCONFIG_RADIO_MODULE_RECEIVER=y -DOVERLAY_CONFIG=receiver.conf
+  
 sensor:
 	west build -b sensor_module@2 app_sensor_module -p auto -DOVERLAY_CONFIG=debug.conf
 
@@ -32,6 +35,9 @@ power-rel:
 radio-rel:
 	west build -b radio_module app_radio_module -p auto
 
+radio-rcv-rel:
+	west build -b radio_module app_radio_module -p auto -DCONFIG_RADIO_MODULE_RECEIVER=y
+  
 sensor-rel:
 	west build -b sensor_module@2 app_sensor_module -p auto
 

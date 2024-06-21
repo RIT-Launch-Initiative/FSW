@@ -16,7 +16,10 @@ LOG_MODULE_REGISTER(radio_module_rxer);
 
 // Queues - Name, Entry Size, Queue Size, Alignment
 K_MSGQ_DEFINE(rx_telem_queue, sizeof(l_lora_packet_t), 8, 1);
-K_MSGQ_DEFINE(statistics_queue, sizeof(l_lora_packet_t), 8, 1);
+K_MSGQ_DEFINE(statistics_queue, sizeof(l_lora_statistics_t), 8, 1);
+
+static void reset_recv_async(struct k_timer*);
+K_TIMER_DEFINE(recv_heartbeat, reset_recv_async, NULL);
 
 // LEDs
 static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
@@ -26,12 +29,9 @@ static const struct device* lora;
 // Forward Declares
 static void udp_broadcast_task(void);
 
-static void udp_cmd_listener_task(void);
-
 // Threads
 #define THREAD_STACK_SIZE 2048
-K_THREAD_DEFINE(udp_bcast_thread, THREAD_STACK_SIZE, udp_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
-// K_THREAD_DEFINE(udp_cmd_thread, THREAD_STACK_SIZE, udp_cmd_listener_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, 2000);
+K_THREAD_DEFINE(udp_bcast_thread, THREAD_STACK_SIZE, udp_broadcast_task, NULL, NULL, NULL, K_PRIO_PREEMPT(25), 0, 2000);
 int sock = -1;
 
 static void init_udp_sock() {
@@ -44,9 +44,6 @@ static void init_udp_sock() {
 }
 
 static void udp_broadcast_task(void) {
-    static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
-
     init_udp_sock();
 
     if (sock < 0) {
@@ -67,34 +64,7 @@ static void udp_broadcast_task(void) {
         if (k_msgq_get(&statistics_queue, &lora_statistics, K_MSEC(100)) == 0) {
             l_send_udp_broadcast(sock, (uint8_t*) &lora_statistics, sizeof(l_lora_statistics_t),
                                  RADIO_MODULE_BASE_PORT);
-            gpio_pin_toggle_dt(&led1);
         }
-    }
-}
-
-static void udp_cmd_listener_task(void) {
-    init_udp_sock();
-
-    while (true) {
-        uint8_t buff[7] = {0};
-        if (l_receive_udp(sock, buff, sizeof(buff)) > 0) {
-            LOG_INF("Received: %s", buff);
-            if (strncmp(buff, "Launch!", 7)) {
-                l_lora_tx(lora, buff, sizeof(buff));
-
-                for (int i = 0; i < 10; i++) {
-                    gpio_pin_toggle_dt(&led0);
-                    gpio_pin_toggle_dt(&led1);
-                    k_msleep(10);
-                }
-
-                break; // Should not transmit if we go into a launch state
-            } else {
-                LOG_WRN("Invalid command send to radio module. Ignoring...");
-            }
-        }
-
-        k_msleep(100);
     }
 }
 
@@ -103,6 +73,8 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
     ARG_UNUSED(len);
 
     gpio_pin_toggle_dt(&led0);
+    // Reset the heartbeat timer
+    k_timer_start(&recv_heartbeat, K_MSEC(10000), K_NO_WAIT);
 
     static l_lora_statistics_t statistics = {0};
     statistics.count++;
@@ -129,9 +101,21 @@ static void receiver_cb(const struct device* lora_dev, uint8_t* payload, uint16_
     LOG_INF("Received %d bytes. RSSI: %d SNR: %d", len, rssi, snr);
 }
 
+static const struct device* lora = NULL;
+static void reset_recv_async(struct k_timer*) {
+    LOG_INF("Resetting recv async!");
+    // lora_recv_async(lora, NULL);
+    // k_timer_start(&recv_heartbeat, K_SECONDS(10), K_SECONDS(10));
+    // lora_recv_async(lora, &receiver_cb);
+    gpio_pin_toggle_dt(&led1);
+}
+
+
 int init_lora_unique(const struct device* const lora_dev) {
     lora = lora_dev;
-    return lora_recv_async(lora_dev, &receiver_cb);
+    return lora_recv_async(lora, &receiver_cb);
+    // reset_recv_async(NULL);
+    // return 0;
 }
 
 int init_udp_unique() {

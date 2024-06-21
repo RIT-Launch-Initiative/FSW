@@ -77,7 +77,6 @@ static void hundred_hz_sensor_reading_task(void) {
                                                                   lsm6dsl,
                                                                   lis3mdl,
                                                                   tmp117};
-
     // Perform any necessary sensor setup
     setup_lsm6dsl();
 
