@@ -16,7 +16,7 @@
 // Constants
 #define SENSOR_READING_STACK_SIZE            1024
 #define HUNDRED_HZ_TELEM_PRIORITY            20
-#define SENSOR_MODULE_SENSOR_COUNT 6
+#define SENSOR_MODULE_SENSOR_COUNT 5
 
 // Forward Declarations
 static void hundred_hz_sensor_reading_task(void);
@@ -69,14 +69,12 @@ static void hundred_hz_sensor_reading_task(void) {
     const struct device* bmp388 = DEVICE_DT_GET_ONE(bosch_bmp388);
     const struct device* lsm6dsl = DEVICE_DT_GET_ONE(st_lsm6dsl);
     const struct device* lis3mdl = DEVICE_DT_GET_ONE(st_lis3mdl_magn);
-    const struct device* tmp117 = DEVICE_DT_GET_ONE(ti_tmp116);
 
     const struct device* sensors[SENSOR_MODULE_SENSOR_COUNT] = {adxl375,
                                                                   ms5611,
                                                                   bmp388,
                                                                   lsm6dsl,
-                                                                  lis3mdl,
-                                                                  tmp117};
+                                                                  lis3mdl};
     // Perform any necessary sensor setup
     setup_lsm6dsl();
 
@@ -99,11 +97,6 @@ static void hundred_hz_sensor_reading_task(void) {
         l_get_barometer_data_float(ms5611, &telemetry.ms5611);
         l_get_barometer_data_float(bmp388, &telemetry.bmp388);
         l_get_magnetometer_data_float(lis3mdl, &telemetry.lis3mdl);
-
-        // Avoid unaligned access
-        l_temperature_data_t temperature_data = {0};
-        l_get_temp_sensor_data_float(tmp117, &temperature_data);
-        telemetry.tmp117 = temperature_data;
         LOG_INF("Took %d to read", k_uptime_get() - start);
 
         // Put telemetry into queue
