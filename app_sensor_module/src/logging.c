@@ -15,8 +15,8 @@
 
 LOG_MODULE_REGISTER(logging);
 
-static void logging_task(void);
-K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, THREAD_START_TIME);
+// static void logging_task(void);
+// K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0, THREAD_START_TIME);
 
 // Message queues
 #ifdef CONFIG_DEBUG
@@ -25,7 +25,7 @@ K_THREAD_DEFINE(data_logger, LOGGING_STACK_SIZE, logging_task, NULL, NULL, NULL,
 #define QUEUE_SIZE 1000
 #endif
 
-K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_telemetry_t), QUEUE_SIZE, 4);
+K_MSGQ_DEFINE(telem_logging_msgq, sizeof(sensor_module_hundred_hz_telemetry_t), QUEUE_SIZE, 4);
 
 static void init_logging(l_fs_file_t** p_telem_file) {
     uint32_t boot_count = l_fs_boot_count_check();

@@ -26,7 +26,7 @@ K_THREAD_DEFINE(hundred_hz_readings, SENSOR_READING_STACK_SIZE, hundred_hz_senso
                 K_PRIO_PREEMPT(HUNDRED_HZ_TELEM_PRIORITY), 0, SENSOR_READ_THREAD_START_TIME);
 
 // Message Queues
-K_MSGQ_DEFINE(telem_queue, sizeof(sensor_module_telemetry_t), 16, 1);
+K_MSGQ_DEFINE(telem_queue, sizeof(sensor_module_hundred_hz_telemetry_t), 16, 1);
 
 // Extern Variables
 extern struct k_msgq telem_logging_msgq;
@@ -61,7 +61,7 @@ static void setup_lsm6dsl() {
 static void hundred_hz_sensor_reading_task(void) {
     LOG_INF("Starting sensor task");
     // Initialize variables for receiving telemetry
-    sensor_module_telemetry_t telemetry;
+    sensor_module_hundred_hz_telemetry_t telemetry;
 
 
     const struct device* adxl375 = DEVICE_DT_GET_ONE(adi_adxl375);
@@ -83,21 +83,18 @@ static void hundred_hz_sensor_reading_task(void) {
     check_sensors_ready(sensors, sensor_ready, SENSOR_MODULE_SENSOR_COUNT);
 
     while (true) {
-        uint32_t start = k_uptime_get();
         // Refresh sensor data
         for (uint8_t i = 0; i < SENSOR_MODULE_SENSOR_COUNT; i++) {
             if (sensor_sample_fetch(sensors[i])) {
                 LOG_ERR("Failed to fetch %s data %d", sensors[i]->name, i);
             }
         }
-        telemetry.timestamp = k_uptime_get();
         l_get_accelerometer_data_float(adxl375, &telemetry.adxl375);
         l_get_accelerometer_data_float(lsm6dsl, &telemetry.lsm6dsl_accel);
         l_get_gyroscope_data_float(lsm6dsl, &telemetry.lsm6dsl_gyro);
         l_get_barometer_data_float(ms5611, &telemetry.ms5611);
         l_get_barometer_data_float(bmp388, &telemetry.bmp388);
         l_get_magnetometer_data_float(lis3mdl, &telemetry.lis3mdl);
-        LOG_INF("Took %d to read", k_uptime_get() - start);
 
         // Put telemetry into queue
         k_msgq_put(&telem_queue, &telemetry, K_MSEC(10));

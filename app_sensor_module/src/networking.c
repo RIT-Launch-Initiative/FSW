@@ -37,29 +37,14 @@ int init_networking(void) {
 static void telemetry_broadcast_task(void*, void*, void*) {
     LOG_INF("Starting broadcast task");
 
-    sensor_module_telemetry_t telem;
-    sensor_module_ten_hz_telemetry_t ten_hz_telem;
-    sensor_module_hundred_hz_telemetry_t hundred_hz_telem;
+    sensor_module_hundred_hz_telemetry_t telem;
 
     int hundred_hz_socket =
         l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_TEN_HZ_DATA_PORT);
 
-    int ten_hz_socket =
-        l_init_udp_socket(SENSOR_MODULE_IP_ADDR, SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
-
-
     while (true) {
-        if (0 == k_msgq_get(&telem_queue, &telem, K_MSEC(100))) {
-            LOG_INF("Sending telem");
-
-            memcpy(&hundred_hz_telem.adxl375, &telem.adxl375, sizeof(l_accelerometer_data_t));
-            memcpy(&hundred_hz_telem.lsm6dsl_gyro, &telem.lsm6dsl_gyro, sizeof(l_accelerometer_data_t));
-            memcpy(&hundred_hz_telem.lsm6dsl_accel, &telem.lsm6dsl_accel, sizeof(l_gyroscope_data_t));
-            memcpy(&hundred_hz_telem.lis3mdl, &telem.lis3mdl, sizeof(l_magnetometer_data_t));
-            memcpy(&hundred_hz_telem.bmp388, &telem.bmp388, sizeof(l_barometer_data_t));
-            memcpy(&hundred_hz_telem.ms5611, &telem.ms5611, sizeof(l_barometer_data_t));
-
-            l_send_udp_broadcast(hundred_hz_socket, (uint8_t*) &hundred_hz_telem,
+        if (0 == k_msgq_get(&telem_queue, &telem, K_MSEC(20))) {
+            l_send_udp_broadcast(hundred_hz_socket, (uint8_t*) &telem,
                                  sizeof(sensor_module_hundred_hz_telemetry_t),
                                  SENSOR_MODULE_BASE_PORT + SENSOR_MODULE_HUNDRED_HZ_DATA_PORT);
         }
