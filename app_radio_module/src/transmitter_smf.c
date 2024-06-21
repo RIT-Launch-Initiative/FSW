@@ -38,15 +38,6 @@ struct s_object {
 
 extern float gnss_altitude;
 
-// TODO: Not a fan of this code organization. Should probably just make a single timer too.
-bool lora_can_transmit = true;
-
-static void broadcast_timer_cb(struct k_timer *timer_id) {
-    lora_can_transmit = true;
-}
-
-K_TIMER_DEFINE(lora_broadcast_timer, broadcast_timer_cb, NULL);
-
 static void boost_detector(struct k_timer *timer_id) {
     static bool first_pass = true;
     static const uint32_t BOOST_THRESHOLD_FT = 500;
@@ -71,7 +62,6 @@ K_TIMER_DEFINE(boost_detect_timer, boost_detector, NULL);
 static void ground_state_entry(void *) {
     LOG_INF("Entered ground state");
     k_timer_start(&boost_detect_timer, K_SECONDS(5), K_SECONDS(5));
-    k_timer_start(&lora_broadcast_timer, K_SECONDS(5), K_SECONDS(5));
     config_gnss_tx_time(K_SECONDS(5));
     state_obj.boost_detected = false;
     logging_enabled = false;
@@ -103,7 +93,6 @@ static void ground_state_exit(void *) {
 
 static void flight_state_entry(void *) {
     LOG_INF("Entered flight state");
-    k_timer_start(&lora_broadcast_timer, K_SECONDS(3), K_SECONDS(3));
     logging_enabled = true;
 }
 
@@ -121,7 +110,6 @@ static void flight_state_run(void *) {
 }
 
 static void flight_state_exit(void *) {
-    k_timer_stop(&lora_broadcast_timer);
 }
 
 void init_state_machine() {
