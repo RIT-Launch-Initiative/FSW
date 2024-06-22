@@ -4,9 +4,9 @@
 // F-Core Includes
 #include <f_core/os/c_tenant.h>
 
-class HelloTenant : public CTenant {
+class CHelloTenant : public CTenant {
 public:
-    HelloTenant(const char* name, int priority, int stack_size, uint64_t time_slice);
+    explicit CHelloTenant(const char *name);
 
     void Run() override;
 };

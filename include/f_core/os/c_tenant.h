@@ -3,14 +3,14 @@
 
 class CTenant {
 public:
-    CTenant(const char *name);
+    explicit CTenant(const char *name);
 
-    virtual void Startup() = 0;
+    void Startup();
 
-    virtual void PostStartup() = 0;
+    void PostStartup();
 
     virtual void Run() = 0;
-private:
+protected:
     const char *name;
 
 };

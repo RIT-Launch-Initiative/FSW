@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config F_CORE
-    bool "Launch Core"
+    bool "F-Core"
     help
       This option enables core functionality for all flight software
 

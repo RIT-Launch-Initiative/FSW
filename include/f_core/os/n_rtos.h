@@ -14,9 +14,6 @@ namespace NRtos {
     void StartRtos();
 
     void StopRtos();
-
-    static std::vector<CTask*, 10> tasks;
-
 };
 
 

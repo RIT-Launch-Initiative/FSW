@@ -20,7 +20,8 @@ public:
     void Run();
 
 private:
-    std::vector<CTenant*, 10> tenants;
+    std::vector<CTenant> tenants;
+
 };
 
 #endif //C_TASK_H
