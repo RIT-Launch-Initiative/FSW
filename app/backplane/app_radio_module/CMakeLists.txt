@@ -7,5 +7,6 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(radio-module LANGUAGES C)
 
 FILE(GLOB sources src/*.c)
+target_include_directories(app PRIVATE include)
 target_sources(app PRIVATE ${sources})
 
