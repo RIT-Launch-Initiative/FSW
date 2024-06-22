@@ -11,16 +11,36 @@
 #include <vector>
 
 #include <f_core/os/c_tenant.h>
+#include <zephyr/kernel.h>
 
-class CTask {
+class CTask
+{
 public:
-    CTask(const char* name, int priority, int stack_size, uint64_t time_slice);
+    CTask(const char* name, int priority, int stack_size);
+    CTask::CTask(const char* name, int priority = 20, int stackSize = 512, k_timeout_t schedulingDelay = K_MSEC(50));
 
-    void AddTenant(CTenant &tenant);
+    ~CTask();
+
+    void Initialize();
+
+    void AddTenant(CTenant& tenant);
 
     void Run();
 
+    k_thread GetThread()
+    {
+        return this->thread;
+    };
+
 private:
+    const char* name;
+    const int priority;
+    const size_t stackSize;
+    const k_timeout_t schedulingDelay;
+    k_tid_t taskId;
+    k_thread thread;
+    k_thread_stack_t* stack;
+
     std::vector<CTenant*> tenants;
 };
 

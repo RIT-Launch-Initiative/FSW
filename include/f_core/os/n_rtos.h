@@ -9,13 +9,12 @@
 #include "f_core/os/c_task.h"
 
 namespace NRtos {
-    void AddTask(const CTask &task);
+    void AddTask(CTask &task, size_t stack_size, int stack_flags = 0);
 
     void StartRtos();
 
     void StopRtos();
 };
-
 
 
 #endif //N_RTOS_H
