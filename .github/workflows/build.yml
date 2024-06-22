@@ -17,11 +17,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         app:
-          - app_potato
-          - app_power_module
-          - app_radio_module
-          - app_sensor_module
-          - app_grim_reefer
+          - app/backplane/app_power_module
+          - app/backplane/app_radio_module
+          - app/backplane/app_sensor_module
+          - app/payload/app_grim_reefer
+          - app/other/app_potato
 
     runs-on: ${{ matrix.os }}
     steps:
