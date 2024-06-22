@@ -1,5 +1,7 @@
-//
-// Created by aaron on 6/21/24.
-//
+// Self Include
+#include <f_core/os/c_tenant.h>
 
-#include "c_tenant.h"
+// F-Core Includes
+#include <f_core/os/c_task.h>
+
+CTenant::CTenant(const char* name) : name(name) {}

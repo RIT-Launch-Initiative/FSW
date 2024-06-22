@@ -7,13 +7,20 @@
 #ifndef C_TASK_H
 #define C_TASK_H
 
+#include <cstdint>
+
+class CTenant;
+
 class CTask {
 public:
-    CTask(const char* name, int priority,  stack_size, uint64_t time_slice);
+    CTask(const char* name, int priority, int stack_size, uint64_t time_slice);
 
-    bool AddTenant()
+    void AddTenant(const CTenant &tenant);
+
+    void Run();
 
 private:
+    std::vector<CTenant*, 10> tenants;
 };
 
 #endif //C_TASK_H
