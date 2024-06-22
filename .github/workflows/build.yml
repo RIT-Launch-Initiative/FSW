@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          path: ${{ matrix.app }}
 
       - name: Cache Python dependencies
         uses: actions/cache@v2
@@ -52,10 +54,9 @@ jobs:
             zephyr-${{ runner.os }}-
 
       - name: Setup Zephyr project
-        working-directory: ${{ matrix.app }}
-        run: |
-          west init -l ${{ matrix.app }} --mf west.yml
-          west update
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          toolchains: arm-zephyr-eabi
 
       - name: Build firmware
         working-directory: ${{ matrix.app }}
