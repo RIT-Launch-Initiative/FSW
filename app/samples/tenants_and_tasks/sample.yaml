@@ -1,0 +1,12 @@
+sample:
+  description:
+  name: power-module
+common:
+  build_only: true
+  integration_platforms:
+    - power_module@2
+tests:
+  app.default: {}
+  app.debug:
+    extra_overlay_confs:
+      - debug.conf
