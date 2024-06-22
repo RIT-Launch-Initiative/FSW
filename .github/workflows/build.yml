@@ -56,7 +56,7 @@ jobs:
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
         with:
-          app-path: app
+          app-path: .
           toolchains: arm-zephyr-eabi
 
       - name: Build firmware
