@@ -13,8 +13,8 @@
 CTask::CTask(const char* name, int priority, int stack_size, uint64_t time_slice) {
 }
 
-void CTask::AddTenant(const CTenant &tenant) {
-    tenants.push_back(tenant);
+void CTask::AddTenant(CTenant &tenant) {
+    tenants.push_back(&tenant);
 }
 
 void CTask::Run() {

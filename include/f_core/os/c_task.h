@@ -8,20 +8,20 @@
 #define C_TASK_H
 
 #include <cstdint>
+#include <vector>
 
-class CTenant;
+#include <f_core/os/c_tenant.h>
 
 class CTask {
 public:
     CTask(const char* name, int priority, int stack_size, uint64_t time_slice);
 
-    void AddTenant(const CTenant &tenant);
+    void AddTenant(CTenant &tenant);
 
     void Run();
 
 private:
-    std::vector<CTenant> tenants;
-
+    std::vector<CTenant*> tenants;
 };
 
 #endif //C_TASK_H

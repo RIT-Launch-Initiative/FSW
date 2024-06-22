@@ -7,7 +7,6 @@
 #include <f_core/os/n_rtos.h>
 
 void NRtos::AddTask(const CTask &task) {
-    tasks.push_back(task);
 }
 
 void NRtos::StartRtos() {
