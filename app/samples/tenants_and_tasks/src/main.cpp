@@ -13,16 +13,15 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    printk("Hello, World");
+    CTask helloTask("Hello Task", 20, 512, K_MSEC(50));
     CHelloTenant worldTenant("World");
     CHelloTenant launchTenant("Launch");
 
-    for (int i = 0; i < 10; i++) {
-        launchTenant.Run();
-        printk("\n");
-        worldTenant.Run();
-        printk("\n");
-    }
+    helloTask.AddTenant(worldTenant);
+    helloTask.AddTenant(launchTenant);
+
+    helloTask.Initialize();
+
 
     return 0;
 }

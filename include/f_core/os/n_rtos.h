@@ -3,13 +3,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 #ifndef N_RTOS_H
 #define N_RTOS_H
 
 #include "f_core/os/c_task.h"
 
 namespace NRtos {
-    void AddTask(CTask &task, size_t stack_size, int stack_flags = 0);
+    void AddTask(CTask &task);
 
     void StartRtos();
 

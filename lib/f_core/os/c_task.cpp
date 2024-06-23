@@ -8,7 +8,16 @@
 #include <f_core/os/c_task.h>
 
 // F-Core Includes
+#include <functional>
 #include <f_core/os/c_tenant.h>
+
+static void taskEntryWrapper(void* taskObj, void*, void*) {
+    auto* task = static_cast<CTask*>(taskObj);
+
+    while (true) {
+        task->Run();
+    }
+}
 
 CTask::CTask(const char* name, int priority, int stackSize, k_timeout_t schedulingDelay) : name(name),
     priority(priority), stackSize(stackSize), schedulingDelay(schedulingDelay) {
@@ -22,10 +31,11 @@ CTask::~CTask() {
 
 void CTask::Initialize() {
     stack = k_thread_stack_alloc(stackSize, 0);
-
-    // TODO: Lambda the entry function somehow
-    k_thread_create(&thread, stack, stackSize, 0, NULL, NULL, NULL, priority, 0,
-                    schedulingDelay);
+    if (stack == NULL) {
+        __ASSERT(true, "Failed to allocate stack for %s ", name);
+        return;
+    }
+    taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, NULL, NULL, priority, 0, schedulingDelay);
     k_thread_name_set(taskId, name);
 }
 
