@@ -5,17 +5,21 @@
  */
 
 #include <f_core/os/n_rtos.h>
-#include <zephyr/kernel.h>
-#include <functional>
 
 
+std::vector<CTask*> tasks;
 void NRtos::AddTask(CTask &task) {
-
+    tasks.push_back(&task);
 }
 
 void NRtos::StartRtos() {
+    for (CTask *task : tasks) {
+        k_thread_start(task->taskId);
+    }
 }
 
 void NRtos::StopRtos() {
-    // Stop RTOS
+    for (CTask *task : tasks) {
+        k_thread_abort(task->taskId);
+    }
 }

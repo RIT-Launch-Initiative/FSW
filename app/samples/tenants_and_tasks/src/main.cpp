@@ -13,15 +13,19 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    CTask helloTask("Hello Task", 20, 512, K_MSEC(50));
-    CHelloTenant worldTenant("World");
-    CHelloTenant launchTenant("Launch");
+    static CTask helloTask("Hello Task", 20, 512, K_MSEC(50));
+    static CHelloTenant worldTenant("World");
+    static CHelloTenant launchTenant("Launch");
 
     helloTask.AddTenant(worldTenant);
     helloTask.AddTenant(launchTenant);
 
     helloTask.Initialize();
 
+    NRtos::AddTask(helloTask);
+    NRtos::StartRtos();
+    k_sleep(K_SECONDS(5));
+    NRtos::StopRtos();
 
     return 0;
 }
