@@ -13,12 +13,9 @@
 
 static void taskEntryWrapper(void* taskObj, void*, void*) {
     auto* task = static_cast<CTask*>(taskObj);
-    int sleepTimeMs = task->GetSleepTimeInMillis();
 
     while (true) {
         task->Run();
-        k_msleep(sleepTimeMs);
-
 #if defined(CONFIG_ARCH_POSIX)
         k_cpu_idle(); // Refer to Zephyr's POSIX arch limitations documentation
 #endif
@@ -43,7 +40,7 @@ void CTask::Initialize() {
     for (CTenant *tenant : tenants) {
         tenant->PostStartup();
     }
-    
+
     stack = k_thread_stack_alloc(stackSize, 0);
     if (stack == nullptr) {
         __ASSERT(true, "Failed to allocate stack for %s ", name);
@@ -61,4 +58,5 @@ void CTask::Run() {
     for (CTenant* tenant : tenants) {
         tenant->Run();
     }
+    k_msleep(sleepTimeMs);
 }
