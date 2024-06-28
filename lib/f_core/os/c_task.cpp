@@ -32,7 +32,10 @@ CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : n
 
 CTask::~CTask() {
     k_thread_abort(&thread);
-    k_thread_stack_free(stack);
+    if (stack != nullptr) {
+        k_thread_stack_free(stack);
+        stack = nullptr;
+    }
 }
 
 void CTask::Initialize() {
