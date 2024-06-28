@@ -17,13 +17,18 @@ void NRtos::AddTask(CTask& task) {
 
 void NRtos::StartRtos() {
     for (CTask* task : tasks) {
-        k_thread_start(task->taskId);
+        LOG_INF("Starting task %s", task->GetName());
+        task->Initialize();
     }
+
+    LOG_INF("RTOS Started!");
 }
 
 void NRtos::StopRtos() {
     for (CTask* task : tasks) {
-        LOG_INF("Aborting task");
+        LOG_INF("Stopping task %s", task->GetName());
         task->~CTask();
     }
+
+    LOG_INF("RTOS Stopped!");
 }

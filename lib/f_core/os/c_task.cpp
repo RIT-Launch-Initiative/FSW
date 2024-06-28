@@ -17,7 +17,7 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
         task->Run();
 
 #if defined(CONFIG_ARCH_POSIX)
-        k_cpu_idle();
+        k_cpu_idle(); // Refer to Zephyr's POSIX arch limitations documentation
 #endif
     }
 }

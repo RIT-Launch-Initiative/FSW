@@ -1,14 +1,18 @@
-#ifndef HELLOTENANT_H
-#define HELLOTENANT_H
+#ifndef PRINTCOUNT_H
+#define PRINTCOUNT_H
 
 // F-Core Includes
 #include <f_core/os/c_tenant.h>
 
-class CHelloTenant : public CTenant {
+class CPrintCount : public CTenant {
 public:
-    explicit CHelloTenant(const char *name);
+    explicit CPrintCount(const char* name, int* count);
 
     void Run() override;
+
+private:
+    int* count;
 };
 
-#endif //HELLOTENANT_H
+#endif //PRINTCOUNT_H
+

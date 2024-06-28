@@ -31,6 +31,11 @@ public:
         return this->thread;
     };
 
+    const char *GetName()
+    {
+        return this->name;
+    };
+
     k_tid_t taskId;
 
 private:

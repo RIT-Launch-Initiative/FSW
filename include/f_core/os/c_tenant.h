@@ -5,6 +5,8 @@ class CTenant {
 public:
     explicit CTenant(const char *name);
 
+    virtual ~CTenant() = default;
+
     void Startup();
 
     void PostStartup();

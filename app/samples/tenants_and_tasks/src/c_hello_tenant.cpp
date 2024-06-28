@@ -5,7 +5,7 @@
 
 LOG_MODULE_REGISTER(CHelloTenant);
 
-CHelloTenant::CHelloTenant(const char *name) : CTenant(name) {
+CHelloTenant::CHelloTenant(const char* name) : CTenant(name) {
 
 }
 
