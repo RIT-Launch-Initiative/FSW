@@ -19,7 +19,7 @@ int main() {
     // This can lead to a double free too if StopRtos is called before main exits
     static CHelloTenant printWorldTenant("World");
     static CHelloTenant printLaunchTenant("Launch");
-    static CTask printTask("Print Task", 15, 128, 1000);
+    static CTask printTask("Print Task", 15, 512, 1000);
 
     printTask.AddTenant(printWorldTenant);
     printTask.AddTenant(printLaunchTenant);
@@ -28,7 +28,7 @@ int main() {
     int count = 0;
     static CPrintCount counterTenantOne("Counter 1", &count);
     static CPrintCount counterTenantTwo("Counter 2", &count);
-    static CTask counterTask("Counter Task", 13, 512, 80);
+    static CTask counterTask("Counter Task", 15, 512, 80);
 
     counterTask.AddTenant(counterTenantOne);
     counterTask.AddTenant(counterTenantTwo);

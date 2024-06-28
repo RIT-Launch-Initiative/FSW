@@ -10,6 +10,9 @@
 // F-Core Includes
 #include <functional>
 #include <f_core/os/c_tenant.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(CTask);
 
 static void taskEntryWrapper(void* taskObj, void*, void*) {
     auto* task = static_cast<CTask*>(taskObj);
@@ -43,9 +46,10 @@ void CTask::Initialize() {
 
     stack = k_thread_stack_alloc(stackSize, 0);
     if (stack == nullptr) {
-        __ASSERT(true, "Failed to allocate stack for %s ", name);
-        return;
+        LOG_ERR("Failed to allocate stack for %s", name);
+        k_panic();
     }
+
     taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, nullptr, nullptr, priority, 0, K_NO_WAIT);
     k_thread_name_set(taskId, name);
 }
