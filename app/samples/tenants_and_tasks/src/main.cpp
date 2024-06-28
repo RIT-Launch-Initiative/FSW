@@ -13,18 +13,21 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    static CTask helloTask("Hello Task", 20, 512, K_MSEC(50));
-    static CHelloTenant worldTenant("World");
-    static CHelloTenant launchTenant("Launch");
+    CTask printTask("Print Task", 15);
+    CTask incrementTask("Incrementor Task", 15);
+    CHelloTenant printWorldTenant("World");
+    CHelloTenant printLaunchTenant("Launch");
 
-    helloTask.AddTenant(worldTenant);
-    helloTask.AddTenant(launchTenant);
+    printTask.AddTenant(printWorldTenant);
+    printTask.AddTenant(printLaunchTenant);
 
-    helloTask.Initialize();
+    printTask.Initialize();
+    printTask.Initialize();
 
-    NRtos::AddTask(helloTask);
+    NRtos::AddTask(printTask);
+    NRtos::AddTask(incrementTask);
     NRtos::StartRtos();
-    k_sleep(K_SECONDS(5));
+    k_msleep(1000);
     NRtos::StopRtos();
 
     return 0;

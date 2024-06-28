@@ -16,7 +16,7 @@
 class CTask
 {
 public:
-    CTask(const char* name, int priority = 20, int stackSize = 512, k_timeout_t schedulingDelay = K_MSEC(50));
+    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512);
 
     ~CTask();
 
@@ -32,11 +32,11 @@ public:
     };
 
     k_tid_t taskId;
+
 private:
     const char* name;
     const int priority;
     const size_t stackSize;
-    const k_timeout_t schedulingDelay;
     k_thread thread;
     k_thread_stack_t* stack;
 

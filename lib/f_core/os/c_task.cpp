@@ -13,14 +13,17 @@
 
 static void taskEntryWrapper(void* taskObj, void*, void*) {
     auto* task = static_cast<CTask*>(taskObj);
-
     while (true) {
         task->Run();
+
+#if defined(CONFIG_ARCH_POSIX)
+        k_cpu_idle();
+#endif
     }
 }
 
-CTask::CTask(const char* name, int priority, int stackSize, k_timeout_t schedulingDelay) : name(name),
-    priority(priority), stackSize(stackSize), schedulingDelay(schedulingDelay) {
+CTask::CTask(const char* name, int priority, int stackSize) : name(name),
+    priority(priority), stackSize(stackSize) {
     stack = k_thread_stack_alloc(stackSize, 0);
 }
 
@@ -31,11 +34,11 @@ CTask::~CTask() {
 
 void CTask::Initialize() {
     stack = k_thread_stack_alloc(stackSize, 0);
-    if (stack == NULL) {
+    if (stack == nullptr) {
         __ASSERT(true, "Failed to allocate stack for %s ", name);
         return;
     }
-    taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, NULL, NULL, priority, 0, schedulingDelay);
+    taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, nullptr, nullptr, priority, 0, K_NO_WAIT);
     k_thread_name_set(taskId, name);
 }
 
