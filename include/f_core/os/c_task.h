@@ -16,7 +16,7 @@
 class CTask
 {
 public:
-    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512);
+    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512, int sleepTimeMs = 0);
 
     ~CTask();
 
@@ -36,12 +36,18 @@ public:
         return this->name;
     };
 
+    const int GetSleepTimeInMillis()
+    {
+        return this->sleepTimeMs;
+    };
+
     k_tid_t taskId;
 
 private:
     const char* name;
     const int priority;
     const size_t stackSize;
+    const int sleepTimeMs;
     k_thread thread;
     k_thread_stack_t* stack;
 

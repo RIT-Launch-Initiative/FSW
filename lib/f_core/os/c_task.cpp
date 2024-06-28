@@ -13,8 +13,11 @@
 
 static void taskEntryWrapper(void* taskObj, void*, void*) {
     auto* task = static_cast<CTask*>(taskObj);
+    int sleepTimeMs = task->GetSleepTimeInMillis();
+
     while (true) {
         task->Run();
+        k_msleep(sleepTimeMs);
 
 #if defined(CONFIG_ARCH_POSIX)
         k_cpu_idle(); // Refer to Zephyr's POSIX arch limitations documentation
@@ -22,8 +25,8 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
     }
 }
 
-CTask::CTask(const char* name, int priority, int stackSize) : name(name),
-    priority(priority), stackSize(stackSize) {
+CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : name(name),
+    priority(priority), stackSize(stackSize), sleepTimeMs(sleepTimeMs) {
     stack = k_thread_stack_alloc(stackSize, 0);
 }
 

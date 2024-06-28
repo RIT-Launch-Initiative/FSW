@@ -14,8 +14,8 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    CTask printTask("Print Task", 15);
-    CTask counterTask("Counter Task", 15);
+    CTask printTask("Print Task", 15, 128, 1000);
+    CTask counterTask("Counter Task", 13, 512, 100);
     CHelloTenant printWorldTenant("World");
     CHelloTenant printLaunchTenant("Launch");
 
