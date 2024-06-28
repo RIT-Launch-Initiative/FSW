@@ -36,6 +36,14 @@ CTask::~CTask() {
 }
 
 void CTask::Initialize() {
+    for (CTenant *tenant : tenants) {
+        tenant->Startup();
+    }
+
+    for (CTenant *tenant : tenants) {
+        tenant->PostStartup();
+    }
+    
     stack = k_thread_stack_alloc(stackSize, 0);
     if (stack == nullptr) {
         __ASSERT(true, "Failed to allocate stack for %s ", name);

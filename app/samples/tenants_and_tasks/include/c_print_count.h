@@ -8,9 +8,13 @@ class CPrintCount : public CTenant {
 public:
     explicit CPrintCount(const char* name, int* count);
 
+    void Startup() override;
+
     void Run() override;
 
 private:
+    using CBase = CTenant;
+
     int* count;
 };
 

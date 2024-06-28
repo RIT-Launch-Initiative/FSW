@@ -7,9 +7,9 @@ public:
 
     virtual ~CTenant() = default;
 
-    void Startup();
+    virtual void Startup() {};
 
-    void PostStartup();
+    virtual void PostStartup() {};
 
     virtual void Run() = 0;
 protected:
