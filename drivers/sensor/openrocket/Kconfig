@@ -1,0 +1,3 @@
+if OPENROCKET_SENSORS
+rsource "imu/Kconfig"
+endif

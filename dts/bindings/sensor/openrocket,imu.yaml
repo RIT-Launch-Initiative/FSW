@@ -1,0 +1,11 @@
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+description: IMU that takes its inputs from an openrocket simulation CSV
+
+compatible: "openrocket,imu"
+
+include: [sensor-device.yaml]
+
+properties:
+

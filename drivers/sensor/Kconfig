@@ -5,4 +5,5 @@ if SENSOR
 rsource "adxl375/Kconfig"
 rsource "ms5611/Kconfig"
 rsource "ina260/Kconfig"
+rsource "openrocket/Kconfig"
 endif # SENSOR
