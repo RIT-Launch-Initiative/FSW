@@ -8,4 +8,34 @@ compatible: "openrocket,imu"
 include: [sensor-device.yaml]
 
 properties:
-
+  vertical-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is up (the direction the rocket goes)
+      Options:
+      - POS_X
+      - POS_Y
+      - POS_Z
+      - NEG_X
+      - NEG_Y
+      - NEG_Z
+    enum:
+      - "POS_X"
+      - "POS_Y"
+      - "POS_Z"
+      - "NEG_X"
+      - "NEG_Y"
+      - "NEG_Z"
+  sampling-period-us:
+    type: int
+    required: true
+    default: 0
+    description: |
+      What frequency does the sensor update at. The simulated sensor will 
+      only update at this rate no matter how the underlying data changes 
+      beneath it or how often the use calls `sensor_channel_fetch`.
+      A value of 0 (the default) signifies the the value will interpolated 
+      to read as fast as `sensor_channel_fetch` is called.
+# Which axis is the vertical axis
+# What method to use to map 1d lateral acceleration to the remaining 2 axes
