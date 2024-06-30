@@ -1,7 +1,5 @@
 #include "openrocket_imu.h"
 
-#include "openrocket_sensors.h"
-
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/sensor.h>
@@ -11,9 +9,73 @@
 
 LOG_MODULE_REGISTER(openrocket_imu, CONFIG_SENSOR_LOG_LEVEL);
 
+extern const unsigned int or_packets_size;
+extern const struct or_data_t *or_packets;
+
+// Map openrocket values to sensor axes
+static or_scalar_t map_ax(or_scalar_t vert, or_scalar_t lat, const struct or_imu_config *cfg) {
+    if (cfg->vertical_axis == X) {
+        if (cfg->vertical_axis_invert) {
+            return vert;
+        } else {
+            return -vert;
+        }
+    } else if (cfg->lateral_axis == X) {
+        return lat;
+    } else {
+        return 0;
+    }
+}
+static or_scalar_t map_ay(or_scalar_t vert, or_scalar_t lat, const struct or_imu_config *cfg) {
+    if (cfg->vertical_axis == Y) {
+        if (cfg->vertical_axis_invert) {
+            return vert;
+        } else {
+            return -vert;
+        }
+    } else if (cfg->lateral_axis == Y) {
+        return lat;
+    } else {
+        return 0;
+    }
+}
+static or_scalar_t map_az(or_scalar_t vert, or_scalar_t lat, const struct or_imu_config *cfg) {
+    if (cfg->vertical_axis == Z) {
+        if (cfg->vertical_axis_invert) {
+            return vert;
+        } else {
+            return -vert;
+        }
+    } else if (cfg->lateral_axis == Z) {
+        return lat;
+    } else {
+        return 0;
+    }
+}
+
+static or_scalar_t map_gx(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
+    return roll;
+}
+static or_scalar_t map_gy(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
+    return pitch;
+}
+static or_scalar_t map_gz(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
+    return yaw;
+}
+
+static void map_or_to_sensor(struct or_data_t *in, struct or_imu_data *out, const struct or_imu_config *cfg) {
+    out->ax = map_ax(in->vert_accel, in->lat_accel, cfg);
+    out->ay = map_ay(in->vert_accel, in->lat_accel, cfg);
+    out->az = map_az(in->vert_accel, in->lat_accel, cfg);
+
+    out->gx = map_gx(in->roll, in->pitch, in->yaw, cfg);
+    out->gy = map_gy(in->roll, in->pitch, in->yaw, cfg);
+    out->gz = map_gz(in->roll, in->pitch, in->yaw, cfg);
+}
+
 static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel chan) {
-    // read from openrocket
     const struct or_imu_config *cfg = dev->config;
+    struct or_imu_data *data = dev->data;
     if (cfg->broken) {
         return -ENODEV;
     }
@@ -22,12 +84,38 @@ static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel cha
         chan != SENSOR_CHAN_GYRO_Y && chan != SENSOR_CHAN_GYRO_Z && chan != SENSOR_CHAN_GYRO_XYZ) {
         return -ENOTSUP;
     }
-    or_scalar_t time = 0.0;
+    or_scalar_t time = or_get_time(cfg->sampling_period_us, cfg->lag_time_ms);
+    unsigned int lo, hi = 0;
+    or_scalar_t mix = 0;
+    or_find_bounding_packets(data->last_lower_index, time, &lo, &hi, &mix);
+
+    struct or_data_t or_data;
+    if (hi == 0) {
+        // Before sim
+        or_get_presim(&or_data);
+    } else if (lo == or_packets_size) {
+        // After sim
+        or_get_postsim(&or_data);
+    } else {
+        // In the middle
+        const struct or_data_t *lo_data = &or_packets[lo];
+        const struct or_data_t *hi_data = &or_packets[hi];
+        or_data.time_s = or_lerp(lo_data->time_s, hi_data->time_s, mix);
+        or_data.vert_accel = or_lerp(lo_data->vert_accel, hi_data->vert_accel, mix);
+        or_data.lat_accel = or_lerp(lo_data->lat_accel, hi_data->lat_accel, mix);
+
+        or_data.roll = or_lerp(lo_data->roll, hi_data->roll, mix);
+        or_data.pitch = or_lerp(lo_data->pitch, hi_data->pitch, mix);
+        or_data.yaw = or_lerp(lo_data->yaw, hi_data->yaw, mix);
+    }
+    map_or_to_sensor(&or_data, data, cfg);
+
     return 0;
 }
 
 static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan, struct sensor_value *val) {
     const struct or_imu_config *cfg = dev->config;
+    struct or_imu_data *data = dev->data;
 
     if (cfg->broken) {
         return -ENODEV;
@@ -35,32 +123,32 @@ static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan
 
     switch (chan) {
         case SENSOR_CHAN_ACCEL_X:
-            sensor_value_from_double(val, 0.0);
+            sensor_value_from_or_scalar(val, data->ax);
             break;
         case SENSOR_CHAN_ACCEL_Y:
-            sensor_value_from_double(val, 1.0);
+            sensor_value_from_or_scalar(val, data->ay);
             break;
         case SENSOR_CHAN_ACCEL_Z:
-            sensor_value_from_double(val, 2.0);
+            sensor_value_from_or_scalar(val, data->az);
             break;
         case SENSOR_CHAN_ACCEL_XYZ:
-            sensor_value_from_double(&val[0], 0.0);
-            sensor_value_from_double(&val[1], 1.0);
-            sensor_value_from_double(&val[2], 2.0);
+            sensor_value_from_or_scalar(&val[0], data->ax);
+            sensor_value_from_or_scalar(&val[1], data->ay);
+            sensor_value_from_or_scalar(&val[2], data->az);
             break;
         case SENSOR_CHAN_GYRO_X:
-            sensor_value_from_double(val, 0.0);
+            sensor_value_from_or_scalar(val, 0.0);
             break;
         case SENSOR_CHAN_GYRO_Y:
-            sensor_value_from_double(val, 1.0);
+            sensor_value_from_or_scalar(val, 1.0);
             break;
         case SENSOR_CHAN_GYRO_Z:
-            sensor_value_from_double(val, 2.0);
+            sensor_value_from_or_scalar(val, 2.0);
             break;
         case SENSOR_CHAN_GYRO_XYZ:
-            sensor_value_from_double(&val[0], 0.0);
-            sensor_value_from_double(&val[1], 1.0);
-            sensor_value_from_double(&val[2], 2.0);
+            sensor_value_from_or_scalar(&val[0], 0.0);
+            sensor_value_from_or_scalar(&val[1], 1.0);
+            sensor_value_from_or_scalar(&val[2], 2.0);
             break;
         default:
             LOG_DBG("Channel not supported by device");
@@ -88,7 +176,10 @@ static const struct sensor_driver_api or_imu_api = {
     static const struct or_imu_config or_imu_config_##n = {                                                            \
         .broken = DT_INST_PROP(n, broken),                                                                             \
         .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                                     \
-        .lag_time_ms = DT_INST_PROP(n, lag_time_ms),                                                                   \
+        .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                                   \
+        .vertical_axis = DT_INST_STRING_TOKEN(n, vertical_axis),                                                       \
+        .vertical_axis_invert = DT_INST_PROP(n, vertical_axis_invert),                                                 \
+        .lateral_axis = DT_INST_STRING_TOKEN(n, lateral_axis),                                                         \
     };                                                                                                                 \
                                                                                                                        \
     SENSOR_DEVICE_DT_INST_DEFINE(n, or_imu_init, NULL, &or_imu_data_##n, &or_imu_config_##n, POST_KERNEL,              \

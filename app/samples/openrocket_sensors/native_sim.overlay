@@ -21,7 +21,11 @@
 
     imu: imu {
         compatible = "openrocket,imu";
-        vertical-axis = "POS_Z";
+        vertical-axis = "Z";
+        vertical-axis-invert;
+        lateral-axis = "X";
+        lag-time-us = <1000>;
+        sampling-period-us = <10>;
     };
 
     fstab {

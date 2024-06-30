@@ -14,17 +14,29 @@ properties:
     description: |
       Which axis is up (the direction the rocket goes)
       Options:
-      - POS_X
-      - POS_Y
-      - POS_Z
-      - NEG_X
-      - NEG_Y
-      - NEG_Z
+      - X
+      - Y
+      - Z
     enum:
-      - "POS_X"
-      - "POS_Y"
-      - "POS_Z"
-      - "NEG_X"
-      - "NEG_Y"
-      - "NEG_Z"
-# What method to use to map 1d lateral acceleration to the remaining 2 axes
+      - "X"
+      - "Y"
+      - "Z"
+      
+  vertical-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the vertical axis (multiply by -1)
+
+  lateral-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is sideways
+      Options:
+      - X
+      - Y
+      - Z
+    enum:
+      - "X"
+      - "Y"
+      - "Z"

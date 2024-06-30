@@ -25,34 +25,45 @@ K_THREAD_DEFINE(or_event_thread, 512, or_event_thread_handler, NULL, NULL, NULL,
                 CONFIG_OPENROCKET_MS_BEFORE_LAUNCH);
 #endif
 
+int sensor_value_from_or_scalar(struct sensor_value* val, or_scalar_t inp) {
+#ifdef CONFIG_OPENROCKET_SCALAR_TYPE_DOUBLE
+    return sensor_value_from_double(val, inp);
+#else
+    return sensor_value_from_float(val, inp);
+#endif
+}
+
 or_scalar_t or_lerp(or_scalar_t a, or_scalar_t b, or_scalar_t t) {
     assert(0 <= t && t <= 1.0);
     return a * (1.0 - t) + b * t;
 }
 
-/**
- * @brief Most times you go looking for a packet based on a time, its in between packets. 
- * @param last_lower_idx the low index from the last time you called this function (or 0 if you haven't called it yet)
- * @param or_time the time into the openrocket flight you want to view. (Lags, sampling rate, and launch delay should be computed before calling this function)
- * @param lower_idx out parameter of the index of the packet closest before the requested time
- * @param upper_idx out parameter of the index of the packet closest after the requested time
- * If the time requested is before takeoff, both lower_idx and upper_idx will be 0
- * If the time requested is after the simulation ends, both lower_idx and upper_idx will be or_packets_size
- */
-void find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
-                           unsigned int* upper_idx) {
+or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_us) {
+    int64_t us = k_ticks_to_us_near64(k_uptime_ticks());
+    if (sampling_period_us != 0) {
+        us = (us / sampling_period_us) * sampling_period_us;
+    }
+    us -= lag_time_us;
+    us -= CONFIG_OPENROCKET_MS_BEFORE_LAUNCH * 1000;
+    return ((or_scalar_t) (us)) / 1000000.0;
+}
+
+void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
+                              unsigned int* upper_idx, or_scalar_t* mix) {
     // Simulation doesn't have information at this point
     if (or_time < 0) {
         *lower_idx = 0;
         *upper_idx = 0;
+        *mix = 0;
     }
 
     unsigned int i = last_lower_idx;
     do {
-        if (i >= or_packets_size - 1) {
+        if (i >= or_packets_size - 2) {
             // We've gone past what the simulation measured.
             *lower_idx = or_packets_size;
             *upper_idx = or_packets_size;
+            *mix = 0;
             return;
         }
         i++;
@@ -94,7 +105,8 @@ static void or_event_thread_handler(void) {
     // This thread starts at T=0
     or_scalar_t time = 0;
     unsigned int i = 0;
-    while (i < or_events_size) {
+    while (i < or_events_size - 1) {
+        printk("event %d of %d\n", i, or_events_size);
         int time_to_wait_ms = (int) ((or_events[i].time_s - time) * 1000);
         k_msleep(time_to_wait_ms);
         time = or_events[i].time_s;
@@ -108,7 +120,7 @@ static void or_event_thread_handler(void) {
 static struct or_data_t pad_packet = {
     .time_s = 0,
 #ifdef CONFIG_OPENROCKET_IMU
-    .vert_accel = 0,
+    .vert_accel = 9.801,
     .lat_accel = 0,
     .roll = 0,
     .pitch = 0,
@@ -125,3 +137,6 @@ static struct or_data_t pad_packet = {
 #endif
 
 };
+
+void or_get_presim(struct or_data_t* packet) { *packet = pad_packet; }
+void or_get_postsim(struct or_data_t* packet) { *packet = or_packets[or_packets_size - 1]; }

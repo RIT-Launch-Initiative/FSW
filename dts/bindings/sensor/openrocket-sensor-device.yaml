@@ -6,13 +6,13 @@ description: Openrocket Device
 include: [sensor-device.yaml]
 
 properties:
-  lag-time-ms:
+  lag-time-us:
     type: int
     default: 0
     description: |
       Lag after the ground truth that this sensor measures.
       Some devices (like a barometer) don't update super fast. 
-      Use this parameter to control that 
+      Use this parameter to control that.
   sampling-period-us:
     type: int
     default: 0
