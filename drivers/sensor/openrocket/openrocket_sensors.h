@@ -10,6 +10,7 @@ struct or_data_t {
     float roll;
     float pitch;
     float yaw;
+    // If we want to support magnetometer, can use  Vertical Orientation (zenith), Lateral Orientation (azimuth)
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
     float temperature;

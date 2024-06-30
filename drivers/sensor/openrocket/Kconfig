@@ -1,17 +1,27 @@
 menuconfig OPENROCKET_SENSORS
-	bool "Open Rocket Sensors"
+	bool "OpenRocket Sensors"
 	default n
 	depends on DT_HAS_OPENROCKET_IMU_ENABLED || DT_HAS_OPENROCKET_BAROMETER_ENABLED || DT_HAS_OPENROCKET_GNSS_ENABLED
 	help
 	  Enable driver for openrocket simulation sensors
 
+
 if OPENROCKET_SENSORS
+
+config OPENROCKET_DATA_FILE
+    string "OpenRocket Data File"
+    depends on OPENROCKET_SENSORS
+    help
+        Path to CSV file, exported from OpenRocket, that we should make our data from.
+        This can be an absolute path or a relative path from the application directory.
+
+
     rsource "imu/Kconfig"
 
 
-module = OPENROCKET
-module-str = OPENROCKET
-source "subsys/logging/Kconfig.template.log_config"
+    module = OPENROCKET
+    module-str = OPENROCKET
+    source "subsys/logging/Kconfig.template.log_config"
 
 endif
 

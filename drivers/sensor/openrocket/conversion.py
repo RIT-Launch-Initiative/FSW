@@ -32,8 +32,12 @@ recognized_events = ["IGNITION", "LAUNCH", "LIFTOFF", "LAUNCHROD", "BURNOUT", "E
 
 
 def eprint(*args, **kwargs):
+    RED_COLOR = '\033[91m'
+    RESET_COLOR = '\033[0m'
     # helper to print to stderr
-    print(*args, file=sys.stderr, **kwargs)
+    print(RED_COLOR, end='', file=sys.stderr)
+    print(*args, file=sys.stderr, flush=True, **kwargs)
+    print(RESET_COLOR, end='', file=sys.stderr)
 
 
 def load_file(filename: str) -> str:
@@ -42,8 +46,8 @@ def load_file(filename: str) -> str:
         with open(filename, 'r') as f:
             return f.read()
     except Exception as e:
-        print(f"Error: Couldn't load openrocket CSV file: {filename}")
-        print(e)
+        eprint(f"Couldn't load openrocket CSV file: {filename}")
+        eprint(e)
         sys.exit(1)
 
 
@@ -201,23 +205,26 @@ def make_event_initializer(events: List[OREvent]) -> str:
 
 
 def make_c_file(events: List[OREvent], data: List[Packet]):
-    c_file = f'''#include "openrocket_imu.h"
+    c_file = f'''#include "openrocket_sensors.h"
 
 #define NUM_EVENTS {len(events)}
 #define NUM_DATA_PACKETS {len(data)}
 
 const unsigned int or_events_size = NUM_EVENTS;
-const unsigned int or_data_packets_size = NUM_DATA_PACKETS;
+const unsigned int or_packets_size = NUM_DATA_PACKETS;
 
-struct or_event_occurance_t[NUM_EVENTS] or_events = {{
+struct or_event_occurance_t or_events_data[NUM_EVENTS] = {{
 
 {make_event_initializer(events)}
 }};
 
-struct or_data_t[NUM_DATA_PACKETS] or_packets = {{
+struct or_data_t or_packets_data[NUM_DATA_PACKETS] = {{
 
 {make_initializer(data)}
 }};
+
+struct or_data_t *or_packets = or_packets_data;
+struct or_event_occurance_t *or_events = or_events_data;
 '''
     return c_file
 
