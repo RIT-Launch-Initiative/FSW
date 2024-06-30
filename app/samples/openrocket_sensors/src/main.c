@@ -23,7 +23,7 @@ int main() {
         double ry = sensor_value_to_double(&vals[1]);
         double rz = sensor_value_to_double(&vals[2]);
 
-        printk("accel: (%.2f, %.2f, %.2f) - (%.2f, %.2f, %.2f)\n", x, y, z, rx, ry, rz);
+        printk("accel: (%.2f, %.2f, %.2f) - gyro: (%.2f, %.2f, %.2f)\n", x, y, z, rx, ry, rz);
         k_msleep(1000);
     }
     return 0;
