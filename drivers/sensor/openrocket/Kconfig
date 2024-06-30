@@ -1,10 +1,17 @@
 menuconfig OPENROCKET_SENSORS
 	bool "Open Rocket Sensors"
 	default n
-	#depends on DT_HAS_OPENROCKET_IMU_ENABLED
+	depends on DT_HAS_OPENROCKET_IMU_ENABLED || DT_HAS_OPENROCKET_BAROMETER_ENABLED || DT_HAS_OPENROCKET_GNSS_ENABLED
 	help
 	  Enable driver for openrocket simulation sensors
 
 if OPENROCKET_SENSORS
     rsource "imu/Kconfig"
+
+
+module = OPENROCKET
+module-str = OPENROCKET
+source "subsys/logging/Kconfig.template.log_config"
+
 endif
+

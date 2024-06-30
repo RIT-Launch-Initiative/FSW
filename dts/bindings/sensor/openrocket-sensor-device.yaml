@@ -1,0 +1,24 @@
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+description: Openrocket Device
+
+include: [sensor-device.yaml]
+
+properties:
+  lag-time-ms:
+    type: int
+    default: 0
+    description: |
+      Lag after the ground truth that this sensor measures.
+      Some devices (like a barometer) don't update super fast. 
+      Use this parameter to control that 
+  sampling-period-us:
+    type: int
+    default: 0
+    description: |
+      What frequency does the sensor update at. The simulated sensor will 
+      only update at this rate no matter how the underlying data changes 
+      beneath it or how often the use calls `sensor_channel_fetch`.
+      A value of 0 (the default) signifies the the value will interpolated 
+      to read as fast as `sensor_channel_fetch` is called.
