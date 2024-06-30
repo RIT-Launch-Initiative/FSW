@@ -15,7 +15,11 @@ config OPENROCKET_DATA_FILE
         Path to CSV file, exported from OpenRocket, that we should make our data from.
         This can be an absolute path or a relative path from the application directory.
 
-
+config OPENROCKET_MS_BEFORE_LAUNCH
+    int "OpenRocket ms before launch"
+    default 1000
+    help
+        Milliseconds to delay the launch from the device booting.
     rsource "imu/Kconfig"
 
 
