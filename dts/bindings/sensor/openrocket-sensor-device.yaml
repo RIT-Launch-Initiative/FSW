@@ -22,3 +22,9 @@ properties:
       beneath it or how often the use calls `sensor_channel_fetch`.
       A value of 0 (the default) signifies the the value will interpolated 
       to read as fast as `sensor_channel_fetch` is called.
+  broken:
+    type: boolean
+    description: |
+      Sometimes, your sensors are broken. Use this to mimic that. If set,
+      device_is_ready will return false and sensor fetchers will return
+      -ENODEV and not do anything.

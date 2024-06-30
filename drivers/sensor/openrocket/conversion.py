@@ -207,24 +207,28 @@ def make_event_initializer(events: List[OREvent]) -> str:
 def make_c_file(events: List[OREvent], data: List[Packet]):
     c_file = f'''#include "openrocket_sensors.h"
 
-#define NUM_EVENTS {len(events)}
-#define NUM_DATA_PACKETS {len(data)}
 
-const unsigned int or_events_size = NUM_EVENTS;
+#define NUM_DATA_PACKETS {len(data)}
 const unsigned int or_packets_size = NUM_DATA_PACKETS;
 
+#ifdef CONFIG_OPENROCKET_EVENT_LOG
+#define NUM_EVENTS {len(events)}
+const unsigned int or_events_size = NUM_EVENTS;
 struct or_event_occurance_t or_events_data[NUM_EVENTS] = {{
 
 {make_event_initializer(events)}
 }};
+const struct or_event_occurance_t * const or_events = or_events_data;
+
+#endif
 
 struct or_data_t or_packets_data[NUM_DATA_PACKETS] = {{
 
 {make_initializer(data)}
 }};
 
-struct or_data_t *or_packets = or_packets_data;
-struct or_event_occurance_t *or_events = or_events_data;
+const struct or_data_t * const or_packets = or_packets_data;
+
 '''
     return c_file
 
