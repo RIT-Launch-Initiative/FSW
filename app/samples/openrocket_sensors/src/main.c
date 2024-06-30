@@ -18,8 +18,8 @@ int main() {
         double y = sensor_value_to_double(&vals[1]);
         double z = sensor_value_to_double(&vals[2]);
 
-        printk("(%.2f, %.2f, %.2f)\n", x, y, z);
-        k_msleep(100);
+        printk("accel: (%.2f, %.2f, %.2f)\n", x, y, z);
+        k_msleep(1000);
     }
     return 0;
 }

@@ -100,7 +100,7 @@ static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel cha
         // In the middle
         const struct or_data_t *lo_data = &or_packets[lo];
         const struct or_data_t *hi_data = &or_packets[hi];
-        or_data.time_s = or_lerp(lo_data->time_s, hi_data->time_s, mix);
+
         or_data.vert_accel = or_lerp(lo_data->vert_accel, hi_data->vert_accel, mix);
         or_data.lat_accel = or_lerp(lo_data->lat_accel, hi_data->lat_accel, mix);
 

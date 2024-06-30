@@ -4,11 +4,13 @@
 #include "openrocket_sensors.h"
 
 #include <stdbool.h>
+
 enum axis {
     X,
     Y,
     Z,
 };
+
 struct or_imu_config {
     bool broken;
     unsigned int sampling_period_us;
@@ -17,6 +19,7 @@ struct or_imu_config {
     bool vertical_axis_invert;
     enum axis lateral_axis;
 };
+
 struct or_imu_data {
     unsigned int last_lower_index;
 

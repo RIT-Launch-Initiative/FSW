@@ -66,6 +66,7 @@ struct or_data_t {
     or_scalar_t latitude;
     or_scalar_t longitude;
     or_scalar_t altitude;
+    or_scalar_t velocity;
 #endif
 };
 

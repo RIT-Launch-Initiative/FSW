@@ -7,8 +7,8 @@
 LOG_MODULE_REGISTER(openrocket, CONFIG_OPENROCKET_LOG_LEVEL);
 
 // Forward Declarations
-static void print_packet(const struct or_data_t* d);
 static struct or_data_t pad_packet;
+static struct or_data_t landed_packet;
 
 extern const struct or_data_t* const or_packets;
 extern const unsigned int or_packets_size;
@@ -73,19 +73,6 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
     *upper_idx = i + 1;
 }
 
-static void print_packet(const struct or_data_t* d) {
-    printk("Time: %.3f ", (double) d->time_s);
-#ifdef CONFIG_OPENROCKET_IMU
-    printk("Vert. Acc. %.3f ", (double) d->vert_accel);
-    printk("Lat. Acc. %.3f ", (double) d->lat_accel);
-
-    printk("Roll: %.3f ", (double) d->roll);
-    printk("Pitch: %.3f ", (double) d->pitch);
-    printk("Yaw: %.3f ", (double) d->yaw);
-#endif
-    printk("\n");
-}
-
 #ifdef CONFIG_OPENROCKET_EVENT_LOG
 static const char* event_to_str(enum or_event_t e) {
     if (e < 0 || e > OR_EVENT_SIMULATION_END) {
@@ -102,7 +89,7 @@ static const char* event_to_str(enum or_event_t e) {
     return names[e];
 }
 static void or_event_thread_handler(void) {
-    // This thread starts at T=0
+    // This thread starts at T=0 via the zephyr thread startup time
     or_scalar_t time = 0;
     unsigned int i = 0;
     while (i < or_events_size - 1) {
@@ -134,9 +121,32 @@ static struct or_data_t pad_packet = {
     .latitude = or_packets[0].latitude,
     .longitude = or_packets[0].longitude,
     .altitude = or_packets[0].altitude,
+    .velocity = 0,
+#endif
+
+};
+
+static struct or_data_t landed_packet = {
+    .time_s = 0,
+#ifdef CONFIG_OPENROCKET_IMU
+    .vert_accel = 9.801,
+    .lat_accel = 0,
+    .roll = 0,
+    .pitch = 0,
+    .yaw = 0,
+#endif
+#ifdef CONFIG_OPENROCKET_BAROMETER
+    .pressure = or_packets[NUM_PACKETS - 1].pressure,
+    .temperature = or_packets[NUM_PACKETS - 1].temperature,
+#endif
+#ifdef CONFIG_OPENROCKET_GNSS
+    .latitude = or_packets[NUM_PACKETS - 1].latitude,
+    .longitude = or_packets[NUM_PACKETS - 1].longitude,
+    .altitude = or_packets[NUM_PACKETS - 1].altitude,
+    .velocity = 0,
 #endif
 
 };
 
 void or_get_presim(struct or_data_t* packet) { *packet = pad_packet; }
-void or_get_postsim(struct or_data_t* packet) { *packet = or_packets[or_packets_size - 1]; }
+void or_get_postsim(struct or_data_t* packet) { *packet = landed_packet; }
