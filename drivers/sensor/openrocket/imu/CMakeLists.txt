@@ -6,5 +6,3 @@
 zephyr_library()
 
 zephyr_library_sources(openrocket_imu.c)
-
-# zephyr_include_directories(.)

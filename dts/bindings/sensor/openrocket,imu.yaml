@@ -14,13 +14,13 @@ properties:
     description: |
       Which axis is up (the direction the rocket goes)
       Options:
-      - X
-      - Y
-      - Z
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
     enum:
-      - "X"
-      - "Y"
-      - "Z"
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
       
   vertical-axis-invert:
     type: boolean
@@ -34,13 +34,13 @@ properties:
     description: |
       Which axis is sideways
       Options:
-      - X
-      - Y
-      - Z
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
     enum:
-      - "X"
-      - "Y"
-      - "Z"
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
 
   roll-axis:
     type: string
@@ -48,39 +48,39 @@ properties:
     description: |
       Which axis is roll
       Options:
-      - X
-      - Y
-      - Z
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
     enum:
-      - "X"
-      - "Y"
-      - "Z"
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
   pitch-axis:
     type: string
     required: true
     description: |
       Which axis is pitch
       Options:
-      - X
-      - Y
-      - Z
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
     enum:
-      - "X"
-      - "Y"
-      - "Z"
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
   yaw-axis:
     type: string
     required: true
     description: |
       Which axis is yaw
       Options:
-      - X
-      - Y
-      - Z
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
     enum:
-      - "X"
-      - "Y"
-      - "Z"
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
   roll-axis-invert:
     type: boolean
     description: |

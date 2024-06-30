@@ -14,39 +14,39 @@ extern const struct or_data_t *or_packets;
 
 // Map openrocket values to sensor axes
 static or_scalar_t map_ax(or_scalar_t vert, or_scalar_t lat, const struct or_imu_config *cfg) {
-    if (cfg->vertical_axis == X) {
+    if (cfg->vertical_axis == OPENROCKET_AXIS_X) {
         if (cfg->vertical_axis_invert) {
             return vert;
         } else {
             return -vert;
         }
-    } else if (cfg->lateral_axis == X) {
+    } else if (cfg->lateral_axis == OPENROCKET_AXIS_X) {
         return lat;
     } else {
         return 0;
     }
 }
 static or_scalar_t map_ay(or_scalar_t vert, or_scalar_t lat, const struct or_imu_config *cfg) {
-    if (cfg->vertical_axis == Y) {
+    if (cfg->vertical_axis == OPENROCKET_AXIS_Y) {
         if (cfg->vertical_axis_invert) {
             return vert;
         } else {
             return -vert;
         }
-    } else if (cfg->lateral_axis == Y) {
+    } else if (cfg->lateral_axis == OPENROCKET_AXIS_Y) {
         return lat;
     } else {
         return 0;
     }
 }
 static or_scalar_t map_az(or_scalar_t vert, or_scalar_t lat, const struct or_imu_config *cfg) {
-    if (cfg->vertical_axis == Z) {
+    if (cfg->vertical_axis == OPENROCKET_AXIS_Z) {
         if (cfg->vertical_axis_invert) {
             return vert;
         } else {
             return -vert;
         }
-    } else if (cfg->lateral_axis == Z) {
+    } else if (cfg->lateral_axis == OPENROCKET_AXIS_Z) {
         return lat;
     } else {
         return 0;
@@ -56,22 +56,22 @@ static or_scalar_t map_az(or_scalar_t vert, or_scalar_t lat, const struct or_imu
 #define INVERT(val, do_invert) (do_invert ? -val : val)
 
 static or_scalar_t map_gx(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
-    if (cfg->roll_axis == X) {
+    if (cfg->roll_axis == OPENROCKET_AXIS_X) {
         return INVERT(roll, cfg->roll_axis_invert);
-    } else if (cfg->pitch_axis == X) {
+    } else if (cfg->pitch_axis == OPENROCKET_AXIS_X) {
         return INVERT(pitch, cfg->pitch_axis_invert);
-    } else if (cfg->yaw_axis == X) {
+    } else if (cfg->yaw_axis == OPENROCKET_AXIS_X) {
         return INVERT(yaw, cfg->pitch_axis_invert);
     } else {
         return 0;
     }
 }
 static or_scalar_t map_gy(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
-    if (cfg->roll_axis == Y) {
+    if (cfg->roll_axis == OPENROCKET_AXIS_Y) {
         return INVERT(roll, cfg->roll_axis_invert);
-    } else if (cfg->pitch_axis == Y) {
+    } else if (cfg->pitch_axis == OPENROCKET_AXIS_Y) {
         return INVERT(pitch, cfg->pitch_axis_invert);
-    } else if (cfg->yaw_axis == Y) {
+    } else if (cfg->yaw_axis == OPENROCKET_AXIS_Y) {
         return INVERT(yaw, cfg->pitch_axis_invert);
     } else {
         return 0;
@@ -79,11 +79,11 @@ static or_scalar_t map_gy(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, 
 }
 
 static or_scalar_t map_gz(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
-    if (cfg->roll_axis == Z) {
+    if (cfg->roll_axis == OPENROCKET_AXIS_Z) {
         return INVERT(roll, cfg->roll_axis_invert);
-    } else if (cfg->pitch_axis == Z) {
+    } else if (cfg->pitch_axis == OPENROCKET_AXIS_Z) {
         return INVERT(pitch, cfg->pitch_axis_invert);
-    } else if (cfg->yaw_axis == Z) {
+    } else if (cfg->yaw_axis == OPENROCKET_AXIS_Z) {
         return INVERT(yaw, cfg->pitch_axis_invert);
     } else {
         return 0;
@@ -91,13 +91,13 @@ static or_scalar_t map_gz(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, 
 }
 
 static void map_or_to_sensor(struct or_data_t *in, struct or_imu_data *out, const struct or_imu_config *cfg) {
-    out->ax = map_ax(in->vert_accel, in->lat_accel, cfg);
-    out->ay = map_ay(in->vert_accel, in->lat_accel, cfg);
-    out->az = map_az(in->vert_accel, in->lat_accel, cfg);
+    out->accel_x = map_ax(in->vert_accel, in->lat_accel, cfg);
+    out->accel_y = map_ay(in->vert_accel, in->lat_accel, cfg);
+    out->accel_z = map_az(in->vert_accel, in->lat_accel, cfg);
 
-    out->gx = map_gx(in->roll, in->pitch, in->yaw, cfg);
-    out->gy = map_gy(in->roll, in->pitch, in->yaw, cfg);
-    out->gz = map_gz(in->roll, in->pitch, in->yaw, cfg);
+    out->gyro_x = map_gx(in->roll, in->pitch, in->yaw, cfg);
+    out->gyro_y = map_gy(in->roll, in->pitch, in->yaw, cfg);
+    out->gyro_z = map_gz(in->roll, in->pitch, in->yaw, cfg);
 }
 
 static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel chan) {
@@ -150,32 +150,32 @@ static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan
 
     switch (chan) {
         case SENSOR_CHAN_ACCEL_X:
-            sensor_value_from_or_scalar(val, data->ax);
+            sensor_value_from_or_scalar(val, data->accel_x);
             break;
         case SENSOR_CHAN_ACCEL_Y:
-            sensor_value_from_or_scalar(val, data->ay);
+            sensor_value_from_or_scalar(val, data->accel_y);
             break;
         case SENSOR_CHAN_ACCEL_Z:
-            sensor_value_from_or_scalar(val, data->az);
+            sensor_value_from_or_scalar(val, data->accel_z);
             break;
         case SENSOR_CHAN_ACCEL_XYZ:
-            sensor_value_from_or_scalar(&val[0], data->ax);
-            sensor_value_from_or_scalar(&val[1], data->ay);
-            sensor_value_from_or_scalar(&val[2], data->az);
+            sensor_value_from_or_scalar(&val[0], data->accel_x);
+            sensor_value_from_or_scalar(&val[1], data->accel_y);
+            sensor_value_from_or_scalar(&val[2], data->accel_z);
             break;
         case SENSOR_CHAN_GYRO_X:
-            sensor_value_from_or_scalar(val, data->gx);
+            sensor_value_from_or_scalar(val, data->gyro_x);
             break;
         case SENSOR_CHAN_GYRO_Y:
-            sensor_value_from_or_scalar(val, data->gy);
+            sensor_value_from_or_scalar(val, data->gyro_y);
             break;
         case SENSOR_CHAN_GYRO_Z:
-            sensor_value_from_or_scalar(val, data->gz);
+            sensor_value_from_or_scalar(val, data->gyro_z);
             break;
         case SENSOR_CHAN_GYRO_XYZ:
-            sensor_value_from_or_scalar(&val[0], data->gx);
-            sensor_value_from_or_scalar(&val[1], data->gy);
-            sensor_value_from_or_scalar(&val[2], data->gz);
+            sensor_value_from_or_scalar(&val[0], data->gyro_x);
+            sensor_value_from_or_scalar(&val[1], data->gyro_y);
+            sensor_value_from_or_scalar(&val[2], data->gyro_z);
             break;
         default:
             LOG_DBG("Channel not supported by device");

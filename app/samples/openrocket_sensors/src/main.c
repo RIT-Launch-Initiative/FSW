@@ -3,9 +3,9 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 
-const struct device *imu_dev = DEVICE_DT_GET_ONE(openrocket_imu);
-
 int main() {
+    const struct device *imu_dev = DEVICE_DT_GET_ONE(openrocket_imu);
+
     if (!device_is_ready(imu_dev)) {
         printk("IMU is not ready\n");
         return -ENODEV;

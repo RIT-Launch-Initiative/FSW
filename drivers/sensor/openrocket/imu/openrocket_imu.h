@@ -6,9 +6,9 @@
 #include <stdbool.h>
 
 enum axis {
-    X,
-    Y,
-    Z,
+    OPENROCKET_AXIS_X,
+    OPENROCKET_AXIS_Y,
+    OPENROCKET_AXIS_Z,
 };
 
 enum gyro_axis {
@@ -37,13 +37,13 @@ struct or_imu_config {
 struct or_imu_data {
     unsigned int last_lower_index;
 
-    or_scalar_t ax;
-    or_scalar_t ay;
-    or_scalar_t az;
+    or_scalar_t accel_x;
+    or_scalar_t accel_y;
+    or_scalar_t accel_z;
 
-    or_scalar_t gx;
-    or_scalar_t gy;
-    or_scalar_t gz;
+    or_scalar_t gyro_x;
+    or_scalar_t gyro_y;
+    or_scalar_t gyro_z;
 };
 
 #endif
