@@ -1,6 +1,7 @@
 menuconfig OPENROCKET_IMU
 	bool "Open Rocket Inertial Measurement Unit"
 	default n
+    depends on OPENROCKET_SENSORS
 	depends on DT_HAS_OPENROCKET_IMU_ENABLED
 	help
 	  Enable driver for openrocket inertial measurement unit sensor

@@ -1,3 +1,10 @@
+menuconfig OPENROCKET_SENSORS
+	bool "Open Rocket Sensors"
+	default n
+	#depends on DT_HAS_OPENROCKET_IMU_ENABLED
+	help
+	  Enable driver for openrocket simulation sensors
+
 if OPENROCKET_SENSORS
-rsource "imu/Kconfig"
+    rsource "imu/Kconfig"
 endif
