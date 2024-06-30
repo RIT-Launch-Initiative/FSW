@@ -53,14 +53,41 @@ static or_scalar_t map_az(or_scalar_t vert, or_scalar_t lat, const struct or_imu
     }
 }
 
+#define INVERT(val, do_invert) (do_invert ? -val : val)
+
 static or_scalar_t map_gx(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
-    return roll;
+    if (cfg->roll_axis == X) {
+        return INVERT(roll, cfg->roll_axis_invert);
+    } else if (cfg->pitch_axis == X) {
+        return INVERT(pitch, cfg->pitch_axis_invert);
+    } else if (cfg->yaw_axis == X) {
+        return INVERT(yaw, cfg->pitch_axis_invert);
+    } else {
+        return 0;
+    }
 }
 static or_scalar_t map_gy(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
-    return pitch;
+    if (cfg->roll_axis == Y) {
+        return INVERT(roll, cfg->roll_axis_invert);
+    } else if (cfg->pitch_axis == Y) {
+        return INVERT(pitch, cfg->pitch_axis_invert);
+    } else if (cfg->yaw_axis == Y) {
+        return INVERT(yaw, cfg->pitch_axis_invert);
+    } else {
+        return 0;
+    }
 }
+
 static or_scalar_t map_gz(or_scalar_t roll, or_scalar_t pitch, or_scalar_t yaw, const struct or_imu_config *cfg) {
-    return yaw;
+    if (cfg->roll_axis == Z) {
+        return INVERT(roll, cfg->roll_axis_invert);
+    } else if (cfg->pitch_axis == Z) {
+        return INVERT(pitch, cfg->pitch_axis_invert);
+    } else if (cfg->yaw_axis == Z) {
+        return INVERT(yaw, cfg->pitch_axis_invert);
+    } else {
+        return 0;
+    }
 }
 
 static void map_or_to_sensor(struct or_data_t *in, struct or_imu_data *out, const struct or_imu_config *cfg) {
@@ -137,18 +164,18 @@ static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan
             sensor_value_from_or_scalar(&val[2], data->az);
             break;
         case SENSOR_CHAN_GYRO_X:
-            sensor_value_from_or_scalar(val, 0.0);
+            sensor_value_from_or_scalar(val, data->gx);
             break;
         case SENSOR_CHAN_GYRO_Y:
-            sensor_value_from_or_scalar(val, 1.0);
+            sensor_value_from_or_scalar(val, data->gy);
             break;
         case SENSOR_CHAN_GYRO_Z:
-            sensor_value_from_or_scalar(val, 2.0);
+            sensor_value_from_or_scalar(val, data->gz);
             break;
         case SENSOR_CHAN_GYRO_XYZ:
-            sensor_value_from_or_scalar(&val[0], 0.0);
-            sensor_value_from_or_scalar(&val[1], 1.0);
-            sensor_value_from_or_scalar(&val[2], 2.0);
+            sensor_value_from_or_scalar(&val[0], data->gx);
+            sensor_value_from_or_scalar(&val[1], data->gy);
+            sensor_value_from_or_scalar(&val[2], data->gz);
             break;
         default:
             LOG_DBG("Channel not supported by device");
@@ -180,6 +207,12 @@ static const struct sensor_driver_api or_imu_api = {
         .vertical_axis = DT_INST_STRING_TOKEN(n, vertical_axis),                                                       \
         .vertical_axis_invert = DT_INST_PROP(n, vertical_axis_invert),                                                 \
         .lateral_axis = DT_INST_STRING_TOKEN(n, lateral_axis),                                                         \
+        .roll_axis = DT_INST_STRING_TOKEN(n, roll_axis),                                                               \
+        .pitch_axis = DT_INST_STRING_TOKEN(n, pitch_axis),                                                             \
+        .yaw_axis = DT_INST_STRING_TOKEN(n, yaw_axis),                                                                 \
+        .roll_axis_invert = DT_INST_PROP(n, roll_axis_invert),                                                         \
+        .pitch_axis_invert = DT_INST_PROP(n, pitch_axis_invert),                                                       \
+        .yaw_axis_invert = DT_INST_PROP(n, yaw_axis_invert),                                                           \
     };                                                                                                                 \
                                                                                                                        \
     SENSOR_DEVICE_DT_INST_DEFINE(n, or_imu_init, NULL, &or_imu_data_##n, &or_imu_config_##n, POST_KERNEL,              \

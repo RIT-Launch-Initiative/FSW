@@ -25,7 +25,8 @@ properties:
   vertical-axis-invert:
     type: boolean
     description: |
-      If set, invert the vertical axis (multiply by -1)
+      If set, invert the vertical axis (multiply by -1). 
+      This is helpful if your actual IMU is upside down
 
   lateral-axis:
     type: string
@@ -40,3 +41,55 @@ properties:
       - "X"
       - "Y"
       - "Z"
+
+  roll-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is roll
+      Options:
+      - X
+      - Y
+      - Z
+    enum:
+      - "X"
+      - "Y"
+      - "Z"
+  pitch-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is pitch
+      Options:
+      - X
+      - Y
+      - Z
+    enum:
+      - "X"
+      - "Y"
+      - "Z"
+  yaw-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is yaw
+      Options:
+      - X
+      - Y
+      - Z
+    enum:
+      - "X"
+      - "Y"
+      - "Z"
+  roll-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 
+  pitch-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 
+  yaw-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 

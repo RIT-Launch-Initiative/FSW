@@ -93,7 +93,6 @@ static void or_event_thread_handler(void) {
     or_scalar_t time = 0;
     unsigned int i = 0;
     while (i < or_events_size - 1) {
-        printk("event %d of %d\n", i, or_events_size);
         int time_to_wait_ms = (int) ((or_events[i].time_s - time) * 1000);
         k_msleep(time_to_wait_ms);
         time = or_events[i].time_s;

@@ -18,7 +18,12 @@ int main() {
         double y = sensor_value_to_double(&vals[1]);
         double z = sensor_value_to_double(&vals[2]);
 
-        printk("accel: (%.2f, %.2f, %.2f)\n", x, y, z);
+        sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, vals);
+        double rx = sensor_value_to_double(&vals[0]);
+        double ry = sensor_value_to_double(&vals[1]);
+        double rz = sensor_value_to_double(&vals[2]);
+
+        printk("accel: (%.2f, %.2f, %.2f) - (%.2f, %.2f, %.2f)\n", x, y, z, rx, ry, rz);
         k_msleep(1000);
     }
     return 0;

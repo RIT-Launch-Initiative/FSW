@@ -26,6 +26,10 @@
         lateral-axis = "X";
         lag-time-us = <1000>;
         sampling-period-us = <10>;
+
+        roll-axis = "Z";
+        pitch-axis = "Y";
+        yaw-axis = "X";
     };
 
     fstab {
