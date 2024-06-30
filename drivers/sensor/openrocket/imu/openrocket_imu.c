@@ -189,6 +189,8 @@ static int or_imu_init(const struct device *dev) {
     if (cfg->broken) {
         return -ENODEV;
     }
+    struct or_imu_data *data = dev->data;
+    data->last_lower_index = 0;
     return 0;
 }
 
