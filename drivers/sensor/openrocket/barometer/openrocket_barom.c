@@ -1,0 +1,1 @@
+#define DT_DRV_COMPAT openrocket_barometer
