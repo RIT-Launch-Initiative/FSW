@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Cache clang-format
       uses: actions/cache@v3
@@ -43,4 +43,3 @@ jobs:
           git push
         else
           echo "No formatting changes needed."
-
