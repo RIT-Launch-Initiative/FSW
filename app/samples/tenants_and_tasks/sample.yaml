@@ -1,10 +1,10 @@
 sample:
   description:
-  name: power-module
+  name: tenants-and-tasks
 common:
   build_only: true
   integration_platforms:
-    - power_module@2
+    - native_sim
 tests:
   app.default: {}
   app.debug:
