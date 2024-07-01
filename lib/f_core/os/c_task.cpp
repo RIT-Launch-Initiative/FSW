@@ -20,13 +20,16 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
     while (true) {
         task->Run();
 #if defined(CONFIG_ARCH_POSIX)
-        k_cpu_idle(); // Refer to Zephyr's POSIX arch limitations documentation
+        // Refer to Zephyr's POSIX arch limitations documentation
+        // https://docs.zephyrproject.org/latest/boards/native/native_sim/doc/index.html
+        k_cpu_idle();
 #endif
     }
 }
 
 CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : name(name),
-    priority(priority), stackSize(stackSize), sleepTimeMs(sleepTimeMs) {
+                                                                               priority(priority), stackSize(stackSize),
+                                                                               sleepTimeMs(sleepTimeMs) {
     stack = k_thread_stack_alloc(stackSize, 0);
 }
 
@@ -39,11 +42,11 @@ CTask::~CTask() {
 }
 
 void CTask::Initialize() {
-    for (CTenant *tenant : tenants) {
+    for (CTenant* tenant : tenants) {
         tenant->Startup();
     }
 
-    for (CTenant *tenant : tenants) {
+    for (CTenant* tenant : tenants) {
         tenant->PostStartup();
     }
 
@@ -53,7 +56,8 @@ void CTask::Initialize() {
         k_panic();
     }
 
-    taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, nullptr, nullptr, priority, 0, K_NO_WAIT);
+    taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, nullptr, nullptr, priority, 0,
+                             K_NO_WAIT);
     k_thread_name_set(taskId, name);
 }
 
