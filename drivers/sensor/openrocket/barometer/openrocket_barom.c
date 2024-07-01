@@ -21,6 +21,28 @@ static int or_barom_sample_fetch(const struct device *dev, enum sensor_channel c
     if (chan != SENSOR_CHAN_ALL && chan != SENSOR_CHAN_AMBIENT_TEMP && chan != SENSOR_CHAN_PRESS) {
         return -ENOTSUP;
     }
+    or_scalar_t time = or_get_time(cfg->sampling_period_us, cfg->lag_time_ms);
+    unsigned int lo, hi = 0;
+    or_scalar_t mix = 0;
+    or_find_bounding_packets(data->last_lower_index, time, &lo, &hi, &mix);
+    
+    struct or_data_t or_data;
+    if (hi == 0) {
+        // Before sim
+        or_get_presim(&or_data);
+    } else if (lo == or_packets_size) {
+        // After sim
+        or_get_postsim(&or_data);
+    } else {
+        // In the middle
+        const struct or_data_t *lo_data = &or_packets[lo];
+        const struct or_data_t *hi_data = &or_packets[hi];
+        or_data.pressure = or_lerp(lo_data->pressure, hi_data->pressure, mix);
+        or_data.temperature = or_lerp(lo_data->temperature, hi_data->temperature, mix);
+    }
+    data->pressure = or_data.pressure;
+    data->temperature = or_data.temperature;
+
     return 0;
 }
 

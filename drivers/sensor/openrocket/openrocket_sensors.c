@@ -57,10 +57,11 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
         *lower_idx = 0;
         *upper_idx = 0;
         *mix = 0;
+        return;
     }
 
     unsigned int i = last_lower_idx;
-    do {
+    while (or_time > or_packets[i+1].time_s) {
         if (i >= or_packets_size - 2) {
             // We've gone past what the simulation measured.
             *lower_idx = or_packets_size;
@@ -69,10 +70,13 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
             return;
         }
         i++;
-    } while (or_time > or_packets[i].time_s);
+    }
 
     *lower_idx = i;
     *upper_idx = i + 1;
+    or_scalar_t lo = or_packets[i].time_s;
+    or_scalar_t hi = or_packets[i+1].time_s;
+    *mix = (or_time - lo) / (hi - lo);
 }
 
 #ifdef CONFIG_OPENROCKET_EVENT_LOG
