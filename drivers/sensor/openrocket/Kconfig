@@ -11,6 +11,9 @@ if OPENROCKET_SENSORS
     module-str = OPENROCKET
     source "subsys/logging/Kconfig.template.log_config"
 
+    rsource "imu/Kconfig"
+    rsource "barometer/Kconfig"
+
     config OPENROCKET_SCALAR_TYPE_DOUBLE
         bool "Openrocket Scalar Type Double"
         depends on OPENROCKET_SENSORS
@@ -38,7 +41,6 @@ if OPENROCKET_SENSORS
         default 1000
         help
             Milliseconds to delay the launch from the device booting.
-        rsource "imu/Kconfig"
 
 endif
 

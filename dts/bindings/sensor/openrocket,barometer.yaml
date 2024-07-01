@@ -7,4 +7,3 @@ compatible: "openrocket,barometer"
 
 include: [openrocket-sensor-device.yaml]
 
-properties:

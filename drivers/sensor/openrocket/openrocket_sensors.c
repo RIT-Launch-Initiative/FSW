@@ -9,6 +9,8 @@ LOG_MODULE_REGISTER(openrocket, CONFIG_OPENROCKET_LOG_LEVEL);
 // Forward Declarations
 static struct or_data_t pad_packet;
 static struct or_data_t landed_packet;
+static int init_openrocket(void);
+SYS_INIT_NAMED(init_openrocket, init_openrocket, POST_KERNEL, 0);
 
 extern const struct or_data_t* const or_packets;
 extern const unsigned int or_packets_size;
@@ -103,6 +105,7 @@ static void or_event_thread_handler(void) {
 }
 #endif
 
+
 static struct or_data_t pad_packet = {
     .time_s = 0,
 #ifdef CONFIG_OPENROCKET_IMU
@@ -113,8 +116,8 @@ static struct or_data_t pad_packet = {
     .yaw = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
-    .pressure = or_packets[0].pressure,
-    .temperature = or_packets[0].temperature,
+    .pressure = 0,
+    .temperature = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_GNSS
     .latitude = or_packets[0].latitude,
@@ -135,17 +138,37 @@ static struct or_data_t landed_packet = {
     .yaw = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
-    .pressure = or_packets[NUM_PACKETS - 1].pressure,
-    .temperature = or_packets[NUM_PACKETS - 1].temperature,
+    .pressure = 0,
+    .temperature = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_GNSS
-    .latitude = or_packets[NUM_PACKETS - 1].latitude,
-    .longitude = or_packets[NUM_PACKETS - 1].longitude,
-    .altitude = or_packets[NUM_PACKETS - 1].altitude,
+    .latitude = 0,
+    .longitude = 0,
+    .altitude = 0,
     .velocity = 0,
 #endif
 
 };
+
+static int init_openrocket(void){
+    LOG_INF("Initializing OpenRocket data");
+#ifdef CONFIG_OPENROCKET_BAROMETER
+    pad_packet.pressure = or_packets[0].temperature;
+    pad_packet.temperature = or_packets[0].temperature;
+    landed_packet.pressure = or_packets[or_packets_size - 1].pressure;
+    landed_packet.temperature = or_packets[or_packets_size - 1].temperature;
+#endif
+
+#ifdef CONFIG_OPENROCKET_GNSS
+    pad_packet.latitude = or_packets[0].latitude
+    pad_packet.longitude = or_packets[0].longitude
+    pad_packet.altitude = or_packets[0].altitude
+    landed_packet.latitude = or_packets[or_packets_size - 1].latitude;
+    landed_packet.longitude = or_packets[or_packets_size - 1].longitude;
+    landed_packet.altitude = or_packets[or_packets_size - 1].altitude;
+#endif
+    return 0;
+}
 
 void or_get_presim(struct or_data_t* packet) { *packet = pad_packet; }
 void or_get_postsim(struct or_data_t* packet) { *packet = landed_packet; }

@@ -246,8 +246,6 @@ def get_wanted_vars(config) -> List[Variable]:
         wanted_variables.append(
             ({TEMP, PRESSURE},
              "Requested barometer data"))
-
-        raise NotImplementedError("Barometer Output")
     if config.gnss:
         # https://docs.zephyrproject.org/latest/hardware/peripherals/gnss.html#c.navigation_data
         wanted_variables.append(({LATITUDE, LONGITUDE, VELOCITY, ALTITUDE},
