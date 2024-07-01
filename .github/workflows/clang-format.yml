@@ -32,13 +32,13 @@ jobs:
 
     - name: Run clang-format
       run: |
-        find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' | xargs clang-format -i
+        find . -name '*.c' -o -name '*.cpp' -o -name '*.h' | xargs clang-format -i
 
     - name: Check for formatting changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        if [[ `git status --porcelain` ]]; then
+        if [[ $(git status --porcelain) ]]; then
           git add .
           git commit -m "Format code"
           git push
