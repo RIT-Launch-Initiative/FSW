@@ -13,6 +13,10 @@ extern const unsigned int or_packets_size;
 extern const struct or_data_t *or_packets;
 
 // Map openrocket values to sensor axes
+#ifndef M_PI 
+#define M_PI 3.14159265358979323846
+#endif
+
 static or_scalar_t map_ax(or_scalar_t vert, or_scalar_t lat, const struct or_imu_config *cfg) {
     if (cfg->vertical_axis == OPENROCKET_AXIS_X) {
         if (cfg->vertical_axis_invert) {
