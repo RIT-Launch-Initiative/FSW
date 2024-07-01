@@ -1,0 +1,25 @@
+/ {
+    chosen {
+        zephyr,console = &uart0;
+        zephyr,shell-uart = &uart0;
+    };
+
+
+    imu: imu {
+        compatible = "openrocket,imu";
+        vertical-axis = "OPENROCKET_AXIS_Z";
+        vertical-axis-invert;
+        lateral-axis = "OPENROCKET_AXIS_X";
+        lag-time-us = <1000>;
+        sampling-period-us = <10>;
+
+        roll-axis = "OPENROCKET_AXIS_Z";
+        pitch-axis = "OPENROCKET_AXIS_Y";
+        yaw-axis = "OPENROCKET_AXIS_X";
+    };
+
+};
+
+&uart0 {
+    status = "okay";
+};

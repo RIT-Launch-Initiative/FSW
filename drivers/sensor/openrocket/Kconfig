@@ -1,0 +1,44 @@
+menuconfig OPENROCKET_SENSORS
+	bool "OpenRocket Sensors"
+	default n
+	depends on DT_HAS_OPENROCKET_IMU_ENABLED || DT_HAS_OPENROCKET_BAROMETER_ENABLED || DT_HAS_OPENROCKET_GNSS_ENABLED
+	help
+	  Enable driver for openrocket simulation sensors
+
+
+if OPENROCKET_SENSORS
+    module = OPENROCKET
+    module-str = OPENROCKET
+    source "subsys/logging/Kconfig.template.log_config"
+
+    config OPENROCKET_SCALAR_TYPE_DOUBLE
+        bool "Openrocket Scalar Type Double"
+        depends on OPENROCKET_SENSORS
+        help
+            If true, use doubles. Otherwise use floats. When using these sensors on a real 
+            microcontroller, storing everything as doubles could lead to too large a size for the
+            microcontroller flash. In these cases, using floats halves the memory requirements
+
+    config OPENROCKET_EVENT_LOG
+        bool "OpenRocket Event Log"
+        depends on OPENROCKET_SENSORS
+        help
+            If true, log OpenRocket events as the flight goes on
+
+    config OPENROCKET_DATA_FILE
+        string "OpenRocket Data File"
+        depends on OPENROCKET_SENSORS
+        help
+            Path to CSV file, exported from OpenRocket, that we should make our data from.
+            This can be an absolute path or a relative path from the application directory.
+
+    config OPENROCKET_MS_BEFORE_LAUNCH
+        int "OpenRocket ms before launch"
+        depends on OPENROCKET_SENSORS
+        default 1000
+        help
+            Milliseconds to delay the launch from the device booting.
+        rsource "imu/Kconfig"
+
+endif
+

@@ -1,0 +1,95 @@
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+description: IMU that takes its inputs from an openrocket simulation CSV
+
+compatible: "openrocket,imu"
+
+include: [openrocket-sensor-device.yaml]
+
+properties:
+  vertical-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is up (the direction the rocket goes)
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+      
+  vertical-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the vertical axis (multiply by -1). 
+      This is helpful if your actual IMU is upside down
+
+  lateral-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is sideways
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+
+  roll-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is roll
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+  pitch-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is pitch
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+  yaw-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is yaw
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+  roll-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 
+  pitch-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 
+  yaw-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 
