@@ -20,8 +20,6 @@ jobs:
           - app/backplane/app_power_module
           - app/backplane/app_radio_module
           - app/backplane/app_sensor_module
-          - app/payload/app_grim_reefer
-          - app/other/app_potato
 
     runs-on: ${{ matrix.os }}
     steps:
