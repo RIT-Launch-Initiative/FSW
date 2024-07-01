@@ -25,7 +25,7 @@ static int or_barom_sample_fetch(const struct device *dev, enum sensor_channel c
     unsigned int lo, hi = 0;
     or_scalar_t mix = 0;
     or_find_bounding_packets(data->last_lower_index, time, &lo, &hi, &mix);
-    
+
     struct or_data_t or_data;
     if (hi == 0) {
         // Before sim
@@ -52,6 +52,15 @@ static int or_barom_channel_get(const struct device *dev, enum sensor_channel ch
 
     if (cfg->broken) {
         return -ENODEV;
+    }
+    if (chan != SENSOR_CHAN_PRESS && chan != SENSOR_CHAN_AMBIENT_TEMP) {
+        return -ENOTSUP;
+    }
+    if (chan == SENSOR_CHAN_PRESS) {
+        sensor_value_from_or_scalar(val, data->pressure / 10.0);
+    }
+    if (chan == SENSOR_CHAN_AMBIENT_TEMP) {
+        sensor_value_from_or_scalar(val, data->temperature);
     }
     return 0;
 }

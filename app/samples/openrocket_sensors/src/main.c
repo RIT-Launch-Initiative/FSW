@@ -29,14 +29,14 @@ int main() {
         double rz = sensor_value_to_double(&vals[2]);
 
         printk("accel: (%.2f, %.2f, %.2f) - gyro: (%.2f, %.2f, %.2f)\n", x, y, z, rx, ry, rz);
-        
+
         sensor_sample_fetch(barom_dev);
         struct sensor_value val;
         sensor_channel_get(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
         double temp = sensor_value_to_double(&val);
         sensor_channel_get(barom_dev, SENSOR_CHAN_PRESS, &val);
         double press = sensor_value_to_double(&val);
-        printk("temp: %.2f - press: %.2f", temp, press);
+        printk("temp: %.2f - press: %.2f\n", temp, press);
         k_msleep(1000);
     }
     return 0;
