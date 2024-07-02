@@ -85,8 +85,20 @@ static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
+extern void describe_flight();
+
+static int cmd_status(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
+    describe_flight();
+
+    return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(grim_subcmds, SHELL_CMD(nogo, NULL, "Cancel launch detection", cmd_nogo),
-                               SHELL_CMD(dump, NULL, "Dump  file.", cmd_dump_file), SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(dump, NULL, "Dump  file.", cmd_dump_file),
+                               SHELL_CMD(status, NULL, "Print flight information.", cmd_status), SHELL_SUBCMD_SET_END);
 
 /* Creating root (level 0) command "demo" */
 SHELL_CMD_REGISTER(grim, &grim_subcmds, "Grim Control Commands", NULL);
