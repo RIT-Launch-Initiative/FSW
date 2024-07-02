@@ -1,0 +1,42 @@
+name: Format Code
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Cache clang-format
+      uses: actions/cache@v3
+      with:
+        path: /usr/local/bin/clang-format
+        key: ${{ runner.os }}-clang-format
+        restore-keys: |
+          ${{ runner.os }}-clang-format-
+
+    - name: Install clang-format
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-format
+
+    - name: Run clang-format
+      run: |
+        find . -name '*.c' -o -name '*.cpp' -o -name '*.h' | xargs clang-format -i
+
+    - name: Check for formatting changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git commit -am "Format code"
+        git push
+
