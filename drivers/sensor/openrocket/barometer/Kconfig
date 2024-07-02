@@ -1,7 +1,7 @@
 menuconfig OPENROCKET_BAROMETER
 	bool "Open Rocket Barometer"
 	default n
-    depends on OPENROCKET_SENSORS
+	depends on OPENROCKET_SENSORS
 	depends on DT_HAS_OPENROCKET_BAROMETER_ENABLED
 	help
 	  Enable driver for openrocket barometer sensor
