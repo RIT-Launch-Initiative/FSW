@@ -163,8 +163,10 @@ static int init_openrocket(void) {
 #endif
 
 #ifdef CONFIG_OPENROCKET_GNSS
-    pad_packet.latitude = or_packets[0].latitude pad_packet.longitude = or_packets[0].longitude pad_packet.altitude =
-        or_packets[0].altitude landed_packet.latitude = or_packets[or_packets_size - 1].latitude;
+    pad_packet.latitude = or_packets[0].latitude;
+    pad_packet.longitude = or_packets[0].longitude;
+    pad_packet.altitude = or_packets[0].altitude;
+    landed_packet.latitude = or_packets[or_packets_size - 1].latitude;
     landed_packet.longitude = or_packets[or_packets_size - 1].longitude;
     landed_packet.altitude = or_packets[or_packets_size - 1].altitude;
 #endif
