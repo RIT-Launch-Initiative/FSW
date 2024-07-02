@@ -6,7 +6,9 @@
 template<typename T>
 class CQueue {
 public:
-    CQueue(const k_queue queue) : queue(queue) {}
+    CQueue() {
+        k_queue_init(&queue);
+    }
 
     void Push(const T& data) {
         k_queue_append(&queue, &data);
@@ -25,11 +27,11 @@ public:
     }
 
     bool IsEmpty() {
-        return k_queue_is_empty(const_cast<k_queue*>(&queue));
+        return k_queue_is_empty(&queue);
     }
 
 private:
-    const k_queue queue;
+    k_queue queue = {0};
 };
 
 #endif //C_QUEUE_H
