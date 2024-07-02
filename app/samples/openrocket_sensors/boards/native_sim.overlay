@@ -24,7 +24,6 @@
         compatible = "openrocket,barometer";
         lag-time-us = <1000>;
         sampling-period-us = <10>;
-
     };
 
 };
