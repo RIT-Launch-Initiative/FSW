@@ -13,7 +13,7 @@ extern const unsigned int or_packets_size;
 extern const struct or_data_t *or_packets;
 
 // Map openrocket values to sensor axes
-#ifndef M_PI 
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 

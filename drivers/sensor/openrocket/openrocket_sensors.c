@@ -9,6 +9,8 @@ LOG_MODULE_REGISTER(openrocket, CONFIG_OPENROCKET_LOG_LEVEL);
 // Forward Declarations
 static struct or_data_t pad_packet;
 static struct or_data_t landed_packet;
+static int init_openrocket(void);
+SYS_INIT_NAMED(init_openrocket, init_openrocket, POST_KERNEL, 0);
 
 extern const struct or_data_t* const or_packets;
 extern const unsigned int or_packets_size;
@@ -55,10 +57,11 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
         *lower_idx = 0;
         *upper_idx = 0;
         *mix = 0;
+        return;
     }
 
     unsigned int i = last_lower_idx;
-    do {
+    while (or_time > or_packets[i + 1].time_s) {
         if (i >= or_packets_size - 2) {
             // We've gone past what the simulation measured.
             *lower_idx = or_packets_size;
@@ -67,10 +70,13 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
             return;
         }
         i++;
-    } while (or_time > or_packets[i].time_s);
+    }
 
     *lower_idx = i;
     *upper_idx = i + 1;
+    or_scalar_t lo = or_packets[i].time_s;
+    or_scalar_t hi = or_packets[i + 1].time_s;
+    *mix = (or_time - lo) / (hi - lo);
 }
 
 #ifdef CONFIG_OPENROCKET_EVENT_LOG
@@ -113,8 +119,8 @@ static struct or_data_t pad_packet = {
     .yaw = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
-    .pressure = or_packets[0].pressure,
-    .temperature = or_packets[0].temperature,
+    .pressure = 0,
+    .temperature = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_GNSS
     .latitude = or_packets[0].latitude,
@@ -135,17 +141,37 @@ static struct or_data_t landed_packet = {
     .yaw = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
-    .pressure = or_packets[NUM_PACKETS - 1].pressure,
-    .temperature = or_packets[NUM_PACKETS - 1].temperature,
+    .pressure = 0,
+    .temperature = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_GNSS
-    .latitude = or_packets[NUM_PACKETS - 1].latitude,
-    .longitude = or_packets[NUM_PACKETS - 1].longitude,
-    .altitude = or_packets[NUM_PACKETS - 1].altitude,
+    .latitude = 0,
+    .longitude = 0,
+    .altitude = 0,
     .velocity = 0,
 #endif
 
 };
+
+static int init_openrocket(void) {
+    LOG_INF("Initializing OpenRocket data");
+#ifdef CONFIG_OPENROCKET_BAROMETER
+    pad_packet.pressure = or_packets[0].temperature;
+    pad_packet.temperature = or_packets[0].temperature;
+    landed_packet.pressure = or_packets[or_packets_size - 1].pressure;
+    landed_packet.temperature = or_packets[or_packets_size - 1].temperature;
+#endif
+
+#ifdef CONFIG_OPENROCKET_GNSS
+    pad_packet.latitude = or_packets[0].latitude;
+    pad_packet.longitude = or_packets[0].longitude;
+    pad_packet.altitude = or_packets[0].altitude;
+    landed_packet.latitude = or_packets[or_packets_size - 1].latitude;
+    landed_packet.longitude = or_packets[or_packets_size - 1].longitude;
+    landed_packet.altitude = or_packets[or_packets_size - 1].altitude;
+#endif
+    return 0;
+}
 
 void or_get_presim(struct or_data_t* packet) { *packet = pad_packet; }
 void or_get_postsim(struct or_data_t* packet) { *packet = landed_packet; }

@@ -14,5 +14,13 @@
         pitch-axis = "OPENROCKET_AXIS_Y";
         yaw-axis = "OPENROCKET_AXIS_X";
     };
+
+    barom: barom {
+        status = "okay";
+        compatible = "openrocket,barometer";
+        lag-time-us = <1000>;
+        sampling-period-us = <10>;
+
+    };
 };
 

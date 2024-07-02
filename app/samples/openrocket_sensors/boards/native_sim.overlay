@@ -6,6 +6,7 @@
 
 
     imu: imu {
+        status = "okay";
         compatible = "openrocket,imu";
         vertical-axis = "OPENROCKET_AXIS_Z";
         vertical-axis-invert;
@@ -16,6 +17,13 @@
         roll-axis = "OPENROCKET_AXIS_Z";
         pitch-axis = "OPENROCKET_AXIS_Y";
         yaw-axis = "OPENROCKET_AXIS_X";
+    };
+
+    barom: barom {
+        status = "okay";
+        compatible = "openrocket,barometer";
+        lag-time-us = <1000>;
+        sampling-period-us = <10>;
     };
 
 };
