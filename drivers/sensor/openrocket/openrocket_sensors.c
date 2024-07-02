@@ -61,7 +61,7 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
     }
 
     unsigned int i = last_lower_idx;
-    while (or_time > or_packets[i+1].time_s) {
+    while (or_time > or_packets[i + 1].time_s) {
         if (i >= or_packets_size - 2) {
             // We've gone past what the simulation measured.
             *lower_idx = or_packets_size;
@@ -75,7 +75,7 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
     *lower_idx = i;
     *upper_idx = i + 1;
     or_scalar_t lo = or_packets[i].time_s;
-    or_scalar_t hi = or_packets[i+1].time_s;
+    or_scalar_t hi = or_packets[i + 1].time_s;
     *mix = (or_time - lo) / (hi - lo);
 }
 
@@ -108,7 +108,6 @@ static void or_event_thread_handler(void) {
     LOG_INF("OpenRocket flight over");
 }
 #endif
-
 
 static struct or_data_t pad_packet = {
     .time_s = 0,
@@ -154,7 +153,7 @@ static struct or_data_t landed_packet = {
 
 };
 
-static int init_openrocket(void){
+static int init_openrocket(void) {
     LOG_INF("Initializing OpenRocket data");
 #ifdef CONFIG_OPENROCKET_BAROMETER
     pad_packet.pressure = or_packets[0].temperature;
@@ -164,10 +163,8 @@ static int init_openrocket(void){
 #endif
 
 #ifdef CONFIG_OPENROCKET_GNSS
-    pad_packet.latitude = or_packets[0].latitude
-    pad_packet.longitude = or_packets[0].longitude
-    pad_packet.altitude = or_packets[0].altitude
-    landed_packet.latitude = or_packets[or_packets_size - 1].latitude;
+    pad_packet.latitude = or_packets[0].latitude pad_packet.longitude = or_packets[0].longitude pad_packet.altitude =
+        or_packets[0].altitude landed_packet.latitude = or_packets[or_packets_size - 1].latitude;
     landed_packet.longitude = or_packets[or_packets_size - 1].longitude;
     landed_packet.altitude = or_packets[or_packets_size - 1].altitude;
 #endif

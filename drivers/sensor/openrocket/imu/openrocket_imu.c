@@ -13,10 +13,11 @@ extern const unsigned int or_packets_size;
 extern const struct or_data_t *or_packets;
 
 // Map openrocket values to sensor axes
-#ifndef M_PI 
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
+#define DEGREES_TO_RADIANS (M_PI / 180.0)
 static or_scalar_t map_ax(or_scalar_t vert, or_scalar_t lat, const struct or_imu_config *cfg) {
     if (cfg->vertical_axis == OPENROCKET_AXIS_X) {
         if (cfg->vertical_axis_invert) {
@@ -139,6 +140,9 @@ static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel cha
         or_data.pitch = or_lerp(lo_data->pitch, hi_data->pitch, mix);
         or_data.yaw = or_lerp(lo_data->yaw, hi_data->yaw, mix);
     }
+    or_data.roll *= DEGREES_TO_RADIANS;
+    or_data.pitch *= DEGREES_TO_RADIANS;
+    or_data.yaw *= DEGREES_TO_RADIANS;
     map_or_to_sensor(&or_data, data, cfg);
 
     return 0;
