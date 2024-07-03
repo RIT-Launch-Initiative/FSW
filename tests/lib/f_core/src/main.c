@@ -1,13 +1,7 @@
 /*
- * Copyright (c) 2021 Legrand North America, LLC.
+ * @file test f_core library
  *
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/*
- * @file test custom_lib library
- *
- * This suite verifies that the methods provided with the custom_lib
+ * This suite verifies that the methods provided with the f_core
  * library works correctly.
  */
 
@@ -17,8 +11,7 @@
 
 #include <custom_lib/custom_lib.h>
 
-ZTEST(custom_lib, test_get_value)
-{
+ZTEST(custom_lib, test_get_value) {
 	/* Verify standard behavior */
 	zassert_equal(custom_lib_get_value(INT_MIN), INT_MIN,
 		"get_value failed input of INT_MIN");
