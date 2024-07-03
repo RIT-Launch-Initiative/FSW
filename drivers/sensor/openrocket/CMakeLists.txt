@@ -8,6 +8,7 @@ zephyr_library()
 
 add_subdirectory_ifdef(CONFIG_OPENROCKET_IMU imu)
 add_subdirectory_ifdef(CONFIG_OPENROCKET_BAROMETER barometer)
+add_subdirectory_ifdef(CONFIG_OPENROCKET_GNSS gnss)
 
 
 get_filename_component(CANONICAL_OPENROCKET_DATA_PATH "${CONFIG_OPENROCKET_DATA_FILE}"

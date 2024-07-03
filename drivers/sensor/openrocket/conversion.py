@@ -162,6 +162,7 @@ LATITUDE = "Latitude (°)"
 LONGITUDE = "Latitude (°)"
 VELOCITY = "Total velocity (m/s)"
 ALTITUDE = "Altitude (m)"
+LATERAL_DIRECTION = "Lateral direction (°)"
 
 # order in the c struct. this will have to update as time goes on
 struct_order = [TIME, VERT_ACCEL, LAT_ACCEL, ROLL, PITCH, YAW,
@@ -248,9 +249,8 @@ def get_wanted_vars(config) -> List[Variable]:
              "Requested barometer data"))
     if config.gnss:
         # https://docs.zephyrproject.org/latest/hardware/peripherals/gnss.html#c.navigation_data
-        wanted_variables.append(({LATITUDE, LONGITUDE, VELOCITY, ALTITUDE},
+        wanted_variables.append(({LATITUDE, LONGITUDE, VELOCITY, ALTITUDE, LATERAL_DIRECTION},
                                  "Requested GNSS data"))
-        raise NotImplementedError("GNSS Output")
     return wanted_variables
 
 
