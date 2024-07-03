@@ -48,25 +48,26 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
                               unsigned int* upper_idx, or_scalar_t* mix);
 
 struct or_data_t {
-    or_scalar_t time_s;
+    or_scalar_t time_s; // s
 #ifdef CONFIG_OPENROCKET_IMU
-    or_scalar_t vert_accel;
-    or_scalar_t lat_accel;
+    or_scalar_t vert_accel; // m/s^2
+    or_scalar_t lat_accel;  // m/s^2
 
-    or_scalar_t roll;
-    or_scalar_t pitch;
-    or_scalar_t yaw;
+    or_scalar_t roll;  // deg/s
+    or_scalar_t pitch; // deg/s
+    or_scalar_t yaw;   // deg/s
     // If we want to support magnetometer, can use  Vertical Orientation (zenith), Lateral Orientation (azimuth)
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
-    or_scalar_t temperature;
-    or_scalar_t pressure;
+    or_scalar_t temperature; // °C
+    or_scalar_t pressure;    // mbar
 #endif
 #ifdef CONFIG_OPENROCKET_GNSS
-    or_scalar_t latitude;
-    or_scalar_t longitude;
-    or_scalar_t altitude;
-    or_scalar_t velocity;
+    or_scalar_t latitude;  // °
+    or_scalar_t longitude; // °
+    or_scalar_t velocity;  // m/s
+    or_scalar_t altitude;  // m
+    or_scalar_t bearing;   // °
 #endif
 };
 

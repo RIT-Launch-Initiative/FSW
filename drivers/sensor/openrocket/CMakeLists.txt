@@ -36,5 +36,3 @@ add_custom_command(
 
 zephyr_include_directories(.)
 zephyr_library_sources(openrocket_sensors.c ${CMAKE_CURRENT_BINARY_DIR}/openrocket_data.c)
-
-# add_dependencies(enum_test run)

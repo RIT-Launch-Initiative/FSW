@@ -1,7 +1,7 @@
 menuconfig OPENROCKET_SENSORS
 	bool "OpenRocket Sensors"
 	default n
-	depends on (SENSOR && (DT_HAS_OPENROCKET_IMU_ENABLED || DT_HAS_OPENROCKET_BAROMETER_ENABLED)) || GNSS
+	depends on (SENSOR && (DT_HAS_OPENROCKET_IMU_ENABLED || DT_HAS_OPENROCKET_BAROMETER_ENABLED)) || (GNSS && DT_HAS_OPENROCKET_GNSS_ENABLED)
 	help
 	  Enable driver for openrocket simulation sensors
 
