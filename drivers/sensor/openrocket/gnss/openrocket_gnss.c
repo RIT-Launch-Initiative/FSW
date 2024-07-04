@@ -4,8 +4,10 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gnss.h>
 #include <zephyr/drivers/gnss/gnss_publish.h>
+#include <zephyr/drivers/rtc.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+
 LOG_MODULE_REGISTER(openrocket_gnss, CONFIG_GNSS_LOG_LEVEL);
 
 #define DT_DRV_COMPAT openrocket_gnss
@@ -74,7 +76,8 @@ static void or_gnss_thread_fn(void *dev_v, void *, void *) {
                     .satellites_cnt = 6,
                     .hdop = 2, // https://en.wikipedia.org/wiki/Dilution_of_precision_(navigation)
                 },
-            .utc = 0,
+            .utc = {0},
+
         };
         gnss_publish_data(dev, &gnss_data);
     }
@@ -87,6 +90,7 @@ static struct gnss_driver_api gnss_api = {};
         .broken = DT_INST_PROP(inst, broken),                                                                          \
         .sampling_period_us = DT_INST_PROP(inst, sampling_period_us),                                                  \
         .lag_time_ms = DT_INST_PROP(inst, lag_time_us),                                                                \
+        .rtc = DEVICE_DT_GET(DT_INST_PHANDLE(inst, rtc)),                                                              \
     };                                                                                                                 \
                                                                                                                        \
     static struct or_gnss_data or_gnss_data_##inst;                                                                    \

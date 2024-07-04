@@ -29,11 +29,14 @@
         status = "okay";
         compatible = "openrocket,gnss";
         lag-time-us = <1000>;
-        sampling-period-us = <1000000>;
+        sampling-period-us = <(5*1000*1000)>;
+        rtc = <&rtc>;
     };
 
 };
-
+&rtc {
+    status = "okay";
+};
 &uart0 {
     status = "okay";
 };

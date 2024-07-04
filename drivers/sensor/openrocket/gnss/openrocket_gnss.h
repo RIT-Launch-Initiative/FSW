@@ -6,6 +6,7 @@ struct or_gnss_cfg {
     bool broken;
     unsigned int sampling_period_us;
     unsigned int lag_time_ms;
+    const struct device *rtc;
 };
 struct or_gnss_data {
     unsigned int last_lower_index;

@@ -7,3 +7,9 @@ compatible: "openrocket,gnss"
 
 include: [openrocket-sensor-device.yaml]
 
+properties:
+  rtc:
+    type: phandle
+    description: |
+      GNSS devices usually give a highly accurate timestamp with their readings.
+      In this case, we don't have one of those so we use a RTC to get the time
