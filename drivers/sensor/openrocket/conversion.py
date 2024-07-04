@@ -64,7 +64,7 @@ def find_events(data_txt: str) -> List[OREvent]:
         time = match[1]
 
         if event not in recognized_events:
-            print(f"WARNING: Unrecognized openrocket event {event}")
+            eprint(f"WARNING: Unrecognized openrocket event {event}")
             continue
 
         events.append(OREvent(float(time), event))
@@ -159,7 +159,7 @@ TEMP = "Air temperature (°C)"
 PRESSURE = "Air pressure (mbar)"
 
 LATITUDE = "Latitude (°)"
-LONGITUDE = "Latitude (°)"
+LONGITUDE = "Longitude (°)"
 VELOCITY = "Total velocity (m/s)"
 ALTITUDE = "Altitude (m)"
 LATERAL_DIRECTION = "Lateral direction (°)"
@@ -269,7 +269,6 @@ def main():
 
     data = read_data(lines)
     filtered_data = filter_data(data, mapping)
-
     c_file = make_c_file(events, filtered_data)
 
     try:
