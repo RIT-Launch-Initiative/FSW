@@ -29,6 +29,10 @@ static int or_gnss_init(const struct device *dev) {
 static void or_gnss_thread_fn(void *dev_v, void *, void *) {
     const struct device *dev = dev_v;
     const struct or_gnss_cfg *cfg = dev->config;
+
+    struct rtc_time rtime = {0};
+    rtc_set_time(cfg->rtc, &rtime);
+
     struct or_gnss_data *data = dev->data;
     LOG_INF("Starting openrocket GNSS thread");
     while (true) {
@@ -60,6 +64,13 @@ static void or_gnss_thread_fn(void *dev_v, void *, void *) {
         // See https://docs.zephyrproject.org/latest/hardware/peripherals/gnss.html#c.navigation_data
         // and openrocket_sensors.h for an explanation of units
 
+        struct rtc_time rtime;
+        int err = rtc_get_time(cfg->rtc, &rtime);
+        if (err != 0) {
+            LOG_ERR("Failed to get RTC time: %d", err);
+            continue;
+        }
+
         struct gnss_data gnss_data = {
             .nav_data =
                 {
@@ -76,7 +87,15 @@ static void or_gnss_thread_fn(void *dev_v, void *, void *) {
                     .satellites_cnt = 6,
                     .hdop = 2, // https://en.wikipedia.org/wiki/Dilution_of_precision_(navigation)
                 },
-            .utc = {0},
+            .utc =
+                {
+                    .century_year = rtime.tm_year,
+                    .month = rtime.tm_mon,
+                    .month_day = rtime.tm_mday,
+                    .hour = rtime.tm_hour,
+                    .minute = rtime.tm_hour,
+                    .millisecond = rtime.tm_sec * 1000,
+                },
 
         };
         gnss_publish_data(dev, &gnss_data);
