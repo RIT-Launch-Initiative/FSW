@@ -47,13 +47,13 @@ static void or_gnss_thread_fn(void *dev_v, void *, void *) {
         .tm_wday = 0,
     };
 
-    // if (rtc_get_time(cfg->rtc, &rtime) == -ENODATA) {
-    LOG_INF("Setting rtc clock (was uninitialized)");
-    int err = rtc_set_time(cfg->rtc, &rtime);
-    if (err != 0) {
-        LOG_ERR("Error intializing RTC %d", err);
+    if (rtc_get_time(cfg->rtc, &rtime) == -ENODATA) {
+        LOG_INF("Setting rtc clock (was uninitialized)");
+        int err = rtc_set_time(cfg->rtc, &rtime);
+        if (err != 0) {
+            LOG_ERR("Error intializing RTC %d", err);
+        }
     }
-    // }
 
     struct or_gnss_data *data = dev->data;
     LOG_INF("Starting openrocket GNSS thread");
