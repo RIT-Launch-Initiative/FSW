@@ -6,7 +6,7 @@
 int main() {
     const struct device *imu_dev = DEVICE_DT_GET_ONE(openrocket_imu);
     const struct device *barom_dev = DEVICE_DT_GET_ONE(openrocket_barometer);
-    const struct device *gnss_dev = DEVICE_DT_GET_ONE(openrocket_gnss);
+    // const struct device *gnss_dev = DEVICE_DT_GET_ONE(openrocket_gnss);
 
     if (!device_is_ready(imu_dev)) {
         printk("IMU is not ready\n");
@@ -16,10 +16,10 @@ int main() {
         printk("Barometer is not ready\n");
         return -ENODEV;
     }
-    if (!device_is_ready(gnss_dev)) {
-        printk("GNSS is not ready\n");
-        return -ENODEV;
-    }
+    // if (!device_is_ready(gnss_dev)) {
+    //     printk("GNSS is not ready\n");
+    //     return -ENODEV;
+    // }
     while (1) {
         // sensor_sample_fetch(imu_dev);
         // struct sensor_value vals[3];

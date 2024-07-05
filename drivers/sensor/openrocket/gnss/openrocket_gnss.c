@@ -29,16 +29,31 @@ static int or_gnss_init(const struct device *dev) {
 static void or_gnss_thread_fn(void *dev_v, void *, void *) {
     const struct device *dev = dev_v;
     const struct or_gnss_cfg *cfg = dev->config;
-
-    struct rtc_time rtime = {0};
-    // Nat
-    if (rtc_get_time(cfg->rtc, &rtime) == -ENODATA) {
-        LOG_INF("Setting rtc clock (was uninitialized)");
-        int err = rtc_set_time(cfg->rtc, &rtime);
-        if (err != 0) {
-            LOG_ERR("Error intializing RTC %d", err);
-        }
+    if (cfg->broken) {
+        return;
     }
+
+    struct rtc_time rtime = {
+        .tm_year = 124,
+        .tm_mon = 6,
+        .tm_mday = 4,
+        .tm_hour = 20,
+        .tm_min = 8,
+        .tm_sec = 30,
+        .tm_nsec = 40,
+        // Unknowns
+        .tm_yday = 0,
+        .tm_isdst = 0,
+        .tm_wday = 0,
+    };
+
+    // if (rtc_get_time(cfg->rtc, &rtime) == -ENODATA) {
+    LOG_INF("Setting rtc clock (was uninitialized)");
+    int err = rtc_set_time(cfg->rtc, &rtime);
+    if (err != 0) {
+        LOG_ERR("Error intializing RTC %d", err);
+    }
+    // }
 
     struct or_gnss_data *data = dev->data;
     LOG_INF("Starting openrocket GNSS thread");
@@ -96,12 +111,12 @@ static void or_gnss_thread_fn(void *dev_v, void *, void *) {
                 },
             .utc =
                 {
-                    .century_year = rtime.tm_year,
-                    .month = rtime.tm_mon,
+                    .century_year = rtime.tm_year % 100,
+                    .month = rtime.tm_mon + 1,
                     .month_day = rtime.tm_mday,
                     .hour = rtime.tm_hour,
-                    .minute = rtime.tm_hour,
-                    .millisecond = rtime.tm_sec * 1000,
+                    .minute = rtime.tm_min,
+                    .millisecond = rtime.tm_sec * 1000 + rtime.tm_nsec / 1000000,
                 },
 
         };
@@ -123,6 +138,6 @@ static struct gnss_driver_api gnss_api = {};
                                                                                                                        \
     DEVICE_DT_INST_DEFINE(inst, or_gnss_init, NULL, &or_gnss_data_##inst, &or_gnss_cfg_##inst, POST_KERNEL,            \
                           CONFIG_GNSS_INIT_PRIORITY, &gnss_api);                                                       \
-    K_THREAD_DEFINE(or_gnss_thread##inst, 512, or_gnss_thread_fn, DEVICE_DT_INST_GET(inst), NULL, NULL, 0, 0, 0);
+    K_THREAD_DEFINE(or_gnss_thread##inst, 2048, or_gnss_thread_fn, DEVICE_DT_INST_GET(inst), NULL, NULL, 0, 0, 100);
 
 DT_INST_FOREACH_STATUS_OKAY(GNSS_NMEA_GENERIC)
