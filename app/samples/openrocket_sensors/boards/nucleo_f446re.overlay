@@ -22,6 +22,7 @@
         sampling-period-us = <10>;
 
     };
+
     gnss: gnss{
         status = "okay";
         compatible = "openrocket,gnss";

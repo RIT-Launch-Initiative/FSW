@@ -33,14 +33,15 @@ static void or_gnss_thread_fn(void *dev_v, void *, void *) {
         return;
     }
 
+    // https://rit-launch-initiative.slack.com/archives/C02SCAE5LL9/p1656286487241699
     struct rtc_time rtime = {
-        .tm_year = 124,
-        .tm_mon = 6,
-        .tm_mday = 4,
-        .tm_hour = 20,
-        .tm_min = 8,
-        .tm_sec = 30,
-        .tm_nsec = 40,
+        .tm_year = 122, // 2022 - 1900
+        .tm_mon = 5,
+        .tm_mday = 26,
+        .tm_hour = 7,
+        .tm_min = 34,
+        .tm_sec = 47,
+        .tm_nsec = 0,
         // Unknowns
         .tm_yday = 0,
         .tm_isdst = 0,
