@@ -195,6 +195,7 @@ static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan
 static int or_imu_init(const struct device *dev) {
     const struct or_imu_config *cfg = dev->config;
     if (cfg->broken) {
+        LOG_WRN("IMU device %s is failed to init", dev->name);
         return -ENODEV;
     }
     struct or_imu_data *data = dev->data;

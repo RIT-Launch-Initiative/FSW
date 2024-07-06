@@ -123,9 +123,9 @@ static struct or_data_t pad_packet = {
     .temperature = 0,
 #endif
 #ifdef CONFIG_OPENROCKET_GNSS
-    .latitude = or_packets[0].latitude,
-    .longitude = or_packets[0].longitude,
-    .altitude = or_packets[0].altitude,
+    .latitude = 0,
+    .longitude = 0,
+    .altitude = 0,
     .velocity = 0,
 #endif
 
