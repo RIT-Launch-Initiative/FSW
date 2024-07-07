@@ -6,11 +6,25 @@
 
 class CTemperatureSensor : public CSensorDevice {
 public:
-    explicit CTemperatureSensor(const ::device& device);
 
+    /**
+     * Constructor
+     * @param[in] dev Zephyr device structure
+     */
+    explicit CTemperatureSensor(const device& dev);
+
+    /**
+     * See parent docs
+     */
     bool UpdateSensorValue() override;
 
+    /**
+     * See parent docs
+     */
     sensor_value GetSensorValue(sensor_channel chan) override;
+
+protected:
+    ~CTemperatureSensor() = default;
 
 private:
     using CBase = CSensorDevice;

@@ -5,13 +5,26 @@
 
 class CGyroscope : public CSensorDevice {
 public:
+    /**
+     * Constructor
+     * @param[in] dev Zephyr device structure
+     */
     explicit CGyroscope(const device& dev);
 
+    /**
+     * See parent docs
+     */
     bool UpdateSensorValue() override;
 
+    /**
+     * See parent docs
+     */
     sensor_value GetSensorValue(sensor_channel chan) override;
 
 private:
+    /**
+     * Destructor
+     */
     using CBase = CSensorDevice;
 
     typedef struct {

@@ -3,7 +3,7 @@
 
 LOG_MODULE_REGISTER(CTemperatureSensor);
 
-CTemperatureSensor::CTemperatureSensor(const device& device) : CSensorDevice(device) {
+CTemperatureSensor::CTemperatureSensor(const device& dev) : CSensorDevice(dev) {
 }
 
 bool CTemperatureSensor::UpdateSensorValue() {

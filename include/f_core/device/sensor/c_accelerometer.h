@@ -5,10 +5,20 @@
 
 class CAccelerometer : public CSensorDevice {
 public:
+    /**
+     * Constructor
+     * @param[in] dev Zephyr Device Structure
+     */
     explicit CAccelerometer(const device& dev);
 
+    /**
+     * See parent docs
+     */
     bool UpdateSensorValue() override;
 
+    /**
+     * See parent docs
+     */
     sensor_value GetSensorValue(sensor_channel chan) override;
 
 private:

@@ -6,13 +6,26 @@
 
 class CMagnetometer : public CSensorDevice {
 public:
+    /**
+     * Constructor
+     * @param dev Zephyr device structure
+     */
     explicit CMagnetometer(const device& dev);
 
+    /**
+     * See parent docs
+     */
     bool UpdateSensorValue() override;
 
+    /**
+     * See parent docs
+     */
     sensor_value GetSensorValue(sensor_channel chan) override;
 
 protected:
+    /**
+     * Destructor
+     */
     ~CMagnetometer() = default;
 
 private:
