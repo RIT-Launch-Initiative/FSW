@@ -34,11 +34,10 @@ public:
     bool IsReady() {
         return isInitialized;
     }
+
 private:
     const device &device;
     bool isInitialized;
 };
-
-
 
 #endif //C_SENSOR_DEVICE_H
