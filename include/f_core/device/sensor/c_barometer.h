@@ -20,7 +20,7 @@ public:
     /**
      * See parent docs
      */
-    sensor_value GetSensorValue(sensor_channel chan) override;
+    sensor_value GetSensorValue(sensor_channel chan) const override;
 
 private:
     using CBase = CSensorDevice;

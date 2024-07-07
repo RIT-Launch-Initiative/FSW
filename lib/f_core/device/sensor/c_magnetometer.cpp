@@ -17,7 +17,7 @@ bool CMagnetometer::UpdateSensorValue() {
     return false;
 }
 
-sensor_value CMagnetometer::GetSensorValue(sensor_channel chan) {
+sensor_value CMagnetometer::GetSensorValue(sensor_channel chan) const {
     switch (chan) {
         case SENSOR_CHAN_MAGN_X:
             return magData.x;

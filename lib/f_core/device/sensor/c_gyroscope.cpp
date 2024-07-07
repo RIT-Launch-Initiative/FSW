@@ -17,7 +17,7 @@ bool CGyroscope::UpdateSensorValue() {
     return false;
 }
 
-sensor_value CGyroscope::GetSensorValue(sensor_channel chan) {
+sensor_value CGyroscope::GetSensorValue(sensor_channel chan) const {
     switch (chan) {
         case SENSOR_CHAN_GYRO_X:
             return gyroscopeData.x;

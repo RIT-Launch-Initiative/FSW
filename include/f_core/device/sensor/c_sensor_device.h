@@ -34,14 +34,14 @@ public:
      * @param[in] chan Sensor channel to get the value from
      * @return Sensor value
      */
-    virtual sensor_value GetSensorValue(sensor_channel chan);
+    virtual sensor_value GetSensorValue(sensor_channel chan) const;
 
     /**
      * Get a sensor value from a specific channel as a float
      * @param[in] chan Sensor channel to get the value from
      * @return Sensor value as a float
      */
-    float GetSensorValueFloat(sensor_channel chan) {
+    float GetSensorValueFloat(sensor_channel chan) const {
         sensor_value val = GetSensorValue(chan);
         return sensor_value_to_float(&val);
     }
@@ -51,7 +51,7 @@ public:
      * @param[in] chan Sensor channel to get the value from
      * @return Sensor value as a double
      */
-    double GetSensorValueDouble(sensor_channel chan) {
+    double GetSensorValueDouble(sensor_channel chan) const {
         sensor_value val = GetSensorValue(chan);
         return sensor_value_to_double(&val);
     }
@@ -60,7 +60,7 @@ public:
      * Get whether the device is ready or not
      * @return true if the device is ready, false otherwise
      */
-    bool IsReady() {
+    bool IsReady() const {
         return isInitialized;
     }
 

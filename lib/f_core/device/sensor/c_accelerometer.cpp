@@ -17,7 +17,7 @@ bool CAccelerometer::UpdateSensorValue() {
     return false;
 }
 
-sensor_value CAccelerometer::GetSensorValue(sensor_channel chan) {
+sensor_value CAccelerometer::GetSensorValue(sensor_channel chan) const {
     switch (chan) {
         case SENSOR_CHAN_ACCEL_X:
             return acceleration.x;

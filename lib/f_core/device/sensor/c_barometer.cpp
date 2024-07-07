@@ -31,7 +31,7 @@ bool CBarometer::UpdateSensorValue() {
     return true;
 }
 
-sensor_value CBarometer::GetSensorValue(sensor_channel chan) {
+sensor_value CBarometer::GetSensorValue(sensor_channel chan) const {
     switch (chan) {
         case SENSOR_CHAN_PRESS:
             return barometerData.pressure;

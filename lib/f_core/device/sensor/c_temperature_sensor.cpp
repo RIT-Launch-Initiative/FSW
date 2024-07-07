@@ -10,7 +10,7 @@ bool CTemperatureSensor::UpdateSensorValue() {
     return CBase::UpdateSensorValue() && (0 == sensor_channel_get(&dev, SENSOR_CHAN_AMBIENT_TEMP, &temperature));
 }
 
-sensor_value CTemperatureSensor::GetSensorValue(sensor_channel chan) {
+sensor_value CTemperatureSensor::GetSensorValue(sensor_channel chan) const {
     if (chan == SENSOR_CHAN_AMBIENT_TEMP) {
         return temperature;
     }
