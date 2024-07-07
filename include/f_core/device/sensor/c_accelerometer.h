@@ -3,8 +3,24 @@
 
 #include "c_sensor_device.h"
 
-class CAccelerometerDevice : public CSensorDevice {
+class CAccelerometer : public CSensorDevice {
+public:
+    explicit CAccelerometer(const device& dev);
 
+    bool UpdateSensorValue() override;
+
+    sensor_value GetSensorValue(sensor_channel chan) override;
+
+private:
+    using CBase = CSensorDevice;
+
+    typedef struct {
+        sensor_value x;
+        sensor_value y;
+        sensor_value z;
+    } accel_data;
+
+    accel_data acceleration;
 };
 
 

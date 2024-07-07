@@ -3,9 +3,17 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 
+#include <f_core/device/sensor/c_accelerometer.h>
+#include <f_core/device/sensor/c_barometer.h>
+#include <f_core/device/sensor/c_magnetometer.h>
+#include <f_core/device/sensor/c_temperature_sensor.h>
+
 int main() {
     const struct device *imu_dev = DEVICE_DT_GET_ONE(openrocket_imu);
     const struct device *barom_dev = DEVICE_DT_GET_ONE(openrocket_barometer);
+
+    CAccelerometer imu_accelerometer(*DEVICE_DT_GET_ONE(openrocket_imu));
+
 
     if (!device_is_ready(imu_dev)) {
         printk("IMU is not ready\n");
@@ -18,10 +26,17 @@ int main() {
     while (1) {
         sensor_sample_fetch(imu_dev);
         struct sensor_value vals[3];
-        sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_XYZ, vals);
-        double x = sensor_value_to_double(&vals[0]);
-        double y = sensor_value_to_double(&vals[1]);
-        double z = sensor_value_to_double(&vals[2]);
+        imu_accelerometer.UpdateSensorValue();
+        double x = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_ACCEL_X);
+        double y = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_ACCEL_Y);
+        double z = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_CO2);
+
+
+        // imu_accelerometer.UpdateSensorValue();
+        // double x = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_ACCEL_X);
+        // double y = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_ACCEL_Y);
+        // double z = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_ACCEL_Z);
+
 
         sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, vals);
         double rx = sensor_value_to_double(&vals[0]);

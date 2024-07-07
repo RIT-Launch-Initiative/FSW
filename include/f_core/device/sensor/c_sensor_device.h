@@ -2,19 +2,19 @@
 #define C_SENSOR_DEVICE_H
 
 #include <zephyr/device.h>
-
+#include <zephyr/drivers/sensor.h>
 
 class CSensorDevice {
 public:
-    CSensorDevice(const device &device) : device(device), isInitialized(false) {}
+    CSensorDevice(const device &device) : dev(device), isInitialized(false) {}
 
     bool Initialize() {
-        isInitialized = device_is_ready(&device);
+        isInitialized = device_is_ready(&dev);
         return isInitialized;
     }
 
-    sensor_value UpdateSensorValue() {
-        sensor_sample_fetch(&device);
+    virtual bool UpdateSensorValue() {
+        return 0 == sensor_sample_fetch(&dev);
     }
 
     virtual sensor_value GetSensorValue(sensor_channel chan);
@@ -29,14 +29,16 @@ public:
         return sensor_value_to_double(&val);
     }
 
-    virtual void *GetSensorValuePtrs();
-
     bool IsReady() {
         return isInitialized;
     }
 
+protected:
+    const device &dev;
+
+    ~CSensorDevice() = default;
+
 private:
-    const device &device;
     bool isInitialized;
 };
 
