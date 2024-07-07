@@ -18,9 +18,9 @@ private:
         sensor_value x;
         sensor_value y;
         sensor_value z;
-    } accel_data;
+    } SAccelerometerData;
 
-    accel_data acceleration;
+    SAccelerometerData acceleration;
 };
 
 
