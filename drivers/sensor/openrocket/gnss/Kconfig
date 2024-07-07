@@ -1,0 +1,7 @@
+menuconfig OPENROCKET_GNSS
+	bool "Open Rocket GNSS Device"
+	default n
+	depends on OPENROCKET_SENSORS && GNSS && RTC
+	help
+	  Enable driver for openrocket GNSS
+

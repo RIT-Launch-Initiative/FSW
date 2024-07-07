@@ -68,6 +68,7 @@ static int or_barom_channel_get(const struct device *dev, enum sensor_channel ch
 static int or_barom_init(const struct device *dev) {
     const struct or_barom_config *cfg = dev->config;
     if (cfg->broken) {
+        LOG_WRN("Barometer device %s is failed to init", dev->name);
         return -ENODEV;
     }
     struct or_barom_data *data = dev->data;
