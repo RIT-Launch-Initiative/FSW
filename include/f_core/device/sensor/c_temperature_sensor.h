@@ -6,18 +6,15 @@
 
 class CTemperatureSensor : public CSensorDevice {
 public:
-    explicit CTemperatureSensor(const ::device& device)
-        : CSensorDevice(device)
-    {
-    }
+    explicit CTemperatureSensor(const ::device& device);
 
-
+    bool UpdateSensorValue() override;
 
     sensor_value GetSensorValue(sensor_channel chan) override;
 
 private:
     using CBase = CSensorDevice;
-    sensor_value temperature;
+    sensor_value temperature{};
 };
 
 #endif //C_TEMPERATURE_SENSOR_H

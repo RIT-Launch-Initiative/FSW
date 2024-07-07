@@ -6,7 +6,6 @@
 #include <f_core/device/sensor/c_accelerometer.h>
 #include <f_core/device/sensor/c_barometer.h>
 #include <f_core/device/sensor/c_gyroscope.h>
-#include <f_core/device/sensor/c_temperature_sensor.h>
 
 int main() {
     CAccelerometer imu_accelerometer(*DEVICE_DT_GET_ONE(openrocket_imu));
