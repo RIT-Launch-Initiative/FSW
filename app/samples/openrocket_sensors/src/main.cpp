@@ -10,7 +10,6 @@
 
 int main() {
     const struct device *imu_dev = DEVICE_DT_GET_ONE(openrocket_imu);
-    const struct device *barom_dev = DEVICE_DT_GET_ONE(openrocket_barometer);
 
     CAccelerometer imu_accelerometer(*DEVICE_DT_GET_ONE(openrocket_imu));
     CBarometer barometer(*DEVICE_DT_GET_ONE(openrocket_barometer));
@@ -20,10 +19,7 @@ int main() {
         printk("IMU is not ready\n");
         return -ENODEV;
     }
-    if (!device_is_ready(barom_dev)) {
-        printk("Barometer is not ready\n");
-        return -ENODEV;
-    }
+
     while (1) {
         sensor_sample_fetch(imu_dev);
         struct sensor_value vals[3];

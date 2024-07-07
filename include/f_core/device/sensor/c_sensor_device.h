@@ -14,7 +14,7 @@ public:
     }
 
     virtual bool UpdateSensorValue() {
-        return 0 == sensor_sample_fetch(&dev);
+        return (0 == sensor_sample_fetch(&dev));
     }
 
     virtual sensor_value GetSensorValue(sensor_channel chan);
