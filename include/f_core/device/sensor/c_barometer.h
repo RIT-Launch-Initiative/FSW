@@ -4,18 +4,24 @@
 #include "c_sensor_device.h"
 #include <zephyr/device.h>
 
-class CBarometerDevice : public CSensorDevice {
+class CBarometer : public CSensorDevice {
 public:
 
-    explicit CBarometerDevice(const device& dev)
-        : CSensorDevice(dev)
-    {
-    }
+    explicit CBarometer(const device& dev);
+
+    bool UpdateSensorValue() override;
 
     sensor_value GetSensorValue(sensor_channel chan) override;
+
 private:
     using CBase = CSensorDevice;
 
+    typedef struct {
+        sensor_value pressure;
+        sensor_value temperature;
+    } SBarometerData;
+
+    SBarometerData barometerData;
 };
 
 
