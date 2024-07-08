@@ -1,15 +1,19 @@
 #ifndef C_IPV4_H
 #define C_IPV4_H
 
-#include <zephyr/net/socket.h>
+// Forward Declares
+struct net_if;
+struct device;
 
 class CIPv4 {
 public:
-    CIPv4(const char *ip) : ip(ip), netIface(*net_if_get_default()) {};
+    static constexpr const char *CLASS_A_NETMASK = "255.0.0.0";
 
-    CIPv4(const char *ip, net_if net_iface) : ip(ip), netIface(net_iface) {};
+    CIPv4(const char *ip);
 
-    CIPv4(const char *ip, const device *dev) : ip(ip), netIface(*net_if_lookup_by_dev(dev)) {};
+    CIPv4(const char *ip, net_if net_iface);
+
+    CIPv4(const char *ip, const device *dev);
 
     int Initialize();
 
