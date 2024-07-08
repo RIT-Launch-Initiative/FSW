@@ -1,7 +1,6 @@
 #ifndef C_SENSOR_DEVICE_H
 #define C_SENSOR_DEVICE_H
 
-#include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
 
 class CSensorDevice {
@@ -10,15 +9,8 @@ public:
      * Constructor
      * @param[in] device Zephyr device structure
      */
-    CSensorDevice(const device &device) : dev(device), isInitialized(false) {}
-
-    /**
-     * Set isInitialized to true if the device is ready
-     * @return true if the device is initialized, false otherwise
-     */
-    bool Initialize() {
+    CSensorDevice(const device &device) : dev(device) {
         isInitialized = device_is_ready(&dev);
-        return isInitialized;
     }
 
     /**
@@ -34,7 +26,10 @@ public:
      * @param[in] chan Sensor channel to get the value from
      * @return Sensor value
      */
-    virtual sensor_value GetSensorValue(sensor_channel chan) const;
+    virtual sensor_value GetSensorValue(sensor_channel chan) const {
+        k_oops();
+        return {0, 0};
+    };
 
     /**
      * Get a sensor value from a specific channel as a float
