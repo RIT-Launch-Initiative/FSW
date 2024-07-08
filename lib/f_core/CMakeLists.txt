@@ -3,4 +3,5 @@
 
 zephyr_library()
 FILE(GLOB sources os/*.cpp)
+add_subdirectory(net)
 zephyr_library_sources(${sources})

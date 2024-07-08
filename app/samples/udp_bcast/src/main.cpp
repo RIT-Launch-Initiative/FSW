@@ -6,6 +6,7 @@
 
 // F-Core Includes
 #include <f_core/net/transport/c_udp_socket.h>
+#include <f_core/net/network/c_ipv4.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>
@@ -14,6 +15,8 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
+    CIPv4 ip("10.0.0.0");
+    ip.Initialize();
 
     return 0;
 }
