@@ -18,7 +18,7 @@ public:
      * @return true if fetching the sensor value was successful, false otherwise
      */
     virtual bool UpdateSensorValue() {
-        return (0 == sensor_sample_fetch(&dev));
+        return (isInitialized && 0 == sensor_sample_fetch(&dev));
     }
 
     /**

@@ -1,11 +1,14 @@
+// F-Core Includes
+#include <f_core/device/sensor/c_accelerometer.h>
+#include <f_core/device/sensor/c_barometer.h>
+#include <f_core/device/sensor/c_gyroscope.h>
+
+// Zephyr Includes
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 
-#include <f_core/device/sensor/c_accelerometer.h>
-#include <f_core/device/sensor/c_barometer.h>
-#include <f_core/device/sensor/c_gyroscope.h>
 
 int main() {
     CAccelerometer imu_accelerometer(*DEVICE_DT_GET_ONE(openrocket_imu));
