@@ -1,8 +1,10 @@
 #ifndef C_IPV4_H
 #define C_IPV4_H
 
-// Forward Declares
+
+struct in_addr;
 struct net_if;
+// Forward Declares
 struct device;
 
 class CIPv4 {
@@ -17,8 +19,13 @@ public:
 
     int Initialize();
 
+    const char *GetIp() const { return ip; }
+
+    const in_addr &GetAddr() const { return *addr; }
+
 private:
     const char *ip;
+    in_addr *addr;
     net_if &netIface;
     bool isInitialized = false;
 };

@@ -3,10 +3,11 @@
 
 #include <cstdint>
 #include <f_core/net/c_transciever.h>
-#include <f_core/net/network/c_ipv4.h>
 
+class CIPv4;
 
 class CUdpSocket : public CTransceiver {
+public:
     CUdpSocket(CIPv4 &ipv4, uint16_t srcPort);
 
     int TransmitSynchronous(const void *data, size_t len) override;
@@ -16,6 +17,9 @@ class CUdpSocket : public CTransceiver {
     int TransmitAsynchronous(const void *data, size_t len) override;
 
     int ReceiveAsynchronous(void *data, size_t len) override;
+
+private:
+    int sock = -1;
 };
 
 

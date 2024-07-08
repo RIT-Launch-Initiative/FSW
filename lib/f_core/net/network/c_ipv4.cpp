@@ -14,22 +14,25 @@ CIPv4::CIPv4(const char *ip, net_if net_iface) : ip(ip), netIface(net_iface) {};
 CIPv4::CIPv4(const char *ip, const device *dev) : ip(ip), netIface(*net_if_lookup_by_dev(dev)) {};
 
 int CIPv4::Initialize() {
-    in_addr addr{};
     in_addr subnet{};
 
-    int ret = net_addr_pton(AF_INET, ip, &addr);
+    if (isInitialized) {
+        return 0;
+    }
+
+    int ret = net_addr_pton(AF_INET, ip, addr);
     if (ret < 0) {
         LOG_ERR("Invalid IP address");
         return ret;
     }
 
-    net_if_addr const *ifaddr = net_if_ipv4_addr_add(&netIface, &addr, NET_ADDR_MANUAL, 0);
+    net_if_addr const *ifaddr = net_if_ipv4_addr_add(&netIface, addr, NET_ADDR_MANUAL, 0);
     if (!ifaddr) {
         LOG_ERR("Failed to add IP address");
         return -ENODEV;
     }
 
-    ret = net_addr_pton(AF_INET, CIPv4::CLASS_A_NETMASK, &subnet);
+    ret = net_addr_pton(AF_INET, CLASS_A_NETMASK, &subnet);
     net_if_ipv4_set_netmask(&netIface, &subnet);
 
     net_if_set_promisc(&netIface);
