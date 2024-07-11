@@ -14,6 +14,7 @@
 LOG_MODULE_REGISTER(CUdpSocket);
 
 CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort) {
+    in_addr subnet{};
     if (ip.Initialize()) {
         // Guarantee IPv4 is initialized
         return;
@@ -30,7 +31,7 @@ CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort) {
         .sin_addr = ip.GetAddr()
     };
 
-    if (bind(sock, (sockaddr*) &addr, sizeof(addr)) < 0) {
+    if (bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
         LOG_ERR("Failed to bind socket.");
         close(sock);
     }
