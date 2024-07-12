@@ -2,5 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 zephyr_library()
-FILE(GLOB sources os/*.cpp)
+FILE(GLOB sources
+        device/sensor/*.cpp
+        os/*.cpp)
 zephyr_library_sources(${sources})
