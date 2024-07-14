@@ -3,6 +3,7 @@
 
 zephyr_library()
 FILE(GLOB sources
+        net/device/*.cpp
         device/sensor/*.cpp
         os/*.cpp)
 zephyr_library_sources(${sources})
