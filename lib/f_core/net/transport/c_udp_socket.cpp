@@ -1,22 +1,16 @@
-#include <unistd.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <poll.h>
 #include <f_core/net/transport/c_udp_socket.h>
 // #include <f_core/net/network/c_ipv4.h>
 #include <zephyr/logging/log.h>
 
-#if defined(CONFIG_ARCH_POSIX)
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#else
-#include <zephyr/net/socket.h>
-#include <zephyr/posix/arpa/inet.h>
-#endif
+#include <zephyr/posix/sys/socket.h>
+#include <zephyr/posix/unistd.h>
+#include <zephyr/posix/fcntl.h>
+
 LOG_MODULE_REGISTER(CUdpSocket);
 
 CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) {
-    in_addr subnet{};
+    // in_addr subnet{};
     // if (ip.Initialize()) {
     //     // Guarantee IPv4 is initialized
     //     return;
@@ -43,8 +37,8 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
     static const sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
-        .sin_addr = inet_addr("255.255.255.255")
     };
+    net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr *>(&addr.sin_addr));
 
     int ret = sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0) {
@@ -63,8 +57,9 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
     static const sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
-        .sin_addr = inet_addr("255.255.255.255")
     };
+    net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr *>(&addr.sin_addr));
+
 
     int ret = sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
