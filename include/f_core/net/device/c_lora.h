@@ -35,6 +35,8 @@ private:
         .iq_inverted = false,
         .public_network = false,
     };
+
+    bool setTxRx(bool transmit);
 };
 
 
