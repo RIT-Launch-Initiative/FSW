@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include <f_core/net/transport/c_udp_socket.h>
-#include <f_core/net/network/c_ipv4.h>
+// #include <f_core/net/network/c_ipv4.h>
 #include <zephyr/logging/log.h>
 
 #if defined(CONFIG_ARCH_POSIX)
@@ -13,12 +13,12 @@
 
 LOG_MODULE_REGISTER(CUdpSocket);
 
-CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort) {
+CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) {
     in_addr subnet{};
-    if (ip.Initialize()) {
-        // Guarantee IPv4 is initialized
-        return;
-    }
+    // if (ip.Initialize()) {
+    //     // Guarantee IPv4 is initialized
+    //     return;
+    // }
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
@@ -28,7 +28,7 @@ CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort) {
     sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(srcPort),
-        .sin_addr = ip.GetAddr()
+        // .sin_addr = ip.GetAddr()
     };
 
     if (bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
@@ -38,15 +38,26 @@ CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort) {
 }
 
 int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
+    static const sockaddr_in addr{
+        .sin_family = AF_INET,
+        .sin_port = htons(dstPort),
+        .sin_addr = inet_addr("255.255.255.255")
+    };
 
-    return 0;
+    int ret = sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+    if (ret < 0) {
+        LOG_ERR("Failed to send broadcast message (%d)", ret);
+    }
+
+    return ret;
 }
 
 int CUdpSocket::ReceiveSynchronous(void* data, size_t len) {
-    return 0;
+    return recvfrom(sock, data, len, 0, nullptr, nullptr);
 }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
+
     return 0;
 }
 
