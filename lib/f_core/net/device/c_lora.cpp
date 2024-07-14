@@ -23,7 +23,7 @@ int CLora::ReceiveSynchronous(void* data, size_t len) {
     if (setTxRx(false)) {
         return lora_recv(lora_dev, (uint8_t*)data, len, K_FOREVER, nullptr, nullptr);
     }
-    return 0;
+    return -1;
 }
 
 
@@ -33,7 +33,7 @@ int CLora::TransmitAsynchronous(const void* data, size_t len) {
         return lora_send_async(lora_dev, (uint8_t*)data, len, NULL);
     }
 
-    return 0;
+    return -1;
 }
 
 int CLora::ReceiveAsynchronous(void* data, size_t len) {
@@ -41,7 +41,7 @@ int CLora::ReceiveAsynchronous(void* data, size_t len) {
     if (setTxRx(false)) {
         return lora_recv_async(lora_dev, nullptr);
     }
-    return 0;
+    return -1;
 }
 
 int CLora::SetRxTimeout(int timeout) {
@@ -49,8 +49,12 @@ int CLora::SetRxTimeout(int timeout) {
 }
 
 bool CLora::setTxRx(bool transmit)  {
-    config.tx = transmit;
-    return lora_config(lora_dev, &config);
+    if (transmit != config.tx) {
+        config.tx = transmit;
+        return lora_config(lora_dev, &config);
+    }
+
+    return true;
 }
 
 
