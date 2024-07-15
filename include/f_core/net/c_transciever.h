@@ -2,20 +2,16 @@
 #define C_TRANSCIEVER_H
 
 #include <cstddef>
+#include <zephyr/drivers/lora.h>
 
 class CTransceiver {
 public:
-    CTransceiver() = default;
+    CTransceiver()   = default;
 
-    virtual int TransmitSynchronous(const void *data, size_t len) = 0;
+    virtual int Transmit(const void *data, size_t len) = 0;
 
-    virtual int ReceiveSynchronous(void *data, size_t len) = 0;
+    virtual int Receive(void *data, size_t len) = 0;
 
-    virtual int TransmitAsynchronous(const void *data, size_t len) = 0;
-
-    virtual int ReceiveAsynchronous(void *data, size_t len) = 0;
-
-    virtual int SetRxTimeout(int timeout) = 0;
 protected:
     ~CTransceiver() = default;
 };
