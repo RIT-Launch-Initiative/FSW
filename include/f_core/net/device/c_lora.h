@@ -5,8 +5,9 @@
 
 class CLora {
 public:
-    CLora(const device* lora_dev);
-    CLora(const device* lora_dev, const lora_modem_config& config);
+    explicit CLora(const device& lora_dev);
+
+    explicit CLora(const device& lora_dev, const lora_modem_config& config);
 
     int TransmitSynchronous(const void* data, size_t len);
 
@@ -15,9 +16,6 @@ public:
     int TransmitAsynchronous(const void* data, size_t len, k_poll_signal *signal);
 
     int ReceiveAsynchronous(lora_recv_cb cb);
-
-protected:
-    ~CLora() = default;
 
 private:
     const device* lora_dev;
