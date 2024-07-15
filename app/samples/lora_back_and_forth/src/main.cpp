@@ -3,12 +3,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include <zephyr/kernel.h>
-#include <f_core/net/device/c_lora.h>
 
+// std Includes
 #include <string>
 
+// F-Core Includes
+#include <f_core/net/device/c_lora.h>
 
+// Zephyr Includes
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
@@ -21,7 +24,7 @@ int main() {
 
     while (true) {
         lora.ReceiveAsynchronous(
-            [](const struct device* dev, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr) {
+            [](const device*, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr) {
                 LOG_INF("Async Received: %s\tRSSI: %d\t SNR:%d\n", data, rssi, snr);
             }
         );

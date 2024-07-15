@@ -9,7 +9,7 @@ public:
 
     explicit CLora(const device& lora_dev, const lora_modem_config& config);
 
-    int TransmitSynchronous(const void* data, size_t len);
+    int TransmitSynchronous(const void* data, const size_t len);
 
     int ReceiveSynchronous(void* data, size_t len, int16_t *rssi, int8_t *snr, k_timeout_t timeout = K_FOREVER);
 
