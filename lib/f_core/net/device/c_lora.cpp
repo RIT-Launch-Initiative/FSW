@@ -32,7 +32,7 @@ int CLora::ReceiveAsynchronous(const lora_recv_cb cb) {
     return ret == 0 ? lora_recv_async(lora_dev, cb) : ret;
 }
 
-int CLora::setTxRx(bool transmit) {
+inline int CLora::setTxRx(bool transmit) {
     return transmit != config.tx ? lora_config(lora_dev, &config) : 0;
 }
 
