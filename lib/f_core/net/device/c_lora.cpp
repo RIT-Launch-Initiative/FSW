@@ -12,39 +12,27 @@ CLora::CLora(const device* lora_dev, const lora_modem_config& config) : lora_dev
 }
 
 int CLora::TransmitSynchronous(const void* data, size_t len) {
-    if (setTxRx(true)) {
-        return lora_send(lora_dev, (uint8_t*)data, len);
-    }
-
-    return -1;
+    int ret = setTxRx(true);
+    return ret == 0 ? lora_send(lora_dev, (uint8_t*) data, len) : ret;
 }
 
-int CLora::ReceiveSynchronous(void* data, size_t len, int16_t *rssi, int8_t *snr, k_timeout_t timeout) {
-    // TODO Support getting RSSI and SNR
-    if (setTxRx(false)) {
-        return lora_recv(lora_dev, static_cast<uint8_t*>(data), len, timeout, rssi, snr);
-    }
-    return -1;
+int CLora::ReceiveSynchronous(void* data, size_t len, int16_t* rssi, int8_t* snr, k_timeout_t timeout) {
+    int ret = setTxRx(false);
+    return ret == 0 ? lora_recv(lora_dev, static_cast<uint8_t*>(data), len, timeout, rssi, snr) : ret;
 }
 
 
-int CLora::TransmitAsynchronous(const void* data, size_t len, k_poll_signal *signal) {
-    if (setTxRx(true)) {
-        return lora_send_async(lora_dev, (uint8_t*)data, len, signal);
-    }
-
-    return -1;
+int CLora::TransmitAsynchronous(const void* data, size_t len, k_poll_signal* signal) {
+    int ret = setTxRx(true);
+    return ret == 0 ? lora_send_async(lora_dev, (uint8_t*) data, len, signal) : ret;
 }
 
 int CLora::ReceiveAsynchronous(lora_recv_cb cb) {
-    if (setTxRx(false)) {
-        return lora_recv_async(lora_dev, cb);
-    }
-
-    return -1;
+    int ret = setTxRx(false);
+    return ret == 0 ? lora_recv_async(lora_dev, cb) : ret;
 }
 
-int CLora::setTxRx(bool transmit)  {
+int CLora::setTxRx(bool transmit) {
     return transmit != config.tx ? lora_config(lora_dev, &config) : 0;
 }
 
