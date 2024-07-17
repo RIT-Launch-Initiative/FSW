@@ -1,5 +1,6 @@
 #include <string.h>
 #include <f_core/net/device/c_lora.h>
+#include <zephyr/drivers/spi.h>
 
 
 CLora::CLora(const device& lora_dev) : lora_dev(&lora_dev) {
@@ -35,6 +36,3 @@ int CLora::ReceiveAsynchronous(const lora_recv_cb cb) {
 inline int CLora::setTxRx(bool transmit) {
     return transmit != config.tx ? lora_config(lora_dev, &config) : 0;
 }
-
-
-
