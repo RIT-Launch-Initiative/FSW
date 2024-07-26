@@ -1,0 +1,270 @@
+/dts-v1/;
+#include <st/f4/stm32f446Xe.dtsi>
+#include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "Sensor Module";
+	compatible = "st,stm32f446xx";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+
+		zephyr,console = &uart4;
+		zephyr,uart-pipe = &uart4;
+
+		storage = &w25q128;
+		logfs = &lfs1;
+	};
+
+	aliases {
+		led0 = &red_led_1;
+		led1 = &red_led_2;
+		topotato = &uart5;
+	};
+
+	leds: leds {
+		compatible = "gpio-leds";
+
+		red_led_1: led_1 {
+			gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+			label = "USER LED1";
+		};
+
+		red_led_2: led_2 {
+			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+			label = "User LED2";
+		};
+
+		wiz_led: wiz_led {
+			gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
+			label = "Wiznet LED";
+		};
+
+		de_hack: de_hack {
+			gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+			label = "DE HACK";
+		};
+
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&external_storage_partition>;
+			automount;
+
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <64>;
+			lookahead-size = <32>;
+			block-cycles = <(90 * 1000)>;
+		};
+	};
+
+
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	clock-frequency = <DT_FREQ_M(16)>;
+	status = "okay";
+};
+
+//&pll {
+//    div-m = <8>;
+//    mul-n = <384>;
+//    div-p = <2>;
+//    div-q = <2>;
+//    clocks = <&clk_hsi>;
+//    status = "okay";
+//};
+
+&rcc {
+	clocks = <&clk_hsi>;
+	clock-frequency = <DT_FREQ_M(16)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <2>;
+	apb2-prescaler = <1>;
+};
+
+&uart4 {
+	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&uart5 {
+	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pa5
+				 &spi1_miso_pa6 &spi1_mosi_pa7>;
+	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
+
+	pinctrl-names = "default";
+	status = "okay";
+
+	w5500: w5500@0 {
+		compatible = "wiznet,w5500";
+		reg = <0x0>;
+		spi-max-frequency = <10000000>;
+		int-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioa 3 GPIO_ACTIVE_LOW>;
+		zephyr,random-mac-address;
+	};
+};
+
+&spi2 {
+	pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
+	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+
+	pinctrl-names = "default";
+	status = "okay";
+
+	w25q128: w25q128jv@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+
+		spi-max-frequency = <(10 * 1000 * 1000)>;
+		size = <DT_SIZE_M(512)>;
+		jedec-id = [ef 40 20];
+
+		has-dpd;
+		t-enter-dpd = <(3 * 1000)>;
+		t-exit-dpd = <(3 * 1000)>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			external_storage_partition: partition@0 {
+				label = "w25q-storage";
+				reg = <0 DT_SIZE_M(64)>;
+			};
+		};
+	};
+};
+
+&i2c3 {
+	pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pc9>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+
+	lis3mdl: lis3mdl@1c {
+		compatible = "st,lis3mdl-magn";
+		reg = <0x1c>;
+		status = "okay";
+
+		irq-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>, <&gpioa 10 GPIO_ACTIVE_LOW>;
+	};
+
+	adxl375: adxl375@1d {
+		compatible = "adi,adxl375";
+		reg = <0x1D>;
+		status = "okay";
+	};
+
+	tmp117: tmp117@48 {
+		compatible = "ti,tmp116"; // TMP117 Compatible
+		reg = <0x48>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		eeprom: ti_tmp116_eeprom@0 {
+			compatible = "ti,tmp116-eeprom";
+			reg = <0x0>;
+			read-only;
+		};
+	};
+
+	lsm6dsl: lsm6dsl@6b {
+		compatible = "st,lsm6dsl";
+		reg = <0x6b>;
+		status = "okay";
+
+		irq-gpios = <&gpiob 10 GPIO_ACTIVE_LOW>, <&gpiob 12 GPIO_ACTIVE_LOW>;
+	};
+
+	bmp388: bmp388@76 {
+		compatible = "bosch,bmp388";
+		reg = <0x76>;
+		status = "okay";
+
+		int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
+		odr = "100";
+		osr-press = <1>;
+		osr-temp = <1>;
+	};
+
+	ms5611: ms5611@77 {
+		compatible = "meas,ms5611";
+		reg = <0x77>;
+		status = "okay";
+	};
+
+};
+
+&rtc {
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
+			 <&rcc STM32_SRC_LSI RTC_SEL(2)>;
+	status = "okay";
+};
+
+&backup_sram {
+	status = "okay";
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 DT_SIZE_K(64)>;
+			read-only;
+		};
+
+		/*
+		 * The flash starting at 0x00010000 and ending at
+		 * 0x0001ffff (sectors 16-31) is reserved for use
+		 * by the application.
+		 */
+		storage_partition: partition@10000 {
+			label = "storage";
+			reg = <0x00010000 DT_SIZE_K(64)>;
+		};
+
+		slot0_partition: partition@20000 {
+			label = "image-0";
+			reg = <0x00020000 DT_SIZE_K(128)>;
+		};
+
+		slot1_partition: partition@40000 {
+			label = "image-1";
+			reg = <0x00040000 DT_SIZE_K(128)>;
+		};
+
+		scratch_partition: partition@60000 {
+			label = "image-scratch";
+			reg = <0x00060000 DT_SIZE_K(128)>;
+		};
+	};
+};

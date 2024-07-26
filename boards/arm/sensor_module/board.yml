@@ -1,0 +1,6 @@
+board:
+  name: Sensor Module
+  vendor: RIT Launch Initiative
+  socs:
+    - name: stm32f446xx
+    - name: stm32f446xx
