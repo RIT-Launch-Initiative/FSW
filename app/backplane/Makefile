@@ -17,7 +17,7 @@ radio-rcv-rel:
 	west build -b radio_module app/backplane/app_radio_module -p auto -DCONFIG_RADIO_MODULE_RECEIVER=y
 
 sensor:
-	west build -b sensor_module@2 app/backplane/app_sensor_module -p auto -DOVERLAY_CONFIG=debug.conf
+	west build -b sensor_module app/backplane/app_sensor_module -p auto -DOVERLAY_CONFIG=debug.conf
 
 sensor-rel:
-	west build -b sensor_module@2 app/backplane/app_sensor_module -p auto
+	west build -b sensor_module app/backplane/app_sensor_module -p auto

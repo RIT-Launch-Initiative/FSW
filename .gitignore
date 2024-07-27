@@ -60,7 +60,8 @@ build/
 *cmake-*
 # IDE Files
 .vscode/
-.idea/
+**/.idea/workspace.xml
+**/.idea/tasks.xml
 .cache/
 zephyr-windows.code-workspace
 flash.bin
