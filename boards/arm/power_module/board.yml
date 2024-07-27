@@ -1,0 +1,11 @@
+board:
+  name: power_module
+  vendor: launch
+  socs:
+    - name: stm32f446xx
+  revision:
+    format: number
+    default: "2"
+    revisions:
+      - name: "1"
+      - name: "2"
