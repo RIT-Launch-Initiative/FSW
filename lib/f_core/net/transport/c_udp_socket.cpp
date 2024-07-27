@@ -1,11 +1,7 @@
-#include <poll.h>
 #include <f_core/net/transport/c_udp_socket.h>
-// #include <f_core/net/network/c_ipv4.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket.h>
 
-#include <zephyr/posix/sys/socket.h>
-#include <zephyr/posix/unistd.h>
-#include <zephyr/posix/fcntl.h>
 
 LOG_MODULE_REGISTER(CUdpSocket);
 
