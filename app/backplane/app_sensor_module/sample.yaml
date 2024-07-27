@@ -4,7 +4,7 @@ sample:
 common:
   build_only: true
   integration_platforms:
-    - sensor_module@2
+    - sensor_module
 tests:
   app.default: {}
   app.debug:
