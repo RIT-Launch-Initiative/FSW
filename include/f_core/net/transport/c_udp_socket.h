@@ -10,6 +10,8 @@ class CUdpSocket : public CTransceiver {
 public:
     CUdpSocket(CIPv4 &ipv4, uint16_t srcPort, uint16_t dstPort);
 
+    ~CUdpSocket() = default;
+
     int TransmitSynchronous(const void *data, size_t len) override;
 
     int ReceiveSynchronous(void *data, size_t len) override;
@@ -18,8 +20,8 @@ public:
 
     int ReceiveAsynchronous(void *data, size_t len) override;
 
-protected:
-    ~CUdpSocket() = default;
+    int SetRxTimeout(int timeout) override;
+
 
 private:
     int sock = -1;

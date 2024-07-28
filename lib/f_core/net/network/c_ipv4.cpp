@@ -42,5 +42,5 @@ int CIPv4::Initialize() {
     net_if_ipv4_set_netmask_by_addr(&netIface, &addr, &subnet);
 
     isInitialized = true;
-    return ret;
+    return 0;
 }

@@ -18,5 +18,13 @@ int main() {
     CIPv4 ip("10.0.0.0");
     ip.Initialize();
 
+    CUdpSocket udp(ip, 10000, 10000);
+
+    while (true) {
+        udp.TransmitSynchronous("Hello, World!", 13);
+        k_sleep(K_MSEC(1000));
+    }
+
+
     return 0;
 }
