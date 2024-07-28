@@ -16,13 +16,12 @@ LOG_MODULE_REGISTER(main);
 
 int main() {
     CIPv4 ip("10.0.0.0");
-    ip.Initialize();
-
     CUdpSocket udp(ip, 10000, 10000);
 
     while (true) {
-        udp.TransmitAsynchronous("Hello, Launch!", 14);
-        k_msleep(1000);
+        udp.TransmitSynchronous("Hello, Launch!", 14);
+        LOG_INF("Transmitted");
+        k_sleep(K_SECONDS(1));
     }
 
 

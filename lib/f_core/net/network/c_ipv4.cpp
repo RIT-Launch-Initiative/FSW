@@ -7,24 +7,26 @@
 
 LOG_MODULE_REGISTER(CIPv4);
 
-CIPv4::CIPv4(const char* ip) : ip(ip), netIface(*net_if_get_default()) {};
+CIPv4::CIPv4(const char* ip) : ip(ip), netIface(*net_if_get_default()) {
+    initialize();
+};
 
-CIPv4::CIPv4(const char* ip, net_if *net_iface) : ip(ip), netIface(*net_iface) {};
+CIPv4::CIPv4(const char* ip, net_if *net_iface) : ip(ip), netIface(*net_iface) {
+    initialize();
+};
 
-CIPv4::CIPv4(const char* ip, const device* dev) : ip(ip), netIface(*net_if_lookup_by_dev(dev)) {};
+CIPv4::CIPv4(const char* ip, const device* dev) : ip(ip), netIface(*net_if_lookup_by_dev(dev)) {
+    initialize();
+};
 
 
-int CIPv4::Initialize() {
+int CIPv4::initialize() {
     in_addr subnet{};
 
-    if (isInitialized) {
-        return 0;
-    }
-
-    int ret = z_impl_net_addr_pton(AF_INET, ip, &addr);
-    if (ret < 0) {
+    err = z_impl_net_addr_pton(AF_INET, ip, &addr);
+    if (err < 0) {
         LOG_ERR("Invalid IP address");
-        return ret;
+        return err;
     }
 
     net_if_addr const* ifaddr = net_if_ipv4_addr_add(&netIface, &addr, NET_ADDR_MANUAL, 0);
@@ -33,14 +35,16 @@ int CIPv4::Initialize() {
         return -ENODEV;
     }
 
-    ret = z_impl_net_addr_pton(AF_INET, CLASS_A_NETMASK, &subnet);
-    if (ret < 0) {
+    err = z_impl_net_addr_pton(AF_INET,  CLASS_A_NETMASK, &subnet);
+    if (err < 0) {
         LOG_ERR("Invalid subnet mask");
-        return ret;
+        return err;
     }
 
-    net_if_ipv4_set_netmask_by_addr(&netIface, &addr, &subnet);
+    if (!net_if_ipv4_set_netmask_by_addr(&netIface, &addr, &subnet)) {
+        LOG_WRN("Failed to set subnet mask");
+    }
 
-    isInitialized = true;
+    LOG_DBG("Initialized IPv4 address %s", ip);
     return 0;
 }

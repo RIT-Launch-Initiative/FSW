@@ -8,7 +8,7 @@
 LOG_MODULE_REGISTER(CUdpSocket);
 
 CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) : dstPort(dstPort) {
-    if (ip.Initialize() != 0) {
+    if (!ip.IsInitialized()) {
         // Guarantee IPv4 is initialized
         LOG_ERR("Failed to initialize IPv4 address %s", ip.GetIp());
         return;
