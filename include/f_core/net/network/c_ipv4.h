@@ -1,7 +1,7 @@
 #ifndef C_IPV4_H
 #define C_IPV4_H
 
-#include <zephyr/net/socket.h>
+#include <zephyr/posix/arpa/inet.h>
 
 struct net_if; // Forward declaration
 struct device;

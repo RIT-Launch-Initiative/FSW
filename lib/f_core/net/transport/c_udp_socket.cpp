@@ -1,18 +1,17 @@
 #include <f_core/net/transport/c_udp_socket.h>
-#include <zephyr/logging/log.h>
-#include <zephyr/net/socket.h>
+#include <f_core/net/network/c_ipv4.h>
 
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CUdpSocket);
 
 CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) {
-    // in_addr subnet{};
-    // if (ip.Initialize()) {
-    //     // Guarantee IPv4 is initialized
-    //     return;
-    // }
+    if (ip.Initialize()) {
+        // Guarantee IPv4 is initialized
+        return;
+    }
 
-    sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
         return;
     }
@@ -20,12 +19,12 @@ CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) {
     sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(srcPort),
-        // .sin_addr = ip.GetAddr()
+        .sin_addr = ip.GetAddr()
     };
 
-    if (bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
+    if (zsock_bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
         LOG_ERR("Failed to bind socket.");
-        close(sock);
+        zsock_close(sock);
     }
 }
 
@@ -34,9 +33,10 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
-    net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr *>(&addr.sin_addr));
 
-    int ret = sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+    z_impl_net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr *>(&addr.sin_addr));
+
+    int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0) {
         LOG_ERR("Failed to send broadcast message (%d)", ret);
     }
@@ -45,7 +45,7 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
 }
 
 int CUdpSocket::ReceiveSynchronous(void* data, size_t len) {
-    return recvfrom(sock, data, len, 0, nullptr, nullptr);
+    return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
 }
 
 
@@ -54,10 +54,10 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
-    net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr *>(&addr.sin_addr));
+    z_impl_net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr *>(&addr.sin_addr));
 
 
-    int ret = sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+    int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
         LOG_ERR("Failed to send async message (%d)", ret);
     }
@@ -66,16 +66,16 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
 }
 
 int CUdpSocket::ReceiveAsynchronous(void* data, size_t len) {
-    static pollfd fds{
+    static zsock_pollfd fds{
         .fd = sock,
-        .events = POLLIN
+        .events = ZSOCK_POLLIN
     };
 
-    int ret = poll(&fds, 1, 0);
+    int ret = zsock_poll(&fds, 1, 0);
     if (ret < 0) {
         LOG_ERR("Polling error (%d)", ret);
         return ret;
     }
 
-    return recvfrom(sock, data, len, 0, nullptr, nullptr);
+    return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
 }

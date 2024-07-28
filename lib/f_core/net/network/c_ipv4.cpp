@@ -21,7 +21,7 @@ int CIPv4::Initialize() {
         return 0;
     }
 
-    int ret = net_addr_pton(AF_INET, ip, &addr);
+    int ret = z_impl_net_addr_pton(AF_INET, ip, &addr);
     if (ret < 0) {
         LOG_ERR("Invalid IP address");
         return ret;
@@ -33,10 +33,14 @@ int CIPv4::Initialize() {
         return -ENODEV;
     }
 
-    ret = net_addr_pton(AF_INET, CLASS_A_NETMASK, &subnet);
+    ret = z_impl_net_addr_pton(AF_INET, CLASS_A_NETMASK, &subnet);
+    if (ret < 0) {
+        LOG_ERR("Invalid subnet mask");
+        return ret;
+    }
+
     net_if_ipv4_set_netmask_by_addr(&netIface, &addr, &subnet);
 
-    net_if_set_promisc(&netIface);
     isInitialized = true;
     return ret;
 }
