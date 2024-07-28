@@ -41,7 +41,7 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
         .sin_port = htons(dstPort),
     };
 
-    z_impl_net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr *>(&addr.sin_addr));
+    z_impl_net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr*>(&addr.sin_addr));
 
     int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0) {
@@ -60,8 +60,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
-    z_impl_net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr *>(&addr.sin_addr));
-
+    z_impl_net_addr_pton(AF_INET, "255.255.255.255", const_cast<in_addr*>(&addr.sin_addr));
 
     int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
@@ -85,6 +84,7 @@ int CUdpSocket::ReceiveAsynchronous(void* data, size_t len) {
 
     return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
 }
+
 int CUdpSocket::SetRxTimeout(int timeout) {
     return zsock_setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 }
