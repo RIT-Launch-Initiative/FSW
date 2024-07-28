@@ -31,6 +31,10 @@ CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) : dstPort(
     }
 }
 
+CUdpSocket::~CUdpSocket() {
+    zsock_close(sock);
+}
+
 int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
     static const sockaddr_in addr{
         .sin_family = AF_INET,
@@ -50,7 +54,6 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
 int CUdpSocket::ReceiveSynchronous(void* data, size_t len) {
     return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
 }
-
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
     static const sockaddr_in addr = {

@@ -6,23 +6,53 @@
 struct net_if; // Forward declaration
 struct device;
 
-class CIPv4
-{
+class CIPv4 {
 public:
     static constexpr const char* CLASS_A_NETMASK = "255.0.0.0";
 
+    /**
+     * Constructor
+     * @param ip IP address to initialize
+     */
     explicit CIPv4(const char* ip);
-    CIPv4(const char* ip, net_if* net_iface);
-    CIPv4(const char* ip, const device* dev);
 
+    /**
+     * Constructor
+     * @param ip IP address to initialize
+     * @param net_iface Network interface to bind to
+     */
+    explicit CIPv4(const char* ip, net_if* net_iface);
 
+    /**
+     * Constructor
+     * @param ip IP address to initialize
+     * @param dev Device to bind to
+     */
+    explicit CIPv4(const char* ip, const device* dev);
+
+    /**
+     * Getter for IP address
+     * @return IP address
+     */
     [[nodiscard]] const char* GetIp() const { return ip; }
 
+    /**
+     * Getter for address structure
+     * @return Address structure
+     */
     [[nodiscard]] const in_addr& GetAddr() const { return addr; }
 
+    /**
+     * Getter for error code from initialization
+     * @return Error code
+     */
     [[nodiscard]] const int GetErr() const { return err; }
 
-    [[nodiscard]] const int IsInitialized() const { return err == 0; }
+    /**
+     * Getter for initialization status
+     * @return True if initialized, false otherwise
+     */
+    [[nodiscard]] const bool IsInitialized() const { return err == 0; }
 
 private:
     const char* ip;
