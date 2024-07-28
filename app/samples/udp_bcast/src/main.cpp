@@ -21,8 +21,8 @@ int main() {
     CUdpSocket udp(ip, 10000, 10000);
 
     while (true) {
-        udp.TransmitSynchronous("Hello, World!", 13);
-        k_sleep(K_MSEC(1000));
+        udp.TransmitAsynchronous("Hello, Launch!", 14);
+        k_msleep(1000);
     }
 
 

@@ -7,7 +7,7 @@
 
 LOG_MODULE_REGISTER(CUdpSocket);
 
-CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) {
+CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) : dstPort(dstPort) {
     if (ip.Initialize() != 0) {
         // Guarantee IPv4 is initialized
         LOG_ERR("Failed to initialize IPv4 address %s", ip.GetIp());
@@ -69,20 +69,18 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
 }
 
 int CUdpSocket::ReceiveAsynchronous(void* data, size_t len) {
-    LOG_ERR("ReceiveAsynchronous not implemented");
-    return -1;
-    // static zsock_pollfd fds{
-    //     .fd = sock,
-    //     .events = ZSOCK_POLLIN
-    // };
-    //
-    // int ret = zsock_poll(&fds, 1, 0);
-    // if (ret < 0) {
-    //     LOG_ERR("Polling error (%d)", ret);
-    //     return ret;
-    // }
-    //
-    // return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
+    static zsock_pollfd fds{
+        .fd = sock,
+        .events = ZSOCK_POLLIN
+    };
+
+    int ret = zsock_poll(&fds, 1, 0);
+    if (ret < 0) {
+        LOG_ERR("Polling error (%d)", ret);
+        return ret;
+    }
+
+    return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
 }
 int CUdpSocket::SetRxTimeout(int timeout) {
     return zsock_setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
