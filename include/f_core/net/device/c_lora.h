@@ -69,6 +69,11 @@ private:
         .public_network = false,
     };
 
+   /**
+    * Set the LoRa modem to transmit or receive mode
+    * @param transmit true to transmit, false to receive
+    * @return Zephyr status code
+    */
     int setTxRx(bool transmit);
 };
 
