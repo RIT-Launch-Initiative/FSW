@@ -24,7 +24,7 @@ public:
      * @param len[in] Size of data
      * @return Zephyr status code
      */
-    int TransmitSynchronous(const void* data, const size_t len);
+    int TransmitSynchronous(const void* data, size_t len);
 
     /**
      * Receive data synchronously (blocking)

@@ -18,38 +18,32 @@
 
 LOG_MODULE_REGISTER(main);
 
-
-bool sentFinished = true;
-bool receiveFinished = true;
+#ifdef CONFIG_RECEIVER
+static bool receiveFinished = true;
+#endif
 
 int main() {
-    static constexpr std::string payload = "Launch!";
-
-    gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-    const device* dev = DEVICE_DT_GET(DT_ALIAS(lora));
-    CLora lora(*dev);
+    CLora lora(*DEVICE_DT_GET(DT_ALIAS(lora)));
 
     while (true) {
-        gpio_pin_toggle_dt(&led0);
-
+#ifdef CONFIG_RECEIVER
         if (receiveFinished) {
-        lora.ReceiveAsynchronous(
-            [](const device*, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr) {
-                LOG_INF("Async Received: %s\tRSSI: %d\t SNR:%d\n", data, rssi, snr);
-                receiveFinished = true;
-            }
-            );
+            LOG_INF("Attempting to receive");
+            lora.ReceiveAsynchronous(
+                [](const device*, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr) {
+                    LOG_INF("Async Received: %s\tRSSI: %d\t SNR:%d", data, rssi, snr);
+                    receiveFinished = true;
+                }
+                );
 
             receiveFinished = false;
         }
-
-        if (sentFinished) {
-            lora.TransmitAsynchronous(payload.c_str(), payload.size(), nullptr);
-            LOG_INF("Async Sent: %s\n", payload.c_str());
-            sentFinished = false;
-        }
-
-        k_sleep(K_SECONDS(1));
+#else
+        static constexpr std::string payload = "Launch!";
+        lora.TransmitSynchronous(payload.c_str(), payload.size());
+        LOG_INF("Sent: %s", payload.c_str());
+#endif
+        k_msleep(100);
     }
 
     return 0;
