@@ -40,19 +40,19 @@ public:
      * Getter for address structure
      * @return Address structure
      */
-    [[nodiscard]] const in_addr& GetAddr() const { return addr; }
+    [[nodiscard]] in_addr& GetAddr() const { return addr; }
 
     /**
      * Getter for error code from initialization
      * @return Error code
      */
-    [[nodiscard]] const int GetErr() const { return err; }
+    [[nodiscard]] int GetErr() const { return err; }
 
     /**
      * Getter for initialization status
      * @return True if initialized, false otherwise
      */
-    [[nodiscard]] const bool IsInitialized() const { return err == 0; }
+    [[nodiscard]] bool IsInitialized() const { return err == 0; }
 
 private:
     const char* ip;
