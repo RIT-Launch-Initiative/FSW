@@ -23,12 +23,13 @@ int main() {
 
     // Add tasks and start RTOS
     NRtos::AddTask(networkTask);
+    NRtos::AddTask(sensingTask);
     NRtos::StartRtos();
 
-// #ifdef CONFIG_ARCH_POSIX
-//     k_sleep(K_SECONDS(10));
-//     NRtos::StopRtos();
-// #endif
+#ifdef CONFIG_ARCH_POSIX
+    k_sleep(K_SECONDS(10));
+    NRtos::StopRtos();
+#endif
 
     return 0;
 }
