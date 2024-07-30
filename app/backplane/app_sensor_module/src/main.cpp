@@ -13,22 +13,22 @@
 int main() {
     // Networking Subsystem
     static CBroadcastTenant broadcastTenant = CBroadcastTenant("Broadcast Tenant");
-    static CTask networkTask("Networking Task", 15, 512, 0);
+    static CTask networkTask("Networking Task", 15, 128, 0);
     networkTask.AddTenant(broadcastTenant);
 
     // Sensing Subsystem
     static CSensingTenant sensingTenant = CSensingTenant("Sensing Tenant");
-    static CTask sensingTask("Sensing Task", 15, 512, 0);
+    static CTask sensingTask("Sensing Task", 15, 128, 0);
     sensingTask.AddTenant(sensingTenant);
 
     // Add tasks and start RTOS
     NRtos::AddTask(networkTask);
     NRtos::StartRtos();
 
-#ifdef CONFIG_ARCH_POSIX
-    k_sleep(K_SECONDS(10));
-    NRtos::StopRtos();
-#endif
+// #ifdef CONFIG_ARCH_POSIX
+//     k_sleep(K_SECONDS(10));
+//     NRtos::StopRtos();
+// #endif
 
     return 0;
 }
