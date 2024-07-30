@@ -69,12 +69,17 @@ private:
         .public_network = false,
     };
 
+    enum Direction {
+      RX = 0,
+      TX
+    };
+
    /**
     * Set the LoRa modem to transmit or receive mode
-    * @param transmit true to transmit, false to receive
+    * @param transmitDirection true to transmit, false to receive
     * @return Zephyr status code
     */
-    int setTxRx(bool transmit);
+    int setTxRx(Direction transmitDirection);
 };
 
 

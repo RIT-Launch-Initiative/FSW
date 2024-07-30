@@ -11,7 +11,7 @@ CLora::CLora(const device& lora_dev, const lora_modem_config& config) : lora_dev
 }
 
 int CLora::TransmitSynchronous(const void* data, const size_t len) {
-    const int ret = setTxRx(true);
+    const int ret = setTxRx(TX);
     if (ret != 0) {
         return ret;
     }
@@ -21,7 +21,7 @@ int CLora::TransmitSynchronous(const void* data, const size_t len) {
 
 int CLora::ReceiveSynchronous(void* data, const size_t len, int16_t* const rssi, int8_t* const snr,
                               const k_timeout_t timeout) {
-    const int ret = setTxRx(false);
+    const int ret = setTxRx(RX);
     if (ret != 0) {
         return ret;
     }
@@ -31,7 +31,7 @@ int CLora::ReceiveSynchronous(void* data, const size_t len, int16_t* const rssi,
 
 
 int CLora::TransmitAsynchronous(const void* data, const size_t len, k_poll_signal* signal) {
-    const int ret = setTxRx(true);
+    const int ret = setTxRx(TX);
     if (ret != 0) {
         return ret;
     }
@@ -39,7 +39,7 @@ int CLora::TransmitAsynchronous(const void* data, const size_t len, k_poll_signa
 }
 
 int CLora::ReceiveAsynchronous(const lora_recv_cb cb) {
-    const int ret = setTxRx(false);
+    const int ret = setTxRx(RX);
     if (ret != 0) {
         return ret;
     }
@@ -47,11 +47,12 @@ int CLora::ReceiveAsynchronous(const lora_recv_cb cb) {
     return lora_recv_async(lora_dev, cb);
 }
 
-inline int CLora::setTxRx(const bool transmit) {
-    if (transmit == config.tx) {
+inline int CLora::setTxRx(const Direction transmitDirection) {
+    const bool isTransmit = transmitDirection == TX;
+    if (isTransmit == config.tx) {
         return 0;
     }
 
-    config.tx = transmit;
+    config.tx = isTransmit;
     return lora_config(lora_dev, &config);
 }

@@ -23,7 +23,7 @@ static bool receiveFinished = true;
 #endif
 
 int main() {
-    CLora lora(*DEVICE_DT_GET(DT_ALIAS(lora)));
+    CLora lora(*DEVICE_DT_GET(DT_ALIAS(lora0)));
 
     while (true) {
 #ifdef CONFIG_RECEIVER
