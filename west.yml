@@ -12,7 +12,7 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: v3.7.0
+      revision: b5fdbc21bf7c86e6b11d67cf941b4efed36280fb # Day after 3.7 release for C++ net posix bugfix
       import:
         name-allowlist:
           - cmsis

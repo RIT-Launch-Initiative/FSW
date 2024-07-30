@@ -18,7 +18,6 @@
 
 #include <zephyr/net/socket.h>
 #include <unistd.h>
-#include <zephyr/posix/arpa/inet.h>
 #include <zephyr/net/socket.h>
 
 
