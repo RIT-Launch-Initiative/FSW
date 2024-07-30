@@ -5,6 +5,7 @@ common:
   build_only: true
   integration_platforms:
     - sensor_module
+    - native_sim
 tests:
   app.default: {}
   app.debug:
