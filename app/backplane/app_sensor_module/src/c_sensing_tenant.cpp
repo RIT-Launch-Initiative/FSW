@@ -1,5 +1,6 @@
 #include "c_sensing_tenant.h"
 
+#include <common.h>
 #include <f_core/device/sensor/c_accelerometer.h>
 #include <f_core/device/sensor/c_barometer.h>
 #include <f_core/device/sensor/c_gyroscope.h>
@@ -7,6 +8,7 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
+extern k_msgq broadcastQueue;
 
 void CSensingTenant::Startup() {
 
@@ -21,25 +23,33 @@ void CSensingTenant::Run() {
     CGyroscope imu_gyroscope(*DEVICE_DT_GET_ONE(openrocket_imu));
     CBarometer barometer(*DEVICE_DT_GET_ONE(openrocket_barometer));
 
-    CSensorDevice *sensors[] = {&imu_accelerometer, &imu_gyroscope, &barometer};
+    CSensorDevice* sensors[] = {&imu_accelerometer, &imu_gyroscope, &barometer};
 
-    while (1) {
+    telemetry data;
+    while (true) {
         for (auto sensor : sensors) {
             sensor->UpdateSensorValue();
         }
 
-        double x = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_ACCEL_X);
-        double y = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_ACCEL_Y);
-        double z = imu_accelerometer.GetSensorValueDouble(SENSOR_CHAN_ACCEL_Z);
+        data.AccelerationX = imu_accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
+        data.AccelerationY = imu_accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+        data.AccelerationZ = imu_accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
 
-        double rx = imu_gyroscope.GetSensorValueDouble(SENSOR_CHAN_GYRO_X);
-        double ry = imu_gyroscope.GetSensorValueDouble(SENSOR_CHAN_GYRO_Y);
-        double rz = imu_gyroscope.GetSensorValueDouble(SENSOR_CHAN_GYRO_Z);
+        data.GyroscopeX = imu_gyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
+        data.GyroscopeY = imu_gyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
+        data.GyroscopeZ = imu_gyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
 
-        double press = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
-        double temp = barometer.GetSensorValueDouble(SENSOR_CHAN_AMBIENT_TEMP);
+        data.Pressure = barometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
+        data.Temperature = barometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
-        LOG_INF("\nACCEL_X: %.2f\nACCEL_Y: %.2f\nACCEL_Z: %.2f\nGYRO_X: %.2f\nGYRO_Y: %.2f\nGYRO_Z: %.2f\nPRESS: %.2f\nTEMP: %.2f\n", x, y, z, rx, ry, rz, press, temp);
+        LOG_INF(
+            "\nAccelerationX: %f\nAccelerationY: %f\nAccelerationZ: %f"
+            "\nGyroscopeX: %f\nGyroscopeY: %f\nGyroscopeZ: %f"
+            "\nPressure: %f\nTemperature: %f\n",
+            (double) data.AccelerationX, (double) data.AccelerationY, (double) data.AccelerationZ,
+            (double) data.GyroscopeX, (double) data.GyroscopeY, (double) data.GyroscopeZ,
+            (double) data.Pressure, (double) data.Temperature);
+        k_msgq_put(&broadcastQueue, &data, K_NO_WAIT);
         k_msleep(1000);
     }
 }

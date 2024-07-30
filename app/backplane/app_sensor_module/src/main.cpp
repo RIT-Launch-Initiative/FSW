@@ -6,9 +6,12 @@
 
 #include "c_sensing_tenant.h"
 #include "c_broadcast_tenant.h"
+#include "common.h"
 
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
+
+K_MSGQ_DEFINE(broadcastQueue, sizeof(telemetry), 10, 4);
 
 int main() {
     // Networking Subsystem
