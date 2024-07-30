@@ -8,7 +8,12 @@
 #include "c_broadcast_tenant.h"
 
 int main() {
+    static CBroadcastTenant broadcastTenant = CBroadcastTenant("Broadcast Tenant");
 
+    for (int i = 0; i < 100; i++) {
+        broadcastTenant.Run();
+        k_msleep(1000);
+    }
 
     return 0;
 }
