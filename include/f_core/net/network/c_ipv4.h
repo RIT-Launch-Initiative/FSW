@@ -40,7 +40,7 @@ public:
      * Getter for address structure
      * @return Address structure
      */
-    [[nodiscard]] in_addr& GetAddr() const { return addr; }
+    [[nodiscard]] in_addr GetAddr() const { return addr; }
 
     /**
      * Getter for error code from initialization
