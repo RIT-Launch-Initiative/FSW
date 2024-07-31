@@ -50,6 +50,6 @@ void CSensingTenant::Run() {
             (double) data.GyroscopeX, (double) data.GyroscopeY, (double) data.GyroscopeZ,
             (double) data.Pressure, (double) data.Temperature);
         k_msgq_put(&broadcastQueue, &data, K_NO_WAIT);
-        k_msleep(1000);
+        k_msleep(100);
     }
 }
