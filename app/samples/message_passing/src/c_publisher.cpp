@@ -4,18 +4,19 @@
 
 LOG_MODULE_REGISTER(counter);
 
-CPublisher::CPublisher(const char* name, int *count) : CTenant(name), count(count) {
+CPublisher::CPublisher(CMessagePort<Message> &messagePort) : CTenant("Publisher"), messagePort(messagePort), message({})  {
 }
 
 void CPublisher::Startup() {
     CBase::Startup(); // Initialize any parent functionality
 
-    *count = 0;
+    message.count = 0;
+    strncpy(message.message, "Hello, World!", sizeof(message.message));
 }
 
 void CPublisher::Run() {
-    *count += 1;
-    LOG_INF("%s: %d", name, *count);
+    message.count++;
+    messagePort.Send(message);
 }
 
 

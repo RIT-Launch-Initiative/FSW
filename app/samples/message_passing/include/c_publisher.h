@@ -1,7 +1,10 @@
 #ifndef PRINTCOUNT_H
 #define PRINTCOUNT_H
 
+#include "message.h"
+
 // F-Core Includes
+#include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 
 /**
@@ -14,7 +17,7 @@ public:
      * @param name The name of the tenant.
      * @param count The integer to increment and print.
      */
-    explicit CPublisher(const char* name, int* count);
+    explicit CPublisher(CMessagePort<Message> &messagePort);
 
     /**
      * See parent docs
@@ -29,7 +32,8 @@ public:
 private:
     using CBase = CTenant;
 
-    int* count;
+    CMessagePort<Message> &messagePort;
+    Message message;
 };
 
 #endif //PRINTCOUNT_H
