@@ -4,9 +4,6 @@
 // F-Core Includes
 #include <f_core/os/c_tenant.h>
 
-/**
- * Print "Hello, " followed by a name.
- */
 class CReceiver : public CTenant {
 public:
     /**

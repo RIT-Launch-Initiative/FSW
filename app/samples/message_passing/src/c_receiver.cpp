@@ -1,5 +1,5 @@
 #include <f_core/os/c_tenant.h>
-#include "c_hello_tenant.h"
+#include "c_receiver.h"
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
