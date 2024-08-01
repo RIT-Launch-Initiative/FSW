@@ -9,14 +9,15 @@
 #include "c_publisher.h"
 #include "c_receiver.h"
 
+#include <f_core/messaging/c_msgq_message_port.h>
+
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    // Tenants and Tasks are expected to be statically allocated, since exiting main will call their destructors
-    // Calling the tasks destructors will stop the tasks and free up the allocated stacks
-    // This can lead to a double free too if StopRtos is called before main exits
+
+
     static CReceiver printWorldTenant("World");
     static CReceiver printLaunchTenant("Launch");
     static CTask printTask("Print Task", 15, 512, 1000);

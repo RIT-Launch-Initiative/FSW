@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="com.intellij.dts.settings.DtsSettings">
-    <option name="zephyrBoard" value="$PROJECT_DIR$/../../../../zephyr/boards/posix/native_sim" />
+    <option name="zephyrBoard" value="$PROJECT_DIR$/../../../../zephyr/boards/native/native_sim" />
     <option name="zephyrRoot" value="$PROJECT_DIR$/../../../../zephyr" />
   </component>
 </project>

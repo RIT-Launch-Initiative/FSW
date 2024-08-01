@@ -7,9 +7,9 @@ public:
     CMessagePort() = default;
     virtual ~CMessagePort() = default;
 
-    virtual void Send(T message) = 0;
+    virtual int Send(const T &message, const k_timeout_t timeout) = 0;
 
-    virtual T Receive() = 0;
+    virtual int Receive(T message, const k_timeout_t timeout) = 0;
 };
 
 
