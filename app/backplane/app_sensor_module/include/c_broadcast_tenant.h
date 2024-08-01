@@ -15,9 +15,9 @@ public:
 
     ~CBroadcastTenant() override = default;
 
-    void Startup() override;
+    void Startup() override = delete;
 
-    void PostStartup() override;
+    void PostStartup() override = delete;
 
     void Run() override;
 

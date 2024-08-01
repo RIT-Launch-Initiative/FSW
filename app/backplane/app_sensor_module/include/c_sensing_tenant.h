@@ -20,5 +20,4 @@ public:
 };
 
 
-
 #endif //C_SENSING_TENANT_H

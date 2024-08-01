@@ -15,7 +15,7 @@ void CBroadcastTenant::PostStartup() {
 
 void CBroadcastTenant::Run() {
     while (true) {
-        telemetry data;
+        telemetry data{};
         if (k_msgq_get(&broadcastQueue, &data, K_FOREVER) == 0) {
             udp.TransmitSynchronous(&data, sizeof(telemetry));
         }
