@@ -16,11 +16,11 @@ public:
         k_msgq_cleanup(&queue);
     }
 
-    int Send(const T &message, k_timeout_t timeout) override {
+    int Send(const T &message, const k_timeout_t timeout) override {
         return k_msgq_put(&queue, &message, timeout);
     }
 
-    int Receive(T message, k_timeout_t timeout) override {
+    int Receive(T message, const k_timeout_t timeout) override {
         return k_msgq_get(&queue, &message, timeout);
     }
 
