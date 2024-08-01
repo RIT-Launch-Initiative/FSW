@@ -22,7 +22,7 @@ void CReceiver::Run() {
     }
 
     Message message{};
-    messagePort.Receive(&message);
+    messagePort.Receive(message);
     LOG_INF("%d: %s", message.count, message.message);
 
     messageCountToReceive--;

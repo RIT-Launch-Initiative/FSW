@@ -1,6 +1,8 @@
 #ifndef CMESSAGEPORT_H
 #define CMESSAGEPORT_H
 
+#include <zephyr/kernel.h>
+
 template <typename T>
 class CMessagePort {
 public:

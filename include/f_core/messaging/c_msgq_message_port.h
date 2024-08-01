@@ -9,8 +9,12 @@ template <typename T>
 class CMsgqMessagePort : public CMessagePort<T> {
 public:
     CMsgqMessagePort(const uint32_t maxMessages) {
-        k_msgq_alloc_init(&queue, sizeof(T), maxMessages);
+        if (k_msgq_alloc_init(&queue, sizeof(T), maxMessages)) {
+            k_oops();
+        }
     }
+
+    CMsgqMessagePort(const k_msgq *queue) : queue(*queue) {};
 
     ~CMsgqMessagePort() override {
         k_msgq_cleanup(&queue);
