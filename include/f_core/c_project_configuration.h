@@ -3,14 +3,24 @@
 
 class CProjectConfiguration {
 protected:
+    /**
+     * Constructor
+     */
     CProjectConfiguration() = default;
 private:
-    virtual void addTenants() = 0;
+    /**
+     * Add tenants to a task
+     */
+    virtual void addTenantsToTasks() = 0;
 
-    virtual void addTasks() = 0;
+    /*
+     * Add tasks to RTOS
+     */
+    virtual void addTasksToRtos() = 0;
 
-    virtual void setupMessagePorts() = 0;
-
+    /**
+     * Setup callbacks
+     */
     virtual void setupCallbacks() = 0;
 };
 

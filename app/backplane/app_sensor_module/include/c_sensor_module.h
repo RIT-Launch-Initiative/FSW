@@ -11,6 +11,9 @@
 
 class CSensorModule : public CProjectConfiguration {
 public:
+    /**
+     * Constructor
+     */
     CSensorModule();
 
 private:
@@ -22,13 +25,22 @@ private:
     CTask networkTask{"Networking Task", 15, 128, 0};
     CTask sensingTask{"Sensing Task", 15, 128, 0};
 
-    void addTenants() override;
+    // TODO: Messaging handlers to pass into tenants
 
-    void addTasks() override;
+    /**
+     * See parent docs
+     */
+    void addTenantsToTasks() override;
 
-    void setupMessagePorts() override {};
+    /**
+     * See parent docs
+     */
+    void addTasksToRtos() override;
 
-    void setupCallbacks() override {};
+    /**
+     * See parent docs
+     */
+    void setupCallbacks() override;
 };
 
 

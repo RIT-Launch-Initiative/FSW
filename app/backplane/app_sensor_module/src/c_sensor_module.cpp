@@ -4,18 +4,27 @@
 #include <f_core/os/n_rtos.h>
 
 CSensorModule::CSensorModule() : CProjectConfiguration() {
-    addTenants();
-    addTasks();
+    addTenantsToTasks();
+    addTasksToRtos();
 }
 
-void CSensorModule::addTenants() {
+void CSensorModule::addTenantsToTasks() {
+    // Networking
     networkTask.AddTenant(broadcastTenant);
+
+    // Sensing
     sensingTask.AddTenant(sensingTenant);
 }
 
-void CSensorModule::addTasks() {
+void CSensorModule::addTasksToRtos() {
+    // Networking
     NRtos::AddTask(networkTask);
+
+    // Sensing
     NRtos::AddTask(sensingTask);
+}
+
+void CSensorModule::setupCallbacks() {
 }
 
 
