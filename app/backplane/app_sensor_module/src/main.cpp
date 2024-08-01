@@ -13,7 +13,12 @@
 K_MSGQ_DEFINE(broadcastQueue, sizeof(telemetry), 10, 4);
 
 int main() {
-    CSensorModule sensorModule;
+    CSensorModule sensorModule = CSensorModule();
+
+    sensorModule.AddTenantsToTasks();
+    sensorModule.AddTasksToRtos();
+    sensorModule.SetupCallbacks();
+
     NRtos::StartRtos();
 
 #ifdef CONFIG_ARCH_POSIX

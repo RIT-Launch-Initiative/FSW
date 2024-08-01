@@ -11,17 +11,17 @@ private:
     /**
      * Add tenants to a task
      */
-    virtual void addTenantsToTasks() = 0;
+    virtual void AddTenantsToTasks() = 0;
 
     /*
      * Add tasks to RTOS
      */
-    virtual void addTasksToRtos() = 0;
+    virtual void AddTasksToRtos() = 0;
 
     /**
      * Setup callbacks
      */
-    virtual void setupCallbacks() = 0;
+    virtual void SetupCallbacks() = 0;
 };
 
 

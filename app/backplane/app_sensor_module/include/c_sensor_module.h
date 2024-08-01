@@ -16,6 +16,21 @@ public:
      */
     CSensorModule();
 
+    /**
+     * See parent docs
+     */
+    void AddTenantsToTasks() override;
+
+    /**
+     * See parent docs
+     */
+    void AddTasksToRtos() override;
+
+    /**
+     * See parent docs
+     */
+    void SetupCallbacks() override;
+
 private:
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant"};
@@ -26,21 +41,6 @@ private:
     CTask sensingTask{"Sensing Task", 15, 128, 0};
 
     // TODO: Messaging handlers to pass into tenants
-
-    /**
-     * See parent docs
-     */
-    void addTenantsToTasks() override;
-
-    /**
-     * See parent docs
-     */
-    void addTasksToRtos() override;
-
-    /**
-     * See parent docs
-     */
-    void setupCallbacks() override;
 };
 
 
