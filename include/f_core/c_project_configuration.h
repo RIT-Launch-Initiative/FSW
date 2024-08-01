@@ -1,27 +1,17 @@
 #ifndef C_PROJECT_CONFIGURATION_H
 #define C_PROJECT_CONFIGURATION_H
 
-
-
 class CProjectConfiguration {
-public:
-    CProjectConfiguration *GetInstance() {
-        return instance;
-    };
-
 protected:
-    explicit consteval CProjectConfiguration(CProjectConfiguration *instance) : instance(instance) {};
-
-    CProjectConfiguration *instance;
+    CProjectConfiguration() = default;
 private:
+    virtual void addTenants() = 0;
 
-    virtual void addTenants();
+    virtual void addTasks() = 0;
 
-    virtual void addTasks();
+    virtual void setupMessagePorts() = 0;
 
-    virtual void setupMessagePorts();
-
-    virtual void setupCallbacks();
+    virtual void setupCallbacks() = 0;
 };
 
 

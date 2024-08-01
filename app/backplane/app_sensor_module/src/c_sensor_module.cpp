@@ -1,17 +1,22 @@
-//
-// Created by aaron on 7/31/24.
-//
-
 #include "c_sensor_module.h"
+
+// F-Core Tenant
+#include <f_core/os/n_rtos.h>
 
 CSensorModule::CSensorModule() : CProjectConfiguration() {
     addTenants();
     addTasks();
 }
 
-
-CProjectConfiguration* CSensorModule::GetInstance() {
-
-    return &instance;
+void CSensorModule::addTenants() {
+    networkTask.AddTenant(broadcastTenant);
+    sensingTask.AddTenant(sensingTenant);
 }
+
+void CSensorModule::addTasks() {
+    NRtos::AddTask(networkTask);
+    NRtos::AddTask(sensingTask);
+}
+
+
 
