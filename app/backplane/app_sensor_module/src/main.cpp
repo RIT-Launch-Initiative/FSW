@@ -13,7 +13,7 @@
 K_MSGQ_DEFINE(broadcastQueue, sizeof(telemetry), 10, 4);
 
 int main() {
-    CSensorModule sensorModule = CSensorModule();
+    static CSensorModule sensorModule{};
 
     sensorModule.AddTenantsToTasks();
     sensorModule.AddTasksToRtos();
