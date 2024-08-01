@@ -20,13 +20,20 @@ public:
     /**
      * See parent docs
      */
+    void Startup() override;
+
+    /**
+     * See parent docs
+     */
     void Run() override;
 
 private:
+    using CBase = CTenant;
+
     CMessagePort<Message> &messagePort;
     CMessagePort<bool> &completedPort;
 
-    const int messageCountToReceive;
+    int messageCountToReceive;
 };
 
 #endif //HELLOTENANT_H
