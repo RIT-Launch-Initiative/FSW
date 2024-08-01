@@ -3,3 +3,15 @@
 //
 
 #include "c_sensor_module.h"
+
+CSensorModule::CSensorModule() : CProjectConfiguration() {
+    addTenants();
+    addTasks();
+}
+
+
+CProjectConfiguration* CSensorModule::GetInstance() {
+
+    return &instance;
+}
+

@@ -5,10 +5,15 @@
 
 class CProjectConfiguration {
 public:
-    virtual CProjectConfiguration *GetInstance();
+    CProjectConfiguration *GetInstance() {
+        return instance;
+    };
 
+protected:
+    explicit consteval CProjectConfiguration(CProjectConfiguration *instance) : instance(instance) {};
+
+    CProjectConfiguration *instance;
 private:
-    CProjectConfiguration() = default;
 
     virtual void addTenants();
 
