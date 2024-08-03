@@ -8,7 +8,7 @@ CPublisher::CPublisher(CMessagePort<Message> &messagePort) : CTenant("Publisher"
 }
 
 void CPublisher::Startup() {
-    CBase::Startup(); // Initialize any parent functionality
+    CBase::Startup();
 
     message.count = 0;
     strncpy(message.message, "Hello, World!", sizeof(message.message));

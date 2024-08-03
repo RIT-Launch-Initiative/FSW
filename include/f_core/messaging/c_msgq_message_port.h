@@ -7,24 +7,31 @@
 template <typename T>
 class CMsgqMessagePort : public CMessagePort<T> {
 public:
-    explicit CMsgqMessagePort(const uint32_t maxMessages) {
-        if (k_msgq_alloc_init(this->queue, sizeof(T), maxMessages) != 0) {
-            k_oops();
-        }
-    }
-
+    /**
+     * Constructor
+     * @param queue Message queue to use
+     */
     explicit CMsgqMessagePort(k_msgq& queue) {
         this->queue = &queue;
     }
 
+    /**
+     * Destructor
+     */
     ~CMsgqMessagePort() override {
         k_msgq_cleanup(queue);
     }
 
+    /**
+     * See parent docs
+     */
     int Send(const T& message, const k_timeout_t timeout) override {
         return k_msgq_put(queue, &message, timeout);
     }
 
+    /**
+     * See parent docs
+     */
     int Receive(T& message, const k_timeout_t timeout) override {
         return k_msgq_get(queue, &message, timeout);
     }

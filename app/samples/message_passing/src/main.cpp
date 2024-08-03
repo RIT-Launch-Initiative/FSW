@@ -20,7 +20,7 @@ K_MSGQ_DEFINE(messageQueue, sizeof(Message), 10, 4);
 K_MSGQ_DEFINE(completedQueue, sizeof(bool), 1, 4);
 
 int main() {
-    static CMsgqMessagePort<Message> messagePort(messageQueue);
+    static CMsgqMessagePort<Message> messagePort(10);
     static CMsgqMessagePort<bool> completedPort(completedQueue);
 
     static CPublisher publisher(messagePort);

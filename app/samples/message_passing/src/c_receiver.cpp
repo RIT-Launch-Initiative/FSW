@@ -11,10 +11,6 @@ CReceiver::CReceiver(CMessagePort<Message>& messagePort, CMessagePort<bool>& com
 
 }
 
-void CReceiver::Startup() {
-    CBase::Startup(); // Initialize any parent functionality
-}
-
 void CReceiver::Run() {
     if (messageCountToReceive == 0) {
         completedPort.Send(true);
@@ -23,7 +19,7 @@ void CReceiver::Run() {
 
     Message message{};
     messagePort.Receive(message, K_NO_WAIT);
-    LOG_INF("%d: %s", message.count, message.message);
+    LOG_INF("%d - %s", message.count, message.message);
 
     messageCountToReceive--;
 }
