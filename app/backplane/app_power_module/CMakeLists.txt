@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # Backplane Power Module Application
 #
-# Copyright (c) 2023 Aaron Chan
+# Copyright (c) 2023 Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.13.1)
