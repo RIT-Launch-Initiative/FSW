@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: openrocket-sensors
+common:
+  build_only: true
+  integration_platforms:
+    - native_sim
+tests:
+  app.default: {}
