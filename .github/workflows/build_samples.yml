@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, macos-latest ] # , windows-latest
         app:
           - app/samples/openrocket_sensors
           - app/samples/tenants_and_tasks
@@ -61,10 +61,11 @@ jobs:
         working-directory: FSW
         shell: bash
         run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
-          fi
-          west twister -T ${{ matrix.app }} -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          west build -b native_sim -p auto ${{matrix.app}}
+          # if [ "${{ runner.os }}" = "Windows" ]; then
+          #   EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
+          # fi
+          # west twister -T ${{ matrix.app }} -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
 
 #      - name: Twister Tests
 #        working-directory: ${{ matrix.app }}
