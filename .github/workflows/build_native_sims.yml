@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ] # , windows-latest
+        os: [ ubuntu-latest ] # Native Sim only runs on linux
         app:
           - app/samples/openrocket_sensors
           - app/samples/tenants_and_tasks
@@ -28,7 +28,7 @@ jobs:
         with:
           path: FSW
     
-      - name: Install Compiler Dependencies # native_sim goes for 32bit, not avail by default
+      - name: Install Compiler Dependencies # native_sim goes for 32bit, not available by default
         run: sudo apt-get install -y gcc-multilib g++-multilib
         
       - name: Cache Python dependencies
@@ -64,11 +64,11 @@ jobs:
         working-directory: FSW
         shell: bash
         run: |
-          west build -b native_sim -p auto ${{matrix.app}}
-          # if [ "${{ runner.os }}" = "Windows" ]; then
-          #   EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
-          # fi
-          # west twister -T ${{ matrix.app }} -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          # west build -b native_sim -p auto ${{matrix.app}}
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
+          fi
+          west twister -T ${{ matrix.app }} -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
 
 #      - name: Twister Tests
 #        working-directory: ${{ matrix.app }}
