@@ -1,4 +1,4 @@
-#include <f_core/os/datalogger.h>
+#include <f_core/os/c_datalogger.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(datalogger);
 
