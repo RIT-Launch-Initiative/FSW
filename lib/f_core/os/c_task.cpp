@@ -24,6 +24,7 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
         // https://docs.zephyrproject.org/latest/boards/native/native_sim/doc/index.html
         k_cpu_idle();
 #endif
+        k_yield();
     }
 }
 

@@ -11,7 +11,7 @@ public:
 
     virtual int Send(const T &message, const k_timeout_t timeout = K_FOREVER) = 0;
 
-    virtual int Receive(T message, const k_timeout_t timeout = K_FOREVER) = 0;
+    virtual int Receive(T& message, const k_timeout_t timeout = K_FOREVER) = 0;
 };
 
 

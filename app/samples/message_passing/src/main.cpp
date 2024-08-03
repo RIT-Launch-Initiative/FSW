@@ -20,15 +20,15 @@ K_MSGQ_DEFINE(messageQueue, sizeof(Message), 10, 4);
 K_MSGQ_DEFINE(completedQueue, sizeof(bool), 1, 4);
 
 int main() {
-    static CMsgqMessagePort<Message> messagePort(&messageQueue);
-    static CMsgqMessagePort<bool> completedPort(&completedQueue);
+    static CMsgqMessagePort<Message> messagePort(messageQueue);
+    static CMsgqMessagePort<bool> completedPort(completedQueue);
 
     static CPublisher publisher(messagePort);
-    static CTask publisherTask("Publisher Task", 15, 512, 1000);
+    static CTask publisherTask("Publisher Task", 15, 512);
     publisherTask.AddTenant(publisher);
 
     static CReceiver receiver(messagePort, completedPort, 10);
-    static CTask receiverTask("Receiver Task", 15, 512, 1000);
+    static CTask receiverTask("Receiver Task", 15, 512);
     receiverTask.AddTenant(receiver);
 
     NRtos::AddTask(publisherTask);
@@ -37,9 +37,10 @@ int main() {
     NRtos::StartRtos();
 
     bool completed = false;
+    LOG_INF("Waiting for completion");
     do {
-        completedPort.Receive(&completed, K_FOREVER);
-        if (completed) {
+        completedPort.Receive(completed, K_FOREVER);
+        if (completed == true) {
             break;
         }
 

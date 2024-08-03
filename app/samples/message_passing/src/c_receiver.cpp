@@ -3,7 +3,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(CReceiver);
+LOG_MODULE_REGISTER(Receiver);
 
 CReceiver::CReceiver(CMessagePort<Message>& messagePort, CMessagePort<bool>& completedPort, int messageCountToReceive) :
     CTenant("Receiver"), messagePort(messagePort), completedPort(completedPort),
@@ -22,7 +22,7 @@ void CReceiver::Run() {
     }
 
     Message message{};
-    messagePort.Receive(message);
+    messagePort.Receive(message, K_NO_WAIT);
     LOG_INF("%d: %s", message.count, message.message);
 
     messageCountToReceive--;

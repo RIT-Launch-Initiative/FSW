@@ -2,7 +2,7 @@
 
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(counter);
+LOG_MODULE_REGISTER(Publisher);
 
 CPublisher::CPublisher(CMessagePort<Message> &messagePort) : CTenant("Publisher"), messagePort(messagePort), message({})  {
 }
@@ -16,7 +16,7 @@ void CPublisher::Startup() {
 
 void CPublisher::Run() {
     message.count++;
-    messagePort.Send(message);
+    messagePort.Send(message, K_NO_WAIT);
 }
 
 
