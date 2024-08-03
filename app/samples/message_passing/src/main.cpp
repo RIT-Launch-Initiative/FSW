@@ -19,8 +19,14 @@ LOG_MODULE_REGISTER(main);
 K_MSGQ_DEFINE(messageQueue, sizeof(Message), 10, 4);
 K_MSGQ_DEFINE(completedQueue, sizeof(bool), 1, 4);
 
+static void stackAllocatedMessagePortCheck(void) {
+    CMsgqMessagePort<int> messagePort(messageQueue);
+    messagePort.Send(10, K_FOREVER);
+}
+
 int main() {
-    static CMsgqMessagePort<Message> messagePort(10);
+    stackAllocatedMessagePortCheck();
+    static CMsgqMessagePort<Message> messagePort(messageQueue);
     static CMsgqMessagePort<bool> completedPort(completedQueue);
 
     static CPublisher publisher(messagePort);

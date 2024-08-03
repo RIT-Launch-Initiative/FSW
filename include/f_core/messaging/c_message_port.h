@@ -6,6 +6,8 @@
 template <typename T>
 class CMessagePort {
 public:
+    using MessageType = T;
+
     /**
      * Constructor
      */

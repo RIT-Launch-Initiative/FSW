@@ -19,6 +19,7 @@ public:
      * Destructor
      */
     ~CMsgqMessagePort() override {
+        k_msgq_purge(queue);
         k_msgq_cleanup(queue);
     }
 
