@@ -69,5 +69,5 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
-          west twister $(while IFS= read line; do echo -n "-T $line"; done <<-END ${{ env.test_roots }} END) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          west twister $(echo ${{ env.test_roots }} | while IFS= read line; do echo -n "-T $line"; done) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
 
