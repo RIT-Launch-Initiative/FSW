@@ -37,7 +37,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
-        run: sudo apt-get install -y gcc-multilib g++-multilib
+        run: if [ "${{ runner.os }}" = "Linux" ]; then sudo apt-get install -y gcc-multilib g++-multilib; fi
 
       - name: Checkout
         uses: actions/checkout@v3
