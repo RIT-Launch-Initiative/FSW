@@ -7,6 +7,3 @@ common:
     - radio_module
 tests:
   app.default: {}
-  app.debug:
-    extra_overlay_confs:
-      - debug.conf

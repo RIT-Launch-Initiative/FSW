@@ -1,9 +1,9 @@
 sample:
   description:
-  name: tenants-and-tasks
+  name: littlefs
 common:
   build_only: true
   integration_platforms:
-    - native_sim
+    - nucleo_f446re
 tests:
   app.default: {}

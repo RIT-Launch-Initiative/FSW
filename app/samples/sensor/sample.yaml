@@ -1,0 +1,10 @@
+sample:
+  description:
+  name: sensor
+common:
+  build_only: true
+  integration_platforms:
+    - nucleo_f446re
+tests:
+  app.default:
+    extra_args: SHIELD="launch_mikroe"

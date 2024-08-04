@@ -1,5 +1,5 @@
 all: 
-	west build
+	west build -b nucleo_f446re --shield launch_mikroe
 
 flash:
 	west flash
