@@ -9,6 +9,8 @@ FILE(GLOB sources
         net/transport/*.cpp
         
         device/sensor/*.cpp
+
+        messaging/*.cpp
         
         os/*.cpp)
 zephyr_library_sources(${sources})
