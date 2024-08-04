@@ -75,6 +75,7 @@ jobs:
         working-directory: FSW
         shell: bash
         run: |
+          set +o xtrace
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
