@@ -3,7 +3,7 @@ sample:
   name: udp-bcast
 common:
   build_only: true
-  integration_platforms:
+  platform_allow:
     - native_sim
 tests:
   udp_bcast.default: {}

@@ -3,7 +3,7 @@ sample:
   name: tenants-and-tasks
 common:
   build_only: true
-  integration_platforms:
+  platform_allow:
     - native_sim
 tests:
   tenants_and_taks.default: {}

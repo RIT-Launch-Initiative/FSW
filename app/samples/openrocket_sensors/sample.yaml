@@ -3,7 +3,7 @@ sample:
   name: openrocket-sensors
 common:
   build_only: true
-  integration_platforms:
+  platform_allow:
     - native_sim
 tests:
   openrocket_sensors.default: {}

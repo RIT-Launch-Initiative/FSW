@@ -3,7 +3,7 @@ sample:
   name: littlefs
 common:
   build_only: true
-  integration_platforms:
+  platform_allow:
     - nucleo_f446re
 tests:
   littlefs.default: {}

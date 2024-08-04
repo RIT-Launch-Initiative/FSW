@@ -3,7 +3,7 @@ sample:
   name: shield_blinky
 common:
   build_only: true
-  integration_platforms:
+  platform_allow:
     - nucleo_f446re
 tests:
   shield_blinky.default:
