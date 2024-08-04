@@ -68,12 +68,3 @@ jobs:
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
           west twister -T ${{ matrix.app }} -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
-
-#      - name: Twister Tests
-#        working-directory: ${{ matrix.app }}
-#        shell: bash
-#        run: |
-#          if [ "${{ runner.os }}" = "Windows" ]; then
-#            EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
-#          fi
-#          west twister -T tests -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
