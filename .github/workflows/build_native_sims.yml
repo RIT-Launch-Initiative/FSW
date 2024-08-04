@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - reorganize_fcore
+      # - reorganize_fcore
   pull_request:
     branches:
       - '*'

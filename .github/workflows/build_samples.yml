@@ -10,6 +10,14 @@ on:
       - '*'
   schedule:
     - cron: "0 0 * * 1"
+env:
+  test_roots: |
+    app/samples/littlefs
+    app/samples/sensor
+    app/samples/shield_blinky
+    app/samples/shield_mcp3561r
+    app/samples/lora_bcast
+    app/samples/udb_bcast
 
 jobs:
   build:
@@ -17,12 +25,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        app:
-          - app/samples/littlefs
-          - app/samples/sensor
-          - app/samples/shield_blinky
-          - app/samples/shield_mcp3561r
-          - app/samples/lora_bcast
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -67,5 +69,5 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
-          west twister -T ${{ matrix.app }} -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          west twister $(printf ${{ env.test_roots }} | while IFS= read line; do echo -n "-T $line"; done) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
 
