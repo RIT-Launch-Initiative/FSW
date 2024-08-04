@@ -6,4 +6,4 @@ common:
   integration_platforms:
     - nucleo_f446re
 tests:
-  app.default: {}
+  littlefs.default: {}

@@ -6,4 +6,4 @@ common:
   integration_platforms:
     - radio_module
 tests:
-  app.default: {}
+  lora_back_and_forth.default: {}

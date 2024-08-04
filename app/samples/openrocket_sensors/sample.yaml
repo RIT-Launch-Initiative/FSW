@@ -6,4 +6,4 @@ common:
   integration_platforms:
     - native_sim
 tests:
-  app.default: {}
+  openrocket_sensors.default: {}

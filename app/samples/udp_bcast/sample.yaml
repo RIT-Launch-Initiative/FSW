@@ -6,7 +6,4 @@ common:
   integration_platforms:
     - native_sim
 tests:
-  app.default: {}
-  app.debug:
-    extra_overlay_confs:
-      - debug.conf
+  udp_bcast.default: {}

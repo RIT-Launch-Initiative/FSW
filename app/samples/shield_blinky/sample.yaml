@@ -6,5 +6,5 @@ common:
   integration_platforms:
     - nucleo_f446re
 tests:
-  app.default:
+  shield_blinky.default:
     extra_args: SHIELD="launch_mikroe"

@@ -6,4 +6,4 @@ common:
   integration_platforms:
     - native_sim
 tests:
-  app.default: {}
+  tenants_and_taks.default: {}
