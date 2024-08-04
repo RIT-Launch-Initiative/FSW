@@ -1,4 +1,4 @@
-name: Build Samples
+name: Build Native Sims
 
 on:
   push:
