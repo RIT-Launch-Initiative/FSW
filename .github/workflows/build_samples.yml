@@ -56,14 +56,6 @@ jobs:
           restore-keys: |
             zephyr-${{ runner.os }}-
 
-      - name: Cache FSW
-        uses: actions/cache@v4.0.2
-        with:
-          # A list of files, directories, and wildcard patterns to cache and restore
-          path: ~/work/FSW
-          # An explicit key for restoring and saving the cache
-          # Evict cache when we change our west workspace
-          key: FSW-${{ runner.os }}-${{ hashFiles('~/work/FSW/**.yml') }}
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
