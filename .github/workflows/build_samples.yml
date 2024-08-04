@@ -63,7 +63,7 @@ jobs:
           path: /home/worker/FSW/
           # An explicit key for restoring and saving the cache
           # Evict cache when we change our west workspace
-          key: FSW-${{ runner.os }}-${{ hashFiles('/home/worker/FSW/FSW.git/west.yml') }}
+          key: FSW-${{ runner.os }}-${{ hashFiles('FSW/**.yml') }}
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
@@ -75,7 +75,6 @@ jobs:
         working-directory: FSW
         shell: bash
         run: |
-          set +o xtrace
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
