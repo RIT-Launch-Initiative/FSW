@@ -56,12 +56,13 @@ jobs:
           restore-keys: |
             zephyr-${{ runner.os }}-
 
-      - name: Cache
+      - name: Cache FSW
         uses: actions/cache@v4.0.2
         with:
           # A list of files, directories, and wildcard patterns to cache and restore
           path: /home/worker/FSW/
           # An explicit key for restoring and saving the cache
+          # Evict cache when we change our west workspace
           key: FSW-${{ runner.os }}-${{ hashFiles('/home/worker/FSW/FSW.git/west.yml') }}
 
       - name: Setup Zephyr project
@@ -77,5 +78,5 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
-          west twister $(echo "${{ env.test_roots }}" | while IFS= read line; do echo -n "-T $line"; done) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          west twister $(echo "${{ env.test_roots }}" | while IFS= read line; do echo -n " -T $line "; done) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
 
