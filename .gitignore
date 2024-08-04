@@ -53,6 +53,7 @@ dkms.conf
 
 build/
 *-build
+twister-out*/
 
 # Zephyr files
 .west

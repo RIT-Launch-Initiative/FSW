@@ -1,9 +1,9 @@
 sample:
   description:
-  name: tenants-and-tasks
+  name: openrocket-sensors
 common:
   build_only: true
   platform_allow:
     - native_sim
 tests:
-  samples.tenants_and_taks.default: {}
+  samples.openrocket_sensors.default: {}

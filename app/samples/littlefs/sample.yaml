@@ -1,9 +1,9 @@
 sample:
   description:
-  name: udp-bcast
+  name: littlefs
 common:
   build_only: true
   platform_allow:
-    - native_sim
+    - nucleo_f446re
 tests:
-  samples.udp_bcast.default: {}
+  samples.littlefs.default: {}
