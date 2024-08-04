@@ -42,7 +42,10 @@ jobs:
           key: python-${{ runner.os }}-${{ hashFiles('**/*.lock') }}
           restore-keys: |
             python-${{ runner.os }}-
-
+    
+      - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
+        run: sudo apt-get install -y gcc-multilib g++-multilib
+        
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
