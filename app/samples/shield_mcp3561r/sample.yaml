@@ -6,5 +6,5 @@ common:
   platform_allow:
     - nucleo_f446re
 tests:
-  shield_mcp3561r.default:
+  samples.shield_mcp3561r.default:
     extra_args: SHIELD="launch_mikroe"

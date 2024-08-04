@@ -6,4 +6,4 @@ common:
   platform_allow:
     - native_sim
 tests:
-  app.default: {}
+  samples.message_passing.default: {}

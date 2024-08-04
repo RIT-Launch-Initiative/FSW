@@ -6,4 +6,4 @@ common:
   platform_allow:
     - native_sim
 tests:
-  tenants_and_taks.default: {}
+  samples.tenants_and_taks.default: {}

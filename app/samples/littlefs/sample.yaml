@@ -6,4 +6,4 @@ common:
   platform_allow:
     - nucleo_f446re
 tests:
-  littlefs.default: {}
+  samples.littlefs.default: {}

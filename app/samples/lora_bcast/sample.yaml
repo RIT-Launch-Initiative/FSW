@@ -6,4 +6,4 @@ common:
   platform_allow:
     - radio_module
 tests:
-  lora_back_and_forth.default: {}
+  samples.lora_back_and_forth.default: {}

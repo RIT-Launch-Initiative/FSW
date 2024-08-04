@@ -6,4 +6,4 @@ common:
   platform_allow:
     - native_sim
 tests:
-  udp_bcast.default: {}
+  samples.udp_bcast.default: {}

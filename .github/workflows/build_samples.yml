@@ -17,6 +17,7 @@ env:
     app/samples/shield_mcp3561r
     app/samples/lora_bcast
     app/samples/udb_bcast
+    app/samples/message_passing
 
 jobs:
   build:
