@@ -18,9 +18,8 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         app:
-          - app/backplane/app_power_module
-          - app/backplane/app_radio_module
-          - app/backplane/app_sensor_module
+          - app/samples/littlefs
+          - app/samples/sensor
 
     runs-on: ${{ matrix.os }}
     steps:
