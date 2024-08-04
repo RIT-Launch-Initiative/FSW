@@ -18,6 +18,9 @@ env:
     app/samples/lora_bcast
     app/samples/udb_bcast
     app/samples/message_passing
+    app/samples/openrocket_sensors
+    app/samples/tenants_and_tasks
+
   
   platforms: |
     nucleo_f446re
@@ -82,5 +85,5 @@ jobs:
             done;
           }       
           
-          west twister $(add_arglist -T ${{ env.test_roots}}) $(add_arglist -p ${{ env.platforms }}) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          west twister $(add_arglist -T "${{ env.test_roots}}") $(add_arglist -p "${{ env.platforms }}") $(if ["${{ runner.os }}" = "Linux"]; then add_arglist -p "${{ env.linux_only_platforms}}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
 
