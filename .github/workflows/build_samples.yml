@@ -20,6 +20,9 @@ jobs:
         app:
           - app/samples/littlefs
           - app/samples/sensor
+          - app/samples/shield_blinky
+          - app/samples/shield_mcp3561r
+          - app/samples/lora_bcast
 
     runs-on: ${{ matrix.os }}
     steps:
