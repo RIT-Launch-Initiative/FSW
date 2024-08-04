@@ -18,8 +18,6 @@ env:
     app/samples/shield_mcp3561r
     app/samples/lora_bcast
     app/samples/udb_bcast
-    app/samples/openrocket_sensors
-    app/samples/tenants_and_tasks
 
 jobs:
   build:
@@ -43,9 +41,6 @@ jobs:
           restore-keys: |
             python-${{ runner.os }}-
     
-      - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
-        run: sudo apt-get install -y gcc-multilib g++-multilib
-        
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
