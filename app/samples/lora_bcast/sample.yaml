@@ -3,10 +3,7 @@ sample:
   name: lora-back-and-forth
 common:
   build_only: true
-  integration_platforms:
+  platform_allow:
     - radio_module
 tests:
-  app.default: {}
-  app.debug:
-    extra_overlay_confs:
-      - debug.conf
+  samples.lora_back_and_forth.default: {}
