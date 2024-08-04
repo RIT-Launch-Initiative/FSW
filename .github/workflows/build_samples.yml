@@ -25,7 +25,7 @@ env:
   platforms: |
     nucleo_f446re
     radio_module
-    sensor_module@2
+    sensor_module
     power_module
   linux_only_platforms: |
     native_sim
