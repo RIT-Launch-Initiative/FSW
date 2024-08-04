@@ -35,7 +35,6 @@
         prescale = "PRE_1";
         spi-max-frequency = <DT_FREQ_M(8)>; // pg. 12, Table 1.1 MAX 20MHz
 
-
         channel@0 {
             reg = <0>;
             zephyr,gain = "ADC_GAIN_1";
@@ -49,5 +48,4 @@
 
         };
     };
-
 };

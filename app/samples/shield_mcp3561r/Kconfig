@@ -10,8 +10,6 @@ menu "Zephyr"
 source "Kconfig.zephyr"
 endmenu
 
-
-
 module = APP_MCP_SAMPLE
 module-str = APP_MCP_SAMPLE
 source "subsys/logging/Kconfig.template.log_config"
