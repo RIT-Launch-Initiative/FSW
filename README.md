@@ -2,9 +2,13 @@
 Current source code for Launch's custom flight hardware utilizing Zephyr RTOS. This includes but is not limited to the Backplane (modules), GRIM and POTATO.  
 
 ### Compiling
-To compile, you can look at the commands in the Makefile. Type make and the board name. If this is a backplane module, don't include the word module (i.e `make sensor`)
-You can just run `make` with no arguments if you plan on compiling the same board again. If you compile for another baord, 
-a pristine build should occur automatically.
+To compile, navigate to the directory of the application (`app/` folders) and look for a makefile.
+If no makefile is found, most applications can be built with 
+```sh
+west build <PATH TO YOUR APP> -p auto -b <BOARD> [--shield=<YOUR SHIELD>]
+```
+examples:
+
 
 ### Running
 Connect to board and run west flash.
