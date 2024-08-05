@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "zephyr/lib/mem_blocks",
+		"source" : "/home/aaron/Development/Launch/zephyr/lib/mem_blocks"
+	}
+}

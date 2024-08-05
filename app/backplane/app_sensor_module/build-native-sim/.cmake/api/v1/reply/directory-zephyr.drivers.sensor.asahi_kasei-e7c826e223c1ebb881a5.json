@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "zephyr/drivers/sensor/asahi_kasei",
+		"source" : "/home/aaron/Development/Launch/zephyr/drivers/sensor/asahi_kasei"
+	}
+}

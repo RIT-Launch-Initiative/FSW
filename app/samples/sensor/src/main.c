@@ -79,7 +79,7 @@ int main(void) {
 
 	LOG_INF("Current ticks_per_ms is: %d", CONFIG_SYS_CLOCK_TICKS_PER_SEC);
 
-	k_tid_t read_mag_id = k_thread_create(
+	k_thread_create(
 			&read_mag_thread_data, 
 			read_mag_stack, K_THREAD_STACK_SIZEOF(read_mag_stack), 
 			&read_mag_thread, NULL, NULL, NULL, 

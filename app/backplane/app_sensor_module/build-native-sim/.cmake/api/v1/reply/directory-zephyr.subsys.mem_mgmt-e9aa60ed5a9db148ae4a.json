@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "zephyr/subsys/mem_mgmt",
+		"source" : "/home/aaron/Development/Launch/zephyr/subsys/mem_mgmt"
+	}
+}

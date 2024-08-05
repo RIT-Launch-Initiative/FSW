@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "modules/FSW/drivers/sensor",
+		"source" : "/home/aaron/Development/Launch/FSW/drivers/sensor"
+	}
+}

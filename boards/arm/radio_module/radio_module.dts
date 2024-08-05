@@ -63,7 +63,7 @@
         dbguart = &uart4;
         ubxlib-usart2 = &usart2;
 
-        lora0 = &lora;
+        lora0 = &lora0;
         gnss = &maxm10s;
     };
 };
@@ -144,7 +144,7 @@
     pinctrl-names = "default";
     status = "okay";
 
-    lora: lora@0 {
+    lora0: lora0@0 {
         compatible = "semtech,sx1276";
         reg = <0>;
         reset-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;

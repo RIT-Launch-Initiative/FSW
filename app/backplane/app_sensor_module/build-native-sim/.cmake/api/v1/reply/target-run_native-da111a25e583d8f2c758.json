@@ -1,0 +1,87 @@
+{
+	"backtrace" : 3,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"include"
+		],
+		"files" : 
+		[
+			"/home/aaron/Development/Launch/zephyr/cmake/emu/native.cmake",
+			"/home/aaron/Development/Launch/zephyr/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 2071,
+				"parent" : 0
+			},
+			{
+				"file" : 0,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 3,
+				"parent" : 2
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "zephyr_pre0::@d36e55b69c1b90fb26b2"
+		},
+		{
+			"id" : "native_runner_executable::@d36e55b69c1b90fb26b2"
+		}
+	],
+	"id" : "run_native::@d36e55b69c1b90fb26b2",
+	"name" : "run_native",
+	"paths" : 
+	{
+		"build" : "zephyr",
+		"source" : "/home/aaron/Development/Launch/zephyr"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 3,
+			"isGenerated" : true,
+			"path" : "build-native-sim/zephyr/CMakeFiles/run_native",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "build-native-sim/zephyr/CMakeFiles/run_native.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

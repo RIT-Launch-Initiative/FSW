@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "modules/cmsis/cmsis/CMSIS",
+		"source" : "/home/aaron/Development/Launch/modules/hal/cmsis/CMSIS"
+	}
+}

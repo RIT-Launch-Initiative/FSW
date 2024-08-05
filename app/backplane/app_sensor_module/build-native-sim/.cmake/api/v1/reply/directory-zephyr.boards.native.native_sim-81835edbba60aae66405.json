@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "zephyr/boards/native/native_sim",
+		"source" : "/home/aaron/Development/Launch/zephyr/boards/native/native_sim"
+	}
+}

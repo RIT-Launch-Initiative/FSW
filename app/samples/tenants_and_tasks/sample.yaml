@@ -3,10 +3,7 @@ sample:
   name: tenants-and-tasks
 common:
   build_only: true
-  integration_platforms:
+  platform_allow:
     - native_sim
 tests:
-  app.default: {}
-  app.debug:
-    extra_overlay_confs:
-      - debug.conf
+  samples.tenants_and_taks.default: {}

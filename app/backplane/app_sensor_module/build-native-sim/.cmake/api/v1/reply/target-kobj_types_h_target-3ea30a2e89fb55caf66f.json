@@ -1,0 +1,87 @@
+{
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"gen_kobj"
+		],
+		"files" : 
+		[
+			"/home/aaron/Development/Launch/zephyr/cmake/kobj.cmake",
+			"/home/aaron/Development/Launch/zephyr/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 841,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 31,
+				"parent" : 1
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "parse_syscalls_target::@d36e55b69c1b90fb26b2"
+		}
+	],
+	"id" : "kobj_types_h_target::@d36e55b69c1b90fb26b2",
+	"name" : "kobj_types_h_target",
+	"paths" : 
+	{
+		"build" : "zephyr",
+		"source" : "/home/aaron/Development/Launch/zephyr"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1,
+				2
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 2,
+			"isGenerated" : true,
+			"path" : "build-native-sim/zephyr/CMakeFiles/kobj_types_h_target",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "build-native-sim/zephyr/CMakeFiles/kobj_types_h_target.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "build-native-sim/zephyr/include/generated/zephyr/kobj-types-enum.h.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

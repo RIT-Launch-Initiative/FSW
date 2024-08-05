@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "zephyr/drivers/clock_control",
+		"source" : "/home/aaron/Development/Launch/zephyr/drivers/clock_control"
+	}
+}

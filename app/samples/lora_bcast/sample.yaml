@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: lora-back-and-forth
+common:
+  build_only: true
+  platform_allow:
+    - radio_module
+tests:
+  samples.lora_back_and_forth.default: {}

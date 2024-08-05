@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "zephyr/drivers/usb/common",
+		"source" : "/home/aaron/Development/Launch/zephyr/drivers/usb/common"
+	}
+}

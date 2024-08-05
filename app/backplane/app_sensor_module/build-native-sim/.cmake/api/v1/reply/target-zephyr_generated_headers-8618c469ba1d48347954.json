@@ -1,0 +1,53 @@
+{
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"add_dependencies"
+		],
+		"files" : 
+		[
+			"/home/aaron/Development/Launch/zephyr/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 846,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 847,
+				"parent" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "version_h::@d36e55b69c1b90fb26b2"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "offsets_h::@d36e55b69c1b90fb26b2"
+		}
+	],
+	"id" : "zephyr_generated_headers::@d36e55b69c1b90fb26b2",
+	"name" : "zephyr_generated_headers",
+	"paths" : 
+	{
+		"build" : "zephyr",
+		"source" : "/home/aaron/Development/Launch/zephyr"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

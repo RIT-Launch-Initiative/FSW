@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "zephyr/subsys/net/pkt_filter",
+		"source" : "/home/aaron/Development/Launch/zephyr/subsys/net/pkt_filter"
+	}
+}

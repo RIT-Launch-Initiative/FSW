@@ -1,0 +1,22 @@
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Zephyr"
+source "Kconfig.zephyr"
+endmenu
+
+config INA219_QUEUE_SIZE
+    int "INA219 Queue Size"
+    default 16
+    help
+      The number of samples to store in the INA219 processing queue.
+
+config ADC_QUEUE_SIZE
+    int "ADC Queue Size"
+    default 16
+    help
+      The number of samples to store in the ADC processing queue.
+
+module = APP_POWER_MODULE
+module-str = APP_POWER_MODULE
+source "subsys/logging/Kconfig.template.log_config"
