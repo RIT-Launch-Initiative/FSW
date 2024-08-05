@@ -13,6 +13,6 @@ config F_CORE
     select CBPRINTF_FP_SUPPORT
     
     rsource "os/Kconfig"
-    # rsource "net"
+    rsource "net/Kconfig"
     rsource "device/sensor/Kconfig"
     #rsource "device/adc/Kconfig" for future expansion
