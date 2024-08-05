@@ -6,3 +6,14 @@ config F_CORE
     help
       This option enables core functionality for all flight software
 
+    # All of f core uses C++
+    depends on STD_CPP20
+    select REQUIRES_FULL_LIBCPP
+
+    select CBPRINTF_FP_SUPPORT
+    
+    if F_CORE
+      # rsource "os"
+      # rsource "net"
+      # rsource "device"
+    endif
