@@ -3,6 +3,11 @@
 
 zephyr_library()
 
+
+add_subdirectory_ifdef(CONFIG_F_CORE_OS os)
+add_subdirectory_ifdef(CONFIG_F_CORE_NET net)
+add_subdirectory_ifdef(CONFIG_F_CORE_NET net)
+
 FILE(GLOB sources
         net/device/*.cpp
         net/network/*.cpp

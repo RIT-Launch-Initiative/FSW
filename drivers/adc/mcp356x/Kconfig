@@ -2,9 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config MCP356X
-	bool "MCP356X ADC"
+	bool "Driver for the Microchip MCP356X ADC"
 	default n
+	depends on DT_HAS_MICROCHIP_MCP356X_ENABLED
+
 	select SPI
+	select ADC
 	select ADC_CONFIGURABLE_INPUTS
 	help
 	  Enable MCP3561/MCP3562/MCP3564 ADC. 1, 2, and 4 bit adcs
