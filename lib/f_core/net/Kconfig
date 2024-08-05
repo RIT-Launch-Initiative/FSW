@@ -1,0 +1,16 @@
+config F_CORE_NET
+    bool "F Core Networking Libraries"
+    
+    select F_CORE
+    # depends on ENTROPY_GENERATOR
+
+    imply LORA
+    
+    select NETWORKING
+    select NET_UDP
+    select NET_SOCKETS
+    select NET_IPV4
+    select NET_L2_ETHERNET
+
+    
+    select NET_NATIVE if ARCH_POSIX
