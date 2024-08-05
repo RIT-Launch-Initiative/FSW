@@ -1,0 +1,2 @@
+config F_CORE_OS
+    bool "F-Core OS Primitives"

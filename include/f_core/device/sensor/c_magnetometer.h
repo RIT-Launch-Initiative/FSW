@@ -1,11 +1,16 @@
 #ifndef C_MAGNETOMETER_H
 #define C_MAGNETOMETER_H
 
+#ifndef CONFIG_F_CORE_SENSOR
+#error "In order to use these APIs, set CONFIG_F_CORE_SENSOR=y"
+#endif
+
 #include "c_sensor_device.h"
+
 #include <zephyr/device.h>
 
 class CMagnetometer : public CSensorDevice {
-public:
+  public:
     /**
      * Constructor
      * @param dev Zephyr device structure
@@ -22,13 +27,13 @@ public:
      */
     sensor_value GetSensorValue(sensor_channel chan) const override;
 
-protected:
+  protected:
     /**
      * Destructor
      */
     ~CMagnetometer() = default;
 
-private:
+  private:
     using CBase = CSensorDevice;
 
     typedef struct {
@@ -39,6 +44,5 @@ private:
 
     SMagnetometerData magData;
 };
-
 
 #endif //C_MAGNETOMETER_H
