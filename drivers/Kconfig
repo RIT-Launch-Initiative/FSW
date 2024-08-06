@@ -1,7 +1,7 @@
-# Copyright (c) 2021 Nordic Semiconductor ASA
+# Copyright (c) 2024 Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
-menu "Drivers"
-rsource "sensor/Kconfig"
-rsource "adc/Kconfig"
+menu "RIT Launch Drivers"
+    rsource "sensor/Kconfig"
+    rsource "adc/Kconfig"
 endmenu

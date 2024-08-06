@@ -6,8 +6,12 @@
 #ifndef C_TENANT_H
 #define C_TENANT_H
 
+#ifndef CONFIG_F_CORE_OS
+#error "In order to use these APIs, set CONFIG_F_CORE_OS=y"
+#endif
+
 class CTenant {
-public:
+  public:
     /**
      * Constructor
      * @param name Name of the tenant
@@ -33,9 +37,9 @@ public:
      * Run the tenant
      */
     virtual void Run() = 0;
-protected:
-    const char *name;
 
+  protected:
+    const char *name;
 };
 
 #endif //C_TENANT_H

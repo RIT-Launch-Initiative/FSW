@@ -1,6 +1,7 @@
-menu "Libraries"
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
 
-rsource "launch_core_classic/Kconfig"
-rsource "f_core/Kconfig"
-
+menu "RIT Launch Libraries"
+    rsource "launch_core_classic/Kconfig"
+    rsource "f_core/Kconfig"
 endmenu

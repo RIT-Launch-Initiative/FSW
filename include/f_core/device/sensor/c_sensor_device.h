@@ -1,25 +1,25 @@
 #ifndef C_SENSOR_DEVICE_H
 #define C_SENSOR_DEVICE_H
 
+#ifndef CONFIG_F_CORE_SENSOR
+#error "In order to use these APIs, set CONFIG_F_CORE_SENSOR=y"
+#endif
+
 #include <zephyr/drivers/sensor.h>
 
 class CSensorDevice {
-public:
+  public:
     /**
      * Constructor
      * @param[in] device Zephyr device structure
      */
-    CSensorDevice(const device &device) : dev(device) {
-        isInitialized = device_is_ready(&dev);
-    }
+    CSensorDevice(const device &device) : dev(device) { isInitialized = device_is_ready(&dev); }
 
     /**
      * First part of updating sensor data. Subclasses should call this and then update its own state
      * @return true if fetching the sensor value was successful, false otherwise
      */
-    virtual bool UpdateSensorValue() {
-        return (isInitialized && 0 == sensor_sample_fetch(&dev));
-    }
+    virtual bool UpdateSensorValue() { return (isInitialized && 0 == sensor_sample_fetch(&dev)); }
 
     /**
      * Get a sensor value from a specific channel
@@ -55,11 +55,9 @@ public:
      * Get whether the device is ready or not
      * @return true if the device is ready, false otherwise
      */
-    bool IsReady() const {
-        return isInitialized;
-    }
+    bool IsReady() const { return isInitialized; }
 
-protected:
+  protected:
     const device &dev;
 
     /**
@@ -67,7 +65,7 @@ protected:
      */
     ~CSensorDevice() = default;
 
-private:
+  private:
     bool isInitialized;
 };
 

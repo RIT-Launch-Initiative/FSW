@@ -6,3 +6,13 @@ config F_CORE
     help
       This option enables core functionality for all flight software
 
+    # All of f core uses C++
+    select CPP
+    select REQUIRES_FULL_LIBCPP
+
+    select CBPRINTF_FP_SUPPORT
+    
+    rsource "os/Kconfig"
+    rsource "net/Kconfig"
+    rsource "device/sensor/Kconfig"
+    #rsource "device/adc/Kconfig" for future expansion

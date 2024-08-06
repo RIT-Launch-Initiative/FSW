@@ -1,0 +1,5 @@
+config F_CORE_SENSOR
+    bool "F Core Sensor APIs"
+    
+    select F_CORE
+    select SENSOR

@@ -1,11 +1,16 @@
 #ifndef C_BAROMETER_DEVICE_H
 #define C_BAROMETER_DEVICE_H
 
+#ifndef CONFIG_F_CORE_SENSOR
+#error "In order to use these APIs, set CONFIG_F_CORE_SENSOR=y"
+#endif
+
 #include "c_sensor_device.h"
+
 #include <zephyr/device.h>
 
 class CBarometer : public CSensorDevice {
-public:
+  public:
     /**
      * Constructor
      * @param[in] dev Zephyr device structure
@@ -22,7 +27,7 @@ public:
      */
     sensor_value GetSensorValue(sensor_channel chan) const override;
 
-private:
+  private:
     using CBase = CSensorDevice;
 
     typedef struct {
@@ -32,7 +37,5 @@ private:
 
     SBarometerData barometerData;
 };
-
-
 
 #endif //C_BAROMETER_DEVICE_H
