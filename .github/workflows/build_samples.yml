@@ -96,4 +96,15 @@ jobs:
           }       
           
           west twister $(add_arglist -T "${{ env.test_roots}}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms}}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
-
+      - name: Generate Report
+        working-directory: FSW
+        if: always()
+        shell: bash
+        run: |
+          echo "Hello :)" > $GITHUB_STEP_SUMMARY
+          echo "```" > $GITHUB_STEP_SUMMARY
+          ls > $GITHUB_STEP_SUMMARY
+          echo "```" > $GITHUB_STEP_SUMMARY
+          
+          
+      
