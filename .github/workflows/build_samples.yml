@@ -101,10 +101,6 @@ jobs:
         if: always()
         shell: bash
         run: |
-          echo "Hello :)" > $GITHUB_STEP_SUMMARY
-          echo "```" > $GITHUB_STEP_SUMMARY
-          ls > $GITHUB_STEP_SUMMARY
-          echo "```" > $GITHUB_STEP_SUMMARY
-          
+          echo "### Hello world! :rocket:" >> $GITHUB_STEP_SUMMARY          
           
       
