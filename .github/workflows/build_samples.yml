@@ -102,8 +102,7 @@ jobs:
         shell: bash
         run: |
           echo "### Test Reuilts: :rocket:" >> $GITHUB_STEP_SUMMARY          
-          echo "\`\`\`"  >> $GITHUB_STEP_SUMMARY  
-          ls >> $GITHUB_STEP_SUMMARY
-          pwd >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`xml"  >> $GITHUB_STEP_SUMMARY  
+          cat twister-out/twister_report.xml >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`"  >> $GITHUB_STEP_SUMMARY  
       
