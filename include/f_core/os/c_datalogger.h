@@ -4,6 +4,7 @@
 
 enum class LogMode { Growing, Circular, FixedSize };
 
+/// @brief Internal, type-unsafe datalogger. Don't use this directly. Use CDataLogger instead
 namespace detail {
 class datalogger {
   public:
@@ -26,7 +27,7 @@ template <typename T> class CDataLogger {
     static_assert(std::is_trivial<PacketType>::value,
                   "You probably don't want to serialize non-trivial types this way");
     /// Non standard layout types can have vtable pointers or other such nonsense in their layout.
-    /// You should use a simple struct for your packet rather than serializing a complicated class
+    /// You should use a simple struct for your packet rather
     static_assert(std::is_standard_layout<PacketType>::value, "Non standard layout types will not serialize correctly");
 
   public:
@@ -35,6 +36,13 @@ template <typename T> class CDataLogger {
     int write(const PacketType &packet) {
         return internal.write(reinterpret_cast<const void *>(&packet), sizeof(PacketType));
     }
+    /**
+     * Close the file and flush to disk.
+     * Make sure to do this or some of your data may not be sent to the disk before power is cut/the chip is turned off
+     * @retval 0 on success;
+     * @retval -ENOTSUP when not implemented by underlying file system driver;
+     * @retval <0 a negative errno code on error.
+     */
     int close() { return internal.close(); }
 
   private:

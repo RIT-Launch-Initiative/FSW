@@ -14,8 +14,21 @@ datalogger::datalogger(const char *filename, LogMode mode, std::size_t num_packe
     }
     LOG_DBG("Successfully opened %s", filename);
 }
-int datalogger::write(const void *data, std::size_t size) { return fs_write(&file, data, size); }
-
+int datalogger::write(const void *data, std::size_t size) {
+    if (mode = LogMode::Growing) {
+        return fs_write(&file, data, size);
+    }
+    size_t offset = fs_tell(&file);
+    if (offset < 0) {
+        LOG_ERR("Error Seeking file: %d", offset);
+        return offset;
+    }
+    if (mode == LogMode::FixedSize && offset / size + 1 < num_packets) {
+        return fs_write()
+    } else {
+        return ENOSPC;
+    }
+}
 int datalogger::close() {
     LOG_DBG("Closing %s", filename);
     return fs_close(&file);
