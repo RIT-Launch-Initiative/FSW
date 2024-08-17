@@ -15,7 +15,7 @@ datalogger::datalogger(const char *filename, LogMode mode, std::size_t num_packe
     LOG_DBG("Successfully opened %s", filename);
 }
 int datalogger::write(const void *data, std::size_t size) {
-    if (mode = LogMode::Growing) {
+    if (mode == LogMode::Growing) {
         return fs_write(&file, data, size);
     }
     size_t offset = fs_tell(&file);

@@ -1,3 +1,10 @@
+#ifndef C_DATALOGGER_H
+#define C_DATALOGGER_H
+
+#ifndef CONFIG_F_CORE_OS
+#error "In order to use these APIs, set CONFIG_F_CORE_OS=y"
+#endif
+
 #include <cstdint>
 #include <type_traits>
 #include <zephyr/fs/fs.h>
@@ -50,3 +57,5 @@ template <typename T> class CDataLogger {
   private:
     detail::datalogger internal;
 };
+
+#endif
