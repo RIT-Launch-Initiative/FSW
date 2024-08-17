@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/sensor_module.iml" filepath="$PROJECT_DIR$/.idea/sensor_module.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/sensor-module.iml" filepath="$PROJECT_DIR$/.idea/sensor-module.iml" />
     </modules>
   </component>
 </project>
