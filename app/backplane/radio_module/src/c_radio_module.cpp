@@ -5,7 +5,7 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 
 K_MSGQ_DEFINE(broadcastQueue, 256, 10, 4);
-static auto broadcastMsgQueue = CMsgqMessagePort<CRadioModule::RadioData>(broadcastQueue);
+static auto broadcastMsgQueue = CMsgqMessagePort<CRadioModule::RadioBroadcastData>(broadcastQueue);
 
 CRadioModule::CRadioModule() : CProjectConfiguration(), loraBroadcastMessagePort(broadcastMsgQueue) {
 }
@@ -14,8 +14,11 @@ void CRadioModule::AddTenantsToTasks() {
     // Networking
     networkTask.AddTenant(broadcastTenant);
 
-    // Sensing
-    sensingTask.AddTenant(sensingTenant);
+    // GNSS
+    gnssTask.AddTenant(sensingTenant);
+
+    // LoRa
+    loraTask.AddTenant(loraTransmitTenant);
 }
 
 void CRadioModule::AddTasksToRtos() {

@@ -11,7 +11,7 @@
 
 class CLoraTransmitTenant : public CTenant {
 public:
-    explicit CLoraTransmitTenant(const char* name, CLora& lora, CMessagePort<CRadioModule::RadioBroadcastData> loraTransmitPort)
+    explicit CLoraTransmitTenant(const char* name, CLora& lora, CMessagePort<CRadioModule::RadioBroadcastData>& loraTransmitPort)
         : CTenant(name), lora(lora), loraTransmitPort(loraTransmitPort)
     {
     }

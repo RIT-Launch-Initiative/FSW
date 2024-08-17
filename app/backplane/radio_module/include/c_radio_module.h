@@ -5,6 +5,7 @@
 #include "c_bcast_rcv_tenant.h"
 
 // F-Core Includes
+#include <c_lora_transmit_tenant.h>
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
@@ -40,15 +41,21 @@ public:
     void SetupCallbacks() override;
 
 private:
+    // Devices
+    CLora lora = DEVICE_DT_GET(DT_ALIAS(lora));
+
     // Message Ports
     CMessagePort<RadioBroadcastData>& loraBroadcastMessagePort;
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant"};
+    CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, loraBroadcastMessagePort};
+    CBroadcastReceiveTenant broadcastReceiveTenant{"Broadcast Receive Tenant", "10.1.1.1", 10000};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 128, 0};
-    CTask sensingTask{"Sensing Task", 15, 128, 0};
+    CTask gnssTask{"GNSS Task", 15, 128, 0};
+    CTask loraTask{"LoRa Task", 15, 128, 0};
 };
 
 
