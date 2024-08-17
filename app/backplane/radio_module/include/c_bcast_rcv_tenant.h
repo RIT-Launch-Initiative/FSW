@@ -13,7 +13,7 @@ public:
     {
     }
 
-    ~CBroadcastTenant() override = default;
+    ~CBroadcastReceiveTenant() override = default;
 
     void Startup() override;
 

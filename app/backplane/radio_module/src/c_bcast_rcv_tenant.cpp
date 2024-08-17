@@ -5,8 +5,6 @@
 
 LOG_MODULE_REGISTER(CBroadcastReceiveTenant);
 
-extern k_msgq broadcastQueue;
-
 void CBroadcastReceiveTenant::Startup() {
 }
 

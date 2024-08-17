@@ -13,6 +13,12 @@
 
 class CRadioModule : public CProjectConfiguration {
 public:
+    struct RadioBroadcastData {
+        uint8_t port;
+        uint8_t data[];
+        uint8_t size;
+    };
+
     /**
      * Constructor
      */
@@ -35,7 +41,7 @@ public:
 
 private:
     // Message Ports
-    CMessagePort<uint8_t[256]>& loraBroadcastMessagePort;
+    CMessagePort<RadioBroadcastData>& loraBroadcastMessagePort;
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant"};
