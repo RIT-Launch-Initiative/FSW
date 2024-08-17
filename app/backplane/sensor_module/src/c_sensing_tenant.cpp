@@ -31,11 +31,19 @@ void CSensingTenant::Run() {
 
     // Individual
     CAccelerometer accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer)));
-    CMagnetometer magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer)));
+
     CTemperatureSensor thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer)));
 
+#ifndef CONFIG_ARCH_POSIX // TODO: No magnetometer simulation capability yet
+    CMagnetometer magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer)));
+#endif
+
     CSensorDevice* sensors[] = {&imuAccelerometer, &imuGyroscope, &primaryBarometer, &secondaryBarometer,
-                                &accelerometer, &magnetometer, &thermometer};
+                                &accelerometer, &thermometer,
+#ifndef CONFIG_ARCH_POSIX // TODO: No magnetometer simulation capability yet
+        &magnetometer
+#endif
+    };
 
     CSensorModule::SensorData data{};
     while (true) {
@@ -43,9 +51,9 @@ void CSensingTenant::Run() {
             sensor->UpdateSensorValue();
         }
 
-        data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
-        data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
-        data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
+        data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
+        data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+        data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
 
         data.ImuAcceleration.X = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
         data.ImuAcceleration.Y = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
@@ -55,9 +63,11 @@ void CSensingTenant::Run() {
         data.ImuGyroscope.Y = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
         data.ImuGyroscope.Z = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
 
-        data.Magnetometer.X = magnetometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
-        data.Magnetometer.Y = magnetometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
-        data.Magnetometer.Z = magnetometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
+#ifndef CONFIG_ARCH_POSIX // TODO: No magnetometer simulation capability yet
+        data.Magnetometer.X = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_X);
+        data.Magnetometer.Y = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Y);
+        data.Magnetometer.Z = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Z);
+#endif
 
         data.PrimaryBarometer.Pressure = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
         data.PrimaryBarometer.Temperature = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
