@@ -2,18 +2,23 @@
 // #include <vecto/r>
 #include <zephyr/kernel.h>
 
-struct PacketA {
+struct Packet {
     uint8_t a;
     uint8_t b;
 };
-CDataLogger<PacketA> alogger{"/lfs/a.bin"};
+CDataLogger<Packet> expand_logger{"/lfs/expand.bin"};
+CDataLogger<Packet> fill_logger{"/lfs/fill.bin", LogMode::FixedSize, 10};
+CDataLogger<Packet> wrap_logger{"/lfs/wrap.bin", LogMode::Circular, 10};
 
 int main() {
-    printk("asdsadsaads\n");
     for (uint8_t i = 0; i < 100; i++) {
-        alogger.write({i, 100 - i});
+        expand_logger.write({i, 100 - i});
+        fill_logger.write({i, 100 - i});
+        wrap_logger.write({i, 100 - i});
         k_msleep(10);
     }
-    alogger.close();
+    expand_logger.close();
+    fill_logger.close();
+    wrap_logger.close();
     return 1;
 }

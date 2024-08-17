@@ -22,13 +22,15 @@ class datalogger {
 template <typename T> class CDataLogger {
   public:
     using PacketType = T;
-    /// If the packet is non trivial, it has special rules about how to create it and destroy it.
-    /// When reading the saved data, we no longer have that information so wouldn't be able to reconstruct the Packet correctly
     static_assert(std::is_trivial<PacketType>::value,
-                  "You probably don't want to serialize non-trivial types this way");
-    /// Non standard layout types can have vtable pointers or other such nonsense in their layout.
-    /// You should use a simple struct for your packet rather
-    static_assert(std::is_standard_layout<PacketType>::value, "Non standard layout types will not serialize correctly");
+                  "You probably don't want to serialize non-trivial types this way"
+                  "If the packet is non trivial, it has special rules about how to create it and destroy it."
+                  "When reading the saved data, we no longer have that information so wouldn't be able to reconstruct "
+                  "the Packet correctly");
+    static_assert(std::is_standard_layout<PacketType>::value,
+                  "Non standard layout types will not serialize correctly"
+                  "Non standard layout types can have vtable pointers or other such nonsense in their layout."
+                  "You should use a simple struct for your packet instead");
 
   public:
     CDataLogger(const char *filename) : internal(filename, LogMode::Growing, 0) {}

@@ -23,11 +23,22 @@ int datalogger::write(const void *data, std::size_t size) {
         LOG_ERR("Error Seeking file: %d", offset);
         return offset;
     }
-    if (mode == LogMode::FixedSize && offset / size + 1 < num_packets) {
-        return fs_write()
-    } else {
-        return ENOSPC;
+    size_t index = offset / size;
+
+    if (mode == LogMode::FixedSize) {
+        if (index < num_packets) {
+            return fs_write(&file, data, size);
+        } else {
+            return ENOSPC;
+        }
+    } else if (mode == LogMode::Circular) {
+        if (index >= num_packets) {
+            fs_seek(&file, 0, FS_SEEK_SET);
+        }
+        return fs_write(&file, data, size);
     }
+    LOG_ERR("Invalid LogMode: %d", (int) mode);
+    return -EINVAL;
 }
 int datalogger::close() {
     LOG_DBG("Closing %s", filename);
