@@ -57,14 +57,6 @@ namespace NTypes
         double Longitude;
         float Altitude;
     } GnssCoordinateData;
-
-    typedef struct __attribute__((packed))
-    {
-        uint64_t CpuTimeMs;
-        uint64_t GnssTime;
-        gnss_data_t GnssData;
-    } GnssTimeSynchronizationdata;
-
 }
 
 #endif

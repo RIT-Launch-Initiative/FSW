@@ -43,24 +43,30 @@ void CSensingTenant::Run() {
             sensor->UpdateSensorValue();
         }
 
-        data.AccelerationX = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
-        data.AccelerationY = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
-        data.AccelerationZ = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
+        data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
+        data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
+        data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
 
-        data.GyroscopeX = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
-        data.GyroscopeY = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
-        data.GyroscopeZ = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
+        data.ImuAcceleration.X = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
+        data.ImuAcceleration.Y = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+        data.ImuAcceleration.Z = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
 
-        data.Pressure = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
-        data.Temperature = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+        data.ImuGyroscope.X = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
+        data.ImuGyroscope.Y = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
+        data.ImuGyroscope.Z = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
 
-        LOG_INF(
-            "\nAccelerationX: %f\nAccelerationY: %f\nAccelerationZ: %f"
-            "\nGyroscopeX: %f\nGyroscopeY: %f\nGyroscopeZ: %f"
-            "\nPressure: %f\nTemperature: %f\n",
-            (double) data.AccelerationX, (double) data.AccelerationY, (double) data.AccelerationZ,
-            (double) data.GyroscopeX, (double) data.GyroscopeY, (double) data.GyroscopeZ,
-            (double) data.Pressure, (double) data.Temperature);
+        data.Magnetometer.X = magnetometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
+        data.Magnetometer.Y = magnetometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
+        data.Magnetometer.Z = magnetometer.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
+
+        data.PrimaryBarometer.Pressure = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
+        data.PrimaryBarometer.Temperature = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+
+        data.SecondaryBarometer.Pressure = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
+        data.SecondaryBarometer.Temperature = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+
+        data.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+
         k_msgq_put(&broadcastQueue, &data, K_NO_WAIT);
         k_msleep(100);
     }

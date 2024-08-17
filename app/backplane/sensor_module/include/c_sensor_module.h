@@ -13,6 +13,8 @@
 
 class CSensorModule : public CProjectConfiguration {
 public:
+
+    // TODO(aaron) Break this apart based on telemetry frequency eventually
     struct __attribute__((packed)) SensorData {
       NTypes::NSensor::AccelerometerData Acceleration;
 
