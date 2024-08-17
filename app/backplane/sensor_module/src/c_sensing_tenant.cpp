@@ -1,6 +1,6 @@
 #include "c_sensing_tenant.h"
+#include "c_sensor_module.h"
 
-#include <common.h>
 #include <f_core/device/sensor/c_accelerometer.h>
 #include <f_core/device/sensor/c_barometer.h>
 #include <f_core/device/sensor/c_gyroscope.h>
@@ -25,7 +25,7 @@ void CSensingTenant::Run() {
 
     CSensorDevice* sensors[] = {&imu_accelerometer, &imu_gyroscope, &barometer};
 
-    telemetry data;
+    CSensorModule::SensorData data{};
     while (true) {
         for (auto sensor : sensors) {
             sensor->UpdateSensorValue();

@@ -8,8 +8,8 @@
 
 class CBroadcastTenant : public CTenant {
 public:
-    explicit CBroadcastTenant(const char* name)
-        : CTenant(name)
+    explicit CBroadcastTenant(const char* name, const char *ipStr, const uint16_t srcPort, const uint16_t dstPort)
+        : CTenant(name), ip(CIPv4{ipStr}), udp(CUdpSocket{ip, srcPort, dstPort})
     {
     }
 
@@ -22,8 +22,8 @@ public:
     void Run() override;
 
 private:
-    CIPv4 ip{"10.0.0.0"};
-    CUdpSocket udp{ip, 10000, 10000};
+    CIPv4 ip;
+    CUdpSocket udp;
 };
 
 

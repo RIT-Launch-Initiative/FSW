@@ -1,6 +1,0 @@
-"FSW":"/home/aaron/Development/Launch/FSW":"/home/aaron/Development/Launch/FSW"
-"cmsis":"/home/aaron/Development/Launch/modules/hal/cmsis":"${ZEPHYR_CMSIS_CMAKE_DIR}"
-"hal_st":"/home/aaron/Development/Launch/modules/hal/st":"/home/aaron/Development/Launch/modules/hal/st"
-"stm32":"/home/aaron/Development/Launch/modules/hal/stm32":"/home/aaron/Development/Launch/modules/hal/stm32"
-"littlefs":"/home/aaron/Development/Launch/modules/fs/littlefs":"${ZEPHYR_LITTLEFS_CMAKE_DIR}"
-"loramac-node":"/home/aaron/Development/Launch/modules/lib/loramac-node":"${ZEPHYR_LORAMAC_NODE_CMAKE_DIR}"

@@ -1,6 +1,6 @@
 #include "c_broadcast_tenant.h"
 
-#include <common.h>
+#include <c_sensor_module.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CBroadcastTenant);
@@ -15,9 +15,9 @@ void CBroadcastTenant::PostStartup() {
 
 void CBroadcastTenant::Run() {
     while (true) {
-        telemetry data{};
+        CSensorModule::SensorData data{};
         if (k_msgq_get(&broadcastQueue, &data, K_FOREVER) == 0) {
-            udp.TransmitSynchronous(&data, sizeof(telemetry));
+            udp.TransmitSynchronous(&data, sizeof(CSensorModule::SensorData));
         }
     }
 }
