@@ -1,4 +1,4 @@
-/
+/ {
 	aliases {
 		primary-barometer = &barom;
 		secondary-barometer = &barom;
