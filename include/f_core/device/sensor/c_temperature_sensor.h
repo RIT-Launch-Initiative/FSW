@@ -14,6 +14,11 @@ public:
     explicit CTemperatureSensor(const device& dev);
 
     /**
+     * Destructor
+     */
+    ~CTemperatureSensor() = default;
+
+    /**
      * See parent docs
      */
     bool UpdateSensorValue() override;
@@ -22,9 +27,6 @@ public:
      * See parent docs
      */
     sensor_value GetSensorValue(sensor_channel chan) const override;
-
-protected:
-    ~CTemperatureSensor() = default;
 
 private:
     using CBase = CSensorDevice;
