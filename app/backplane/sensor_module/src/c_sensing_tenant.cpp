@@ -19,9 +19,9 @@ void CSensingTenant::PostStartup() {
 }
 
 void CSensingTenant::Run() {
-    CAccelerometer imu_accelerometer(*DEVICE_DT_GET_ONE(openrocket_imu));
-    CGyroscope imu_gyroscope(*DEVICE_DT_GET_ONE(openrocket_imu));
-    CBarometer barometer(*DEVICE_DT_GET_ONE(openrocket_barometer));
+    CAccelerometer imu_accelerometer(*DEVICE_DT_GET(DT_ALIAS(imu)));
+    CGyroscope imu_gyroscope(*DEVICE_DT_GET(DT_ALIAS(imu)));
+    CBarometer barometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer)));
 
     CSensorDevice* sensors[] = {&imu_accelerometer, &imu_gyroscope, &barometer};
 
