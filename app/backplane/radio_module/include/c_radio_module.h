@@ -1,8 +1,8 @@
 #ifndef C_SENSOR_MODULE_H
 #define C_SENSOR_MODULE_H
 
-#include "c_sensing_tenant.h"
-#include "c_broadcast_tenant.h"
+#include "c_gnss_tenant.h"
+#include "c_bcast_rcv_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -11,28 +11,12 @@
 #include <f_core/types.h>
 
 
-class CSensorModule : public CProjectConfiguration {
+class CRadioModule : public CProjectConfiguration {
 public:
-
-    // TODO(aaron) Break this apart based on telemetry frequency eventually
-    struct __attribute__((packed)) SensorData {
-      NTypes::NSensor::AccelerometerData Acceleration;
-
-      NTypes::NSensor::BarometerData PrimaryBarometer;
-      NTypes::NSensor::BarometerData SecondaryBarometer;
-
-      NTypes::NSensor::AccelerometerData ImuAcceleration;
-      NTypes::NSensor::GyroscopeData ImuGyroscope;
-
-      NTypes::NSensor::MagnetometerData Magnetometer;
-
-      NTypes::NSensor::TemperatureData Temperature;
-    };
-
     /**
      * Constructor
      */
-    CSensorModule();
+    CRadioModule();
 
     /**
      * See parent docs
@@ -51,11 +35,10 @@ public:
 
 private:
     // Message Ports
-    CMessagePort<SensorData>& sensorDataBroadcastMessagePort;
+    CMessagePort<uint8_t[256]>& loraBroadcastMessagePort;
 
     // Tenants
-    CSensingTenant sensingTenant{"Sensing Tenant"};
-    CBroadcastTenant broadcastTenant{"Broadcast Tenant", "10.0.0.0", 10000, 10000};
+    CGnssTenant gnssTenant{"GNSS Tenant"};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 128, 0};

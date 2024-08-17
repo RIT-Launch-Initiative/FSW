@@ -6,9 +6,9 @@
 #include <f_core/net/network/c_ipv4.h>
 #include <f_core/net/transport/c_udp_socket.h>
 
-class CBroadcastTenant : public CTenant {
+class CBroadcastReceiveTenant : public CTenant {
 public:
-    explicit CBroadcastTenant(const char* name, const char *ipStr, const uint16_t srcPort, const uint16_t dstPort)
+    explicit CBroadcastReceiveTenant(const char* name, const char *ipStr, const uint16_t srcPort, const uint16_t dstPort)
         : CTenant(name), ip(CIPv4{ipStr}), udp(CUdpSocket{ip, srcPort, dstPort})
     {
     }

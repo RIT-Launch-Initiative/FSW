@@ -4,13 +4,13 @@
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
 
-K_MSGQ_DEFINE(broadcastQueue, sizeof(CSensorModule::SensorData), 10, 4);
-static auto broadcastMsgQueue = CMsgqMessagePort<CSensorModule::SensorData>(broadcastQueue);
+K_MSGQ_DEFINE(broadcastQueue, 256, 10, 4);
+static auto broadcastMsgQueue = CMsgqMessagePort<CRadioModule::RadioData>(broadcastQueue);
 
-CSensorModule::CSensorModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue) {
+CRadioModule::CRadioModule() : CProjectConfiguration(), loraBroadcastMessagePort(broadcastMsgQueue) {
 }
 
-void CSensorModule::AddTenantsToTasks() {
+void CRadioModule::AddTenantsToTasks() {
     // Networking
     networkTask.AddTenant(broadcastTenant);
 
@@ -18,7 +18,7 @@ void CSensorModule::AddTenantsToTasks() {
     sensingTask.AddTenant(sensingTenant);
 }
 
-void CSensorModule::AddTasksToRtos() {
+void CRadioModule::AddTasksToRtos() {
     // Networking
     NRtos::AddTask(networkTask);
 
@@ -26,7 +26,7 @@ void CSensorModule::AddTasksToRtos() {
     NRtos::AddTask(sensingTask);
 }
 
-void CSensorModule::SetupCallbacks() {
+void CRadioModule::SetupCallbacks() {
 }
 
 

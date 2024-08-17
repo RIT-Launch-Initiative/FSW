@@ -3,14 +3,14 @@
 
 #include <f_core/os/c_tenant.h>
 
-class CSensingTenant : public CTenant {
+class CGnssTenant : public CTenant {
 public:
-    explicit CSensingTenant(const char* name)
+    explicit CGnssTenant(const char* name)
         : CTenant(name)
     {
     }
 
-    ~CSensingTenant() override = default;
+    ~CGnssTenant() override = default;
 
     void Startup() override;
 
