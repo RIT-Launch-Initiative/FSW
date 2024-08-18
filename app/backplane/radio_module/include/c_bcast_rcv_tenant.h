@@ -9,7 +9,7 @@
 class CBroadcastReceiveTenant : public CTenant {
 public:
     explicit CBroadcastReceiveTenant(const char* name, const char *ipStr, const uint16_t listenPorts)
-        : CTenant(name), ip(CIPv4{ipStr}), udp(CUdpSocket{ip, listenPort, listenPort})
+        : CTenant(name), ip(CIPv4{ipStr}), udp(CUdpSocket{ip, listenPorts, listenPorts})
     {
     }
 
