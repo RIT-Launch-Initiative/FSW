@@ -1,4 +1,4 @@
-from typing import List, Tuple, Set, Dict
+from typing import TypeAlias, List, Tuple, Set, Dict
 import re
 from collections import namedtuple
 import sys
@@ -18,13 +18,13 @@ Data intersperced with comment with event
 
 
 OREvent = namedtuple("OREvent", ['time', 'event'])
-type Reason = str
-type Variable = str
-type MissingVariable = Tuple[Variable, Reason]
-type WantedVariables = Tuple[Set[Variable], Reason]
+Reason: TypeAlias = str
+Variable: TypeAlias = str
+MissingVariable: TypeAlias = Tuple[Variable, Reason]
+WantedVariables: TypeAlias = Tuple[Set[Variable], Reason]
 
-type StringPacket = List[str]
-type Packet = List[float]
+StringPacket: TypeAlias = List[str]
+Packet: TypeAlias = List[float]
 
 event_finder = r"# Event ([a-zA-Z_]*) occurred at t=([+-]?([0-9]*[.])?[0-9]+) seconds"
 recognized_events = ["IGNITION", "LAUNCH", "LIFTOFF", "LAUNCHROD", "BURNOUT", "EJECTION_CHARGE",
@@ -88,7 +88,7 @@ def find_header(lines: List[str]) -> List[Variable]:
 def read_data(lines: List[str]) -> List[StringPacket]:
     '''
     Read the csv and take its data
-    Pythons csv reader does not support comments, luckily OR only puts them 
+    Pythons csv reader does not support comments, luckily OR only puts them
     starting at the front of a line so theyre really easy to parse out.
     '''
     nocomments = filter(lambda x: not x.startswith('#'), lines)

@@ -17,6 +17,7 @@ void CBroadcastTenant::Run() {
     while (true) {
         CSensorModule::SensorData data{};
         if (k_msgq_get(&broadcastQueue, &data, K_FOREVER) == 0) {
+            LOG_INF("Transmitting %d bytes of data", sizeof(CSensorModule::SensorData));
             udp.TransmitSynchronous(&data, sizeof(CSensorModule::SensorData));
         }
     }

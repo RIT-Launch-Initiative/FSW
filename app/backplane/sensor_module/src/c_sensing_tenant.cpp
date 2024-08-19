@@ -13,11 +13,9 @@ LOG_MODULE_REGISTER(CSensingTenant);
 extern k_msgq broadcastQueue;
 
 void CSensingTenant::Startup() {
-
 }
 
 void CSensingTenant::PostStartup() {
-
 }
 
 void CSensingTenant::Run() {
@@ -38,8 +36,9 @@ void CSensingTenant::Run() {
     CMagnetometer magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer)));
 #endif
 
-    CSensorDevice* sensors[] = {&imuAccelerometer, &imuGyroscope, &primaryBarometer, &secondaryBarometer,
-                                &accelerometer, &thermometer,
+    CSensorDevice *sensors[] = {
+        &imuAccelerometer, &imuGyroscope, &primaryBarometer, &secondaryBarometer,
+        &accelerometer, &thermometer,
 #ifndef CONFIG_ARCH_POSIX // TODO: No magnetometer simulation capability yet
         &magnetometer
 #endif
@@ -47,7 +46,7 @@ void CSensingTenant::Run() {
 
     CSensorModule::SensorData data{};
     while (true) {
-        for (auto sensor : sensors) {
+        for (auto sensor: sensors) {
             sensor->UpdateSensorValue();
         }
 

@@ -16,10 +16,10 @@ public:
 
     // TODO(aaron) Break this apart based on telemetry frequency eventually
     struct __attribute__((packed)) SensorData {
-      NTypes::NSensor::AccelerometerData Acceleration;
-
       NTypes::NSensor::BarometerData PrimaryBarometer;
       NTypes::NSensor::BarometerData SecondaryBarometer;
+
+      NTypes::NSensor::AccelerometerData Acceleration;
 
       NTypes::NSensor::AccelerometerData ImuAcceleration;
       NTypes::NSensor::GyroscopeData ImuGyroscope;
@@ -55,7 +55,7 @@ private:
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant"};
-    CBroadcastTenant broadcastTenant{"Broadcast Tenant", "10.0.0.0", 10000, 10000};
+    CBroadcastTenant broadcastTenant{"Broadcast Tenant", "10.0.0.0", 12000, 12000};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 128, 0};
