@@ -55,7 +55,7 @@ private:
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant"};
-    CBroadcastTenant broadcastTenant{"Broadcast Tenant", "10.0.0.0", 12000, 12000};
+    CBroadcastTenant broadcastTenant{"Broadcast Tenant", "10.3.2.1", 12100, 12100};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 128, 0};
