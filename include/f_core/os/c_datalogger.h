@@ -22,22 +22,40 @@ class datalogger {
 };
 } // namespace detail
 
+/**
+ * @brief A type-safe class that supports writing fixed-sized packets to the filesystem
+ * The Datalogger can be configured to use different modes:
+ * - Growing - the file will grow ever larger as you write more packets (assuming space is still available on the device) 
+ * - Circular - the file will hold only a certain number of packets. Old data will be overwritten with new data
+ * - FixedSize - the file will hold only a certain number of packets. Old data will be retained if you try to write more packets than it can fit
+ * This class is implemented as a type safe wrapper to detail::datalogger.
+ */
 template <typename T> class CDataLogger {
   public:
     using PacketType = T;
-    static_assert(std::is_trivial<PacketType>::value,
-                  "You probably don't want to serialize non-trivial types this way"
-                  "If the packet is non trivial, it has special rules about how to create it and destroy it."
-                  "When reading the saved data, we no longer have that information so wouldn't be able to reconstruct "
-                  "the Packet correctly");
-    static_assert(std::is_standard_layout<PacketType>::value,
-                  "Non standard layout types will not serialize correctly"
-                  "Non standard layout types can have vtable pointers or other such nonsense in their layout."
-                  "You should use a simple struct for your packet instead");
+    static_assert(std::is_trivially_copyable<PacketType>::value,
+                  "Only trivially copyable types can be known to serialize and deserialize correctly generically. A "
+                  "simple struct is trivially copyable - you should probably be using one of those. For more "
+                  "information, see https://en.cppreference.com/w/cpp/types/is_trivially_copyable");
 
   public:
+    /**
+     * Construct a Datalogger for the specified filename
+     * The logger will use the "Growing" mode and will expand as you write more data until your filesystem runs out of space.
+     * @param filename the name of the file to write to
+     */
     CDataLogger(const char *filename) : internal(filename, LogMode::Growing, 0) {}
+    /**
+     * Construct a Datalogger for the specified filename, grow mode, and size
+     * @param filename the name of the file to write to
+     * @param mode the logging mode to use
+     * @param the number of packets to log (only used if mode is Circular or FixedSize)
+     */
     CDataLogger(const char *filename, LogMode mode, std::size_t num_packets) : internal(filename, mode, num_packets) {}
+    /**
+     * Write a packet to the file
+     * @param packet the data to write to the file
+     */
     int write(const PacketType &packet) {
         return internal.write(reinterpret_cast<const void *>(&packet), sizeof(PacketType));
     }
