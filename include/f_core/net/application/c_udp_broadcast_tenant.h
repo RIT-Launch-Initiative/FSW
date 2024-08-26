@@ -8,27 +8,27 @@
 template <typename T>
 class CUdpBroadcastTenant {
 public:
-    CUdpBroadcastTenant(const char *ip, const int srcPort, const int dstPort, const CMessagePort<T> &messagePort) : ip(ip), udp(ip, srcPort, dstPort), messagesToBroadcast(messagePort) {}
+    CUdpBroadcastTenant(const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : ip(CIPv4(ipAddr)), udp(ip, srcPort, dstPort), messagesToBroadcast(&messagePort) {}
 
     ~CUdpBroadcastTenant() = default;
 
     void TransmitQueuedSync() {
         T message{};
-        while (messagesToBroadcast.Receive(message, K_FOREVER) == 0) {
-            udp.TransmitSynchronous(message);
+        while (messagesToBroadcast->Receive(message, K_FOREVER) == 0) {
+            udp.TransmitSynchronous(message, sizeof(T));
         }
     }
 
     void TransmitQueuedAsync() {
         T message{};
-        while (messagesToBroadcast.Receive(message, K_NO_WAIT) == 0) {
-            udp.TransmitAsynchronous(message);
+        while (messagesToBroadcast->Receive(message, K_NO_WAIT) == 0) {
+            udp.TransmitAsynchronous(message, sizeof(T));
         }
     }
 private:
-    CIPv4 &ip;
-    CUdpSocket &udp;
-    CMessagePort<T> &messagesToBroadcast;
+    CIPv4 ip;
+    CUdpSocket udp;
+    CMessagePort<T> *messagesToBroadcast;
 };
 
 
