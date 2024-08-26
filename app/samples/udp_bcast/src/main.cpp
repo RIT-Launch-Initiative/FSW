@@ -7,6 +7,7 @@
 // F-Core Includes
 #include <f_core/net/transport/c_udp_socket.h>
 #include <f_core/net/network/c_ipv4.h>
+#include <f_core/net/application/c_udp_broadcast_tenant.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>
