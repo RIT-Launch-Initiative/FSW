@@ -29,7 +29,7 @@ int main() {
 
     while (true) {
         messagePort.Send(broadcastStr, K_FOREVER);
-        broadcaster.TransmitQueuedAsync();
+        broadcaster.TransmitMessageAsynchronous();
 
         LOG_INF("Transmitted");
         k_sleep(K_SECONDS(1));
