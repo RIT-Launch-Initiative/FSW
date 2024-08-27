@@ -12,16 +12,22 @@ public:
 
     ~CUdpBroadcastTenant() = default;
 
+    /**
+     * Synchronously transmit a message received from a message port over UDP
+     */
     void TransmitQueuedSync() {
         T message{};
-        while (messagesToBroadcast->Receive(message, K_FOREVER) == 0) {
+        if (messagesToBroadcast->Receive(message, K_FOREVER) == 0) {
             udp.TransmitSynchronous(message, sizeof(T));
         }
     }
 
+    /**
+     * Asynchronously transmit a message received from a message port over UDP
+     */
     void TransmitQueuedAsync() {
         T message{};
-        while (messagesToBroadcast->Receive(message, K_NO_WAIT) == 0) {
+        if (messagesToBroadcast->Receive(message, K_NO_WAIT) == 0) {
             udp.TransmitAsynchronous(message, sizeof(T));
         }
     }
@@ -30,7 +36,5 @@ private:
     CUdpSocket udp;
     CMessagePort<T> *messagesToBroadcast;
 };
-
-
 
 #endif //C_UDP_BROADCAST_TENANT_H
