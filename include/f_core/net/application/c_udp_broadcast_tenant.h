@@ -18,7 +18,7 @@ public:
     CUdpBroadcastTenant(const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : udp(CIPv4(ipAddr), srcPort, dstPort), messagesToBroadcast(&messagePort) {}
 
     /**
-     *
+     * Constructor
      * @param udp UDP socket to broadcast messages to
      * @param messagePort Message port to receive messages to broadcast
      */

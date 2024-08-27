@@ -6,35 +6,57 @@
 #include <f_core/messaging/c_message_port.h>
 
 template <typename T>
-class CUdpReceiverTenant {
+class CUdpReceiveTenant {
 public:
-    CUdpReceiverTenant(const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : ip(CIPv4(ipAddr)), udp(ip, srcPort, dstPort), messagesToBroadcast(&messagePort) {}
-
-    ~CUdpReceiverTenant() = default;
+    /**
+     * Constructor
+     * @param ipAddr Source IP address to receive from
+     * @param srcPort Source port to receive messages over UDP from
+     * @param dstPort Destination port to send messages over (not important for receiving)
+     * @param messagePort Message port to put messages received over UDP
+     */
+    CUdpReceiveTenant(const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : udp(CIPv4(ipAddr), srcPort, dstPort), messagesReceived(&messagePort) {
+        udp.SetRxTimeout(0);
+    }
 
     /**
-     * Synchronously transmit a message received from a message port over UDP
+     * Constructor
+     * @param udp UDP socket to receive messages to
+     * @param messagePort Message port to put messages received over UDP
+     */
+    CUdpReceiveTenant(const CUdpSocket& udp, CMessagePort<T> &messagePort) : udp(udp), messagesReceived(&messagePort) {
+        udp.SetRxTimeout(0);
+    }
+
+    /**
+     * Destructor
+     */
+    ~CUdpReceiveTenant() = default;
+
+    /**
+     * Synchronously receive a UDP packet and put it on a message port
      */
     void ReceiveMessageSynchronous() {
         T message{};
-        if (messagesToBroadcast->Receive(message, K_FOREVER) == 0) {
-            udp.TransmitSynchronous(message, sizeof(T));
+
+        if (udp.ReceiveSynchronous(message, sizeof(T)) == 0) {
+            messagesReceived->Send(message, K_FOREVER)
         }
     }
 
     /**
-     * Asynchronously transmit a message received from a message port over UDP
+     * Asynchronously receive a UDP packet and put it on a message port
      */
     void ReceiveMessageAsynchronous() {
         T message{};
-        if (messagesToBroadcast->Receive(message, K_NO_WAIT) == 0) {
-            udp.TransmitAsynchronous(message, sizeof(T));
+
+        if (udp.ReceiveAsynchronous(message, sizeof(T)) == 0) {
+            messagesReceived->Send(message, K_NO_WAIT)
         }
     }
 private:
-    CIPv4 ip;
     CUdpSocket udp;
-    CMessagePort<T> *messagesToBroadcast;
+    CMessagePort<T> *messagesReceived;
 };
 
 #endif //C_UDP_RECEIVER_TENANT_H
