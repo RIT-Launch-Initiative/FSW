@@ -7,10 +7,10 @@
 
 LOG_MODULE_REGISTER(CUdpSocket);
 
-CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) : dstPort(dstPort) {
-    if (!ip.IsInitialized()) {
+CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : dstPort(dstPort) {
+    if (!ipv4.IsInitialized()) {
         // Guarantee IPv4 is initialized
-        LOG_ERR("Failed to initialize IPv4 address %s", ip.GetIp());
+        LOG_ERR("Failed to initialize IPv4 address %s", ipv4.GetIp());
         return;
     }
 
@@ -22,7 +22,7 @@ CUdpSocket::CUdpSocket(CIPv4& ip, uint16_t srcPort, uint16_t dstPort) : dstPort(
     sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(srcPort),
-        .sin_addr = ip.GetAddr()
+        .sin_addr = ipv4.GetAddr()
     };
 
     if (zsock_bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
