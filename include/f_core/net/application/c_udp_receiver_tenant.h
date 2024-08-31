@@ -41,7 +41,7 @@ public:
     void ReceiveMessageSynchronous() {
         T message{};
 
-        if (udp.ReceiveSynchronous(message, sizeof(T)) == 0) {
+        if (udp.ReceiveSynchronous(&message, sizeof(T)) == 0) {
             messagesReceived->Send(message, K_FOREVER)
         }
     }
@@ -52,7 +52,7 @@ public:
     void ReceiveMessageAsynchronous() {
         T message{};
 
-        if (udp.ReceiveAsynchronous(message, sizeof(T)) == 0) {
+        if (udp.ReceiveAsynchronous(&message, sizeof(T)) == 0) {
             messagesReceived->Send(message, K_NO_WAIT)
         }
     }

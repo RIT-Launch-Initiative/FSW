@@ -6,7 +6,7 @@
 #include <f_core/messaging/c_message_port.h>
 
 template <typename T>
-class CUdpBroadcastTenant : CTenant {
+class CUdpBroadcastTenant : public CTenant {
 public:
     /**
      * Constructor
@@ -37,7 +37,7 @@ public:
     void TransmitMessageSynchronous() {
         T message{};
         if (messagesToBroadcast->Receive(message, K_FOREVER) == 0) {
-            udp.TransmitSynchronous(message, sizeof(T));
+            udp.TransmitSynchronous(&message, sizeof(T));
         }
     }
 
@@ -47,7 +47,7 @@ public:
     void TransmitMessageAsynchronous() {
         T message{};
         if (messagesToBroadcast->Receive(message, K_NO_WAIT) == 0) {
-            udp.TransmitAsynchronous(message, sizeof(T));
+            udp.TransmitAsynchronous(&message, sizeof(T));
         }
     }
 
