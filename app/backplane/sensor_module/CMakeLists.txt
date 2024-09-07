@@ -2,17 +2,17 @@ set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Guarantee that prj.conf is the default and first configuration file to be read
 
-list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/conf/core.conf)
+list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/core.conf)
 
 if (DEBUG)
     message(STATUS "Adding debug configuration")
-    list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/conf/debug.conf)
+    list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/debug.conf)
 endif ()
 
 if (BOARD STREQUAL "native_sim")
     if (UNIX AND NOT APPLE)
         message(STATUS "Adding simulation configuration")
-        list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/conf/sim.conf)
+        list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/sim.conf)
     else ()
         message(FATAL_ERROR "Simulation is only supported on Linux systems")
     endif ()
