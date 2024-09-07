@@ -10,7 +10,7 @@ if (DEBUG)
 endif ()
 
 if (BOARD STREQUAL "native_sim")
-    if (UNIX AND NOT APPLE)
+#    if (UNIX AND NOT APPLE)
         message(STATUS "Adding simulation configuration")
         list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/sim.conf)
 #    else ()
