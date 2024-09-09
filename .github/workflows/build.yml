@@ -16,6 +16,14 @@ env:
     app/backplane/radio_module
     app/backplane/sensor_module
 
+platforms: |
+  nucleo_f446re
+  radio_module
+  sensor_module
+  power_module
+linux_only_platforms: |
+  native_sim
+
 jobs:
   build:
     strategy:
@@ -29,6 +37,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: FSW
+
+      - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then 
+            sudo apt-get install -y gcc-multilib g++-multilib; 
+          fi
 
       - name: Cache Python dependencies
         uses: actions/cache@v3
