@@ -15,14 +15,13 @@ env:
     app/backplane/power_module
     app/backplane/radio_module
     app/backplane/sensor_module
-
-platforms: |
-  nucleo_f446re
-  radio_module
-  sensor_module
-  power_module
-linux_only_platforms: |
-  native_sim
+  platforms: |
+    nucleo_f446re
+    radio_module
+    sensor_module
+    power_module
+  linux_only_platforms: |
+    native_sim
 
 jobs:
   build:
