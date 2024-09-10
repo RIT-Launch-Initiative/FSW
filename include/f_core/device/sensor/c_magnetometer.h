@@ -11,6 +11,10 @@ public:
      * @param dev Zephyr device structure
      */
     explicit CMagnetometer(const device& dev);
+    /**
+     * Destructor
+     */
+    ~CMagnetometer() = default;
 
     /**
      * See parent docs
@@ -22,11 +26,6 @@ public:
      */
     sensor_value GetSensorValue(sensor_channel chan) const override;
 
-protected:
-    /**
-     * Destructor
-     */
-    ~CMagnetometer() = default;
 
 private:
     using CBase = CSensorDevice;

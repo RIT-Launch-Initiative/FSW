@@ -6,23 +6,25 @@
 #include <f_core/messaging/c_message_port.h>
 
 template <typename T>
-class CUdpBroadcastTenant {
+class CUdpBroadcastTenant : public CTenant {
 public:
     /**
      * Constructor
+     * @param name Name of the tenant
      * @param ipAddr Source IP address to broadcast from
      * @param srcPort Source port to broadcast from
      * @param dstPort Destination port to broadcast to
      * @param messagePort Message port to receive messages to broadcast
      */
-    CUdpBroadcastTenant(const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : udp(CIPv4(ipAddr), srcPort, dstPort), messagesToBroadcast(&messagePort) {}
+    CUdpBroadcastTenant(const char* name, const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : CTenant(name), udp(CIPv4(ipAddr), srcPort, dstPort), messagesToBroadcast(&messagePort)  {}
 
     /**
      * Constructor
+     * @param name Name of the tenant
      * @param udp UDP socket to broadcast messages to
      * @param messagePort Message port to receive messages to broadcast
      */
-    CUdpBroadcastTenant(const CUdpSocket& udp, CMessagePort<T> &messagePort) : udp(udp), messagesToBroadcast(&messagePort) {}
+    CUdpBroadcastTenant(const char* name, const CUdpSocket& udp, CMessagePort<T> &messagePort) : CTenant(name), udp(udp), messagesToBroadcast(&messagePort) {}
 
     /**
      * Destructor
@@ -35,7 +37,7 @@ public:
     void TransmitMessageSynchronous() {
         T message{};
         if (messagesToBroadcast->Receive(message, K_FOREVER) == 0) {
-            udp.TransmitSynchronous(message, sizeof(T));
+            udp.TransmitSynchronous(&message, sizeof(T));
         }
     }
 
@@ -45,9 +47,27 @@ public:
     void TransmitMessageAsynchronous() {
         T message{};
         if (messagesToBroadcast->Receive(message, K_NO_WAIT) == 0) {
-            udp.TransmitAsynchronous(message, sizeof(T));
+            udp.TransmitAsynchronous(&message, sizeof(T));
         }
     }
+
+    /**
+     * See parent docs
+     */
+    void Startup() override {};
+
+    /**
+     * See parent docs
+     */
+    void PostStartup() override {};
+
+    /**
+     * See parent docs
+     */
+    void Run() override {
+        TransmitMessageAsynchronous();
+    }
+
 private:
     CUdpSocket udp;
     CMessagePort<T> *messagesToBroadcast;

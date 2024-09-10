@@ -1,0 +1,12 @@
+using sysbus
+mach create
+machine LoadPlatformDescription @https://zephyr-dashboard.renode.io/nucleo_f446re/nucleo_f446re.repl
+
+# Specify the binary file to load (replace with your binary file path)
+sysbus LoadELF @your_binary_file.elf
+
+showAnalyzer sysbus.uart2
+
+# Start the simulation
+start
+
