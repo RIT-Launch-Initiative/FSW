@@ -7,7 +7,7 @@ common:
     - sensor_module
     - native_sim
 tests:
-  app.default: {}
-  app.debug:
+  backplane.sensor_module.default: {}
+  backplane.sensor_module.debug:
     extra_overlay_confs:
       - debug.conf
