@@ -53,7 +53,7 @@ or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_u
 void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
                               unsigned int* upper_idx, or_scalar_t* mix) {
     // Simulation doesn't have information at this point
-    if (or_time < 0) {
+    if (or_time < or_packets[0].time_s) {
         *lower_idx = 0;
         *upper_idx = 0;
         *mix = 0;
@@ -102,10 +102,10 @@ static void or_event_thread_handler(void) {
         int time_to_wait_ms = (int) ((or_events[i].time_s - time) * 1000);
         k_msleep(time_to_wait_ms);
         time = or_events[i].time_s;
-        LOG_INF("OpenRocket event %s at time T+%.3f", event_to_str(or_events[i].event), or_events[i].time_s);
+        printk("OpenRocket event %s at time T+%.3f\n", event_to_str(or_events[i].event), (double) or_events[i].time_s);
         i++;
     }
-    LOG_INF("OpenRocket flight over");
+    printk("OpenRocket flight over\n");
 }
 #endif
 
