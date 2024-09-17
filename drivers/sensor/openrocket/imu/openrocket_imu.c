@@ -107,6 +107,7 @@ static void map_or_to_sensor(struct or_data_t *in, struct or_imu_data *out, cons
 
 static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel chan) {
     const struct or_imu_config *cfg = dev->config;
+    k_usleep(cfg->sensor_cfg.measurement_us);
     struct or_imu_data *data = dev->data;
     if (cfg->sensor_cfg.broken) {
         return -ENODEV;

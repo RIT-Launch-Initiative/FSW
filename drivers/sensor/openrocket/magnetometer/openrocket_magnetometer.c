@@ -107,6 +107,7 @@ extern const struct or_data_t *or_packets;
 
 static int or_magn_sample_fetch(const struct device *dev, enum sensor_channel chan) {
     const struct or_magnetometer_config *cfg = dev->config;
+    k_usleep(cfg->sensor_cfg.measurement_us);
     struct or_magnetometer_data *data = dev->data;
     if (cfg->sensor_cfg.broken) {
         return -ENODEV;

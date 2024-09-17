@@ -14,6 +14,7 @@ extern const struct or_data_t *or_packets;
 
 static int or_barom_sample_fetch(const struct device *dev, enum sensor_channel chan) {
     const struct or_barom_config *cfg = dev->config;
+    k_usleep(cfg->sensor_cfg.measurement_us);
     struct or_barom_data *data = dev->data;
     if (cfg->sensor_cfg.broken) {
         return -ENODEV;
