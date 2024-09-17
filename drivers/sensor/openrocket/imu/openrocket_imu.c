@@ -108,7 +108,7 @@ static void map_or_to_sensor(struct or_data_t *in, struct or_imu_data *out, cons
 static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel chan) {
     const struct or_imu_config *cfg = dev->config;
     struct or_imu_data *data = dev->data;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
     if (chan != SENSOR_CHAN_ALL && chan != SENSOR_CHAN_ACCEL_X && chan != SENSOR_CHAN_ACCEL_Y &&
@@ -116,7 +116,7 @@ static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel cha
         chan != SENSOR_CHAN_GYRO_Y && chan != SENSOR_CHAN_GYRO_Z && chan != SENSOR_CHAN_GYRO_XYZ) {
         return -ENOTSUP;
     }
-    or_scalar_t time = or_get_time(cfg->sampling_period_us, cfg->lag_time_ms);
+    or_scalar_t time = or_get_time(&cfg->sensor_cfg);
     unsigned int lo, hi = 0;
     or_scalar_t mix = 0;
     or_find_bounding_packets(data->last_lower_index, time, &lo, &hi, &mix);
@@ -152,7 +152,7 @@ static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan
     const struct or_imu_config *cfg = dev->config;
     struct or_imu_data *data = dev->data;
 
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
 
@@ -194,7 +194,7 @@ static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan
 
 static int or_imu_init(const struct device *dev) {
     const struct or_imu_config *cfg = dev->config;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         LOG_WRN("IMU device %s is failed to init", dev->name);
         return -ENODEV;
     }

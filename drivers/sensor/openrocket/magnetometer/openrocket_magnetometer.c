@@ -108,7 +108,7 @@ extern const struct or_data_t *or_packets;
 static int or_magn_sample_fetch(const struct device *dev, enum sensor_channel chan) {
     const struct or_magnetometer_config *cfg = dev->config;
     struct or_magnetometer_data *data = dev->data;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
     if (chan != SENSOR_CHAN_ALL && chan != SENSOR_CHAN_ACCEL_X && chan != SENSOR_CHAN_ACCEL_Y &&
@@ -116,7 +116,7 @@ static int or_magn_sample_fetch(const struct device *dev, enum sensor_channel ch
         chan != SENSOR_CHAN_GYRO_Y && chan != SENSOR_CHAN_GYRO_Z && chan != SENSOR_CHAN_GYRO_XYZ) {
         return -ENOTSUP;
     }
-    or_scalar_t time = or_get_time(cfg->sampling_period_us, cfg->lag_time_ms);
+    or_scalar_t time = or_get_time(&cfg->sensor_cfg);
     unsigned int lo, hi = 0;
     or_scalar_t mix = 0;
     or_find_bounding_packets(data->last_lower_index, time, &lo, &hi, &mix);
@@ -152,7 +152,7 @@ static int or_magn_channel_get(const struct device *dev, enum sensor_channel cha
     const struct or_magnetometer_config *cfg = dev->config;
     struct or_magnetometer_data *data = dev->data;
 
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
 
@@ -179,12 +179,12 @@ static int or_magn_channel_get(const struct device *dev, enum sensor_channel cha
 }
 
 static int or_magn_init(const struct device *dev) {
-    const struct or_magn_config *cfg = dev->config;
-    if (cfg->broken) {
+    const struct or_magnetometer_config *cfg = dev->config;
+    if (cfg->sensor_cfg.broken) {
         LOG_WRN("Magnetometer device %s is failed to init", dev->name);
         return -ENODEV;
     }
-    struct or_magn_data *data = dev->data;
+    struct or_magnetometer_data *data = dev->data;
     data->last_lower_index = 0;
     return 0;
 }

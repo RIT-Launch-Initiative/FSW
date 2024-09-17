@@ -17,7 +17,7 @@ extern const struct or_data_t *or_packets;
 
 static int or_gnss_init(const struct device *dev) {
     const struct or_gnss_cfg *cfg = dev->config;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         LOG_WRN("GNSS device %s is failed to init", dev->name);
         return -ENODEV;
     }
@@ -29,7 +29,7 @@ static int or_gnss_init(const struct device *dev) {
 static void or_gnss_thread_fn(void *dev_v, void *, void *) {
     const struct device *dev = dev_v;
     const struct or_gnss_cfg *cfg = dev->config;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return;
     }
 
@@ -59,8 +59,8 @@ static void or_gnss_thread_fn(void *dev_v, void *, void *) {
     struct or_gnss_data *data = dev->data;
     LOG_INF("Starting openrocket GNSS thread");
     while (true) {
-        k_usleep(cfg->sampling_period_us);
-        or_scalar_t time = or_get_time(cfg->sampling_period_us, cfg->lag_time_ms);
+        k_usleep(cfg->sensor_cfg.sampling_period_us);
+        or_scalar_t time = or_get_time(&cfg->sensor_cfg);
         unsigned int lo, hi = 0;
         or_scalar_t mix = 0;
         or_find_bounding_packets(data->last_lower_index, time, &lo, &hi, &mix);

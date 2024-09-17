@@ -40,12 +40,12 @@ or_scalar_t or_lerp(or_scalar_t a, or_scalar_t b, or_scalar_t t) {
     return a * (1.0 - t) + b * t;
 }
 
-or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_us) {
+or_scalar_t or_get_time(const struct or_common_params* cfg) {
     int64_t us = k_ticks_to_us_near64(k_uptime_ticks());
-    if (sampling_period_us != 0) {
-        us = (us / sampling_period_us) * sampling_period_us;
+    if (cfg->sampling_period_us != 0) {
+        us = (us / cfg->sampling_period_us) * cfg->sampling_period_us;
     }
-    us -= lag_time_us;
+    us -= cfg->lag_time_ms * 1000;
     us -= CONFIG_OPENROCKET_MS_BEFORE_LAUNCH * 1000;
     return ((or_scalar_t) (us)) / 1000000.0;
 }

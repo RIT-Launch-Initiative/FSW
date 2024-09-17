@@ -21,6 +21,13 @@ enum gyro_axis {
     OPENROCKET_AXIS_YAW,
 };
 
+struct or_common_params {
+    bool broken;                     // True if the sensor is broken and won't return data
+    unsigned int sampling_period_us; // How often the sensor updates
+    unsigned int lag_time_ms;        // How far behind 'real time' is this sensor measuring
+    unsigned int measurement_us;     // How long does it take a sensor to read
+};
+
 /**
  * @brief Convert or_scalar_t (float or double) to zephyr sensor value
  * @param val sensor value ot fill in
@@ -44,7 +51,7 @@ or_scalar_t or_lerp(or_scalar_t a, or_scalar_t b, or_scalar_t t);
  * @return the time (T+) used by openrocket to interpolate and get sensor values
  * This function is limited in precisison by CONFIG_SYS_CLOCK_TICKS_PER_SEC
  */
-or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_ms);
+or_scalar_t or_get_time(const struct or_common_params* cfg);
 
 /**
  * @brief Most times you go looking for a packet based on a time, its in between packets. 
@@ -58,13 +65,6 @@ or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_m
  */
 void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
                               unsigned int* upper_idx, or_scalar_t* mix);
-
-struct or_common_params {
-    bool broken;                     // True if the sensor is broken and won't return data
-    unsigned int sampling_period_us; // How often the sensor updates
-    unsigned int lag_time_ms;        // How far behind 'real time' is this sensor measuring
-    unsigned int measurement_us;     // How long does it take a sensor to read
-};
 
 struct or_data_t {
     or_scalar_t time_s; // s
