@@ -212,9 +212,13 @@ static const struct sensor_driver_api or_imu_api = {
     static struct or_imu_data or_imu_data_##n;                                                                         \
                                                                                                                        \
     static const struct or_imu_config or_imu_config_##n = {                                                            \
-        .broken = DT_INST_PROP(n, broken),                                                                             \
-        .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                                     \
-        .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                                   \
+        .sensor_cfg =                                                                                                  \
+            {                                                                                                          \
+                .broken = DT_INST_PROP(n, broken),                                                                     \
+                .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                             \
+                .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                           \
+                .measurement_us = DT_INST_PROP(n, measurement_us),                                                     \
+            },                                                                                                         \
         .vertical_axis = DT_INST_STRING_TOKEN(n, vertical_axis),                                                       \
         .vertical_axis_invert = DT_INST_PROP(n, vertical_axis_invert),                                                 \
         .lateral_axis = DT_INST_STRING_TOKEN(n, lateral_axis),                                                         \

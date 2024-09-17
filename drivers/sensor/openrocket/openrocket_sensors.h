@@ -9,6 +9,18 @@ typedef double or_scalar_t;
 typedef float or_scalar_t;
 #endif
 
+enum axis {
+    OPENROCKET_AXIS_X,
+    OPENROCKET_AXIS_Y,
+    OPENROCKET_AXIS_Z,
+};
+
+enum gyro_axis {
+    OPENROCKET_AXIS_ROLL,
+    OPENROCKET_AXIS_PITCH,
+    OPENROCKET_AXIS_YAW,
+};
+
 /**
  * @brief Convert or_scalar_t (float or double) to zephyr sensor value
  * @param val sensor value ot fill in
@@ -47,6 +59,13 @@ or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_m
 void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
                               unsigned int* upper_idx, or_scalar_t* mix);
 
+struct or_common_params {
+    bool broken;                     // True if the sensor is broken and won't return data
+    unsigned int sampling_period_us; // How often the sensor updates
+    unsigned int lag_time_ms;        // How far behind 'real time' is this sensor measuring
+    unsigned int measurement_us;     // How long does it take a sensor to read
+};
+
 struct or_data_t {
     or_scalar_t time_s; // s
 #ifdef CONFIG_OPENROCKET_IMU
@@ -56,7 +75,6 @@ struct or_data_t {
     or_scalar_t roll;  // deg/s
     or_scalar_t pitch; // deg/s
     or_scalar_t yaw;   // deg/s
-    // If we want to support magnetometer, can use  Vertical Orientation (zenith), Lateral Orientation (azimuth)
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
     or_scalar_t temperature; // °C
@@ -68,6 +86,12 @@ struct or_data_t {
     or_scalar_t velocity;  // m/s
     or_scalar_t altitude;  // m
     or_scalar_t bearing;   // °
+#endif
+#ifdef CONFIG_OPENROCKET_MAGNETOMETER
+    or_scalar_t x; // Gauss
+    or_scalar_t y; // Gauss
+    or_scalar_t z; // Gauss
+
 #endif
 };
 

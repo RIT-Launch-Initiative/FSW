@@ -129,9 +129,13 @@ static struct gnss_driver_api gnss_api = {};
 
 #define GNSS_NMEA_GENERIC(inst)                                                                                        \
     static struct or_gnss_cfg or_gnss_cfg_##inst = {                                                                   \
-        .broken = DT_INST_PROP(inst, broken),                                                                          \
-        .sampling_period_us = DT_INST_PROP(inst, sampling_period_us),                                                  \
-        .lag_time_ms = DT_INST_PROP(inst, lag_time_us),                                                                \
+        .sensor_cfg =                                                                                                  \
+            {                                                                                                          \
+                .broken = DT_INST_PROP(inst, broken),                                                                  \
+                .sampling_period_us = DT_INST_PROP(inst, sampling_period_us),                                          \
+                .lag_time_ms = DT_INST_PROP(inst, lag_time_us),                                                        \
+                .measurement_us = DT_INST_PROP(inst, measurement_us),                                                  \
+            },                                                                                                         \
         .rtc = DEVICE_DT_GET(DT_INST_PHANDLE(inst, rtc)),                                                              \
     };                                                                                                                 \
                                                                                                                        \

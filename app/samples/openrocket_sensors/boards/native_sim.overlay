@@ -34,6 +34,13 @@
         rtc = <&rtc>;
     };
 
+    magn: magn{
+        status = "okay";
+        compatible = "openrocket,magnetometer";
+        lag-time-us = <1000>;
+        sampling-period-us = <(5*1000*1000)>;
+    };
+
 };
 &rtc {
     status = "okay";

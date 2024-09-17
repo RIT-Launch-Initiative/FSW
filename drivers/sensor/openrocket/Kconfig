@@ -14,6 +14,7 @@ if OPENROCKET_SENSORS
     rsource "imu/Kconfig"
     rsource "barometer/Kconfig"
     rsource "gnss/Kconfig"
+    rsource "magnetometer/Kconfig"
 
     config OPENROCKET_SCALAR_TYPE_DOUBLE
         bool "Openrocket Scalar Type Double"

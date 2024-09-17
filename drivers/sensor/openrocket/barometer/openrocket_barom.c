@@ -85,9 +85,13 @@ static const struct sensor_driver_api or_barom_api = {
     static struct or_barom_data or_barom_data_##n;                                                                     \
                                                                                                                        \
     static const struct or_barom_config or_barom_config_##n = {                                                        \
-        .broken = DT_INST_PROP(n, broken),                                                                             \
-        .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                                     \
-        .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                                   \
+        .sensor_cfg =                                                                                                  \
+            {                                                                                                          \
+                .broken = DT_INST_PROP(n, broken),                                                                     \
+                .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                             \
+                .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                           \
+                .measurement_us = DT_INST_PROP(n, measurement_us),                                                     \
+            },                                                                                                         \
     };                                                                                                                 \
                                                                                                                        \
     SENSOR_DEVICE_DT_INST_DEFINE(n, or_barom_init, NULL, &or_barom_data_##n, &or_barom_config_##n, POST_KERNEL,        \

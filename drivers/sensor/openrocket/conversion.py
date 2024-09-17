@@ -112,6 +112,8 @@ def get_args():
                         help="Should we expect and output barometer data (temperature, pressure)")
     parser.add_argument('-g', '--gnss', action='store_true',
                         help="Should we expect and output GNSS data (lattitude, longitude, altitude)")
+    parser.add_argument('-m', '--magnetometer', action='store_true',
+                        help="Should we expect and output Magnetometer data (lattitude, longitude, altitude)")
 
     return parser.parse_args()
 
@@ -164,9 +166,12 @@ VELOCITY = "Total velocity (m/s)"
 ALTITUDE = "Altitude (m)"
 LATERAL_DIRECTION = "Lateral direction (°)"
 
+VERT_ORIENTATION = "Vertical orientation (zenith) (°)"
+LAT_ORIENTATION = "Lateral orientation (azimuth) (°)"
+
 # order in the c struct. this will have to update as time goes on
 struct_order = [TIME, VERT_ACCEL, LAT_ACCEL, ROLL, PITCH, YAW,
-                TEMP, PRESSURE, LATITUDE, LONGITUDE, VELOCITY, ALTITUDE, LATERAL_DIRECTION]
+                TEMP, PRESSURE, LATITUDE, LONGITUDE, VELOCITY, ALTITUDE, LATERAL_DIRECTION, VERT_ORIENTATION, LAT_ORIENTATION]
 
 
 def convert_value(value: str) -> float:
@@ -205,9 +210,10 @@ def make_event_initializer(events: List[OREvent]) -> str:
     return s
 
 
-def make_c_file(events: List[OREvent], data: List[Packet]):
+def make_c_file(filename: str, events: List[OREvent], data: List[Packet]):
     c_file = f'''#include "openrocket_sensors.h"
 
+// generated from {{filename}}
 
 #define NUM_DATA_PACKETS {len(data)}
 const unsigned int or_packets_size = NUM_DATA_PACKETS;
@@ -247,6 +253,10 @@ def get_wanted_vars(config) -> List[Variable]:
         wanted_variables.append(
             ({TEMP, PRESSURE},
              "Requested barometer data"))
+    if config.magnetometer:
+        wanted_variables.append((
+            {VERT_ORIENTATION, LAT_ORIENTATION},
+            "Requested Magnetometer data"))
     if config.gnss:
         # https://docs.zephyrproject.org/latest/hardware/peripherals/gnss.html#c.navigation_data
         wanted_variables.append((
@@ -269,7 +279,7 @@ def main():
 
     data = read_data(lines)
     filtered_data = filter_data(data, mapping)
-    c_file = make_c_file(events, filtered_data)
+    c_file = make_c_file(config.in_filename, events, filtered_data)
 
     try:
         with open(config.out_filename, 'w') as f:

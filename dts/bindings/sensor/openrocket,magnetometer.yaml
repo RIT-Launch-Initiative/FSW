@@ -1,0 +1,9 @@
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+description: Magnetometer that takes its inputs from an openrocket simulation CSV
+
+compatible: "openrocket,magnetometer"
+
+include: [openrocket-sensor-device.yaml]
+
