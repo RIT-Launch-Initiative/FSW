@@ -54,12 +54,12 @@ or_scalar_t or_get_time(const struct or_common_params* cfg) {
     return ((or_scalar_t) (us)) / 1000000.0;
 }
 
-or_scalar_t or_random() {
+or_scalar_t or_random(or_scalar_t magnitude) {
 #ifdef CONFIG_OPENROCKET_NOISE
     uint32_t r32 = sys_rand32_get();
     int32_t ri32 = *(int32_t*) &r32;
     or_scalar_t rscalar = (float) ri32 / (float) 0x7FFFFFFF;
-    return rscalar;
+    return rscalar * magnitude;
 #else
     return (or_scalar_t) 0.0;
 #endif

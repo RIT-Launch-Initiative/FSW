@@ -7,3 +7,21 @@ compatible: "openrocket,barometer"
 
 include: [openrocket-sensor-device.yaml]
 
+properties:
+  temp-noise:
+    type: int
+    default: 0
+    description: |
+      Magnitude of noise measured by this sensor * 1,000.
+      As this is temperature (measured in celsius), that would be millicelsius.
+      Device tree does not seem to support floating point values.
+      Randomness is added by generating a number from -1 to 1 then multiplying by this value/1000 before adding on to the baseline value
+  pressure-noise:
+    type: int
+    default: 0
+    description: |
+      Magnitude of noise measured by this sensor * 1,000.
+      As this is pressure (measured in kPa), that would be pascals.
+      Device tree does not seem to support floating point values.
+      Randomness is added by generating a number from -1 to 1 then multiplying by this value/1000 before adding on to the baseline value
+      

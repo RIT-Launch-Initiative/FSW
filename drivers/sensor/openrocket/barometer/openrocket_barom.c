@@ -41,8 +41,8 @@ static int or_barom_sample_fetch(const struct device *dev, enum sensor_channel c
         or_data.pressure = or_lerp(lo_data->pressure, hi_data->pressure, mix);
         or_data.temperature = or_lerp(lo_data->temperature, hi_data->temperature, mix);
     }
-    data->pressure = or_data.pressure;
-    data->temperature = or_data.temperature;
+    data->pressure = or_data.pressure + or_random(cfg->press_noise_scale);
+    data->temperature = or_data.temperature + or_random(cfg->temp_noise_scale);
 
     return 0;
 }
@@ -93,6 +93,8 @@ static const struct sensor_driver_api or_barom_api = {
                 .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                           \
                 .measurement_us = DT_INST_PROP(n, measurement_us),                                                     \
             },                                                                                                         \
+        .temp_noise_scale = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, temp_noise)),                                       \
+        .press_noise_scale = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, pressure_noise)),                                  \
     };                                                                                                                 \
                                                                                                                        \
     SENSOR_DEVICE_DT_INST_DEFINE(n, or_barom_init, NULL, &or_barom_data_##n, &or_barom_config_##n, POST_KERNEL,        \

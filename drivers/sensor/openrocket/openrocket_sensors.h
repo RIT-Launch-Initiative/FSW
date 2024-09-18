@@ -9,6 +9,8 @@ typedef double or_scalar_t;
 typedef float or_scalar_t;
 #endif
 
+#define SCALE_OPENROCKET_NOISE(value) ((or_scalar_t) value / (or_scalar_t) 1000)
+
 enum axis {
     OPENROCKET_AXIS_X,
     OPENROCKET_AXIS_Y,
@@ -70,7 +72,7 @@ void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, 
  * @brief Generate a random number in the range [-1, 1] for adding noise to sensors
  * if OPENROCKET_NOISE is not selected, this always returns 0
  */
-or_scalar_t or_random();
+or_scalar_t or_random(or_scalar_t magnitude);
 
 struct or_data_t {
     or_scalar_t time_s; // s

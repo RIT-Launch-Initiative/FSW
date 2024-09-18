@@ -4,6 +4,8 @@
 
 struct or_barom_config {
     struct or_common_params sensor_cfg;
+    or_scalar_t temp_noise_scale;
+    or_scalar_t press_noise_scale;
 };
 
 struct or_barom_data {
