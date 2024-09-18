@@ -144,6 +144,14 @@ static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel cha
     or_data.roll *= DEGREES_TO_RADIANS;
     or_data.pitch *= DEGREES_TO_RADIANS;
     or_data.yaw *= DEGREES_TO_RADIANS;
+
+    or_data.vert_accel += or_random(cfg->accel_noise);
+    or_data.lat_accel += or_random(cfg->accel_noise);
+
+    or_data.roll += or_random(cfg->gyro_noise);
+    or_data.pitch += or_random(cfg->gyro_noise);
+    or_data.yaw += or_random(cfg->gyro_noise);
+
     map_or_to_sensor(&or_data, data, cfg);
 
     return 0;
@@ -229,6 +237,8 @@ static const struct sensor_driver_api or_imu_api = {
         .roll_axis_invert = DT_INST_PROP(n, roll_axis_invert),                                                         \
         .pitch_axis_invert = DT_INST_PROP(n, pitch_axis_invert),                                                       \
         .yaw_axis_invert = DT_INST_PROP(n, yaw_axis_invert),                                                           \
+        .accel_noise = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, accel_noise)),                                           \
+        .gyro_noise = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, gyro_noise)),                                             \
     };                                                                                                                 \
                                                                                                                        \
     SENSOR_DEVICE_DT_INST_DEFINE(n, or_imu_init, NULL, &or_imu_data_##n, &or_imu_config_##n, POST_KERNEL,              \

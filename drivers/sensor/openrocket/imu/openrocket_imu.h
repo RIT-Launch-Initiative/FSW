@@ -18,6 +18,9 @@ struct or_imu_config {
     bool roll_axis_invert;
     bool pitch_axis_invert;
     bool yaw_axis_invert;
+
+    or_scalar_t accel_noise;
+    or_scalar_t gyro_noise;
 };
 
 struct or_imu_data {
