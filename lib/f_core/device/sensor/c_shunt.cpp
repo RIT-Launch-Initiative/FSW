@@ -31,8 +31,9 @@ bool CShunt::UpdateSensorValue() {
         return false;
     }
 
-    barometerData.pressure = pressure;
-    barometerData.temperature = temperature;
+    shuntData.voltage = voltage;
+    shuntData.current = current;
+    shuntData.power = power;
 
     return true;
 }

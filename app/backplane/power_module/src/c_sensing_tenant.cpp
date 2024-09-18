@@ -17,6 +17,11 @@ void CSensingTenant::PostStartup() {
 void CSensingTenant::Run() {
     // TODO: Zero out when we have simulated shunt
     CPowerModule::SensorData data{
+        .RailBattery = {
+            .Current = 0.0f,
+            .Voltage = 12.0f,
+            .Power = 0.0f
+        },
         .Rail3v3 = {
             .Current = 0.0f,
             .Voltage = 3.3f,
@@ -25,11 +30,6 @@ void CSensingTenant::Run() {
         .Rail5v0 = {
             .Current = 0.0f,
             .Voltage = 5.0f,
-            .Power = 0.0f
-        },
-        .RailBattery = {
-            .Current = 0.0f,
-            .Voltage = 12.0f,
             .Power = 0.0f
         }
     };
