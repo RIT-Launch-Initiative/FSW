@@ -1,7 +1,7 @@
 menuconfig OPENROCKET_SENSORS
 	bool "OpenRocket Sensors"
 	default n
-	depends on (SENSOR && (DT_HAS_OPENROCKET_IMU_ENABLED || DT_HAS_OPENROCKET_BAROMETER_ENABLED)) || (GNSS && DT_HAS_OPENROCKET_GNSS_ENABLED)
+	depends on (SENSOR && (DT_HAS_OPENROCKET_IMU_ENABLED || DT_HAS_OPENROCKET_BAROMETER_ENABLED || DT_HAS_OPENROCKET_MAGNETOMETER_ENABLED)) || (GNSS && DT_HAS_OPENROCKET_GNSS_ENABLED)
 	help
 	  Enable driver for openrocket simulation sensors
 
@@ -44,5 +44,11 @@ if OPENROCKET_SENSORS
         help
             Milliseconds to delay the launch from the device booting.
 
+    config OPENROCKET_NOISE
+        bool "OpenRocket Sensor Noise"
+        depends on OPENROCKET_SENSORS
+        default false
+        help
+            Enable to add noise to your sensor readings. If this is disabled (bc you dont have a random source, the openrocket random generator will always return 0)
 endif
 

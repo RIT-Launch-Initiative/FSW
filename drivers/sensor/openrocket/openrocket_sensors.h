@@ -66,6 +66,12 @@ or_scalar_t or_get_time(const struct or_common_params* cfg);
 void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
                               unsigned int* upper_idx, or_scalar_t* mix);
 
+/**
+ * @brief Generate a random number in the range [-1, 1] for adding noise to sensors
+ * if OPENROCKET_NOISE is not selected, this always returns 0
+ */
+or_scalar_t or_random();
+
 struct or_data_t {
     or_scalar_t time_s; // s
 #ifdef CONFIG_OPENROCKET_IMU

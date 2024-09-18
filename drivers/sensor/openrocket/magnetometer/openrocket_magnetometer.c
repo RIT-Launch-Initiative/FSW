@@ -112,9 +112,8 @@ static int or_magn_sample_fetch(const struct device *dev, enum sensor_channel ch
     if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
-    if (chan != SENSOR_CHAN_ALL && chan != SENSOR_CHAN_ACCEL_X && chan != SENSOR_CHAN_ACCEL_Y &&
-        chan != SENSOR_CHAN_ACCEL_Z && chan != SENSOR_CHAN_ACCEL_XYZ && chan != SENSOR_CHAN_GYRO_X &&
-        chan != SENSOR_CHAN_GYRO_Y && chan != SENSOR_CHAN_GYRO_Z && chan != SENSOR_CHAN_GYRO_XYZ) {
+    if (chan != SENSOR_CHAN_ALL && chan != SENSOR_CHAN_MAGN_X && chan != SENSOR_CHAN_MAGN_Y &&
+        chan != SENSOR_CHAN_MAGN_Z && chan != SENSOR_CHAN_MAGN_XYZ) {
         return -ENOTSUP;
     }
     or_scalar_t time = or_get_time(&cfg->sensor_cfg);

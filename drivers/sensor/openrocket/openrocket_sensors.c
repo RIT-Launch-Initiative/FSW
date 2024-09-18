@@ -4,6 +4,10 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
+#ifdef CONFIG_OPENROCKET_NOISE
+#include <zephyr/random/random.h>
+#endif
+
 LOG_MODULE_REGISTER(openrocket, CONFIG_OPENROCKET_LOG_LEVEL);
 
 // Forward Declarations
@@ -48,6 +52,17 @@ or_scalar_t or_get_time(const struct or_common_params* cfg) {
     us -= cfg->lag_time_ms * 1000;
     us -= CONFIG_OPENROCKET_MS_BEFORE_LAUNCH * 1000;
     return ((or_scalar_t) (us)) / 1000000.0;
+}
+
+or_scalar_t or_random() {
+#ifdef CONFIG_OPENROCKET_NOISE
+    uint32_t r32 = sys_rand32_get();
+    int32_t ri32 = *(int32_t*) &r32;
+    or_scalar_t rscalar = (float) ri32 / (float) 0x7FFFFFFF;
+    return rscalar;
+#else
+    return (or_scalar_t) 0.0;
+#endif
 }
 
 void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
