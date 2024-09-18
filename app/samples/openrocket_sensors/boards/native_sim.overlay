@@ -17,6 +17,9 @@
         roll-axis = "OPENROCKET_AXIS_Z";
         pitch-axis = "OPENROCKET_AXIS_Y";
         yaw-axis = "OPENROCKET_AXIS_X";
+
+        accel-noise = <500>;
+        gyro-noise = <200>;
     };
 
     barom: barom {
