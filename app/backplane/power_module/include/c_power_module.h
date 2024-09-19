@@ -42,8 +42,8 @@ public:
     void SetupCallbacks() override;
 
 private:
-    static constexpr const char* ipAddrStr = "10.3.2.1";
-    static constexpr int telemetryBroadcastPort = 12100;
+    static constexpr const char* ipAddrStr = "10.1.2.1";
+    static constexpr int telemetryBroadcastPort = 11000;
 
     // Message Ports
     CMessagePort<SensorData>& sensorDataBroadcastMessagePort;
