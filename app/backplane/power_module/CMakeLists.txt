@@ -15,15 +15,6 @@ if (DEBUG)
     list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/debug.conf)
 endif ()
 
-if (BOARD STREQUAL "native_sim")
-    if (UNIX AND NOT APPLE)
-        message(STATUS "Adding simulation configuration")
-        list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/sim.conf)
-    else ()
-        message(FATAL_ERROR "Simulation is only supported on Linux systems")
-    endif ()
-endif ()
-
 cmake_minimum_required(VERSION 3.13.1)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
