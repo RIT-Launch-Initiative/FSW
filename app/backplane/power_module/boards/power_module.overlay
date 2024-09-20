@@ -1,0 +1,7 @@
+/ {
+	aliases {
+		shunt-batt = &ina0;
+		shunt-3v3 = &ina1;
+		shunt-5v0 = &ina2;
+	};
+};

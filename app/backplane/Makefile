@@ -1,10 +1,5 @@
 include app/backplane/sensor_module/Makefile
-
-power:
-	west build -b power_module@2 app/backplane/power_module -p auto -DOVERLAY_CONFIG=debug.conf
-
-power-rel:
-	west build -b power_module@2 app/backplane/power_module -p auto
+include app/backplane/power_module/Makefile
 
 radio:
 	west build -b radio_module app/backplane/radio_module -p auto

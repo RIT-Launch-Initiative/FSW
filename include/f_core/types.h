@@ -43,8 +43,8 @@ namespace NTypes
 
         typedef struct __attribute__((packed))
         {
-            float Current;
             float Voltage;
+            float Current;
             float Power;
         } ShuntData;
 
