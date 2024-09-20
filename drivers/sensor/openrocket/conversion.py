@@ -253,15 +253,15 @@ def get_wanted_vars(config) -> List[Variable]:
         wanted_variables.append(
             ({TEMP, PRESSURE},
              "Requested barometer data"))
-    if config.magnetometer:
-        wanted_variables.append((
-            {VERT_ORIENTATION, LAT_ORIENTATION},
-            "Requested Magnetometer data"))
     if config.gnss:
         # https://docs.zephyrproject.org/latest/hardware/peripherals/gnss.html#c.navigation_data
         wanted_variables.append((
             {LATITUDE, LONGITUDE, VELOCITY, ALTITUDE, LATERAL_DIRECTION},
             "Requested GNSS data"))
+    if config.magnetometer:
+        wanted_variables.append((
+            {VERT_ORIENTATION, LAT_ORIENTATION, LATITUDE, LONGITUDE, ALTITUDE},
+            "Requested Magnetometer data"))
     return wanted_variables
 
 
