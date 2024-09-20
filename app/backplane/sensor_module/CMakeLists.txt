@@ -1,21 +1,8 @@
 set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Guarantee that prj.conf is the default and first configuration file to be read
-
-list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/core.conf)
-
 if (DEBUG)
     message(STATUS "Adding debug configuration")
     list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/debug.conf)
-endif ()
-
-if (BOARD STREQUAL "native_sim")
-    if (UNIX AND NOT APPLE)
-        message(STATUS "Adding simulation configuration")
-        list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/native_sim.conf)
-    else ()
-        message(FATAL_ERROR "Simulation is only supported on Linux systems")
-    endif ()
 endif ()
 
 cmake_minimum_required(VERSION 3.13.1)
@@ -26,5 +13,6 @@ project(sensor-module LANGUAGES C CXX)
 FILE(GLOB SOURCES src/*.c src/*.cpp)
 target_include_directories(app PRIVATE include)
 target_sources(app PRIVATE ${SOURCES})
+#list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/prj.conf)
 
 
