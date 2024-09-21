@@ -9,17 +9,6 @@ struct or_magnetometer_config {
     struct or_common_params sensor_cfg;
 
     or_scalar_t noise;
-    // enum axis vertical_axis;
-    // bool vertical_axis_invert;
-    // enum axis lateral_axis;
-
-    // enum axis roll_axis;
-    // enum axis pitch_axis;
-    // enum axis yaw_axis;
-
-    // bool roll_axis_invert;
-    // bool pitch_axis_invert;
-    // bool yaw_axis_invert;
 };
 
 struct or_magnetometer_data {
