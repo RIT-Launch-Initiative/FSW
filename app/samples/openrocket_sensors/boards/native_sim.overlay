@@ -44,6 +44,7 @@
         compatible = "openrocket,magnetometer";
         lag-time-us = <1000>;
         sampling-period-us = <(5*1000*1000)>;
+        noise = <1000>;
     };
 
 };

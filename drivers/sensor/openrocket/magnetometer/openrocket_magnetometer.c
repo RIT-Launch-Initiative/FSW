@@ -108,6 +108,7 @@ extern const struct or_data_t *or_packets;
 static int or_magn_sample_fetch(const struct device *dev, enum sensor_channel chan) {
     const struct or_magnetometer_config *cfg = dev->config;
     k_usleep(cfg->sensor_cfg.measurement_us);
+
     struct or_magnetometer_data *data = dev->data;
     if (cfg->sensor_cfg.broken) {
         return -ENODEV;
@@ -133,17 +134,13 @@ static int or_magn_sample_fetch(const struct device *dev, enum sensor_channel ch
         const struct or_data_t *lo_data = &or_packets[lo];
         const struct or_data_t *hi_data = &or_packets[hi];
 
-        // or_data.vert_accel = or_lerp(lo_data->vert_accel, hi_data->vert_accel, mix);
-        // or_data.lat_accel = or_lerp(lo_data->lat_accel, hi_data->lat_accel, mix);
-
-        // or_data.roll = or_lerp(lo_data->roll, hi_data->roll, mix);
-        // or_data.pitch = or_lerp(lo_data->pitch, hi_data->pitch, mix);
-        // or_data.yaw = or_lerp(lo_data->yaw, hi_data->yaw, mix);
+        or_data.magn_x = or_lerp(lo_data->magn_x, hi_data->magn_x, mix);
+        or_data.magn_y = or_lerp(lo_data->magn_y, hi_data->magn_y, mix);
+        or_data.magn_z = or_lerp(lo_data->magn_z, hi_data->magn_z, mix);
     }
-    // or_data.roll *= DEGREES_TO_RADIANS;
-    // or_data.pitch *= DEGREES_TO_RADIANS;
-    // or_data.yaw *= DEGREES_TO_RADIANS;
-    // map_or_to_sensor(&or_data, data, cfg);
+    data->magn_x = or_data.magn_x + or_random(cfg->noise);
+    data->magn_y = or_data.magn_y + or_random(cfg->noise);
+    data->magn_z = or_data.magn_z + or_random(cfg->noise);
 
     return 0;
 }
@@ -158,18 +155,18 @@ static int or_magn_channel_get(const struct device *dev, enum sensor_channel cha
 
     switch (chan) {
         case SENSOR_CHAN_MAGN_X:
-            // sensor_value_from_or_scalar(val, data->accel_x);
+            sensor_value_from_or_scalar(val, data->magn_x);
             break;
         case SENSOR_CHAN_MAGN_Y:
-            // sensor_value_from_or_scalar(val, data->accel_y);
+            sensor_value_from_or_scalar(val, data->magn_y);
             break;
         case SENSOR_CHAN_MAGN_Z:
-            // sensor_value_from_or_scalar(val, data->accel_z);
+            sensor_value_from_or_scalar(val, data->magn_z);
             break;
         case SENSOR_CHAN_MAGN_XYZ:
-            // sensor_value_from_or_scalar(&val[0], data->accel_x);
-            // sensor_value_from_or_scalar(&val[1], data->accel_y);
-            // sensor_value_from_or_scalar(&val[2], data->accel_z);
+            sensor_value_from_or_scalar(&val[0], data->magn_x);
+            sensor_value_from_or_scalar(&val[1], data->magn_y);
+            sensor_value_from_or_scalar(&val[2], data->magn_z);
             break;
         default:
             LOG_DBG("Channel not supported by device");
@@ -205,6 +202,7 @@ static const struct sensor_driver_api or_magn_api = {
                 .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                           \
                 .measurement_us = DT_INST_PROP(n, measurement_us),                                                     \
             },                                                                                                         \
+        .noise = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, noise)),                                                       \
     };                                                                                                                 \
                                                                                                                        \
     SENSOR_DEVICE_DT_INST_DEFINE(n, or_magn_init, NULL, &or_magn_data_##n, &or_magn_config_##n, POST_KERNEL,           \

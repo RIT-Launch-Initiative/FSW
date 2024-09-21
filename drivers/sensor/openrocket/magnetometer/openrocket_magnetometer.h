@@ -8,6 +8,7 @@
 struct or_magnetometer_config {
     struct or_common_params sensor_cfg;
 
+    or_scalar_t noise;
     // enum axis vertical_axis;
     // bool vertical_axis_invert;
     // enum axis lateral_axis;

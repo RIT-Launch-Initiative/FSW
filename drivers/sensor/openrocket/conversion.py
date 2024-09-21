@@ -5,6 +5,8 @@ import sys
 import csv
 import argparse
 from math import isnan
+import magnetic_field
+
 
 '''
 Openrocket format that we care about:
@@ -169,9 +171,13 @@ LATERAL_DIRECTION = "Lateral direction (°)"
 VERT_ORIENTATION = "Vertical orientation (zenith) (°)"
 LAT_ORIENTATION = "Lateral orientation (azimuth) (°)"
 
+MAGNX = "Magnetometer X (gauss)"
+MAGNY = "Magnetometer Y (gauss)"
+MAGNZ = "Magnetometer Z (gauss)"
+
 # order in the c struct. this will have to update as time goes on
 struct_order = [TIME, VERT_ACCEL, LAT_ACCEL, ROLL, PITCH, YAW,
-                TEMP, PRESSURE, LATITUDE, LONGITUDE, VELOCITY, ALTITUDE, LATERAL_DIRECTION, VERT_ORIENTATION, LAT_ORIENTATION]
+                TEMP, PRESSURE, LATITUDE, LONGITUDE, VELOCITY, ALTITUDE, LATERAL_DIRECTION, MAGNX, MAGNY, MAGNZ]
 
 
 def convert_value(value: str) -> float:
@@ -180,11 +186,30 @@ def convert_value(value: str) -> float:
     return float(value)
 
 
-def filter_data(data: List[StringPacket], mapping: Dict[Variable, int]) -> List[Packet]:
+def make_single_packet(packet, indices, mapping: Dict[Variable, int]) -> List[float]:
+    direct = [convert_value(packet[i]) for i in indices]
+
+    # position
+    lat = packet[mapping[LATITUDE]]
+    long = packet[mapping[LONGITUDE]]
+    alt = packet[mapping[ALTITUDE]]
+
+    # orientation
+    azimuth = packet[mapping[VERT_ORIENTATION]]
+    inclination = packet[mapping[LAT_ORIENTATION]]
+
+    magn = magnetic_field.evaluate_xyz(lat, long, alt, azimuth, inclination)
+
+    calculated = [magn[0], magn[1], magn[2]]
+    return direct+calculated
+
+
+def collect_data(data: List[StringPacket], mapping: Dict[Variable, int]) -> List[Packet]:
     indices = [mapping[key] for key in struct_order if key in mapping]
 
-    wanted_data = [[convert_value(packet[i])
-                    for i in indices] for packet in data]
+    wanted_data = [make_single_packet(
+        packet, indices, mapping) for packet in data]
+
     return wanted_data
 
 
@@ -222,7 +247,6 @@ const unsigned int or_packets_size = NUM_DATA_PACKETS;
 #define NUM_EVENTS {len(events)}
 const unsigned int or_events_size = NUM_EVENTS;
 struct or_event_occurance_t or_events_data[NUM_EVENTS] = {{
-
 {make_event_initializer(events)}
 }};
 const struct or_event_occurance_t * const or_events = or_events_data;
@@ -278,7 +302,7 @@ def main():
     mapping = validate_vars(header, wanted_variables)
 
     data = read_data(lines)
-    filtered_data = filter_data(data, mapping)
+    filtered_data = collect_data(data, mapping)
     c_file = make_c_file(config.in_filename, events, filtered_data)
 
     try:

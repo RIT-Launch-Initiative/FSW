@@ -143,7 +143,11 @@ static struct or_data_t pad_packet = {
     .altitude = 0,
     .velocity = 0,
 #endif
-
+#ifdef CONFIG_OPENROCKET_MAGNETOMETER
+    .magn_x = 0,
+    .magn_y = 0,
+    .magn_z = 0,
+#endif
 };
 
 static struct or_data_t landed_packet = {
@@ -165,26 +169,19 @@ static struct or_data_t landed_packet = {
     .altitude = 0,
     .velocity = 0,
 #endif
+#ifdef CONFIG_OPENROCKET_MAGNETOMETER
+    .magn_x = 0,
+    .magn_y = 0,
+    .magn_z = 0,
+#endif
 
 };
 
 static int init_openrocket(void) {
     LOG_INF("Initializing OpenRocket data");
-#ifdef CONFIG_OPENROCKET_BAROMETER
-    pad_packet.pressure = or_packets[0].pressure;
-    pad_packet.temperature = or_packets[0].temperature;
-    landed_packet.pressure = or_packets[or_packets_size - 1].pressure;
-    landed_packet.temperature = or_packets[or_packets_size - 1].temperature;
-#endif
+    pad_packet = or_packets[0];
+    landed_packet = or_packets[or_packets_size - 1];
 
-#ifdef CONFIG_OPENROCKET_GNSS
-    pad_packet.latitude = or_packets[0].latitude;
-    pad_packet.longitude = or_packets[0].longitude;
-    pad_packet.altitude = or_packets[0].altitude;
-    landed_packet.latitude = or_packets[or_packets_size - 1].latitude;
-    landed_packet.longitude = or_packets[or_packets_size - 1].longitude;
-    landed_packet.altitude = or_packets[or_packets_size - 1].altitude;
-#endif
     return 0;
 }
 

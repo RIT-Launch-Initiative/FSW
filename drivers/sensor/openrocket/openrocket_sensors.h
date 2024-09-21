@@ -96,9 +96,9 @@ struct or_data_t {
     or_scalar_t bearing;   // °
 #endif
 #ifdef CONFIG_OPENROCKET_MAGNETOMETER
-    or_scalar_t x; // Gauss
-    or_scalar_t y; // Gauss
-    or_scalar_t z; // Gauss
+    or_scalar_t magn_x; // Gauss
+    or_scalar_t magn_y; // Gauss
+    or_scalar_t magn_z; // Gauss
 
 #endif
 };
