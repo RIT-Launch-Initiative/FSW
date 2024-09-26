@@ -186,29 +186,33 @@ def convert_value(value: str) -> float:
     return float(value)
 
 
-def make_single_packet(packet, indices, mapping: Dict[Variable, int]) -> List[float]:
+def make_single_packet(packet, indices, mapping: Dict[Variable, int], config) -> List[float]:
     direct = [convert_value(packet[i]) for i in indices]
 
     # position
-    lat = packet[mapping[LATITUDE]]
-    long = packet[mapping[LONGITUDE]]
-    alt = packet[mapping[ALTITUDE]]
+    calculated = []
 
-    # orientation
-    azimuth = packet[mapping[VERT_ORIENTATION]]
-    inclination = packet[mapping[LAT_ORIENTATION]]
+    if config.magnetometer:
+        lat = packet[mapping[LATITUDE]]
+        long = packet[mapping[LONGITUDE]]
+        alt = packet[mapping[ALTITUDE]]
 
-    magn = magnetic_field.evaluate_xyz(lat, long, alt, azimuth, inclination)
+        # orientation
+        azimuth = packet[mapping[VERT_ORIENTATION]]
+        inclination = packet[mapping[LAT_ORIENTATION]]
 
-    calculated = [magn[0], magn[1], magn[2]]
+        magn = magnetic_field.evaluate_xyz(
+            lat, long, alt, azimuth, inclination)
+
+        calculated += [magn[0], magn[1], magn[2]]
     return direct+calculated
 
 
-def collect_data(data: List[StringPacket], mapping: Dict[Variable, int]) -> List[Packet]:
+def collect_data(data: List[StringPacket], mapping: Dict[Variable, int], config) -> List[Packet]:
     indices = [mapping[key] for key in struct_order if key in mapping]
 
     wanted_data = [make_single_packet(
-        packet, indices, mapping) for packet in data]
+        packet, indices, mapping, config) for packet in data]
 
     return wanted_data
 
@@ -302,7 +306,7 @@ def main():
     mapping = validate_vars(header, wanted_variables)
 
     data = read_data(lines)
-    filtered_data = collect_data(data, mapping)
+    filtered_data = collect_data(data, mapping, config)
     c_file = make_c_file(config.in_filename, events, filtered_data)
 
     try:
