@@ -106,7 +106,8 @@ static const struct sensor_driver_api or_magn_api = {
 };
 
 #define OR_MAGN_INIT(n)                                                                                                \
-    static struct or_magnetometer_data or_magn_data_##n = {.rand_state = CONFIG_OPENROCKET_NOISE_SEED};                \
+    static struct or_magnetometer_data or_magn_data_##n = {                                                            \
+        .rand_state = COND_CODE_1(CONFIG_OPENROCKET_NOISE, (CONFIG_OPENROCKET_NOISE_SEED), (0))};                      \
                                                                                                                        \
     static const struct or_magnetometer_config or_magn_config_##n = {                                                  \
         .sensor_cfg =                                                                                                  \
