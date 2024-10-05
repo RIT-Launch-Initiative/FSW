@@ -10,6 +10,7 @@ struct or_barom_config {
 
 struct or_barom_data {
     unsigned int last_lower_index;
+    uint32_t rand_state;
 
     or_scalar_t pressure;
     or_scalar_t temperature;

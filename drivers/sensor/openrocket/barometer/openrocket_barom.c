@@ -41,8 +41,8 @@ static int or_barom_sample_fetch(const struct device *dev, enum sensor_channel c
         or_data.pressure = or_lerp(lo_data->pressure, hi_data->pressure, mix);
         or_data.temperature = or_lerp(lo_data->temperature, hi_data->temperature, mix);
     }
-    data->pressure = or_data.pressure + or_random(cfg->press_noise_scale);
-    data->temperature = or_data.temperature + or_random(cfg->temp_noise_scale);
+    data->pressure = or_data.pressure + or_random(&data->rand_state, cfg->press_noise_scale);
+    data->temperature = or_data.temperature + or_random(&data->rand_state, cfg->temp_noise_scale);
 
     return 0;
 }
@@ -83,7 +83,7 @@ static const struct sensor_driver_api or_barom_api = {
 };
 
 #define OR_BAROM_INIT(n)                                                                                               \
-    static struct or_barom_data or_barom_data_##n;                                                                     \
+    static struct or_barom_data or_barom_data_##n = {.rand_state = CONFIG_OPENROCKET_NOISE_SEED};                      \
                                                                                                                        \
     static const struct or_barom_config or_barom_config_##n = {                                                        \
         .sensor_cfg =                                                                                                  \

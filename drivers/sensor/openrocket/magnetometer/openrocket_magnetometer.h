@@ -13,6 +13,7 @@ struct or_magnetometer_config {
 
 struct or_magnetometer_data {
     unsigned int last_lower_index;
+    uint32_t rand_state;
 
     or_scalar_t magn_x;
     or_scalar_t magn_y;

@@ -25,6 +25,7 @@ struct or_imu_config {
 
 struct or_imu_data {
     unsigned int last_lower_index;
+    uint32_t rand_state;
 
     or_scalar_t accel_x;
     or_scalar_t accel_y;

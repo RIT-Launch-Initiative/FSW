@@ -52,9 +52,9 @@ static int or_magn_sample_fetch(const struct device *dev, enum sensor_channel ch
         or_data.magn_y = or_lerp(lo_data->magn_y, hi_data->magn_y, mix);
         or_data.magn_z = or_lerp(lo_data->magn_z, hi_data->magn_z, mix);
     }
-    data->magn_x = or_data.magn_x + or_random(cfg->noise);
-    data->magn_y = or_data.magn_y + or_random(cfg->noise);
-    data->magn_z = or_data.magn_z + or_random(cfg->noise);
+    data->magn_x = or_data.magn_x + or_random(&data->rand_state, cfg->noise);
+    data->magn_y = or_data.magn_y + or_random(&data->rand_state, cfg->noise);
+    data->magn_z = or_data.magn_z + or_random(&data->rand_state, cfg->noise);
 
     return 0;
 }
@@ -106,7 +106,7 @@ static const struct sensor_driver_api or_magn_api = {
 };
 
 #define OR_MAGN_INIT(n)                                                                                                \
-    static struct or_magnetometer_data or_magn_data_##n;                                                               \
+    static struct or_magnetometer_data or_magn_data_##n = {.rand_state = CONFIG_OPENROCKET_NOISE_SEED};                \
                                                                                                                        \
     static const struct or_magnetometer_config or_magn_config_##n = {                                                  \
         .sensor_cfg =                                                                                                  \

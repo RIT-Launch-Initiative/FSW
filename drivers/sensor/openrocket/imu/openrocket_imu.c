@@ -145,12 +145,12 @@ static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel cha
     or_data.pitch *= DEGREES_TO_RADIANS;
     or_data.yaw *= DEGREES_TO_RADIANS;
 
-    or_data.vert_accel += or_random(cfg->accel_noise);
-    or_data.lat_accel += or_random(cfg->accel_noise);
+    or_data.vert_accel += or_random(&data->rand_state, cfg->accel_noise);
+    or_data.lat_accel += or_random(&data->rand_state, cfg->accel_noise);
 
-    or_data.roll += or_random(cfg->gyro_noise);
-    or_data.pitch += or_random(cfg->gyro_noise);
-    or_data.yaw += or_random(cfg->gyro_noise);
+    or_data.roll += or_random(&data->rand_state, cfg->gyro_noise);
+    or_data.pitch += or_random(&data->rand_state, cfg->gyro_noise);
+    or_data.yaw += or_random(&data->rand_state, cfg->gyro_noise);
 
     map_or_to_sensor(&or_data, data, cfg);
 
@@ -218,7 +218,7 @@ static const struct sensor_driver_api or_imu_api = {
 };
 
 #define OR_IMU_INIT(n)                                                                                                 \
-    static struct or_imu_data or_imu_data_##n;                                                                         \
+    static struct or_imu_data or_imu_data_##n = {.rand_state = CONFIG_OPENROCKET_NOISE_SEED};                          \
                                                                                                                        \
     static const struct or_imu_config or_imu_config_##n = {                                                            \
         .sensor_cfg =                                                                                                  \

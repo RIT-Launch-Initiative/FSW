@@ -50,5 +50,11 @@ if OPENROCKET_SENSORS
         default false
         help
             Enable to add noise to your sensor readings. If this is disabled (bc you dont have a random source, the openrocket random generator will always return 0)
+    config OPENROCKET_NOISE_SEED
+        int "OpenRocket Sensor Noise Noise"
+        depends on OPENROCKET_NOISE
+        default 0
+        help
+            Random seed for random sensor readings
 endif
 
