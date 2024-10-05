@@ -1,12 +1,31 @@
+#-------------------------------------------------------------------------------
+# Backplane Radio Module Application
+#
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+project(radio-module LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.13.1)
+
 set(BOARD radio_module)
 set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
-cmake_minimum_required(VERSION 3.13.1)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
-project(radio-module LANGUAGES C CXX)
+set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
-FILE(GLOB sources src/*.c src/*.cpp)
+list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/core.conf)
+
+if (DEBUG)
+    message(STATUS "Adding debug configuration")
+    list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/debug.conf)
+endif ()
+
+if(DEFINED CONFIG_RECEIVER)
+    FILE(GLOB sources src/receiver/*.c src/receiver/*.cpp)
+else()
+    FILE(GLOB sources src/transmitter/*.c src/transmitter/*.cpp)
+endif()
+
 target_include_directories(app PRIVATE include)
 target_sources(app PRIVATE ${sources})
-
