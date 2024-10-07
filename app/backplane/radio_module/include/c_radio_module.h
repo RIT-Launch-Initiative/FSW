@@ -34,10 +34,13 @@ private:
     static constexpr const char* ipAddrStr = "10.2.1.1";
     static constexpr int telemetryBroadcastPort = 12000;
 
-    // Message Ports
-    CMessagePort<SensorData>& gnssDataBroadcastMessagePort;
+    typedef struct {
+        uint16_t port;
+        uint8_t data[255 - sizeof(uint16_t)];
+    } LoraPacket;
 
     // Tenants
+    CMsgqMessagePort<LoraPacket> loraPacketToUdpPort{};
     CUdpBroadcastTenant<SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
 
     // Tasks

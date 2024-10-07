@@ -46,6 +46,13 @@ public:
      */
     int SetRxTimeout(int timeout) override;
 
+    /**
+     * Set the destination port
+     */
+    void setDstPort(int port) {
+        dstPort = port;
+    }
+
 private:
     int sock = -1;
     int dstPort = -1;
