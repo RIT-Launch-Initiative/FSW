@@ -1,0 +1,8 @@
+menuconfig OPENROCKET_MAGNETOMETER
+	bool "Open Rocket Magnetometer"
+	default n
+    depends on OPENROCKET_SENSORS
+	depends on DT_HAS_OPENROCKET_MAGNETOMETER_ENABLED
+	help
+	  Enable driver for openrocket magnetometer sensor
+

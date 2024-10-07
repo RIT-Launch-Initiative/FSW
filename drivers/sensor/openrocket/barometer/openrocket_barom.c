@@ -14,14 +14,15 @@ extern const struct or_data_t *or_packets;
 
 static int or_barom_sample_fetch(const struct device *dev, enum sensor_channel chan) {
     const struct or_barom_config *cfg = dev->config;
+    k_usleep(cfg->sensor_cfg.measurement_us);
     struct or_barom_data *data = dev->data;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
     if (chan != SENSOR_CHAN_ALL && chan != SENSOR_CHAN_AMBIENT_TEMP && chan != SENSOR_CHAN_PRESS) {
         return -ENOTSUP;
     }
-    or_scalar_t time = or_get_time(cfg->sampling_period_us, cfg->lag_time_ms);
+    or_scalar_t time = or_get_time(&cfg->sensor_cfg);
     unsigned int lo, hi = 0;
     or_scalar_t mix = 0;
     or_find_bounding_packets(data->last_lower_index, time, &lo, &hi, &mix);
@@ -40,8 +41,8 @@ static int or_barom_sample_fetch(const struct device *dev, enum sensor_channel c
         or_data.pressure = or_lerp(lo_data->pressure, hi_data->pressure, mix);
         or_data.temperature = or_lerp(lo_data->temperature, hi_data->temperature, mix);
     }
-    data->pressure = or_data.pressure;
-    data->temperature = or_data.temperature;
+    data->pressure = or_data.pressure + or_random(&data->rand_state, cfg->press_noise_scale);
+    data->temperature = or_data.temperature + or_random(&data->rand_state, cfg->temp_noise_scale);
 
     return 0;
 }
@@ -50,7 +51,7 @@ static int or_barom_channel_get(const struct device *dev, enum sensor_channel ch
     const struct or_barom_config *cfg = dev->config;
     struct or_barom_data *data = dev->data;
 
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
     if (chan != SENSOR_CHAN_PRESS && chan != SENSOR_CHAN_AMBIENT_TEMP) {
@@ -67,7 +68,7 @@ static int or_barom_channel_get(const struct device *dev, enum sensor_channel ch
 
 static int or_barom_init(const struct device *dev) {
     const struct or_barom_config *cfg = dev->config;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         LOG_WRN("Barometer device %s is failed to init", dev->name);
         return -ENODEV;
     }
@@ -82,12 +83,19 @@ static const struct sensor_driver_api or_barom_api = {
 };
 
 #define OR_BAROM_INIT(n)                                                                                               \
-    static struct or_barom_data or_barom_data_##n;                                                                     \
+    static struct or_barom_data or_barom_data_##n = {                                                                  \
+        .rand_state = n + COND_CODE_1(CONFIG_OPENROCKET_NOISE, (CONFIG_OPENROCKET_NOISE_SEED), (0))};                  \
                                                                                                                        \
     static const struct or_barom_config or_barom_config_##n = {                                                        \
-        .broken = DT_INST_PROP(n, broken),                                                                             \
-        .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                                     \
-        .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                                   \
+        .sensor_cfg =                                                                                                  \
+            {                                                                                                          \
+                .broken = DT_INST_PROP(n, broken),                                                                     \
+                .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                             \
+                .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                           \
+                .measurement_us = DT_INST_PROP(n, measurement_us),                                                     \
+            },                                                                                                         \
+        .temp_noise_scale = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, temp_noise)),                                       \
+        .press_noise_scale = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, pressure_noise)),                                  \
     };                                                                                                                 \
                                                                                                                        \
     SENSOR_DEVICE_DT_INST_DEFINE(n, or_barom_init, NULL, &or_barom_data_##n, &or_barom_config_##n, POST_KERNEL,        \
