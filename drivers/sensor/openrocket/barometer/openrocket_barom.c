@@ -84,7 +84,7 @@ static const struct sensor_driver_api or_barom_api = {
 
 #define OR_BAROM_INIT(n)                                                                                               \
     static struct or_barom_data or_barom_data_##n = {                                                                  \
-        .rand_state = COND_CODE_1(CONFIG_OPENROCKET_NOISE, (CONFIG_OPENROCKET_NOISE_SEED), (0))};                      \
+        .rand_state = n + COND_CODE_1(CONFIG_OPENROCKET_NOISE, (CONFIG_OPENROCKET_NOISE_SEED), (0))};                  \
                                                                                                                        \
     static const struct or_barom_config or_barom_config_##n = {                                                        \
         .sensor_cfg =                                                                                                  \

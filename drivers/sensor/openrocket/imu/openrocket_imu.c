@@ -219,7 +219,7 @@ static const struct sensor_driver_api or_imu_api = {
 
 #define OR_IMU_INIT(n)                                                                                                 \
     static struct or_imu_data or_imu_data_##n = {                                                                      \
-        .rand_state = COND_CODE_1(CONFIG_OPENROCKET_NOISE, (CONFIG_OPENROCKET_NOISE_SEED), (0))};                      \
+        .rand_state = n + COND_CODE_1(CONFIG_OPENROCKET_NOISE, (CONFIG_OPENROCKET_NOISE_SEED), (0))};                  \
                                                                                                                        \
     static const struct or_imu_config or_imu_config_##n = {                                                            \
         .sensor_cfg =                                                                                                  \
