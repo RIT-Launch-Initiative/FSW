@@ -1,0 +1,7 @@
+common:
+  tags:
+    - lib
+    - utilities
+tests:
+  utilities.debouncer:
+    type: unit
