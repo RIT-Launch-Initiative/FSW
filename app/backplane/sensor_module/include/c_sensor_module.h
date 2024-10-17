@@ -59,7 +59,7 @@ private:
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant"};
-    CRs485Tenant rs485Tenant{"RS485 Tenant"};
+    // CRs485Tenant rs485Tenant{"RS485 Tenant"};
     CUdpBroadcastTenant<SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
 
     // Tasks

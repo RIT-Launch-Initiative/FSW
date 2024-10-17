@@ -5,12 +5,23 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
 
+#include <zephyr/device.h>
+
 class CRs485 : public CTransceiver
 {
 public:
-    CRs485(const device &uart, const gpio_dt_spec &rs485_enable)
-        : uart(uart), rs485_enable(rs485_enable)
+    CRs485(const device &uart, const gpio_dt_spec &rs485_enable, void (*uartIrqUserDataCallback)(const device *dev, void *user_data) = nullptr)
+        : uart(uart), rs485_enable(rs485_enable), irqEnabled(uartIrqUserDataCallback != nullptr)
     {
+      if (uartIrqUserDataCallback != nullptr) {
+        uart_irq_callback_set(&uart, uartIrqUserDataCallback);
+          uart_irq_rx_enable(&uart);
+          uart_irq_tx_enable(&uart);
+      } else {
+          uart_irq_rx_disable(&uart);
+          uart_irq_tx_disable(&uart);
+
+      }
     };
 
     int TransmitSynchronous(const void* data, size_t len);
@@ -41,6 +52,7 @@ private:
 
   const device &uart;
   const gpio_dt_spec &rs485_enable;
+  const bool irqEnabled;
 
   bool setTxRx(const bool isTransmit) const
   {
