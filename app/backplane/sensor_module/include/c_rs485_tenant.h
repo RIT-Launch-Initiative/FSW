@@ -4,6 +4,8 @@
 #include <f_core/net/device/c_rs485.h>
 #include <f_core/os/c_tenant.h>
 
+#include <zephyr/drivers/gpio.h>
+
 
 class CRs485Tenant : public CTenant {
 public:
@@ -12,9 +14,14 @@ public:
   {
   }
 
+  void Startup() override;
+
+  void PostStartup() override;
+
   void Run() override;
 
 private:
+  // CRs485 &rs485{DEVICE_DT_GET(DT_ALIAS(rs485_uart)), GPIO_DT_SPEC_GET(de_hack, leds)};;
 
 };
 

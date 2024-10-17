@@ -8,7 +8,10 @@
 class CRs485 : public CTransceiver
 {
 public:
-    CRs485();
+    CRs485(const device &uart, const gpio_dt_spec &rs485_enable)
+        : uart(uart), rs485_enable(rs485_enable)
+    {
+    };
 
     int TransmitSynchronous(const void* data, size_t len);
 
@@ -36,8 +39,8 @@ private:
   static constexpr bool enableTx = true;
   static constexpr bool enableRx = false;
 
-  const gpio_dt_spec &rs485_enable;
   const device &uart;
+  const gpio_dt_spec &rs485_enable;
 
   bool setTxRx(const bool isTransmit) const
   {

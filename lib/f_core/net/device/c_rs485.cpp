@@ -1,5 +1,19 @@
 #include <f_core/net/device/c_rs485.h>
 
+int CRs485::TransmitSynchronous(const void* data, size_t len) {
+    if (setTxRx(enableTx) == false) {
+        return -1;
+    }
+
+    int index = 0;
+    while (index < len) {
+        uart_poll_out(&uart, static_cast<const uint8_t*>(data)[index]);
+        index++;
+    }
+    return 0;
+}
+
+
 
 int CRs485::ReceiveSynchronous(void* data, size_t len) {
     if (setTxRx(enableRx) == false) {
