@@ -9,7 +9,7 @@ FILE(GLOB sources
         net/transport/*.cpp
 
         device/sensor/*.cpp
-
+        flight/*.cpp
         messaging/*.cpp
         
         os/*.cpp
