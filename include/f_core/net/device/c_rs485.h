@@ -2,6 +2,8 @@
 #define C_RS485_H
 
 #include <f_core/net/c_transciever.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/uart.h>
 
 class CRs485 : public CTransceiver
 {
@@ -29,6 +31,18 @@ public:
      * See parent docs
      */
     int SetRxTimeout(int timeout);
+
+private:
+  static constexpr bool enableTx = true;
+  static constexpr bool enableRx = false;
+
+  const gpio_dt_spec &rs485_enable;
+  const device &uart;
+
+  bool setTxRx(const bool isTransmit) const
+  {
+    return gpio_pin_set_dt(&rs485_enable, isTransmit) == 0;
+  }
 };
 
 
