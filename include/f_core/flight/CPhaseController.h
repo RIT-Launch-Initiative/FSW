@@ -7,7 +7,6 @@
 void flight_log_init();
 void flight_log_source_event(const char *source, const char *event);
 void flight_log_event_confirmed(const char *event, bool current_state);
-void timer_expiry_function(struct k_timer *);
 
 template <typename EventID, std::size_t num_events, typename SourceID, std::size_t num_sources, std::size_t num_timers>
 class PhaseController {
@@ -83,7 +82,6 @@ class PhaseController {
         ievt.controller->SubmitEvent(ievt.event.source, ievt.event.event);
     };
 
-  private:
     // Current State of the system
     std::array<SourceStates, num_events> source_states = {false};
     std::array<bool, num_events> event_states = {false};

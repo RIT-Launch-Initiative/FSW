@@ -216,11 +216,8 @@ int main() {
     controller.WaitUntilEvent(Events::Coast);
     LOG_DBG("Coast detected:\n\tturn down IMU data rate");
 
-    // IMU can chill out
-    // k_timer_start(&imu_timer, K_MSEC(10), K_MSEC(10));
-
-    // Mock Noseover
-    // controller.SubmitEvent(Sources::Barom1, Events::Noseover);
+    // IMU can chill out after all the cool stuff happens
+    k_timer_start(&imu_timer, K_MSEC(10), K_MSEC(10));
 
     controller.WaitUntilEvent(Events::Noseover);
     LOG_DBG("Noseover detected:\n\tdeploy charges");

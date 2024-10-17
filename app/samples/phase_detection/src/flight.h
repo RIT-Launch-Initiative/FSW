@@ -7,7 +7,7 @@
  * Flight Events for a fictional flight
  */
 enum Events : uint8_t { PadReady, Boost, Coast, Noseover, MainChute, GroundHit, CamerasOff, NumEvents };
-constexpr std::array<const char *, Events::NumEvents> eventNames = {
+inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
     "PadReady", "Boost", "Coast", "Noseover", "MainChute", "GroundHit", "CamerasOff",
 };
 
