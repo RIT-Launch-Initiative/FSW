@@ -5,6 +5,8 @@
 
 LOG_MODULE_REGISTER(CGnssTenant);
 
+// TODO: Might want to implement a soft timer class in another PR, so we can take advantage of GNSS callbacks
+
 void CGnssTenant::Startup() {
 
 }
