@@ -5,9 +5,9 @@
 #include "c_gnss_tenant.h"
 #include "c_udp_listener_tenant.h"
 #include "c_lora_transmit_tenant.h"
+#include "c_lora_to_udp_tenant.h"
 
 // F-Core Includes
-#include <c_lora_receive_tenant.h>
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
@@ -36,6 +36,12 @@ public:
     void SetupCallbacks() override;
 
 private:
+    static constexpr const char* ipAddrStr = "10.2.1.1";
+
+    static constexpr uint16_t powerModuleTelemetryPort = 11015;
+    static constexpr uint16_t radioModuleSourcePort = 12000;
+    static constexpr uint16_t sensorModuleTelemetryPort = 12100;
+
     // Devices
     CLora lora;
 
@@ -47,10 +53,10 @@ private:
     CGnssTenant gnssTenant{"GNSS Tenant"};
 
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", "10.2.1.1", 11000, &loraBroadcastMessagePort};
-    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", "10.2.1.1", 13000, &loraBroadcastMessagePort};
+    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, &udpBroadcastMessagePort};
+    CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 128, 0};
