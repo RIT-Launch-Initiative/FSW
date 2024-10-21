@@ -5,14 +5,17 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 
 K_MSGQ_DEFINE(broadcastQueue, 256, 10, 4);
-static auto broadcastMsgQueue = CMsgqMessagePort<NRadioModuleTypes::RadioBroadcastData>(broadcastQueue);
+static auto loraBroadcastMsgQueue = CMsgqMessagePort<NRadioModuleTypes::RadioBroadcastData>(broadcastQueue);
+static auto udpBroadcastMsgQueue = CMsgqMessagePort<NRadioModuleTypes::RadioBroadcastData>(broadcastQueue);
 
-CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora))), loraBroadcastMessagePort(broadcastMsgQueue) {
+CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
+                               loraBroadcastMessagePort(loraBroadcastMsgQueue), udpBroadcastMessagePort(udpBroadcastMsgQueue) {
 }
 
 void CRadioModule::AddTenantsToTasks() {
     // Networking
-    udpListenerTask.AddTenant(udpListenerTenant);
+    networkingTask.AddTenant(sensorModuleListenerTenant);
+    networkingTask.AddTenant(powerModuleListenerTenant);
 
     // GNSS
     gnssTask.AddTenant(gnssTenant);
@@ -23,7 +26,7 @@ void CRadioModule::AddTenantsToTasks() {
 
 void CRadioModule::AddTasksToRtos() {
     // Networking
-    NRtos::AddTask(networkTask);
+    NRtos::AddTask(networkingTask);
 }
 
 void CRadioModule::SetupCallbacks() {

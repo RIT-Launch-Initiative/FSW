@@ -1,5 +1,5 @@
-#ifndef C_LORA_TENANT_H
-#define C_LORA_TENANT_H
+#ifndef C_LORA_TRANSMIT_TENANT_H
+#define C_LORA_TRANSMIT_TENANT_H
 
 #include "n_radio_module_types.h"
 #include <f_core/messaging/c_message_port.h>
@@ -31,4 +31,4 @@ private:
 
 
 
-#endif //C_LORA_TENANT_H
+#endif //C_LORA_TRANSMIT_TENANT_H
