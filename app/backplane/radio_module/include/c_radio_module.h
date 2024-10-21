@@ -3,7 +3,7 @@
 
 #include "n_radio_module_types.h"
 #include "c_gnss_tenant.h"
-#include "c_bcast_rcv_tenant.h"
+#include "c_udp_listener_tenant.h"
 #include "c_lora_transmit_tenant.h"
 
 // F-Core Includes
@@ -48,7 +48,9 @@ private:
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant"};
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CBroadcastReceiveTenant broadcastReceiveTenant{"Broadcast Receive Tenant", "10.1.1.1", 10000};
+
+    // Listener Tenants
+    CUdpListenerTenant udpListenerTenant{"Broadcast Receive Tenant", "10.1.1.1", 10000, &loraBroadcastMessagePort};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 128, 0};

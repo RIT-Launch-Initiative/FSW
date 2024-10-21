@@ -22,12 +22,14 @@ void CLoraTransmitTenant::Run() {
         }
 
         if (data.size > (256 - 2)) {
-            LOG_WRN("Received data exceeds LoRa packet size");
+            // This case should never occur. If it does, then developer is sending too much data
+            LOG_ERR("Received data exceeds LoRa packet size");
+            k_oops();
             continue;
         }
 
-        memcpy(txData, &data.port, 2);
-        memcpy(txData + 2, &data.data, data.size);
+        memcpy(txData, &data.port, 2); // Copy port numebr to first 2 bytes
+        memcpy(txData + 2, &data.data, data.size); // Copy payload to the rest of the buffer
         lora.TransmitSynchronous(txData, data.size);
     }
 }
