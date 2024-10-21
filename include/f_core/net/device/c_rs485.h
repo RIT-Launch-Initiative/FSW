@@ -14,7 +14,7 @@ public:
     /**
     * Constructor
     */
-    CRs485(const device &uart, const gpio_dt_spec &rs485_enable, void (*uartIrqUserDataCallback)(const device *dev, void *user_data) = nullptr);
+    CRs485(const device &uart, const gpio_dt_spec &rs485_enable);
 
     int TransmitSynchronous(const void* data, size_t len) override;
 
@@ -49,7 +49,6 @@ private:
 
   const device &uart;
   const gpio_dt_spec &rs485_enable;
-  const bool irqEnabled;
 
   int32_t rxTimeoutMillis = 0;
   int32_t txTimeoutMillis = 0;

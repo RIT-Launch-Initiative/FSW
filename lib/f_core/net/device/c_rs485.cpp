@@ -9,19 +9,7 @@
 
 LOG_MODULE_REGISTER(CRs485);
 
-CRs485::CRs485(const device& uart, const gpio_dt_spec& rs485_enable,
-               void (*uartIrqUserDataCallback)(const device* dev, void* user_data)) : uart(uart),
-    rs485_enable(rs485_enable), irqEnabled(uartIrqUserDataCallback != nullptr) {
-    if (uartIrqUserDataCallback != nullptr) {
-        uart_irq_callback_set(&uart, uartIrqUserDataCallback);
-        uart_irq_rx_enable(&uart);
-        uart_irq_tx_enable(&uart);
-    } else {
-        uart_irq_rx_disable(&uart);
-        uart_irq_tx_disable(&uart);
-    }
-}
-
+CRs485::CRs485(const device& uart, const gpio_dt_spec& rs485_enable) : uart(uart), rs485_enable(rs485_enable) {}
 
 int CRs485::TransmitSynchronous(const void* data, size_t len) {
     if (setTxRx(enableTx) == false) {
@@ -56,37 +44,25 @@ int CRs485::ReceiveSynchronous(void* data, size_t len) {
 
 
 int CRs485::TransmitAsynchronous(const void* data, size_t len) {
-    if (unlikely(!irqEnabled)) {
-        LOG_ERR("TransmitAsynchronous called without IRQ enabled");
-        k_oops();
-    }
+    LOG_ERR("TransmitAsynchronous not implemented");
+    k_oops();
 
-    if (setTxRx(enableTx) == false) {
-        return -1;
-    }
-
-    return uart_fifo_fill(&uart, static_cast<const uint8_t*>(data), static_cast<int>(len));
+    return -1;
 }
 
 int CRs485::ReceiveAsynchronous(void* data, size_t len) {
-    if (unlikely(!irqEnabled)) {
-        LOG_ERR("TransmitAsynchronous called without IRQ enabled");
-        k_oops();
-    }
+    LOG_ERR("TransmitAsynchronous not implemented");
+    k_oops();
 
-    if (setTxRx(enableRx) == false) {
-        return -1;
-    }
-
-    return uart_fifo_read(&uart, static_cast<uint8_t*>(data), static_cast<int>(len));
+    return -1;
 }
 
-int CRs485::SetTxTimeout(int timeoutMillis) {
+int CRs485::SetTxTimeout(const int timeoutMillis) {
     txTimeoutMillis = timeoutMillis;
     return 0;
 }
 
-int CRs485::SetRxTimeout(int timeoutMillis) {
+int CRs485::SetRxTimeout(const int timeoutMillis) {
     rxTimeoutMillis = timeoutMillis;
 
     return 0;
