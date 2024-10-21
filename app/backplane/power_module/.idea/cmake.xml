@@ -2,7 +2,7 @@
 <project version="4">
   <component name="CMakeSharedSettings">
     <configurations>
-      <configuration PROFILE_NAME="Debug" ENABLED="true" GENERATION_OPTIONS="-DBOARD=power_module@2" />
+      <configuration PROFILE_NAME="Debug" ENABLED="true" GENERATION_OPTIONS="-G Ninja -DBOARD=power_module@2" />
     </configurations>
   </component>
 </project>

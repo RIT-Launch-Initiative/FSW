@@ -5,8 +5,9 @@ common:
   build_only: true
   integration_platforms:
     - power_module@2
+    - native_sim
 tests:
-  app.default: {}
-  app.debug:
+  backplane.power_module.default: {}
+  backplane.power_module.debug:
     extra_overlay_confs:
       - debug.conf

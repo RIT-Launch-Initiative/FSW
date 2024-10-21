@@ -20,6 +20,7 @@ env:
     app/samples/message_passing
     app/samples/openrocket_sensors
     app/samples/tenants_and_tasks
+    app/samples/datalogger
 
   
   platforms: |

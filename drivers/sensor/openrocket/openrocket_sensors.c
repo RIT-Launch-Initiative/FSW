@@ -156,7 +156,7 @@ static struct or_data_t landed_packet = {
 static int init_openrocket(void) {
     LOG_INF("Initializing OpenRocket data");
 #ifdef CONFIG_OPENROCKET_BAROMETER
-    pad_packet.pressure = or_packets[0].temperature;
+    pad_packet.pressure = or_packets[0].pressure;
     pad_packet.temperature = or_packets[0].temperature;
     landed_packet.pressure = or_packets[or_packets_size - 1].pressure;
     landed_packet.temperature = or_packets[or_packets_size - 1].temperature;

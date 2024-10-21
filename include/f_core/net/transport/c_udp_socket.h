@@ -10,11 +10,11 @@ class CUdpSocket : public CTransceiver {
 public:
     /**
      * Constructor
-     * @param ip IP address instance to bind to
+     * @param ipv4 IP address instance to bind to
      * @param srcPort Source port to bind to
      * @param dstPort Destination port to send to
      */
-    CUdpSocket(CIPv4 &ipv4, uint16_t srcPort, uint16_t dstPort);
+    CUdpSocket(const CIPv4 &ipv4, uint16_t srcPort, uint16_t dstPort);
 
     /**
      * Destructor
@@ -45,7 +45,6 @@ public:
      * See parent docs
      */
     int SetRxTimeout(int timeout) override;
-
 
 private:
     int sock = -1;
