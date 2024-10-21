@@ -13,7 +13,7 @@ void CLoraTransmitTenant::PostStartup() {
 
 void CLoraTransmitTenant::Run() {
     while (true) {
-        CRadioModule::RadioBroadcastData data{};
+        NRadioModuleTypes::RadioBroadcastData data{};
         uint8_t txData[256]{};
 
         if (loraTransmitPort.Receive(data) != 0) {

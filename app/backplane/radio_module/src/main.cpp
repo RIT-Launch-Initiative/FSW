@@ -12,9 +12,9 @@
 int main() {
     static CRadioModule radioModule{};
 
-    sensorModule.AddTenantsToTasks();
-    sensorModule.AddTasksToRtos();
-    sensorModule.SetupCallbacks();
+    radioModule.AddTenantsToTasks();
+    radioModule.AddTasksToRtos();
+    radioModule.SetupCallbacks();
 
     NRtos::StartRtos();
 

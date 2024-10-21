@@ -5,17 +5,17 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 
 K_MSGQ_DEFINE(broadcastQueue, 256, 10, 4);
-static auto broadcastMsgQueue = CMsgqMessagePort<CRadioModule::RadioBroadcastData>(broadcastQueue);
+static auto broadcastMsgQueue = CMsgqMessagePort<NRadioModuleTypes::RadioBroadcastData>(broadcastQueue);
 
-CRadioModule::CRadioModule() : CProjectConfiguration(), loraBroadcastMessagePort(broadcastMsgQueue) {
+CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora0))), loraBroadcastMessagePort(broadcastMsgQueue) {
 }
 
 void CRadioModule::AddTenantsToTasks() {
     // Networking
-    networkTask.AddTenant(broadcastTenant);
+    networkTask.AddTenant(broadcastReceiveTenant);
 
     // GNSS
-    gnssTask.AddTenant(sensingTenant);
+    gnssTask.AddTenant(gnssTenant);
 
     // LoRa
     loraTask.AddTenant(loraTransmitTenant);
@@ -24,9 +24,6 @@ void CRadioModule::AddTenantsToTasks() {
 void CRadioModule::AddTasksToRtos() {
     // Networking
     NRtos::AddTask(networkTask);
-
-    // Sensing
-    NRtos::AddTask(sensingTask);
 }
 
 void CRadioModule::SetupCallbacks() {

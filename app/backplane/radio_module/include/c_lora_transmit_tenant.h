@@ -1,7 +1,7 @@
 #ifndef C_LORA_TENANT_H
 #define C_LORA_TENANT_H
 
-#include "c_radio_module.h"
+#include "n_radio_module_types.h"
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 
@@ -11,8 +11,8 @@
 
 class CLoraTransmitTenant : public CTenant {
 public:
-    explicit CLoraTransmitTenant(const char* name, CLora& lora, CMessagePort<CRadioModule::RadioBroadcastData>& loraTransmitPort)
-        : CTenant(name), lora(lora), loraTransmitPort(loraTransmitPort)
+    explicit CLoraTransmitTenant(const char* name, CLora& lora, CMessagePort<NRadioModuleTypes::RadioBroadcastData>* loraTransmitPort)
+        : CTenant(name), lora(lora), loraTransmitPort(*loraTransmitPort)
     {
     }
 
@@ -26,7 +26,7 @@ public:
 
 private:
     CLora& lora;
-    CMessagePort<CRadioModule::RadioBroadcastData>& loraTransmitPort;
+    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& loraTransmitPort;
 };
 
 
