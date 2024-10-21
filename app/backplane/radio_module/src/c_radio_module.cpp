@@ -12,7 +12,7 @@ CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_A
 
 void CRadioModule::AddTenantsToTasks() {
     // Networking
-    networkTask.AddTenant(udpListenerTenant);
+    udpListenerTask.AddTenant(udpListenerTenant);
 
     // GNSS
     gnssTask.AddTenant(gnssTenant);

@@ -11,10 +11,6 @@
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
 #include <f_core/net/device/c_lora.h>
-#include <f_core/types.h>
-#include <f_core/messaging/c_msgq_message_port.h>
-
-
 
 class CRadioModule : public CProjectConfiguration {
 public:
@@ -53,7 +49,7 @@ private:
     CUdpListenerTenant udpListenerTenant{"Broadcast Receive Tenant", "10.1.1.1", 10000, &loraBroadcastMessagePort};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 128, 0};
+    CTask udpListenerTask{"UDP Listener Task", 15, 128, 0};
     CTask gnssTask{"GNSS Task", 15, 128, 0};
     CTask loraTask{"LoRa Task", 15, 128, 0};
 };
