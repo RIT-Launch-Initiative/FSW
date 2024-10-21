@@ -7,7 +7,7 @@
 K_MSGQ_DEFINE(broadcastQueue, 256, 10, 4);
 static auto broadcastMsgQueue = CMsgqMessagePort<NRadioModuleTypes::RadioBroadcastData>(broadcastQueue);
 
-CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora0))), loraBroadcastMessagePort(broadcastMsgQueue) {
+CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora))), loraBroadcastMessagePort(broadcastMsgQueue) {
 }
 
 void CRadioModule::AddTenantsToTasks() {
