@@ -81,9 +81,13 @@ int CRs485::ReceiveAsynchronous(void* data, size_t len) {
     return uart_fifo_read(&uart, static_cast<uint8_t*>(data), static_cast<int>(len));
 }
 
+int CRs485::SetTxTimeout(int timeoutMillis) {
+    txTimeoutMillis = timeoutMillis;
+    return 0;
+}
 
-int CRs485::SetRxTimeout(int timeout) {
-    // TODO: Should use a k_timer to implement this in a future PR
-    // Didn't see any documentation on timeouts with uart functions
+int CRs485::SetRxTimeout(int timeoutMillis) {
+    rxTimeoutMillis = timeoutMillis;
+
     return 0;
 }

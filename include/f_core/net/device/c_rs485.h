@@ -16,27 +16,32 @@ public:
     */
     CRs485(const device &uart, const gpio_dt_spec &rs485_enable, void (*uartIrqUserDataCallback)(const device *dev, void *user_data) = nullptr);
 
-    int TransmitSynchronous(const void* data, size_t len);
+    int TransmitSynchronous(const void* data, size_t len) override;
 
     /**
      * See parent docs
      */
-    int ReceiveSynchronous(void* data, size_t len);
+    int ReceiveSynchronous(void* data, size_t len) override;
 
     /**
      * See parent docs
      */
-    int TransmitAsynchronous(const void* data, size_t len);
+    int TransmitAsynchronous(const void* data, size_t len) override;
 
     /**
      * See parent docs
      */
-    int ReceiveAsynchronous(void* data, size_t len);
+    int ReceiveAsynchronous(void* data, size_t len) override;
 
     /**
      * See parent docs
      */
-    int SetRxTimeout(int timeout);
+    int SetTxTimeout(int timeoutMillis) override;
+
+ /**
+     * See parent docs
+     */
+    int SetRxTimeout(int timeoutMillis) override;
 
 private:
   static constexpr bool enableTx = true;
@@ -45,6 +50,9 @@ private:
   const device &uart;
   const gpio_dt_spec &rs485_enable;
   const bool irqEnabled;
+
+  int32_t rxTimeoutMillis = 0;
+  int32_t txTimeoutMillis = 0;
 
   /**
    * Set the RS485 transceiver to transmit or receive mode
