@@ -3,9 +3,8 @@
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
-#include <f_core/messaging/c_message_port.h>
+#include <f_core/messaging/c_msgq_message_port.h>
 #include <f_core/os/c_task.h>
-#include <f_core/types.h>
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
 
 class CRadioModule : public CProjectConfiguration {
@@ -13,7 +12,7 @@ public:
     /**
      * Constructor
      */
-    CRadioTransmitter();
+    CRadioModule();
 
     /**
      * See parent docs
@@ -32,7 +31,8 @@ public:
 
 private:
     static constexpr const char* ipAddrStr = "10.2.1.1";
-    static constexpr int telemetryBroadcastPort = 12000;
+    static constexpr uint16_t basePort = 12000;
+    static constexpr uint16_t telemetryBroadcastPort = 12001;
 
     typedef struct {
         uint16_t port;
@@ -41,7 +41,7 @@ private:
 
     // Tenants
     CMsgqMessagePort<LoraPacket> loraPacketToUdpPort{};
-    CUdpBroadcastTenant<SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
+    CUdpBroadcastTenant<LoraPacket> broadcastTenant{"Broadcast Tenant", ipAddrStr, basePort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 128, 0};

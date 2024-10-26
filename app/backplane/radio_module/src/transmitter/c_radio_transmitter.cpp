@@ -7,15 +7,12 @@
 K_MSGQ_DEFINE(broadcastQueue, sizeof(CRadioTransmitter::SensorData), 10, 4);
 static auto broadcastMsgQueue = CMsgqMessagePort<CRadioTransmitter::SensorData>(broadcastQueue);
 
-CRadioTransmitter::CRadioTransmitter() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue) {
+CRadioTransmitter::CRadioTransmitter() : CProjectConfiguration() {
 }
 
 void CRadioTransmitter::AddTenantsToTasks() {
     // Networking
     networkTask.AddTenant(broadcastTenant);
-
-    // Sensing
-    sensingTask.AddTenant(sensingTenant);
 }
 
 void CRadioTransmitter::AddTasksToRtos() {
