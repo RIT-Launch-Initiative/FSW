@@ -11,8 +11,12 @@
 
 LOG_MODULE_REGISTER(main);
 
+volatile int interruptCount = 0;
+
+
 static void timerExpirationFn(k_timer* timer) {
     LOG_INF("Timer expired");
+    interruptCount++;
 }
 
 static void timerStopFn(k_timer* timer) {
@@ -21,23 +25,19 @@ static void timerStopFn(k_timer* timer) {
 
 int main() {
     CSoftTimer timer(timerExpirationFn, timerStopFn);
-    timer.StartTimer(100);
 
-    int interruptCount = 0;
+    timer.StartTimer(100);
+    LOG_INF("Starting timer");
 
     while (interruptCount < 5) {
-        if (timer.IsExpired()) {
-            interruptCount++;
-        }
-
-        k_sleep(K_MSEC(25));
-        LOG_INF("Remaining time: %d ms %d ticks", timer.GetRemainingMillis(), timer.GetRemainingTicks());
+        k_msleep(80);
+        LOG_INF("\tRemaining time: %d ms %d ticks", timer.GetRemainingMillis(), timer.GetRemainingTicks());
     }
 
-    LOG_INF("Waiting for timer to expire");
+    LOG_INF("Blocking wait for timer to expire");
     timer.BlockUntilExpired();
 
-    LOG_INF("Stopping timer");
+    LOG_INF("Expired! Tests complete. Stopping timer.");
     timer.StopTimer();
 
     return 0;
