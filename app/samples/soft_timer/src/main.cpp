@@ -14,31 +14,37 @@ LOG_MODULE_REGISTER(main);
 volatile int interruptCount = 0;
 
 
-static void timerExpirationFn(k_timer* timer) {
+static void timerExpirationFn(k_timer*) {
     LOG_INF("Timer expired");
     interruptCount++;
 }
 
-static void timerStopFn(k_timer* timer) {
+static void timerStopFn(k_timer*) {
     LOG_INF("Timer stopped");
 }
 
 int main() {
     CSoftTimer timer(timerExpirationFn, timerStopFn);
+    CSoftTimer blockingTimer{};
 
     timer.StartTimer(100);
-    LOG_INF("Starting timer");
+    LOG_INF("Starting 100ms timer");
 
     while (interruptCount < 5) {
         k_msleep(80);
         LOG_INF("\tRemaining time: %d ms %d ticks", timer.GetRemainingMillis(), timer.GetRemainingTicks());
     }
 
-    LOG_INF("Blocking wait for timer to expire");
-    timer.BlockUntilExpired();
+    LOG_INF("Stopping 100ms timer");
+    timer.StopTimer();
+
+    blockingTimer.StartTimer(1000);
+    LOG_INF("Blocking wait for 1s timer");
+
+    blockingTimer.BlockUntilExpired();
 
     LOG_INF("Expired! Tests complete. Stopping timer.");
-    timer.StopTimer();
+    blockingTimer.StopTimer();
 
     return 0;
 }
