@@ -25,7 +25,6 @@ static void timerStopFn(k_timer*) {
 
 int main() {
     CSoftTimer timer(timerExpirationFn, timerStopFn);
-    CSoftTimer blockingTimer{};
 
     timer.StartTimer(100);
     LOG_INF("Starting 100ms timer");
@@ -35,16 +34,15 @@ int main() {
         LOG_INF("\tRemaining time: %d ms %d ticks", timer.GetRemainingMillis(), timer.GetRemainingTicks());
     }
 
-    LOG_INF("Stopping 100ms timer");
-    timer.StopTimer();
+    LOG_INF("Setting 100ms timer to 1s");
 
-    blockingTimer.StartTimer(1000);
+    timer.StartTimer(1000);
     LOG_INF("Blocking wait for 1s timer");
 
-    blockingTimer.BlockUntilExpired();
+    timer.BlockUntilExpired();
 
     LOG_INF("Expired! Tests complete. Stopping timer.");
-    blockingTimer.StopTimer();
+    // Intentionally don't call StopTimer to test destructor
 
     return 0;
 }
