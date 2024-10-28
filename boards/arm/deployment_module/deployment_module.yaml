@@ -1,0 +1,26 @@
+identifier: deployment_mod
+name: Deployment Module
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 512
+flash: 2048
+supported:
+  - adc
+  - uart
+  - gpio
+  - netif:eth
+  - usb_device
+  - i2c
+  - pwm
+  - spi
+  - nvs
+  - watchdog
+  - counter
+  - can
+  - dac
+  - rtc
+vendor: st

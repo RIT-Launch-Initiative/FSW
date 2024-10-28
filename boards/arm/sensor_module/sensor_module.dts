@@ -142,7 +142,7 @@
 		size = <DT_SIZE_M(512)>;
 		jedec-id = [ef 40 20];
 
-		has-dpd;
+	has-dpd;										
 		t-enter-dpd = <(3 * 1000)>;
 		t-exit-dpd = <(3 * 1000)>;
 
@@ -154,7 +154,7 @@
 			external_storage_partition: partition@0 {
 				label = "w25q-storage";
 				reg = <0 DT_SIZE_M(64)>;
-			};
+			};					
 		};
 	};
 };
