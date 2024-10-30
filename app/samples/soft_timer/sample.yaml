@@ -1,6 +1,6 @@
 sample:
   description:
-  name: message-passing
+  name: soft-timer
 common:
   build_only: true
   platform_allow:
