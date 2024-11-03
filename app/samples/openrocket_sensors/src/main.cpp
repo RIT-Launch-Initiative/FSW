@@ -2,6 +2,7 @@
 #include <f_core/device/sensor/c_accelerometer.h>
 #include <f_core/device/sensor/c_barometer.h>
 #include <f_core/device/sensor/c_gyroscope.h>
+#include <f_core/device/sensor/c_magnetometer.h>
 
 // Zephyr Includes
 #include <zephyr/device.h>
@@ -9,13 +10,13 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 
-
 int main() {
     CAccelerometer imu_accelerometer(*DEVICE_DT_GET_ONE(openrocket_imu));
     CGyroscope imu_gyroscope(*DEVICE_DT_GET_ONE(openrocket_imu));
     CBarometer barometer(*DEVICE_DT_GET_ONE(openrocket_barometer));
+    CMagnetometer magnetometer(*DEVICE_DT_GET_ONE(openrocket_magnetometer));
 
-    CSensorDevice *sensors[] = {&imu_accelerometer, &imu_gyroscope, &barometer};
+    CSensorDevice *sensors[] = {&imu_accelerometer, &imu_gyroscope, &barometer, &magnetometer};
 
     while (1) {
         for (auto sensor : sensors) {
@@ -33,7 +34,12 @@ int main() {
         double press = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
         double temp = barometer.GetSensorValueDouble(SENSOR_CHAN_AMBIENT_TEMP);
 
-        printk("accel: (%.2f, %.2f, %.2f) - gyro: (%.2f, %.2f, %.2f)\n", x, y, z, rx, ry, rz);
+        double mx = magnetometer.GetSensorValueDouble(SENSOR_CHAN_MAGN_X);
+        double my = magnetometer.GetSensorValueDouble(SENSOR_CHAN_MAGN_Y);
+        double mz = magnetometer.GetSensorValueDouble(SENSOR_CHAN_MAGN_Z);
+
+        printk("accel: (%.2f, %.2f, %.2f) - gyro: (%.2f, %.2f, %.2f) - magn(%.2f, %.2f, %.2f)\n", x, y, z, rx, ry, rz,
+               mx, my, mz);
         printk("temp: %.2f - press: %.2f\n", temp, press);
         k_msleep(1000);
     }

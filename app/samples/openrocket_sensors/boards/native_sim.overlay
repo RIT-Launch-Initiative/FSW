@@ -17,6 +17,9 @@
         roll-axis = "OPENROCKET_AXIS_Z";
         pitch-axis = "OPENROCKET_AXIS_Y";
         yaw-axis = "OPENROCKET_AXIS_X";
+
+        accel-noise = <500>;
+        gyro-noise = <200>;
     };
 
     barom: barom {
@@ -24,6 +27,8 @@
         compatible = "openrocket,barometer";
         lag-time-us = <1000>;
         sampling-period-us = <10>;
+        temp-noise = <100>; // millicelsius
+        pressure-noise = <100>; // pascals
     };
 
     gnss: gnss{
@@ -32,6 +37,14 @@
         lag-time-us = <1000>;
         sampling-period-us = <(5*1000*1000)>;
         rtc = <&rtc>;
+    };
+
+    magn: magn{
+        status = "okay";
+        compatible = "openrocket,magnetometer";
+        lag-time-us = <1000>;
+        sampling-period-us = <(5*1000*1000)>;
+        noise = <1000>;
     };
 
 };

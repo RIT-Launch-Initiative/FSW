@@ -93,3 +93,18 @@ properties:
     type: boolean
     description: |
       If set, invert the roll axis (multiply by -1). 
+
+  accel-noise:
+    type: int
+    default: 0
+    description: |
+      Magnitude of noise added to each axis of accelerometer readings * 1000 
+      As device tree does not support floating point numbers, this value is in mm/s^2
+      Randomness is added by generating a number from -1 to 1 then multiplying by this value/1000 before adding on to the baseline value for each component
+  gyro-noise:
+    type: int
+    default: 0
+    description: |
+      Magnitude of noise added to each axis of gyro readings * 1000 
+      As device tree does not support floating point numbers, this value is in milliradians/s
+      Randomness is added by generating a number from -1 to 1 then multiplying by this value/1000 before adding on to the baseline value for each component

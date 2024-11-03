@@ -9,6 +9,27 @@ typedef double or_scalar_t;
 typedef float or_scalar_t;
 #endif
 
+#define SCALE_OPENROCKET_NOISE(value) ((or_scalar_t) value / (or_scalar_t) 1000)
+
+enum axis {
+    OPENROCKET_AXIS_X,
+    OPENROCKET_AXIS_Y,
+    OPENROCKET_AXIS_Z,
+};
+
+enum gyro_axis {
+    OPENROCKET_AXIS_ROLL,
+    OPENROCKET_AXIS_PITCH,
+    OPENROCKET_AXIS_YAW,
+};
+
+struct or_common_params {
+    bool broken;                     // True if the sensor is broken and won't return data
+    unsigned int sampling_period_us; // How often the sensor updates
+    unsigned int lag_time_ms;        // How far behind 'real time' is this sensor measuring
+    unsigned int measurement_us;     // How long does it take a sensor to read
+};
+
 /**
  * @brief Convert or_scalar_t (float or double) to zephyr sensor value
  * @param val sensor value ot fill in
@@ -32,7 +53,7 @@ or_scalar_t or_lerp(or_scalar_t a, or_scalar_t b, or_scalar_t t);
  * @return the time (T+) used by openrocket to interpolate and get sensor values
  * This function is limited in precisison by CONFIG_SYS_CLOCK_TICKS_PER_SEC
  */
-or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_ms);
+or_scalar_t or_get_time(const struct or_common_params* cfg);
 
 /**
  * @brief Most times you go looking for a packet based on a time, its in between packets. 
@@ -47,6 +68,12 @@ or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_m
 void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
                               unsigned int* upper_idx, or_scalar_t* mix);
 
+/**
+ * @brief Generate a random number in the range [-1, 1] for adding noise to sensors
+ * if OPENROCKET_NOISE is not selected, this always returns 0
+ */
+or_scalar_t or_random(uint32_t* rand_state, or_scalar_t magnitude);
+
 struct or_data_t {
     or_scalar_t time_s; // s
 #ifdef CONFIG_OPENROCKET_IMU
@@ -56,7 +83,6 @@ struct or_data_t {
     or_scalar_t roll;  // deg/s
     or_scalar_t pitch; // deg/s
     or_scalar_t yaw;   // deg/s
-    // If we want to support magnetometer, can use  Vertical Orientation (zenith), Lateral Orientation (azimuth)
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
     or_scalar_t temperature; // °C
@@ -68,6 +94,12 @@ struct or_data_t {
     or_scalar_t velocity;  // m/s
     or_scalar_t altitude;  // m
     or_scalar_t bearing;   // °
+#endif
+#ifdef CONFIG_OPENROCKET_MAGNETOMETER
+    or_scalar_t magn_x; // Gauss
+    or_scalar_t magn_y; // Gauss
+    or_scalar_t magn_z; // Gauss
+
 #endif
 };
 
