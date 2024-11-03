@@ -2,6 +2,9 @@
 #define C_PROJECT_CONFIGURATION_H
 
 class CProjectConfiguration {
+public:
+ virtual ~CProjectConfiguration() = default;
+
 protected:
     /**
      * Constructor
