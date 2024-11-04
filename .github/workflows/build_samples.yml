@@ -19,10 +19,10 @@ env:
     app/samples/udb_bcast
     app/samples/message_passing
     app/samples/openrocket_sensors
+    app/samples/soft_timer
     app/samples/tenants_and_tasks
     app/samples/datalogger
 
-  
   platforms: |
     nucleo_f446re
     radio_module
