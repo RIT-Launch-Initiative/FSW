@@ -2,6 +2,7 @@
 #define C_SENSOR_MODULE_H
 
 #include "c_sensing_tenant.h"
+#include "c_rs485_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -58,6 +59,7 @@ private:
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant"};
+    // CRs485Tenant rs485Tenant{"RS485 Tenant"};
     CUdpBroadcastTenant<SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
 
     // Tasks

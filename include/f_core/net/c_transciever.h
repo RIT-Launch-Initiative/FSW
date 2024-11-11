@@ -40,11 +40,18 @@ public:
     virtual int ReceiveAsynchronous(void *data, size_t len) = 0;
 
     /**
+    * Set the timeout for transmitting asynchronously
+    * @param timeoutMillis Time to wait for a transmission in milliseconds
+    * @return Status code of operation
+    */
+    virtual int SetTxTimeout(int timeoutMillis) = 0;
+
+    /**
      * Set the timeout for receiving asynchronously
-     * @param timeout Time to wait for a reception
+     * @param timeoutMillis Time to wait for a reception milliseconds
      * @return Status code of operation
      */
-    virtual int SetRxTimeout(int timeout) = 0;
+    virtual int SetRxTimeout(int timeoutMillis) = 0;
 
 protected:
     virtual ~CTransceiver() = default;
