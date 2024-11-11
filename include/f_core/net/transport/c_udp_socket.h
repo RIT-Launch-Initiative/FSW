@@ -41,10 +41,15 @@ public:
      */
     int ReceiveAsynchronous(void *data, size_t len) override;
 
+     /**
+     * See parent docs
+     */
+    int SetTxTimeout(int timeoutMillis) override;
+
     /**
      * See parent docs
      */
-    int SetRxTimeout(int timeout) override;
+    int SetRxTimeout(int timeoutMillis) override;
 
 private:
     int sock = -1;

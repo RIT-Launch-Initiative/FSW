@@ -85,6 +85,10 @@ int CUdpSocket::ReceiveAsynchronous(void* data, size_t len) {
     return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
 }
 
-int CUdpSocket::SetRxTimeout(int timeout) {
-    return zsock_setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+int CUdpSocket::SetTxTimeout(const int timeoutMillis) {
+    return zsock_setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeoutMillis, sizeof(timeoutMillis));
+}
+
+int CUdpSocket::SetRxTimeout(const int timeoutMillis) {
+    return zsock_setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeoutMillis, sizeof(timeoutMillis));
 }
