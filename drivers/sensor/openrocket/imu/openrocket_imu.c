@@ -107,8 +107,9 @@ static void map_or_to_sensor(struct or_data_t *in, struct or_imu_data *out, cons
 
 static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel chan) {
     const struct or_imu_config *cfg = dev->config;
+    k_usleep(cfg->sensor_cfg.measurement_us);
     struct or_imu_data *data = dev->data;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
     if (chan != SENSOR_CHAN_ALL && chan != SENSOR_CHAN_ACCEL_X && chan != SENSOR_CHAN_ACCEL_Y &&
@@ -116,7 +117,7 @@ static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel cha
         chan != SENSOR_CHAN_GYRO_Y && chan != SENSOR_CHAN_GYRO_Z && chan != SENSOR_CHAN_GYRO_XYZ) {
         return -ENOTSUP;
     }
-    or_scalar_t time = or_get_time(cfg->sampling_period_us, cfg->lag_time_ms);
+    or_scalar_t time = or_get_time(&cfg->sensor_cfg);
     unsigned int lo, hi = 0;
     or_scalar_t mix = 0;
     or_find_bounding_packets(data->last_lower_index, time, &lo, &hi, &mix);
@@ -143,6 +144,14 @@ static int or_imu_sample_fetch(const struct device *dev, enum sensor_channel cha
     or_data.roll *= DEGREES_TO_RADIANS;
     or_data.pitch *= DEGREES_TO_RADIANS;
     or_data.yaw *= DEGREES_TO_RADIANS;
+
+    or_data.vert_accel += or_random(&data->rand_state, cfg->accel_noise);
+    or_data.lat_accel += or_random(&data->rand_state, cfg->accel_noise);
+
+    or_data.roll += or_random(&data->rand_state, cfg->gyro_noise);
+    or_data.pitch += or_random(&data->rand_state, cfg->gyro_noise);
+    or_data.yaw += or_random(&data->rand_state, cfg->gyro_noise);
+
     map_or_to_sensor(&or_data, data, cfg);
 
     return 0;
@@ -152,7 +161,7 @@ static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan
     const struct or_imu_config *cfg = dev->config;
     struct or_imu_data *data = dev->data;
 
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         return -ENODEV;
     }
 
@@ -194,7 +203,7 @@ static int or_imu_channel_get(const struct device *dev, enum sensor_channel chan
 
 static int or_imu_init(const struct device *dev) {
     const struct or_imu_config *cfg = dev->config;
-    if (cfg->broken) {
+    if (cfg->sensor_cfg.broken) {
         LOG_WRN("IMU device %s is failed to init", dev->name);
         return -ENODEV;
     }
@@ -209,12 +218,17 @@ static const struct sensor_driver_api or_imu_api = {
 };
 
 #define OR_IMU_INIT(n)                                                                                                 \
-    static struct or_imu_data or_imu_data_##n;                                                                         \
+    static struct or_imu_data or_imu_data_##n = {                                                                      \
+        .rand_state = n + COND_CODE_1(CONFIG_OPENROCKET_NOISE, (CONFIG_OPENROCKET_NOISE_SEED), (0))};                  \
                                                                                                                        \
     static const struct or_imu_config or_imu_config_##n = {                                                            \
-        .broken = DT_INST_PROP(n, broken),                                                                             \
-        .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                                     \
-        .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                                   \
+        .sensor_cfg =                                                                                                  \
+            {                                                                                                          \
+                .broken = DT_INST_PROP(n, broken),                                                                     \
+                .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                             \
+                .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                           \
+                .measurement_us = DT_INST_PROP(n, measurement_us),                                                     \
+            },                                                                                                         \
         .vertical_axis = DT_INST_STRING_TOKEN(n, vertical_axis),                                                       \
         .vertical_axis_invert = DT_INST_PROP(n, vertical_axis_invert),                                                 \
         .lateral_axis = DT_INST_STRING_TOKEN(n, lateral_axis),                                                         \
@@ -224,6 +238,8 @@ static const struct sensor_driver_api or_imu_api = {
         .roll_axis_invert = DT_INST_PROP(n, roll_axis_invert),                                                         \
         .pitch_axis_invert = DT_INST_PROP(n, pitch_axis_invert),                                                       \
         .yaw_axis_invert = DT_INST_PROP(n, yaw_axis_invert),                                                           \
+        .accel_noise = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, accel_noise)),                                           \
+        .gyro_noise = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, gyro_noise)),                                             \
     };                                                                                                                 \
                                                                                                                        \
     SENSOR_DEVICE_DT_INST_DEFINE(n, or_imu_init, NULL, &or_imu_data_##n, &or_imu_config_##n, POST_KERNEL,              \

@@ -3,9 +3,7 @@
 #include "openrocket_sensors.h"
 
 struct or_gnss_cfg {
-    bool broken;
-    unsigned int sampling_period_us;
-    unsigned int lag_time_ms;
+    struct or_common_params sensor_cfg;
     const struct device *rtc;
 };
 struct or_gnss_data {

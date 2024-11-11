@@ -5,22 +5,8 @@
 
 #include <stdbool.h>
 
-enum axis {
-    OPENROCKET_AXIS_X,
-    OPENROCKET_AXIS_Y,
-    OPENROCKET_AXIS_Z,
-};
-
-enum gyro_axis {
-    AXIS_ROLL,
-    AXIS_PITCH,
-    AXIS_YAW,
-};
-
 struct or_imu_config {
-    bool broken;
-    unsigned int sampling_period_us;
-    unsigned int lag_time_ms;
+    struct or_common_params sensor_cfg;
     enum axis vertical_axis;
     bool vertical_axis_invert;
     enum axis lateral_axis;
@@ -32,10 +18,14 @@ struct or_imu_config {
     bool roll_axis_invert;
     bool pitch_axis_invert;
     bool yaw_axis_invert;
+
+    or_scalar_t accel_noise;
+    or_scalar_t gyro_noise;
 };
 
 struct or_imu_data {
     unsigned int last_lower_index;
+    uint32_t rand_state;
 
     or_scalar_t accel_x;
     or_scalar_t accel_y;

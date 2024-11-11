@@ -1,0 +1,18 @@
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+description: Magnetometer that takes its inputs from an openrocket simulation CSV
+
+compatible: "openrocket,magnetometer"
+
+include: [openrocket-sensor-device.yaml]
+
+properties:
+  noise:
+    type: int
+    default: 0
+    description: |
+      Magnitude of noise measured by this sensor * 1,000.
+      As this is a magnetometer (measured in gauss), that would be milligaus.
+      Device tree does not seem to support floating point values.
+      Randomness is added by generating a number from -1 to 1 then multiplying by this value/1000 before adding on to the baseline value

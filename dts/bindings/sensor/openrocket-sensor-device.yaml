@@ -22,6 +22,12 @@ properties:
       beneath it or how often the use calls `sensor_channel_fetch`.
       A value of 0 (the default) signifies the the value will interpolated 
       to read as fast as `sensor_channel_fetch` is called.
+  measurement-us:
+    type: int
+    default: 1
+    description: |
+      How long does it take to measure this sensor in microseconds. 
+      A call to sensor_sample_fetch on an openrocket sensor will take this long (+ a couple clock cycles) to complete
   broken:
     type: boolean
     description: |

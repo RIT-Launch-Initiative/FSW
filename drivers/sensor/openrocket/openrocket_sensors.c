@@ -4,6 +4,10 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
+#ifdef CONFIG_OPENROCKET_NOISE
+#include <zephyr/random/random.h>
+#endif
+
 LOG_MODULE_REGISTER(openrocket, CONFIG_OPENROCKET_LOG_LEVEL);
 
 // Forward Declarations
@@ -40,20 +44,33 @@ or_scalar_t or_lerp(or_scalar_t a, or_scalar_t b, or_scalar_t t) {
     return a * (1.0 - t) + b * t;
 }
 
-or_scalar_t or_get_time(unsigned int sampling_period_us, unsigned int lag_time_us) {
+or_scalar_t or_get_time(const struct or_common_params* cfg) {
     int64_t us = k_ticks_to_us_near64(k_uptime_ticks());
-    if (sampling_period_us != 0) {
-        us = (us / sampling_period_us) * sampling_period_us;
+    if (cfg->sampling_period_us != 0) {
+        us = (us / cfg->sampling_period_us) * cfg->sampling_period_us;
     }
-    us -= lag_time_us;
+    us -= cfg->lag_time_ms * 1000;
     us -= CONFIG_OPENROCKET_MS_BEFORE_LAUNCH * 1000;
     return ((or_scalar_t) (us)) / 1000000.0;
+}
+
+or_scalar_t or_random(uint32_t* rand_state, or_scalar_t magnitude) {
+#ifdef CONFIG_OPENROCKET_NOISE
+
+    uint32_t r32 = (*rand_state * 1103515245 + 12345) & 0xFFFFFFFF;
+    *rand_state = r32;
+    int32_t ri32 = *(int32_t*) &r32;
+    or_scalar_t rscalar = (float) ri32 / (float) 0x7FFFFFFF;
+    return rscalar * magnitude;
+#else
+    return (or_scalar_t) 0.0;
+#endif
 }
 
 void or_find_bounding_packets(unsigned int last_lower_idx, or_scalar_t or_time, unsigned int* lower_idx,
                               unsigned int* upper_idx, or_scalar_t* mix) {
     // Simulation doesn't have information at this point
-    if (or_time < 0) {
+    if (or_time < or_packets[0].time_s) {
         *lower_idx = 0;
         *upper_idx = 0;
         *mix = 0;
@@ -102,10 +119,10 @@ static void or_event_thread_handler(void) {
         int time_to_wait_ms = (int) ((or_events[i].time_s - time) * 1000);
         k_msleep(time_to_wait_ms);
         time = or_events[i].time_s;
-        LOG_INF("OpenRocket event %s at time T+%.3f", event_to_str(or_events[i].event), or_events[i].time_s);
+        printk("OpenRocket event %s at time T+%.3f\n", event_to_str(or_events[i].event), (double) or_events[i].time_s);
         i++;
     }
-    LOG_INF("OpenRocket flight over");
+    printk("OpenRocket flight over\n");
 }
 #endif
 
@@ -128,7 +145,11 @@ static struct or_data_t pad_packet = {
     .altitude = 0,
     .velocity = 0,
 #endif
-
+#ifdef CONFIG_OPENROCKET_MAGNETOMETER
+    .magn_x = 0,
+    .magn_y = 0,
+    .magn_z = 0,
+#endif
 };
 
 static struct or_data_t landed_packet = {
@@ -150,26 +171,19 @@ static struct or_data_t landed_packet = {
     .altitude = 0,
     .velocity = 0,
 #endif
+#ifdef CONFIG_OPENROCKET_MAGNETOMETER
+    .magn_x = 0,
+    .magn_y = 0,
+    .magn_z = 0,
+#endif
 
 };
 
 static int init_openrocket(void) {
     LOG_INF("Initializing OpenRocket data");
-#ifdef CONFIG_OPENROCKET_BAROMETER
-    pad_packet.pressure = or_packets[0].pressure;
-    pad_packet.temperature = or_packets[0].temperature;
-    landed_packet.pressure = or_packets[or_packets_size - 1].pressure;
-    landed_packet.temperature = or_packets[or_packets_size - 1].temperature;
-#endif
+    pad_packet = or_packets[0];
+    landed_packet = or_packets[or_packets_size - 1];
 
-#ifdef CONFIG_OPENROCKET_GNSS
-    pad_packet.latitude = or_packets[0].latitude;
-    pad_packet.longitude = or_packets[0].longitude;
-    pad_packet.altitude = or_packets[0].altitude;
-    landed_packet.latitude = or_packets[or_packets_size - 1].latitude;
-    landed_packet.longitude = or_packets[or_packets_size - 1].longitude;
-    landed_packet.altitude = or_packets[or_packets_size - 1].altitude;
-#endif
     return 0;
 }
 
