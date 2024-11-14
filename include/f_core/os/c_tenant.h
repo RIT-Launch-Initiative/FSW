@@ -35,7 +35,6 @@ public:
     virtual void Run() = 0;
 protected:
     const char *name;
-
 };
 
 #endif //C_TENANT_H

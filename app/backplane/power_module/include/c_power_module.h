@@ -52,7 +52,7 @@ private:
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant"};
     CUdpBroadcastTenant<SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
-    // CDataLoggerTenant<SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataBroadcastMessagePort};
+    CDataLoggerTenant<SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataBroadcastMessagePort};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 512, 0};

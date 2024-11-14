@@ -4,7 +4,6 @@
 		logfs = &lfs1;
 	};
 
-
 	fstab {
 		compatible = "zephyr,fstab";
 		lfs1: lfs1 {
@@ -24,8 +23,8 @@
 			// anyway
 		};
 	};
-
 };
+
 
 &flashcontroller0 {
 	status = "okay";
