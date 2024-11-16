@@ -46,8 +46,8 @@ private:
     CLora lora;
 
     // Message Ports
-     CMessagePort<NRadioModuleTypes::RadioBroadcastData>& loraBroadcastMessagePort;
-     CMessagePort<NRadioModuleTypes::RadioBroadcastData>& udpBroadcastMessagePort;
+    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& loraBroadcastMessagePort;
+    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& udpBroadcastMessagePort;
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant"};

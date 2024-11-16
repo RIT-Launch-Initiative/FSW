@@ -1,5 +1,6 @@
 #ifndef C_SOFT_TIMER_H
 #define C_SOFT_TIMER_H
+#include <zephyr/kernel.h>
 
 class CSoftTimer {
 public:
@@ -8,7 +9,7 @@ public:
     * @param expirationFn Function to call when the timer expires
     * @param stopFn Function to call when the timer is stopped
     */
-    CSoftTimer(k_timer_expiry_t expirationFn = nullptr, k_timer_stop_t stopFn = nullptr) {
+    explicit CSoftTimer(k_timer_expiry_t expirationFn = nullptr, k_timer_stop_t stopFn = nullptr) {
         k_timer_init(&timer, expirationFn, stopFn);
     }
 

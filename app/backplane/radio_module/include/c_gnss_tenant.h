@@ -2,6 +2,7 @@
 #define C_SENSING_TENANT_H
 
 #include <f_core/os/c_tenant.h>
+#include <f_core/utils/c_soft_timer.h>
 
 class CGnssTenant : public CTenant {
 public:
@@ -17,7 +18,9 @@ public:
     void PostStartup() override;
 
     void Run() override;
-};
 
+private:
+    CSoftTimer transmitTimer{};
+};
 
 #endif //C_SENSING_TENANT_H
