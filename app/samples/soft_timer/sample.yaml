@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: soft-timer
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.soft_timer.default: {}
