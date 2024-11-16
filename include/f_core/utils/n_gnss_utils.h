@@ -6,25 +6,25 @@
 
 
 namespace NGnssUtils {
-     __attribute__((packed)) struct GnssCoordinates {
+     struct __attribute__((packed)) GnssCoordinates {
         float latitude;
         float longitude;
         float altitude;
     };
 
-    __attribute__((packed)) struct GnssTime {
+    struct __attribute__((packed)) GnssTime {
         uint32_t time;
         uint32_t date;
     };
 
-    __attribute__((packed)) struct GnssInfo {
+    struct __attribute__((packed)) GnssInfo {
         uint8_t satelliteId;
         uint8_t elevation;
         uint16_t azimuth;
         uint8_t snr;
     };
 
-    __attribute__((packed)) struct GnssData {
+    struct __attribute__((packed)) GnssData {
         GnssCoordinates coordinates;
         GnssTime time;
         GnssInfo info;

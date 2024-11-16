@@ -50,7 +50,7 @@ private:
     CMessagePort<NRadioModuleTypes::RadioBroadcastData>& udpBroadcastMessagePort;
 
     // Tenants
-    CGnssTenant gnssTenant{"GNSS Tenant"};
+    CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort};
 
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
@@ -59,9 +59,9 @@ private:
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
 
     // Tasks
-    CTask networkingTask{"UDP Listener Task", 15, 128, 0};
-    CTask gnssTask{"GNSS Task", 15, 128, 0};
-    CTask loraTask{"LoRa Task", 15, 128, 0};
+    CTask networkingTask{"UDP Listener Task", 15, 512, 0};
+    CTask gnssTask{"GNSS Task", 15, 512, 0};
+    CTask loraTask{"LoRa Task", 15, 512, 0};
 };
 
 

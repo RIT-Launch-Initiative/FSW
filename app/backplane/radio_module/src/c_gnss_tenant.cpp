@@ -7,20 +7,19 @@
 
 LOG_MODULE_REGISTER(CGnssTenant);
 
-
 static NGnssUtils::GnssCoordinates coordinates;
 static uint8_t gnssUpdated = 0;
 
-static void gnssCallback(const device *dev, const gnss_data *data) {
+static void gnssCallback(const device *, const gnss_data *data) {
     PopulateGnssNavigationData(&data->nav_data, &coordinates);
     gnssUpdated = 1;
-    LOG_INF("Latitude: %f, Longitude: %f, Altitude: %f", coordinates.latitude, coordinates.longitude, coordinates.altitude);
+    LOG_INF("Latitude: %f, Longitude: %f, Altitude: %f",
+        static_cast<double>(coordinates.latitude),
+        static_cast<double>(coordinates.longitude),
+        static_cast<double>(coordinates.altitude));
 }
 
-
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnssCallback);
-
-// TODO: Might want to implement a soft timer class in another PR, so we can take advantage of GNSS callbacks
 
 void CGnssTenant::Startup() {
     transmitTimer.StartTimer(5000);
@@ -31,14 +30,17 @@ void CGnssTenant::PostStartup() {
 }
 
 void CGnssTenant::Run() {
-    NRadioModuleTypes::GnssBroadcastData data{0};
+    NRadioModuleTypes::GnssBroadcastData gnssData{0};
+    NRadioModuleTypes::RadioBroadcastData broadcastData{0};
     if (transmitTimer.IsExpired()) {
-        memcpy(&data.coordinates, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
-        data.updated = gnssUpdated;
+        memcpy(&gnssData.coordinates, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
+        gnssData.updated = gnssUpdated;
         gnssUpdated = 0;
 
+        broadcastData.port = 12000;
+        broadcastData.size = sizeof(NRadioModuleTypes::GnssBroadcastData);
+        memcpy(broadcastData.data, &gnssData, sizeof(NRadioModuleTypes::GnssBroadcastData));
 
-
-
+        loraTransmitPort.Send(broadcastData);
     }
 }

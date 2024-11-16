@@ -6,13 +6,13 @@
 
 namespace NRadioModuleTypes {
 
-__attribute__((packed)) struct RadioBroadcastData {
+struct __attribute__((packed)) RadioBroadcastData {
     uint16_t port;
     uint8_t data[256 - sizeof(uint16_t)];
     uint8_t size;
 };
 
-__attribute__((packed)) struct GnssBroadcastData {
+struct __attribute__((packed)) GnssBroadcastData {
     NGnssUtils::GnssCoordinates coordinates;
     uint8_t updated;
 };
