@@ -19,7 +19,7 @@ static void gnssCallback(const device *, const gnss_data *data) {
         static_cast<double>(coordinates.altitude));
 }
 
-// GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnssCallback);
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnssCallback);
 
 void CGnssTenant::Startup() {
     transmitTimer.StartTimer(5000);
