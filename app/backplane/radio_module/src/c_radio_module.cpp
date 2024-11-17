@@ -28,6 +28,8 @@ void CRadioModule::AddTenantsToTasks() {
 void CRadioModule::AddTasksToRtos() {
     // Networking
     NRtos::AddTask(networkingTask);
+    NRtos::AddTask(gnssTask);
+    NRtos::AddTask(loraTask);
 }
 
 void CRadioModule::SetupCallbacks() {

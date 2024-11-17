@@ -38,7 +38,7 @@ public:
 private:
     static constexpr const char* ipAddrStr = "10.2.1.1";
 
-    static constexpr uint16_t powerModuleTelemetryPort = 11015;
+    static constexpr uint16_t powerModuleTelemetryPort = 11000;
     static constexpr uint16_t radioModuleSourcePort = 12000;
     static constexpr uint16_t sensorModuleTelemetryPort = 12100;
 
@@ -59,9 +59,9 @@ private:
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
 
     // Tasks
-    CTask networkingTask{"UDP Listener Task", 15, 512, 0};
-    CTask gnssTask{"GNSS Task", 15, 512, 0};
-    CTask loraTask{"LoRa Task", 15, 512, 0};
+    CTask networkingTask{"UDP Listener Task", 15, 1024, 0};
+    CTask gnssTask{"GNSS Task", 15, 1024, 0};
+    CTask loraTask{"LoRa Task", 15, 1024, 0};
 };
 
 
