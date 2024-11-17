@@ -40,6 +40,7 @@ void CGnssTenant::Run() {
         broadcastData.port = 12000;
         broadcastData.size = sizeof(NRadioModuleTypes::GnssBroadcastData);
         memcpy(broadcastData.data, &gnssData, sizeof(NRadioModuleTypes::GnssBroadcastData));
+        LOG_INF("Sending GNSS Data");
 
         loraTransmitPort.Send(broadcastData);
     }

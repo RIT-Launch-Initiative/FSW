@@ -64,7 +64,7 @@ public:
     * Check if the timer has expired
     */
     bool IsExpired() {
-        return k_timer_status_get(&timer) == 0;
+        return k_timer_status_get(&timer) != 0;
     }
 
 private:
