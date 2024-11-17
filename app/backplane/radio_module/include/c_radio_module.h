@@ -59,7 +59,7 @@ private:
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
 
     // Tasks
-    CTask networkingTask{"UDP Listener Task", 15, 1024, 0};
+    CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
     CTask gnssTask{"GNSS Task", 15, 1024, 0};
     CTask loraTask{"LoRa Task", 15, 1024, 0};
 };

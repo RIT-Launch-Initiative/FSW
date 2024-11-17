@@ -12,6 +12,7 @@
 int main() {
     static CRadioModule radioModule{};
 
+    k_msleep(2000);
     radioModule.AddTenantsToTasks();
     radioModule.AddTasksToRtos();
     radioModule.SetupCallbacks();
