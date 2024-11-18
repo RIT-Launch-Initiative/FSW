@@ -18,7 +18,7 @@ LOG_MODULE_REGISTER(main);
 
 int main() {
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
-    LOG_INF("Transmitter     started");
+    LOG_INF("Transmitter started");
     static CRadioModule radioModule{};
 #else
     LOG_INF("Receiver started");
