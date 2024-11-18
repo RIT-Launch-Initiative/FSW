@@ -12,5 +12,8 @@ FILE(GLOB sources
 
         messaging/*.cpp
         
-        os/*.cpp)
+        os/*.cpp
+
+        utils/*.cpp
+)
 zephyr_library_sources(${sources})
