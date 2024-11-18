@@ -64,6 +64,7 @@
         ubxlib-usart2 = &usart2;
 
         lora = &lora0;
+        lora0 = &lora0;
         gnss = &maxm10s;
     };
 };

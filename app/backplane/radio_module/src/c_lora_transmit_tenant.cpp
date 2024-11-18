@@ -36,6 +36,7 @@ void CLoraTransmitTenant::Run() {
     memcpy(txData, &data.port, 2); // Copy port number to first 2 bytes
     memcpy(txData + 2, &data.data, data.size); // Copy payload to the rest of the buffer
 #else
+    LOG_INF("Sending %d bytes on port %d", data.size, data.port);
     memcpy(txData, &data, sizeof(data.data));
 #endif
     lora.TransmitSynchronous(txData, data.size);
