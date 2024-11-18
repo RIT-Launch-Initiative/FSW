@@ -27,8 +27,11 @@ void CLoraTransmitTenant::Run() {
         return;
     }
 
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
     memcpy(txData, &data.port, 2); // Copy port numebr to first 2 bytes
     memcpy(txData + 2, &data.data, data.size); // Copy payload to the rest of the buffer
-    LOG_INF("Sending data to LoRa module for port %d", data.port);
+#else
+    memcpy(txData, &data, sizeof(data));
+#endif
     lora.TransmitSynchronous(txData, data.size);
 }

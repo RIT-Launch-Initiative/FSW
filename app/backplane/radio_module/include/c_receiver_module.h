@@ -1,7 +1,6 @@
-#ifndef CONFIG_RADIO_MODULE_RECEIVER
-
-#ifndef C_RADIO_MODULE_H
-#define C_RADIO_MODULE_H
+#ifdef CONFIG_RADIO_MODULE_RECEIVER
+#ifndef C_RECEIVER_MODULE_H
+#define C_RECEIVER_MODULE_H
 
 #include "n_radio_module_types.h"
 #include "c_gnss_tenant.h"
@@ -15,12 +14,12 @@
 #include <f_core/os/c_task.h>
 #include <f_core/net/device/c_lora.h>
 
-class CRadioModule : public CProjectConfiguration {
+class CReceiverModule : public CProjectConfiguration {
 public:
     /**
      * Constructor
      */
-    CRadioModule();
+    CReceiverModule();
 
     /**
      * See parent docs
@@ -39,10 +38,8 @@ public:
 
 private:
     static constexpr const char* ipAddrStr = "10.2.1.1";
-
-    static constexpr uint16_t powerModuleTelemetryPort = 11000;
     static constexpr uint16_t radioModuleSourcePort = 12000;
-    static constexpr uint16_t sensorModuleTelemetryPort = 12100;
+    static constexpr uint16_t radioModuleCommandSourcePort = 12001;
 
     // Devices
     CLora lora;
@@ -52,21 +49,17 @@ private:
     CMessagePort<NRadioModuleTypes::RadioBroadcastData>& udpBroadcastMessagePort;
 
     // Tenants
-    CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort};
-
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
-    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandSourcePort, &loraBroadcastMessagePort};
 
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
-    CTask gnssTask{"GNSS Task", 15, 1024, 0};
     CTask loraTask{"LoRa Task", 15, 1024, 0};
 };
 
 
 
-#endif //C_RADIO_MODULE_H
+#endif //C_RECEIVER_MODULE_H
 #endif //RADIO_MODULE_RECEIVER
