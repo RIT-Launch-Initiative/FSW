@@ -3,15 +3,23 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include "c_radio_module.h"
 
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
 #include <zephyr/drivers/gpio.h>
 
-int main() {
-    static CRadioModule radioModule{};
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
+#include "c_radio_module.h"
+#else
+#include "c_receiver_module.h"
+#endif
 
+int main() {
+#ifndef CONFIG_RADIO_MODULE_RECEIVER
+    static CRadioModule radioModule{};
+#else
+    static CReceiverModule radioModule{};
+#endif
     k_msleep(2000);
     radioModule.AddTenantsToTasks();
     radioModule.AddTasksToRtos();
