@@ -13,9 +13,13 @@ CSensorModule::CSensorModule() : CProjectConfiguration(), sensorDataBroadcastMes
 void CSensorModule::AddTenantsToTasks() {
     // Networking
     networkTask.AddTenant(broadcastTenant);
+#ifndef CONFIG_ARCH_POSIX
+    networkTask.AddTenant(remoteActivationTenant);
+#endif
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);
+
 }
 
 void CSensorModule::AddTasksToRtos() {

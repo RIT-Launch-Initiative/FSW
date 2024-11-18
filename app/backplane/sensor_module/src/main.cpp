@@ -11,7 +11,7 @@
 
 int main() {
     static CSensorModule sensorModule{};
-
+    k_msleep(2000); // TODO: Fix race condition
     sensorModule.AddTenantsToTasks();
     sensorModule.AddTasksToRtos();
     sensorModule.SetupCallbacks();
