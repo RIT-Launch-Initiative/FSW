@@ -4,6 +4,12 @@
 # Copyright (c) 2023 Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
+#-------------------------------------------------------------------------------
+# Backplane Radio Module Application
+#
+# Copyright (c) 2023 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
 set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Guarantee that core.conf is the default and first configuration file to be read
@@ -12,15 +18,6 @@ list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/core.conf)
 if (DEBUG)
     message(STATUS "Adding debug configuration")
     list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/debug.conf)
-endif ()
-
-if (BOARD STREQUAL "native_sim")
-    if (UNIX AND NOT APPLE)
-        message(STATUS "Adding simulation configuration")
-        list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/sim.conf)
-    else ()
-        message(FATAL_ERROR "Simulation is only supported on Linux systems")
-    endif ()
 endif ()
 
 cmake_minimum_required(VERSION 3.13.1)

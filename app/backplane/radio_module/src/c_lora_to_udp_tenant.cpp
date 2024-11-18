@@ -1,15 +1,14 @@
 #include "c_lora_to_udp_tenant.h"
+
 #include "c_radio_module.h"
 
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CLoraReceiveTenant);
 
-void CLoraToUdpTenant::Startup() {
-}
+void CLoraToUdpTenant::Startup() {}
 
-void CLoraToUdpTenant::PostStartup() {
-}
+void CLoraToUdpTenant::PostStartup() {}
 
 void CLoraToUdpTenant::Run() {
     uint8_t buffer[255] = {0};
@@ -24,11 +23,9 @@ void CLoraToUdpTenant::Run() {
         return;
     }
 
-    const int port = buffer[1] << 8 | buffer[0];
-    constexpr int portOffset = 2;
-    LOG_DBG("Received %d bytes from LoRa for port %d", size, port);
+    LOG_INF("Received %d bytes on port %d", size, buffer[1] << 8 | buffer[0]);
     if (size > 2) {
-        udp.SetDstPort(port);
-        udp.TransmitAsynchronous(&buffer[2], size - portOffset);
+        udp.SetDstPort(buffer[1] << 8 | buffer[0]);
+        udp.TransmitAsynchronous(&buffer[2], size);
     }
 }

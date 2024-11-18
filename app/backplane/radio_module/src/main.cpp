@@ -24,6 +24,7 @@ int main() {
     LOG_INF("Receiver started");
     static CReceiverModule radioModule{};
 #endif
+    k_msleep(2000);
     radioModule.AddTenantsToTasks();
     radioModule.AddTasksToRtos();
     radioModule.SetupCallbacks();
@@ -37,4 +38,3 @@ int main() {
 
     return 0;
 }
-
