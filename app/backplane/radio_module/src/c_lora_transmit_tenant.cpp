@@ -32,6 +32,7 @@ void CLoraTransmitTenant::Run() {
     }
 
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
+    LOG_DBG("Transmitting %d bytes on port %d over LoRa", data.size, data.port);
     memcpy(txData, &data.port, 2); // Copy port number to first 2 bytes
     memcpy(txData + 2, &data.data, data.size); // Copy payload to the rest of the buffer
 #else
