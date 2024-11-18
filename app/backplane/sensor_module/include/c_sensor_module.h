@@ -63,8 +63,8 @@ private:
     CUdpBroadcastTenant<SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 512, 0};
-    CTask sensingTask{"Sensing Task", 15, 1024, 0};
+    CTask networkTask{"Networking Task", 15, 2048, 0};
+    CTask sensingTask{"Sensing Task", 15, 2048, 0};
 };
 
 

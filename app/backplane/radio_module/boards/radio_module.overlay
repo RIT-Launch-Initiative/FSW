@@ -1,0 +1,12 @@
+/ {
+	aliases {
+		led0 = &red_led_1;
+		led1 = &red_led_2;
+
+		dbguart = &uart4;
+		ubxlib-usart2 = &usart2;
+
+		lora = &lora0;
+		gnss = &maxm10s;
+	};
+};

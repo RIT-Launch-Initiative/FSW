@@ -19,3 +19,7 @@ CONFIG_LED=y
 # Seems to only be accepted at board level and not app level
 # Need more investigation
 CONFIG_POSIX_MAX_FDS=10
+
+# Devices
+CONFIG_LORA=y
+CONFIG_LORA_SX127X=y
