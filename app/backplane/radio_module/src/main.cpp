@@ -14,10 +14,14 @@
 #include "c_receiver_module.h"
 #endif
 
+LOG_MODULE_REGISTER(main);
+
 int main() {
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
+    LOG_INF("Transmitter     started");
     static CRadioModule radioModule{};
 #else
+    LOG_INF("Receiver started");
     static CReceiverModule radioModule{};
 #endif
     k_msleep(2000);

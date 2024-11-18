@@ -66,7 +66,5 @@ private:
     CTask loraTask{"LoRa Task", 15, 1024, 0};
 };
 
-
-
 #endif //C_RADIO_MODULE_H
 #endif //RADIO_MODULE_RECEIVER

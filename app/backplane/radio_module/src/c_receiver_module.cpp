@@ -19,13 +19,15 @@ void CReceiverModule::AddTenantsToTasks() {
     networkingTask.AddTenant(commandListenerTenant);
 
     // LoRa
-    loraTask.AddTenant(loraTransmitTenant);
+    loraTxTask.AddTenant(loraTransmitTenant);
+    loraRxTask.AddTenant(loraReceiveTenant);
 }
 
 void CReceiverModule::AddTasksToRtos() {
     // Networking
     NRtos::AddTask(networkingTask);
-    NRtos::AddTask(loraTask);
+    NRtos::AddTask(loraTxTask);
+    NRtos::AddTask(loraRxTask);
 }
 
 void CReceiverModule::SetupCallbacks() {
