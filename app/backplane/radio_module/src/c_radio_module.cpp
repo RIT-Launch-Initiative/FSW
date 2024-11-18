@@ -21,13 +21,15 @@ void CRadioModule::AddTenantsToTasks() {
     networkingTask.AddTenant(powerModuleListenerTenant);
 
     // LoRa
-    loraTask.AddTenant(loraTransmitTenant);
+    loraTxTask.AddTenant(loraTransmitTenant);
+    loraRxTask.AddTenant(loraReceiveTenant);
 }
 
 void CRadioModule::AddTasksToRtos() {
     // Networking
     NRtos::AddTask(networkingTask);
-    NRtos::AddTask(loraTask);
+    // NRtos::AddTask(loraTxTask);
+    NRtos::AddTask(loraRxTask);
 }
 
 void CRadioModule::SetupCallbacks() {
