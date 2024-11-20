@@ -1,0 +1,40 @@
+/ {
+    chosen {
+        zephyr,console = &uart0;
+        zephyr,shell-uart = &uart0;
+    };
+
+
+    imu: imu {
+        status = "okay";
+        // broken;
+        compatible = "openrocket,imu";
+        vertical-axis = "OPENROCKET_AXIS_Z";
+        vertical-axis-invert;
+        lateral-axis = "OPENROCKET_AXIS_X";
+        lag-time-us = <10>;
+        sampling-period-us = <10>;
+
+        roll-axis = "OPENROCKET_AXIS_Z";
+        pitch-axis = "OPENROCKET_AXIS_Y";
+        yaw-axis = "OPENROCKET_AXIS_X";
+
+        accel-noise = <500>;
+        gyro-noise = <200>;
+    };
+
+    barom: barom {
+        status = "okay";
+        compatible = "openrocket,barometer";
+        lag-time-us = <1000>;
+        sampling-period-us = <10>;
+        temp-noise = <100>; // millicelsius
+        pressure-noise = <10>; // pascals
+    };
+};
+&rtc {
+    status = "okay";
+};
+&uart0 {
+    status = "okay";
+};
