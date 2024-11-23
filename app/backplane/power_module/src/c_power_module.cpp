@@ -29,5 +29,8 @@ void CPowerModule::AddTasksToRtos() {
 void CPowerModule::SetupCallbacks() {
 }
 
-
+void CPowerModule::Cleanup() {
+    dataLoggerTenant.Cleanup();
+    printk("Cleaned up data logger tenant\n");
+}
 

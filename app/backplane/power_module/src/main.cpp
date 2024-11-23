@@ -11,7 +11,7 @@
 
 
 int main() {
-    static CPowerModule powerModule{};
+    CPowerModule powerModule{};
 
     powerModule.AddTenantsToTasks();
     powerModule.AddTasksToRtos();
@@ -20,9 +20,12 @@ int main() {
     NRtos::StartRtos();
 
 #ifdef CONFIG_ARCH_POSIX
-    k_sleep(K_SECONDS(300));
+    k_sleep(K_SECONDS(10));
     NRtos::StopRtos();
+    powerModule.Cleanup();
+    k_sleep(K_FOREVER);
 #endif
+
 
     return 0;
 }

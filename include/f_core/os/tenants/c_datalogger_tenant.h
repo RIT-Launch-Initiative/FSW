@@ -16,11 +16,13 @@ public:
     }
 
     void Run() override {
-        while (true) {
-            if (T message{}; messagePort.Receive(message, K_FOREVER) == 0) {
-                dataLogger.write(message);
-            }
+        if (T message{}; messagePort.Receive(message, K_FOREVER) == 0) {
+            dataLogger.write(message);
         }
+    }
+
+    void Cleanup() {
+        dataLogger.close();
     }
 
 private:

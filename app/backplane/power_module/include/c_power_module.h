@@ -42,6 +42,11 @@ public:
      */
     void SetupCallbacks() override;
 
+    /**
+     * See parent docs
+     */
+    void Cleanup();
+
 private:
     static constexpr const char* ipAddrStr = "10.1.2.1";
     static constexpr int telemetryBroadcastPort = 11000;

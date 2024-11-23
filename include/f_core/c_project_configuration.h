@@ -7,6 +7,8 @@ protected:
      * Constructor
      */
     CProjectConfiguration() = default;
+
+    ~CProjectConfiguration() = default;
 private:
     /**
      * Add tenants to a task
