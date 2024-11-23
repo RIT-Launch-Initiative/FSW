@@ -11,6 +11,7 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 
 // Zephyr Includes
+#include <autoconf.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -25,7 +26,7 @@ int main() {
     static constexpr int broadcastStrLen = sizeof(broadcastStr);
 
     auto messagePort = CMsgqMessagePort<char[broadcastStrLen]>(broadcast_queue);
-    CUdpBroadcastTenant broadcaster(ipAddrStr, udpPort, udpPort, messagePort);
+    CUdpBroadcastTenant broadcaster("Broadcast Tenant", ipAddrStr, udpPort, udpPort, messagePort);
 
     while (true) {
         messagePort.Send(broadcastStr, K_FOREVER);
