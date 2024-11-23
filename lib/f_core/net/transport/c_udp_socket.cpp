@@ -22,7 +22,7 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
     sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(srcPort),
-        .sin_addr = ipv4.GetAddr()
+        .sin_addr = INADDR_ANY // Bind to all interfaces TODO: Might not need ipv4 variable anymore
     };
 
     if (zsock_bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
