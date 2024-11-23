@@ -3,6 +3,11 @@ sample:
   name: sensor-module
 common:
   build_only: true
+  integration_platforms:
+      - sensor_module@2
+      - native_sim
+  extra_overlay_confs:
+    - sim.conf
 tests:
   backplane.sensor_module.debug:
     integration_platforms:
@@ -13,5 +18,3 @@ tests:
     integration_platforms:
       - native_sim
     extra_overlay_confs:
-      - sim.conf
-      - debug.conf
