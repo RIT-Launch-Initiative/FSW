@@ -16,7 +16,7 @@ env:
     app/samples/shield_blinky
     app/samples/shield_mcp3561r
     app/samples/lora_bcast
-    app/samples/udb_bcast
+    app/samples/udp_bcast
     app/samples/message_passing
     app/samples/openrocket_sensors
     app/samples/soft_timer

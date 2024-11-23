@@ -11,3 +11,7 @@ tests:
   backplane.sensor_module.debug:
     extra_overlay_confs:
       - debug.conf
+  backplane.sensor_module.native_sim:
+    extra_overlay_confs:
+      - sim.conf
+      - debug.conf
