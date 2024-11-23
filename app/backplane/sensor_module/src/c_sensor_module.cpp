@@ -19,6 +19,9 @@ void CSensorModule::AddTenantsToTasks() {
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);
+
+    // Data Logging
+    dataLogTask.AddTenant(dataLoggerTenant);
 }
 
 void CSensorModule::AddTasksToRtos() {
@@ -27,6 +30,9 @@ void CSensorModule::AddTasksToRtos() {
 
     // Sensing
     NRtos::AddTask(sensingTask);
+
+    // Data Logging
+    NRtos::AddTask(dataLogTask);
 }
 
 void CSensorModule::SetupCallbacks() {

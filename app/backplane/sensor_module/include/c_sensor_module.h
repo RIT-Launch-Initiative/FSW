@@ -34,6 +34,13 @@ public:
      */
     void SetupCallbacks() override;
 
+    /**
+    * Cleanup
+    */
+    void Cleanup() {
+        dataLoggerTenant.Cleanup();
+    }
+
 private:
     static constexpr const char* ipAddrStr = "10.3.2.1";
     static constexpr int telemetryBroadcastPort = 12100;
@@ -44,9 +51,9 @@ private:
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
-    // CRs485Tenant rs485Tenant{"RS485 Tenant"};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
-    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    // CRs485Tenant rs485Tenant{"RS485 Tenant"};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 512, 0};

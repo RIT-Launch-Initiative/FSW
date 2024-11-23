@@ -4,15 +4,16 @@
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 #include <f_core/os/c_datalogger.h>
+#include <zephyr/logging/log.h>
 
 template <typename T>
 class CDataLoggerTenant : public CTenant {
 public:
     CDataLoggerTenant(const char *name, const char *filename, LogMode mode, std::size_t num_packets, CMessagePort<T> &messagePort)
-        : CTenant(name), messagePort(messagePort), dataLogger(filename, mode, num_packets) {}
+        : CTenant(name), messagePort(messagePort), dataLogger(filename, mode, num_packets), filename(filename) {}
 
     ~CDataLoggerTenant() override {
-        dataLogger.close();
+        Cleanup();
     }
 
     void Run() override {
@@ -28,6 +29,7 @@ public:
 private:
     CMessagePort<T> &messagePort;
     CDataLogger<T> dataLogger;
+    const char *filename;
 };
 
 #endif //C_DATALOGGER_TENANT_H
