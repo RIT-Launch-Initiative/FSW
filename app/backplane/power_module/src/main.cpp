@@ -10,11 +10,11 @@
 
 
 int main() {
-    static CPowerModule sensorModule{};
+    static CPowerModule powerModule{};
 
-    sensorModule.AddTenantsToTasks();
-    sensorModule.AddTasksToRtos();
-    sensorModule.SetupCallbacks();
+    powerModule.AddTenantsToTasks();
+    powerModule.AddTasksToRtos();
+    powerModule.SetupCallbacks();
 
     NRtos::StartRtos();
 
