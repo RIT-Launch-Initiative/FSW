@@ -2,6 +2,7 @@
 #define C_SENSOR_MODULE_H
 
 #include "c_sensing_tenant.h"
+#include "n_types.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -14,14 +15,6 @@
 
 class CPowerModule : public CProjectConfiguration {
 public:
-
-    // TODO(aaron) Break this apart based on telemetry frequency eventually
-    struct __attribute__((packed)) SensorData {
-      NTypes::NSensor::ShuntData RailBattery;
-      NTypes::NSensor::ShuntData Rail3v3;
-      NTypes::NSensor::ShuntData Rail5v0;
-    };
-
     /**
      * Constructor
      */
@@ -52,12 +45,13 @@ private:
     static constexpr int telemetryBroadcastPort = 11000;
 
     // Message Ports
-    CMessagePort<SensorData>& sensorDataBroadcastMessagePort;
+    CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
+    CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
 
     // Tenants
-    CSensingTenant sensingTenant{"Sensing Tenant"};
-    CUdpBroadcastTenant<SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
-    CDataLoggerTenant<SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataBroadcastMessagePort};
+    CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
+    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
+    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 512, 0};
