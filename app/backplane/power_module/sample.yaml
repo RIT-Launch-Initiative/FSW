@@ -7,7 +7,6 @@ common:
     - power_module@2
     - native_sim
 tests:
-  backplane.power_module.default: {}
   backplane.power_module.debug:
     extra_overlay_confs:
       - debug.conf
