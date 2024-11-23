@@ -20,7 +20,7 @@ int datalogger::write(const void *data, std::size_t size) {
     }
     off_t offset = fs_tell(&file);
     if (offset < 0) {
-        LOG_ERR("Error Seeking file: %d", offset);
+        LOG_ERR("Error Seeking file: %ld", offset);
         return offset;
     }
     size_t index = offset / size;
