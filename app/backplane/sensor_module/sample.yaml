@@ -4,11 +4,9 @@ sample:
 common:
   build_only: true
   integration_platforms:
-      - sensor_module@2
-
-tests:
+    - sensor_module
+stests:
+  backplane.sensor_module.default: {}
   backplane.sensor_module.debug:
-    integration_platforms:
-      - sensor_module@2
     extra_overlay_confs:
       - debug.conf
