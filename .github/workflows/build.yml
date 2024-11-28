@@ -83,6 +83,14 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
+          
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            ls /usr/lib/i386-linux-gnu/pkgconfig
+            echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+            export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+            echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+          fi
+          
           function add_arglist () {
             echo "$2" | while read -r line; do
               [ -z "$line" ] && continue
