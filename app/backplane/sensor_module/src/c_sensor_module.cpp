@@ -4,10 +4,13 @@
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
 
-K_MSGQ_DEFINE(broadcastQueue, sizeof(CSensorModule::SensorData), 10, 4);
-static auto broadcastMsgQueue = CMsgqMessagePort<CSensorModule::SensorData>(broadcastQueue);
+K_MSGQ_DEFINE(broadcastQueue, sizeof(NTypes::SensorData), 10, 4);
+static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQueue);
 
-CSensorModule::CSensorModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue) {
+K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
+static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
+
+CSensorModule::CSensorModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), sensorDataLogMessagePort(dataLogMsgQueue) {
 }
 
 void CSensorModule::AddTenantsToTasks() {
@@ -16,6 +19,9 @@ void CSensorModule::AddTenantsToTasks() {
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);
+
+    // Data Logging
+    dataLogTask.AddTenant(dataLoggerTenant);
 }
 
 void CSensorModule::AddTasksToRtos() {
@@ -24,6 +30,9 @@ void CSensorModule::AddTasksToRtos() {
 
     // Sensing
     NRtos::AddTask(sensingTask);
+
+    // Data Logging
+    NRtos::AddTask(dataLogTask);
 }
 
 void CSensorModule::SetupCallbacks() {

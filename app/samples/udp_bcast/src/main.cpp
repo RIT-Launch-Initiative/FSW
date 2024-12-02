@@ -25,7 +25,7 @@ int main() {
     static constexpr int broadcastStrLen = sizeof(broadcastStr);
 
     auto messagePort = CMsgqMessagePort<char[broadcastStrLen]>(broadcast_queue);
-    CUdpBroadcastTenant broadcaster(ipAddrStr, udpPort, udpPort, messagePort);
+    CUdpBroadcastTenant broadcaster("Broadcast Tenant", ipAddrStr, udpPort, udpPort, messagePort);
 
     while (true) {
         messagePort.Send(broadcastStr, K_FOREVER);

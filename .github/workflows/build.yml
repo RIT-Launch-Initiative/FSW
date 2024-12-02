@@ -41,7 +41,9 @@ jobs:
         shell: bash
         run: |
           if [ "${{ runner.os }}" = "Linux" ]; then 
-            sudo apt-get install -y gcc-multilib g++-multilib; 
+            sudo dpkg --add-architecture i386
+            sudo apt update
+            sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib;
           fi
 
       - name: Cache Python dependencies
@@ -80,6 +82,11 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
+          
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+          fi
+          
           function add_arglist () {
             echo "$2" | while read -r line; do
               [ -z "$line" ] && continue

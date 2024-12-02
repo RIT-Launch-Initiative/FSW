@@ -5,7 +5,6 @@ common:
   build_only: true
   integration_platforms:
     - sensor_module
-    - native_sim
 tests:
   backplane.sensor_module.default: {}
   backplane.sensor_module.debug:

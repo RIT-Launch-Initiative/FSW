@@ -6,8 +6,6 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-extern k_msgq broadcastQueue;
-
 void CSensingTenant::Startup() {
 }
 
@@ -16,7 +14,7 @@ void CSensingTenant::PostStartup() {
 
 void CSensingTenant::Run() {
     // TODO: Zero out when we have simulated shunt
-    CPowerModule::SensorData data{
+    NTypes::SensorData data{
         .RailBattery = {
             .Voltage = 12.0f,
             .Current = 0.0f,
@@ -41,27 +39,24 @@ void CSensingTenant::Run() {
     CSensorDevice *sensors[] = {&shuntBatt, &shunt3v3, &shunt5v0};
 #endif
 
-    while (true) {
 #ifndef CONFIG_ARCH_POSIX
-        for (auto sensor: sensors) {
-            sensor->UpdateSensorValue();
-        }
+    for (auto sensor: sensors) {
+        sensor->UpdateSensorValue();
+    }
 
-        data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
-        data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-        data.Rail3v3.Power = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+    data.Rail3v3.Power = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_POWER);
 
-        data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
-        data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-        data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+    data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
 
-        data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
-        data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-        data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+    data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
 #endif
 
-
-        k_msgq_put(&broadcastQueue, &data, K_NO_WAIT);
-        k_msleep(100);
-    }
+    dataToBroadcast.Send(data, K_MSEC(5));
+    dataToLog.Send(data, K_MSEC(5));
 }

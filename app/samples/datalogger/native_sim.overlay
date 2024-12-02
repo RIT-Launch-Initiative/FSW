@@ -1,8 +1,5 @@
 / {
 	chosen {
-		zephyr,console = &uart0;
-		zephyr,shell-uart = &uart0;
-
 		storage = &flash0;
 		logfs = &lfs1;
 	};
@@ -29,11 +26,6 @@
 	};
 
 };
-
-&uart0 {
-	status = "okay";
-};
-
 
 &flashcontroller0 {
 	status = "okay";
