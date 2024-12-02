@@ -30,7 +30,8 @@ class datalogger {
  * - FixedSize - the file will hold only a certain number of packets. Old data will be retained if you try to write more packets than it can fit
  * This class is implemented as a type safe wrapper to detail::datalogger.
  */
-template <typename T> class CDataLogger {
+template <typename T>
+class CDataLogger {
   public:
     using PacketType = T;
     static_assert(std::is_trivially_copyable<PacketType>::value,

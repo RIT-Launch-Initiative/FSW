@@ -10,8 +10,6 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-extern k_msgq broadcastQueue;
-
 void CSensingTenant::Startup() {
 }
 
@@ -44,7 +42,7 @@ void CSensingTenant::Run() {
 #endif
     };
 
-    CSensorModule::SensorData data{};
+    NTypes::SensorData data{};
     while (true) {
         for (auto sensor: sensors) {
             sensor->UpdateSensorValue();
@@ -76,7 +74,9 @@ void CSensingTenant::Run() {
 
         data.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
-        k_msgq_put(&broadcastQueue, &data, K_NO_WAIT);
+        dataToBroadcast.Send(data, K_MSEC(5));
+        dataToLog.Send(data, K_MSEC(5));
+
         k_msleep(100);
     }
 }

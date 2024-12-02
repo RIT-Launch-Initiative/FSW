@@ -18,9 +18,9 @@ int datalogger::write(const void *data, std::size_t size) {
     if (mode == LogMode::Growing) {
         return fs_write(&file, data, size);
     }
-    size_t offset = fs_tell(&file);
+    off_t offset = fs_tell(&file);
     if (offset < 0) {
-        LOG_ERR("Error Seeking file: %d", offset);
+        LOG_ERR("Error Seeking file: %ld", offset);
         return offset;
     }
     size_t index = offset / size;
