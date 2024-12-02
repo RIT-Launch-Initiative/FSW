@@ -44,7 +44,6 @@ jobs:
             sudo dpkg --add-architecture i386
             sudo apt update
             sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib;
-            export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
           fi
 
       - name: Cache Python dependencies

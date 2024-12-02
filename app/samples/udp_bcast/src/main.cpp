@@ -11,7 +11,6 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 
 // Zephyr Includes
-#include <autoconf.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
