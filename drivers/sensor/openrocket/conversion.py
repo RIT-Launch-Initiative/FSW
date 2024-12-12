@@ -6,7 +6,7 @@ import csv
 import argparse
 from math import isnan
 import magnetic_field
-
+from math import pi
 
 '''
 Openrocket format that we care about:
@@ -155,12 +155,12 @@ TIME = "Time (s)"
 
 VERT_ACCEL = "Vertical acceleration (m/s²)"
 LAT_ACCEL = "Lateral acceleration (m/s²)"
-ROLL = "Roll rate (°/s)"
-PITCH = "Pitch rate (°/s)"
-YAW = "Yaw rate (°/s)"
+ROLL = "Roll rate (rad/s)"
+PITCH = "Pitch rate (rad/s)"
+YAW = "Yaw rate (rad/s)"
 
-TEMP = "Air temperature (°C)"
-PRESSURE = "Air pressure (mbar)"
+TEMP = "Air temperature (K)"
+PRESSURE = "Air pressure (Pa)"
 
 LATITUDE = "Latitude (°)"
 LONGITUDE = "Longitude (°)"
@@ -186,8 +186,24 @@ def convert_value(value: str) -> float:
     return float(value)
 
 
+def fix_units(value, unit):
+    if unit == PRESSURE:
+        return value / 100  # Pa(OR) to mbar(Zephyr)
+    elif unit == TEMP:
+        return value - 273.15  # K(OR) to C(Zephyr)
+    elif unit == ROLL:
+        return value * 180 / pi  # rad(OR) to deg(Zephyr)
+    elif unit == PITCH:
+        return value * 180 / pi  # rad(OR) to deg(Zephyr)
+    elif unit == YAW:
+        return value * 180 / pi  # rad(OR) to deg(Zephyr)
+    return value
+
+
 def make_single_packet(packet, indices, mapping: Dict[Variable, int], config) -> List[float]:
-    direct = [convert_value(packet[i]) for i in indices]
+    inv_mapping = {v: k for k, v in mapping.items()}
+    direct = [fix_units(convert_value(packet[i]), inv_mapping[i])
+              for i in indices]
 
     # position
     calculated = []
