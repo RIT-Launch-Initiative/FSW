@@ -6,8 +6,9 @@
 #include <zephyr/kernel.h>
 
 int flight_log_init(const char *flight_log_file_name, fs_file_t *fp);
-int flight_log_source_event(bool enabled, const char *source, const char *event);
-int flight_log_event_confirmed(bool enabled, const char *event, bool currentState);
+int flight_log_source_event(bool enabled, fs_file_t *fp, const char *source, const char *event);
+int flight_log_event_confirmed(bool enabled, fs_file_t *fp, const char *event, bool currentState);
+int flight_log_close(bool enabled, fs_file_t *fp);
 
 /**
  * Phase Controller
@@ -92,8 +93,8 @@ class CPhaseController {
 
         // If that event submission caused the event to fully trigger, send message
         if (deciders[event](sourceStates[event])) {
-            bool state = eventStates[event];
-            if (!state) {
+            bool last_state = eventStates[event];
+            if (!last_state) {
                 // dispatch event
                 eventStates[event] = true;
                 k_event_set(&osEvents, (uint32_t) event);
@@ -105,10 +106,10 @@ class CPhaseController {
                     }
                 }
             }
-            flight_log_source_event(HasFlightLog(), sourceNames[source], eventNames[event]);
-            flight_log_event_confirmed(HasFlightLog(), eventNames[event], state);
+            flight_log_source_event(HasFlightLog(), &flightLogFile, sourceNames[source], eventNames[event]);
+            flight_log_event_confirmed(HasFlightLog(), &flightLogFile, eventNames[event], last_state);
         } else {
-            flight_log_source_event(HasFlightLog(), sourceNames[source], eventNames[event]);
+            flight_log_source_event(HasFlightLog(), &flightLogFile, sourceNames[source], eventNames[event]);
         }
     }
 
@@ -138,6 +139,7 @@ class CPhaseController {
      * @return true if the phase controller will write its events to a file. false if not
      */
     bool HasFlightLog() { return flightLogFileName != nullptr; }
+    void CloseFlightLog() { flight_log_close(HasFlightLog(), &flightLogFile); }
 
   private:
     struct InternalTimerEvent {
