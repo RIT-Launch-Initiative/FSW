@@ -119,7 +119,8 @@ static void or_event_thread_handler(void) {
         int time_to_wait_ms = (int) ((or_events[i].time_s - time) * 1000);
         k_msleep(time_to_wait_ms);
         time = or_events[i].time_s;
-        LOG_INF("OpenRocket event %s at time T+%.3f", event_to_str(or_events[i].event), (double) or_events[i].time_s);
+        LOG_INF("OpenRocket event %s at time T+%.3f (uptime %lld ms)", event_to_str(or_events[i].event),
+                (double) or_events[i].time_s, k_uptime_get());
         i++;
     }
     LOG_INF("OpenRocket flight over");

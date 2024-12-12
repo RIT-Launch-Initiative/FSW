@@ -15,8 +15,6 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, CONFIG_APP_PHASE_DETECT_LOG_LEVEL);
 
-#include "f_core/util/debouncer.hpp"
-
 #include <array>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -204,29 +202,34 @@ int main() {
     LOG_DBG("Waiting until everyone ready");
 
     controller.WaitUntilEvent(Events::PadReady);
-    LOG_DBG("System ready:\n\tstart boost detecting");
+    LOG_DBG("System ready:\tstart boost detecting");
 
     // Start sensing
     k_timer_start(&imu_timer, K_MSEC(1), K_MSEC(1));
     k_timer_start(&barom_timer, K_MSEC(10), K_MSEC(10));
 
+    LOG_DBG("Waiting for boost");
     controller.WaitUntilEvent(Events::Boost);
-    LOG_DBG("Boost detected:\n\ttell your friends (engineering cams)");
+    LOG_DBG("Boost detected:\ttell your friends (engineering cams)");
 
+    LOG_DBG("Waiting for coast");
     controller.WaitUntilEvent(Events::Coast);
-    LOG_DBG("Coast detected:\n\tturn down IMU data rate");
+    LOG_DBG("Coast detected:\tturn down IMU data rate");
 
     // IMU can chill out after all the cool stuff happens
     k_timer_start(&imu_timer, K_MSEC(10), K_MSEC(10));
 
+    LOG_DBG("Waiting for noseover");
     controller.WaitUntilEvent(Events::Noseover);
-    LOG_DBG("Noseover detected:\n\tdeploy charges");
+    LOG_DBG("Noseover detected:\tdeploy charges");
 
+    LOG_DBG("Waiting for main");
     controller.WaitUntilEvent(Events::MainChute);
-    LOG_DBG("Main Chute Deploy:\n\tdeploy more charges");
+    LOG_DBG("Main Chute Deploy:\tdeploy more charges");
 
+    LOG_DBG("Waiting for ground");
     controller.WaitUntilEvent(Events::GroundHit);
-    LOG_DBG("Hit The ground: Stop\n\trecording data");
+    LOG_DBG("Hit The ground:\tStop trecording data");
 
     // Stop recording
     k_timer_stop(&imu_timer);
