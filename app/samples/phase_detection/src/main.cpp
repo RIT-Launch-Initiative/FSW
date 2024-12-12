@@ -24,7 +24,7 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_PHASE_DETECT_LOG_LEVEL);
 K_TIMER_DEFINE(imu_timer, NULL, NULL);
 K_TIMER_DEFINE(barom_timer, NULL, NULL);
 
-Controller controller{sourceNames, eventNames, timer_events, deciders};
+Controller controller{sourceNames, eventNames, timer_events, deciders, "/lfs/flight_log.txt"};
 
 void imu_thread_f(void *, void *, void *) {
     // > 5G-ish for a quarter second
@@ -237,5 +237,8 @@ int main() {
 
     controller.WaitUntilEvent(Events::CamerasOff);
     LOG_DBG("Flight over:\n\tTurn off cameras");
+
+    controller.CloseFlightLog();
+
     return 0;
 }
