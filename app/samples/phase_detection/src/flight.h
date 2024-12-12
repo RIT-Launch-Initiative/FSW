@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdint>
-#include <f_core/flight/CPhaseController.h>
+#include <f_core/flight/c_phase_controller.h>
 
 /**
  * Flight Events for a fictional flight
@@ -30,7 +30,7 @@ inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
 };
 
 inline constexpr std::size_t num_timer_events = 5;
-using Controller = PhaseController<Events, Events::NumEvents, Sources, Sources::NumSources, num_timer_events>;
+using Controller = CPhaseController<Events, Events::NumEvents, Sources, Sources::NumSources, num_timer_events>;
 
 /**
  * Special events triggered not by sensors but by timers between phases
@@ -56,7 +56,7 @@ inline constexpr std::array<Controller::TimerEvent, num_timer_events> timer_even
     Controller::TimerEvent{
         .start = Events::Noseover,
         .event = Events::MainChute,
-        .time = K_SECONDS(5),
+        .time = K_SECONDS(100),
         .source = Sources::Noseover2MainTimer,
     },
     // We know our entire flight will not last longer than X seconds even if we main at apogee.
@@ -106,7 +106,7 @@ inline constexpr std::array<Controller::DecisionFunc, Events::NumEvents> decider
 
     // Main
     arr[Events::MainChute] = [](Controller::SourceStates states) -> bool {
-        return states[Sources::Barom1]; // || states[Sources::Noseover2MainTimer];
+        return states[Sources::Barom1] || states[Sources::Noseover2MainTimer];
     };
 
     // On the ground
