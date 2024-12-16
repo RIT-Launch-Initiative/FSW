@@ -1,0 +1,13 @@
+# Common fields for microchip rfm9Xw radio chips
+include: [spi-device.yaml]
+
+description: HopeRF RFM9XW radio module
+
+compatible: "hoperf,rfm9xw"
+
+properties:
+  "#io-channel-cells":
+    type: int
+    required: true
+  name:
+    type: string

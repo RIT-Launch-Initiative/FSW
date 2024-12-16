@@ -1,0 +1,10 @@
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig RFM9XW
+	bool "RFM9xW modem driver"
+	depends on DT_HAS_HOPERF_RFM9XW_ENABLED
+	select SPI
+	help
+	  Enable driver for RFM9xW family of radio modules.
+

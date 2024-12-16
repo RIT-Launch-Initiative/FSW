@@ -1,0 +1,26 @@
+/ {
+	chosen {
+		zephyr,console = &usart2;
+	};
+	aliases {
+		led = &shield_led; 
+	};
+	
+	leds: leds {
+        compatible = "gpio_leds";
+        reset_line: reset-line{
+            gpios = <&arduino_header 2 GPIO_ACTIVE_LOW>;
+            label = "RST";
+        };
+	};
+};
+
+&mikrobus_spi {
+	radio: rfm98w@1 {
+		#io-channel-cells= <1>;
+		status = "okay";
+		compatible = "hoperf,rfm9xw";
+		reg = <1>;
+		spi-max-frequency = <DT_FREQ_M(8)>; // pg. 20, Table 10 MAX 10MHz
+	};
+};

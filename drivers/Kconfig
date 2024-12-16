@@ -4,4 +4,6 @@
 menu "Drivers"
 rsource "sensor/Kconfig"
 rsource "adc/Kconfig"
+rsource "modem/Kconfig"
+
 endmenu
