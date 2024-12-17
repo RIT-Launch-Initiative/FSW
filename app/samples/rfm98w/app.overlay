@@ -7,9 +7,11 @@
 	};
 	
 	leds: leds {
-        compatible = "gpio_leds";
-        reset_line: reset-line{
-            gpios = <&arduino_header 2 GPIO_ACTIVE_LOW>;
+        compatible = "gpio-leds";
+		status="disabled";
+        reset_line: reset_line2{
+			status="okay";
+            gpios = <&arduino_header 11 GPIO_ACTIVE_LOW>;
             label = "RST";
         };
 	};
@@ -22,5 +24,12 @@
 		compatible = "hoperf,rfm9xw";
 		reg = <1>;
 		spi-max-frequency = <DT_FREQ_M(8)>; // pg. 20, Table 10 MAX 10MHz
+		
+		carrier-frequency = <DT_FREQ_M(434)>;
+		deviation-frequency = <DT_FREQ_K(100)>;
+		bitrate = <2000>;
+
+
+		dio0-mapping = "RfmDio0Mapping";
 	};
 };

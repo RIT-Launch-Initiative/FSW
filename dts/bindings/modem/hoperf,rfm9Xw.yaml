@@ -1,4 +1,4 @@
-# Common fields for microchip rfm9Xw radio chips
+# Common fields for hoperf rfm9Xw radio chips
 include: [spi-device.yaml]
 
 description: HopeRF RFM9XW radio module
@@ -11,3 +11,96 @@ properties:
     required: true
   name:
     type: string
+  long-range-mode:
+    type: string
+    default: "RfmLongRangeModeSetting_FskOokMode"
+    description: |
+      Long Range Mode:
+        - RfmLongRangeModeSetting_FskOokMode: Set Chip to FSK/OOK Mode
+        - RfmLongRangeModeSetting_LoraTmMode: Set Chip to LoRa (TM) Mode
+    enum:
+      - "RfmLongRangeModeSetting_FskOokMode"
+      - "RfmLongRangeModeSetting_LoraTmMode"
+  modulation-type:
+    type: string
+    default: "RfmModulationType_FSK"
+    description: |
+      Modulation Type (valid only in FSK/OOK Mode):
+        - RfmModulationType_FSK: Set Chip to Frequency Shift Keying (FSK) Modulation
+        - RfmModulationType_OOK: Set Chip to On-Off-Keying (OOK)
+    enum:
+      - "RfmModulationType_FSK"
+      - "RfmModulationType_OOK"
+  low-frequency-mode:
+    type: string
+    default: "RfmLowFrequencyMode_LowFrequency"
+    description: |
+      LowFrequencyMode (valid only in FSK/OOK Mode):
+        - RfmLowFrequencyMode_HighFrequency: Access to High Frequency test registers
+        - RfmLowFrequencyMode_LowFrequency: Access to Low Frequency test registers
+    enum:
+      - "RfmLowFrequencyMode_HighFrequency"
+      - "RfmLowFrequencyMode_LowFrequency"
+  carrier-frequency:
+    type: int
+    required: true
+    description: |
+      Frequency of carrier wave in Hz
+      The actual range of this value depends on the specific version of the chip
+      - RFM95W: 868 - 915 MHz
+      - RFM96W: 433 - 470 MHz
+      - RFM98W: 433 - 470 MHz
+      - RFM99W: 169 MHz
+  deviation-frequency:
+    type: int
+    description: |
+      Deviation of frequency when modulating with FSK in Hz
+
+  bitrate:
+    type: int
+    required: true
+    description: |
+      Bitrate (bits per second)of data when using FSK or OOK Modulation
+      Range (FSK): 1.2 to 300 kbps
+      Range (OOK): 1.2 to 32.768 kbps
+
+  data-mode:
+    type: string
+    default: "RfmPacketConfigDataMode_Packet"
+    description: |
+      Data mode for the receiver. Continuous or Packet(default)
+    enum:
+      - "RfmPacketConfigDataMode_Continuous"
+      - "RfmPacketConfigDataMode_Packet"
+
+  dio0-pin:
+    type: phandle
+    description: GPIO connection for DIO0. Functionality described by `dio0-mapping`
+  dio0-mapping:
+    type: string
+    default: "RfmDio0Mapping_Packet_PayloadReadyPacketSent"
+    description: |
+      Mapping of DIO 0 pin. 
+      The meaning of the mapping changes depending on what mode the radio is in (Packet,Continous,LoRa)
+      Ensure that the mode here agrees with `data-mode` and `long-range-mode`.
+      If you change modes at runtime, check these mappings as well.
+      Continous Mode:
+      - RfmDio0Mapping_Continuous_SyncAddressTxReady:  SyncAddress in Rx mode, TxReady in Tx mode, Nothing in all other modes.
+      - RfmDio0Mapping_Continuous_RssiPreambleDetect:  Rssi/PreambleDetect in Rx mode, Nothing in all other modes.
+      - RfmDio0Mapping_Continuous_RxReadyTxReady:      RxReady in Rx mode, TxReady in Tx mode,  Nothing in all other modes.
+      - RfmDio0Mapping_Continuous_Nothing:             Nothing in all modes.
+      Packet Mode:
+      - RfmDio0Mapping_Packet_PayloadReadyPacketSent: PayloadReady in Rx mode, PacketSent in Tx mode, Nothing in all other modes.
+      - RfmDio0Mapping_Packet_RxCrcOk:                CrcOk in Rx mode, Nothing in all other modes.
+      - RfmDio0Mapping_Packet_Nothing:                Nothing in all modes.
+      - RfmDio0Mapping_Packet_TempChangeLowBat:       Nothing in Sleep mode, TempChange/LowBat in all other modes
+
+    enum:
+      - "RfmDio0Mapping_Continuous_SyncAddressTxReady"
+      - "RfmDio0Mapping_Continuous_RssiPreambleDetect"
+      - "RfmDio0Mapping_Continuous_RxReadyTxReady"
+      - "RfmDio0Mapping_Continuous_Nothing"
+      - "RfmDio0Mapping_Packet_PayloadReadyPacketSent"
+      - "RfmDio0Mapping_Packet_RxCrcOk"
+      - "RfmDio0Mapping_Packet_Nothing"
+      - "RfmDio0Mapping_Packet_TempChangeLowBat"
