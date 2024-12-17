@@ -73,9 +73,29 @@ properties:
       - "RfmPacketConfigDataMode_Continuous"
       - "RfmPacketConfigDataMode_Packet"
 
-  dio0-pin:
-    type: phandle
+  reset-gpios:
+    type: phandle-array
+    description: GPIO connection chip reset. If not supplied, functionality can be mimiced by physically removing power from the chip
+
+  dio0-gpios:
+    type: phandle-array
     description: GPIO connection for DIO0. Functionality described by `dio0-mapping`
+  dio1-gpios:
+    type: phandle-array
+    description: GPIO connection for DIO1. Functionality described by `dio1-mapping`
+  dio2-gpios:
+    type: phandle-array
+    description: GPIO connection for DIO2. Functionality described by `dio2-mapping`
+  dio3-gpios:
+    type: phandle-array
+    description: GPIO connection for DIO3. Functionality described by `dio3-mapping`
+  dio4-gpios:
+    type: phandle-array
+    description: GPIO connection for DIO4. Functionality described by `dio4-mapping`
+  dio5-gpios:
+    type: phandle-array
+    description: GPIO connection for DIO5. Functionality described by `dio5-mapping`
+
   dio0-mapping:
     type: string
     default: "RfmDio0Mapping_Packet_PayloadReadyPacketSent"

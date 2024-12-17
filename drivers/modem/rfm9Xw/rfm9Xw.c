@@ -11,12 +11,13 @@ LOG_MODULE_REGISTER(rfm9xw);
 struct rfm9Xw_config {
     struct spi_dt_spec bus;
     enum RfmModelNumber model_num;
-    struct gpio_dt_spec dio0_pin;
-    struct gpio_dt_spec dio1_pin;
-    struct gpio_dt_spec dio2_pin;
-    struct gpio_dt_spec dio3_pin;
-    struct gpio_dt_spec dio4_pin;
-    struct gpio_dt_spec dio5_pin;
+    struct gpio_dt_spec reset_gpios;
+    struct gpio_dt_spec dio0_gpios;
+    struct gpio_dt_spec dio1_gpios;
+    struct gpio_dt_spec dio2_gpios;
+    struct gpio_dt_spec dio3_gpios;
+    struct gpio_dt_spec dio4_gpios;
+    struct gpio_dt_spec dio5_gpios;
 };
 
 struct rfm9Xw_data {
@@ -30,10 +31,11 @@ struct rfm9Xw_data {
     uint32_t bitrate;
     enum RfmDio0Mapping dio0_mapping;
 };
-
+#define RFM_SPI_WRITE_BIT 0b10000000
+#define RFM_SPI_REG_MASK  0b01111111
 int read_rfm_reg(const struct rfm9Xw_config *config, const uint8_t reg, uint8_t *const result) {
     // Write Data
-    uint8_t cmd[2] = {reg & (~0x80), 0};
+    uint8_t cmd[2] = {reg & RFM_SPI_REG_MASK, 0};
     struct spi_buf txbuf = {
         .buf = &cmd,
         .len = 2,
@@ -58,21 +60,31 @@ int read_rfm_reg(const struct rfm9Xw_config *config, const uint8_t reg, uint8_t 
     return res;
 }
 
-int write_rfm_reg(const struct rfm9Xw_config *config, const uint8_t reg, const uint8_t data) {
+int write_rfm_reg_burst(const struct rfm9Xw_config *config, uint8_t reg, uint8_t *data, int32_t data_len) {
     // Write Data
-    uint8_t cmd[2] = {0b10000000 | (reg & 0b01111111), data};
+    uint8_t write_and_reg = RFM_SPI_WRITE_BIT | (reg & RFM_SPI_REG_MASK);
 
-    struct spi_buf buf = {
-        .buf = &cmd,
-        .len = 2,
+    struct spi_buf write_and_reg_buf = {
+        .buf = &write_and_reg,
+        .len = 1,
+    };
+    struct spi_buf data_buf = {
+        .buf = data,
+        .len = data_len,
     };
 
+    struct spi_buf bufs[2] = {write_and_reg_buf, data_buf};
+
     struct spi_buf_set set = {
-        .buffers = &buf,
-        .count = 1,
+        .buffers = bufs,
+        .count = 2,
     };
 
     return spi_write_dt(&config->bus, &set);
+}
+
+int write_rfm_reg(const struct rfm9Xw_config *config, const uint8_t reg, uint8_t data) {
+    return write_rfm_reg_burst(config, reg, &data, 1);
 }
 
 #define REG_FIFO            0x0
@@ -487,15 +499,8 @@ int32_t switch_trans_mode(const struct rfm9Xw_config *config, struct rfm9Xw_data
 
 int32_t set_frequency(const struct rfm9Xw_config *config, uint8_t msb, uint8_t mid, uint8_t lsb) {
     int res = 0;
-    res = write_rfm_reg(config, REG_FRF_MSB, msb);
-    if (res < 0) {
-        return res;
-    }
-    res = write_rfm_reg(config, REG_FRF_MID, mid);
-    if (res < 0) {
-        return res;
-    }
-    res = write_rfm_reg(config, REG_FRF_LSB, lsb);
+    uint8_t reg_frf[3] = {msb, mid, lsb};
+    res = write_rfm_reg_burst(config, REG_FRF_MSB, reg_frf, 3);
     if (res < 0) {
         return res;
     }
@@ -563,6 +568,8 @@ int32_t edgy_fsk(const struct rfm9Xw_config *config, struct rfm9Xw_data *data, c
             }
             last_bit = bit;
         }
+        k_timer_status_sync(&edgy_fsk_timer);
+
         int64_t end = k_uptime_get();
         int64_t elapsed = end - start;
         double ms_per = (double) elapsed / (double) (len * 8);
@@ -586,56 +593,14 @@ int32_t rfm9x_dostuff(const struct device *dev) {
     LOG_INF("CarrierFreq: %d", data->carrier_freq);
     LOG_INF("FreqDeviation: %d", data->deviation_freq);
 
-    // const char msg[] = "hello you like like ants from up here.";
-    // int32_t res = edgy_fsk(config, data, msg, sizeof(msg), 10, 100000);
-    // if (res < 0) {
-    //     LOG_ERR("Error transmitting");
-    // }
-    return 0;
-}
+    // rfm9x_print_reg_info(config);
+    startup_config(data, config);
 
-int32_t switch_freqs(const struct rfm9Xw_config *config) {
-    uint8_t freq1_msb = 0;
-    uint8_t freq1_mid = 0;
-    uint8_t freq1_lsb = 0;
-    frf_reg_from_frequency(config->model_num, 434100000, &freq1_msb, &freq1_mid, &freq1_lsb);
-
-    int32_t got1 = RFM_FSTEP_HZ * ((freq1_msb << 16) | (freq1_mid << 8) | freq1_lsb);
-
-    uint8_t freq2_msb = 0;
-    uint8_t freq2_mid = 0;
-    uint8_t freq2_lsb = 0;
-    frf_reg_from_frequency(config->model_num, 433900000, &freq2_msb, &freq2_mid, &freq2_lsb);
-    int32_t got2 = RFM_FSTEP_HZ * ((freq2_msb << 16) | (freq2_mid << 8) | freq2_lsb);
-
-    LOG_INF("Actually using %d and %d", got1, got2);
-
-    struct k_timer edgy_fsk_timer;
-    k_timer_init(&edgy_fsk_timer, NULL, NULL);
-    k_timer_start(&edgy_fsk_timer, K_MSEC(10), K_MSEC(10));
-
-    int res = 0;
-    int64_t start = k_uptime_get();
-    int iterations = 400;
-    for (int i = 0; i < iterations; i++) {
-        k_timer_status_sync(&edgy_fsk_timer);
-        res = set_frequency(config, freq1_msb, freq1_mid, freq1_lsb);
-        if (res < 0) {
-            LOG_ERR("Error switching to freq 1");
-        }
-
-        k_timer_status_sync(&edgy_fsk_timer);
-        res = set_frequency(config, freq2_msb, freq2_mid, freq2_lsb);
-        if (res < 0) {
-            LOG_ERR("Error switching to freq 2");
-        }
+    const char msg[] = "hello you like like ants from up here.";
+    int32_t res = edgy_fsk(config, data, msg, sizeof(msg), 10, 100000);
+    if (res < 0) {
+        LOG_ERR("Error transmitting");
     }
-    int64_t end = k_uptime_get();
-    int64_t elapsed = end - start;
-    double ms_per = (double) elapsed / (double) (2 * iterations);
-    LOG_INF("Switched frequency %d times over %lldms. switch time: %.2f", (int) (2 * iterations), elapsed, ms_per);
-    k_timer_stop(&edgy_fsk_timer);
-    // LOG_INF("All done");
     return 0;
 }
 
@@ -675,15 +640,55 @@ int32_t startup_config(const struct rfm9Xw_data *data, const struct rfm9Xw_confi
     uint8_t regopmode_val = make_regopmode_fsk(data->long_range_mode, RfmModulationType_FSK, data->low_frequency_mode,
                                                RfmTransceiverMode_Transmitter);
 
-    res = write_rfm_reg(config, REG_OP_MODE, regopmode_val);
+    res = write_rfm_reg_burst(config, REG_OP_MODE, &regopmode_val, 1);
     if (res < 0) {
         LOG_ERR("Error writing reg");
     } else {
         LOG_INF("Wrote Reg");
     }
 
-    rfm9x_print_reg_info(config);
-    read_registers(config);
+    // rfm9x_print_reg_info(config);
+    // read_registers(config);
+    return 0;
+}
+
+/**
+ * Perform a 'Manual Reset' of the module 
+ * (Datasheet pg.111 section 7.2.2)
+ * @param config the module config 
+ * @return any errors from configuring GPIO
+ */
+int32_t rfm9xw_software_reset(const struct rfm9Xw_config *config) {
+    LOG_DBG("Software resetting radio with %s pin %d", config->reset_gpios.port->name, (int) config->reset_gpios.pin);
+
+    if (gpio_pin_configure_dt(&config->reset_gpios, GPIO_OUTPUT | GPIO_PULL_DOWN) < 0) {
+        LOG_ERR("Failed to set pin to 0 to reset chip");
+    }
+
+    k_usleep(150); // >100us
+
+    if (gpio_pin_configure_dt(&config->reset_gpios, GPIO_DISCONNECTED) < 0) {
+        LOG_ERR("Failed to set pin to 0 to reset chip");
+    }
+    k_msleep(5);
+
+    return 0;
+}
+
+int init_gpios(const struct rfm9Xw_config *config, struct rfm9Xw_data *data) {
+    if (config->reset_gpios.port != NULL) {
+        // Setup GPIO
+        if (!gpio_is_ready_dt(&config->reset_gpios)) {
+            printf("Reset GPIO is not ready\n");
+            return -ENODEV;
+        }
+        if (gpio_pin_configure_dt(&config->reset_gpios, GPIO_DISCONNECTED) < 0) {
+            LOG_ERR("Failed to set pin to High-Z to allow chip to wake");
+            return -ENODEV;
+        }
+    } else {
+        LOG_WRN("No reset GPIO supplied for RFM9XW. Strange results may happen");
+    }
     return 0;
 }
 
@@ -695,6 +700,12 @@ static int rfm9xw_init(const struct device *dev) {
         LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
         return -ENODEV;
     }
+    int res = init_gpios(config, data);
+    if (res < 0) {
+        LOG_ERR("Error setting up GPIOs: %d", res);
+        return res;
+    }
+    rfm9xw_software_reset(config);
 
     if (data->modulation_type == RfmModulationType_FSK) {
         // Checks for FSK
@@ -709,13 +720,12 @@ static int rfm9xw_init(const struct device *dev) {
             return -ERANGE;
         }
         if (data->deviation_freq + data->bitrate / 2 > 250000) {
-            // Datasheet: pg 14: FDA condition
+            // Datasheet: pg. 14: FDA condition
             LOG_ERR("Invalid Frequency deviation or bitrate: frequency_deviation + bitrate/2 =< 250 kHz");
+            return -ERANGE;
         }
     }
 
-    // rfm9x_print_reg_info(config);
-    startup_config(data, config);
     return 0;
 }
 
@@ -735,7 +745,13 @@ static int rfm9xw_init(const struct device *dev) {
     static const struct rfm9Xw_config rfm9Xw_config_##n = {                                                            \
         .bus = SPI_DT_SPEC_INST_GET(n, SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0),                    \
         .model_num = RfmModelNumber_98W,                                                                               \
-        .dio0_pin = GPIO_DT_SPEC_INST_GET_OR(n, dio0_pin, {0}),                                                        \
+        .reset_gpios = GPIO_DT_SPEC_INST_GET_OR(n, reset_gpios, {0}),                                                  \
+        .dio0_gpios = GPIO_DT_SPEC_INST_GET_OR(n, dio0_gpios, {0}),                                                    \
+        .dio1_gpios = GPIO_DT_SPEC_INST_GET_OR(n, dio1_gpios, {0}),                                                    \
+        .dio2_gpios = GPIO_DT_SPEC_INST_GET_OR(n, dio2_gpios, {0}),                                                    \
+        .dio3_gpios = GPIO_DT_SPEC_INST_GET_OR(n, dio3_gpios, {0}),                                                    \
+        .dio4_gpios = GPIO_DT_SPEC_INST_GET_OR(n, dio4_gpios, {0}),                                                    \
+        .dio5_gpios = GPIO_DT_SPEC_INST_GET_OR(n, dio5_gpios, {0}),                                                    \
     };                                                                                                                 \
                                                                                                                        \
     DEVICE_DT_INST_DEFINE(n, rfm9xw_init, NULL, &rfm9Xw_data_##n, &rfm9Xw_config_##n, POST_KERNEL, 90, NULL);

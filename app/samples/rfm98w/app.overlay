@@ -1,20 +1,12 @@
 / {
 	chosen {
-		zephyr,console = &usart2;
+        zephyr,console = &usart2;
+        zephyr,shell-uart = &usart2;
 	};
 	aliases {
 		led = &shield_led; 
 	};
 	
-	leds: leds {
-        compatible = "gpio-leds";
-		status="disabled";
-        reset_line: reset_line2{
-			status="okay";
-            gpios = <&arduino_header 11 GPIO_ACTIVE_LOW>;
-            label = "RST";
-        };
-	};
 };
 
 &mikrobus_spi {
@@ -29,7 +21,11 @@
 		deviation-frequency = <DT_FREQ_K(100)>;
 		bitrate = <2000>;
 
+		reset-gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
 
-		dio0-mapping = "RfmDio0Mapping";
+		dio0-gpios = <&arduino_header 4 0>;
+		dio0-mapping = "RfmDio0Mapping_Packet_PayloadReadyPacketSent";
+
+		dio1-gpios = <&arduino_header 5 0>;
 	};
 };
