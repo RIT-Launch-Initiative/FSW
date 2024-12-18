@@ -1,10 +1,7 @@
 import argparse
 import os
+import sys
 import subprocess
-from csv import excel
-from sys import excepthook
-import signal
-
 from threading import Thread, Barrier
 
 
@@ -39,7 +36,12 @@ def get_binaries(args) -> list:
     """Get the list of binaries to run"""
     if args.executable:
         return [args.executable]
-    return [f"{args.build_folder}/{file}" for file in os.listdir(args.build_folder)]
+
+    # Warning
+    # TODO: Can't do multiple executables yet, until multiple network interfaces is set up
+    sys.stderr.write("UNSUPPORTED: READ TODO IN CODE\n")
+    return []
+    # return [f"{args.build_folder}/{file}" for file in os.listdir(args.build_folder)]
 
 
 def setup_sim(args):
