@@ -8,18 +8,20 @@ from threading import Thread, Barrier
 def validate_arguments(args):
     if not args.executable and not args.build_folder:
         print("No executable or build folder provided")
-        return
+        return False
 
     if args.executable and not os.path.exists(args.executable):
         print("Executable does not exist")
-        return
+        return False
 
     if args.build_folder and not os.path.exists(args.build_folder):
         print("Build folder does not exist")
-        return
+        return False
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)
+
+    return True
 
 def get_binaries(args):
     if args.executable:
@@ -52,7 +54,8 @@ def main():
 
     args = parser.parse_args()
     if not validate_arguments(args):
-        return
+        return False
+    
 
     binaries = get_binaries(args)
     print(f"Binaries to run: {binaries}")
