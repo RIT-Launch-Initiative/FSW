@@ -1,9 +1,3 @@
-ifeq ($(FSW_DISABLE_MULTIPLE_BUILDS),true)
-MULTIBUILD_ARGS :=
-else
-MULTIBUILD_ARGS := --build-dir builds
-endif
-
 SIM_BOARD := native_sim
 F446_BOARD := nucleo_f446re
 OVERLAY_CONFIG := -DOVERLAY_CONFIG=debug.conf

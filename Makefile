@@ -1,5 +1,11 @@
 # Top-Level Makefile
 
+ifeq ($(FSW_DISABLE_MULTIPLE_BUILDS),true)
+MULTIBUILD_ARGS :=
+else
+MULTIBUILD_ARGS := --build-dir builds
+endif
+
 all:
 	west build
 
