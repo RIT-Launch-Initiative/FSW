@@ -1,18 +1,57 @@
 import argparse
+import os
+import subprocess
 
-def compile_binaries():
-    pass
+from threading import Thread, Barrier
 
-def run_simulation():
-    pass
 
-def execute():
-    pass
+def run_simulation(start_barrier, stop_barrier, binary, binary_args, output_folder):
+    """Run the simulation for the given binary"""
+    # Create the output folder if it doesn't exist
+    # Wait for all threads to be ready
+    start_barrier.wait()
+    print(f"Running simulation for {binary}")
+    stop_barrier.wait()
 
 def main():
     """Parse CLI args and run appropriate functions for simulation"""
     parser = argparse.ArgumentParser(description="RIT Launch Initiative's SIL tool for FSW")
-    pass
+
+    # Either executable or build folder must be provided
+    parser.add_argument("-e", "--executable", help="Executable to run in the simulation")
+    parser.add_argument("-b", "--build_folder", help="Folder of executables to execute in the simulation")
+    parser.add_argument("-rt", "--real-time", help="Run the simulation in real-time", action="store_true", default=False)
+    parser.add_argument("-o", "--output", help="Outputs folder", default="tf_out")
+
+    args = parser.parse_args()
+
+    # TODO: Handle compiling (and dealing with sanitizers)
+    if not args.executable and not args.build_folder:
+        print("No executable or build folder provided")
+        return
+
+    if args.executable and not os.path.exists(args.executable):
+        print("Executable does not exist")
+        return
+
+    if args.build_folder and not os.path.exists(args.build_folder):
+        print("Build folder does not exist")
+        return
+
+    if not os.path.exists(args.output):
+        os.mkdir(args.output)
+
+    binaries = os.listdir(args.build_folder)
+
+    start_barrier = Barrier(len(binaries) + 1)
+    stop_barrier = Barrier(len(binaries) + 1)
+    for binary in binaries:
+        Thread(target=run_simulation, args=(start_barrier, stop_barrier, binary, [], args.output)).start()
+
+    start_barrier.wait()
+    print("Simulation started")
+    stop_barrier.wait()
+    print("Simulation complete")
 
 if __name__ == "__main__":
     main()
