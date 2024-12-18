@@ -75,19 +75,14 @@ def run_simulation(start_barrier, stop_barrier, binary_path, args, output_folder
     start_barrier.wait()
 
     with open(f"{output_folder}/{binary}.out", "w") as log_file:
-        process = subprocess.Popen([binary_path] + flags, stdout=log_file, stderr=log_file)
+        process = subprocess.Popen([binary_path] + flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        while True:
-            line = process.stdout.readline()
-            print(line.decode("utf-8").strip())
-            if not line:
+        for line in process.stdout:
+            print(line.strip())
+            log_file.write(line)
+            if "RTOS Stopped!" in line:
                 break
-            print(line.decode("utf-8").strip())
-            if "RTOS Stopped!" in line.decode("utf-8"):
-                print("RTOS Stopped!")
-                break
-
-        # Copy the flash mount to the top level
+                
         subprocess.run(["cp", "-r", f"{output_folder}/flash_mount", output_folder])
 
         process.kill()
