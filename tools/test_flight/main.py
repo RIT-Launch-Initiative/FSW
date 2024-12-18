@@ -6,6 +6,11 @@ from sys import excepthook
 
 from threading import Thread, Barrier
 
+def delete_temp_file_mount(args):
+    """Delete the temporary file mount"""
+    if os.path.exists(f"{args.output}/flash_mount"):
+        subprocess.run(["fusermount", "-u", f"{args.output}/flash_mount"])
+        os.rmdir(f"{args.output}/flash_mount")
 
 def validate_arguments(args) -> bool:
     """Validate the arguments passed in"""
@@ -23,9 +28,6 @@ def validate_arguments(args) -> bool:
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)
-
-    if not os.path.exists(f"{args.output}/flash_mount"):
-        os.mkdir(f"{args.output}/flash_mount")
 
     return True
 
@@ -56,25 +58,28 @@ def run_simulation(start_barrier, stop_barrier, binary_path, args, output_folder
     flags = generate_binary_flags(binary_path, args)
     start_barrier.wait()
 
-    try:
-        with open(f"{output_folder}/{binary}.out", "w") as log_file:
-            process = subprocess.Popen([binary_path] + flags, stdout=log_file, stderr=log_file)
-            while True:
-                line = process.stdout.readline()
-                print(line.decode("utf-8").strip())
-                if not line:
-                    break
-                print(line.decode("utf-8").strip())
-                if "RTOS Stopped!" in line.decode("utf-8"):
-                    print("RTOS Stopped!")
-                    break
+    # try:
+    with open(f"{output_folder}/{binary}.out", "w") as log_file:
+        process = subprocess.Popen([binary_path] + flags, stdout=log_file, stderr=log_file)
+        while True:
+            line = process.stdout.readline()
+            print(line.decode("utf-8").strip())
+            if not line:
+                break
+            print(line.decode("utf-8").strip())
+            if "RTOS Stopped!" in line.decode("utf-8"):
+                print("RTOS Stopped!")
+                break
 
-            # Copy the flash mount to the top level
-            subprocess.run(["cp", "-r", f"{output_folder}/flash_mount", output_folder])
+        # Copy the flash mount to the top level
+        subprocess.run(["cp", "-r", f"{output_folder}/flash_mount", output_folder])
 
-            process.kill()
-    finally:
-        stop_barrier.wait()
+        process.kill()
+    stop_barrier.wait()
+
+def cleanup(args):
+    """Cleanup the simulation"""
+    delete_temp_file_mount(args)
 
 def main():
     """Parse CLI args and run appropriate functions for simulation"""
@@ -94,6 +99,8 @@ def main():
     if not validate_arguments(args):
         return False
 
+    delete_temp_file_mount(args)
+
     binaries = get_binaries(args)
     print(f"Binaries to run: {binaries}")
     start_barrier = Barrier(len(binaries) + 1)
@@ -106,6 +113,7 @@ def main():
     print("Simulation started")
     stop_barrier.wait()
     print("Simulation complete")
+    cleanup(args)
 
 
 if __name__ == "__main__":
