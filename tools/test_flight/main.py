@@ -21,6 +21,11 @@ def validate_arguments(args):
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
+def get_binaries(args):
+    if args.executable:
+        return [args.executable]
+    return os.listdir(args.build_folder)
+
 
 def run_simulation(start_barrier, stop_barrier, binary, binary_args, output_folder):
     """Run the simulation for the given binary"""
@@ -43,17 +48,17 @@ def main():
     # Extra Configuration Fun
     parser.add_argument("-rt", "--real-time", help="Run the simulation in real-time", action="store_true",
                         default=False)
+    # TODO: Handle compiling (and dealing with sanitizers)
 
     args = parser.parse_args()
-
-    # TODO: Handle compiling (and dealing with sanitizers)
     if not validate_arguments(args):
         return
 
-    binaries = os.listdir(args.build_folder)
-
+    binaries = get_binaries(args)
+    print(f"Binaries to run: {binaries}")
     start_barrier = Barrier(len(binaries) + 1)
     stop_barrier = Barrier(len(binaries) + 1)
+
     for binary in binaries:
         Thread(target=run_simulation, args=(start_barrier, stop_barrier, binary, [], args.output)).start()
 
