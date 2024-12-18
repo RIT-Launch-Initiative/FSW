@@ -3,14 +3,17 @@ import os
 import subprocess
 from csv import excel
 from sys import excepthook
+import signal
 
 from threading import Thread, Barrier
+
 
 def delete_temp_file_mount(args):
     """Delete the temporary file mount"""
     if os.path.exists(f"{args.output}/flash_mount"):
         subprocess.run(["fusermount", "-u", f"{args.output}/flash_mount"])
         os.rmdir(f"{args.output}/flash_mount")
+
 
 def validate_arguments(args) -> bool:
     """Validate the arguments passed in"""
@@ -31,11 +34,23 @@ def validate_arguments(args) -> bool:
 
     return True
 
+
 def get_binaries(args) -> list:
     """Get the list of binaries to run"""
     if args.executable:
         return [args.executable]
     return [f"{args.build_folder}/{file}" for file in os.listdir(args.build_folder)]
+
+
+def setup_sim(args):
+    """Set up the simulation"""
+    if not validate_arguments(args):
+        return None
+
+    delete_temp_file_mount(args)
+
+
+    return get_binaries(args)
 
 def generate_binary_flags(binary, args) -> list:
     """Generate the flags to run the binary"""
@@ -52,15 +67,16 @@ def generate_binary_flags(binary, args) -> list:
 
     return flags_list
 
+
 def run_simulation(start_barrier, stop_barrier, binary_path, args, output_folder):
     """Run the simulation for the given binary"""
     binary = binary_path.split("/")[-1]
     flags = generate_binary_flags(binary_path, args)
     start_barrier.wait()
 
-    # try:
     with open(f"{output_folder}/{binary}.out", "w") as log_file:
         process = subprocess.Popen([binary_path] + flags, stdout=log_file, stderr=log_file)
+
         while True:
             line = process.stdout.readline()
             print(line.decode("utf-8").strip())
@@ -77,9 +93,11 @@ def run_simulation(start_barrier, stop_barrier, binary_path, args, output_folder
         process.kill()
     stop_barrier.wait()
 
+
 def cleanup(args):
     """Cleanup the simulation"""
     delete_temp_file_mount(args)
+
 
 def main():
     """Parse CLI args and run appropriate functions for simulation"""
@@ -96,12 +114,11 @@ def main():
     # TODO: Handle compiling (and dealing with sanitizers)
 
     args = parser.parse_args()
-    if not validate_arguments(args):
-        return False
 
-    delete_temp_file_mount(args)
+    binaries = setup_sim(args)
+    if not binaries:
+        return
 
-    binaries = get_binaries(args)
     print(f"Binaries to run: {binaries}")
     start_barrier = Barrier(len(binaries) + 1)
     stop_barrier = Barrier(len(binaries) + 1)
@@ -111,9 +128,9 @@ def main():
 
     start_barrier.wait()
     print("Simulation started")
+
     stop_barrier.wait()
     print("Simulation complete")
-    cleanup(args)
 
 
 if __name__ == "__main__":
