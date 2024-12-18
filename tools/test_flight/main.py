@@ -5,7 +5,8 @@ import subprocess
 from threading import Thread, Barrier
 
 
-def validate_arguments(args):
+def validate_arguments(args) -> bool:
+    """Validate the arguments passed in"""
     if not args.executable and not args.build_folder:
         print("No executable or build folder provided")
         return False
@@ -21,20 +22,42 @@ def validate_arguments(args):
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
+    if not os.path.exists(f"{args.output}/flash_mount"):
+        os.mkdir(f"{args.output}/flash_mount")
+
     return True
 
-def get_binaries(args):
+def get_binaries(args) -> list:
+    """Get the list of binaries to run"""
     if args.executable:
         return [args.executable]
     return os.listdir(args.build_folder)
 
+def generate_binary_flags(binary, args) -> str:
+    """Generate the flags to run the binary"""
+    flags_list = []
 
-def run_simulation(start_barrier, stop_barrier, binary, binary_args, output_folder):
+    if args.real_time:
+        flags_list.append("-rt")
+    else:
+        flags_list.append("-no-rt")
+
+    # Place in temporary storage. Outputs get copied into top level before killing the binary
+    flags_list.append(f"-flash-mount={args.output}/flash_mount")
+    flags_list.append(f"-flash-bin={binary}.bin")
+
+    return " ".join(flags_list)
+
+def run_simulation(start_barrier, stop_barrier, binary, args, output_folder):
     """Run the simulation for the given binary"""
-    # Create the output folder if it doesn't exist
-    # Wait for all threads to be ready
+    flags = generate_binary_flags(binary, args)
     start_barrier.wait()
+
+
     print(f"Running simulation for {binary}")
+
+    # Stop once "RTOS Stopped!" is printed. Note that there is stuff before this too
+
     stop_barrier.wait()
 
 
@@ -55,7 +78,6 @@ def main():
     args = parser.parse_args()
     if not validate_arguments(args):
         return False
-    
 
     binaries = get_binaries(args)
     print(f"Binaries to run: {binaries}")
@@ -63,7 +85,7 @@ def main():
     stop_barrier = Barrier(len(binaries) + 1)
 
     for binary in binaries:
-        Thread(target=run_simulation, args=(start_barrier, stop_barrier, binary, [], args.output)).start()
+        Thread(target=run_simulation, args=(start_barrier, stop_barrier, binary, args, args.output)).start()
 
     start_barrier.wait()
     print("Simulation started")
