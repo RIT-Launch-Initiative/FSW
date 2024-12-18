@@ -1,6 +1,8 @@
 import argparse
 import os
 import subprocess
+from csv import excel
+from sys import excepthook
 
 from threading import Thread, Barrier
 
@@ -31,9 +33,9 @@ def get_binaries(args) -> list:
     """Get the list of binaries to run"""
     if args.executable:
         return [args.executable]
-    return os.listdir(args.build_folder)
+    return [f"{args.build_folder}/{file}" for file in os.listdir(args.build_folder)]
 
-def generate_binary_flags(binary, args) -> str:
+def generate_binary_flags(binary, args) -> list:
     """Generate the flags to run the binary"""
     flags_list = []
 
@@ -44,22 +46,35 @@ def generate_binary_flags(binary, args) -> str:
 
     # Place in temporary storage. Outputs get copied into top level before killing the binary
     flags_list.append(f"-flash-mount={args.output}/flash_mount")
-    flags_list.append(f"-flash-bin={binary}.bin")
+    flags_list.append(f"-flash={binary}.bin")
 
-    return " ".join(flags_list)
+    return flags_list
 
-def run_simulation(start_barrier, stop_barrier, binary, args, output_folder):
+def run_simulation(start_barrier, stop_barrier, binary_path, args, output_folder):
     """Run the simulation for the given binary"""
-    flags = generate_binary_flags(binary, args)
+    binary = binary_path.split("/")[-1]
+    flags = generate_binary_flags(binary_path, args)
     start_barrier.wait()
 
+    try:
+        with open(f"{output_folder}/{binary}.out", "w") as log_file:
+            process = subprocess.Popen([binary_path] + flags, stdout=log_file, stderr=log_file)
+            while True:
+                line = process.stdout.readline()
+                print(line.decode("utf-8").strip())
+                if not line:
+                    break
+                print(line.decode("utf-8").strip())
+                if "RTOS Stopped!" in line.decode("utf-8"):
+                    print("RTOS Stopped!")
+                    break
 
-    print(f"Running simulation for {binary}")
+            # Copy the flash mount to the top level
+            subprocess.run(["cp", "-r", f"{output_folder}/flash_mount", output_folder])
 
-    # Stop once "RTOS Stopped!" is printed. Note that there is stuff before this too
-
-    stop_barrier.wait()
-
+            process.kill()
+    finally:
+        stop_barrier.wait()
 
 def main():
     """Parse CLI args and run appropriate functions for simulation"""
