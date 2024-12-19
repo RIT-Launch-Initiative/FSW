@@ -34,9 +34,6 @@ int main() {
 #ifdef CONFIG_ARCH_POSIX
     k_sleep(K_SECONDS(300));
     NRtos::StopRtos();
-    while (true) {
-        k_cpu_idle();
-    }
 #endif
 
     return 0;
