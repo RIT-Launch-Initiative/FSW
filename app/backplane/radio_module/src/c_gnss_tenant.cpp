@@ -7,12 +7,17 @@
 
 LOG_MODULE_REGISTER(CGnssTenant);
 
-static NGnssUtils::GnssCoordinates coordinates;
+static NTypes::GnssLoggingData gnssLogData{0};
+static NGnssUtils::GnssCoordinates coordinates{0};
 static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
-    PopulateGnssNavigationData(&data->nav_data, &coordinates);
+    gnssLogData.systemTime = k_uptime_get();
+    PopulateGnssStruct(data, &gnssLogData.gnssData);
+
     gnssUpdated = 1;
+    memcpy(&coordinates, &gnssLogData.gnssData.coordinates, sizeof(NGnssUtils::GnssCoordinates));
+
     LOG_INF("Latitude: %f, Longitude: %f, Altitude: %f",
         static_cast<double>(coordinates.latitude),
         static_cast<double>(coordinates.longitude),
@@ -30,16 +35,21 @@ void CGnssTenant::PostStartup() {
 }
 
 void CGnssTenant::Run() {
-    NTypes::GnssBroadcastData gnssData{0};
     NTypes::RadioBroadcastData broadcastData{0};
-    if (transmitTimer.IsExpired()) {
-        memcpy(&gnssData.coordinates, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
-        gnssData.updated = gnssUpdated;
-        gnssUpdated = 0;
 
-        broadcastData.port = 12000;
-        broadcastData.size = sizeof(NTypes::GnssBroadcastData);
-        memcpy(broadcastData.data, &gnssData, sizeof(NTypes::GnssBroadcastData));
-        loraTransmitPort.Send(broadcastData);
+    if (gnssUpdated) {
+        dataLoggingPort.Send(gnssLogData);
+
+        if (transmitTimer.IsExpired()) {
+            broadcastData.port = 12000;
+            broadcastData.size = sizeof(NTypes::GnssBroadcastData);
+            memcpy(broadcastData.data, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
+            reinterpret_cast<NTypes::GnssBroadcastData*>(broadcastData.data)->updated = 1;
+            loraTransmitPort.Send(broadcastData);
+        }
+
+        gnssUpdated = 0;
     }
+
+
 }

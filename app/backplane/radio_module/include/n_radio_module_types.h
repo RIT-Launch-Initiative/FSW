@@ -14,9 +14,7 @@ struct RadioBroadcastData {
 
 struct __attribute__((packed)) GnssLoggingData {
     uint32_t systemTime;
-    NGnssUtils::GnssCoordinates coordinates;
-    NGnssUtils::GnssTime time;
-    NGnssUtils::GnssInfo info;
+    NGnssUtils::GnssData gnssData;
 };
 
 struct __attribute__((packed)) GnssBroadcastData {

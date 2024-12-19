@@ -9,8 +9,8 @@
 
 class CGnssTenant : public CTenant {
 public:
-    explicit CGnssTenant(const char* name, CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
-        : CTenant(name), loraTransmitPort(*loraTransmitPort)
+    explicit CGnssTenant(const char* name, CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort, CMessagePort<NTypes::GnssLoggingData>* dataLoggingPort)
+        : CTenant(name), loraTransmitPort(*loraTransmitPort), dataLoggingPort(*dataLoggingPort)
     {
     }
 
@@ -25,6 +25,7 @@ public:
 private:
     CSoftTimer transmitTimer{};
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
+    CMessagePort<NTypes::GnssLoggingData>& dataLoggingPort;
 };
 
 #endif //C_SENSING_TENANT_H

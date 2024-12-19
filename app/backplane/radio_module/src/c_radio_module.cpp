@@ -12,10 +12,10 @@ K_MSGQ_DEFINE(udpBroadcastQueue, 256, 10, 4);
 K_MSGQ_DEFINE(gnssDataLogQueue, 256, 10, 4);
 static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(loraBroadcastQueue);
 static auto udpBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(udpBroadcastQueue);
-static auto gnssBroadcastMsgQueue = CMsgqMessagePort<NTypes::GnssBroadcastData>(gnssDataLogQueue);
+static auto gnssLogMsgQueue = CMsgqMessagePort<NTypes::GnssLoggingData>(gnssDataLogQueue);
 
 CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
-                               loraBroadcastMessagePort(loraBroadcastMsgQueue), udpBroadcastMessagePort(udpBroadcastMsgQueue), gnssDataLogMessagePort(gnssBroadcastMsgQueue) {
+                               loraBroadcastMessagePort(loraBroadcastMsgQueue), udpBroadcastMessagePort(udpBroadcastMsgQueue), gnssDataLogMessagePort(gnssLogMsgQueue) {
 }
 
 void CRadioModule::AddTenantsToTasks() {
@@ -25,12 +25,18 @@ void CRadioModule::AddTenantsToTasks() {
 
     // LoRa
     loraTask.AddTenant(loraTransmitTenant);
+
+    // Data Logging
+    dataLoggingTask.AddTenant(dataLoggerTenant);
 }
 
 void CRadioModule::AddTasksToRtos() {
     // Networking
     NRtos::AddTask(networkingTask);
     NRtos::AddTask(loraTask);
+
+    // Data Logging
+    NRtos::AddTask(dataLoggingTask);
 }
 
 void CRadioModule::SetupCallbacks() {
