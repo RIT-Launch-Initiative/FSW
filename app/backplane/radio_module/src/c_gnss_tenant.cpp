@@ -12,6 +12,7 @@ static NGnssUtils::GnssCoordinates coordinates{0};
 static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
+    LOG_INF("Triggered");
     gnssLogData.systemTime = k_uptime_get();
     PopulateGnssStruct(data, &gnssLogData.gnssData);
 
@@ -38,6 +39,7 @@ void CGnssTenant::Run() {
     NTypes::RadioBroadcastData broadcastData{0};
 
     if (gnssUpdated) {
+        LOG_INF("GNSS Updated");
         dataLoggingPort.Send(gnssLogData);
 
         if (transmitTimer.IsExpired()) {
