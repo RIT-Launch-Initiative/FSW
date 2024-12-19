@@ -12,14 +12,13 @@ static NGnssUtils::GnssCoordinates coordinates{0};
 static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
-    LOG_INF("Triggered");
     gnssLogData.systemTime = k_uptime_get();
     PopulateGnssStruct(data, &gnssLogData.gnssData);
 
     gnssUpdated = 1;
     memcpy(&coordinates, &gnssLogData.gnssData.coordinates, sizeof(NGnssUtils::GnssCoordinates));
 
-    LOG_INF("Latitude: %f, Longitude: %f, Altitude: %f",
+    LOG_DBG("Latitude: %f, Longitude: %f, Altitude: %f",
         static_cast<double>(coordinates.latitude),
         static_cast<double>(coordinates.longitude),
         static_cast<double>(coordinates.altitude));

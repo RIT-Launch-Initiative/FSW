@@ -34,6 +34,10 @@ CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : n
 }
 
 CTask::~CTask() {
+    for (CTenant* tenant : tenants) {
+        tenant->Cleanup();
+    }
+
     k_thread_abort(&thread);
     if (stack != nullptr) {
         k_thread_stack_free(stack);
