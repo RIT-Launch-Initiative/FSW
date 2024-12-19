@@ -37,9 +37,11 @@ void CGnssTenant::PostStartup() {
 
 void CGnssTenant::Run() {
     NTypes::RadioBroadcastData broadcastData{0};
+    NTypes::GnssLoggingData logData{0};
 
     if (gnssUpdated) {
-        dataLoggingPort.Send(gnssLogData);
+        memcpy(&logData, &gnssLogData, sizeof(NTypes::GnssLoggingData));
+        dataLoggingPort.Send(logData);
 
         if (transmitTimer.IsExpired()) {
             broadcastData.port = 12000;

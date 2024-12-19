@@ -7,9 +7,9 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 #include <zephyr/drivers/gnss.h>
 
-K_MSGQ_DEFINE(loraBroadcastQueue, 256, 10, 4);
-K_MSGQ_DEFINE(udpBroadcastQueue, 256, 10, 4);
-K_MSGQ_DEFINE(gnssDataLogQueue, 256, 10, 4);
+K_MSGQ_DEFINE(loraBroadcastQueue, sizeof(NTypes::RadioBroadcastData), 10, 4);
+K_MSGQ_DEFINE(udpBroadcastQueue, sizeof(NTypes::RadioBroadcastData), 10, 4);
+K_MSGQ_DEFINE(gnssDataLogQueue, sizeof(NTypes::GnssLoggingData), 10, 4);
 static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(loraBroadcastQueue);
 static auto udpBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(udpBroadcastQueue);
 static auto gnssLogMsgQueue = CMsgqMessagePort<NTypes::GnssLoggingData>(gnssDataLogQueue);
