@@ -14,9 +14,12 @@ static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>
 static auto udpBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(udpBroadcastQueue);
 static auto gnssLogMsgQueue = CMsgqMessagePort<NTypes::GnssLoggingData>(gnssDataLogQueue);
 
-CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
-                               loraBroadcastMessagePort(loraBroadcastMsgQueue), udpBroadcastMessagePort(udpBroadcastMsgQueue), gnssDataLogMessagePort(gnssLogMsgQueue) {
-}
+CRadioModule::CRadioModule() : CProjectConfiguration(),
+#ifndef CONFIG_ARCH_POSIX
+                               lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
+#endif
+                               loraBroadcastMessagePort(loraBroadcastMsgQueue),
+                               udpBroadcastMessagePort(udpBroadcastMsgQueue), gnssDataLogMessagePort(gnssLogMsgQueue) {}
 
 void CRadioModule::AddTenantsToTasks() {
     // Networking
@@ -40,7 +43,6 @@ void CRadioModule::AddTasksToRtos() {
     NRtos::AddTask(dataLoggingTask);
 }
 
-void CRadioModule::SetupCallbacks() {
-}
+void CRadioModule::SetupCallbacks() {}
 
 #endif //CONFIG_RADIO_MODULE_RECEIVER
