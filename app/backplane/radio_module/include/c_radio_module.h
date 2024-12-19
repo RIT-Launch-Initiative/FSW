@@ -51,7 +51,7 @@ private:
     // Message Ports
     CMessagePort<NTypes::RadioBroadcastData>& loraBroadcastMessagePort;
     CMessagePort<NTypes::RadioBroadcastData>& udpBroadcastMessagePort;
-    CMessagePort<NTypes::GnssBroadcastData>& gpsDataLogMessagePort;
+    CMessagePort<NTypes::GnssBroadcastData>& gnssDataLogMessagePort;
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort};
@@ -61,7 +61,7 @@ private:
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
-    CDataLoggerTenant<NTypes::GnssBroadcastData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gpsDataLogMessagePort};
+    CDataLoggerTenant<NTypes::GnssBroadcastData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
