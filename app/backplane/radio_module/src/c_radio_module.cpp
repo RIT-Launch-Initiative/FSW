@@ -8,8 +8,8 @@
 #include <zephyr/drivers/gnss.h>
 
 K_MSGQ_DEFINE(broadcastQueue, 256, 10, 4);
-static auto loraBroadcastMsgQueue = CMsgqMessagePort<NRadioModuleTypes::RadioBroadcastData>(broadcastQueue);
-static auto udpBroadcastMsgQueue = CMsgqMessagePort<NRadioModuleTypes::RadioBroadcastData>(broadcastQueue);
+static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(broadcastQueue);
+static auto udpBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(broadcastQueue);
 
 CRadioModule::CRadioModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
                                loraBroadcastMessagePort(loraBroadcastMsgQueue), udpBroadcastMessagePort(udpBroadcastMsgQueue) {

@@ -30,16 +30,16 @@ void CGnssTenant::PostStartup() {
 }
 
 void CGnssTenant::Run() {
-    NRadioModuleTypes::GnssBroadcastData gnssData{0};
-    NRadioModuleTypes::RadioBroadcastData broadcastData{0};
+    NTypes::GnssBroadcastData gnssData{0};
+    NTypes::RadioBroadcastData broadcastData{0};
     if (transmitTimer.IsExpired()) {
         memcpy(&gnssData.coordinates, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
         gnssData.updated = gnssUpdated;
         gnssUpdated = 0;
 
         broadcastData.port = 12000;
-        broadcastData.size = sizeof(NRadioModuleTypes::GnssBroadcastData);
-        memcpy(broadcastData.data, &gnssData, sizeof(NRadioModuleTypes::GnssBroadcastData));
+        broadcastData.size = sizeof(NTypes::GnssBroadcastData);
+        memcpy(broadcastData.data, &gnssData, sizeof(NTypes::GnssBroadcastData));
         loraTransmitPort.Send(broadcastData);
     }
 }

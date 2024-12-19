@@ -13,6 +13,7 @@
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
+#include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/net/device/c_lora.h>
 
 class CRadioModule : public CProjectConfiguration {
@@ -48,8 +49,9 @@ private:
     CLora lora;
 
     // Message Ports
-    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& loraBroadcastMessagePort;
-    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& udpBroadcastMessagePort;
+    CMessagePort<NTypes::RadioBroadcastData>& loraBroadcastMessagePort;
+    CMessagePort<NTypes::RadioBroadcastData>& udpBroadcastMessagePort;
+    CMessagePort<NTypes::GnssBroadcastData>& gpsDataLogMessagePort;
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort};
@@ -59,12 +61,15 @@ private:
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
+    CDataLoggerTenant<NTypes::GnssBroadcastData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gpsDataLogMessagePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
     CTask gnssTask{"GNSS Task", 15, 1024, 0};
     CTask loraTask{"LoRa Task", 15, 1024, 0};
+    CTask dataLoggingTask{"Data Logging Task", 15, 512, 0};
+
 };
 
 #endif //C_RADIO_MODULE_H
-#endif //RADIO_MODULE_RECEIVER
+#endif //C_RADIO_MODULE_H

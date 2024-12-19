@@ -4,12 +4,19 @@
 #include <stdint.h>
 #include <f_core/utils/n_gnss_utils.h>
 
-namespace NRadioModuleTypes {
+namespace NTypes {
 
 struct RadioBroadcastData {
     uint16_t port;
     uint8_t size;
     uint8_t data[256 - sizeof(uint16_t)];
+};
+
+struct __attribute__((packed)) GnssLoggingData {
+    uint32_t systemTime;
+    NGnssUtils::GnssCoordinates coordinates;
+    NGnssUtils::GnssTime time;
+    NGnssUtils::GnssInfo info;
 };
 
 struct __attribute__((packed)) GnssBroadcastData {
