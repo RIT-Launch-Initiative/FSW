@@ -22,7 +22,7 @@ public:
         }
     }
 
-    void Cleanup() {
+    void Cleanup() override {
         dataLogger.close();
     }
 

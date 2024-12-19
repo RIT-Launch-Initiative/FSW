@@ -45,8 +45,8 @@ private:
     CLora lora;
 
     // Message Ports
-    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& loraBroadcastMessagePort;
-    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& udpBroadcastMessagePort;
+    CMessagePort<NTypes::RadioBroadcastData>& loraBroadcastMessagePort;
+    CMessagePort<NTypes::RadioBroadcastData>& udpBroadcastMessagePort;
 
     // Tenants
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};

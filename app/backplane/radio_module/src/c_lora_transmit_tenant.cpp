@@ -12,7 +12,7 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-    NRadioModuleTypes::RadioBroadcastData data{};
+    NTypes::RadioBroadcastData data{};
     uint8_t txData[256]{};
     if (loraTransmitPort.Receive(data) != 0) {
         LOG_WRN("Failed to receive from message port");

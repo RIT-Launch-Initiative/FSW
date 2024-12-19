@@ -9,7 +9,7 @@
 
 class CLoraTransmitTenant : public CTenant {
 public:
-    explicit CLoraTransmitTenant(const char* name, CLora& lora, CMessagePort<NRadioModuleTypes::RadioBroadcastData>* loraTransmitPort)
+    explicit CLoraTransmitTenant(const char* name, CLora& lora, CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
         : CTenant(name), lora(lora), loraTransmitPort(*loraTransmitPort)
     {
     }
@@ -24,7 +24,7 @@ public:
 
 private:
     CLora& lora;
-    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& loraTransmitPort;
+    CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
 };
 
 #endif //C_LORA_TRANSMIT_TENANT_H

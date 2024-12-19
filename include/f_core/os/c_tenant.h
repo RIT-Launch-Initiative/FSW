@@ -33,6 +33,11 @@ public:
      * Run the tenant
      */
     virtual void Run() = 0;
+
+    /**
+     * Cleanup the tenant
+     */
+    virtual void Cleanup() {};
 protected:
     const char *name;
 };

@@ -16,8 +16,14 @@ datalogger::datalogger(const char *filename, LogMode mode, std::size_t num_packe
 }
 int datalogger::write(const void *data, std::size_t size) {
     if (mode == LogMode::Growing) {
-        return fs_write(&file, data, size);
+        int err = fs_write(&file, data, size);
+        if (err < 0) {
+            LOG_ERR("Error writing to file: %d", err);
+        }
+
+        return err;
     }
+
     off_t offset = fs_tell(&file);
     if (offset < 0) {
         LOG_ERR("Error Seeking file: %ld", offset);
