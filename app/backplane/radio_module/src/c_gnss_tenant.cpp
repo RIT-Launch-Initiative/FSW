@@ -39,7 +39,6 @@ void CGnssTenant::Run() {
     NTypes::RadioBroadcastData broadcastData{0};
 
     if (gnssUpdated) {
-        LOG_INF("GNSS Updated");
         dataLoggingPort.Send(gnssLogData);
 
         if (transmitTimer.IsExpired()) {

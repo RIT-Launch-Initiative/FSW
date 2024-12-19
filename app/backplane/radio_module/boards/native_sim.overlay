@@ -1,6 +1,6 @@
 / {
 	aliases {
-		gnss = &sim_gnss;
+		gnss = &gnss;
 	};
     chosen {
 		storage = &flash0;
@@ -29,7 +29,7 @@
 	};
 
 
-    sim_gnss: sim_gnss {
+    gnss: gnss {
         status = "okay";
         compatible = "openrocket,gnss";
         lag-time-us = <1000>;
@@ -38,6 +38,9 @@
     };
 };
 
+&rtc {
+    status = "okay";
+};
 
 &flashcontroller0 {
 	status = "okay";
