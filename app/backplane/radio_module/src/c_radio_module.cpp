@@ -23,9 +23,10 @@ void CRadioModule::AddTenantsToTasks() {
     networkingTask.AddTenant(sensorModuleListenerTenant);
     networkingTask.AddTenant(powerModuleListenerTenant);
 
+#ifndef CONFIG_ARCH_POSIX
     // LoRa
     loraTask.AddTenant(loraTransmitTenant);
-
+#endif
     // Data Logging
     dataLoggingTask.AddTenant(dataLoggerTenant);
 }

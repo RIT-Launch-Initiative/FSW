@@ -49,25 +49,36 @@ private:
     CLora lora;
 
     // Message Ports
+#ifndef CONFIG_ARCH_POSIX
     CMessagePort<NTypes::RadioBroadcastData>& loraBroadcastMessagePort;
+#endif
     CMessagePort<NTypes::RadioBroadcastData>& udpBroadcastMessagePort;
     CMessagePort<NTypes::GnssLoggingData>& gnssDataLogMessagePort;
 
     // Tenants
+#ifndef CONFIG_ARCH_POSIX
     CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort, &gnssDataLogMessagePort};
+#else
+    CGnssTenant gnssTenant{"GNSS Tenant", &udpBroadcastMessagePort, &gnssDataLogMessagePort};
+#endif
 
-    CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
+#ifndef CONFIG_ARCH_POSIX
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
+    CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
+#endif
+
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
     CTask gnssTask{"GNSS Task", 15, 1024, 0};
-    CTask loraTask{"LoRa Task", 15, 1024, 0};
     CTask dataLoggingTask{"Data Logging Task", 15, 512, 0};
+#ifndef CONFIG_ARCH_POSIX
+    CTask loraTask{"LoRa Task", 15, 1024, 0};
+#endif
 
 };
 
