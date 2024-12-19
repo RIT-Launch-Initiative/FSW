@@ -19,13 +19,11 @@
 		
 		carrier-frequency = <DT_FREQ_M(434)>;
 		deviation-frequency = <DT_FREQ_K(100)>;
-		bitrate = <2000>;
+		bitrate = <1200>;
+		modulation-type = "RfmModulationType_OOK";
 
 		reset-gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
+		power-amplifier = "RfmPowerAmplifierSelection_PaBoost";
 
-		dio0-gpios = <&arduino_header 4 0>;
-		dio0-mapping = "RfmDio0Mapping_Packet_PayloadReadyPacketSent";
-
-		dio1-gpios = <&arduino_header 5 0>;
 	};
 };

@@ -18,6 +18,7 @@ properties:
       Long Range Mode:
         - RfmLongRangeModeSetting_FskOokMode: Set Chip to FSK/OOK Mode
         - RfmLongRangeModeSetting_LoraTmMode: Set Chip to LoRa (TM) Mode
+      This setting can be reconfigured at runtime when the chip is in standby mode (fact check this)
     enum:
       - "RfmLongRangeModeSetting_FskOokMode"
       - "RfmLongRangeModeSetting_LoraTmMode"
@@ -28,6 +29,7 @@ properties:
       Modulation Type (valid only in FSK/OOK Mode):
         - RfmModulationType_FSK: Set Chip to Frequency Shift Keying (FSK) Modulation
         - RfmModulationType_OOK: Set Chip to On-Off-Keying (OOK)
+      This setting can be reconfigured at runtime
     enum:
       - "RfmModulationType_FSK"
       - "RfmModulationType_OOK"
@@ -38,6 +40,7 @@ properties:
       LowFrequencyMode (valid only in FSK/OOK Mode):
         - RfmLowFrequencyMode_HighFrequency: Access to High Frequency test registers
         - RfmLowFrequencyMode_LowFrequency: Access to Low Frequency test registers
+      This setting can be reconfigured at runtime
     enum:
       - "RfmLowFrequencyMode_HighFrequency"
       - "RfmLowFrequencyMode_LowFrequency"
@@ -51,10 +54,13 @@ properties:
       - RFM96W: 433 - 470 MHz
       - RFM98W: 433 - 470 MHz
       - RFM99W: 169 MHz
+      This setting can be reconfigured at runtime
   deviation-frequency:
     type: int
     description: |
       Deviation of frequency when modulating with FSK in Hz
+      This setting can be reconfigured at runtime
+      Range 0.6 to 200 kHz
 
   bitrate:
     type: int
@@ -63,15 +69,69 @@ properties:
       Bitrate (bits per second)of data when using FSK or OOK Modulation
       Range (FSK): 1.2 to 300 kbps
       Range (OOK): 1.2 to 32.768 kbps
+      This setting can be reconfigured at runtime
 
   data-mode:
     type: string
     default: "RfmPacketConfigDataMode_Packet"
     description: |
       Data mode for the receiver. Continuous or Packet(default)
+      This setting can be reconfigured at runtime
     enum:
       - "RfmPacketConfigDataMode_Continuous"
       - "RfmPacketConfigDataMode_Packet"
+
+  power-amplifier:
+    type: string
+    default: "RfmPowerAmplifierSelection_RFO"
+    description: |
+      RfmPowerAmplifierSelection_RFO:     RFO Pin: Max power of +14dBm
+      RfmPowerAmplifierSelection_PaBoost: PA_BOOST Pin: Max power of +20dBm
+      This setting can be reconfigured at runtime.
+    enum:
+      - "RfmPowerAmplifierSelection_RFO"
+      - "RfmPowerAmplifierSelection_PaBoost"
+
+  sync-word-len:
+    type: int
+    default: 0
+    description: |
+      (not implemented yet)
+      The length in bytes of the sync word. Use sync-word to set the value of this
+      0 bytes to 8 bytes long
+      This setting can be reconfigured at runtime
+  sync-word:
+    type: int
+    default: 0
+    description: |
+      (not implemented yet)
+      The value of the sync word. This value will be truncated according to the length specified in `sync-word-len`
+      With the longest sync word size selected (8 bits) this value can be up to the maximum uint64_t value.
+      sync word choices containing a byte containing all zeroes are not allowed
+      This setting can be reconfigured at runtime
+
+  preamble-length:
+    type: int
+    default: 0
+    description: |
+      (not implemented yet)
+      The length of the 1010.... pattern automatically added by the radio when transmitting a packet
+      A value used to help receivers synchronize and calibrate automatic gain control before receiving actual information
+      This setting can be reconfigured at runtime
+
+  dc-free-encoding:
+    type: string
+    default: "RfmDcFreeEncodingType_None"
+    description: |
+      (not implemented yet)
+      Setting for encoding the data on the radio chip. When operating in packet mode (fact check maybe continous?)
+      This encoding applies to (Fact check: unknown - all parts(preamble, sync, data, crc), just data, just data and CRC)
+      - RfmDcFreeEncodingType_None: No extra encoding of the  packet
+      - RfmDcFreeEncodingType_Manchester: No extra encoding of the data section of a packet
+  beacon-tx:
+    type: boolean
+    description: |
+      Section 4.2.13.8 - Beacon TX mode (not implemented yet)
 
   reset-gpios:
     type: phandle-array
@@ -114,7 +174,7 @@ properties:
       - RfmDio0Mapping_Packet_RxCrcOk:                CrcOk in Rx mode, Nothing in all other modes.
       - RfmDio0Mapping_Packet_Nothing:                Nothing in all modes.
       - RfmDio0Mapping_Packet_TempChangeLowBat:       Nothing in Sleep mode, TempChange/LowBat in all other modes
-
+      This setting can be reconfigured at runtime
     enum:
       - "RfmDio0Mapping_Continuous_SyncAddressTxReady"
       - "RfmDio0Mapping_Continuous_RssiPreambleDetect"
