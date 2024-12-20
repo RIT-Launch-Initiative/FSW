@@ -404,11 +404,6 @@ int32_t dump_registers(const struct rfm9Xw_config *config) {
     return 0;
 }
 
-uint8_t make_regopmode_fsk(enum RfmLongRangeModeSetting long_range_mode, enum RfmModulationType mod_type,
-                           enum RfmLowFrequencyMode low_freq_mode, enum RfmTransceiverMode trans_mode) {
-    return (long_range_mode & REG_OP_MODE_LONG_RANGE_MODE_MASK) | (mod_type & REG_OP_MODE_MODULATION_TYPE_MASK) |
-           (low_freq_mode & REG_OP_MODE_LOW_FREQ_MODE_MASK) | (trans_mode & REG_OP_MODE_TRANS_MODE_MASK);
-}
 //BitRate = FXOSC/(BitRate(15,0)+BitRateFrac/16)
 
 //FXOSC = 32 Mhz
@@ -719,41 +714,56 @@ int32_t set_modulation_shaping(const struct rfm9Xw_config *config, enum RfmModul
                          (shaping & RFM_REG_PA_RAMP_MASK_MODULATION_SHAPING) | (ramp & RFM_REG_PA_RAMP_MASK_PA_RAMP));
 }
 
+int32_t set_operating_mode(const struct rfm9Xw_config *config, enum RfmLongRangeModeSetting long_range_mode,
+                           enum RfmModulationType mod_type, enum RfmLowFrequencyMode low_freq_mode,
+                           enum RfmTransceiverMode trans_mode) {
+    uint8_t val = (long_range_mode & REG_OP_MODE_LONG_RANGE_MODE_MASK) | (mod_type & REG_OP_MODE_MODULATION_TYPE_MASK) |
+                  (low_freq_mode & REG_OP_MODE_LOW_FREQ_MODE_MASK) | (trans_mode & REG_OP_MODE_TRANS_MODE_MASK);
+    return write_rfm_reg(config, REG_OP_MODE, val);
+}
+
+int32_t do_fsk4(const struct rfm9Xw_config *config) {
+    const uint32_t step = 50000;
+    const uint32_t high = 434000000 + 3 * step / 2;
+    const uint32_t symbols_fdev[4] = {3 * step, 2 * step, step, 0};
+
+    set_frequency(config, high);
+    set_pramble_len(config, 0);
+    set_operating_mode(config, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK,
+                       RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Transmitter);
+    const int baud = 50;
+    const int usecs = 1000000 / baud;
+    struct k_timer bitrate_timer;
+    k_timer_init(&bitrate_timer, NULL, NULL);
+    k_timer_start(&bitrate_timer, K_USEC(usecs), K_USEC(usecs));
+
+    for (int i = 0; i < 12000; i++) {
+        uint32_t fdev = symbols_fdev[i % 4];
+        k_timer_status_sync(&bitrate_timer);
+
+        set_frequency_deviation(config, fdev);
+    }
+    k_timer_stop(&bitrate_timer);
+    return 0;
+}
+
 int32_t rfm9x_dostuff(const struct device *dev) {
     LOG_INF("Hello im the driver");
     const struct rfm9Xw_config *config = dev->config;
     struct rfm9Xw_data *data = dev->data;
-    rfm9x_print_reg_info(config);
     int res = 0;
-    res = write_rfm_reg(config, REG_OP_MODE,
-                        make_regopmode_fsk(RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK,
-                                           RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Standby));
+    set_operating_mode(config, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK,
+                       RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Standby);
 
     set_frequency(config, data->carrier_freq);
     set_power_amplifier(config, config->power_amplifier, data->max_power, data->output_power);
     set_pramble_len(config, 0);
-    set_frequency_deviation(config, 00);
-
-    write_rfm_reg(config, REG_PA_RAMP, 0b00101001);
+    set_frequency_deviation(config, 0);
     set_modulation_shaping(config, data->modulation_shaping, data->pa_ramp);
 
-    for (int i = 0; i < 1000; i++) {
-        uint8_t regopmode_val = make_regopmode_fsk(data->long_range_mode, RfmModulationType_FSK,
-                                                   data->low_frequency_mode, RfmTransceiverMode_FsModeTx);
-
-        res = write_rfm_reg(config, REG_OP_MODE, regopmode_val);
-        set_bitrate(config, 1200 + (i % 20) * 120);
-        regopmode_val = make_regopmode_fsk(data->long_range_mode, RfmModulationType_FSK, data->low_frequency_mode,
-                                           RfmTransceiverMode_Transmitter);
-
-        res = write_rfm_reg(config, REG_OP_MODE, regopmode_val);
-        k_msleep(50000);
-    }
-    if (res < 0) {
-        LOG_ERR("Error writing reg");
-    } else {
-        LOG_INF("Wrote Reg");
-    }
+    do_fsk4(config);
+    // set_operating_mode(config, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK,
+    //                    RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Transmitter);
 
     dump_registers(config);
 
