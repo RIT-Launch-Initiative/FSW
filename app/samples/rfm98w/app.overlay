@@ -17,13 +17,17 @@
 		reg = <1>;
 		spi-max-frequency = <DT_FREQ_M(8)>; // pg. 20, Table 10 MAX 10MHz
 		
-		carrier-frequency = <DT_FREQ_M(434)>;
+		carrier-frequency = <DT_FREQ_M(433)>;
 		deviation-frequency = <DT_FREQ_K(100)>;
-		bitrate = <1200>;
-		modulation-type = "RfmModulationType_OOK";
+		bitrate = <12000>;
+		modulation-type = "RfmModulationType_FSK";
 
-		reset-gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&arduino_header 5 GPIO_ACTIVE_HIGH>;
 		power-amplifier = "RfmPowerAmplifierSelection_PaBoost";
+		max-power = "RfmMaxPower_10_8_DBM";
+		output-power = <0>;
+
+		dio2-gpios = <&arduino_header 3 GPIO_ACTIVE_HIGH>;
 
 	};
 };

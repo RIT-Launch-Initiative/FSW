@@ -16,16 +16,6 @@ const struct device *radio_dev = DEVICE_DT_GET(DT_NODELABEL(radio));
 const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
 
 int main(void) {
-    if (!gpio_is_ready_dt(&led)) {
-        printf("GPIO is not ready\n");
-        return 0;
-    }
-
-    if (gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE) < 0) {
-        printf("Unable to configure LED output pin\n");
-        return 0;
-    }
-
     int counter = 0;
     int err = rfm9x_dostuff(radio_dev);
     if (err != 0) {

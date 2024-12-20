@@ -64,7 +64,7 @@ properties:
 
   bitrate:
     type: int
-    required: true
+    default: 4800
     description: |
       Bitrate (bits per second)of data when using FSK or OOK Modulation
       Range (FSK): 1.2 to 300 kbps
@@ -91,7 +91,78 @@ properties:
     enum:
       - "RfmPowerAmplifierSelection_RFO"
       - "RfmPowerAmplifierSelection_PaBoost"
+  max-power:
+    type: string
+    default: "RfmMaxPower_13_2_DBM"
+    description: |
+      The maximum power allowed on the RFO output pins. See `output-power` for setting the actual power level
+      RfmMaxPower_10_8_DBM: 10.8 dBm
+      RfmMaxPower_11_4_DBM: 11.4 dBm
+      RfmMaxPower_12_0_DBM: 12.0 dBm
+      RfmMaxPower_12_6_DBM: 12.6 dBm
+      RfmMaxPower_13_2_DBM: 13.2 dBm
+      RfmMaxPower_13_8_DBM: 13.8 dBm
+      RfmMaxPower_14_4_DBM: 14.4 dBm
+      RfmMaxPower_15_0_DBM: 15.0 dBm
+      This setting can be reconfigured at runtime.
+    enum:
+      - "RfmMaxPower_10_8_DBM"
+      - "RfmMaxPower_11_4_DBM"
+      - "RfmMaxPower_12_0_DBM"
+      - "RfmMaxPower_12_6_DBM"
+      - "RfmMaxPower_13_2_DBM"
+      - "RfmMaxPower_13_8_DBM"
+      - "RfmMaxPower_14_4_DBM"
+      - "RfmMaxPower_15_0_DBM"
+  output-power:
+    type: int
+    default: 15
+    description: |
+      Setting for the actual output power of the RF element.
+      If using RFO pins for output (`power-amplifier = RfmPowerAmplifierSelection_RFO`), the output power is the following:
+        Pout=MaxPower-15+OutputPower
+      If using PA_BOOST pin for output (`power-amplifier = RfmPowerAmplifierSelection_PaBoost`), the output power is the following:
+        Pout=2+OutputPower
+      The allowed range of this value is 0-15.
+      This setting can be reconfigured at runtime.
 
+  modulation-shaping:
+    type: string
+    default: "RfmModulationShaping_FSK_NoShaping"
+    description: |
+      i shape a da modulations
+    enum:
+      - RfmModulationShaping_FSK_NoShaping
+      - RfmModulationShaping_FSK_GaussianBT_1_0
+      - RfmModulationShaping_FSK_GaussianBT_0_5
+      - RfmModulationShaping_FSK_GaussianBT_0_3
+      - RfmModulationShaping_OOK_NoShaping
+      - RfmModulationShaping_OOK_FCutoffBitRate
+      - RfmModulationShaping_OOK_FCutoff2xBitRate
+  pa-ramp:
+    type: string
+    default: "RfmPaRamp_40us"
+    description: |
+      Controls the ramp time of the power amplifier. Datasheet Section 4.2.2.3
+      When used, the PA bias voltages are ramped smoothly up and down to reduce spectral splatter (switch noise).
+      This setting can be reconfigured at runtime but the transmitter must be restarted for the changes to take effect.
+    enum:
+      - "RfmPaRamp_3400us"
+      - "RfmPaRamp_2000us"
+      - "RfmPaRamp_1000us"
+      - "RfmPaRamp_500us"
+      - "RfmPaRamp_250us"
+      - "RfmPaRamp_125us"
+      - "RfmPaRamp_100us"
+      - "RfmPaRamp_62us"
+      - "RfmPaRamp_50us"
+      - "RfmPaRamp_40us"
+      - "RfmPaRamp_31us"
+      - "RfmPaRamp_25us"
+      - "RfmPaRamp_20us"
+      - "RfmPaRamp_15us"
+      - "RfmPaRamp_12us"
+      - "RfmPaRamp_10us"
   sync-word-len:
     type: int
     default: 0

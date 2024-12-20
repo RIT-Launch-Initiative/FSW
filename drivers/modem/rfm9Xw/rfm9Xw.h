@@ -22,8 +22,9 @@ extern "C" {
 #define REG_PACKET_CONFIG2_DATA_MODE_MASK (0b01000000)
 
 // Frequency synthesizer step FSTEP = FXOSC/(2^19)
-#define FXOSC_HZ     32000000
-#define RFM_FSTEP_HZ 61.03515625
+#define FXOSC_HZ                       32000000
+#define RFM_FSTEP_HZ                   61.03515625
+#define RFM_MAX_FREQUENCY_DEVIATION_HZ 999879
 
 #define RFM_BIT_RATE_FSK_BPS_MIN 1200
 #define RFM_BIT_RATE_FSK_BPS_MAX 300000
@@ -85,11 +86,59 @@ enum RfmPacketConfigDataMode {
     RfmPacketConfigDataMode_Continuous = 0b00000000,
     RfmPacketConfigDataMode_Packet = 0b01000000, // Default
 };
-#define RFM_PA_CONFIG_MASK 0x80
+#define RFM_PA_CONFIG_MASK_PA_SELECT    0x80
+#define RFM_PA_CONFIG_MASK_MAX_POWER    0x70
+#define RFM_PA_CONFIG_MASK_OUTPUT_POWER 0x0f;
+#define RFM_MAX_OUTPUT_POWER            0x0f
 enum RfmPowerAmplifierSelection {
     // bit 7 of RegPaConfig
     RfmPowerAmplifierSelection_RFO = 0b00000000,
     RfmPowerAmplifierSelection_PaBoost = 0b10000000,
+};
+enum RfmMaxPower {
+    // bit 5-6 of RegPaConfig
+    // Controls Max Power when using the RFO pins for RF output
+    RfmMaxPower_10_8_DBM = 0x00,
+    RfmMaxPower_11_4_DBM = 0x10,
+    RfmMaxPower_12_0_DBM = 0x20,
+    RfmMaxPower_12_6_DBM = 0x30,
+    RfmMaxPower_13_2_DBM = 0x40, // Default
+    RfmMaxPower_13_8_DBM = 0x50,
+    RfmMaxPower_14_4_DBM = 0x60,
+    RfmMaxPower_15_0_DBM = 0x70,
+
+};
+
+#define RFM_REG_PA_RAMP_MASK_MODULATION_SHAPING 0b01100000
+enum RfmModulationShaping {
+    RfmModulationShaping_FSK_NoShaping = 0b00000000, // Default
+    RfmModulationShaping_FSK_GaussianBT_1_0 = 0b00100000,
+    RfmModulationShaping_FSK_GaussianBT_0_5 = 0b01000000,
+    RfmModulationShaping_FSK_GaussianBT_0_3 = 0b01100000,
+
+    RfmModulationShaping_OOK_NoShaping = 0b00000000,
+    RfmModulationShaping_OOK_FCutoffBitRate = 0b00100000,
+    RfmModulationShaping_OOK_FCutoff2xBitRate = 0b01000000,
+};
+
+#define RFM_REG_PA_RAMP_MASK_PA_RAMP 0b00001111
+enum RfmPaRamp {
+    RfmPaRamp_3400us = 0b0000,
+    RfmPaRamp_2000us = 0b0001,
+    RfmPaRamp_1000us = 0b0010,
+    RfmPaRamp_500us = 0b0011,
+    RfmPaRamp_250us = 0b0100,
+    RfmPaRamp_125us = 0b0101,
+    RfmPaRamp_100us = 0b0110,
+    RfmPaRamp_62us = 0b0111,
+    RfmPaRamp_50us = 0b1000,
+    RfmPaRamp_40us = 0b1001, // Default
+    RfmPaRamp_31us = 0b1010,
+    RfmPaRamp_25us = 0b1011,
+    RfmPaRamp_20us = 0b1100,
+    RfmPaRamp_15us = 0b1101,
+    RfmPaRamp_12us = 0b1110,
+    RfmPaRamp_10us = 0b1111,
 };
 
 enum RfmDio0Mapping {
