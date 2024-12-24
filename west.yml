@@ -21,6 +21,5 @@ manifest:
           - littlefs
           - loramac-node
           - hal_st
-          - segger
       clone-depth: 1
 
