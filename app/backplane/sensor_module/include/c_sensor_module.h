@@ -56,9 +56,9 @@ private:
     // CRs485Tenant rs485Tenant{"RS485 Tenant"};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 512, 0};
+    CTask networkTask{"Networking Task", 15, 1024, 0};
     CTask sensingTask{"Sensing Task", 15, 1024, 0};
-    CTask dataLogTask{"Data Logging Task", 15, 512, 0};
+    CTask dataLogTask{"Data Logging Task", 15, 2048, 0};
 };
 
 
