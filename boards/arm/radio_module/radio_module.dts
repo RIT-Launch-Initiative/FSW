@@ -12,7 +12,7 @@
 
 / {
     model = "Radio Module";
-    compatible = "st,stm32f446re-nucleo";
+    compatible = "st,stm32f446xx";
 
     chosen {
         zephyr,console = &uart4;

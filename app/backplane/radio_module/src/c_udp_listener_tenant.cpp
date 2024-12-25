@@ -17,12 +17,12 @@ void CUdpListenerTenant::Run() {
     // Note len argument is the size of the data buffer, not how much data to receive! rcvResult will contain the actual amount of data received or -1 on error
     const int rcvResult = udp.ReceiveAsynchronous(&radioBroadcastData.data, sizeof(radioBroadcastData.data));
     if (rcvResult < 0) {
-        LOG_ERR("Failed to receive data");
         return;
     }
 
     radioBroadcastData.port = listenPort;
     radioBroadcastData.size = rcvResult;
 
+    LOG_DBG("Sending %d bytes from port %d over LoRa", rcvResult, radioBroadcastData.port);
     loraTransmitPort.Send(radioBroadcastData);
 }
