@@ -29,6 +29,12 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         LOG_ERR("Failed to bind socket.");
         zsock_close(sock);
     }
+
+    // Link takes around 2 seconds to come up. Wait to avoid errors when tx/rxing
+    const uint32_t uptime = k_uptime_get_32();
+    if (uptime < 2000) {
+        k_msleep(2000 - uptime);
+    }
 }
 
 CUdpSocket::~CUdpSocket() {
