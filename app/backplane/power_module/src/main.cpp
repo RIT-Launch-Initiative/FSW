@@ -11,9 +11,7 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    LOG_INF("Starting Power Module");
-    CPowerModule powerModule{};
-    LOG_INF("Constructed Power Module");
+    static CPowerModule powerModule{};
 
     powerModule.AddTenantsToTasks();
     powerModule.AddTasksToRtos();
