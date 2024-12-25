@@ -54,9 +54,9 @@ private:
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 512, 0};
+    CTask networkTask{"Networking Task", 15, 1024, 0};
     CTask sensingTask{"Sensing Task", 15, 1024, 0};
-    CTask dataLoggingTask{"Data Logging Task", 15, 512, 0};
+    CTask dataLoggingTask{"Data Logging Task", 15, 1500, 0};
 };
 
 
