@@ -37,7 +37,23 @@ CSensingTenant::CSensingTenant(const char* name,
 #endif
       } {}
 
-void CSensingTenant::Startup() {}
+void CSensingTenant::Startup() {
+#ifndef CONFIG_ARCH_POSIX
+    const sensor_value imuOdr{
+        .val1 = 104,
+        .val2 = 0
+    };
+
+    if (imuAccelerometer.Configure(SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &imuOdr)) {
+        LOG_WRN("IMU Accelerometer ODR configuration failed. IMU accelerations will report 0.");
+    }
+
+    if (imuGyroscope.Configure(SENSOR_CHAN_GYRO_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &imuOdr)) {
+        LOG_WRN("IMU Gyroscope ODR configuration failed. IMU gyroscope values will report 0.");
+    }
+
+#endif
+}
 
 void CSensingTenant::PostStartup() {}
 
