@@ -59,6 +59,14 @@ public:
         return isInitialized;
     }
 
+    /**
+     * Get the name of the device
+     * @return name of the device
+     */
+    const char *GetName() const {
+        return dev.name;
+    }
+
 protected:
     const device &dev;
 
