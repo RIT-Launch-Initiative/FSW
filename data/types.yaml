@@ -1,0 +1,69 @@
+AccelerometerData:
+  description: Accelerometer telemetry data.
+  fields:
+    - name: X
+      type: float
+    - name: Y
+      type: float
+    - name: Z
+      type: float
+
+BarometerData:
+  description: Barometer telemetry data.
+  fields:
+    - name: Pressure
+      type: float
+    - name: Temperature
+      type: float
+
+GyroscopeData:
+  description: Gyroscope telemetry data.
+  fields:
+    - name: X
+      type: float
+    - name: Y
+      type: float
+    - name: Z
+      type: float
+
+MagnetometerData:
+  description: Magnetometer telemetry data.
+  fields:
+    - name: X
+      type: float
+    - name: Y
+      type: float
+    - name: Z
+      type: float
+
+ShuntData:
+  description: Shunt telemetry data.
+  fields:
+    - name: Voltage
+      type: float
+    - name: Current
+      type: float
+    - name: Power
+      type: float
+
+TemperatureData:
+  description: Single temperature reading.
+  type: float
+
+LoRaSignalData:
+  description: LoRa signal data.
+  fields:
+    - name: RSSI
+      type: float
+    - name: SNR
+      type: float
+
+GnssCoordinateData:
+  description: GNSS coordinate data.
+  fields:
+    - name: Latitude
+      type: double
+    - name: Longitude
+      type: double
+    - name: Altitude
+      type: float
