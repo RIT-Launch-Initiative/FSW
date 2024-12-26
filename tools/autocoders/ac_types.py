@@ -15,19 +15,15 @@ def main():
     files = [os.getcwd() + "/" + fname for fname in args.files]
     types = []
 
-    print(files)
-
-
-
     for file in args.files:
         with open(file, 'r') as stream:
             try:
                 data = yaml.safe_load(stream)
-                for key, value in data.items():
-                    print(f"{key}: {value}")
+                types.append(data)
             except yaml.YAMLError as exc:
                 print(exc)
 
+    print(template.render(files=files, types=types))
 
 if __name__ == '__main__':
     main()
