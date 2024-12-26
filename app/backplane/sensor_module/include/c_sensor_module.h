@@ -43,7 +43,7 @@ public:
 
 private:
     static constexpr const char* ipAddrStr = "10.3.2.1";
-    static constexpr int telemetryBroadcastPort = 12100;
+    static constexpr int telemetryBroadcastPort = 13100;
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;

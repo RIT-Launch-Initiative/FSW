@@ -26,7 +26,7 @@ void CLoraToUdpTenant::Run() {
 
     const int port = buffer[1] << 8 | buffer[0];
     constexpr int portOffset = 2;
-    LOG_DBG("Received %d bytes on port %d", size, port);
+    LOG_DBG("Received %d bytes from LoRa for port %d", size, port);
     if (size > 2) {
         udp.SetDstPort(port);
         udp.TransmitAsynchronous(&buffer[2], size - portOffset);
