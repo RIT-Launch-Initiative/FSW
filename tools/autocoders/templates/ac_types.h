@@ -14,7 +14,7 @@ namespace NTypes {
 {% for type in types %}
     typedef struct __attribute__((packed))
     {
-        {% for field in common_fields %}
+        {% for field in fields %}
         {{ field.type }} {{ field.name }};
         {% endfor %}
     } {{ type.name }};
