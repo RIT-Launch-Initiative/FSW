@@ -24,9 +24,11 @@ void CLoraToUdpTenant::Run() {
         return;
     }
 
-    LOG_INF("Received %d bytes on port %d", size, buffer[1] << 8 | buffer[0]);
+    const int port = buffer[1] << 8 | buffer[0];
+    constexpr int portOffset = 2;
+    LOG_DBG("Received %d bytes on port %d", size, port);
     if (size > 2) {
-        udp.SetDstPort(buffer[1] << 8 | buffer[0]);
-        udp.TransmitAsynchronous(&buffer[2], size);
+        udp.SetDstPort(port);
+        udp.TransmitAsynchronous(&buffer[2], size - portOffset);
     }
 }
