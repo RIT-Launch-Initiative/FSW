@@ -21,7 +21,7 @@ void CUdpListenerTenant::Run() {
     }
 
     radioBroadcastData.port = listenPort;
-    radioBroadcastData.size = rcvResult;
+    radioBroadcastData.size = static_cast<uint8_t>(rcvResult);
 
     LOG_DBG("Sending %d bytes from port %d over LoRa", rcvResult, radioBroadcastData.port);
     loraTransmitPort.Send(radioBroadcastData);
