@@ -1,10 +1,10 @@
 import argparse
 import yaml
-import os
+import jinja2
 
 def main():
-    template_path = (os.getcwd() + __file__).split("ac_types.py")[0] + "templates/ac_types.h"
-    print(template_path)
+    template_path = __file__.split("ac_types.py")[0] + "templates/ac_types.h"
+    template = jinja2.Template(open(template_path).read())
 
     parser = argparse.ArgumentParser(description='Generate C++ types from a list of types.')
     parser.add_argument("-f", "--files", nargs='+', help="Files to generate types from")
