@@ -1,4 +1,6 @@
 import argparse
+from datetime import datetime
+
 import yaml
 import jinja2
 import os
@@ -28,7 +30,7 @@ def main():
                 print(exc)
 
     with open(args.output, 'w') as f:
-        f.write(template.render(files=files, types=types))
+        f.write(template.render(files=files, types=types, date_time=datetime.now()))
 
 if __name__ == '__main__':
     main()
