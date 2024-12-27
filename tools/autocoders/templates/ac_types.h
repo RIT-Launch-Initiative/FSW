@@ -3,8 +3,8 @@
 // Reference Files: {% for file in files %}
 // - {{ file }}
 {% endfor %}
-#ifndef _AUTOCODED_TYPES_H_
-#define _AUTOCODED_TYPES_H_
+#ifndef _AUTOCODER_TYPES_H_
+#define _AUTOCODER_TYPES_H_
 
 #include <stdint.h>
 
@@ -17,4 +17,4 @@ namespace NTypes { {% for t in types %}
 {% endfor -%}
 }
 
-#endif // _AUTOCODED_TYPES_H_
+#endif // _AUTOCODER_TYPES_H_

@@ -6,7 +6,7 @@ import jinja2
 import os
 
 def main():
-    template_path = __file__.split("ac_types.py")[0] + "templates/ac_types.h"
+    template_path = __file__.split("ac_types.py")[0] + "templates/ac_network_defs.h"
     template = jinja2.Template(open(template_path).read())
 
     parser = argparse.ArgumentParser(description='Generate C++ struct types from a list of types.')
@@ -16,16 +16,13 @@ def main():
     args = parser.parse_args()
 
     files = [os.getcwd() + "/" + fname for fname in args.files]
-    types = []
 
     for file in args.files:
         with open(file, 'r') as stream:
             try:
                 data = yaml.safe_load(stream)
 
-                # 0th index of tuple is the name of the type
-                # 1st index of tuple is key-value with the description and information for each field
-                types += [(key, data[key]) for key in data]
+
             except yaml.YAMLError as exc:
                 print(exc)
 
