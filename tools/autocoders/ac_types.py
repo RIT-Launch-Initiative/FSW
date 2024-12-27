@@ -9,6 +9,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Generate C++ struct types from a list of types.')
     parser.add_argument("-f", "--files", nargs='+', help="Files to generate types from")
+    parser.add_argument("-o", "--output", help="Output file to write to")
 
     args = parser.parse_args()
 
@@ -25,7 +26,9 @@ def main():
                 types = [(key, data[key]) for key in data]
             except yaml.YAMLError as exc:
                 print(exc)
-    print(template.render(files=files, types=types))
+
+    with open(args.output, 'w') as f:
+        f.write(template.render(files=files, types=types))
 
 if __name__ == '__main__':
     main()

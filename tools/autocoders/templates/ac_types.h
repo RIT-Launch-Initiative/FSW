@@ -2,7 +2,6 @@
 // Reference Files: {% for file in files %}
 // - {{ file }}
 {% endfor %}
-
 #ifndef _AUTOCODED_TYPES_H_
 #define _AUTOCODED_TYPES_H_
 
