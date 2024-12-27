@@ -11,8 +11,17 @@ public:
      */
     explicit CGpio(const device& dev);
 
+    /**
+     * Gets the logical level of the pin
+     * @return 1 if active, 0 if inactive, -EIO if I/O error, -EWOULDBLOCK if operation would block
+     */
     int pin_get();
 
+    /**
+     * Sets the logical level of the pin
+     * @param value[in] level to set the pin to
+     * @return 0 if successful, -EIO if I/O error, -EWOULDBLOCK if operation would block
+     */
     int pin_set(int value);
 
 private:
