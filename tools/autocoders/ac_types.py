@@ -19,9 +19,12 @@ def main():
         with open(file, 'r') as stream:
             try:
                 data = yaml.safe_load(stream)
-                types.append(data)
+                types = [(key, data[key]) for key in data]
             except yaml.YAMLError as exc:
                 print(exc)
+
+    for t in types:
+        print(t)
 
     print(template.render(files=files, types=types))
 
