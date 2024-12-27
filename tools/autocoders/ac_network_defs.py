@@ -10,7 +10,7 @@ def main():
     template = jinja2.Template(open(template_path).read())
 
     parser = argparse.ArgumentParser(description='Generate Backplane network definitions.')
-    parser.add_argument("-f", "--files", nargs='+', help="Files to generate types from")
+    parser.add_argument("-f", "--files", nargs='+', help="Files to generate network definitions from")
     parser.add_argument("-o", "--output", help="Output file to write to")
 
     args = parser.parse_args()
