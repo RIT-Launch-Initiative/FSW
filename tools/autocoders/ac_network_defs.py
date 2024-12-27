@@ -16,16 +16,20 @@ def main():
     args = parser.parse_args()
 
     files = [os.getcwd() + "/" + fname for fname in args.files]
-
+    general = []
+    modules = dict()
     for file in args.files:
         with open(file, 'r') as stream:
             try:
                 data = yaml.safe_load(stream)
-                print(data)
-
+                general = data["general"]
+                modules = data["modules"]
 
             except yaml.YAMLError as exc:
                 print(exc)
+
+
+    print(template.render(files=files, general=general, modules=modules, date_time=datetime.now()))
 
     # with open(args.output, 'w') as f:
     #     f.write(template.render())
