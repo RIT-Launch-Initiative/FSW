@@ -23,9 +23,6 @@ def main():
             except yaml.YAMLError as exc:
                 print(exc)
 
-    for t in types:
-        print(t)
-
     print(template.render(files=files, types=types))
 
 if __name__ == '__main__':
