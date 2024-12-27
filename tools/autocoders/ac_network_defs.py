@@ -11,7 +11,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Generate Backplane network definitions.')
     parser.add_argument("-f", "--files", nargs='+', help="Files to generate types from")
-    # parser.add_argument("-o", "--output", help="Output file to write to")
+    parser.add_argument("-o", "--output", help="Output file to write to")
 
     args = parser.parse_args()
 
@@ -29,10 +29,8 @@ def main():
                 print(exc)
 
 
-    print(template.render(files=files, general=general, modules=modules, date_time=datetime.now()))
-
-    # with open(args.output, 'w') as f:
-    #     f.write(template.render())
+    with open(args.output, 'w') as f:
+        f.write(template.render(files=files, general=general, modules=modules, date_time=datetime.now()))
 
 if __name__ == '__main__':
     main()
