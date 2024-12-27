@@ -1,21 +1,21 @@
 #ifndef N_TYPES_H
 #define N_TYPES_H
 
-#include <f_core/types.h>
+#include <n_ac_types.h>
 
 namespace NTypes {
 struct __attribute__((packed)) SensorData {
-    NSensor::BarometerData PrimaryBarometer;
-    NSensor::BarometerData SecondaryBarometer;
+    NTypes::BarometerData PrimaryBarometer;
+    NTypes::BarometerData SecondaryBarometer;
 
-    NSensor::AccelerometerData Acceleration;
+    NTypes::AccelerometerData Acceleration;
 
-    NSensor::AccelerometerData ImuAcceleration;
-    NSensor::GyroscopeData ImuGyroscope;
+    NTypes::AccelerometerData ImuAcceleration;
+    NTypes::GyroscopeData ImuGyroscope;
 
-    NSensor::MagnetometerData Magnetometer;
+    NTypes::MagnetometerData Magnetometer;
 
-    NSensor::TemperatureData Temperature;
+    NTypes::TemperatureData Temperature;
 };
 
 }

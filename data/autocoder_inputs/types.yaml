@@ -48,7 +48,9 @@ ShuntData:
 
 TemperatureData:
   description: Single temperature reading.
-  type: float
+  fields:
+    - name: Temperature
+      type: float
 
 LoRaSignalData:
   description: LoRa signal data.
