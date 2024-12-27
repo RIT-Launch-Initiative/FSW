@@ -32,7 +32,7 @@ FILE(GLOB SOURCES src/*.c src/*.cpp)
 target_include_directories(app PRIVATE include)
 target_sources(app PRIVATE ${SOURCES})
 
-AutocodeTypes()
+AutocodeTypes(${CMAKE_SOURCE_DIR}/ac/types.yaml)
 AutocodeNetworkDefinitions()
 add_dependencies(app ac_net_defs ac_types)
 
