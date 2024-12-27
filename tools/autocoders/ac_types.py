@@ -19,10 +19,12 @@ def main():
         with open(file, 'r') as stream:
             try:
                 data = yaml.safe_load(stream)
+
+                # 0th index of tuple is the name of the type
+                # 1st index of tuple is key-value with the description and information for each field
                 types = [(key, data[key]) for key in data]
             except yaml.YAMLError as exc:
                 print(exc)
-
     print(template.render(files=files, types=types))
 
 if __name__ == '__main__':
