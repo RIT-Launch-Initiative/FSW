@@ -8,18 +8,13 @@
 
 #include <stdint.h>
 
-namespace NTypes {
-
-{% for t in types %}
+namespace NTypes { {% for t in types %}
     // {{ t[1].description }}
-    typedef struct __attribute__((packed))
-    {
-        {% for field in t[1].fields %}
-        {{ field.type }} {{ field.name }};
-        {% endfor %}
+    typedef struct __attribute__((packed)) {
+        {%- for field in t[1].fields %}
+        {{ field.type }} {{ field.name }}; {% endfor %}
     } {{ t[0] }};
-
-{% endfor %}
+{% endfor -%}
 }
 
 #endif // _AUTOCODED_TYPES_H_
