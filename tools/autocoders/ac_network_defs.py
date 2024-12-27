@@ -6,12 +6,12 @@ import jinja2
 import os
 
 def main():
-    template_path = __file__.split("ac_types.py")[0] + "templates/ac_network_defs.h"
+    template_path = __file__.split(os.path.basename(__file__))[0] + "templates/ac_network_defs.h"
     template = jinja2.Template(open(template_path).read())
 
-    parser = argparse.ArgumentParser(description='Generate C++ struct types from a list of types.')
+    parser = argparse.ArgumentParser(description='Generate Backplane network definitions.')
     parser.add_argument("-f", "--files", nargs='+', help="Files to generate types from")
-    parser.add_argument("-o", "--output", help="Output file to write to")
+    # parser.add_argument("-o", "--output", help="Output file to write to")
 
     args = parser.parse_args()
 
@@ -21,13 +21,14 @@ def main():
         with open(file, 'r') as stream:
             try:
                 data = yaml.safe_load(stream)
+                print(data)
 
 
             except yaml.YAMLError as exc:
                 print(exc)
 
-    with open(args.output, 'w') as f:
-        f.write(template.render())
+    # with open(args.output, 'w') as f:
+    #     f.write(template.render())
 
 if __name__ == '__main__':
     main()

@@ -6,7 +6,7 @@ import jinja2
 import os
 
 def main():
-    template_path = __file__.split("ac_types.py")[0] + "templates/ac_types.h"
+    template_path = __file__.split(os.path.basename(__file__))[0] + "templates/ac_types.h"
     template = jinja2.Template(open(template_path).read())
 
     parser = argparse.ArgumentParser(description='Generate C++ struct types from a list of types.')
