@@ -10,10 +10,13 @@
 namespace NNetworkDefs {
     // General
     static constexpr uint16_t GENERAL_COMMAND_PORT = {{ general.commandPort }};
+
     static constexpr uint16_t NOTIFICATION_PORT = {{ general.notificationPort }};
     {% for module_name, module_info in modules.items() %}
     // {{ module_name.capitalize() }} Module
     static constexpr std::string {{ module_name.upper() }}_MODULE_BROADCAST_FORMAT = "10.{{ module_info.id }}.{}.{}";
+
+    static constexpr uint16_t {{ module_name.upper() }}_BASE_PORT = {{ module_info.base_port }};
     {% for offset_name, offset_info in module_info.port_offsets.items() %}
     static constexpr uint16_t {{ module_name.upper() }}_MODULE_{{ offset_name.upper()|replace("_", "_") }}_PORT = {{ module_info.base_port + offset_info.port_number }};
     {% endfor %}{% endfor %}
