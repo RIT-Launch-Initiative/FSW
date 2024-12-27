@@ -10,7 +10,6 @@
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
 #include <n_ac_network_defs.h>
-#include <string>
 
 class CSensorModule : public CProjectConfiguration {
 public:

@@ -4,7 +4,8 @@
 # Copyright (c) 2023 Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
-set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+include(${FSW_ROOT}/cmake/Autocoders.cmake)
 
 # Guarantee that prj.conf is the default and first configuration file to be read
 
@@ -33,4 +34,7 @@ project(power-module LANGUAGES C CXX)
 FILE(GLOB SOURCES src/*.c src/*.cpp)
 target_include_directories(app PRIVATE include)
 target_sources(app PRIVATE ${SOURCES})
-#list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/prj.conf)
+
+AutocodeTypes(${CMAKE_SOURCE_DIR}/ac/types.yaml)
+AutocodeNetworkDefinitions()
+add_dependencies(app ac_net_defs ac_types)

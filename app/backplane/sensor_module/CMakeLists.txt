@@ -1,5 +1,10 @@
-set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+#-------------------------------------------------------------------------------
+# Backplane Sensor Module Application
+#
+# Copyright (c) 2023 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
 
+set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 include(${FSW_ROOT}/cmake/Autocoders.cmake)
 
 list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/core.conf)
