@@ -27,7 +27,7 @@ def main():
                 print(exc)
 
     with open(args.output, 'w') as f:
-        f.write(template.render(files=files, types=types, date_time=datetime.now()))
+        f.write(template.render())
 
 if __name__ == '__main__':
     main()
