@@ -7,29 +7,18 @@
 #ifndef _AUTOCODER_NETWORK_DEFS_H_
 #define _AUTOCODER_NETWORK_DEFS_H_
 
-#include <string>
 #include <stdint.h>
 
+#define CREATE_IP_ADDR(base, octet1, octet2) STRINGIFY(base) "." STRINGIFY(octet3) "." STRINGIFY(octet4)
+
 namespace NNetworkDefs {
-    static constexpr std::string cuitoa(uint8_t value) {
-        std::string result;
-        do {
-            result.insert(result.begin(), '0' + (value % 10));
-            value /= 10;
-        } while (value > 0);
-
-        return result;
-    }
-
     // General
     static constexpr uint16_t GENERAL_COMMAND_PORT = {{ general.commandPort }};
 
     static constexpr uint16_t NOTIFICATION_PORT = {{ general.notificationPort }};
     {% for module_name, module_info in modules.items() %}
     // {{ module_name.capitalize() }} Module
-    static constexpr std::string {{ module_name.upper() }}_MODULE_BROADCAST_IP(uint8_t revision, uint8_t serial_no) {
-        return "10.{{module_info.id}}." + cuitoa(revision) + "." + cuitoa(serial_no);
-    }
+    static constexpr const char* {{ module_name.upper() }}_MODULE_IP_ADDR_BASE = "10.{{ module_info.id }}";
 
     static constexpr uint16_t {{ module_name.upper() }}_BASE_PORT = {{ module_info.base_port }};
     {% for offset_name, offset_info in module_info.port_offsets.items() %}

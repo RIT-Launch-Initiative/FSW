@@ -9,7 +9,8 @@
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
-
+#include <n_ac_network_defs.h>
+#include <string>
 
 class CSensorModule : public CProjectConfiguration {
 public:
@@ -41,8 +42,9 @@ public:
     }
 
 private:
-    static constexpr const char* ipAddrStr = "10.3.2.1";
-    static constexpr int telemetryBroadcastPort = 12100;
+    static constexpr uint8_t currentRevision = 1; // TODO: Devicetree way of figuring this out?
+    static constexpr const char* ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, currentRevision, CONFIG_MODULE_ID);
+    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
