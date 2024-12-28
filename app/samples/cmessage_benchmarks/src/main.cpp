@@ -81,7 +81,7 @@ private:
     int pollIndex;
 };
 
-typedef void (*benchmark)(CProducer producer, std::array<C>);
+typedef void (*RtosSetupFn)(CProducer producer, CConsumer consumers[], int consumerCount);
 
 static void reportResults(const char* name, const int64_t deltas[], const size_t deltaSize) {
     printk("%s:", name);
@@ -93,7 +93,7 @@ static void reportResults(const char* name, const int64_t deltas[], const size_t
     printk("\tAverage: %lld\n", name, sum / deltaSize);
 }
 
-static void benchmarkMsgq(int consumerCount = 1, int deltaSize = 100) {
+static void benchmarkMsgq(RtosSetupFn* rtosSetupFn, int consumerCount = 1, int deltaSize = 100) {
     static_assert(consumerCount > 0, "Must have at least one consumer");
     static_assert(consumerCount <= 10, "Cannot have more than 10 consumers");
 
@@ -144,13 +144,33 @@ static void benchmarkMsgq(int consumerCount = 1, int deltaSize = 100) {
 
     k_poll_signal_reset(&consumersFinishedSignal);
 
-    // TODO: Benchmark function ptr
+    rtosSetupFn(producer, consumers, consumerCount);
+    NRtos::ClearTasks();
+    NRtos::StartRtos();
 
+    k_poll_event event = K_POLL_EVENT_INITIALIZER(K_POLL_TYPE_SIGNAL,
+                                 K_POLL_MODE_NOTIFY_ONLY,
+                                 &consumersFinishedSignal);
 
+    while (true) {
+        k_poll(&event, consumerCount, K_FOREVER);
+        int sigResult = 0;
+        k_poll_signal_check(&consumersFinishedSignal, nullptr, &sigResult);
+        int result = 0;
+        for (int i = 0; i < consumerCount; i++) {
+            result |= (1 << i);
+        }
+        if (sigResult == result) {
+            break;
+        }
+    }
+    NRtos::StopRtos();
     for (int i = 0; i < consumerCount; i++) {
         char name[32] = {0};
         snprintf(name, sizeof(name), "Consumer%d", i);
         reportResults(name, allDeltas[i], deltaSize);
+        memset(allDeltas[i], 0, deltaSize * sizeof(int64_t));
+        k_msgq_purge(queues[i]);
     }
 }
 
