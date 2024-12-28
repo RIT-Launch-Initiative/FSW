@@ -35,6 +35,9 @@ void CRadioModule::AddTenantsToTasks() {
 
     // GNSS
     gnssTask.AddTenant(gnssTenant);
+
+    // Command
+    commandTask.AddTenant(commandListenerTenant);
 }
 
 void CRadioModule::AddTasksToRtos() {
@@ -47,6 +50,9 @@ void CRadioModule::AddTasksToRtos() {
 
     // GNSS
     NRtos::AddTask(gnssTask);
+
+    // Command
+    NRtos::AddTask(commandTask);
 }
 
 void CRadioModule::SetupCallbacks() {}

@@ -8,6 +8,7 @@
 #include "c_udp_listener_tenant.h"
 #include "c_lora_transmit_tenant.h"
 #include "c_lora_to_udp_tenant.h"
+#include "c_command_listener_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -64,6 +65,7 @@ private:
 #ifndef CONFIG_ARCH_POSIX
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
+    CCommandListenerTenant commandListenerTenant{"Command Listener Tenant", ipAddrStr, radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
 
@@ -72,6 +74,7 @@ private:
     CTask gnssTask{"GNSS Task", 15, 1024, 0};
     CTask dataLoggingTask{"Data Logging Task", 15, 512, 0};
     CTask loraTask{"LoRa Task", 15, 1024, 0};
+    CTask commandTask{"Command Listener Task", 15, 512, 0};
 
 };
 
