@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <array>
 #include <zephyr/kernel.h>
 #include <f_core/os/c_tenant.h>
 #include <f_core/os/n_rtos.h>
@@ -13,11 +14,26 @@
 
 LOG_MODULE_REGISTER(main);
 
+
+// TODO: Find a better way of doing this LOL
+K_MSGQ_DEFINE(queueOne, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueTwo, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueThree, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueFour, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueFive, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueSix, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueSeven, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueEight, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueNine, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueTen, sizeof(int64_t), 10, 4);
+static constexpr std::array<k_msgq*, 10> queues = {&queueOne, &queueTwo, &queueThree, &queueFour, &queueFive, &queueSix, &queueSeven,
+                                                   &queueEight, &queueNine, &queueTen};
+
 static k_poll_signal signal;
 
 class CProducer : public CTenant {
 public:
-    CProducer(const char* name, const CMessagePort<int64_t>& messagePort, int index) : CTenant(name), messagePort(messagePort) {}
+    CProducer(const char* name, const CMessagePort<int64_t>& messagePort) : CTenant(name), messagePort(messagePort) {}
 
     void Run() override {
         messagePort.Send(k_uptime_get());
@@ -56,27 +72,31 @@ private:
     int pollIndex;
 };
 
-static constexpr size_t MAX_MESSAGE_QUEUE_SIZE = 100;
-static constexpr size_t MAX_CONSUMER_COUNT = 10;
+static void reportResults(const char* name, const int64_t deltas[], const size_t deltaSize) {
 
-static int64_t MESSAGE_QUEUE_BUFFER[MAX_MESSAGE_QUEUE_SIZE * sizeof(int64_t)];
-static k_msgq MESSAGE_QUEUES[MAX_CONSUMER_COUNT];
-
-static void setup(CMessagePort<int64_t> messagePorts[], size_t messagePortCount, CProducer& producer, CConsumer consumers[], size_t consumerCount) {
-    for (size_t i = 0; i < messagePortCount; i++) {
-        messagePorts[i] = CMsgqMessagePort<int64_t>();
+    uint64_t sum = 0;
+    for (size_t i = 0; i < deltaSize; i++) {
+        LOG_INF("Delta %d: %lld", i, deltas[i]);
+        sum += deltas[i];
     }
-
-    for (size_t i = 0; i < consumerCount; i++) {
-        consumers[i] = CConsumer("Consumer", messagePorts[i], new int64_t[100], 100, i);
-    }
+    LOG_INF("Average: %lld", sum / deltaSize);
 }
 
-static void teardown() {
+static void benchmarkMsgq(const int consumerCount = 1, const int deltaSize = 100) {
+    static_assert(consumerCount > 0, "Must have at least one consumer");
+    static_assert(consumerCount <= 10, "Cannot have more than 10 consumers");
 
-}
+    int64_t allDeltas[consumerCount][deltaSize] = {0};
 
-static void benchmarkMsgq(int consumerCount = 1) {
+    for (int i = 0; i < consumerCount; i++) {
+        CMsgqMessagePort<int64_t> messagePort(*queues[i]);
+        CConsumer consumer("Consumer", messagePort, allDeltas[i], 100, i);
+    }
+
+    for (int i = 0; i < deltaSize; i++) {
+        CMsgqMessagePort<int64_t> messagePort(*queues[0]);
+        CProducer producer("Producer", messagePort);
+    }
 }
 
 int main() {
