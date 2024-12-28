@@ -32,3 +32,7 @@ void NRtos::StopRtos() {
 
     LOG_INF("RTOS Stopped!");
 }
+
+void NRtos::ClearTasks() {
+    tasks.clear();
+}

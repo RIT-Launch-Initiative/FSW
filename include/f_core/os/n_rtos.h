@@ -24,6 +24,11 @@ namespace NRtos {
      * Cleanup tasks and abort all added tasks
      */
     void StopRtos();
+
+    /**
+     * Clears all tasks from the RTOS
+     */
+    void ClearTasks();
 };
 
 
