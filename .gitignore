@@ -51,8 +51,14 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-build/
-*-build
+# Builds
+**/*build*/
+**/*bin*/
+
+# Simulation
+flash.bin
+flash/
+
 twister-out*/
 
 # Zephyr files

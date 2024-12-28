@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: cmessage-benchmarks
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.cmessage_benchmarks.default: {}

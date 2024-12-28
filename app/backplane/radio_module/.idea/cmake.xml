@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSharedSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Flight Release" ENABLED="true" GENERATION_DIR="build-flight-release" CONFIG_NAME="Debug" GENERATION_OPTIONS="-GNinja -DBOARD=radio_module" />
+      <configuration PROFILE_NAME="Flight Debug" ENABLED="true" GENERATION_DIR="build-flight-debug" CONFIG_NAME="Debug" GENERATION_OPTIONS="-GNinja -DBOARD=radio_module -DDEBUG=y" />
+      <configuration PROFILE_NAME="Flight Simulation" ENABLED="true" GENERATION_DIR="build-flight-sim" CONFIG_NAME="Debug" GENERATION_OPTIONS="-GNinja -DBOARD=native_sim -DDEBUG=y" />
+      <configuration PROFILE_NAME="Receiver" ENABLED="true" GENERATION_DIR="build-receiver" CONFIG_NAME="Debug" GENERATION_OPTIONS="-GNinja -DBOARD=radio_module -DCONFIG_RADIO_MODULE_RECEIVER=y" />
+    </configurations>
+  </component>
+</project>
