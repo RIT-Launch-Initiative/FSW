@@ -80,6 +80,11 @@
         led0 = &red_led_1;
         led1 = &red_led_2;
 
+        gpio1 = &gpio_1;
+        gpio2 = &gpio_2;
+        gpio3 = &gpio_3;
+        gpio4 = &gpio_4;
+
         dbguart = &uart4;
         ubxlib-usart2 = &usart2;
 
