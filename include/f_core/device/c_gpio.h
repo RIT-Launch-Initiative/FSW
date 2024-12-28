@@ -9,7 +9,7 @@ public:
      * Constructor
      * @param[in] dev Zephyr device structure
      */
-    explicit CGpio(const device& dev);
+    explicit CGpio(const device& dev) : dev(&dev) {}
 
     /**
      * Gets the logical level of the pin
