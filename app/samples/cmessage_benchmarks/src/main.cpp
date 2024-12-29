@@ -88,7 +88,10 @@ public:
 
     void Run() override {
         if (deltaIndex >= deltaSize) {
-            consumerFinished();
+            if (!finished) {
+                consumerFinished();
+                finished = true;
+            }
             return;
         }
 
@@ -106,6 +109,7 @@ private:
     size_t deltaIndex = 0;
     size_t deltaSize;
     int pollIndex;
+    bool finished = false;
 };
 
 using RtosSetupFn = void (*)(CProducer& producer, CConsumer consumers[], int consumerCount);
@@ -129,7 +133,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     static constexpr size_t maxDeltas = 100;
     static uint64_t allDeltas[maxQueues][maxDeltas * sizeof(uint64_t)] = {0};
 
-    static CMsgqMessagePort<uint64_t> msgqPorts[10] = {
+    CMsgqMessagePort<uint64_t> msgqPorts[10] = {
         CMsgqMessagePort<uint64_t>(*queues[0]),
         CMsgqMessagePort<uint64_t>(*queues[1]),
         CMsgqMessagePort<uint64_t>(*queues[2]),
@@ -142,7 +146,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
         CMsgqMessagePort<uint64_t>(*queues[9]),
     };
 
-    static std::array<CMessagePort<uint64_t>*, 10> producerPorts = {
+    std::array<CMessagePort<uint64_t>*, 10> producerPorts = {
         &msgqPorts[0],
         &msgqPorts[1],
         &msgqPorts[2],
@@ -155,7 +159,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
         &msgqPorts[9],
     };
 
-    static CConsumer consumers[10] = {
+    CConsumer consumers[10] = {
         CConsumer("Consumer0", msgqPorts[0], allDeltas[0], deltaSize, 0),
         CConsumer("Consumer1", msgqPorts[1], allDeltas[1], deltaSize, 1),
         CConsumer("Consumer2", msgqPorts[2], allDeltas[2], deltaSize, 2),
@@ -168,7 +172,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
         CConsumer("Consumer9", msgqPorts[9], allDeltas[9], deltaSize, 9),
     };
 
-    static CProducer producer("Producer", producerPorts, consumerCount);
+    CProducer producer("Producer", producerPorts, consumerCount);
 
     NRtos::ClearTasks();
 
@@ -235,7 +239,7 @@ void setupOneProducerThreeConsumersFourThread(CProducer& producer, CConsumer con
 }
 
 int main() {
-    benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
+    // benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
     benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
     benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
     LOG_INF("Benchmarks complete!");
