@@ -62,8 +62,14 @@ enum RfmLongRangeModeSetting {
 
 enum RfmModulationType {
     // Bits 5-6 of RegOpMode
-    RfmModulationType_FSK = 0x00000000,
+    // Built in Modulation Types (register values)
+    RfmModulationType_FSK = 0b00000000,
     RfmModulationType_OOK = 0b00100000,
+    //
+    // Custom Modulation Types (not actual register values)
+    // Values assigned to not clash with actual register values
+    RfmModulationType_FSK_BitBangFSK = 0x01,
+    RfmModulationType_OOK_BitBang4FSK = 0x02,
 };
 
 enum RfmLowFrequencyMode {
@@ -141,6 +147,7 @@ enum RfmPaRamp {
     RfmPaRamp_10us = 0b1111,
 };
 
+#define RFM_REG_DIO_MAPPING1_MASK_DIO0 0b11000000
 enum RfmDio0Mapping {
     //Datasheet: Page 65, Table 28,29
     RfmDio0Mapping_Continuous_SyncAddressTxReady = 0x00,
@@ -154,6 +161,7 @@ enum RfmDio0Mapping {
     RfmDio0Mapping_Packet_TempChangeLowBat = 0x3,
 };
 
+#define RFM_REG_DIO_MAPPING1_MASK_DIO1 0b00110000
 enum RfmDio1Mapping {
     //Datasheet: Page 65, Table 28,29
     RfmDio1Mapping_Continuous_Dclk = 0x00,
@@ -166,6 +174,23 @@ enum RfmDio1Mapping {
     RfmDio1Mapping_Packet_TempChangeLowBat = 0x3,
 };
 
+#define RFM_REG_DIO_MAPPING1_MASK_DIO2 0b00001100
+enum RfmDio2Mapping { RfmDio2Mapping_IDK };
+
+#define RFM_REG_DIO_MAPPING1_MASK_DIO3 0b00000011
+enum RfmDio3Mapping { RfmDio3Mapping_IDK };
+
+#define RFM_REG_DIO_MAPPING2_MASK_DIO4 0b11000000
+enum RfmDio4Mapping { RfmDio4Mapping_IDK };
+#define RFM_REG_DIO_MAPPING2_MASK_DIO5 0b00110000
+enum RfmDio5Mapping { RfmDio5Mapping_IDK };
+
+#define RFM_REG_DIO_MAPPING2_MASK_MAP_PREAMBLE_DETECT 0b00000001
+enum RfmMapPreambleDetectInterrupt {
+    RfmMapPreambleDetectInterrupt_RSSI = 0x0,
+    RfmMapPreambleDetectInterrupt_PreambleDetect = 0x1,
+};
+
 enum RfmDcFreeEncodingType {
     RfmDcFreeEncodingType_None,
     RfmDcFreeEncodingType_Manchester,
@@ -175,20 +200,60 @@ enum RfmDcFreeEncodingType {
 int32_t rfm9x_dostuff(const struct device *dev);
 int32_t rfm9xw_software_reset(const struct device *dev);
 
+// Honk mimimimi (TODO add detail about power details when in standby
+int32_t rfm9xw_sleep(const struct device *dev);
+// Stop transmitting (TODO add detail about power details when in standby)
+int32_t rfm9xw_standby(const struct device *dev);
+
+// FSK, OOK, BitBangFSK,
+struct RfmFSKModulationSettings {
+    uint32_t frequency;
+    uint32_t frequency_deviation;
+    uint32_t bitrate;
+    // Power settings
+    enum RfmModulationShaping modulation_shaping;
+    enum RfmPaRamp ramp;
+};
+
+struct RfmOOKModulationSettings {
+    // TODO
+    uint32_t frequency;
+    uint32_t bitrate;
+    enum RfmModulationShaping modulation_shaping;
+    enum RfmPaRamp ramp;
+};
+struct RfmBitBangFSKModulationSettings {
+    uint32_t frequency;
+    uint32_t frequency_deviation;
+    uint32_t bitrate;
+};
+struct RfmBitBang4FSKModulationSettings {
+    uint32_t frequency;
+    uint32_t frequency_deviation;
+    uint32_t bitrate;
+};
+
+int32_t rfm9xw_setup_transmission_fsk(const struct device *dev, const struct RfmFSKModulationSettings *settings);
+int32_t rfm9xw_setup_transmission_ook(const struct device *dev, const struct RfmOOKModulationSettings *settings);
+int32_t rfm9xw_setup_transmission_bitbang_fsk(const struct device *dev,
+                                              const struct RfmBitBangFSKModulationSettings *settings);
+int32_t rfm9xw_setup_transmission_bitbang_4fsk(const struct device *dev,
+                                               const struct RfmBitBang4FSKModulationSettings *settings);
+int32_t rfm9xw_set_power_settings();
+
+// maybe don't use these unless you know what you're doing.
+int32_t rfm9xw_set_dio0_mapping(const struct device *dev, enum RfmDio0Mapping);
+int32_t rfm9xw_set_dio1_mapping(const struct device *dev, enum RfmDio0Mapping);
+int32_t rfm9xw_set_dio2_mapping(const struct device *dev, enum RfmDio0Mapping);
+int32_t rfm9xw_set_dio3_mapping(const struct device *dev, enum RfmDio0Mapping);
+int32_t rfm9xw_set_dio4_mapping(const struct device *dev, enum RfmDio0Mapping);
+int32_t rfm9xw_set_dio5_mapping(const struct device *dev, enum RfmDio0Mapping);
+
 /**
- * Queue a packet to be sent using the currently selected data mode of transmission
- * Packet Mode:
- *  If the radio is in packet mode, this function will add the data to the queue to be sent. 
- *  **This function will take as long as the packet takes to send to the device. It will return before the actual data is transmitted.** 
- * If the radio is already in transmitting mode, it will be transmitted immediately. 
- *  If the radio is in StandBy or SleepMode, the packet will be queued to be sent when the radio is set to transmit mode
- * 
- * Continuous Mode:
- *  If the radio is in continuous mode, this function will send the packet immediately, switching modes as necessary.
- *  **This function will take as long as the packet takes to transmit to return**
- *  It will return to the current mode after it finishes transferring the packet
+ * Send a packet over the radio using the transmission type assigned with rfm9xw_setup_transmission_* types
+ * IS BLOCKING!!!!!!
  */
-int32_t rfm9xw_queue_packet(const struct device *, uint8_t packet_data, int32_t packet_len);
+int32_t rfm9xw_send_packet(const struct device *, uint8_t *packet_data, int32_t packet_len);
 
 #ifdef __cplusplus
 }

@@ -17,7 +17,7 @@ properties:
     description: |
       Long Range Mode:
         - RfmLongRangeModeSetting_FskOokMode: Set Chip to FSK/OOK Mode
-        - RfmLongRangeModeSetting_LoraTmMode: Set Chip to LoRa (TM) Mode
+        - RfmLongRangeModeSetting_LoraTmMode: Set Chip to LoRa (TM) Mode (Currently Unsupported)
       This setting can be reconfigured at runtime when the chip is in standby mode (fact check this)
     enum:
       - "RfmLongRangeModeSetting_FskOokMode"
@@ -163,46 +163,6 @@ properties:
       - "RfmPaRamp_15us"
       - "RfmPaRamp_12us"
       - "RfmPaRamp_10us"
-  sync-word-len:
-    type: int
-    default: 0
-    description: |
-      (not implemented yet)
-      The length in bytes of the sync word. Use sync-word to set the value of this
-      0 bytes to 8 bytes long
-      This setting can be reconfigured at runtime
-  sync-word:
-    type: int
-    default: 0
-    description: |
-      (not implemented yet)
-      The value of the sync word. This value will be truncated according to the length specified in `sync-word-len`
-      With the longest sync word size selected (8 bits) this value can be up to the maximum uint64_t value.
-      sync word choices containing a byte containing all zeroes are not allowed
-      This setting can be reconfigured at runtime
-
-  preamble-length:
-    type: int
-    default: 0
-    description: |
-      (not implemented yet)
-      The length of the 1010.... pattern automatically added by the radio when transmitting a packet
-      A value used to help receivers synchronize and calibrate automatic gain control before receiving actual information
-      This setting can be reconfigured at runtime
-
-  dc-free-encoding:
-    type: string
-    default: "RfmDcFreeEncodingType_None"
-    description: |
-      (not implemented yet)
-      Setting for encoding the data on the radio chip. When operating in packet mode (fact check maybe continous?)
-      This encoding applies to (Fact check: unknown - all parts(preamble, sync, data, crc), just data, just data and CRC)
-      - RfmDcFreeEncodingType_None: No extra encoding of the  packet
-      - RfmDcFreeEncodingType_Manchester: No extra encoding of the data section of a packet
-  beacon-tx:
-    type: boolean
-    description: |
-      Section 4.2.13.8 - Beacon TX mode (not implemented yet)
 
   reset-gpios:
     type: phandle-array
