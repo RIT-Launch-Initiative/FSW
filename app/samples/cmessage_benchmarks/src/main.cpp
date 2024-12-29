@@ -13,6 +13,7 @@
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/messaging/c_msgq_message_port.h>
+#include <f_core/messaging/c_zbus_message_port.h>
 
 LOG_MODULE_REGISTER(main);
 
