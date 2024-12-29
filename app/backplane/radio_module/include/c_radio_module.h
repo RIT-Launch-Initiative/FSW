@@ -43,6 +43,7 @@ private:
 
     static constexpr uint16_t powerModuleTelemetryPort = 11000;
     static constexpr uint16_t radioModuleSourcePort = 12000;
+    static constexpr uint16_t commandResponsePort = 12001;
     static constexpr uint16_t sensorModuleTelemetryPort = 12100;
 
     // Devices
@@ -60,6 +61,7 @@ private:
 
     CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant commandResponseListenerTenant{"Command Response Listener Tenant", ipAddrStr, commandResponsePort, &loraBroadcastMessagePort};
 
 #ifndef CONFIG_ARCH_POSIX
     CLoraRecieveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
