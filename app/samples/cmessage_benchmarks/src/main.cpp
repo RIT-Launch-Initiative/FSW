@@ -87,7 +87,6 @@ public:
         : CTenant(name), messagePort(messagePort), deltas(deltas), deltaSize(deltaSize), pollIndex(index) {}
 
     void Run() override {
-        LOG_INF("%d CONSUMING! %d / %d", pollIndex, deltaIndex, deltaSize);
         if (deltaIndex >= deltaSize) {
             consumerFinished();
             return;
