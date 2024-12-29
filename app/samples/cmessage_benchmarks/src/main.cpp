@@ -18,16 +18,16 @@ LOG_MODULE_REGISTER(main);
 
 K_MUTEX_DEFINE(consumersFinishedMutex);
 
-K_MSGQ_DEFINE(queueOne, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueTwo, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueThree, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueFour, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueFive, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueSix, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueSeven, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueEight, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueNine, sizeof(int64_t), 10, 4);
-K_MSGQ_DEFINE(queueTen, sizeof(int64_t), 10, 4);
+K_MSGQ_DEFINE(queueOne, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueTwo, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueThree, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueFour, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueFive, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueSix, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueSeven, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueEight, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueNine, sizeof(uint64_t), 10, 4);
+K_MSGQ_DEFINE(queueTen, sizeof(uint64_t), 10, 4);
 
 static constexpr std::array<k_msgq*, 10> queues = {
     &queueOne, &queueTwo, &queueThree, &queueFour, &queueFive,
@@ -58,11 +58,11 @@ static void waitForConsumersAndClear(int consumerCount) {
 class CProducer : public CTenant {
 public:
     CProducer(const char* name,
-              std::array<CMessagePort<int64_t>*, 10>& messagePorts, int consumerCount)
+              std::array<CMessagePort<uint64_t>*, 10>& messagePorts, int consumerCount)
         : CTenant(name), messagePorts(messagePorts), consumerCount(consumerCount) {}
 
     void Run() override {
-        int64_t now = k_uptime_ticks();
+        uint64_t now = k_cycle_get_64();
         for (int i = 0; i < consumerCount; i++) {
             if (messagePorts[i] != nullptr) {
                 int ret = messagePorts[i]->Send(now);
@@ -77,13 +77,13 @@ public:
     }
 
 private:
-    std::array<CMessagePort<int64_t>*, 10>& messagePorts;
+    std::array<CMessagePort<uint64_t>*, 10>& messagePorts;
     int consumerCount;
 };
 
 class CConsumer : public CTenant {
 public:
-    CConsumer(const char* name, CMessagePort<int64_t>& messagePort, int64_t* deltas, size_t deltaSize, int index)
+    CConsumer(const char* name, CMessagePort<uint64_t>& messagePort, uint64_t* deltas, size_t deltaSize, int index)
         : CTenant(name), messagePort(messagePort), deltas(deltas), deltaSize(deltaSize), pollIndex(index) {}
 
     void Run() override {
@@ -93,17 +93,17 @@ public:
             return;
         }
 
-        int64_t startTicks;
-        if (int ret = messagePort.Receive(startTicks); ret == 0) {
-            deltas[deltaIndex++] = k_uptime_ticks() - startTicks;
+        uint64_t start;
+        if (int ret = messagePort.Receive(start); ret == 0) {
+            deltas[deltaIndex++] = k_cycle_get_64() - start;
         } else {
             LOG_ERR("Failed to receive message %d", ret);
         }
     }
 
 private:
-    CMessagePort<int64_t>& messagePort;
-    int64_t* deltas;
+    CMessagePort<uint64_t>& messagePort;
+    uint64_t* deltas;
     size_t deltaIndex = 0;
     size_t deltaSize;
     int pollIndex;
@@ -111,38 +111,39 @@ private:
 
 using RtosSetupFn = void (*)(CProducer& producer, CConsumer consumers[], int consumerCount);
 
-static void reportResults(const char* name, const int64_t deltas[], const size_t deltaSize) {
+static void reportResults(const char* name, const uint64_t deltas[], const size_t deltaSize) {
     printk("%s:\n", name);
-    int64_t sum = 0;
+    uint64_t sum = 0;
     for (size_t i = 0; i < deltaSize; i++) {
-        printk("\tDelta %zu: %lld\n", i, deltas[i]);
-        sum += deltas[i];
+        uint64_t microseconds = k_cyc_to_us_floor64(deltas[i]);
+        printk("\tDelta %zu: %lld us\n", i, microseconds);
+        sum += microseconds;
     }
 
-    int64_t average = sum / deltaSize;
-    printk("\tAverage: %lld\n", average);
+    uint64_t average = sum / deltaSize;
+    printk("\tAverage: %lld us\n", average);
 }
 
 
 void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     static constexpr size_t maxQueues = 10;
     static constexpr size_t maxDeltas = 100;
-    static int64_t allDeltas[maxQueues][maxDeltas * sizeof(int64_t)] = {0};
+    static uint64_t allDeltas[maxQueues][maxDeltas * sizeof(uint64_t)] = {0};
 
-    static CMsgqMessagePort<int64_t> msgqPorts[10] = {
-        CMsgqMessagePort<int64_t>(*queues[0]),
-        CMsgqMessagePort<int64_t>(*queues[1]),
-        CMsgqMessagePort<int64_t>(*queues[2]),
-        CMsgqMessagePort<int64_t>(*queues[3]),
-        CMsgqMessagePort<int64_t>(*queues[4]),
-        CMsgqMessagePort<int64_t>(*queues[5]),
-        CMsgqMessagePort<int64_t>(*queues[6]),
-        CMsgqMessagePort<int64_t>(*queues[7]),
-        CMsgqMessagePort<int64_t>(*queues[8]),
-        CMsgqMessagePort<int64_t>(*queues[9]),
+    static CMsgqMessagePort<uint64_t> msgqPorts[10] = {
+        CMsgqMessagePort<uint64_t>(*queues[0]),
+        CMsgqMessagePort<uint64_t>(*queues[1]),
+        CMsgqMessagePort<uint64_t>(*queues[2]),
+        CMsgqMessagePort<uint64_t>(*queues[3]),
+        CMsgqMessagePort<uint64_t>(*queues[4]),
+        CMsgqMessagePort<uint64_t>(*queues[5]),
+        CMsgqMessagePort<uint64_t>(*queues[6]),
+        CMsgqMessagePort<uint64_t>(*queues[7]),
+        CMsgqMessagePort<uint64_t>(*queues[8]),
+        CMsgqMessagePort<uint64_t>(*queues[9]),
     };
 
-    static std::array<CMessagePort<int64_t>*, 10> producerPorts = {
+    static std::array<CMessagePort<uint64_t>*, 10> producerPorts = {
         &msgqPorts[0],
         &msgqPorts[1],
         &msgqPorts[2],
@@ -182,7 +183,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
         char name[32] = {0};
         snprintf(name, sizeof(name), "Consumer%d", i);
         reportResults(name, allDeltas[i], deltaSize);
-        memset(allDeltas[i], 0, deltaSize * sizeof(int64_t));
+        memset(allDeltas[i], 0, deltaSize * sizeof(uint64_t));
         k_msgq_purge(queues[i]);
     }
 }
