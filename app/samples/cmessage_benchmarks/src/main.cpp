@@ -86,7 +86,7 @@ private:
     int pollIndex;
 };
 
-using RtosSetupFn = void (*)(CProducer producer, CConsumer consumers[], int consumerCount);
+using RtosSetupFn = void (*)(CProducer &producer, CConsumer consumers[], int consumerCount);
 
 static void reportResults(const char* name, const int64_t deltas[], const size_t deltaSize) {
     LOG_PRINTK("%s:", name);
@@ -103,7 +103,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     static constexpr size_t maxDeltas = 100;
     static int64_t allDeltas[maxQueues][maxDeltas * sizeof(int64_t)] = {0};
 
-    CMsgqMessagePort<int64_t> msgqPorts[10] = {
+    static CMsgqMessagePort<int64_t> msgqPorts[10] = {
         CMsgqMessagePort<int64_t>(*queues[0]),
         CMsgqMessagePort<int64_t>(*queues[1]),
         CMsgqMessagePort<int64_t>(*queues[2]),
@@ -116,7 +116,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
         CMsgqMessagePort<int64_t>(*queues[9]),
     };
 
-    std::array<CMessagePort<int64_t>*, 10> producerPorts = {
+    static std::array<CMessagePort<int64_t>*, 10> producerPorts = {
         &msgqPorts[0],
         &msgqPorts[1],
         &msgqPorts[2],
@@ -129,7 +129,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
         &msgqPorts[9],
     };
 
-    CConsumer consumers[10] = {
+    static CConsumer consumers[10] = {
         CConsumer("Consumer0", msgqPorts[0], allDeltas[0], deltaSize, 0),
         CConsumer("Consumer1", msgqPorts[1], allDeltas[1], deltaSize, 1),
         CConsumer("Consumer2", msgqPorts[2], allDeltas[2], deltaSize, 2),
@@ -142,7 +142,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
         CConsumer("Consumer9", msgqPorts[9], allDeltas[9], deltaSize, 9),
     };
 
-    CProducer producer("Producer", producerPorts, consumerCount);
+    static CProducer producer("Producer", producerPorts, consumerCount);
 
     k_poll_signal_reset(&consumersFinishedSignal);
 
@@ -178,7 +178,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     }
 }
 
-void setupOneProducerOneConsumer(CProducer producer, CConsumer consumers[], int) {
+void setupOneProducerOneConsumer(CProducer &producer, CConsumer consumers[], int) {
     LOG_INF("1 CONSUMER / 1 THREAD");
 
     static CTask producerTask("Producer Task", 15, 512);
@@ -191,7 +191,7 @@ void setupOneProducerOneConsumer(CProducer producer, CConsumer consumers[], int)
     NRtos::AddTask(consumerTask);
 }
 
-void setupOneProducerThreeConsumersTwoThread(CProducer producer, CConsumer consumers[], int) {
+void setupOneProducerThreeConsumersTwoThread(CProducer &producer, CConsumer consumers[], int) {
     LOG_INF("3 CONSUMER / 1 THREADS");
 
     static CTask producerTask("Producer Task", 15, 512);
@@ -207,7 +207,7 @@ void setupOneProducerThreeConsumersTwoThread(CProducer producer, CConsumer consu
     NRtos::AddTask(consumerTaskTwo);
 }
 
-void setupOneProducerThreeConsumersFourThread(CProducer producer, CConsumer consumers[], int) {
+void setupOneProducerThreeConsumersFourThread(CProducer &producer, CConsumer consumers[], int) {
     LOG_INF("3 CONSUMER / 3 THREADS");
 
     static CTask producerTask("Producer Task", 15, 1024);
