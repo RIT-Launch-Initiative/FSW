@@ -7,14 +7,14 @@
 #include <f_core/net/network/c_ipv4.h>
 #include <f_core/net/transport/c_udp_socket.h>
 
-class CLoraToUdpTenant : public CTenant {
+class CLoraRecieveTenant : public CTenant {
 public:
-    explicit CLoraToUdpTenant(const char* name, CLora& lora, const char* ip, const uint16_t srcPort)
+    explicit CLoraRecieveTenant(const char* name, CLora& lora, const char* ip, const uint16_t srcPort)
         : CTenant(name), lora(lora), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort))
     {
     }
 
-    ~CLoraToUdpTenant() override = default;
+    ~CLoraRecieveTenant() override = default;
 
     void Startup() override;
 

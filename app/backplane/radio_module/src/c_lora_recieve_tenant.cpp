@@ -5,13 +5,13 @@
 
 LOG_MODULE_REGISTER(CLoraReceiveTenant);
 
-void CLoraToUdpTenant::Startup() {
+void CLoraRecieveTenant::Startup() {
 }
 
-void CLoraToUdpTenant::PostStartup() {
+void CLoraRecieveTenant::PostStartup() {
 }
 
-void CLoraToUdpTenant::Run() {
+void CLoraRecieveTenant::Run() {
     uint8_t buffer[255] = {0};
     const int size = lora.ReceiveSynchronous(&buffer, sizeof(buffer), nullptr, nullptr);
     if (size < 0) {

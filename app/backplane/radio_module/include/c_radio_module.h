@@ -7,7 +7,7 @@
 #include "c_gnss_tenant.h"
 #include "c_udp_listener_tenant.h"
 #include "c_lora_transmit_tenant.h"
-#include "c_lora_to_udp_tenant.h"
+#include "c_lora_recieve_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -62,7 +62,7 @@ private:
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
 #ifndef CONFIG_ARCH_POSIX
-    CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
+    CLoraRecieveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
