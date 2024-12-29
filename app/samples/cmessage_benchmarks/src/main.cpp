@@ -62,7 +62,7 @@ public:
         : CTenant(name), messagePorts(messagePorts), consumerCount(consumerCount) {}
 
     void Run() override {
-        int64_t now = k_uptime_get();
+        int64_t now = k_uptime_ticks();
         for (int i = 0; i < consumerCount; i++) {
             if (messagePorts[i] != nullptr) {
                 int ret = messagePorts[i]->Send(now);
@@ -93,9 +93,9 @@ public:
             return;
         }
 
-        int64_t msgValue;
-        if (int ret = messagePort.Receive(msgValue); ret == 0) {
-            deltas[deltaIndex++] = k_uptime_delta(&msgValue);
+        int64_t startTicks;
+        if (int ret = messagePort.Receive(startTicks); ret == 0) {
+            deltas[deltaIndex++] = k_uptime_ticks() - startTicks;
         } else {
             LOG_ERR("Failed to receive message %d", ret);
         }
@@ -113,15 +113,16 @@ using RtosSetupFn = void (*)(CProducer& producer, CConsumer consumers[], int con
 
 static void reportResults(const char* name, const int64_t deltas[], const size_t deltaSize) {
     printk("%s:\n", name);
-    uint64_t sum = 0;
+    int64_t sum = 0;
     for (size_t i = 0; i < deltaSize; i++) {
-        printk("\tDelta %d: %lld\n", name, i, deltas[i]);
+        printk("\tDelta %zu: %lld\n", i, deltas[i]);
         sum += deltas[i];
     }
 
     int64_t average = sum / deltaSize;
-    printk("\tAverage: %lld\n", name, average);
+    printk("\tAverage: %lld\n", average);
 }
+
 
 void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     static constexpr size_t maxQueues = 10;
@@ -203,16 +204,15 @@ void setupOneProducerThreeConsumersTwoThread(CProducer& producer, CConsumer cons
     LOG_INF("3 CONSUMER / 1 THREADS");
 
     static CTask producerTask("Producer Task", 15, 512);
-    static CTask consumerTaskOne("Consumer Task 1", 15, 512);
-    static CTask consumerTaskTwo("Consumer Task 2", 15, 512);
+    static CTask consumerTask("Consumer Task 1", 15, 512);
 
     producerTask.AddTenant(producer);
-    consumerTaskOne.AddTenant(consumers[0]);
-    consumerTaskTwo.AddTenant(consumers[1]);
+    consumerTask.AddTenant(consumers[0]);
+    consumerTask.AddTenant(consumers[1]);
+    consumerTask.AddTenant(consumers[2]);
 
     NRtos::AddTask(producerTask);
-    NRtos::AddTask(consumerTaskOne);
-    NRtos::AddTask(consumerTaskTwo);
+    NRtos::AddTask(consumerTask);
 }
 
 void setupOneProducerThreeConsumersFourThread(CProducer& producer, CConsumer consumers[], int) {
@@ -235,8 +235,9 @@ void setupOneProducerThreeConsumersFourThread(CProducer& producer, CConsumer con
 }
 
 int main() {
-    benchmarkMsgq(setupOneProducerOneConsumer, 3, 10);
+    benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
     benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
     benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
+    LOG_INF("Benchmarks complete!");
     return 0;
 }
