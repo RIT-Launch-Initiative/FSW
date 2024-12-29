@@ -29,14 +29,18 @@ void CLoraRecieveTenant::Run() {
 
         if ((buffer[1] << 8 | buffer[0]) == 12000) { // Command
             // Apply commands to pins
-            for (int i = 2; i < 6 i++) {
-                gpios[i-2].pin_set(buffer[i]);
-            }
+            gpios[0].pin_set(buffer[2] & 1);
+            gpios[1].pin_set((buffer[2] & (1 << 1)) >> 1);
+            gpios[2].pin_set((buffer[2] & (1 << 2)) >> 2);
+            gpios[3].pin_set((buffer[2] & (1 << 3)) >> 3);
 
             // Get status of pins
-            for (int i = 2; i < 6; i++) {
-                buffer[i] = gpios[i-2].pin_get();
-            }
+            buffer[2] &= 0; // clear buffer[2]
+            buffer[2] |= gpios[0].pin_get();
+            buffer[2] |= gpios[1].pin_get() << 1;
+            buffer[2] |= gpios[2].pin_get() << 2;
+            buffer[2] |= gpios[3].pin_get() << 3;
+
 
             // Retransmit status so GS can verify
             udp.SetDstPort(12001);

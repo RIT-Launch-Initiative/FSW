@@ -12,8 +12,8 @@ class CLoraRecieveTenant : public CTenant {
 public:
     explicit CLoraRecieveTenant(const char* name, CLora& lora, const char* ip, const uint16_t srcPort)
         : CTenant(name), lora(lora), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort),
-        gpios{CGpio(*DEVICE_DT_GET(DT_ALIAS(gpios1))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpios2))),
-                CGpio(*DEVICE_DT_GET(DT_ALIAS(gpios3))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpios4)))}) {}
+        gpios{CGpio(*DEVICE_DT_GET(DT_ALIAS(gpios0))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpios1))),
+                CGpio(*DEVICE_DT_GET(DT_ALIAS(gpios2))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpios3)))}) {}
 
     ~CLoraRecieveTenant() override = default;
 
