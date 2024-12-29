@@ -16,6 +16,8 @@
 
 LOG_MODULE_REGISTER(main);
 
+K_MUTEX_DEFINE(consumersFinishedMutex);
+
 K_MSGQ_DEFINE(queueOne, sizeof(int64_t), 10, 4);
 K_MSGQ_DEFINE(queueTwo, sizeof(int64_t), 10, 4);
 K_MSGQ_DEFINE(queueThree, sizeof(int64_t), 10, 4);
@@ -32,7 +34,26 @@ static constexpr std::array<k_msgq*, 10> queues = {
     &queueSix, &queueSeven, &queueEight, &queueNine, &queueTen
 };
 
-static k_poll_signal consumersFinishedSignal;
+static volatile int consumersFinished = 0;
+
+static void consumerFinished() {
+    k_mutex_lock(&consumersFinishedMutex, K_FOREVER);
+    consumersFinished++;
+    k_mutex_unlock(&consumersFinishedMutex);
+}
+
+static void waitForConsumersAndClear(int consumerCount) {
+    while (true) {
+        k_sleep(K_MSEC(100));
+        k_mutex_lock(&consumersFinishedMutex, K_FOREVER);
+        if (consumersFinished >= consumerCount) {
+            k_mutex_unlock(&consumersFinishedMutex);
+            break;
+        }
+        k_mutex_unlock(&consumersFinishedMutex);
+    }
+    consumersFinished = 0;
+}
 
 class CProducer : public CTenant {
 public:
@@ -68,16 +89,8 @@ public:
 
     void Run() override {
         LOG_INF("%d CONSUMING! %d / %d", pollIndex, deltaIndex, deltaSize);
-        // All messages received so raise a bit in the signal to mark completion
         if (deltaIndex >= deltaSize) {
-            int sigResult = 0;
-            LOG_INF("Checking signal");
-            k_poll_signal_check(&consumersFinishedSignal, nullptr, &sigResult);
-            // Print binary representation of the signal 0b
-            LOG_INF("0b%b", sigResult);
-            sigResult |= (1 << pollIndex);
-            k_poll_signal_raise(&consumersFinishedSignal, sigResult);
-            LOG_INF("Done!");
+            consumerFinished();
             return;
         }
 
@@ -155,30 +168,15 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
 
     static CProducer producer("Producer", producerPorts, consumerCount);
 
-    k_poll_signal_reset(&consumersFinishedSignal);
-
     NRtos::ClearTasks();
 
     rtosSetupFn(producer, consumers, consumerCount);
 
-    k_poll_event event{};
-    k_poll_event_init(&event, K_POLL_TYPE_SIGNAL, K_POLL_MODE_NOTIFY_ONLY, &consumersFinishedSignal);
-
+    static k_poll_event event{};
     NRtos::StartRtos();
-
-    while (true) {
-        k_poll(&event, consumerCount, K_FOREVER);
-        int sigResult = 0;
-        k_poll_signal_check(&consumersFinishedSignal, nullptr, &sigResult);
-        int result = 0;
-        for (int i = 0; i < consumerCount; i++) {
-            result |= (1 << i);
-        }
-        if (sigResult == result) {
-            break;
-        }
-    }
+    waitForConsumersAndClear(consumerCount);
     NRtos::StopRtos();
+    
     for (int i = 0; i < consumerCount; i++) {
         char name[32] = {0};
         snprintf(name, sizeof(name), "Consumer%d", i);
@@ -237,8 +235,6 @@ void setupOneProducerThreeConsumersFourThread(CProducer& producer, CConsumer con
 }
 
 int main() {
-    k_poll_signal_init(&consumersFinishedSignal);
-
     benchmarkMsgq(setupOneProducerOneConsumer, 3, 10);
     benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
     benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
