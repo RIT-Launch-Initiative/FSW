@@ -30,6 +30,14 @@ K_MSGQ_DEFINE(queueEight, sizeof(uint64_t), 10, 4);
 K_MSGQ_DEFINE(queueNine, sizeof(uint64_t), 10, 4);
 K_MSGQ_DEFINE(queueTen, sizeof(uint64_t), 10, 4);
 
+ZBUS_CHAN_DEFINE(cyclesChannel,        /* Name */
+                 int64_t,              /* Message type */
+                 NULL,                 /* Validator */
+                 NULL,                 /* User data */
+                 ZBUS_OBSERVERS_EMPTY, /* observers */
+                 0                     /* Initial value is 0 */
+    );
+
 static constexpr std::array<k_msgq*, 10> queues = {
     &queueOne, &queueTwo, &queueThree, &queueFour, &queueFive,
     &queueSix, &queueSeven, &queueEight, &queueNine, &queueTen
@@ -195,6 +203,62 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     printk("\tOverall Average: %lld us\n", overallBenchmarkSum);
 }
 
+void benchmarkZbus(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
+    static constexpr size_t maxQueues = 10;
+    static constexpr size_t maxDeltas = 100;
+    static uint64_t allDeltas[maxQueues][maxDeltas * sizeof(uint64_t)] = {0};
+
+    CZbusMessagePort<uint64_t> messagePort[1] = {
+        CZbusMessagePort<uint64_t>(cyclesChannel)
+    };
+
+    std::array<CMessagePort<uint64_t>*, 10> producerPorts = {
+        &messagePort[0],
+        &messagePort[0],
+        &messagePort[0],
+        &messagePort[0],
+        &messagePort[0],
+        &messagePort[0],
+        &messagePort[0],
+        &messagePort[0],
+        &messagePort[0],
+        &messagePort[0],
+    };
+
+    CConsumer consumers[10] = {
+        CConsumer("Consumer0", messagePort[0], allDeltas[0], deltaSize, 0),
+        CConsumer("Consumer1", messagePort[0], allDeltas[1], deltaSize, 1),
+        CConsumer("Consumer2", messagePort[0], allDeltas[2], deltaSize, 2),
+        CConsumer("Consumer3", messagePort[0], allDeltas[3], deltaSize, 3),
+        CConsumer("Consumer4", messagePort[0], allDeltas[4], deltaSize, 4),
+        CConsumer("Consumer5", messagePort[0], allDeltas[5], deltaSize, 5),
+        CConsumer("Consumer6", messagePort[0], allDeltas[6], deltaSize, 6),
+        CConsumer("Consumer7", messagePort[0], allDeltas[7], deltaSize, 7),
+        CConsumer("Consumer8", messagePort[0], allDeltas[8], deltaSize, 8),
+        CConsumer("Consumer9", messagePort[0], allDeltas[9], deltaSize, 9),
+    };
+
+    CProducer producer("Producer", producerPorts, consumerCount);
+
+    NRtos::ClearTasks();
+
+    rtosSetupFn(producer, consumers, consumerCount);
+
+    NRtos::StartRtos();
+    waitForConsumersAndClear(consumerCount);
+    NRtos::StopRtos();
+
+    uint64_t overallBenchmarkSum = 0;
+    for (int i = 0; i < consumerCount; i++) {
+        char name[32] = {0};
+        snprintf(name, sizeof(name), "Consumer%d", i);
+        overallBenchmarkSum = reportResults(name, allDeltas[i], deltaSize);
+        memset(allDeltas[i], 0, deltaSize * sizeof(uint64_t));
+        k_msgq_purge(queues[i]);
+    }
+    printk("\tOverall Average: %lld us\n", overallBenchmarkSum);
+}
+
 void setupOneProducerOneConsumer(CProducer& producer, CConsumer consumers[], int) {
     LOG_INF("1 CONSUMER / 1 THREAD");
 
@@ -243,9 +307,14 @@ void setupOneProducerThreeConsumersFourThread(CProducer& producer, CConsumer con
 }
 
 int main() {
-    benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
-    benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
-    benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
+    // benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
+    // benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
+    // benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
+
+    benchmarkZbus(setupOneProducerOneConsumer, 1, 10);
+    benchmarkZbus(setupOneProducerThreeConsumersTwoThread, 3, 10);
+    benchmarkZbus(setupOneProducerThreeConsumersFourThread, 3, 10);
+
     LOG_INF("Benchmarks complete!");
     return 0;
 }
