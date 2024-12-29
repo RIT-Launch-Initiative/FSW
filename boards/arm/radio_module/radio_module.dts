@@ -57,22 +57,24 @@
     };
     
     connector-gpios: gpios {
-        gpio_1: gpio_1 {
+        gpio_0: gpio_0 {
             gpios = <&gpioc 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            label = "GPIO 0";
+        };
+
+        gpio_1: gpio_1 {
+            gpios = <&gpioc 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
             label = "GPIO 1";
         };
 
         gpio_2: gpio_2 {
-            gpios = <&gpioc 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-            label = "GPIO 2";
+            gpios = <&gpioc 3 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            label = "GPIO 2"
         };
 
         gpio_3: gpio_3 {
-            gpios = <&gpioc 3 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-        };
-
-        gpio_4: gpio_4 {
             gpios = <&gpioa 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            label = "GPIO 3";
         };
     };
 
@@ -80,10 +82,10 @@
         led0 = &red_led_1;
         led1 = &red_led_2;
 
+        gpio0 = &gpio_0;
         gpio1 = &gpio_1;
         gpio2 = &gpio_2;
         gpio3 = &gpio_3;
-        gpio4 = &gpio_4;
 
         dbguart = &uart4;
         ubxlib-usart2 = &usart2;
