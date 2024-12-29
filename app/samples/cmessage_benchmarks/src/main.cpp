@@ -45,7 +45,13 @@ public:
         for (int i = 0; i < consumerCount; i++) {
             LOG_INF("PRODUCING!");
             if (messagePorts[i] != nullptr) {
-                messagePorts[i]->Send(now);
+                int ret = messagePorts[i]->Send(now);
+                if (ret != 0) {
+                    LOG_ERR("Failed to send message");
+                }
+            } else {
+                LOG_ERR("Message port is null");
+                k_oops();
             }
         }
     }
@@ -61,11 +67,14 @@ public:
         : CTenant(name), messagePort(messagePort), deltas(deltas), deltaSize(deltaSize), pollIndex(index) {}
 
     void Run() override {
-        LOG_INF("%d CONSUMING!", pollIndex);
+        LOG_INF("%d CONSUMING! %d / %d", pollIndex, deltaIndex, deltaSize);
         // All messages received so raise a bit in the signal to mark completion
         if (deltaIndex >= deltaSize) {
             int sigResult = 0;
+            LOG_INF("Checking signal");
             k_poll_signal_check(&consumersFinishedSignal, nullptr, &sigResult);
+            // Print binary representation of the signal 0b
+            LOG_INF("0b%b", sigResult);
             sigResult |= (1 << pollIndex);
             k_poll_signal_raise(&consumersFinishedSignal, sigResult);
             LOG_INF("Done!");
@@ -73,8 +82,10 @@ public:
         }
 
         int64_t msgValue;
-        if (messagePort.Receive(msgValue)) {
+        if (int ret = messagePort.Receive(msgValue); ret == 0) {
             deltas[deltaIndex++] = msgValue;
+        } else {
+            LOG_ERR("Failed to receive message %d", ret);
         }
     }
 
@@ -86,7 +97,7 @@ private:
     int pollIndex;
 };
 
-using RtosSetupFn = void (*)(CProducer &producer, CConsumer consumers[], int consumerCount);
+using RtosSetupFn = void (*)(CProducer& producer, CConsumer consumers[], int consumerCount);
 
 static void reportResults(const char* name, const int64_t deltas[], const size_t deltaSize) {
     LOG_PRINTK("%s:", name);
@@ -156,7 +167,6 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     NRtos::StartRtos();
 
     while (true) {
-        LOG_INF("SLEEPING WAITING FOR CONSUMERS TO FINISH");
         k_poll(&event, consumerCount, K_FOREVER);
         int sigResult = 0;
         k_poll_signal_check(&consumersFinishedSignal, nullptr, &sigResult);
@@ -178,7 +188,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     }
 }
 
-void setupOneProducerOneConsumer(CProducer &producer, CConsumer consumers[], int) {
+void setupOneProducerOneConsumer(CProducer& producer, CConsumer consumers[], int) {
     LOG_INF("1 CONSUMER / 1 THREAD");
 
     static CTask producerTask("Producer Task", 15, 512);
@@ -191,7 +201,7 @@ void setupOneProducerOneConsumer(CProducer &producer, CConsumer consumers[], int
     NRtos::AddTask(consumerTask);
 }
 
-void setupOneProducerThreeConsumersTwoThread(CProducer &producer, CConsumer consumers[], int) {
+void setupOneProducerThreeConsumersTwoThread(CProducer& producer, CConsumer consumers[], int) {
     LOG_INF("3 CONSUMER / 1 THREADS");
 
     static CTask producerTask("Producer Task", 15, 512);
@@ -207,7 +217,7 @@ void setupOneProducerThreeConsumersTwoThread(CProducer &producer, CConsumer cons
     NRtos::AddTask(consumerTaskTwo);
 }
 
-void setupOneProducerThreeConsumersFourThread(CProducer &producer, CConsumer consumers[], int) {
+void setupOneProducerThreeConsumersFourThread(CProducer& producer, CConsumer consumers[], int) {
     LOG_INF("3 CONSUMER / 3 THREADS");
 
     static CTask producerTask("Producer Task", 15, 1024);
@@ -229,8 +239,8 @@ void setupOneProducerThreeConsumersFourThread(CProducer &producer, CConsumer con
 int main() {
     k_poll_signal_init(&consumersFinishedSignal);
 
-    benchmarkMsgq(setupOneProducerOneConsumer, 3, 100);
-    benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 100);
-    benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 100);
+    benchmarkMsgq(setupOneProducerOneConsumer, 3, 10);
+    benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
+    benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
     return 0;
 }
