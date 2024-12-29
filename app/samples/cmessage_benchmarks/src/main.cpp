@@ -182,7 +182,7 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
         CConsumer("Consumer9", msgqPorts[9], allDeltas[9], deltaSize, 9),
     };
 
-    CProducer producer("Producer", producerPorts, consumerCount);
+    CProducer producer("Producer", producerPorts, 1);
 
     NRtos::ClearTasks();
 
@@ -307,9 +307,9 @@ void setupOneProducerThreeConsumersFourThread(CProducer& producer, CConsumer con
 }
 
 int main() {
-    // benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
-    // benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
-    // benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
+    benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
+    benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
+    benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
 
     benchmarkZbus(setupOneProducerOneConsumer, 1, 10);
     benchmarkZbus(setupOneProducerThreeConsumersTwoThread, 3, 10);

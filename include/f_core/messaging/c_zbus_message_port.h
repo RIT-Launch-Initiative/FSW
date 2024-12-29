@@ -33,7 +33,7 @@ public:
     int Send(const T& message, const k_timeout_t timeout) override {
         return zbus_chan_pub(channel, &message, timeout);
     }
-    
+
     /**
      * See parent docs
      */
