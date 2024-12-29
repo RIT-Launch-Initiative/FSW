@@ -64,7 +64,6 @@ public:
     void Run() override {
         int64_t now = k_uptime_get();
         for (int i = 0; i < consumerCount; i++) {
-            LOG_INF("PRODUCING!");
             if (messagePorts[i] != nullptr) {
                 int ret = messagePorts[i]->Send(now);
                 if (ret != 0) {
@@ -96,7 +95,7 @@ public:
 
         int64_t msgValue;
         if (int ret = messagePort.Receive(msgValue); ret == 0) {
-            deltas[deltaIndex++] = msgValue;
+            deltas[deltaIndex++] = k_uptime_delta(&msgValue);
         } else {
             LOG_ERR("Failed to receive message %d", ret);
         }
@@ -113,13 +112,15 @@ private:
 using RtosSetupFn = void (*)(CProducer& producer, CConsumer consumers[], int consumerCount);
 
 static void reportResults(const char* name, const int64_t deltas[], const size_t deltaSize) {
-    LOG_PRINTK("%s:", name);
+    printk("%s:\n", name);
     uint64_t sum = 0;
     for (size_t i = 0; i < deltaSize; i++) {
-        LOG_PRINTK("\tDelta %u: %lld", name, i, deltas[i]);
+        printk("\tDelta %d: %lld\n", name, i, deltas[i]);
         sum += deltas[i];
     }
-    LOG_PRINTK("\tAverage: %lld\n", name, sum / deltaSize);
+
+    int64_t average = sum / deltaSize;
+    printk("\tAverage: %lld\n", name, average);
 }
 
 void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
@@ -172,11 +173,10 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
 
     rtosSetupFn(producer, consumers, consumerCount);
 
-    static k_poll_event event{};
     NRtos::StartRtos();
     waitForConsumersAndClear(consumerCount);
     NRtos::StopRtos();
-    
+
     for (int i = 0; i < consumerCount; i++) {
         char name[32] = {0};
         snprintf(name, sizeof(name), "Consumer%d", i);

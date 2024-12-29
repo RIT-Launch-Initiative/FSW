@@ -29,8 +29,7 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
 
 CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : name(name),
                                                                                priority(priority), stackSize(stackSize),
-                                                                               sleepTimeMs(sleepTimeMs) {
-    stack = k_thread_stack_alloc(stackSize, 0);
+                                                                               sleepTimeMs(sleepTimeMs), stack(nullptr) {
 }
 
 CTask::~CTask() {
