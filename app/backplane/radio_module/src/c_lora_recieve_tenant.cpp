@@ -26,7 +26,24 @@ void CLoraRecieveTenant::Run() {
 
     LOG_INF("Received %d bytes on port %d", size, buffer[1] << 8 | buffer[0]);
     if (size > 2) {
-        udp.SetDstPort(buffer[1] << 8 | buffer[0]);
-        udp.TransmitAsynchronous(&buffer[2], size);
+
+        if ((buffer[1] << 8 | buffer[0]) == 12000) { // Command
+            // Apply commands to pins
+            for (int i = 2; i < 6 i++) {
+                gpios[i-2].pin_set(buffer[i]);
+            }
+
+            // Get status of pins
+            for (int i = 2; i < 6; i++) {
+                buffer[i] = gpios[i-2].pin_get();
+            }
+
+            // Retransmit status so GS can verify
+            udp.SetDstPort(12001);
+            udp.TransmitAsynchronous(&buffer[2], size);
+        } else {
+            udp.SetDstPort(buffer[1] << 8 | buffer[0]);
+            udp.TransmitAsynchronous(&buffer[2], size);
+        }
     }
 }
