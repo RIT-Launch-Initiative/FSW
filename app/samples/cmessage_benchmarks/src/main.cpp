@@ -114,7 +114,7 @@ private:
 
 using RtosSetupFn = void (*)(CProducer& producer, CConsumer consumers[], int consumerCount);
 
-static void reportResults(const char* name, const uint64_t deltas[], const size_t deltaSize) {
+static uint64_t reportResults(const char* name, const uint64_t deltas[], const size_t deltaSize) {
     printk("%s:\n", name);
     uint64_t sum = 0;
     for (size_t i = 0; i < deltaSize; i++) {
@@ -125,6 +125,7 @@ static void reportResults(const char* name, const uint64_t deltas[], const size_
 
     uint64_t average = sum / deltaSize;
     printk("\tAverage: %lld us\n", average);
+    return average;
 }
 
 
@@ -182,13 +183,15 @@ void benchmarkMsgq(RtosSetupFn rtosSetupFn, int consumerCount, int deltaSize) {
     waitForConsumersAndClear(consumerCount);
     NRtos::StopRtos();
 
+    uint64_t overallBenchmarkSum = 0;
     for (int i = 0; i < consumerCount; i++) {
         char name[32] = {0};
         snprintf(name, sizeof(name), "Consumer%d", i);
-        reportResults(name, allDeltas[i], deltaSize);
+        overallBenchmarkSum = reportResults(name, allDeltas[i], deltaSize);
         memset(allDeltas[i], 0, deltaSize * sizeof(uint64_t));
         k_msgq_purge(queues[i]);
     }
+    printk("\tOverall Average: %lld us\n", overallBenchmarkSum);
 }
 
 void setupOneProducerOneConsumer(CProducer& producer, CConsumer consumers[], int) {
@@ -205,7 +208,7 @@ void setupOneProducerOneConsumer(CProducer& producer, CConsumer consumers[], int
 }
 
 void setupOneProducerThreeConsumersTwoThread(CProducer& producer, CConsumer consumers[], int) {
-    LOG_INF("3 CONSUMER / 1 THREADS");
+    LOG_INF("3 CONSUMER / 1 THREAD");
 
     static CTask producerTask("Producer Task", 15, 512);
     static CTask consumerTask("Consumer Task 1", 15, 512);
@@ -239,7 +242,7 @@ void setupOneProducerThreeConsumersFourThread(CProducer& producer, CConsumer con
 }
 
 int main() {
-    // benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
+    benchmarkMsgq(setupOneProducerOneConsumer, 1, 10);
     benchmarkMsgq(setupOneProducerThreeConsumersTwoThread, 3, 10);
     benchmarkMsgq(setupOneProducerThreeConsumersFourThread, 3, 10);
     LOG_INF("Benchmarks complete!");
