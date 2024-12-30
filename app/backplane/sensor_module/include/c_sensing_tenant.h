@@ -34,10 +34,7 @@ private:
     CBarometer secondaryBarometer;
     CAccelerometer accelerometer;
     CTemperatureSensor thermometer;
-
-#ifndef CONFIG_ARCH_POSIX
     CMagnetometer magnetometer;
-#endif
 
     std::array<CSensorDevice*, 7> sensors;
 };

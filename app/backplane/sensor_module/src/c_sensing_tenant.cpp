@@ -22,9 +22,7 @@ CSensingTenant::CSensingTenant(const char* name,
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
       accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer))),
       thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer))),
-#ifndef CONFIG_ARCH_POSIX
       magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer))),
-#endif
       sensors{
           &imuAccelerometer,
           &imuGyroscope,
@@ -78,11 +76,9 @@ void CSensingTenant::Run() {
         data.ImuGyroscope.Y = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
         data.ImuGyroscope.Z = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
 
-#ifndef CONFIG_ARCH_POSIX // TODO: No magnetometer simulation capability yet
         data.Magnetometer.X = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_X);
         data.Magnetometer.Y = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Y);
         data.Magnetometer.Z = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Z);
-#endif
 
         data.PrimaryBarometer.Pressure = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
         data.PrimaryBarometer.Temperature = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
