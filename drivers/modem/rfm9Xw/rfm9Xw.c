@@ -705,23 +705,25 @@ int32_t transmit_4fsk_packet(const struct device *dev, uint8_t preamble_len, uin
     for (int byte_index = 0; byte_index < len; byte_index++) {
         const uint8_t byte = buf[byte_index];
         // LOG_INF("tx: %02x", byte);
-        const uint8_t syms[4] = {
-            (byte >> 6) & 0b11,
-            (byte >> 4) & 0b11,
-            (byte >> 2) & 0b11,
-            (byte >> 0) & 0b11,
-        };
+        // const uint8_t syms[4] = {
+        // (byte >> 6) & 0b11,
+        // (byte >> 4) & 0b11,
+        // (byte >> 2) & 0b11,
+        // (byte >> 0) & 0b11,
+        // };
         if (byte == 0x24) {
             LOG_INF("BYTE: %02x", byte);
         }
+        uint8_t b = byte;
         for (int sym_index = 0; sym_index < 4; sym_index++) {
-            uint8_t sym = syms[sym_index];
+            // uint8_t sym = syms[sym_index];
             if (byte == 0x24) {
-                LOG_INF("sym: %d val %d", sym_index, sym);
+                LOG_INF("sym: %d val %d", sym_index, ((b >> 6) & 0b11));
             }
-            uint32_t fdev = symbols_fdev[sym];
+            uint32_t fdev = symbols_fdev[((b >> 6) & 0b11)];
             k_timer_status_sync(&bitrate_timer);
             set_frequency_deviation(dev, fdev);
+            b = b << 2;
         }
     }
     // Last symbol
@@ -885,25 +887,25 @@ int32_t rfm9x_dostuff(const struct device *dev) {
         .checksum = 0,
     };
     checksumSelf(&dat);
+    uint8_t out[OUTLEN];
 
-    // uint8_t out[OUTLEN] = {0};
-    uint8_t real[] = {
-        0x84, 0x01, 0x30, 0x00, 0x14, 0x25, 0x29, 0x95, 0x32, 0x29, 0x42, 0x4C, 0xB6, 0x8E, 0xC2, 0x51,
-        0x00, 0x00, 0x0A, 0x1C, 0x4A, 0x00, 0x00, 0x19, 0x01, 0x14, 0x78, 0x27, 0x00, 0x00, 0xC9, 0x37,
-    };
-    // int txlen = horus_l2_get_num_tx_data_bytes(sizeof(dat));
-    // LOG_INF("Sizeof(HorusData): %d, txlen: %d", (int) sizeof(dat), txlen);
-    // int len = horus_l2_encode_tx_packet(out, (uint8_t *) &dat, sizeof(dat));
+    int txlen = horus_l2_get_num_tx_data_bytes(sizeof(dat));
+    LOG_INF("Sizeof(HorusData): %d, txlen: %d", (int) sizeof(dat), txlen);
+    int len = horus_l2_encode_tx_packet(out, (uint8_t *) &dat, sizeof(dat));
+    LOG_HEXDUMP_INF((uint8_t *) &dat, sizeof(dat), "data");
+    LOG_HEXDUMP_INF((uint8_t *) out, len, "enc");
+
+    uint8_t dec[OUTLEN] = {0};
+    horus_l2_decode_rx_packet(dec, out, 32);
+    LOG_HEXDUMP_INF((uint8_t *) dec, 32, "dec");
 
     for (int i = 0; i < 100000; i++) {
         int64_t start = k_uptime_get();
         // LOG_INF("Beep len %d", len);
-        // transmit_4fsk_packet(dev, preamble, sizeof(preamble));
-        transmit_4fsk_packet(dev, 8, real, sizeof(real));
+        transmit_4fsk_packet(dev, 8, out, len);
+        // transmit_4fsk_packet(dev, 8, real, sizeof(real));
         int64_t elapsed = k_uptime_get() - start;
         LOG_INF("elapsed: %d", (int) elapsed);
-        // LOG_HEXDUMP_INF((uint8_t *) &dat, sizeof(dat), "data");
-        // LOG_HEXDUMP_INF((uint8_t *) &out, len, "enc");
         // LOG_HEXDUMP_INF((uint8_t *) real, sizeof(real), "real");
 
         k_msleep(3000);
