@@ -1,0 +1,3 @@
+name: shell
+append:
+  EXTRA_CONF_FILE: shell.conf
