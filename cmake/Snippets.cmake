@@ -6,14 +6,14 @@ function(AddCommonSnippets)
     )
 
     foreach(snippet ${COMMON_SNIPPETS})
-      if(NOT snippet IN_LIST SNIPPET)
-        list(APPEND SNIPPET ${snippet})
-      endif()
+        list(FIND SNIPPET ${snippet} snippet_index)
+        if(snippet_index EQUAL -1)
+            list(APPEND SNIPPET ${snippet})
+        endif()
     endforeach()
 
     set(SNIPPET ${SNIPPET} CACHE STRING "List of snippets" FORCE)
 endfunction()
-
 
 function(AddDebugSnippets)
     list(APPEND DEBUG_SNIPPETS
@@ -23,9 +23,10 @@ function(AddDebugSnippets)
     )
 
     foreach(snippet ${DEBUG_SNIPPETS})
-      if(NOT snippet IN_LIST SNIPPET)
-        list(APPEND SNIPPET ${snippet})
-      endif()
+        list(FIND SNIPPET ${snippet} snippet_index)
+        if(snippet_index EQUAL -1)
+            list(APPEND SNIPPET ${snippet})
+        endif()
     endforeach()
 
     set(SNIPPET ${SNIPPET} CACHE STRING "List of snippets" FORCE)

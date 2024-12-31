@@ -1,10 +1,14 @@
-set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
+include(${FSW_ROOT}/cmake/Snippets.cmake)
+
+AddCommonSnippets()
 
 # Guarantee that core.conf is the default and first configuration file to be read
 list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/core.conf)
 
 if (DEBUG)
     message(STATUS "Adding debug configuration")
+    AddDebugSnippets()
     list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/debug.conf)
 endif ()
 
