@@ -1,17 +1,17 @@
-#include "c_lora_to_udp_tenant.h"
+#include "c_lora_receive_tenant.h"
 #include "c_radio_module.h"
 
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CLoraReceiveTenant);
 
-void CLoraRecieveTenant::Startup() {
+void CLoraReceiveTenant::Startup() {
 }
 
-void CLoraRecieveTenant::PostStartup() {
+void CLoraReceiveTenant::PostStartup() {
 }
 
-void CLoraRecieveTenant::Run() {
+void CLoraReceiveTenant::Run() {
     uint8_t buffer[255] = {0};
     const int size = lora.ReceiveSynchronous(&buffer, sizeof(buffer), nullptr, nullptr);
     if (size < 0) {

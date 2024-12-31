@@ -9,12 +9,12 @@
 #include <f_core/net/transport/c_udp_socket.h>
 #include <f_core/device/c_gpio.h>
 
-class CLoraRecieveTenant : public CTenant {
+class CLoraReceiveTenant : public CTenant {
 public:
-    explicit CLoraRecieveTenant(const char* name, CLora& lora, const char* ip, const uint16_t srcPort, MessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
+    explicit CLoraReceiveTenant(const char* name, CLora& lora, const char* ip, const uint16_t srcPort, MessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
         : CTenant(name), lora(lora), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort), loraTransmitPort(*loraTransmitPort)) {}
 
-    ~CLoraRecieveTenant() override = default;
+    ~CLoraReceiveTenant() override = default;
 
     void Startup() override;
 
