@@ -63,6 +63,8 @@ twister-out*/
 .vscode/
 **/.idea/workspace.xml
 **/.idea/tasks.xml
+**/.idea/dtsSettings.xml
+
 .cache/
 zephyr-windows.code-workspace
 flash.bin

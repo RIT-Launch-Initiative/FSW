@@ -43,7 +43,7 @@ public:
 
 private:
     static constexpr const char* ipAddrStr = "10.3.2.1";
-    static constexpr int telemetryBroadcastPort = 12100;
+    static constexpr int telemetryBroadcastPort = 13100;
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
@@ -56,9 +56,9 @@ private:
     // CRs485Tenant rs485Tenant{"RS485 Tenant"};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 512, 0};
+    CTask networkTask{"Networking Task", 15, 1024, 0};
     CTask sensingTask{"Sensing Task", 15, 1024, 0};
-    CTask dataLogTask{"Data Logging Task", 15, 512, 0};
+    CTask dataLogTask{"Data Logging Task", 15, 1300, 0};
 };
 
 

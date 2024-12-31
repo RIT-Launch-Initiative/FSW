@@ -4,6 +4,7 @@
 #include <zephyr/net/socket.h>
 
 #include <zephyr/logging/log.h>
+#include <zephyr/posix/fcntl.h>
 
 LOG_MODULE_REGISTER(CUdpSocket);
 
@@ -28,6 +29,12 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
     if (zsock_bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
         LOG_ERR("Failed to bind socket.");
         zsock_close(sock);
+    }
+
+    // Link takes around 2 seconds to come up. Wait to avoid errors when tx/rxing
+    const uint32_t uptime = k_uptime_get_32();
+    if (uptime < 2000) {
+        k_msleep(2000 - uptime);
     }
 }
 
@@ -71,18 +78,30 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
 }
 
 int CUdpSocket::ReceiveAsynchronous(void* data, size_t len) {
-    static zsock_pollfd fds{
-        .fd = sock,
-        .events = ZSOCK_POLLIN
-    };
-
-    int ret = zsock_poll(&fds, 1, 0);
-    if (ret < 0) {
-        LOG_ERR("Polling error (%d)", ret);
-        return ret;
+    int flags = zsock_fcntl(sock, F_GETFL, 0);
+    if (flags < 0) {
+        LOG_ERR("Failed to get socket flags (%d)", flags);
+        return -1;
     }
 
-    return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
+    if (!(flags & O_NONBLOCK)) {
+        flags |= O_NONBLOCK;
+        if (zsock_fcntl(sock, F_SETFL, flags) < 0) {
+            LOG_ERR("Failed to set socket to non-blocking mode.");
+            return -1;
+        }
+    }
+
+    const int ret = zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
+    if (ret < 0) {
+        if ((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
+            return 0;
+        }
+        LOG_ERR("Failed to receive data asynchronously (%d)", errno);
+        return -1;
+    }
+
+    return ret;
 }
 
 int CUdpSocket::SetTxTimeout(const int timeoutMillis) {

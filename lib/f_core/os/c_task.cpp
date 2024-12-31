@@ -61,6 +61,7 @@ void CTask::Initialize() {
 
     taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, nullptr, nullptr, priority, 0,
                              K_NO_WAIT);
+
     k_thread_name_set(taskId, name);
 }
 
