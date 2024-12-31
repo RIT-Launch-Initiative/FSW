@@ -18,7 +18,7 @@
 		spi-max-frequency = <DT_FREQ_M(8)>; // pg. 20, Table 10 MAX 10MHz
 		
 		carrier-frequency = <DT_FREQ_M(433)>;
-		deviation-frequency = <405>;
+		deviation-frequency = <900>;
 		bitrate = <100>;
 		modulation-type = "RfmModulationType_FSK";
 

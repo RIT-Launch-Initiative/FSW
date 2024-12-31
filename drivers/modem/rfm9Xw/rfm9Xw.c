@@ -1,7 +1,5 @@
 #include "rfm9Xw.h"
 
-#include "horusl2.h"
-
 #include <assert.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -10,7 +8,14 @@
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(rfm9xw);
+
+#define HORUS_L2_RX
+// #define DEBUG1
+// #define DEBUG0
+#include "horusl2.h"
+
 #define DT_DRV_COMPAT hoperf_rfm9xw
+
 struct rfm9Xw_config {
     struct spi_dt_spec bus;
     enum RfmModelNumber model_num;
@@ -655,7 +660,7 @@ int32_t set_operating_mode(const struct device *dev, enum RfmLongRangeModeSettin
 unsigned short crc16(char *ptr, int count) {
     int crc;
     char i;
-    crc = 0;
+    crc = 0xffff;
     while (--count >= 0) {
         crc = crc ^ (int) *ptr++ << 8;
         i = 8;
@@ -669,32 +674,36 @@ unsigned short crc16(char *ptr, int count) {
 }
 
 int32_t transmit_4fsk_packet(const struct device *dev, uint8_t preamble_len, uint8_t *buf, uint32_t len) {
+    // LOG_HEXDUMP_INF(buf, len, "Packet");
+    // LOG_INF("Packet Length: %d", len);
     const struct rfm9Xw_config *config = dev->config;
     struct rfm9Xw_data *data = dev->data;
 
     const uint32_t carrier = data->carrier_freq;
     const uint32_t deviation = data->deviation_freq;
+
     const uint32_t bitrate = 100;
-    //data->bitrate;
+    const int usec_per_symbol = 1000000 / bitrate;
 
     const uint32_t high = carrier + deviation;
     const uint32_t step = deviation * 2 / 3;
-
     const uint32_t symbols_fdev[4] = {3 * step, 2 * step, step, 0};
-    //
-    set_carrier_frequency(dev, high);
-    LOG_INF("Carrier: %d", high);
+
+    // internal radio preamble, not horus preamble. when len = 0, radio transmits on the low end of its 2FSK. where this falls is controlled by frequency_deviation
+    // we achieve fast frequency control by switching the deviation
+    // transmitted_freq = high - fdev
     set_pramble_len(dev, 0);
+    set_carrier_frequency(dev, high);
+    // start transmitting
+    set_frequency_deviation(dev, symbols_fdev[0]);
     set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK, RfmLowFrequencyMode_LowFrequency,
                        RfmTransceiverMode_Transmitter);
 
-    const int baud = bitrate;
-    const int usec_per_symbol = 1000000 / baud;
-    LOG_INF("usec per: %d", usec_per_symbol);
     struct k_timer bitrate_timer;
     k_timer_init(&bitrate_timer, NULL, NULL);
     k_timer_start(&bitrate_timer, K_USEC(usec_per_symbol), K_USEC(usec_per_symbol));
 
+    // transmit preamble 0,1,2,3 (low, 2nd lowest, 2nd highest, highest)
     for (int i = 0; i < preamble_len; i++) {
         for (int j = 0; j < 4; j++) {
             k_timer_status_sync(&bitrate_timer);
@@ -704,26 +713,17 @@ int32_t transmit_4fsk_packet(const struct device *dev, uint8_t preamble_len, uin
 
     for (int byte_index = 0; byte_index < len; byte_index++) {
         const uint8_t byte = buf[byte_index];
-        // LOG_INF("tx: %02x", byte);
-        // const uint8_t syms[4] = {
-        // (byte >> 6) & 0b11,
-        // (byte >> 4) & 0b11,
-        // (byte >> 2) & 0b11,
-        // (byte >> 0) & 0b11,
-        // };
-        if (byte == 0x24) {
-            LOG_INF("BYTE: %02x", byte);
-        }
-        uint8_t b = byte;
+        const uint8_t syms[4] = {
+            (byte >> 6) & 0b11,
+            (byte >> 4) & 0b11,
+            (byte >> 2) & 0b11,
+            (byte >> 0) & 0b11,
+        };
         for (int sym_index = 0; sym_index < 4; sym_index++) {
-            // uint8_t sym = syms[sym_index];
-            if (byte == 0x24) {
-                LOG_INF("sym: %d val %d", sym_index, ((b >> 6) & 0b11));
-            }
-            uint32_t fdev = symbols_fdev[((b >> 6) & 0b11)];
+            uint8_t sym = syms[sym_index];
+            uint32_t fdev = symbols_fdev[sym];
             k_timer_status_sync(&bitrate_timer);
             set_frequency_deviation(dev, fdev);
-            b = b << 2;
         }
     }
     // Last symbol
@@ -733,77 +733,6 @@ int32_t transmit_4fsk_packet(const struct device *dev, uint8_t preamble_len, uin
                        RfmTransceiverMode_Standby);
     k_timer_stop(&bitrate_timer);
 
-    return 0;
-}
-int32_t edgy_fsk(const struct device *dev, struct rfm9Xw_data *data, const char *msg, size_t len, int32_t delay_ms,
-                 int32_t deviation_hz) {
-    const struct rfm9Xw_config *config = dev->config;
-    uint8_t freq1_msb = 0;
-    uint8_t freq1_mid = 0;
-    uint8_t freq1_lsb = 0;
-    frf_reg_from_frequency(config->model_num, data->carrier_freq - deviation_hz, &freq1_msb, &freq1_mid, &freq1_lsb);
-
-    int32_t got1 = RFM_FSTEP_HZ * ((freq1_msb << 16) | (freq1_mid << 8) | freq1_lsb);
-
-    uint8_t freq2_msb = 0;
-    uint8_t freq2_mid = 0;
-    uint8_t freq2_lsb = 0;
-    frf_reg_from_frequency(config->model_num, data->carrier_freq + deviation_hz, &freq2_msb, &freq2_mid, &freq2_lsb);
-    int32_t got2 = RFM_FSTEP_HZ * ((freq2_msb << 16) | (freq2_mid << 8) | freq2_lsb);
-    LOG_INF("Actually using %d and %d", got1, got2);
-
-    struct k_timer bitrate_timer;
-    k_timer_init(&bitrate_timer, NULL, NULL);
-    k_timer_start(&bitrate_timer, K_MSEC(delay_ms), K_MSEC(delay_ms));
-
-    int32_t res = 0;
-    uint8_t last_bit = 1;
-    res = set_frequency_by_reg(config, freq1_msb, freq1_mid, freq1_lsb);
-
-    // SET PREAMBLE TO NOTHING SO YOURE NOT GOING 0101010110101010 forever. OR SET THE BITRATE REAL HIGH AND THE DEVIATION REAL LOW
-    // set_carrier_frequency(config, 433500000);
-    // set_bitrate(config, 1200);
-    // set_power_amplifier(config, config->power_amplifier, data->max_power, data->output_power);
-    // set_pramble_len(config, 1);
-    // set_frequency_deviation(config, 0);
-
-    while (1) {
-        int64_t start = k_uptime_get();
-
-        for (int biti = 0; biti < len * 8; biti++) {
-            uint8_t byte = msg[biti / 8];
-            uint8_t subindex = 7 - (biti % 8);
-            uint8_t bit = (byte >> (subindex)) & 0x1;
-
-            k_timer_status_sync(&bitrate_timer);
-
-            if (bit != last_bit) {
-                if (bit) {
-                    res = set_frequency_by_reg(config, freq1_msb, freq1_mid, freq1_lsb);
-                } else {
-                    res = set_frequency_by_reg(config, freq2_msb, freq2_mid, freq2_lsb);
-                }
-                set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_OOK,
-                                   RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_FsModeTx);
-
-                set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_OOK,
-                                   RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Transmitter);
-
-                if (res < 0) {
-                    LOG_ERR("Error switching frequency");
-                }
-            }
-            last_bit = bit;
-        }
-        k_timer_status_sync(&bitrate_timer);
-
-        int64_t end = k_uptime_get();
-        int64_t elapsed = end - start;
-        double ms_per = (double) elapsed / (double) (len * 8);
-        LOG_INF("Transmitted %d bits over %lldms. Time per symbol = %.2f ms", len * 8, elapsed, ms_per);
-        k_msleep(5000);
-    }
-    k_timer_stop(&bitrate_timer);
     return 0;
 }
 
@@ -865,44 +794,64 @@ int32_t rfm9x_dostuff(const struct device *dev) {
     set_pramble_len(dev, 0);
     set_frequency_deviation(dev, 0);
     // set_modulation_shaping(dev, data->modulation_shaping, data->pa_ramp);
-    set_modulation_shaping(dev, RfmModulationShaping_FSK_NoShaping, RfmPaRamp_10us);
+    set_modulation_shaping(dev, RfmModulationShaping_FSK_NoShaping, RfmPaRamp_15us);
 
 #define INLEN  32
 #define OUTLEN (INLEN * 3)
 
-    struct HorusData dat = {
-        .payload_id = 12345,
-        .seq_num = 54321,
-        .hours = 34,
-        .minutes = 8,
-        .seconds = 3,
-        .latitude = 42.0,
-        .longitude = -70,
-        .altitude = 200,
-        .speed = 32,
-        .satellites = 4,
-        .temp = 43,
-        .custom_data = {1, 2, 3, 4, 5, 6, 7, 8, 9},
-        .battery_voltage = 3,
-        .checksum = 0,
-    };
+    struct HorusData dat = {0x0};
+    dat.payload_id = 0xff;
+    dat.seq_num = 0xbeef;
+    dat.hours = 0xff;
+    dat.minutes = 0xde;
+    dat.seconds = 0xad;
+    dat.satellites = 0xbe;
+    // dat.seq_num = 0xffff;
+    // dat.hours=0xff;
+    // {
+    //     .payload_id = 12345,
+    //     .seq_num = 54321,
+    //     .hours = 34,
+    //     .minutes = 8,
+    //     .seconds = 3,
+    //     .latitude = 42.0,
+    //     .longitude = -70,
+    //     .altitude = 200,
+    //     .speed = 32,
+    //     .satellites = 4,
+    //     .temp = 43,
+    //     .custom_data = {1, 2, 3, 4, 5, 6, 7, 8, 9},
+    //     .battery_voltage = 3,
+    //     .checksum = 0,
+    // };
     checksumSelf(&dat);
-    uint8_t out[OUTLEN];
+    LOG_INF("checksum: %04x", dat.checksum);
 
+    uint8_t golay_encoded[OUTLEN] = {0xff};
     int txlen = horus_l2_get_num_tx_data_bytes(sizeof(dat));
     LOG_INF("Sizeof(HorusData): %d, txlen: %d", (int) sizeof(dat), txlen);
-    int len = horus_l2_encode_tx_packet(out, (uint8_t *) &dat, sizeof(dat));
-    LOG_HEXDUMP_INF((uint8_t *) &dat, sizeof(dat), "data");
-    LOG_HEXDUMP_INF((uint8_t *) out, len, "enc");
 
-    uint8_t dec[OUTLEN] = {0};
-    horus_l2_decode_rx_packet(dec, out, 32);
-    LOG_HEXDUMP_INF((uint8_t *) dec, 32, "dec");
+    int len = horus_l2_encode_tx_packet(golay_encoded, (uint8_t *) &dat, sizeof(dat));
+    // golay_encoded[len - 1] = 0x1b;
+    // golay_encoded[len - 2] = 0x1b;
+    // golay_encoded[len - 3] = 0x1b;
+
+    // uint8_t golay_encoded[] = {0x24, 0x24, 0x01, 0x0b, 0x00, 0x00, 0x05, 0x3b, 0xf2, 0xa7, 0x0b, 0xc2,
+    //                            0x1b, 0xaa, 0x0a, 0x43, 0x7e, 0x00, 0x05, 0x00, 0x25, 0xc0, 0xce, 0xbb,
+    //                            0x36, 0x69, 0x50, 0x00, 0x41, 0xb0, 0xa6, 0x5e, 0x91, 0xa2, 0xa3, 0xf8,
+    //                            0x1d, 0x00, 0x00, 0x0c, 0x76, 0xc6, 0x05, 0xb0, 0xb8};
+
+    // uint8_t decoded[OUTLEN] = {0xff};
+    // horus_l2_decode_rx_packet(decoded, golay_encoded, sizeof(struct HorusData));
+
+    LOG_HEXDUMP_INF((uint8_t *) &dat, sizeof(dat), "data");
+    LOG_HEXDUMP_INF((uint8_t *) golay_encoded, len, "enc");
+    // LOG_HEXDUMP_INF((uint8_t *) decoded, 32, "dec");
 
     for (int i = 0; i < 100000; i++) {
         int64_t start = k_uptime_get();
-        // LOG_INF("Beep len %d", len);
-        transmit_4fsk_packet(dev, 8, out, len);
+        LOG_INF("Beep len %d", len);
+        transmit_4fsk_packet(dev, 8, golay_encoded, len);
         // transmit_4fsk_packet(dev, 8, real, sizeof(real));
         int64_t elapsed = k_uptime_get() - start;
         LOG_INF("elapsed: %d", (int) elapsed);
@@ -1084,3 +1033,75 @@ static int rfm9xw_init(const struct device *dev) {
     DEVICE_DT_INST_DEFINE(n, rfm9xw_init, NULL, &rfm9Xw_data_##n, &rfm9Xw_config_##n, POST_KERNEL, 90, NULL);
 
 DT_INST_FOREACH_STATUS_OKAY(RFM9XW_INIT)
+
+int32_t edgy_fsk(const struct device *dev, struct rfm9Xw_data *data, const char *msg, size_t len, int32_t delay_ms,
+                 int32_t deviation_hz) {
+    const struct rfm9Xw_config *config = dev->config;
+    uint8_t freq1_msb = 0;
+    uint8_t freq1_mid = 0;
+    uint8_t freq1_lsb = 0;
+    frf_reg_from_frequency(config->model_num, data->carrier_freq - deviation_hz, &freq1_msb, &freq1_mid, &freq1_lsb);
+
+    int32_t got1 = RFM_FSTEP_HZ * ((freq1_msb << 16) | (freq1_mid << 8) | freq1_lsb);
+
+    uint8_t freq2_msb = 0;
+    uint8_t freq2_mid = 0;
+    uint8_t freq2_lsb = 0;
+    frf_reg_from_frequency(config->model_num, data->carrier_freq + deviation_hz, &freq2_msb, &freq2_mid, &freq2_lsb);
+    int32_t got2 = RFM_FSTEP_HZ * ((freq2_msb << 16) | (freq2_mid << 8) | freq2_lsb);
+    LOG_INF("Actually using %d and %d", got1, got2);
+
+    struct k_timer bitrate_timer;
+    k_timer_init(&bitrate_timer, NULL, NULL);
+    k_timer_start(&bitrate_timer, K_MSEC(delay_ms), K_MSEC(delay_ms));
+
+    int32_t res = 0;
+    uint8_t last_bit = 1;
+    res = set_frequency_by_reg(config, freq1_msb, freq1_mid, freq1_lsb);
+
+    // SET PREAMBLE TO NOTHING SO YOURE NOT GOING 0101010110101010 forever. OR SET THE BITRATE REAL HIGH AND THE DEVIATION REAL LOW
+    // set_carrier_frequency(config, 433500000);
+    // set_bitrate(config, 1200);
+    // set_power_amplifier(config, config->power_amplifier, data->max_power, data->output_power);
+    // set_pramble_len(config, 1);
+    // set_frequency_deviation(config, 0);
+
+    while (1) {
+        int64_t start = k_uptime_get();
+
+        for (int biti = 0; biti < len * 8; biti++) {
+            uint8_t byte = msg[biti / 8];
+            uint8_t subindex = 7 - (biti % 8);
+            uint8_t bit = (byte >> (subindex)) & 0x1;
+
+            k_timer_status_sync(&bitrate_timer);
+
+            if (bit != last_bit) {
+                if (bit) {
+                    res = set_frequency_by_reg(config, freq1_msb, freq1_mid, freq1_lsb);
+                } else {
+                    res = set_frequency_by_reg(config, freq2_msb, freq2_mid, freq2_lsb);
+                }
+                set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_OOK,
+                                   RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_FsModeTx);
+
+                set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_OOK,
+                                   RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Transmitter);
+
+                if (res < 0) {
+                    LOG_ERR("Error switching frequency");
+                }
+            }
+            last_bit = bit;
+        }
+        k_timer_status_sync(&bitrate_timer);
+
+        int64_t end = k_uptime_get();
+        int64_t elapsed = end - start;
+        double ms_per = (double) elapsed / (double) (len * 8);
+        LOG_INF("Transmitted %d bits over %lldms. Time per symbol = %.2f ms", len * 8, elapsed, ms_per);
+        k_msleep(5000);
+    }
+    k_timer_stop(&bitrate_timer);
+    return 0;
+}
