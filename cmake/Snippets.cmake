@@ -1,11 +1,5 @@
-function(AddCommonSnippets)
-    list(APPEND COMMON_SNIPPETS
-            "bpl-networking"
-            "cpp"
-            "lfs"
-    )
-
-    foreach(snippet ${COMMON_SNIPPETS})
+function(AddSnippets snippets)
+    foreach(snippet ${snippets})
         list(FIND SNIPPET ${snippet} snippet_index)
         if(snippet_index EQUAL -1)
             list(APPEND SNIPPET ${snippet})
@@ -15,6 +9,16 @@ function(AddCommonSnippets)
     set(SNIPPET ${SNIPPET} CACHE STRING "List of snippets" FORCE)
 endfunction()
 
+function(AddCommonSnippets)
+    list(APPEND COMMON_SNIPPETS
+            "bpl-networking"
+            "cpp"
+            "lfs"
+    )
+
+    AddSnippets(${COMMON_SNIPPETS})
+endfunction()
+
 function(AddDebugSnippets)
     list(APPEND DEBUG_SNIPPETS
             "console"
@@ -22,12 +26,13 @@ function(AddDebugSnippets)
             "shell"
     )
 
-    foreach(snippet ${DEBUG_SNIPPETS})
-        list(FIND SNIPPET ${snippet} snippet_index)
-        if(snippet_index EQUAL -1)
-            list(APPEND SNIPPET ${snippet})
-        endif()
-    endforeach()
+    AddSnippets(${DEBUG_SNIPPETS})
+endfunction()
 
-    set(SNIPPET ${SNIPPET} CACHE STRING "List of snippets" FORCE)
+function(AddSimSnippets)
+    list(APPEND SIM_SNIPPETS
+            "sim-periph"
+    )
+
+    AddSnippets(${SIM_SNIPPETS})
 endfunction()
