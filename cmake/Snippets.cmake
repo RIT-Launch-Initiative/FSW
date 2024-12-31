@@ -1,6 +1,9 @@
-function(AddSnippets snippets)
+function(AddSnippets)
+    SET(snippets ${ARGN})
+
     foreach(snippet ${snippets})
         list(FIND SNIPPET ${snippet} snippet_index)
+
         if(snippet_index EQUAL -1)
             list(APPEND SNIPPET ${snippet})
         endif()
