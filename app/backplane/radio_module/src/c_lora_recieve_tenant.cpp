@@ -42,9 +42,14 @@ void CLoraRecieveTenant::Run() {
             buffer[2] |= gpios[3].pin_get() << 3;
 
 
+            // Pack status into RadioBroadcastData
+            NTypes::RadioBroadcastData pinStatus = {0};
+            pinStatus.port = 12001;
+            pinStatus.size = size;
+            pinStatus.data = buffer;
+
             // Retransmit status so GS can verify
-            udp.SetDstPort(12001);
-            udp.TransmitAsynchronous(&buffer[2], size);
+            loraTransmitPort.Send(pinStatus);
         } else {
             udp.SetDstPort(buffer[1] << 8 | buffer[0]);
             udp.TransmitAsynchronous(&buffer[2], size);
