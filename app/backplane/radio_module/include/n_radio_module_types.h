@@ -12,11 +12,6 @@ struct RadioBroadcastData {
     uint8_t data[256 - sizeof(uint16_t)];
 };
 
-struct RadioCommandBytes {
-    uint8_t size;
-    uint8_t data[256 - sizeof(uint16_t)];
-}
-
 struct __attribute__((packed)) GnssLoggingData {
     uint32_t systemTime;
     NGnssUtils::GnssData gnssData;
