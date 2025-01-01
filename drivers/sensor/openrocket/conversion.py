@@ -303,13 +303,13 @@ def make_single_packet(packet, structFieldMappings: List[MappingDef], allMapping
     calculated = []
 
     if config.magnetometer:
-        lat = packet[allMappings[LATITUDE]]
-        long = packet[allMappings[LONGITUDE]]
-        alt = packet[allMappings[ALTITUDE]]
+        lat = packet[allMappings[LATITUDE].header_index]
+        long = packet[allMappings[LONGITUDE].header_index]
+        alt = packet[allMappings[ALTITUDE].header_index]
 
         # orientation
-        azimuth = packet[allMappings[VERT_ORIENTATION]]
-        inclination = packet[allMappings[LAT_ORIENTATION]]
+        azimuth = packet[allMappings[VERT_ORIENTATION].header_index]
+        inclination = packet[allMappings[LAT_ORIENTATION].header_index]
 
         magn = magnetic_field.evaluate_xyz(
             lat, long, alt, azimuth, inclination)
