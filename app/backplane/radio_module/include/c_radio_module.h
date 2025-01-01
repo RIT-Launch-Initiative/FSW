@@ -16,6 +16,9 @@
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/net/device/c_lora.h>
 
+// Autocoder Includes
+#include <n_autocoder_network_defs.h>
+
 class CRadioModule : public CProjectConfiguration {
 public:
     /**
