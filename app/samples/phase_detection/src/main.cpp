@@ -224,13 +224,11 @@ struct k_thread barom_thread_data;
 int main() {
     static Controller controller{sourceNames, eventNames, timer_events, deciders, "/lfs/flight_log.txt"};
 
-    k_tid_t barom_thread_tid =
-        k_thread_create(&barom_thread_data, barom_thread_stack_area, K_THREAD_STACK_SIZEOF(barom_thread_stack_area),
-                        barom_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);
+    k_thread_create(&barom_thread_data, barom_thread_stack_area, K_THREAD_STACK_SIZEOF(barom_thread_stack_area),
+                    barom_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);
 
-    k_tid_t imu_thread_tid =
-        k_thread_create(&imu_thread_data, imu_thread_stack_area, K_THREAD_STACK_SIZEOF(imu_thread_stack_area),
-                        imu_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);
+    k_thread_create(&imu_thread_data, imu_thread_stack_area, K_THREAD_STACK_SIZEOF(imu_thread_stack_area), imu_thread_f,
+                    &controller, NULL, NULL, 0, 0, K_NO_WAIT);
     k_timer_stop(&imu_timer);
     k_timer_stop(&barom_timer);
 
