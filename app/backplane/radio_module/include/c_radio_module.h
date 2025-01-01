@@ -3,20 +3,21 @@
 #ifndef C_RADIO_MODULE_H
 #define C_RADIO_MODULE_H
 
-#include "c_gnss_tenant.h"
-#include "c_lora_to_udp_tenant.h"
-#include "c_lora_transmit_tenant.h"
-#include "c_udp_listener_tenant.h"
 #include "n_radio_module_types.h"
+#include "c_gnss_tenant.h"
+#include "c_udp_listener_tenant.h"
+#include "c_lora_transmit_tenant.h"
+#include "c_lora_to_udp_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
-#include <f_core/net/device/c_lora.h>
 #include <f_core/os/c_task.h>
+#include <f_core/os/tenants/c_datalogger_tenant.h>
+#include <f_core/net/device/c_lora.h>
 
 class CRadioModule : public CProjectConfiguration {
-  public:
+public:
     /**
      * Constructor
      */
@@ -37,7 +38,7 @@ class CRadioModule : public CProjectConfiguration {
      */
     void SetupCallbacks() override;
 
-  private:
+private:
     static constexpr const char* ipAddrStr = "10.2.1.1";
 
     static constexpr uint16_t powerModuleTelemetryPort = 11000;
@@ -45,28 +46,34 @@ class CRadioModule : public CProjectConfiguration {
     static constexpr uint16_t sensorModuleTelemetryPort = 12100;
 
     // Devices
+#ifndef CONFIG_ARCH_POSIX
     CLora lora;
+#endif
 
     // Message Ports
-    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& loraBroadcastMessagePort;
-    CMessagePort<NRadioModuleTypes::RadioBroadcastData>& udpBroadcastMessagePort;
+    CMessagePort<NTypes::RadioBroadcastData>& loraBroadcastMessagePort;
+    CMessagePort<NTypes::RadioBroadcastData>& udpBroadcastMessagePort;
+    CMessagePort<NTypes::GnssLoggingData>& gnssDataLogMessagePort;
 
     // Tenants
-    CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort};
+    CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort, &gnssDataLogMessagePort};
 
-    CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort,
-                                                  &loraBroadcastMessagePort};
-    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort,
-                                                 &loraBroadcastMessagePort};
+    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
+#ifndef CONFIG_ARCH_POSIX
     CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
+    CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
+#endif
+    CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
     CTask gnssTask{"GNSS Task", 15, 1024, 0};
+    CTask dataLoggingTask{"Data Logging Task", 15, 512, 0};
     CTask loraTask{"LoRa Task", 15, 1024, 0};
+
 };
 
 #endif //C_RADIO_MODULE_H
-#endif //RADIO_MODULE_RECEIVER
+#endif //C_RADIO_MODULE_H
