@@ -1,6 +1,6 @@
 #include "c_power_module.h"
 
-#include <n_ac_types.h>
+#include <n_autocoder_types.h>
 
 // F-Core Tenant
 #include <f_core/os/n_rtos.h>

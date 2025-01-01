@@ -3,7 +3,7 @@
 
 #include "c_sensing_tenant.h"
 
-#include <n_ac_types.h>
+#include <n_autocoder_types.h>
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -12,7 +12,7 @@
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
 
-#include <n_ac_network_defs.h>
+#include <n_autocoder_network_defs.h>
 
 class CPowerModule : public CProjectConfiguration {
 public:

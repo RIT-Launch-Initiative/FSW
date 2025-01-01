@@ -8,7 +8,7 @@ function(AutocodeNetworkDefinitions)
         endforeach()
     endif()
     set(OUTPUT_DIR ${CMAKE_BINARY_DIR}/zephyr/include/generated/FSW)
-    set(OUTPUT ${OUTPUT_DIR}/n_ac_network_defs.h)
+    set(OUTPUT ${OUTPUT_DIR}/n_autocoder_network_defs.h)
 
     file(MAKE_DIRECTORY ${OUTPUT_DIR})
 
@@ -34,7 +34,7 @@ function(AutocodeTypes)
         endforeach()
     endif()
     set(OUTPUT_DIR ${CMAKE_BINARY_DIR}/zephyr/include/generated/FSW)
-    set(OUTPUT ${OUTPUT_DIR}/n_ac_types.h)
+    set(OUTPUT ${OUTPUT_DIR}/n_autocoder_types.h)
 
     file(MAKE_DIRECTORY ${OUTPUT_DIR})
 

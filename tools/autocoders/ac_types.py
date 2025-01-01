@@ -27,6 +27,7 @@ def main():
                 # 1st index of tuple is key-value with the description and information for each field
                 types += [(key, data[key]) for key in data]
             except yaml.YAMLError as exc:
+                print("Error parsing YAML file: " + file)
                 print(exc)
 
     with open(args.output, 'w') as f:

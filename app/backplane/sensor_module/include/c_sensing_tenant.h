@@ -3,7 +3,7 @@
 
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
-#include <n_ac_types.h>
+#include <n_autocoder_types.h>
 
 class CSensingTenant : public CTenant {
 public:
