@@ -58,7 +58,7 @@ static int or_barom_channel_get(const struct device *dev, enum sensor_channel ch
         return -ENOTSUP;
     }
     if (chan == SENSOR_CHAN_PRESS) {
-        sensor_value_from_or_scalar(val, data->pressure / 10.0);
+        sensor_value_from_or_scalar(val, data->pressure);
     }
     if (chan == SENSOR_CHAN_AMBIENT_TEMP) {
         sensor_value_from_or_scalar(val, data->temperature);

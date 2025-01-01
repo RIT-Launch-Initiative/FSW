@@ -100,13 +100,10 @@ Line find_line(const SummerType &summer) {
     return Line{m, b};
 }
 
-/**
- * @return meters
- */
-double l_altitude_conversion(double pressure_kpa, double temperature_c) {
-    double pressure = pressure_kpa * 10;
-    double altitude = (1 - pow(pressure / 1013.25, 0.190284)) * 145366.45 * 0.3048;
-    return altitude;
+double rrc3_altitude_conversion_to_feet(double P_sta_kpa) {
+    double P_sta_mbar = P_sta_kpa * 10.0;
+    double alt_ft = (1 - pow(P_sta_mbar / 1013.25, 0.190284)) * 145366.45;
+    return alt_ft;
 }
 
 using BoostDebouncerT = Debuouncer<ThresholdDirection::Over, double>;
@@ -125,9 +122,10 @@ void barom_thread_f(void *vp_controller, void *, void *) {
     controller.WaitUntilEvent(Events::PadReady);
 
     // Measure
-    double init_temp = barometer.GetSensorValueDouble(SENSOR_CHAN_AMBIENT_TEMP);
-    double init_press = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
-    double init_feet_asl = l_altitude_conversion(init_press, init_temp) / 0.3048;
+    barometer.UpdateSensorValue();
+    double init_temp_C = barometer.GetSensorValueDouble(SENSOR_CHAN_AMBIENT_TEMP);
+    double init_press_kpa = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
+    double init_feet_asl = rrc3_altitude_conversion_to_feet(init_press_kpa);
     double max_feet_agl = 0;
 
     SummerType velocity_summer{SampleType{0, 0}};
@@ -162,13 +160,13 @@ void barom_thread_f(void *vp_controller, void *, void *) {
 
         // Measure
         double temp = barometer.GetSensorValueDouble(SENSOR_CHAN_AMBIENT_TEMP);
-        double press = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
+        double press_kpa = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
 
         uint32_t time_ms = k_uptime_get();
         double time_s = (double) (time_ms) / 1000.0;
 
         // Calculate
-        double feet = l_altitude_conversion(press, temp) / 0.3048;
+        double feet = rrc3_altitude_conversion_to_feet(press_kpa);
 
         velocity_summer.feed({time_s, feet});
         Line line = find_line(velocity_summer);
