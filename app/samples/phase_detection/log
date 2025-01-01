@@ -1,11 +1,11 @@
-uart connected to pseudotty: /dev/pts/9
+uart connected to pseudotty: /dev/pts/6
 [00:00:00.000,000] [0m<inf> openrocket: Initializing OpenRocket data[0m
 [00:00:00.000,000] [0m<inf> littlefs: littlefs partition at /lfs[0m
-[00:00:00.000,000] [0m<inf> littlefs: LittleFS version 2.8, disk version 2.1[0m
-[00:00:00.000,000] [0m<inf> littlefs: FS at flash-controller@0:0xfc000 is 131072 0x1000-byte blocks with 512 cycle[0m
-[00:00:00.000,000] [0m<inf> littlefs: sizes: rd 16 ; pr 16 ; ca 64 ; la 32[0m
+[00:00:00.000,000] [0m<inf> littlefs: LittleFS version 2.9, disk version 2.1[0m
+[00:00:00.000,000] [0m<inf> littlefs: FS at flash-controller@0:0xfc000 is 131072 0x1000-byte blocks with 90000 cycle[0m
+[00:00:00.000,000] [0m<inf> littlefs: partition sizes: rd 16 ; pr 16 ; ca 64 ; la 32[0m
 [00:00:00.000,000] [0m<inf> littlefs: Automount /lfs succeeded[0m
-*** Booting Zephyr OS build v3.7.0 ***
+*** Booting Zephyr OS build 0ac9a6c5125c ***
 [00:00:00.000,000] [0m<inf> flight_controller: Beginning Flight Log[0m
 [00:00:00.000,000] [0m<dbg> main: main: Waiting until everyone ready[0m
 [00:00:00.000,000] [0m<inf> flight_controller:       0ms:	PadReady   from Barom 1 (BME280)[0m
