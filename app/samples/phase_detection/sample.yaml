@@ -1,9 +1,9 @@
 sample:
   description:
-  name: openrocket-sensors
+  name: phase-detection
 common:
   build_only: true
   platform_allow:
     - native_sim
 tests:
-  samples.openrocket_sensors.default: {}
+  samples.phase_detection.default: {}
