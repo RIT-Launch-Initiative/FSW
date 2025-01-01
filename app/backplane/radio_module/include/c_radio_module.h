@@ -39,7 +39,7 @@ public:
     void SetupCallbacks() override;
 
 private:
-    static constexpr const char* ipAddrStr = "10.2.1.1";
+    static constexpr const char* ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, CONFIG_BOARD_REVISION, CONFIG_MODULE_ID);
 
     static constexpr uint16_t powerModuleTelemetryPort = 11000;
     static constexpr uint16_t radioModuleSourcePort = 12000;
