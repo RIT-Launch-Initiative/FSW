@@ -26,7 +26,7 @@ function(AddDebugSnippets)
     list(APPEND DEBUG_SNIPPETS
             "console"
             "debug"
-            "shell"
+            "complete-shell"
     )
 
     AddSnippets(${DEBUG_SNIPPETS})
