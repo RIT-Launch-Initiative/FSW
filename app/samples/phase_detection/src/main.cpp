@@ -123,7 +123,6 @@ void barom_thread_f(void *vp_controller, void *, void *) {
 
     // Measure
     barometer.UpdateSensorValue();
-    double init_temp_C = barometer.GetSensorValueDouble(SENSOR_CHAN_AMBIENT_TEMP);
     double init_press_kpa = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
     double init_feet_asl = rrc3_altitude_conversion_to_feet(init_press_kpa);
     double max_feet_agl = 0;

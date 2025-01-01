@@ -56,7 +56,7 @@ inline std::array<Controller::TimerEvent, num_timer_events> timer_events = {
     Controller::TimerEvent{
         .start = Events::Noseover,
         .event = Events::MainChute,
-        .time = K_SECONDS(200),
+        .time = K_SECONDS(150),
         .source = Sources::Noseover2MainTimer,
     },
     // We know our entire flight will not last longer than X seconds even if we main at apogee.
