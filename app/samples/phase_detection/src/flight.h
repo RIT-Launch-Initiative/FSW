@@ -35,7 +35,7 @@ using Controller = CPhaseController<Events, Events::NumEvents, Sources, Sources:
 /**
  * Special events triggered not by sensors but by timers between phases
  */
-inline constexpr std::array<Controller::TimerEvent, num_timer_events> timer_events = {
+inline std::array<Controller::TimerEvent, num_timer_events> timer_events = {
     // The engine should burn for around X seconds. don't detect coast unless the engine has been firing for a bit
     // Can be implemented as a lockout or as another way of progressing states if you don't want to do unboost detection
     Controller::TimerEvent{
@@ -56,7 +56,7 @@ inline constexpr std::array<Controller::TimerEvent, num_timer_events> timer_even
     Controller::TimerEvent{
         .start = Events::Noseover,
         .event = Events::MainChute,
-        .time = K_SECONDS(100),
+        .time = K_SECONDS(200),
         .source = Sources::Noseover2MainTimer,
     },
     // We know our entire flight will not last longer than X seconds even if we main at apogee.

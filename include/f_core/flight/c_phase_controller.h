@@ -8,6 +8,7 @@
 int flight_log_init(const char *flight_log_file_name, fs_file_t *fp);
 int flight_log_source_event(bool enabled, fs_file_t *fp, const char *source, const char *event);
 int flight_log_event_confirmed(bool enabled, fs_file_t *fp, const char *event, bool currentState);
+int flight_log_print(bool enabled, fs_file_t *fp, const char *str);
 int flight_log_close(bool enabled, fs_file_t *fp);
 
 /**
@@ -25,8 +26,8 @@ template <typename EventID, std::size_t num_events, typename SourceID, std::size
 class CPhaseController {
   public:
     static_assert(num_events <= 32, "Current implementation is limited to 32 events");
-    static_assert(std::is_enum_v<EventID>, "EventIDs must be enums convertible down to an integer ID");
-    static_assert(std::is_enum_v<SourceID>, "SourceID must be enums convertible down to an integer ID");
+    static_assert(std::is_enum_v<EventID>, "EventIDs must be enums");
+    static_assert(std::is_enum_v<SourceID>, "SourceID must be enums");
 
     /**
      * Description of a timer-triggered event
@@ -83,12 +84,21 @@ class CPhaseController {
     }
 
     /**
+     * Write an arbitrary line to the flight log file (if enabled)
+     * A newline will be written to the file after every message
+     * @param str the null terminated string to write to the log file. 
+     * @return the return value of fs_write. If >=0, the number of characters written. If <0, an error code.
+     */
+    int WriteToLog(const char *str) { return flight_log_print(HasFlightLog(), &flightLogFile, str); }
+
+    /**
      * Tell the controller that a specific source thinks an event has happened
      * If this submission of an event causes the decider to return true, the controller will start reporting that the event has occured
      * @param source the SourceID of the source that thinks an event has happened
      * @param event the event that the source thinks happened
      */
     void SubmitEvent(SourceID source, EventID event) {
+        uint32_t event_bit = (1 << (uint32_t) event);
         sourceStates[event][source] = true;
 
         // If that event submission caused the event to fully trigger, send message
@@ -97,7 +107,7 @@ class CPhaseController {
             if (!last_state) {
                 // dispatch event
                 eventStates[event] = true;
-                k_event_set(&osEvents, (uint32_t) event);
+                k_event_post(&osEvents, event_bit);
 
                 // start any necessary timers
                 for (std::size_t i = 0; i < num_timers; i++) {
@@ -127,25 +137,38 @@ class CPhaseController {
      * @return True if the event occured. False if the timeout occured.
      */
     bool WaitUntilEvent(EventID event, k_timeout_t timeout = K_FOREVER) {
-        while (eventStates[event] == false) {
-            k_msleep(1);
-        }
-        return true;
-        // uint32_t event_that_happened = k_event_wait(&osEvents, (uint32_t) event, false, timeout);
-        // return event_that_happened != 0;
+        uint32_t event_bit = (1 << (uint32_t) event);
+        uint32_t event_that_happened = k_event_wait(&osEvents, event_bit, false, timeout);
+        return event_that_happened != 0;
     }
     /**
      * Check if the phase controller has a flight log
      * @return true if the phase controller will write its events to a file. false if not
      */
     bool HasFlightLog() { return flightLogFileName != nullptr; }
+
+    /**
+     * Closes the flight log and saves to disk
+     * The contents of the flight log may  not be saved until this is called
+     * This is called in the destructor as well. 
+     * If you can verify that the destructor will be called, you do not need to call this.
+     */
     void CloseFlightLog() { flight_log_close(HasFlightLog(), &flightLogFile); }
 
+    ~CPhaseController() { CloseFlightLog(); }
+
   private:
+    /** 
+     * Type for holding information to fire timer events correctly. 
+    */
     struct InternalTimerEvent {
-        CPhaseController *controller;
-        TimerEvent event;
+        CPhaseController *controller; //< 'this' pointer
+        TimerEvent event;             //< information about the event
     };
+
+    /**
+     * callback function for timer events. 'this' is stored in the InternalTimerEvent data
+     */
     constexpr static auto timer_expiry_cb = [](struct k_timer *timer) {
         void *data = k_timer_user_data_get(timer);
         InternalTimerEvent ievt = *static_cast<InternalTimerEvent *>(data);
@@ -153,8 +176,11 @@ class CPhaseController {
     };
 
     // Current State of the system
-    std::array<SourceStates, num_events> sourceStates = {false}; //< state of events per source
-    std::array<bool, num_events> eventStates = {false}; // the state of events that have been agreed to have happened
+
+    /// state of events per source
+    std::array<SourceStates, num_events> sourceStates = {false};
+    /// the state of events that have been agreed to have happened based on deciders and per-source states
+    std::array<bool, num_events> eventStates = {false};
 
     // Timer handling
     std::array<struct k_timer, num_timers> timers = {0};

@@ -24,9 +24,9 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_PHASE_DETECT_LOG_LEVEL);
 K_TIMER_DEFINE(imu_timer, NULL, NULL);
 K_TIMER_DEFINE(barom_timer, NULL, NULL);
 
-Controller controller{sourceNames, eventNames, timer_events, deciders, "/lfs/flight_log.txt"};
+void imu_thread_f(void *vp_controller, void *, void *) {
+    Controller &controller = *(Controller *) vp_controller;
 
-void imu_thread_f(void *, void *, void *) {
     // > 5G-ish for a quarter second
     constexpr uint32_t boost_time_ms = 250;
     constexpr double boost_threshold_mps2 = 50;
@@ -73,7 +73,7 @@ void imu_thread_f(void *, void *, void *) {
         }
     }
 }
-K_THREAD_DEFINE(imu_thread, 1024, imu_thread_f, NULL, NULL, NULL, 0, 0, 0);
+// K_THREAD_DEFINE(imu_thread, 1024, imu_thread_f, NULL, NULL, NULL, 0, 0, 0);
 
 using SampleType = LinearFitSample<double>;
 static constexpr std::size_t window_size = 10;
@@ -100,6 +100,9 @@ Line find_line(const SummerType &summer) {
     return Line{m, b};
 }
 
+/**
+ * @return meters
+ */
 double l_altitude_conversion(double pressure_kpa, double temperature_c) {
     double pressure = pressure_kpa * 10;
     double altitude = (1 - pow(pressure / 1013.25, 0.190284)) * 145366.45 * 0.3048;
@@ -111,7 +114,9 @@ using NoseoverDebouncerT = Debuouncer<ThresholdDirection::Under, double>;
 using MainHeightDebouncerT = Debuouncer<ThresholdDirection::Under, double>;
 using NoVelocityDebouncerT = Debuouncer<ThresholdDirection::Under, double>;
 
-void barom_thread_f(void *, void *, void *) {
+void barom_thread_f(void *vp_controller, void *, void *) {
+    Controller &controller = *(Controller *) vp_controller;
+
     CBarometer barometer(*DEVICE_DT_GET_ONE(openrocket_barometer));
     if (!barometer.IsReady()) {
         LOG_WRN("Accelerometer not ready");
@@ -119,28 +124,36 @@ void barom_thread_f(void *, void *, void *) {
     controller.SubmitEvent(Sources::Barom1, Events::PadReady);
     controller.WaitUntilEvent(Events::PadReady);
 
-    SummerType velocity_summer{SampleType{0, 0}};
+    // Measure
+    double init_temp = barometer.GetSensorValueDouble(SENSOR_CHAN_AMBIENT_TEMP);
+    double init_press = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
+    double init_feet_asl = l_altitude_conversion(init_press, init_temp) / 0.3048;
+    double max_feet_agl = 0;
 
-    constexpr uint32_t boost_time = 2000;   // ms
-    constexpr uint32_t boost_threshold = 5; // ft/s
-    BoostDebouncerT boost_debouncer{boost_time, boost_threshold};
+    SummerType velocity_summer{SampleType{0, 0}};
+    MovingAvg<double, 100> ground_level_avger{init_feet_asl};
+
+    // >5g for 2 seconds
+    constexpr uint32_t boost_time_ms = 2000; // ms
+    constexpr uint32_t boost_threshold = 5;  // ft/s
+    BoostDebouncerT boost_debouncer{boost_time_ms, boost_threshold};
 
     // Under 0ft/s for 0.5 seconds
-    constexpr uint32_t noseover_velocity_time = 500;
+    constexpr uint32_t noseover_velocity_time_ms = 500;
     constexpr double noseover_velocity_threshold = 0.0;
-    NoseoverDebouncerT noseover_debouncer{noseover_velocity_time, noseover_velocity_threshold};
+    NoseoverDebouncerT noseover_debouncer{noseover_velocity_time_ms, noseover_velocity_threshold};
 
     // Under 500ft for 0.5 seconds
-    constexpr uint32_t mainheight_time = 500;
-    constexpr double mainheight_threshold = 200.0;
-    MainHeightDebouncerT mainheight_debouncer{mainheight_time, mainheight_threshold};
+    constexpr uint32_t mainheight_time_ms = 500;
+    constexpr double mainheight_threshold = 500.0;
+    MainHeightDebouncerT mainheight_debouncer{mainheight_time_ms, mainheight_threshold};
 
     // under 5 ft/s for 10 seconds
-    constexpr uint32_t no_vel_time = 10 * 1000;
+    constexpr uint32_t no_vel_time_ms = 10 * 1000;
     constexpr double no_vel_threshold = 5.0;
-    NoVelocityDebouncerT no_vel_debouncer{no_vel_time, no_vel_threshold};
+    NoVelocityDebouncerT no_vel_debouncer{no_vel_time_ms, no_vel_threshold};
 
-    while (true) {
+    while (!controller.HasEventOccured(Events::GroundHit)) {
         k_timer_status_sync(&barom_timer);
         bool good = barometer.UpdateSensorValue();
         if (!good) {
@@ -155,47 +168,72 @@ void barom_thread_f(void *, void *, void *) {
         double time_s = (double) (time_ms) / 1000.0;
 
         // Calculate
-        double feet = l_altitude_conversion(press, temp);
-        double feet_agl = feet - 10;
+        double feet = l_altitude_conversion(press, temp) / 0.3048;
 
         velocity_summer.feed({time_s, feet});
         Line line = find_line(velocity_summer);
-
-        // LOG_DBG("Speed: %f", feet);
 
         // Not enough samples, don't check
         if (line == bad_line) {
             continue;
         }
         double velocity_ft_s = line.m;
-
+        double feet_agl = feet - ground_level_avger.avg();
+        if (feet_agl > max_feet_agl) {
+            max_feet_agl = feet_agl;
+        }
         // Check
         if (!controller.HasEventOccured(Events::Boost)) {
+            ground_level_avger.feed(feet);
             boost_debouncer.feed(time_ms, velocity_ft_s);
             if (boost_debouncer.passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Boost);
             }
-        } else if (!controller.HasEventOccured(Events::Noseover)) {
+        }
+        if (!controller.HasEventOccured(Events::Noseover)) {
             noseover_debouncer.feed(time_ms, velocity_ft_s);
-            if (noseover_debouncer.passed()) {
+            if (controller.HasEventOccured(Events::Boost) && noseover_debouncer.passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Noseover);
+                char print_buf[256] = {0};
+                snprintf(print_buf, 256, "Noseover occured at barometeric altitude of %.2f ft agl (%.2f ft asl)",
+                         feet_agl, feet);
+                controller.WriteToLog(print_buf);
             }
-        } else if (!controller.HasEventOccured(Events::MainChute)) {
+        }
+        if (!controller.HasEventOccured(Events::MainChute)) {
             mainheight_debouncer.feed(time_ms, feet_agl);
-            if (mainheight_debouncer.passed()) {
+            if (controller.HasEventOccured(Events::Noseover) && mainheight_debouncer.passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::MainChute);
             }
-        } else if (!controller.HasEventOccured(Events::GroundHit)) {
+        }
+        if (!controller.HasEventOccured(Events::GroundHit)) {
             no_vel_debouncer.feed(time_ms, fabs(velocity_ft_s));
-            if (no_vel_debouncer.passed()) {
+            if (controller.HasEventOccured(Events::Boost) && no_vel_debouncer.passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::GroundHit);
             }
         }
     }
+    char print_buf[256] = {0};
+    snprintf(print_buf, 256, "Maximum barometric altitude of %.2f ft agl", max_feet_agl);
+    controller.WriteToLog(print_buf);
 }
-K_THREAD_DEFINE(barom_thread, 1024, barom_thread_f, NULL, NULL, NULL, 0, 0, 0);
+
+K_THREAD_STACK_DEFINE(imu_thread_stack_area, 1024);
+struct k_thread imu_thread_data;
+
+K_THREAD_STACK_DEFINE(barom_thread_stack_area, 1024);
+struct k_thread barom_thread_data;
 
 int main() {
+    static Controller controller{sourceNames, eventNames, timer_events, deciders, "/lfs/flight_log.txt"};
+
+    k_tid_t barom_thread_tid =
+        k_thread_create(&barom_thread_data, barom_thread_stack_area, K_THREAD_STACK_SIZEOF(barom_thread_stack_area),
+                        barom_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);
+
+    k_tid_t imu_thread_tid =
+        k_thread_create(&imu_thread_data, imu_thread_stack_area, K_THREAD_STACK_SIZEOF(imu_thread_stack_area),
+                        imu_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);
     k_timer_stop(&imu_timer);
     k_timer_stop(&barom_timer);
 
@@ -236,9 +274,9 @@ int main() {
     k_timer_stop(&barom_timer);
 
     controller.WaitUntilEvent(Events::CamerasOff);
-    LOG_DBG("Flight over:\n\tTurn off cameras");
+    LOG_DBG("Flight over:\tTurn off cameras");
 
     controller.CloseFlightLog();
-
+    LOG_INF("Closed flight log");
     return 0;
 }
