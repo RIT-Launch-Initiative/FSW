@@ -56,10 +56,11 @@ public:
     }
 
 private:
+// CONFIG_ARCH_POSIX uses loopback for broadcast
 #if defined(CONFIG_ARCH_POSIX) && defined(CONFIG_NET_NATIVE_OFFLOADED_SOCKETS)
     static constexpr char BROADCAST_IP[] = "127.0.0.1";
-#else // CONFIG_ARCH_POSIX uses loopback for broadcast
-    static constexpr char broadcastIp[] = "255.255.255.255";
+#else
+    static constexpr char BROADCAST_IP[] = "255.255.255.255";
 #endif
 
     int sock = -1;

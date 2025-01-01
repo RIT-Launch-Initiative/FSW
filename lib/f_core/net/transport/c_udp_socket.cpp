@@ -20,6 +20,7 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         return;
     }
 
+#if !defined(CONFIG_ARCH_POSIX) && !defined(CONFIG_NET_NATIVE_OFFLOADED_SOCKETS)
     sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(srcPort),
@@ -30,6 +31,9 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         LOG_ERR("Failed to bind socket.");
         zsock_close(sock);
     }
+#else
+    LOG_WRN("Skipping bind. Using native_sim loopback");
+#endif
 
     // Link takes around 2 seconds to come up. Wait to avoid errors when tx/rxing
     const uint32_t uptime = k_uptime_get_32();
@@ -63,11 +67,24 @@ int CUdpSocket::ReceiveSynchronous(void* data, size_t len) {
 }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
-
     static const sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
+    int flags = zsock_fcntl(sock, F_GETFL, 0);
+    if (flags < 0) {
+        LOG_ERR("Failed to get socket flags (%d)", flags);
+        return -1;
+    }
+
+    if (!(flags & O_NONBLOCK)) {
+        flags |= O_NONBLOCK;
+        if (zsock_fcntl(sock, F_SETFL, flags) < 0) {
+            LOG_ERR("Failed to set socket to non-blocking mode.");
+            return -1;
+        }
+    }
+
     z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
 
     int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
