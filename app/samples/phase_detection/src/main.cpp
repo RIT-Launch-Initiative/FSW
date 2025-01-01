@@ -158,7 +158,6 @@ void barom_thread_f(void *vp_controller, void *, void *) {
         }
 
         // Measure
-        double temp = barometer.GetSensorValueDouble(SENSOR_CHAN_AMBIENT_TEMP);
         double press_kpa = barometer.GetSensorValueDouble(SENSOR_CHAN_PRESS);
 
         uint32_t time_ms = k_uptime_get();
