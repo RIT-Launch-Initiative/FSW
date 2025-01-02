@@ -1,7 +1,10 @@
-#pragma once
+#ifndef F_CORE_UTIL_CIRCULAR_BUFFER
+#define F_CORE_UTIL_CIRCULAR_BUFFER
+
 #include <array>
 
-template <typename ValueT, std::size_t Length> class CircularBuffer {
+template <typename ValueT, std::size_t Length>
+class CircularBuffer {
   public:
     using value_type = ValueT;
     static constexpr std::size_t size_ = Length;
@@ -39,3 +42,5 @@ template <typename ValueT, std::size_t Length> class CircularBuffer {
     std::size_t oldest_index = 0;
     std::array<value_type, size_> underlying;
 };
+
+#endif

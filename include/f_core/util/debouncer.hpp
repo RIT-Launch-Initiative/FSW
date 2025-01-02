@@ -1,11 +1,13 @@
-#pragma once
+#ifndef F_CORE_UTIL_DEBOUNCER_
+#define F_CORE_UTIL_DEBOUNCER_
 #include <stdint.h>
 enum class ThresholdDirection {
     Over,
     Under,
 };
 
-template <ThresholdDirection direction, typename Scalar = float, typename Timestamp = uint32_t> class Debuouncer {
+template <ThresholdDirection direction, typename Scalar = float, typename Timestamp = uint32_t>
+class Debuouncer {
   public:
     constexpr Debuouncer(Timestamp duration, Scalar target_value) : duration(duration), target_value(target_value) {}
     constexpr void feed(Timestamp t, Scalar new_value) {
@@ -42,3 +44,5 @@ template <ThresholdDirection direction, typename Scalar = float, typename Timest
     Timestamp firstTimePassed = NOT_PASSED;
     Timestamp lastTimePassed = NOT_PASSED;
 };
+
+#endif

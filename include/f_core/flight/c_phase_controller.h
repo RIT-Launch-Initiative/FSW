@@ -1,4 +1,6 @@
-#pragma once
+#ifndef F_CORE_FLIGHT_C_PHASE_CONTROLLER_H
+#define F_CORE_FLIGHT_C_PHASE_CONTROLLER_H
+
 #include <array>
 #include <cstdint>
 #include <cstdio>
@@ -199,3 +201,5 @@ class CPhaseController {
     const char *flightLogFileName;
     fs_file_t flightLogFile;
 };
+
+#endif

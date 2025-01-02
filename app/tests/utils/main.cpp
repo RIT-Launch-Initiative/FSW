@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Oticon A/S
+ * Copyright (c) 2024 Launch Initiative
  *
  * SPDX-License-Identifier: Apache-2.0
  */
