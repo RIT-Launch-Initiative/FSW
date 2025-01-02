@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-// #include <f_core/os/c_datalogger.h>
 #include "f_core/util/debouncer.hpp"
 
 #include <stdio.h>

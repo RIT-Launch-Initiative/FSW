@@ -18,7 +18,7 @@ class CRollingSum {
     constexpr void fill(const value_type &start) {
         buf.Fill(start);
         total = buf.OldestSample();
-        for (std::size_t i = 1; i < buf.size(); i++) {
+        for (std::size_t i = 1; i < buf.Size(); i++) {
             total = total + buf[1];
         }
     }
