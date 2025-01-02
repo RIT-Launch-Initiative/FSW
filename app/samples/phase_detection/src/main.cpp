@@ -36,8 +36,8 @@ void imu_thread_f(void *vp_controller, void *, void *) {
     // Deceleration is still acceleration which is why we cant just say < 1G
     constexpr uint32_t coast_time_ms = 250;
     constexpr double coast_threshold_mps2 = 35;
-    Debuouncer<ThresholdDirection::Over, double> boost_detector{boost_time_ms, boost_threshold_mps2};
-    Debuouncer<ThresholdDirection::Under, double> coast_detector{coast_time_ms, coast_threshold_mps2};
+    CDebuouncer<ThresholdDirection::Over, double> boost_detector{boost_time_ms, boost_threshold_mps2};
+    CDebuouncer<ThresholdDirection::Under, double> coast_detector{coast_time_ms, coast_threshold_mps2};
 
     CAccelerometer acc(*DEVICE_DT_GET_ONE(openrocket_imu));
     if (!acc.IsReady()) {
@@ -77,7 +77,7 @@ void imu_thread_f(void *vp_controller, void *, void *) {
 
 using SampleType = LinearFitSample<double>;
 static constexpr std::size_t window_size = 10;
-using SummerType = RollingSum<SampleType, window_size>;
+using SummerType = CRollingSum<SampleType, window_size>;
 
 struct Line {
     double m;
@@ -106,10 +106,10 @@ double rrc3_altitude_conversion_to_feet(double P_sta_kpa) {
     return alt_ft;
 }
 
-using BoostDebouncerT = Debuouncer<ThresholdDirection::Over, double>;
-using NoseoverDebouncerT = Debuouncer<ThresholdDirection::Under, double>;
-using MainHeightDebouncerT = Debuouncer<ThresholdDirection::Under, double>;
-using NoVelocityDebouncerT = Debuouncer<ThresholdDirection::Under, double>;
+using BoostDebouncerT = CDebuouncer<ThresholdDirection::Over, double>;
+using NoseoverDebouncerT = CDebuouncer<ThresholdDirection::Under, double>;
+using MainHeightDebouncerT = CDebuouncer<ThresholdDirection::Under, double>;
+using NoVelocityDebouncerT = CDebuouncer<ThresholdDirection::Under, double>;
 
 void barom_thread_f(void *vp_controller, void *, void *) {
     Controller &controller = *(Controller *) vp_controller;
@@ -128,7 +128,7 @@ void barom_thread_f(void *vp_controller, void *, void *) {
     double max_feet_agl = 0;
 
     SummerType velocity_summer{SampleType{0, 0}};
-    MovingAvg<double, 100> ground_level_avger{init_feet_asl};
+    CMovingAverage<double, 100> ground_level_avger{init_feet_asl};
 
     // >5g for 2 seconds
     constexpr uint32_t boost_time_ms = 2000; // ms

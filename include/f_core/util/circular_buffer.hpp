@@ -4,24 +4,24 @@
 #include <array>
 
 template <typename ValueT, std::size_t Length>
-class CircularBuffer {
+class CCircularBuffer {
   public:
     using value_type = ValueT;
     static constexpr std::size_t size_ = Length;
-    constexpr CircularBuffer(const value_type &initial_value) { fill(initial_value); }
+    constexpr CCircularBuffer(const value_type &initial_value) { Fill(initial_value); }
 
-    constexpr void fill(const value_type &value) { underlying.fill(value); }
+    constexpr void Fill(const value_type &value) { underlying.fill(value); }
 
-    constexpr void add_sample(const value_type &value) {
+    constexpr void AddSample(const value_type &value) {
         underlying[oldest_index] = value;
         oldest_index++;
         oldest_index %= size_;
     }
 
-    constexpr std::size_t size() const { return size_; }
+    constexpr std::size_t Size() const { return size_; }
 
-    constexpr value_type &oldest_sample() { return underlying[oldest_index]; }
-    constexpr value_type &newest_sample() {
+    constexpr value_type &OldestSample() { return underlying[oldest_index]; }
+    constexpr value_type &NewestSample() {
         std::size_t newset_index = oldest_index - 1;
         if (newset_index < 0) {
             newset_index += size_;

@@ -7,9 +7,9 @@ enum class ThresholdDirection {
 };
 
 template <ThresholdDirection direction, typename Scalar = float, typename Timestamp = uint32_t>
-class Debuouncer {
+class CDebuouncer {
   public:
-    constexpr Debuouncer(Timestamp duration, Scalar target_value) : duration(duration), target_value(target_value) {}
+    constexpr CDebuouncer(Timestamp duration, Scalar target_value) : duration(duration), target_value(target_value) {}
     constexpr void feed(Timestamp t, Scalar new_value) {
         if (passesOne(new_value)) {
             lastTimePassed = t;

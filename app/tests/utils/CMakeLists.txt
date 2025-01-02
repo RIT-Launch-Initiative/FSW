@@ -11,6 +11,4 @@ include_directories(${ZEPHYR_BASE}/../FSW.git/include)
 target_sources(testbinary
   PRIVATE
   main.cpp
-  # ${ZEPHYR_BASE}/lib/utils/dec.cpp
-  # ${ZEPHYR_BASE}/lib/utils/utf8.c
 )

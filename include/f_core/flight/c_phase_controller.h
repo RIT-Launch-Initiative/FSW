@@ -169,12 +169,14 @@ class CPhaseController {
     };
 
     /**
-     * callback function for timer events. 'this' is stored in the InternalTimerEvent data
+     * Callback function for timer events. 
+     * 'this' is stored in the InternalTimerEvent user data
+     * @param timer the timer containing that is calling this callback.
      */
     constexpr static auto timer_expiry_cb = [](struct k_timer *timer) {
         void *data = k_timer_user_data_get(timer);
-        InternalTimerEvent ievt = *static_cast<InternalTimerEvent *>(data);
-        ievt.controller->SubmitEvent(ievt.event.source, ievt.event.event);
+        InternalTimerEvent event_info = *static_cast<InternalTimerEvent *>(data);
+        event_info.controller->SubmitEvent(event_info.event.source, event_info.event.event);
     };
 
     // Current State of the system
