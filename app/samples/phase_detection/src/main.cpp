@@ -49,14 +49,14 @@ void imu_thread_f(void *vp_controller, void *, void *) {
     while (true) {
         k_timer_status_sync(&imu_timer);
         uint32_t timestamp = k_uptime_get();
-        bool good = acc.UpdateSensorValue();
-        if (!good) {
+
+        if (!acc.UpdateSensorValue()) {
             LOG_ERR("Failure reading imu");
         }
         double x = acc.GetSensorValueDouble(SENSOR_CHAN_ACCEL_X);
         double y = acc.GetSensorValueDouble(SENSOR_CHAN_ACCEL_Y);
         double z = acc.GetSensorValueDouble(SENSOR_CHAN_ACCEL_Z);
-        double mag = sqrt(x * x + y * y + z * z);
+        double mag = sqrt((x * x) + (y * y) + (z * z));
 
         // Boost Detecting
         if (!controller.HasEventOccured(Events::Boost)) {
