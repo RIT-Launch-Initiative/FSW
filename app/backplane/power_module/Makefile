@@ -1,8 +1,7 @@
-ifeq ($(FSW_DISABLE_MULTIPLE_BUILDS),true)
-MULTIBUILD_ARGS :=
-echo "Multiple builds disabled"
+ifeq ($(FSW_ENABLE_MULTIPLE_BUILDS),true)
+	MULTIBUILD_ARGS := --build-dir builds
 else
-MULTIBUILD_ARGS := --build-dir builds
+	MULTIBUILD_ARGS :=
 endif
 
 power:
