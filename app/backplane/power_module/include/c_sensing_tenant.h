@@ -1,7 +1,8 @@
 #ifndef C_SENSING_TENANT_H
 #define C_SENSING_TENANT_H
 
-#include "n_types.h"
+#include <n_autocoder_types.h>
+
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 

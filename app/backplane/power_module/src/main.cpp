@@ -8,9 +8,10 @@
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
 
+LOG_MODULE_REGISTER(main);
 
 int main() {
-    CPowerModule powerModule{};
+    static CPowerModule powerModule{};
 
     powerModule.AddTenantsToTasks();
     powerModule.AddTasksToRtos();

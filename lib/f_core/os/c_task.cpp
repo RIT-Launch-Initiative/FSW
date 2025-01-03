@@ -30,10 +30,13 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
 CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : name(name),
                                                                                priority(priority), stackSize(stackSize),
                                                                                sleepTimeMs(sleepTimeMs) {
-    stack = k_thread_stack_alloc(stackSize, 0);
 }
 
 CTask::~CTask() {
+    for (CTenant* tenant : tenants) {
+        tenant->Cleanup();
+    }
+
     k_thread_abort(&thread);
     if (stack != nullptr) {
         k_thread_stack_free(stack);
@@ -58,6 +61,7 @@ void CTask::Initialize() {
 
     taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, nullptr, nullptr, priority, 0,
                              K_NO_WAIT);
+
     k_thread_name_set(taskId, name);
 }
 

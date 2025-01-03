@@ -10,42 +10,58 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
+CSensingTenant::CSensingTenant(const char* name,
+                               CMessagePort<NTypes::SensorData>& dataToBroadcast,
+                               CMessagePort<NTypes::SensorData>& dataToLog)
+    : CTenant(name),
+      dataToBroadcast(dataToBroadcast),
+      dataToLog(dataToLog),
+      imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))),
+      imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
+      primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
+      secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
+      accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer))),
+      thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer))),
+      magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer))),
+      sensors{
+          &imuAccelerometer,
+          &imuGyroscope,
+          &primaryBarometer,
+          &secondaryBarometer,
+          &accelerometer,
+          &thermometer
+#ifndef CONFIG_ARCH_POSIX
+          , &magnetometer
+#endif
+      } {}
+
 void CSensingTenant::Startup() {
-}
-
-void CSensingTenant::PostStartup() {
-}
-
-void CSensingTenant::Run() {
-    // IMU
-    CAccelerometer imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu)));
-    CGyroscope imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu)));
-
-    // Barometers
-    CBarometer primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer)));
-    CBarometer secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer)));
-
-    // Individual
-    CAccelerometer accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer)));
-
-    CTemperatureSensor thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer)));
-
-#ifndef CONFIG_ARCH_POSIX // TODO: No magnetometer simulation capability yet
-    CMagnetometer magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer)));
-#endif
-
-    CSensorDevice *sensors[] = {
-        &imuAccelerometer, &imuGyroscope, &primaryBarometer, &secondaryBarometer,
-        &accelerometer, &thermometer,
-#ifndef CONFIG_ARCH_POSIX // TODO: No magnetometer simulation capability yet
-        &magnetometer
-#endif
+#ifndef CONFIG_ARCH_POSIX
+    const sensor_value imuOdr{
+        .val1 = 104,
+        .val2 = 0
     };
 
+    if (imuAccelerometer.Configure(SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &imuOdr)) {
+        LOG_WRN("IMU Accelerometer ODR configuration failed. IMU accelerations will report 0.");
+    }
+
+    if (imuGyroscope.Configure(SENSOR_CHAN_GYRO_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &imuOdr)) {
+        LOG_WRN("IMU Gyroscope ODR configuration failed. IMU gyroscope values will report 0.");
+    }
+
+#endif
+}
+
+void CSensingTenant::PostStartup() {}
+
+void CSensingTenant::Run() {
     NTypes::SensorData data{};
     while (true) {
-        for (auto sensor: sensors) {
-            sensor->UpdateSensorValue();
+        for (auto sensor : sensors) {
+            if (sensor) {
+                sensor->UpdateSensorValue();
+            }
         }
 
         data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
@@ -60,11 +76,9 @@ void CSensingTenant::Run() {
         data.ImuGyroscope.Y = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
         data.ImuGyroscope.Z = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
 
-#ifndef CONFIG_ARCH_POSIX // TODO: No magnetometer simulation capability yet
         data.Magnetometer.X = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_X);
         data.Magnetometer.Y = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Y);
         data.Magnetometer.Z = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Z);
-#endif
 
         data.PrimaryBarometer.Pressure = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
         data.PrimaryBarometer.Temperature = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
@@ -72,7 +86,7 @@ void CSensingTenant::Run() {
         data.SecondaryBarometer.Pressure = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
         data.SecondaryBarometer.Temperature = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
-        data.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+        data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
         dataToBroadcast.Send(data, K_MSEC(5));
         dataToLog.Send(data, K_MSEC(5));
