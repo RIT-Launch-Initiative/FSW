@@ -1,5 +1,7 @@
 #include "c_power_module.h"
 
+#include <n_autocoder_types.h>
+
 // F-Core Tenant
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>

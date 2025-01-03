@@ -10,7 +10,9 @@
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <f_core/device/sensor/c_temperature_sensor.h>
 #include <array>
-#include "n_types.h"
+
+#include <n_autocoder_types.h>
+
 
 class CSensorDevice;
 

@@ -1,0 +1,17 @@
+SensorData:
+  description: Sensor Module Grouped Shunt Sensor Data
+  fields:
+    - name: PrimaryBarometer
+      type: BarometerData
+    - name: SecondaryBarometer
+      type: BarometerData
+    - name: Acceleration
+      type: AccelerometerData
+    - name: ImuAcceleration
+      type: AccelerometerData
+    - name: ImuGyroscope
+      type: GyroscopeData
+    - name: Magnetometer
+      type: MagnetometerData
+    - name: Temperature
+      type: TemperatureData

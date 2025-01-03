@@ -3,8 +3,10 @@
 #
 # Copyright (c) 2023 Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
+
 set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 include(${FSW_ROOT}/cmake/Snippets.cmake)
+include(${FSW_ROOT}/cmake/Autocoders.cmake)
 
 AddCommonSnippets()
 
@@ -35,3 +37,7 @@ project(radio-module LANGUAGES C CXX)
 FILE(GLOB SOURCES src/*.c src/*.cpp)
 target_include_directories(app PRIVATE include)
 target_sources(app PRIVATE ${SOURCES})
+
+AutocodeTypes()
+AutocodeNetworkDefinitions()
+add_dependencies(app ac_net_defs ac_types)
