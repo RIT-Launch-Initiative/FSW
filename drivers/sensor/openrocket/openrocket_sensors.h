@@ -80,13 +80,13 @@ struct or_data_t {
     or_scalar_t vert_accel; // m/s^2
     or_scalar_t lat_accel;  // m/s^2
 
-    or_scalar_t roll;  // deg/s
-    or_scalar_t pitch; // deg/s
-    or_scalar_t yaw;   // deg/s
+    or_scalar_t roll;  // rad/s
+    or_scalar_t pitch; // rad/s
+    or_scalar_t yaw;   // rad/s
 #endif
 #ifdef CONFIG_OPENROCKET_BAROMETER
     or_scalar_t temperature; // °C
-    or_scalar_t pressure;    // mbar
+    or_scalar_t pressure;    // kPa
 #endif
 #ifdef CONFIG_OPENROCKET_GNSS
     or_scalar_t latitude;  // °

@@ -1,0 +1,57 @@
+uart connected to pseudotty: /dev/pts/4
+[00:00:00.000,000] [0m<inf> openrocket: Initializing OpenRocket data[0m
+[00:00:00.000,000] [0m<inf> littlefs: littlefs partition at /lfs[0m
+[00:00:00.000,000] [0m<inf> littlefs: LittleFS version 2.9, disk version 2.1[0m
+[00:00:00.000,000] [0m<inf> littlefs: FS at flash-controller@0:0xfc000 is 131072 0x1000-byte blocks with 90000 cycle[0m
+[00:00:00.000,000] [0m<inf> littlefs: partition sizes: rd 16 ; pr 16 ; ca 64 ; la 32[0m
+[00:00:00.000,000] [0m<inf> littlefs: Automount /lfs succeeded[0m
+*** Booting Zephyr OS build 0ac9a6c5125c ***
+[00:00:00.000,000] [0m<inf> flight_controller: Beginning Flight Log[0m
+[00:00:00.000,000] [0m<dbg> main: main: Waiting until everyone ready[0m
+[00:00:00.000,000] [0m<inf> flight_controller:       0ms:	PadReady   from Barom 1 (BME280)[0m
+[00:00:00.000,000] [0m<inf> flight_controller:       0ms:	PadReady   from IMU 1 (LSM6DSL)[0m
+[00:00:00.000,000] [0m<inf> flight_controller:       0ms:	PadReady   confirmed[0m
+[00:00:00.000,000] [0m<dbg> main: main: System ready:	start boost detecting[0m
+[00:00:00.000,000] [0m<dbg> main: main: Waiting for boost[0m
+[00:00:02.000,100] [0m<inf> openrocket: OpenRocket event IGNITION at time T+0.000 (uptime 2000 ms)[0m
+[00:00:02.000,100] [0m<inf> openrocket: OpenRocket event LAUNCH at time T+0.000 (uptime 2000 ms)[0m
+[00:00:02.048,200] [0m<inf> openrocket: OpenRocket event LIFTOFF at time T+0.048 (uptime 2048 ms)[0m
+[00:00:02.244,300] [0m<inf> openrocket: OpenRocket event LAUNCHROD at time T+0.244 (uptime 2244 ms)[0m
+[00:00:02.291,200] [0m<inf> flight_controller:    2291ms:	Boost      from IMU 1 (LSM6DSL)[0m
+[00:00:02.291,200] [0m<inf> flight_controller:    2291ms:	Boost      confirmed[0m
+[00:00:02.291,200] [0m<dbg> main: main: Boost detected:	tell your friends (engineering cams)[0m
+[00:00:02.291,200] [0m<dbg> main: main: Waiting for coast[0m
+[00:00:03.736,400] [0m<inf> openrocket: OpenRocket event BURNOUT at time T+1.736 (uptime 3736 ms)[0m
+[00:00:03.736,400] [0m<inf> openrocket: OpenRocket event EJECTION_CHARGE at time T+1.736 (uptime 3736 ms)[0m
+[00:00:03.809,200] [0m<inf> flight_controller:    3809ms:	Coast      from IMU 1 (LSM6DSL)[0m
+[00:00:03.809,200] [0m<inf> flight_controller:    3809ms:	Coast      confirmed[0m
+[00:00:03.809,200] [0m<dbg> main: main: Coast detected:	turn down IMU data rate[0m
+[00:00:03.809,200] [0m<dbg> main: main: Waiting for noseover[0m
+[00:00:04.291,200] [0m<inf> flight_controller:    4291ms:	Coast      from Boost2Coast Timer[0m
+[00:00:04.291,200] [0m<inf> flight_controller:    4291ms:	Coast      confirmed but already happened. Not dispatching[0m
+[00:00:07.291,200] [0m<inf> flight_controller:    7291ms:	Noseover   from Noseover Lockout[0m
+[00:00:26.196,500] [0m<inf> openrocket: OpenRocket event APOGEE at time T+24.196 (uptime 26196 ms)[0m
+[00:00:26.196,500] [0m<inf> openrocket: OpenRocket event RECOVERY_DEVICE_DEPLOYMENT at time T+24.197 (uptime 26196 ms)[0m
+[00:00:30.360,200] [0m<inf> flight_controller:   30360ms:	Noseover   from Barom 1 (BME280)[0m
+[00:00:30.360,200] [0m<inf> flight_controller:   30360ms:	Noseover   confirmed[0m
+[00:00:30.360,200] [0m<inf> flight_controller:   30360ms:	Flight Log Print: Noseover occured at barometeric altitude of 9948.40 ft agl (14529.67 ft asl)[0m
+[00:00:30.360,200] [0m<dbg> main: main: Noseover detected:	deploy charges[0m
+[00:00:30.360,200] [0m<dbg> main: main: Waiting for main[0m
+[00:02:15.990,600] [0m<inf> openrocket: OpenRocket event RECOVERY_DEVICE_DEPLOYMENT at time T+133.992 (uptime 135990 ms)[0m
+[00:02:51.560,200] [0m<inf> flight_controller:  171560ms:	MainChute  from Barom 1 (BME280)[0m
+[00:02:51.560,200] [0m<inf> flight_controller:  171560ms:	MainChute  confirmed[0m
+[00:02:51.560,200] [0m<dbg> main: main: Main Chute Deploy:	deploy more charges[0m
+[00:02:51.560,200] [0m<dbg> main: main: Waiting for ground[0m
+[00:03:00.360,200] [0m<inf> flight_controller:  180360ms:	MainChute  from Noseover2Main Timer[0m
+[00:03:00.360,200] [0m<inf> flight_controller:  180360ms:	MainChute  confirmed but already happened. Not dispatching[0m
+[00:03:11.948,700] [0m<inf> openrocket: OpenRocket event GROUND_HIT at time T+189.950 (uptime 191948 ms)[0m
+[00:03:11.948,700] [0m<inf> openrocket: OpenRocket flight over[0m
+[00:03:22.291,200] [0m<inf> flight_controller:  202291ms:	GroundHit  from Full Flight Timer[0m
+[00:03:22.291,200] [0m<inf> flight_controller:  202291ms:	GroundHit  confirmed[0m
+[00:03:22.291,200] [0m<dbg> main: main: Hit The ground:	Stop trecording data[0m
+[00:03:22.291,400] [0m<inf> flight_controller:  202291ms:	Flight Log Print: Maximum barometric altitude of 10051.81 ft agl[0m
+[00:03:24.291,200] [0m<inf> flight_controller:  204291ms:	CamerasOff from ExtraCamera Timer[0m
+[00:03:24.291,200] [0m<inf> flight_controller:  204291ms:	CamerasOff confirmed[0m
+[00:03:24.291,200] [0m<dbg> main: main: Flight over:	Turn off cameras[0m
+[00:03:24.291,200] [0m<inf> flight_controller:  204291ms:	Closing flight log[0m
+[00:03:24.291,200] [0m<inf> main: Closed flight log[0m

@@ -8,7 +8,7 @@
 #include <zephyr/random/random.h>
 #endif
 
-LOG_MODULE_REGISTER(openrocket, CONFIG_OPENROCKET_LOG_LEVEL);
+LOG_MODULE_REGISTER(openrocket, LOG_LEVEL_INF);
 
 // Forward Declarations
 static struct or_data_t pad_packet;
@@ -119,10 +119,11 @@ static void or_event_thread_handler(void) {
         int time_to_wait_ms = (int) ((or_events[i].time_s - time) * 1000);
         k_msleep(time_to_wait_ms);
         time = or_events[i].time_s;
-        printk("OpenRocket event %s at time T+%.3f\n", event_to_str(or_events[i].event), (double) or_events[i].time_s);
+        LOG_INF("OpenRocket event %s at time T+%.3f (uptime %lld ms)", event_to_str(or_events[i].event),
+                (double) or_events[i].time_s, k_uptime_get());
         i++;
     }
-    printk("OpenRocket flight over\n");
+    LOG_INF("OpenRocket flight over");
 }
 #endif
 

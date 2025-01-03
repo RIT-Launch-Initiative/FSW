@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: phase-detection
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.phase_detection.default: {}

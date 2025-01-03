@@ -6,7 +6,7 @@ import csv
 import argparse
 from math import isnan
 import magnetic_field
-
+from math import pi
 
 '''
 Openrocket format that we care about:
@@ -53,13 +53,13 @@ def load_file(filename: str) -> str:
         sys.exit(1)
 
 
-def find_events(data_txt: str) -> List[OREvent]:
+def find_ork_events(csv_source_text: str) -> List[OREvent]:
     '''
     Extract all events (encoded in comments) from the csv and convert them to our internal representation
     Events look like:
     # Event IGNITION occurred at t=0 seconds
     '''
-    event_matches = re.findall(event_finder, data_txt)
+    event_matches = re.findall(event_finder, csv_source_text)
     events: List[OREvent] = []
     for match in event_matches:
         event = match[0]
@@ -73,7 +73,16 @@ def find_events(data_txt: str) -> List[OREvent]:
     return events
 
 
-def find_header(lines: List[str]) -> List[Variable]:
+# header_str
+# go from 'Name (unit)` to tuple of (name, unit)
+def split_ork_csv_header_element(header_str: str):
+    splitter = header_str.rindex('(')
+    name = header_str[:splitter].strip()
+    unit = header_str[splitter+1:header_str.rindex(')')]
+    return (name, unit)
+
+
+def find_csv_header(lines: List[str]) -> List[Variable]:
     '''
     The header is stored as a comment in (almost) the top of the file
     It tells us what data is in what column of the CSV
@@ -84,7 +93,7 @@ def find_header(lines: List[str]) -> List[Variable]:
             header_line_idx = linenum+1
             break
     header = lines[header_line_idx][2:].split(",")
-    return header
+    return [split_ork_csv_header_element(item) for item in header]
 
 
 def read_data(lines: List[str]) -> List[StringPacket]:
@@ -124,7 +133,6 @@ def complain(missing_variables: List[MissingVariable]):
     # Complain about when you ask for more data than what is in your csv
     eprint(
         "Missing variables (you probably need to add these variable to your openrocket export:")
-    eprint("Also: double check the units. We only support the ones listed below")
     missing = "Missing"
     reason = "Reason"
 
@@ -134,15 +142,24 @@ def complain(missing_variables: List[MissingVariable]):
     sys.exit(1)
 
 
-def validate_vars(header: List[str], wanted: List[WantedVariables]) -> Dict[Variable, int]:
+MappingDef = namedtuple(
+    "MappingDef", ['header_index', 'original_unit', 'destination_unit'])
+
+
+def validate_vars(csv_header: List[str], wanted: List[WantedVariables]) -> Dict[Variable, MappingDef]:
     # get a mapping of string to column name from the wanted variables
     missin_params: List[MissingVariable] = []
     mapping: Dict[Variable, int] = {}
 
+    header_names = [h[0] for h in csv_header]
+
     for (variables, reason) in wanted:
         for variable in variables:
-            if variable in header:
-                mapping[variable] = header.index(variable)
+            if variable in header_names:
+                header_index = header_names.index(variable)
+                # index, from_unit
+                mapping[variable] = MappingDef(
+                    header_index, csv_header[header_index][1], desired_units[variable])
             else:
                 missin_params.append((variable, reason))
 
@@ -151,55 +168,148 @@ def validate_vars(header: List[str], wanted: List[WantedVariables]) -> Dict[Vari
     return mapping
 
 
-TIME = "Time (s)"
+TIME = "Time"
 
-VERT_ACCEL = "Vertical acceleration (m/s²)"
-LAT_ACCEL = "Lateral acceleration (m/s²)"
-ROLL = "Roll rate (°/s)"
-PITCH = "Pitch rate (°/s)"
-YAW = "Yaw rate (°/s)"
+VERT_ACCEL = "Vertical acceleration"
+LAT_ACCEL = "Lateral acceleration"
+ROLL_RATE = "Roll rate"
+PITCH_RATE = "Pitch rate"
+YAW_RATE = "Yaw rate"
 
-TEMP = "Air temperature (°C)"
-PRESSURE = "Air pressure (mbar)"
+TEMP = "Air temperature"
+PRESSURE = "Air pressure"
 
-LATITUDE = "Latitude (°)"
-LONGITUDE = "Longitude (°)"
-VELOCITY = "Total velocity (m/s)"
-ALTITUDE = "Altitude (m)"
-LATERAL_DIRECTION = "Lateral direction (°)"
+LATITUDE = "Latitude"
+LONGITUDE = "Longitude"
+VELOCITY = "Total velocity"
+ALTITUDE = "Altitude"
+LATERAL_DIRECTION = "Lateral direction"
 
-VERT_ORIENTATION = "Vertical orientation (zenith) (°)"
-LAT_ORIENTATION = "Lateral orientation (azimuth) (°)"
+VERT_ORIENTATION = "Vertical orientation (zenith)"
+LAT_ORIENTATION = "Lateral orientation (azimuth)"
 
-MAGNX = "Magnetometer X (gauss)"
-MAGNY = "Magnetometer Y (gauss)"
-MAGNZ = "Magnetometer Z (gauss)"
+MAGNX = "Magnetometer X"
+MAGNY = "Magnetometer Y"
+MAGNZ = "Magnetometer Z"
+
+
+desired_units = {
+    TIME: 's',
+    VERT_ACCEL: 'm/s²',
+    LAT_ACCEL: 'm/s²',
+    ROLL_RATE: 'rad/s',
+    PITCH_RATE: 'rad/s',
+    YAW_RATE: 'rad/s',
+    TEMP: '°C',
+    PRESSURE: 'kPa',
+    LATITUDE: '°',
+    LONGITUDE: '°',
+    VELOCITY: 'm/s',
+    ALTITUDE: 'm',
+    LATERAL_DIRECTION: '°',
+    VERT_ORIENTATION: '°',
+    LAT_ORIENTATION: '°',
+    MAGNX: 'gauss',
+    MAGNY: 'gauss',
+    MAGNZ: 'gauss',
+}
+
+# conversions
+scaling_conversions = {
+    # Time
+    's': {'min': 1/60},
+
+    # Length
+    'cm': {'km': 1/1000, 'ft': 3.28084, 'yd': 1.0936133, 'mi': 0.000621371192, 'nmi': 0.000539956803},
+
+    # Area
+    'm²': {'cm²': 10000, 'mm²': 1000000, 'in²': 1550.0031, 'ft²': 10.7639104},
+
+
+    # Linear Velocity
+    'm/s': {'km/h': 3.6, 'ft/s': 3.28084, 'mph': 2.23694, 'kt': 1.94384},
+
+    # Linear Acceleration (uppercase G bc lowercase g is grams)
+    'm/s²': {'ft/s²': .3048, 'G': 0.101971621},
+
+    # Rotation
+    '°': {'rad': 0.0174532925, 'arcmin': 60},
+
+    # Rotational Velocity
+    '°/s': {'rad/s': 0.0174532925, 'r/s': 1/360, 'rpm': 1/6},
+
+    # Mass
+    'g': {'kg': 1/1000, 'oz': 0.0352739619, 'lb': 0.00220462},
+
+
+    # Moment of Inertia
+    'kg·m²': {'kg·cm²':  0.0001, 'oz·in²': 54674.74983, 'lb·in²': 3417.1718982, 'lb·ft²': 23.730360404},
+
+    'N': {'lbf': 1, 'kgf': 1},
+
+    'mbar': {'bar': .001, 'atm': 0.000986923, 'mmHg': 0.750062, 'inHg': 0.02953, 'psi': 0.0145038, 'Pa': 100, 'kPa': 0.1},
+}
+to_base_units = {value: key for key,
+                 values in scaling_conversions.items() for value in values}
+
+complicated_conversions = {
+    '°C': {'°F': lambda C: ((C*9/5) + 32), 'K': lambda C: C+273.15},
+    '°F': {'°C': lambda F: (F-32)*5/9, 'K': lambda F: ((F-32)*5/9)-273.15},
+    'K': {'°C': lambda K: K-273.15, '°F': lambda K: (K-273.15)*9/5 + 32},
+}
+handled_by_scaling = [item for sub in [[base]+list(others.keys())
+                                       for base, others in scaling_conversions.items()] for item in sub]
+handled_by_complicated = list(complicated_conversions.keys())
+
+
+def convert_unit(value: float, from_unit: str, to_unit: str):
+    if from_unit == to_unit:
+        return value
+
+    if from_unit in handled_by_complicated:
+        converter = complicated_conversions[from_unit][to_unit]
+        return converter(value)
+    elif from_unit in handled_by_scaling:
+        if from_unit not in scaling_conversions.keys():
+            # from unit is not base(key) unit
+            base_unit_str = to_base_units[from_unit]
+            from_to_base = 1/scaling_conversions[base_unit_str][from_unit]
+            base_to_to = scaling_conversions[base_unit_str][to_unit]
+            return value * from_to_base * base_to_to
+        else:
+            # from unit is base(key) unit
+            factor = scaling_conversions[from_unit][to_unit]
+            return value * factor
+    else:
+        raise Exception(f"Unsupported unit conversion {
+                        from_unit} to {to_unit}")
+
 
 # order in the c struct. this will have to update as time goes on
-struct_order = [TIME, VERT_ACCEL, LAT_ACCEL, ROLL, PITCH, YAW,
+struct_order = [TIME, VERT_ACCEL, LAT_ACCEL, ROLL_RATE, PITCH_RATE, YAW_RATE,
                 TEMP, PRESSURE, LATITUDE, LONGITUDE, VELOCITY, ALTITUDE, LATERAL_DIRECTION, MAGNX, MAGNY, MAGNZ]
 
 
-def convert_value(value: str) -> float:
+def denan_value(value: str) -> float:
     if isnan(float(value)):
         return 0
     return float(value)
 
 
-def make_single_packet(packet, indices, mapping: Dict[Variable, int], config) -> List[float]:
-    direct = [convert_value(packet[i]) for i in indices]
+def make_single_packet(packet, structFieldMappings: List[MappingDef], allMappings: Dict[Variable, MappingDef], config) -> List[float]:
+    direct = [denan_value(convert_unit(float(packet[mapper.header_index]), mapper.original_unit,
+                          mapper.destination_unit)) for mapper in structFieldMappings]
 
-    # position
     calculated = []
 
     if config.magnetometer:
-        lat = packet[mapping[LATITUDE]]
-        long = packet[mapping[LONGITUDE]]
-        alt = packet[mapping[ALTITUDE]]
+        lat = packet[allMappings[LATITUDE].header_index]
+        long = packet[allMappings[LONGITUDE].header_index]
+        alt = packet[allMappings[ALTITUDE].header_index]
 
         # orientation
-        azimuth = packet[mapping[VERT_ORIENTATION]]
-        inclination = packet[mapping[LAT_ORIENTATION]]
+        azimuth = packet[allMappings[VERT_ORIENTATION].header_index]
+        inclination = packet[allMappings[LAT_ORIENTATION].header_index]
 
         magn = magnetic_field.evaluate_xyz(
             lat, long, alt, azimuth, inclination)
@@ -208,11 +318,11 @@ def make_single_packet(packet, indices, mapping: Dict[Variable, int], config) ->
     return direct+calculated
 
 
-def collect_data(data: List[StringPacket], mapping: Dict[Variable, int], config) -> List[Packet]:
-    indices = [mapping[key] for key in struct_order if key in mapping]
+def collect_data(data: List[StringPacket], mapping: Dict[Variable, MappingDef], config) -> List[Packet]:
+    mappingDefs = [mapping[key] for key in struct_order if key in mapping]
 
     wanted_data = [make_single_packet(
-        packet, indices, mapping, config) for packet in data]
+        packet, mappingDefs, mapping, config) for packet in data]
 
     return wanted_data
 
@@ -274,7 +384,7 @@ def get_wanted_vars(config) -> List[Variable]:
     wanted_variables.append(({TIME}, "Need Time for any sensor to work"))
     if config.imu:
         wanted_variables.append(
-            ({VERT_ACCEL, LAT_ACCEL, ROLL, PITCH, YAW},
+            ({VERT_ACCEL, LAT_ACCEL, ROLL_RATE, PITCH_RATE, YAW_RATE},
              "Requested IMU data"
              ))
     if config.barometer:
@@ -299,10 +409,10 @@ def main():
     wanted_variables = get_wanted_vars(config)
 
     txt = load_file(config.in_filename)
-    events = find_events(txt)
+    events = find_ork_events(txt)
     lines = txt.splitlines()
 
-    header = find_header(lines)
+    header = find_csv_header(lines)
     mapping = validate_vars(header, wanted_variables)
 
     data = read_data(lines)
