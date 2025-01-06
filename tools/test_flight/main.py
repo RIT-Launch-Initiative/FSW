@@ -4,6 +4,7 @@ import sys
 import subprocess
 import threading
 import logging
+from datetime import datetime
 from threading import Thread, Barrier
 
 # Configure logging
@@ -27,18 +28,26 @@ WARNINGS_COUNT = 0
 ERRORS_COUNT = 0
 
 SUPPRESSED_ERRORS = [
-    "Corrupted dir pair at {0x0, 0x1}"
+    "Corrupted dir pair at {0x0, 0x1}"  # Zephyr automount
 ]
 
 SUPPRESSED_WARNINGS = [
-    "Skipping bind. Using native_sim loopback",
-    "can't mount (LFS -84); formatting"
+    "Skipping bind. Using native_sim loopback",  # Launch Core Simulation uses socket offloading w/ loopback
+    "can't mount (LFS -84); formatting"  # Zephyr automount
 ]
 
-def generate_output_folder(args: argparse.Namespace, binary_fnames: list):
+
+def generate_output_folder(args: argparse.Namespace) -> str:
     """Generate the output folder"""
     if not os.path.exists(args.output):
         os.mkdir(args.output)
+
+    # Get timestamp
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_folder = f"{args.output}/{timestamp}"
+    os.mkdir(output_folder)
+
+    return output_folder
 
 
 def validate_arguments(args: argparse.Namespace) -> bool:
@@ -77,7 +86,7 @@ def get_binaries(args: argparse.Namespace) -> tuple[list, list]:
     return [], []
 
 
-def setup_sim(args: argparse.Namespace):
+def setup_sim(args: argparse.Namespace) -> tuple[list, list, str]:
     """Set up the simulation"""
     if not validate_arguments(args):
         return None
@@ -85,9 +94,9 @@ def setup_sim(args: argparse.Namespace):
     binaries, binary_fnames = get_binaries(args)
     logger.info(f"Detected binaries: {binaries}")
 
-    generate_output_folder(args, binary_fnames)
+    output_folder = generate_output_folder(args)
 
-    return binaries, binary_fnames
+    return binaries, binary_fnames, output_folder
 
 
 def generate_binary_flags(binary: str, output_folder: str, args: argparse.Namespace) -> list:
@@ -106,11 +115,11 @@ def generate_binary_flags(binary: str, output_folder: str, args: argparse.Namesp
     return flags_list
 
 
-def add_warnings_errors(binary_fname: str, error_lines: list, warning_lines: list):
+def add_warnings_errors(binary_fname: str, error_lines: list, warning_lines: list) -> None:
     """Add the warnings and errors to the global dictionaries"""
     global WARNINGS_COUNT
     global ERRORS_COUNT
-    
+
     with WARNING_ERRORS_LOCK:
         WARNINGS_DICT[binary_fname] = warning_lines
         ERRORS_DICT[binary_fname] = error_lines
@@ -120,14 +129,14 @@ def add_warnings_errors(binary_fname: str, error_lines: list, warning_lines: lis
 
 
 def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Barrier,
-                   binary_path: str, args: argparse.Namespace, base_output_folder: str):
+                   binary_path: str, args: argparse.Namespace, base_output_folder: str) -> None:
     """Run the simulation for the given binary"""
     binary_fname = get_filename(binary_path)
     output_folder = f"{base_output_folder}/{binary_fname}"
     flags = generate_binary_flags(binary_path, output_folder, args)
 
-    if not os.path.exists(f"{args.output}/{binary_fname}"):
-        os.mkdir(f"{args.output}/{binary_fname}")
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
 
     logger.info(f"Starting simulation for {binary_fname}")
     start_barrier.wait()
@@ -162,12 +171,12 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
     stop_barrier.wait()
 
 
-def cleanup(args: argparse.Namespace):
+def cleanup() -> None:
     """Cleanup the simulation"""
     pass
 
 
-def print_all_warnings_errors():
+def print_all_warnings_errors() -> None:
     print("---- WARNINGS ----")
     if WARNINGS_COUNT != 0:
         for binary, warnings in WARNINGS_DICT.items():
@@ -186,7 +195,8 @@ def print_all_warnings_errors():
     else:
         print("No errors found")
 
-def print_results():
+
+def print_results() -> None:
     print("#### RESULTS ####")
     print_all_warnings_errors()
 
@@ -209,7 +219,7 @@ def main():
         parser.print_help()
         return
 
-    binaries, binary_fnames = setup_sim(args)
+    binaries, binary_fnames, output_folder = setup_sim(args)
     if not binaries:
         logger.error("No binaries to run. Exiting.")
         return
@@ -219,7 +229,7 @@ def main():
     stop_barrier = Barrier(len(binaries) + 1)
 
     for i, binary in enumerate(binaries):
-        Thread(target=run_simulation, args=(start_barrier, stop_barrier, binary, args, args.output)).start()
+        Thread(target=run_simulation, args=(start_barrier, stop_barrier, binary, args, output_folder)).start()
 
     start_barrier.wait()
     logger.info("Simulation started")
