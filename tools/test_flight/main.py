@@ -84,8 +84,9 @@ def run_simulation(start_barrier, stop_barrier, binary_path, args, output_folder
             log_file.write(line)
             if "RTOS Stopped!" in line:
                 break
-                
-        subprocess.run(["cp", "-r", f"{output_folder}/flash_mount", output_folder])
+
+        if subprocess.run(["cp", "-r", f"{output_folder}/flash_mount/*", f"{output_folder}/fs"]) != 0:
+            print(f"Failed to copy flash mount for {binary}")
 
         process.kill()
     stop_barrier.wait()
