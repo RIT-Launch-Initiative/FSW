@@ -8,11 +8,11 @@ from threading import Thread, Barrier
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,  # Change to DEBUG for more verbose output
+    level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("simulation.log"),  # Log to a file
-        logging.StreamHandler(sys.stdout)  # Log to the console
+        logging.FileHandler("simulation.log"),
+        logging.StreamHandler(sys.stdout)
     ]
 )
 logger = logging.getLogger(__name__)
@@ -21,13 +21,6 @@ def generate_output_folder(args: argparse.Namespace, binary_fnames: list):
     """Generate the output folder"""
     if not os.path.exists(args.output):
         os.mkdir(args.output)
-
-def delete_temp_file_mount(args: argparse.Namespace):
-    """Delete the temporary file mount"""
-    if os.path.exists(f"{args.output}/flash_mount"):
-        subprocess.run(["fusermount", "-u", f"{args.output}/flash_mount"], check=True)
-        os.rmdir(f"{args.output}/flash_mount")
-        logger.info("Temporary file mount deleted")
 
 def validate_arguments(args: argparse.Namespace) -> bool:
     """Validate the arguments passed in"""
@@ -70,12 +63,11 @@ def setup_sim(args: argparse.Namespace):
     binaries, binary_fnames = get_binaries(args)
     logger.info(f"Detected binaries: {binaries}")
 
-    delete_temp_file_mount(args)
     generate_output_folder(args, binary_fnames)
 
     return binaries, binary_fnames
 
-def generate_binary_flags(binary: str, args: argparse.Namespace) -> list:
+def generate_binary_flags(binary: str, output_folder: str, args: argparse.Namespace) -> list:
     """Generate the flags to run the binary"""
     flags_list = []
 
@@ -85,7 +77,7 @@ def generate_binary_flags(binary: str, args: argparse.Namespace) -> list:
         flags_list.append("-no-rt")
 
     # Place in temporary storage. Outputs get copied into top level before killing the binary
-    flags_list.append(f"-flash-mount={args.output}/flash_mount")
+    flags_list.append(f"-flash-mount={output_folder}/flash_mount")
     flags_list.append(f"-flash={binary}.bin")
 
     return flags_list
@@ -95,7 +87,7 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
     """Run the simulation for the given binary"""
     binary_fname = get_filename(binary_path)
     output_folder = f"{base_output_folder}/{binary_fname}"
-    flags = generate_binary_flags(binary_path, args)
+    flags = generate_binary_flags(binary_path, output_folder, args)
 
     if not os.path.exists(f"{args.output}/{binary_fname}"):
         os.mkdir(f"{args.output}/{binary_fname}")
@@ -125,7 +117,7 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
 
 def cleanup(args: argparse.Namespace):
     """Cleanup the simulation"""
-    delete_temp_file_mount(args)
+    pass
 
 def main():
     """Parse CLI args and run appropriate functions for simulation"""
