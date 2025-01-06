@@ -133,6 +133,9 @@ def main():
                         default=False)
 
     args = parser.parse_args()
+    if not args.executable and not args.build_folder:
+        parser.print_help()
+        return
 
     binaries, binary_fnames = setup_sim(args)
     if not binaries:
