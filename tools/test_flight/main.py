@@ -11,11 +11,6 @@ def generate_output_folder(args: argparse.Namespace, binary_fnames: list):
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    for binary_fname in binary_fnames:
-        if not os.path.exists(f"{args.output}/{binary_fname}"):
-            os.mkdir(f"{args.output}/{binary_fname}")
-
-
 def delete_temp_file_mount(args: argparse.Namespace):
     """Delete the temporary file mount"""
     if os.path.exists(f"{args.output}/flash_mount"):
@@ -91,13 +86,18 @@ def generate_binary_flags(binary: str, args: argparse.Namespace) -> list:
 
 
 def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Barrier,
-                   binary_path: str, args: argparse.Namespace, output_folder: str):
+                   binary_path: str, args: argparse.Namespace, base_output_folder: str):
     """Run the simulation for the given binary"""
-    binary = binary_path.split("/")[-1]
+    binary_fname = get_filename(binary_path)
+    output_folder = f"{base_output_folder}/{binary_fname}"
     flags = generate_binary_flags(binary_path, args)
+
+    if not os.path.exists(f"{args.output}/{binary_fname}"):
+        os.mkdir(f"{args.output}/{binary_fname}")
+
     start_barrier.wait()
 
-    with open(f"{output_folder}/{binary}.log", "w") as log_file:
+    with open(f"{output_folder}/{binary_fname}.log", "w") as log_file:
         process = subprocess.Popen([binary_path] + flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         for line in process.stdout:
@@ -145,7 +145,7 @@ def main():
 
     for i, binary in enumerate(binaries):
         Thread(target=run_simulation, args=(start_barrier, stop_barrier,
-                                            binary, args, f"{args.output}/{binary_fnames[i]}")).start()
+                                            binary, args, args.output)).start()
 
     start_barrier.wait()
     print("Simulation started")
