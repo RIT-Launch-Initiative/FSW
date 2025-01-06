@@ -17,10 +17,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Globals
+WARNING_ERRORS_LOCK = threading.Lock()
+
+WARNINGS_DICT = dict()
+ERRORS_DICT = dict()
+
+WARNINGS_COUNT = 0
+ERRORS_COUNT = 0
+
+SUPPRESSED_ERRORS = [
+    "Corrupted dir pair at {0x0, 0x1}"
+]
+
+SUPPRESSED_WARNINGS = [
+    "Skipping bind. Using native_sim loopback",
+    "can't mount (LFS -84); formatting"
+]
+
 def generate_output_folder(args: argparse.Namespace, binary_fnames: list):
     """Generate the output folder"""
     if not os.path.exists(args.output):
         os.mkdir(args.output)
+
 
 def validate_arguments(args: argparse.Namespace) -> bool:
     """Validate the arguments passed in"""
@@ -41,9 +60,11 @@ def validate_arguments(args: argparse.Namespace) -> bool:
 
     return True
 
+
 def get_filename(file_path: str) -> str:
     """Get the filename of the binary"""
     return file_path.split("/")[-1]
+
 
 def get_binaries(args: argparse.Namespace) -> tuple[list, list]:
     """Get the list of binaries to run"""
@@ -54,6 +75,7 @@ def get_binaries(args: argparse.Namespace) -> tuple[list, list]:
     # TODO: Can't do multiple executables yet, until multiple network interfaces is set up
     sys.stderr.write("UNSUPPORTED: READ TODO IN CODE\n")
     return [], []
+
 
 def setup_sim(args: argparse.Namespace):
     """Set up the simulation"""
@@ -66,6 +88,7 @@ def setup_sim(args: argparse.Namespace):
     generate_output_folder(args, binary_fnames)
 
     return binaries, binary_fnames
+
 
 def generate_binary_flags(binary: str, output_folder: str, args: argparse.Namespace) -> list:
     """Generate the flags to run the binary"""
@@ -82,6 +105,20 @@ def generate_binary_flags(binary: str, output_folder: str, args: argparse.Namesp
 
     return flags_list
 
+
+def add_warnings_errors(binary_fname: str, error_lines: list, warning_lines: list):
+    """Add the warnings and errors to the global dictionaries"""
+    global WARNINGS_COUNT
+    global ERRORS_COUNT
+    
+    with WARNING_ERRORS_LOCK:
+        WARNINGS_DICT[binary_fname] = warning_lines
+        ERRORS_DICT[binary_fname] = error_lines
+
+        ERRORS_COUNT += len(error_lines)
+        WARNINGS_COUNT += len(warning_lines)
+
+
 def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Barrier,
                    binary_path: str, args: argparse.Namespace, base_output_folder: str):
     """Run the simulation for the given binary"""
@@ -95,6 +132,9 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
     logger.info(f"Starting simulation for {binary_fname}")
     start_barrier.wait()
 
+    error_lines = []
+    warning_lines = []
+
     with open(f"{output_folder}/{binary_fname}.log", "w") as log_file:
         process = subprocess.Popen([binary_path] + flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
@@ -105,6 +145,12 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
                 logger.info(f"{binary_fname} finished running!")
                 break
 
+            if "err" in line and not any(error in line for error in SUPPRESSED_ERRORS):
+                error_lines.append(line)
+
+            if "wrn" in line and not any(warning in line for warning in SUPPRESSED_WARNINGS):
+                warning_lines.append(line)
+        add_warnings_errors(binary_fname, error_lines, warning_lines)
         # TODO: Returns -1 which is bad, but the files seem to be copied over properly
         # Might be some weird 64 vs 32 bit architecture issue too
         subprocess.run(["cp", "-r", f"{output_folder}/flash_mount/", f"{output_folder}/fs"])
@@ -115,9 +161,35 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
     logger.info(f"Completed simulation for {binary_fname}")
     stop_barrier.wait()
 
+
 def cleanup(args: argparse.Namespace):
     """Cleanup the simulation"""
     pass
+
+
+def print_all_warnings_errors():
+    print("---- WARNINGS ----")
+    if WARNINGS_COUNT != 0:
+        for binary, warnings in WARNINGS_DICT.items():
+            print(f"Warnings for {binary}:")
+            for warning in warnings:
+                print("\t", warning)
+    else:
+        print("No warnings found")
+
+    print("---- ERRORS ----")
+    if ERRORS_COUNT != 0:
+        for binary, errors in ERRORS_DICT.items():
+            print(f"Errors for {binary}:")
+            for error in errors:
+                print("\t", error)
+    else:
+        print("No errors found")
+
+def print_results():
+    print("#### RESULTS ####")
+    print_all_warnings_errors()
+
 
 def main():
     """Parse CLI args and run appropriate functions for simulation"""
@@ -154,6 +226,9 @@ def main():
 
     stop_barrier.wait()
     logger.info("Simulation complete")
+
+    print_results()
+
 
 if __name__ == "__main__":
     main()
