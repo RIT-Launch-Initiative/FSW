@@ -2,17 +2,28 @@ import argparse
 import os
 import sys
 import subprocess
+import threading
 from threading import Thread, Barrier
 
 
-def delete_temp_file_mount(args):
+def generate_output_folder(args: argparse.Namespace, binary_fnames: list):
+    """Generate the output folder"""
+    if not os.path.exists(args.output):
+        os.mkdir(args.output)
+
+    for binary_fname in binary_fnames:
+        if not os.path.exists(f"{args.output}/{binary_fname}"):
+            os.mkdir(f"{args.output}/{binary_fname}")
+
+
+def delete_temp_file_mount(args: argparse.Namespace):
     """Delete the temporary file mount"""
     if os.path.exists(f"{args.output}/flash_mount"):
         subprocess.run(["fusermount", "-u", f"{args.output}/flash_mount"])
         os.rmdir(f"{args.output}/flash_mount")
 
 
-def validate_arguments(args) -> bool:
+def validate_arguments(args: argparse.Namespace) -> bool:
     """Validate the arguments passed in"""
     if not args.executable and not args.build_folder:
         print("No executable or build folder provided")
@@ -32,29 +43,38 @@ def validate_arguments(args) -> bool:
     return True
 
 
-def get_binaries(args) -> list:
+def get_filename(file_path: str) -> str:
+    """Get the filename of the binary"""
+    return file_path.split("/")[-1]
+
+
+def get_binaries(args: argparse.Namespace) -> tuple[list, list]:
     """Get the list of binaries to run"""
     if args.executable:
-        return [args.executable]
+        return [args.executable], [get_filename(args.executable)]
 
     # Warning
     # TODO: Can't do multiple executables yet, until multiple network interfaces is set up
     sys.stderr.write("UNSUPPORTED: READ TODO IN CODE\n")
-    return []
+    return [], []
     # return [f"{args.build_folder}/{file}" for file in os.listdir(args.build_folder)]
 
 
-def setup_sim(args):
+def setup_sim(args: argparse.Namespace):
     """Set up the simulation"""
     if not validate_arguments(args):
         return None
 
+    binaries, binary_fnames = get_binaries(args)
+    print(binaries)
+
     delete_temp_file_mount(args)
+    generate_output_folder(args, binary_fnames)
+
+    return binaries, binary_fnames
 
 
-    return get_binaries(args)
-
-def generate_binary_flags(binary, args) -> list:
+def generate_binary_flags(binary: str, args: argparse.Namespace) -> list:
     """Generate the flags to run the binary"""
     flags_list = []
 
@@ -70,13 +90,14 @@ def generate_binary_flags(binary, args) -> list:
     return flags_list
 
 
-def run_simulation(start_barrier, stop_barrier, binary_path, args, output_folder):
+def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Barrier,
+                   binary_path: str, args: argparse.Namespace, output_folder: str):
     """Run the simulation for the given binary"""
     binary = binary_path.split("/")[-1]
     flags = generate_binary_flags(binary_path, args)
     start_barrier.wait()
 
-    with open(f"{output_folder}/{binary}.out", "w") as log_file:
+    with open(f"{output_folder}/{binary}.log", "w") as log_file:
         process = subprocess.Popen([binary_path] + flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         for line in process.stdout:
@@ -85,14 +106,15 @@ def run_simulation(start_barrier, stop_barrier, binary_path, args, output_folder
             if "RTOS Stopped!" in line:
                 break
 
-        if subprocess.run(["cp", "-r", f"{output_folder}/flash_mount/*", f"{output_folder}/fs"]) != 0:
-            print(f"Failed to copy flash mount for {binary}")
+        # TODO: Returns -1 which is bad, but the files seem to be copied over properly
+        # Might be some weird 64 vs 32 bit architecture issue too
+        subprocess.run(["cp", "-r", f"{output_folder}/flash_mount/", f"{output_folder}/fs"])
 
         process.kill()
     stop_barrier.wait()
 
 
-def cleanup(args):
+def cleanup(args: argparse.Namespace):
     """Cleanup the simulation"""
     delete_temp_file_mount(args)
 
@@ -113,7 +135,7 @@ def main():
 
     args = parser.parse_args()
 
-    binaries = setup_sim(args)
+    binaries, binary_fnames = setup_sim(args)
     if not binaries:
         return
 
@@ -121,8 +143,9 @@ def main():
     start_barrier = Barrier(len(binaries) + 1)
     stop_barrier = Barrier(len(binaries) + 1)
 
-    for binary in binaries:
-        Thread(target=run_simulation, args=(start_barrier, stop_barrier, binary, args, args.output)).start()
+    for i, binary in enumerate(binaries):
+        Thread(target=run_simulation, args=(start_barrier, stop_barrier,
+                                            binary, args, f"{args.output}/{binary_fnames[i]}")).start()
 
     start_barrier.wait()
     print("Simulation started")
