@@ -149,6 +149,7 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
 
     logger.info(f"Starting simulation for {binary_fname}")
     start_barrier.wait()
+    logger.info(f"Running {binary_fname} with flags: {flags}")
 
     error_lines = []
     warning_lines = []
