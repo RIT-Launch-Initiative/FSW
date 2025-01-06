@@ -80,9 +80,18 @@ def get_binaries(args: argparse.Namespace) -> tuple[list, list]:
     if args.executable:
         return [args.executable], [get_filename(args.executable)]
 
-    # Warning
-    # TODO: Can't do multiple executables yet, until multiple network interfaces is set up
-    sys.stderr.write("UNSUPPORTED: READ TODO IN CODE\n")
+    if args.build_folder:
+        binaries = []
+        binary_fnames = []
+        for root, _, files in os.walk(args.build_folder):
+            # Check if the file is an executable
+            for file in files:
+                if os.access(f"{root}/{file}", os.X_OK):
+                    binaries.append(f"{root}/{file}")
+                    binary_fnames.append(file)
+
+        return binaries, binary_fnames
+
     return [], []
 
 
