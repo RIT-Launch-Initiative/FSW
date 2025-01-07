@@ -42,7 +42,7 @@ inline std::array<Controller::TimerEvent, num_timer_events> timer_events = {
     Controller::TimerEvent{
         .start = Events::Boost,
         .event = Events::Coast,
-        .time = K_SECONDS(2),
+        .time = K_SECONDS(3),
         .source = Sources::Boost2CoastTimer,
     },
     // We dont want to accidentally detect noseover when still burning or while going really fast.
@@ -50,14 +50,14 @@ inline std::array<Controller::TimerEvent, num_timer_events> timer_events = {
     Controller::TimerEvent{
         .start = Events::Boost,
         .event = Events::Noseover,
-        .time = K_SECONDS(5),
+        .time = K_SECONDS(10),
         .source = Sources::NoseoverLockout,
     },
     // Rather than deploying chutes at an altitude, deploy them at a certain time after noseover
     Controller::TimerEvent{
         .start = Events::Noseover,
         .event = Events::MainChute,
-        .time = K_SECONDS(150),
+        .time = K_SECONDS(175),
         .source = Sources::Noseover2MainTimer,
     },
     // We know our entire flight will not last longer than X seconds even if we main at apogee.
@@ -65,7 +65,7 @@ inline std::array<Controller::TimerEvent, num_timer_events> timer_events = {
     Controller::TimerEvent{
         .start = Events::Boost,
         .event = Events::GroundHit,
-        .time = K_SECONDS(200),
+        .time = K_SECONDS(350),
         .source = Sources::FullFlightTimer,
     },
     // After we hit the ground, keep the cameras going for a while longer so they start a new video file and when we cut the power, no actual flight footage is lost

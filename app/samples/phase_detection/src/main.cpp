@@ -145,9 +145,9 @@ void barom_thread_f(void *vp_controller, void *, void *) {
     constexpr double mainheight_threshold = 500.0;
     MainHeightDebouncerT mainheight_debouncer{mainheight_time_ms, mainheight_threshold};
 
-    // under 5 ft/s for 10 seconds
+    // under 10 ft/s for 10 seconds
     constexpr uint32_t no_vel_time_ms = 10 * 1000;
-    constexpr double no_vel_threshold = 5.0;
+    constexpr double no_vel_threshold = 10.0;
     NoVelocityDebouncerT no_vel_debouncer{no_vel_time_ms, no_vel_threshold};
 
     while (!controller.HasEventOccured(Events::GroundHit)) {
@@ -261,7 +261,7 @@ int main() {
 
     LOG_DBG("Waiting for ground");
     controller.WaitUntilEvent(Events::GroundHit);
-    LOG_DBG("Hit The ground:\tStop trecording data");
+    LOG_DBG("Hit The ground:\tStop recording data");
 
     // Stop recording
     k_timer_stop(&imu_timer);

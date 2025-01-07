@@ -32,7 +32,7 @@
         lag-time-us = <1000>;
         sampling-period-us = <10>;
         temp-noise = <100>; // millicelsius
-        pressure-noise = <10>; // pascals
+        pressure-noise = <1>; // kPa / 1000
     };
 
     fstab {
