@@ -9,7 +9,7 @@ from threading import Thread, Barrier
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("simulation.log"),
@@ -148,8 +148,8 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
         os.mkdir(output_folder)
 
     logger.info(f"Starting simulation for {binary_fname}")
+    logger.debug(f"Running {binary_fname} with flags: {flags}")
     start_barrier.wait()
-    logger.info(f"Running {binary_fname} with flags: {flags}")
 
     error_lines = []
     warning_lines = []
@@ -238,11 +238,16 @@ def main():
     start_barrier = Barrier(len(binaries) + 1)
     stop_barrier = Barrier(len(binaries) + 1)
 
+    logger.info("Barriers created with count: " + str(len(binaries) + 1))
+
     for i, binary in enumerate(binaries):
         Thread(target=run_simulation, args=(start_barrier, stop_barrier, binary, args, output_folder)).start()
 
     start_barrier.wait()
     logger.info("Simulation started")
+
+    # while not stop_barrier.broken:
+    #     logger.info("Waiting for", str(stop_barrier.n_waiting), " threads to finish")
 
     stop_barrier.wait()
     logger.info("Simulation complete")
