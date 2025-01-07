@@ -9,7 +9,6 @@ class CRollingSum {
     static_assert(len > 0, "What is the sum of 0 elements? You probably don't want this (also it will break)");
 
     using value_type = T;
-    static constexpr std::size_t size = len;
 
     constexpr CRollingSum(T start) : buf(start) { Fill(start); }
 
@@ -32,6 +31,8 @@ class CRollingSum {
     constexpr value_type Sum() const { return total; }
 
   private:
+    static constexpr std::size_t size = len;
+
     value_type total;
     CCircularBuffer<value_type, size> buf;
 };

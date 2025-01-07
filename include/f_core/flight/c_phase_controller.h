@@ -85,10 +85,12 @@ class CPhaseController {
         flight_log_init(flightLogFileName, &flightLogFile);
     }
 
+    ~CPhaseController() { CloseFlightLog(); }
+
     /**
      * Write an arbitrary line to the flight log file (if enabled)
      * A newline will be written to the file after every message
-     * @param str the null terminated string to write to the log file. 
+     * @param str[in] the null terminated string to write to the log file. 
      * @return the return value of fs_write. If >=0, the number of characters written. If <0, an error code.
      */
     int WriteToLog(const char *str) { return flight_log_print(HasFlightLog(), &flightLogFile, str); }
@@ -156,8 +158,6 @@ class CPhaseController {
      * If you can verify that the destructor will be called, you do not need to call this.
      */
     void CloseFlightLog() { flight_log_close(HasFlightLog(), &flightLogFile); }
-
-    ~CPhaseController() { CloseFlightLog(); }
 
   private:
     /** 
