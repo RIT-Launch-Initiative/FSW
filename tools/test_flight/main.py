@@ -9,15 +9,7 @@ from datetime import datetime
 from threading import Thread, Barrier
 
 # Logger
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("simulation.log"),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger(__name__)
+logger = None
 
 # Globals
 WARNING_ERRORS_LOCK = threading.Lock()
@@ -98,13 +90,25 @@ def get_binaries(args: argparse.Namespace) -> tuple[list, list]:
 
 def setup_sim(args: argparse.Namespace) -> tuple[list, list, str]:
     """Set up the simulation"""
+    global logger
+
     if not validate_arguments(args):
         return [], [], ""
+    output_folder = generate_output_folder(args)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(f"{output_folder}/simulation.log"),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+
+    logger = logging.getLogger(__name__)
 
     binaries, binary_fnames = get_binaries(args)
     logger.info(f"Detected binaries: {binaries}")
-
-    output_folder = generate_output_folder(args)
 
     return binaries, binary_fnames, output_folder
 
@@ -157,7 +161,8 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
     warning_lines = []
 
     with open(f"{output_folder}/{binary_fname}.log", "w") as log_file:
-        process = subprocess.Popen([binary_path] + flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, universal_newlines=True, bufsize=1)
+        process = subprocess.Popen([binary_path] + flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                   universal_newlines=True, bufsize=1)
 
         for line in process.stdout:
             logger.debug(f"{binary_fname}: {line.strip()}")
@@ -181,7 +186,7 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
         # Might be some weird 64 vs 32 bit architecture issue too
         # subprocess.run(["cp", "-r", f"{output_folder}/flash_mount/", f"{output_folder}/fs"])
         # logger.info(f"Copied files from flash_mount to fs for {binary_fname}")
-        time.sleep(1) # TODO: Remove this sleep when the above is fixed
+        time.sleep(1)  # TODO: Remove this sleep when the above is fixed
 
         process.kill()
 
