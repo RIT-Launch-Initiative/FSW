@@ -36,8 +36,8 @@ void imu_thread_f(void *vp_controller, void *, void *) {
     // Deceleration is still acceleration which is why we cant just say < 1G
     constexpr uint32_t coast_time_ms = 250;
     constexpr double coast_threshold_mps2 = 35;
-    CDebuouncer<ThresholdDirection::Over, double> boost_detector{boost_time_ms, boost_threshold_mps2};
-    CDebuouncer<ThresholdDirection::Under, double> coast_detector{coast_time_ms, coast_threshold_mps2};
+    CDebouncer<ThresholdDirection::Over, double> boost_detector{boost_time_ms, boost_threshold_mps2};
+    CDebouncer<ThresholdDirection::Under, double> coast_detector{coast_time_ms, coast_threshold_mps2};
 
     CAccelerometer acc(*DEVICE_DT_GET_ONE(openrocket_imu));
     if (!acc.IsReady()) {
@@ -88,8 +88,8 @@ struct Line {
 constexpr Line bad_line{0, 0};
 
 Line find_line(const SummerType &summer) {
-    std::size_t N = summer.size();
-    SampleType E = summer.sum();
+    std::size_t N = summer.Size();
+    SampleType E = summer.Sum();
     double denom = (N * E.xx - E.x * E.x);
     if (denom == 0) {
         // printf("Would have divided by 0\n");
@@ -106,10 +106,10 @@ double rrc3_altitude_conversion_to_feet(double P_sta_kpa) {
     return alt_ft;
 }
 
-using BoostDebouncerT = CDebuouncer<ThresholdDirection::Over, double>;
-using NoseoverDebouncerT = CDebuouncer<ThresholdDirection::Under, double>;
-using MainHeightDebouncerT = CDebuouncer<ThresholdDirection::Under, double>;
-using NoVelocityDebouncerT = CDebuouncer<ThresholdDirection::Under, double>;
+using BoostDebouncerT = CDebouncer<ThresholdDirection::Over, double>;
+using NoseoverDebouncerT = CDebouncer<ThresholdDirection::Under, double>;
+using MainHeightDebouncerT = CDebouncer<ThresholdDirection::Under, double>;
+using NoVelocityDebouncerT = CDebouncer<ThresholdDirection::Under, double>;
 
 void barom_thread_f(void *vp_controller, void *, void *) {
     Controller &controller = *(Controller *) vp_controller;
@@ -166,7 +166,7 @@ void barom_thread_f(void *vp_controller, void *, void *) {
         // Calculate
         double feet = rrc3_altitude_conversion_to_feet(press_kpa);
 
-        velocity_summer.feed({time_s, feet});
+        velocity_summer.Feed({time_s, feet});
         Line line = find_line(velocity_summer);
 
         // Not enough samples, don't check
@@ -174,13 +174,13 @@ void barom_thread_f(void *vp_controller, void *, void *) {
             continue;
         }
         double velocity_ft_s = line.m;
-        double feet_agl = feet - ground_level_avger.avg();
+        double feet_agl = feet - ground_level_avger.Avg();
         if (feet_agl > max_feet_agl) {
             max_feet_agl = feet_agl;
         }
         // Check
         if (!controller.HasEventOccured(Events::Boost)) {
-            ground_level_avger.feed(feet);
+            ground_level_avger.Feed(feet);
             boost_debouncer.feed(time_ms, velocity_ft_s);
             if (boost_debouncer.passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Boost);

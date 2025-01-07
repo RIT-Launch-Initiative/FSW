@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - "*"
+      - '*'
   schedule:
     - cron: "0 0 * * 1"
 env:
@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: FSW
-
+      
       - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
         shell: bash
         run: |
@@ -69,7 +69,7 @@ jobs:
           key: python-${{ runner.os }}-${{ hashFiles('**/*.lock') }}
           restore-keys: |
             python-${{ runner.os }}-
-
+    
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -85,12 +85,13 @@ jobs:
           restore-keys: |
             zephyr-${{ runner.os }}-
 
+
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
         with:
           app-path: FSW
           toolchains: arm-zephyr-eabi
-
+          
       - name: Build firmware
         working-directory: FSW
         shell: bash
@@ -109,5 +110,6 @@ jobs:
               echo -n " $1 $line "
             done;
           }       
-
+          
           west twister $(add_arglist -T "${{ env.test_roots}}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms}}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+
