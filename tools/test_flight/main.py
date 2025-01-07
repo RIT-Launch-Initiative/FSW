@@ -4,12 +4,13 @@ import sys
 import subprocess
 import threading
 import logging
+import time
 from datetime import datetime
 from threading import Thread, Barrier
 
-# Configure logging
+# Logger
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("simulation.log"),
@@ -98,7 +99,7 @@ def get_binaries(args: argparse.Namespace) -> tuple[list, list]:
 def setup_sim(args: argparse.Namespace) -> tuple[list, list, str]:
     """Set up the simulation"""
     if not validate_arguments(args):
-        return None
+        return [], [], ""
 
     binaries, binary_fnames = get_binaries(args)
     logger.info(f"Detected binaries: {binaries}")
@@ -116,6 +117,7 @@ def generate_binary_flags(binary: str, output_folder: str, args: argparse.Namesp
         flags_list.append("-rt")
     else:
         flags_list.append("-no-rt")
+        # flags_list.append("rt-ratio=1000000000")
 
     # Place in temporary storage. Outputs get copied into top level before killing the binary
     flags_list.append(f"-flash-mount={output_folder}/flash_mount")
@@ -155,12 +157,15 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
     warning_lines = []
 
     with open(f"{output_folder}/{binary_fname}.log", "w") as log_file:
-        process = subprocess.Popen([binary_path] + flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen([binary_path] + flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, universal_newlines=True, bufsize=1)
 
         for line in process.stdout:
             logger.debug(f"{binary_fname}: {line.strip()}")
             log_file.write(line)
-            if "RTOS Stopped!" in line:
+
+            # TODO: Should be "RTOS Stopped!", but Data Logging task cleanup might be getting hung up
+            # if "RTOS Stopped!" in line:
+            if "Stopping" in line:
                 logger.info(f"{binary_fname} finished running!")
                 break
 
@@ -170,10 +175,13 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
             if "wrn" in line and not any(warning in line for warning in SUPPRESSED_WARNINGS):
                 warning_lines.append(line)
         add_warnings_errors(binary_fname, error_lines, warning_lines)
-        # TODO: Returns -1 which is bad, but the files seem to be copied over properly
+
+        # TODO: Returns -1 which is bad, but the files seem to be copied over properly.
+        # TODO: Can get hung up which might be related to above TODO with "RTOS Stopped!"
         # Might be some weird 64 vs 32 bit architecture issue too
-        subprocess.run(["cp", "-r", f"{output_folder}/flash_mount/", f"{output_folder}/fs"])
-        logger.info(f"Copied files from flash_mount to fs for {binary_fname}")
+        # subprocess.run(["cp", "-r", f"{output_folder}/flash_mount/", f"{output_folder}/fs"])
+        # logger.info(f"Copied files from flash_mount to fs for {binary_fname}")
+        time.sleep(1) # TODO: Remove this sleep when the above is fixed
 
         process.kill()
 
@@ -245,9 +253,6 @@ def main():
 
     start_barrier.wait()
     logger.info("Simulation started")
-
-    # while not stop_barrier.broken:
-    #     logger.info("Waiting for", str(stop_barrier.n_waiting), " threads to finish")
 
     stop_barrier.wait()
     logger.info("Simulation complete")
