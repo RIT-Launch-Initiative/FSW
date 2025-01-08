@@ -53,6 +53,7 @@ dkms.conf
 
 build/
 *-build
+**/*build*
 twister-out*/
 
 # Zephyr files

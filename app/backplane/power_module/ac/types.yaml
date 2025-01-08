@@ -1,0 +1,9 @@
+SensorData:
+  description: Power Module Grouped Shunt Sensor Data
+  fields:
+    - name: RailBattery
+      type: ShuntData
+    - name: Rail3v3
+      type: ShuntData
+    - name: Rail5v0
+      type: ShuntData

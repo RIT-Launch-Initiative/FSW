@@ -5,17 +5,11 @@ menu "Zephyr"
 source "Kconfig.zephyr"
 endmenu
 
-config INA219_QUEUE_SIZE
-    int "INA219 Queue Size"
-    default 16
+config MODULE_ID
+    int "Module ID number"
+    default 1
     help
-      The number of samples to store in the INA219 processing queue.
-
-config ADC_QUEUE_SIZE
-    int "ADC Queue Size"
-    default 16
-    help
-      The number of samples to store in the ADC processing queue.
+      The module ID to use as the fourth octet in the IP address.
 
 module = APP_POWER_MODULE
 module-str = APP_POWER_MODULE
