@@ -63,15 +63,10 @@ def validate_arguments(args: argparse.Namespace) -> bool:
     return True
 
 
-def get_filename(file_path: str) -> str:
-    """Get the filename of the binary"""
-    return file_path.split("/")[-1]
-
-
 def get_binaries(args: argparse.Namespace) -> tuple[list, list]:
     """Get the list of binaries to run"""
     if args.executable:
-        return [args.executable], [get_filename(args.executable)]
+        return [args.executable], [os.path.basename(args.executable)]
 
     if args.build_folder:
         binaries = []
@@ -146,7 +141,7 @@ def add_warnings_errors(binary_fname: str, error_lines: list, warning_lines: lis
 def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Barrier,
                    binary_path: str, args: argparse.Namespace, base_output_folder: str) -> None:
     """Run the simulation for the given binary"""
-    binary_fname = get_filename(binary_path)
+    binary_fname = os.path.basename(binary_path)
     output_folder = f"{base_output_folder}/{binary_fname}"
     flags = generate_binary_flags(binary_path, output_folder, args)
 
@@ -186,7 +181,6 @@ def run_simulation(start_barrier: threading.Barrier, stop_barrier: threading.Bar
         # Might be some weird 64 vs 32 bit architecture issue too
         # subprocess.run(["cp", "-r", f"{output_folder}/flash_mount/", f"{output_folder}/fs"])
         # logger.info(f"Copied files from flash_mount to fs for {binary_fname}")
-        time.sleep(1)  # TODO: Remove this sleep when the above is fixed
 
         process.kill()
 
@@ -240,12 +234,16 @@ def main():
     args = parser.parse_args()
     if not args.executable and not args.build_folder:
         parser.print_help()
-        return
+        return -1
 
     binaries, binary_fnames, output_folder = setup_sim(args)
     if not binaries:
         logger.error("No binaries to run. Exiting.")
-        return
+        return -1
+
+    if len(binaries) > 1 and not args.real_time:
+        logger.error("Multiple binaries are being run. Real-time mode must be enabled. Exiting.")
+        return -1
 
     logger.info(f"Starting simulation with binaries: {binaries}")
     start_barrier = Barrier(len(binaries) + 1)
@@ -266,4 +264,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
