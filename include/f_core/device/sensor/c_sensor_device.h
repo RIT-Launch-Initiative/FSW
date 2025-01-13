@@ -52,11 +52,30 @@ public:
     }
 
     /**
+     * Configure the sensor device's attribute
+     * @param channel Sensor channel to set the attribute for
+     * @param attr Attribute to set
+     * @param val Value to set the attribute
+     * @return Zephyr status code
+     */
+    int Configure(const sensor_channel channel, const sensor_attribute attr, const sensor_value *val) const {
+        return sensor_attr_set(&dev, channel, attr, val);
+    }
+
+    /**
      * Get whether the device is ready or not
      * @return true if the device is ready, false otherwise
      */
     bool IsReady() const {
         return isInitialized;
+    }
+
+    /**
+     * Get the name of the device
+     * @return name of the device
+     */
+    const char *GetName() const {
+        return dev.name;
     }
 
 protected:

@@ -24,10 +24,13 @@ void CLoraReceiveTenant::Run() {
         return;
     }
 
-    LOG_INF("Received %d bytes on port %d", size, buffer[1] << 8 | buffer[0]);
+    const int port = buffer[1] << 8 | buffer[0];
+    constexpr int portOffset = 2;
+    LOG_DBG("Received %d bytes from LoRa for port %d", size, port);
+
     if (size > 2) {
 
-        if ((buffer[1] << 8 | buffer[0]) == 12000) { // Command
+        if (port == 12000) { // Command
             // Apply commands to pins
             gpios[0].pin_set(buffer[2] & 1);
             gpios[1].pin_set((buffer[2] & (1 << 1)) >> 1);
@@ -51,8 +54,8 @@ void CLoraReceiveTenant::Run() {
             // Retransmit status so GS can verify
             loraTransmitPort.Send(pinStatus);
         } else {
-            udp.SetDstPort(buffer[1] << 8 | buffer[0]);
-            udp.TransmitAsynchronous(&buffer[2], size);
+            udp.SetDstPort(port);
+            udp.TransmitAsynchronous(&buffer[2], size - portOffset);
         }
     }
 }

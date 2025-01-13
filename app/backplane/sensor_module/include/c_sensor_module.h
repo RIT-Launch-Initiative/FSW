@@ -8,9 +8,9 @@
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
-#include <f_core/types.h>
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
-
+#include <n_autocoder_network_defs.h>
+#include <n_autocoder_types.h>
 
 class CSensorModule : public CProjectConfiguration {
 public:
@@ -42,8 +42,8 @@ public:
     }
 
 private:
-    static constexpr const char* ipAddrStr = "10.3.2.1";
-    static constexpr int telemetryBroadcastPort = 12100;
+    static constexpr const char* ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, CONFIG_BOARD_REVISION, CONFIG_MODULE_ID);
+    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
@@ -56,9 +56,9 @@ private:
     // CRs485Tenant rs485Tenant{"RS485 Tenant"};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 512, 0};
+    CTask networkTask{"Networking Task", 15, 1024, 0};
     CTask sensingTask{"Sensing Task", 15, 1024, 0};
-    CTask dataLogTask{"Data Logging Task", 15, 512, 0};
+    CTask dataLogTask{"Data Logging Task", 15, 1300, 0};
 };
 
 

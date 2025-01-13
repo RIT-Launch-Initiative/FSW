@@ -1,5 +1,7 @@
 #include "c_power_module.h"
 
+#include <n_autocoder_types.h>
+
 // F-Core Tenant
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
@@ -9,7 +11,6 @@ static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQu
 
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
-
 
 CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), sensorDataLogMessagePort(dataLogMsgQueue) {}
 

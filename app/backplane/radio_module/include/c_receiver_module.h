@@ -4,7 +4,7 @@
 
 #include "n_radio_module_types.h"
 #include "c_gnss_tenant.h"
-#include "c_udp_listener_tenant.h"
+#include "c_lora_receive_tenant.h"
 #include "c_lora_transmit_tenant.h"
 #include "c_lora_to_udp_tenant.h"
 
@@ -52,12 +52,12 @@ private:
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandSourcePort, &loraBroadcastMessagePort};
 
-    CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
+    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
     CTask loraTxTask{"LoRa Tx Task", 15, 1024, 0};
-    CTask loraRxTask{"LoRa Rx Task", 15, 1024, 0};
+    CTask loraRxTask{"LoRa Rx Task", 15, 2048, 0};
 };
 
 #endif //C_RECEIVER_MODULE_H

@@ -1,0 +1,3 @@
+name: lfs
+append:
+  EXTRA_CONF_FILE: lfs.conf
