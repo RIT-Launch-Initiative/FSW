@@ -26,8 +26,12 @@ public:
 private:
     CLora& lora;
     CUdpSocket udp;
-    CGpio gpios[4] = {CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio0))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio1))),
-                CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio2))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio3)))};
+    CGpio gpios[4] = {
+        CGpio(*GPIO_DT_SPEC_GET_BY_IDX(DT_NODELABEL(connector), connector_gpios, 0)),
+        CGpio(*GPIO_DT_SPEC_GET_BY_IDX(DT_NODELABEL(connector), connector_gpios, 1)),
+        CGpio(*GPIO_DT_SPEC_GET_BY_IDX(DT_NODELABEL(connector), connector_gpios, 2)),
+        CGpio(*GPIO_DT_SPEC_GET_BY_IDX(DT_NODELABEL(connector), connector_gpios, 3))
+    };
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
 };
 
