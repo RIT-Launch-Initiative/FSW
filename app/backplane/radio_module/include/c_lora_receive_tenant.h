@@ -7,6 +7,7 @@
 #include <f_core/net/device/c_lora.h>
 #include <f_core/net/network/c_ipv4.h>
 #include <f_core/net/transport/c_udp_socket.h>
+#include <f_core/messaging/c_message_port.h>
 #include <f_core/device/c_gpio.h>
 
 class CLoraReceiveTenant : public CTenant {
@@ -25,7 +26,7 @@ public:
 private:
     CLora& lora;
     CUdpSocket udp;
-    const CGpio gpios[4] = {CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio0))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio1))),
+    CGpio gpios[4] = {CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio0))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio1))),
                 CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio2))), CGpio(*DEVICE_DT_GET(DT_ALIAS(gpio3)))};
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
 };

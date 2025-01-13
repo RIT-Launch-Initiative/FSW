@@ -15,7 +15,7 @@ public:
      * Gets the logical level of the pin
      * @return 1 if active, 0 if inactive, -EIO if I/O error, -EWOULDBLOCK if operation would block
      */
-    int pin_get();
+    int pin_get() const;
 
     /**
      * Sets the logical level of the pin

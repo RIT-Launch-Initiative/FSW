@@ -70,7 +70,7 @@
 
         gpio_2: gpio_2 {
             gpios = <&gpioc 3 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-            label = "GPIO 2"
+            label = "GPIO 2";
         };
 
         gpio_3: gpio_3 {
