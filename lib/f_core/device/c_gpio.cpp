@@ -1,10 +1,10 @@
 #include <f_core/device/c_gpio.h>
 #include <zephyr/drivers/gpio.h>
 
-CGpio::pin_get() {
-    return gpio_pin_get_dt(&dev);
+int CGpio::pin_get() const {
+    return gpio_pin_get_dt(gpioDev);
 }
 
-CGpio::pin_set(int value) {
-    return gpio_pin_set_dt(&dev, value)
+int CGpio::pin_set(int value) {
+    return gpio_pin_set_dt(gpioDev, value);
 }

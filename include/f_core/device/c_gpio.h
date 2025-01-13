@@ -1,7 +1,7 @@
 #ifndef C_GPIO_DEVICE
 #define C_GPIO_DEVICE
 
-#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
 
 class CGpio {
 public:
@@ -9,7 +9,7 @@ public:
      * Constructor
      * @param[in] dev Zephyr device structure
      */
-    explicit CGpio(const device& dev) : dev(&dev) {}
+    explicit CGpio(const gpio_dt_spec& gpioDev) : gpioDev(&gpioDev) {}
 
     /**
      * Gets the logical level of the pin
@@ -25,7 +25,7 @@ public:
     int pin_set(int value);
 
 private:
-    const device* dev;
+    const gpio_dt_spec* gpioDev;
 };
 
 #endif // C_GPIO_DEVICE

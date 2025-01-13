@@ -8,6 +8,7 @@ FILE(GLOB sources
         net/network/*.cpp
         net/transport/*.cpp
 
+        device/*.cpp
         device/sensor/*.cpp
 
         messaging/*.cpp
