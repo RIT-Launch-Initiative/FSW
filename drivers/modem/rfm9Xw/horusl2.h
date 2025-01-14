@@ -50,8 +50,6 @@
 
 \*---------------------------------------------------------------------------*/
 
-// #include "horus_l2.h"
-
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -274,8 +272,8 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
 
     return num_tx_data_bytes;
 }
-#ifdef HORUS_L2_RX
 
+#ifdef HORUS_L2_RX
 void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char *input_rx_data,
                                int num_payload_data_bytes) {
     int num_payload_data_bits;
@@ -453,10 +451,10 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
 
 #ifdef INTERLEAVER
 
-uint16_t primes[] = {2,   3,   5,   7,   11,  13,  17,  19,  23,  29,  31,  37,  41,  43,  47,  53,  59,  61,
-                     67,  71,  73,  79,  83,  89,  97,  101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151,
-                     157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251,
-                     257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347};
+uint16_t primes[] = {2,   3,   5,   7,   11,  13,  17,  19,  23,  29,  31,  37,  41,  43,  47,  53,  59,  61,  67,  71,
+                     73,  79,  83,  89,  97,  101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
+                     179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
+                     283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 379, 383, 389, 757, 761, 769, 773};
 
 void interleave(unsigned char *inout, int nbytes, int dir) {
     uint16_t nbits = (uint16_t) nbytes * 8;
@@ -1072,7 +1070,7 @@ void golay23_init(void) {
   AUTHOR......: David Rowe
   DATE CREATED: 3 March 2013
 
-  Given 12 bits of data retiurns a 23 bit codeword for transmission
+  Given 12 bits of data returns a 23 bit codeword for transmission
   over the channel.
 
 \*---------------------------------------------------------------------------*/

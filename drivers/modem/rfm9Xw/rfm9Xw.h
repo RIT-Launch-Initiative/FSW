@@ -197,7 +197,12 @@ enum RfmDcFreeEncodingType {
     RfmDcFreeEncodingType_Whitening,
 };
 
-int32_t rfm9x_dostuff(const struct device *dev);
+/**
+ * Read temperature in C
+ * <0 return is error
+ */
+int32_t rfm9xw_read_temperature(const struct device *dev, int8_t *celsius);
+
 int32_t rfm9xw_software_reset(const struct device *dev);
 
 // Honk mimimimi (TODO add detail about power details when in standby

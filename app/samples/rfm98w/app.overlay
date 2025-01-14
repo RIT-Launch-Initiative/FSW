@@ -5,22 +5,26 @@
 	};
 	aliases {
 		led = &shield_led; 
+		rtc = &rtc;
 	};
 	
 };
+&rtc{
+	status = "okay";
+};
 
 &mikrobus_spi {
-	radio: rfm98w@1 {
+	radio: rfm98w@0 {
 		#io-channel-cells= <1>;
 		status = "okay";
 		compatible = "hoperf,rfm9xw";
-		reg = <1>;
+		reg = <0>;
 		spi-max-frequency = <DT_FREQ_M(8)>; // pg. 20, Table 10 MAX 10MHz
 		
-		carrier-frequency = <DT_FREQ_M(433)>;
+		carrier-frequency = <DT_FREQ_M(434)>;
 		deviation-frequency = <900>;
 		bitrate = <100>;
-		modulation-type = "RfmModulationType_FSK";
+		modulation-type = "RfmModulationType_OOK_BitBang4FSK";
 
 		reset-gpios = <&arduino_header 5 GPIO_ACTIVE_HIGH>;
 		power-amplifier = "RfmPowerAmplifierSelection_PaBoost";

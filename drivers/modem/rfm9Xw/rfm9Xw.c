@@ -674,6 +674,7 @@ unsigned short crc16(char *ptr, int count) {
 }
 
 int32_t transmit_4fsk_packet(const struct device *dev, uint8_t preamble_len, uint8_t *buf, uint32_t len) {
+
     // LOG_HEXDUMP_INF(buf, len, "Packet");
     // LOG_INF("Packet Length: %d", len);
     const struct rfm9Xw_config *config = dev->config;
@@ -703,7 +704,7 @@ int32_t transmit_4fsk_packet(const struct device *dev, uint8_t preamble_len, uin
     k_timer_init(&bitrate_timer, NULL, NULL);
     k_timer_start(&bitrate_timer, K_USEC(usec_per_symbol), K_USEC(usec_per_symbol));
 
-    // transmit preamble 0,1,2,3 (low, 2nd lowest, 2nd highest, highest)
+    // transmit preamble 0,1,2,3 (low, 2nd lowest, 2nfd highest, highest)
     for (int i = 0; i < preamble_len; i++) {
         for (int j = 0; j < 4; j++) {
             k_timer_status_sync(&bitrate_timer);
@@ -733,170 +734,6 @@ int32_t transmit_4fsk_packet(const struct device *dev, uint8_t preamble_len, uin
                        RfmTransceiverMode_Standby);
     k_timer_stop(&bitrate_timer);
 
-    return 0;
-}
-
-struct __attribute__((__packed__)) HorusData {
-    uint16_t payload_id;
-    uint16_t seq_num;
-    uint8_t hours;
-    uint8_t minutes;
-    uint8_t seconds;
-    float latitude;
-    float longitude;
-    uint16_t altitude;
-    uint8_t speed;
-    uint8_t satellites;
-    int8_t temp;
-    uint8_t battery_voltage;
-    uint8_t custom_data[9];
-    uint16_t checksum;
-};
-
-struct __attribute__((__packed__)) HorusDataV1 {
-    uint8_t payload_id;
-    uint16_t seq_num;
-    uint8_t hours;
-    uint8_t minutes;
-    uint8_t seconds;
-    float latitude;
-    float longitude;
-    uint16_t altitude;
-    uint8_t speed;
-    uint8_t satellites;
-    int8_t temp;
-    uint8_t battery_voltage;
-    uint16_t checksum;
-};
-
-void checksumSelf(struct HorusData *data) {
-    uint16_t crc = crc16((uint8_t *) data, sizeof(struct HorusData) - sizeof(uint16_t));
-    data->checksum = crc;
-}
-
-void checksumSelfV1(struct HorusDataV1 *data) {
-    uint16_t crc = crc16((uint8_t *) data, sizeof(struct HorusDataV1) - sizeof(uint16_t));
-    data->checksum = crc;
-}
-
-int32_t rfm9x_dostuff(const struct device *dev) {
-    LOG_INF("Hello im the driver");
-    const struct rfm9Xw_config *config = dev->config;
-    struct rfm9Xw_data *data = dev->data;
-
-    // Set to standby
-    set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK, RfmLowFrequencyMode_LowFrequency,
-                       RfmTransceiverMode_Standby);
-
-    set_power_amplifier(dev, config->power_amplifier, data->max_power, data->output_power);
-    // set_power_amplifier(dev, RfmPowerAmplifierSelection_PaBoost, RfmMaxPower_10_8_DBM, 0xf);
-    set_carrier_frequency(dev, data->carrier_freq);
-    set_pramble_len(dev, 0);
-    set_frequency_deviation(dev, 0);
-    // set_modulation_shaping(dev, data->modulation_shaping, data->pa_ramp);
-    set_modulation_shaping(dev, RfmModulationShaping_FSK_NoShaping, RfmPaRamp_15us);
-
-#define INLEN  32
-#define OUTLEN (INLEN * 3)
-
-    struct HorusData dat = {0x0};
-    dat.payload_id = 0xff;
-    dat.seq_num = 0xbeef;
-    dat.hours = 0xff;
-    dat.minutes = 0xde;
-    dat.seconds = 0xad;
-    dat.satellites = 0xbe;
-    // dat.seq_num = 0xffff;
-    // dat.hours=0xff;
-    // {
-    //     .payload_id = 12345,
-    //     .seq_num = 54321,
-    //     .hours = 34,
-    //     .minutes = 8,
-    //     .seconds = 3,
-    //     .latitude = 42.0,
-    //     .longitude = -70,
-    //     .altitude = 200,
-    //     .speed = 32,
-    //     .satellites = 4,
-    //     .temp = 43,
-    //     .custom_data = {1, 2, 3, 4, 5, 6, 7, 8, 9},
-    //     .battery_voltage = 3,
-    //     .checksum = 0,
-    // };
-    checksumSelf(&dat);
-    LOG_INF("checksum: %04x", dat.checksum);
-
-    uint8_t golay_encoded[OUTLEN] = {0xff};
-    int txlen = horus_l2_get_num_tx_data_bytes(sizeof(dat));
-    LOG_INF("Sizeof(HorusData): %d, txlen: %d", (int) sizeof(dat), txlen);
-
-    int len = horus_l2_encode_tx_packet(golay_encoded, (uint8_t *) &dat, sizeof(dat));
-    // golay_encoded[len - 1] = 0x1b;
-    // golay_encoded[len - 2] = 0x1b;
-    // golay_encoded[len - 3] = 0x1b;
-
-    // uint8_t golay_encoded[] = {0x24, 0x24, 0x01, 0x0b, 0x00, 0x00, 0x05, 0x3b, 0xf2, 0xa7, 0x0b, 0xc2,
-    //                            0x1b, 0xaa, 0x0a, 0x43, 0x7e, 0x00, 0x05, 0x00, 0x25, 0xc0, 0xce, 0xbb,
-    //                            0x36, 0x69, 0x50, 0x00, 0x41, 0xb0, 0xa6, 0x5e, 0x91, 0xa2, 0xa3, 0xf8,
-    //                            0x1d, 0x00, 0x00, 0x0c, 0x76, 0xc6, 0x05, 0xb0, 0xb8};
-
-    // uint8_t decoded[OUTLEN] = {0xff};
-    // horus_l2_decode_rx_packet(decoded, golay_encoded, sizeof(struct HorusData));
-
-    LOG_HEXDUMP_INF((uint8_t *) &dat, sizeof(dat), "data");
-    LOG_HEXDUMP_INF((uint8_t *) golay_encoded, len, "enc");
-    // LOG_HEXDUMP_INF((uint8_t *) decoded, 32, "dec");
-
-    for (int i = 0; i < 100000; i++) {
-        int64_t start = k_uptime_get();
-        LOG_INF("Beep len %d", len);
-        transmit_4fsk_packet(dev, 8, golay_encoded, len);
-        // transmit_4fsk_packet(dev, 8, real, sizeof(real));
-        int64_t elapsed = k_uptime_get() - start;
-        LOG_INF("elapsed: %d", (int) elapsed);
-        // LOG_HEXDUMP_INF((uint8_t *) real, sizeof(real), "real");
-
-        k_msleep(3000);
-    } // set_operating_mode(config, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK,
-    //                    RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Transmitter);
-
-    dump_registers(config);
-
-    // write_rfm_reg(config, REG_PA_CONFIG, RfmPowerAmplifierSelection_PaBoost);
-    // write_rfm_reg(config, REG_OP_MODE,
-    //               make_regopmode_fsk(RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK,
-    //                                  RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Transmitter));
-
-    // rfm9x_print_reg_info(config);
-
-    // LOG_INF("STM Data (may be incomplete)");
-    // // rfm9x_print_data(data->long_range_mode, data->modulation_type, data->low_frequency_mode, data->transceiver_mode, 0,
-    // //  0, 0, 0, 0, data->data_mode);
-    // LOG_INF("Bitrate: %d", data->bitrate);
-    // LOG_INF("CarrierFreq: %d", data->carrier_freq);
-    // LOG_INF("FreqDeviation: %d", data->deviation_freq);
-
-    // // startup_config(data, config);
-
-    // if (res < 0) {
-    //     LOG_ERR("Error setting config");
-    //     return 0;
-    // }
-    // uint8_t reg_op_mode = make_regopmode_fsk(data->long_range_mode, data->modulation_type, data->long_range_mode,
-    //                                          RfmTransceiverMode_Transmitter);
-
-    // res = write_rfm_reg(config, REG_OP_MODE, reg_op_mode);
-    // if (res < 0) {
-    //     return res;
-    // }
-
-    // const char msg[] = "hello you like like ants from up here.";
-    // res = edgy_fsk(config, data, msg, sizeof(msg), 10, data->deviation_freq);
-    // if (res < 0) {
-    // LOG_ERR("Error transmitting");
-    // }
-    // return 0;
     return 0;
 }
 
@@ -959,6 +796,8 @@ int init_gpios(const struct rfm9Xw_config *config, struct rfm9Xw_data *data) {
 static int rfm9xw_init(const struct device *dev) {
     const struct rfm9Xw_config *config = dev->config;
     struct rfm9Xw_data *data = dev->data;
+    golay23_init();
+
     LOG_INF("Initializing rfm9xw");
     if (!device_is_ready(config->bus.bus)) {
         LOG_ERR("SPI bus '%s'not ready", config->bus.bus->name);
@@ -974,6 +813,7 @@ static int rfm9xw_init(const struct device *dev) {
     if (res < 0) {
         LOG_ERR("Unable to reset: %d", res);
     }
+
     if (data->modulation_type == RfmModulationType_FSK) {
         // Checks for FSK
         if (data->deviation_freq > RFM_FREQUENCY_DEVIATION_MAX || data->deviation_freq < RFM_FREQUENCY_DEVIATION_MIN) {
@@ -993,7 +833,35 @@ static int rfm9xw_init(const struct device *dev) {
         }
     }
 
+    // Set to standby
+    set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK, RfmLowFrequencyMode_LowFrequency,
+                       RfmTransceiverMode_Standby);
+
+    set_power_amplifier(dev, config->power_amplifier, data->max_power, data->output_power);
+    set_modulation_shaping(dev, data->modulation_shaping, data->pa_ramp);
+
     dump_registers(config);
+    return 0;
+}
+
+int32_t rfm9xw_read_temperature(const struct device *dev, int8_t *celsius) {
+    struct rfm9Xw_data *data = dev->data;
+
+    set_operating_mode(dev, data->long_range_mode, data->modulation_type, data->low_frequency_mode,
+                       RfmTransceiverMode_FsModeTx);
+    k_msleep(100);
+    uint8_t reg = 0;
+    int ret = read_rfm_reg(dev->config, REG_TEMP, &reg);
+    if (ret < 0) {
+        return ret;
+    }
+
+    *celsius = reg & 0x7f;
+    if ((reg & 0x80) == 0x80) {
+        *celsius *= -1;
+    }
+    set_operating_mode(dev, data->long_range_mode, data->modulation_type, data->low_frequency_mode,
+                       RfmTransceiverMode_Standby);
     return 0;
 }
 
