@@ -7,8 +7,8 @@
 
 /**
  * Write timestamped log data to a file.
- * Not for telemetry data (see Datalogger)
- * One off status updates
+ * This is *not* for high speed telemetry data (see Datalogger)
+ * Instead, this is a human readable file detailing major events in the flight
  */
 class FlightLog {
   public:
@@ -23,15 +23,19 @@ class FlightLog {
    */
 
     FlightLog(const char* fname, int64_t timestamp);
+
     // Can't copy (would have two files with same name)
     FlightLog(const FlightLog&) = delete;
     FlightLog(FlightLog&&) = delete;
 
+    /**
+     * Destruct the log. 
+     * Calls Close() to save file to disk
+     */
     ~FlightLog();
 
     /**
      * writes 'k_uptime_get(): msg' to the flight log
-     * @param timestamp  any user provided timestamp. It will be printed as a raw integer value
      * @param msg zero terminated string message to write 
      */
     int Write(const char* msg);
@@ -57,7 +61,16 @@ class FlightLog {
      */
     int Write(const char* msg, size_t str_len);
 
+    /**
+     * Close the underlying file (called in destructor)
+     * @return the error code from the file system
+     */
     int Close();
+    /**
+     * Sync the underlying file to disk (like fflush)
+     * The file will be synced when closed
+     * @return the error code from the file system
+     */
     int Sync();
 
   private:

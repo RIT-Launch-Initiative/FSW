@@ -14,7 +14,7 @@ FlightLog::FlightLog(const char *filename, int64_t timestamp) {
         return;
     }
     // Write openning message
-    err = Write("FlightLog opened");
+    err = Write("flight log opened");
     if (err < 0) {
         LOG_ERR("Failed to write opening message to flight log");
     }
@@ -23,11 +23,12 @@ FlightLog::FlightLog(const char *filename, int64_t timestamp) {
 FlightLog::~FlightLog() {
     int res = Close();
     if (res < 0) {
-        LOG_ERR("Error closing file: %d", res);
+        LOG_ERR("Error closing flight log: %d", res);
     }
 }
 
 int FlightLog::Write(const char *msg) { return Write(k_uptime_get(), msg); }
+
 int FlightLog::Write(int64_t timestamp, const char *msg) {
     int str_len = strlen(msg);
     return Write(k_uptime_get(), msg, str_len);
