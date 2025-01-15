@@ -80,7 +80,7 @@ inline std::array<Controller::TimerEvent, num_timer_events> timer_events = {
 /**
  * Functions for merging the different sources of events
  * 
- * silly immediatly invoked lambda because c++ doesnt support designtaed array initializers :(
+ * silly immediately invoked lambda because c++ doesn't support designated array initializers :(
  * still constexpr tho which is nice
  */
 inline constexpr std::array<Controller::DecisionFunc, Events::NumEvents> deciders = [] {
