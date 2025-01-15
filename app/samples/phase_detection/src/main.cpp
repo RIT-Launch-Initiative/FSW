@@ -1,4 +1,5 @@
 // F-Core Includes
+#include "f_core/os/flight_log.hpp"
 #include "f_core/util/debouncer.hpp"
 #include "f_core/util/linear_fit.hpp"
 
@@ -46,7 +47,7 @@ void imu_thread_f(void *vp_controller, void *, void *) {
     controller.SubmitEvent(Sources::IMU1, Events::PadReady);
     controller.WaitUntilEvent(Events::PadReady);
 
-    while (true) {
+    while (!controller.HasEventOccured(Events::GroundHit)) {
         k_timer_status_sync(&imu_timer);
         uint32_t timestamp = k_uptime_get();
 
@@ -190,10 +191,13 @@ void barom_thread_f(void *vp_controller, void *, void *) {
             noseover_debouncer.feed(time_ms, velocity_ft_s);
             if (controller.HasEventOccured(Events::Boost) && noseover_debouncer.passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Noseover);
-                char print_buf[256] = {0};
-                snprintf(print_buf, 256, "Noseover occured at barometeric altitude of %.2f ft agl (%.2f ft asl)",
-                         feet_agl, feet);
-                controller.WriteToLog(print_buf);
+                if (controller.GetFlightLog() != nullptr) {
+                    char print_buf[256] = {0};
+                    int len = snprintf(print_buf, 256,
+                                       "Noseover occured at barometeric altitude of %.2f ft agl (%.2f ft asl)",
+                                       feet_agl, feet);
+                    controller.GetFlightLog()->Write(print_buf, len);
+                }
             }
         }
         if (!controller.HasEventOccured(Events::MainChute)) {
@@ -209,9 +213,12 @@ void barom_thread_f(void *vp_controller, void *, void *) {
             }
         }
     }
-    char print_buf[256] = {0};
-    snprintf(print_buf, 256, "Maximum barometric altitude of %.2f ft agl", max_feet_agl);
-    controller.WriteToLog(print_buf);
+    if (controller.GetFlightLog() != nullptr) {
+        char print_buf[256] = {0};
+        int len = snprintf(print_buf, 256, "Maximum barometric altitude of %.2f ft agl", max_feet_agl);
+
+        controller.GetFlightLog()->Write(print_buf, len);
+    }
 }
 
 K_THREAD_STACK_DEFINE(imu_thread_stack_area, 1024);
@@ -221,7 +228,8 @@ K_THREAD_STACK_DEFINE(barom_thread_stack_area, 1024);
 struct k_thread barom_thread_data;
 
 int main() {
-    static Controller controller{sourceNames, eventNames, timer_events, deciders, "/lfs/flight_log.txt"};
+    FlightLog fl{"/lfs/flight_log.txt"};
+    Controller controller{sourceNames, eventNames, timer_events, deciders, &fl};
 
     k_thread_create(&barom_thread_data, barom_thread_stack_area, K_THREAD_STACK_SIZEOF(barom_thread_stack_area),
                     barom_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);
@@ -270,7 +278,7 @@ int main() {
     controller.WaitUntilEvent(Events::CamerasOff);
     LOG_DBG("Flight over:\tTurn off cameras");
 
-    controller.CloseFlightLog();
+    fl.Sync();
     LOG_INF("Closed flight log");
     return 0;
 }

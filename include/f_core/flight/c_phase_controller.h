@@ -7,12 +7,6 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 
-int flight_log_init(const char *flight_log_file_name, fs_file_t *fp);
-int flight_log_source_event(bool enabled, fs_file_t *fp, const char *source, const char *event);
-int flight_log_event_confirmed(bool enabled, fs_file_t *fp, const char *event, bool currentState);
-int flight_log_print(bool enabled, fs_file_t *fp, const char *str);
-int flight_log_close(bool enabled, fs_file_t *fp);
-
 /**
  * Phase Controller
  * Handles the detection of states for a rocket flight.
@@ -70,8 +64,8 @@ class CPhaseController {
     CPhaseController(const std::array<const char *, num_sources> &sourceNames,
                      const std::array<const char *, num_events> &eventNames,
                      const std::array<TimerEvent, num_timers> &timerEvents,
-                     const std::array<DecisionFunc, num_events> &deciders, const char *flightLogFileName = nullptr)
-        : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), flightLogFileName(flightLogFileName) {
+                     const std::array<DecisionFunc, num_events> &deciders, FlightLog *flight_log)
+        : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), flight_log(flight_log) {
 
         for (std::size_t i = 0; i < num_timers; i++) {
             timerUserdata[i] = InternalTimerEvent{.controller = this, .event = timerEvents[i]};
@@ -81,19 +75,38 @@ class CPhaseController {
 
         k_event_init(&osEvents);
         k_event_clear(&osEvents, 0xFFFFFFFF);
-
-        flight_log_init(flightLogFileName, &flightLogFile);
+        if (flight_log != nullptr) {
+            flight_log->Write("CPhaseController initialized");
+        }
+    }
+    ~CPhaseController() {
+        for (std::size_t i = 0; i < num_timers; i++) {
+            k_timer_stop(&timers[i]);
+        }
     }
 
-    ~CPhaseController() { CloseFlightLog(); }
+    FlightLog *GetFlightLog() { return flight_log; }
 
-    /**
-     * Write an arbitrary line to the flight log file (if enabled)
-     * A newline will be written to the file after every message
-     * @param str[in] the null terminated string to write to the log file. 
-     * @return the return value of fs_write. If >=0, the number of characters written. If <0, an error code.
-     */
-    int WriteToLog(const char *str) { return flight_log_print(HasFlightLog(), &flightLogFile, str); }
+    int LogSourceEvent(EventID event, SourceID source) {
+        if (flight_log != nullptr) {
+            constexpr size_t buf_size = 64;
+            char string_buf[buf_size] = {0};
+            int num_wrote = snprintf(string_buf, buf_size, "%-10s from %s", eventNames[event], sourceNames[source]);
+            return flight_log->Write(string_buf, num_wrote);
+        }
+        return 0;
+    }
+
+    int LogEventConfirmed(EventID event, bool currentState) {
+        if (flight_log != nullptr) {
+            constexpr size_t buf_size = 64;
+            char string_buf[buf_size] = {0};
+            int num_wrote = snprintf(string_buf, buf_size, "%-10s confirmed%s", eventNames[event],
+                                     currentState ? " but already happened. Not dispatching" : "");
+            return flight_log->Write(string_buf, num_wrote);
+        }
+        return 0;
+    }
 
     /**
      * Tell the controller that a specific source thinks an event has happened
@@ -120,10 +133,10 @@ class CPhaseController {
                     }
                 }
             }
-            flight_log_source_event(HasFlightLog(), &flightLogFile, sourceNames[source], eventNames[event]);
-            flight_log_event_confirmed(HasFlightLog(), &flightLogFile, eventNames[event], last_state);
+            LogSourceEvent(event, source);
+            LogEventConfirmed(event, last_state);
         } else {
-            flight_log_source_event(HasFlightLog(), &flightLogFile, sourceNames[source], eventNames[event]);
+            LogSourceEvent(event, source);
         }
     }
 
@@ -145,19 +158,6 @@ class CPhaseController {
         uint32_t event_that_happened = k_event_wait(&osEvents, event_bit, false, timeout);
         return event_that_happened != 0;
     }
-    /**
-     * Check if the phase controller has a flight log
-     * @return true if the phase controller will write its events to a file. false if not
-     */
-    bool HasFlightLog() { return flightLogFileName != nullptr; }
-
-    /**
-     * Closes the flight log and saves to disk
-     * The contents of the flight log may  not be saved until this is called
-     * This is called in the destructor as well. 
-     * If you can verify that the destructor will be called, you do not need to call this.
-     */
-    void CloseFlightLog() { flight_log_close(HasFlightLog(), &flightLogFile); }
 
   private:
     /** 
@@ -199,9 +199,7 @@ class CPhaseController {
 
     const std::array<DecisionFunc, num_events> &deciders;
 
-    // Flight log
-    const char *flightLogFileName;
-    fs_file_t flightLogFile;
+    FlightLog *flight_log;
 };
 
 #endif
