@@ -228,7 +228,7 @@ K_THREAD_STACK_DEFINE(barom_thread_stack_area, 1024);
 struct k_thread barom_thread_data;
 
 int main() {
-    FlightLog fl{"/lfs/flight_log.txt"};
+    CFlightLog fl{"/lfs/flight_log.txt"};
     Controller controller{sourceNames, eventNames, timer_events, deciders, &fl};
 
     k_thread_create(&barom_thread_data, barom_thread_stack_area, K_THREAD_STACK_SIZEOF(barom_thread_stack_area),

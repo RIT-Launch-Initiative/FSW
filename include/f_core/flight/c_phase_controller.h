@@ -64,7 +64,7 @@ class CPhaseController {
     CPhaseController(const std::array<const char *, num_sources> &sourceNames,
                      const std::array<const char *, num_events> &eventNames,
                      const std::array<TimerEvent, num_timers> &timerEvents,
-                     const std::array<DecisionFunc, num_events> &deciders, FlightLog *flight_log)
+                     const std::array<DecisionFunc, num_events> &deciders, CFlightLog *flight_log)
         : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), flight_log(flight_log) {
 
         for (std::size_t i = 0; i < num_timers; i++) {
@@ -89,7 +89,7 @@ class CPhaseController {
      * Gets the flight log that this controller is reporting to
      * @return pointer to the active flight log. null if no flight log was passed in
      */
-    FlightLog *GetFlightLog() { return flight_log; }
+    CFlightLog *GetFlightLog() { return flight_log; }
 
     /**
      * Log a message like "1234ms: Boost from IMU1"
@@ -216,7 +216,7 @@ class CPhaseController {
     const std::array<DecisionFunc, num_events> &deciders;
 
     // Flight Log or nullptr if no logging is requested.
-    FlightLog *flight_log;
+    CFlightLog *flight_log;
 };
 
 #endif

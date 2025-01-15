@@ -7,32 +7,32 @@
 
 /**
  * Write timestamped log data to a file.
- * This is *not* for high speed telemetry data (see Datalogger)
+ * This is *not* for high speed telemetry data (for that, see Datalogger)
  * Instead, this is a human readable file detailing major events in the flight
  */
-class FlightLog {
+class CFlightLog {
   public:
     /**
    * Open a flight log.
    * k_uptime_get() at time of opening is recorded as the first line of the flight log
    */
-    explicit FlightLog(const char* fname);
+    explicit CFlightLog(const char* fname);
     /**
    * Open a flight log.
    * timestamp is user defined timestamp that marks the time of the flight log opening.
    */
 
-    FlightLog(const char* fname, int64_t timestamp);
+    CFlightLog(const char* fname, int64_t timestamp);
 
     // Can't copy (would have two files with same name)
-    FlightLog(const FlightLog&) = delete;
-    FlightLog(FlightLog&&) = delete;
+    CFlightLog(const CFlightLog&) = delete;
+    CFlightLog(CFlightLog&&) = delete;
 
     /**
      * Destruct the log. 
      * Calls Close() to save file to disk
      */
-    ~FlightLog();
+    ~CFlightLog();
 
     /**
      * writes 'k_uptime_get(): msg' to the flight log
