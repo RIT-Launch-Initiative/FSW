@@ -85,8 +85,18 @@ class CPhaseController {
         }
     }
 
+    /**
+     * Gets the flight log that this controller is reporting to
+     * @return pointer to the active flight log. null if no flight log was passed in
+     */
     FlightLog *GetFlightLog() { return flight_log; }
 
+    /**
+     * Log a message like "1234ms: Boost from IMU1"
+     * @param event the event that occured 'Boost'
+     * @param source the source that triggered this event 'IMU1'
+     * @return 0 if successfully written to the flight log. Otherwise, the filesystem error from writing.
+     */
     int LogSourceEvent(EventID event, SourceID source) {
         if (flight_log != nullptr) {
             constexpr size_t buf_size = 64;
@@ -97,6 +107,12 @@ class CPhaseController {
         return 0;
     }
 
+    /**
+     * Logs a message like "Boost confirmed" or "Noseover confirmed but already happened. Not Dispatching"
+     * @param event the event that was confirmed
+     * @param currentState the state of that even as gotten from HasEventOccured(event) *before* this confirmation. 
+     * @return 0 if successfully written to the flight log. Otherwise, the filesystem error from writing.
+     */
     int LogEventConfirmed(EventID event, bool currentState) {
         if (flight_log != nullptr) {
             constexpr size_t buf_size = 64;
@@ -199,6 +215,7 @@ class CPhaseController {
 
     const std::array<DecisionFunc, num_events> &deciders;
 
+    // Flight Log or nullptr if no logging is requested.
     FlightLog *flight_log;
 };
 
