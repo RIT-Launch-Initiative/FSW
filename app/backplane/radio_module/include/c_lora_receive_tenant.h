@@ -25,17 +25,12 @@ public:
 
 private:
     CLora& lora;
-    CUdpSocket udp;
-    struct gpio_dt_spec gpioDev0 = GPIO_DT_SPEC_GET_BY_IDX(DT_NODELABEL(connector), connector_gpios, 0);
-    struct gpio_dt_spec gpioDev1 = GPIO_DT_SPEC_GET_BY_IDX(DT_NODELABEL(connector), connector_gpios, 1);
-    struct gpio_dt_spec gpioDev2 = GPIO_DT_SPEC_GET_BY_IDX(DT_NODELABEL(connector), connector_gpios, 2);
-    struct gpio_dt_spec gpioDev3 = GPIO_DT_SPEC_GET_BY_IDX(DT_NODELABEL(connector), connector_gpios, 3);   
-
+    CUdpSocket udp; 
     CGpio gpios[4] = {
-        CGpio(gpioDev0),
-        CGpio(gpioDev1),
-        CGpio(gpioDev2),
-        CGpio(gpioDev3)
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
 };
