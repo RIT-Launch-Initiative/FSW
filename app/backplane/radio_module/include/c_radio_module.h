@@ -42,12 +42,11 @@ public:
     void SetupCallbacks() override;
 
 private:
-    static constexpr const char* ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, CONFIG_BOARD_REVISION, CONFIG_MODULE_ID);
+    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
 
-    static constexpr uint16_t powerModuleTelemetryPort = 11000;
-    static constexpr uint16_t radioModuleSourcePort = 12000;
-    static constexpr uint16_t commandResponsePort = 12001;
-    static constexpr uint16_t sensorModuleTelemetryPort = 12100;
+    static constexpr uint16_t powerModuleTelemetryPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
+    static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
+    static constexpr uint16_t sensorModuleTelemetryPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
 
     // Devices
 #ifndef CONFIG_ARCH_POSIX
