@@ -10,7 +10,7 @@ FILE(GLOB sources
 
         device/*.cpp
         device/sensor/*.cpp
-
+        flight/*.cpp
         messaging/*.cpp
         
         os/*.cpp

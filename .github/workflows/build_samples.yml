@@ -23,6 +23,8 @@ env:
     app/samples/tenants_and_tasks
     app/samples/datalogger
     app/samples/gpio_blinky
+    app/samples/phase_detection
+
   platforms: |
     nucleo_f446re
     radio_module
