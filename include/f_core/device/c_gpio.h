@@ -9,7 +9,13 @@ public:
      * Constructor
      * @param[in] dev Zephyr device structure
      */
-    explicit CGpio(const gpio_dt_spec& gpioDev) : gpioDev(&gpioDev) {}
+    explicit CGpio(const gpio_dt_spec& gpioDev, const bool output = true) : gpioDev(&gpioDev) {
+        if (output) {
+            gpio_pin_configure(gpioDev.port, gpioDev.pin, GPIO_OUTPUT);
+        } else {
+            gpio_pin_configure(gpioDev.port, gpioDev.pin, GPIO_INPUT);
+        }
+    }
 
     /**
      * Gets the logical level of the pin
