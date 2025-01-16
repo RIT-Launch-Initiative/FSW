@@ -26,8 +26,13 @@ enum Sources : uint8_t {
     NumSources
 };
 inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
-    "IMU 1 (LSM6DSL)",     "Barom 1 (BME280)",  "Noseover Lockout",  "Boost2Coast Timer",
-    "Noseover2Main Timer", "Full Flight Timer", "ExtraCamera Timer",
+    "IMU 1 (LSM6DSL)",     
+    "Barom 1 (BME280)",  
+    "Noseover Lockout",  
+    "Boost2Coast Timer",
+    "Noseover2Main Timer", 
+    "Full Flight Timer", 
+    "ExtraCamera Timer",
 };
 
 inline constexpr std::size_t num_timer_events = 5;

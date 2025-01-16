@@ -36,27 +36,27 @@ class CFlightLog {
 
     /**
      * writes 'k_uptime_get(): msg' to the flight log
-     * @param msg zero terminated string message to write 
+     * @param[in] msg zero terminated string message to write 
      */
     int Write(const char* msg);
     /**
      * writes 'timestamp: msg' to the flight log
      * @param timestamp  any user provided timestamp. It will be printed as a raw integer value
-     * @param msg zero terminated string message to write 
+     * @param[in] msg zero terminated string message to write 
      */
     int Write(int64_t timestamp, const char* msg);
 
     /**
      * writes 'timestamp: msg' to the flight log
      * @param timestamp  any user provided timestamp. It will be printed as a raw integer value
-     * @param msg string message to write
+     * @param[in] msg string message to write
      * @param str_len the length of the string to write
      */
     int Write(int64_t timestamp, const char* msg, size_t str_len);
     /**
      * Writes a message using the k_uptime_get (millis since boot) timestamp at time of calling
      * `k_uptime_get(): msg`
-     * @param msg string message to write
+     * @param[in] msg string message to write
      * @param str_len the length of the string to write
      */
     int Write(const char* msg, size_t str_len);

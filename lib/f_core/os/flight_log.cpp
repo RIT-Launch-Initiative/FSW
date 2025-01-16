@@ -13,7 +13,7 @@ CFlightLog::CFlightLog(const char *filename, int64_t timestamp) {
         LOG_ERR("Failed to open flight log: %d", err);
         return;
     }
-    // Write openning message
+    // Write opening message
     err = Write("flight log opened");
     if (err < 0) {
         LOG_ERR("Failed to write opening message to flight log");

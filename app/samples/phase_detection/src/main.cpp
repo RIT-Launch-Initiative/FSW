@@ -2,25 +2,21 @@
 #include "f_core/os/flight_log.hpp"
 #include "f_core/util/debouncer.hpp"
 #include "f_core/util/linear_fit.hpp"
+#include "flight.h"
 
+#include <array>
 #include <f_core/device/sensor/c_accelerometer.h>
 #include <f_core/device/sensor/c_barometer.h>
 #include <f_core/device/sensor/c_gyroscope.h>
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <math.h>
-#include <zephyr/kernel.h>
-
 // Zephyr Includes
-#include "flight.h"
-
-#include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(main, CONFIG_APP_PHASE_DETECT_LOG_LEVEL);
-
-#include <array>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(main, CONFIG_APP_PHASE_DETECT_LOG_LEVEL);
 
 K_TIMER_DEFINE(imu_timer, NULL, NULL);
 K_TIMER_DEFINE(barom_timer, NULL, NULL);
@@ -74,7 +70,6 @@ void imu_thread_f(void *vp_controller, void *, void *) {
         }
     }
 }
-// K_THREAD_DEFINE(imu_thread, 1024, imu_thread_f, NULL, NULL, NULL, 0, 0, 0);
 
 using SampleType = LinearFitSample<double>;
 static constexpr std::size_t window_size = 10;
@@ -85,6 +80,7 @@ struct Line {
     double b;
     constexpr bool operator==(const Line &rhs) const { return m == rhs.m && b == rhs.b; }
 };
+
 // Value returned when we don't have enough information to fit a line
 constexpr Line bad_line{0, 0};
 
@@ -93,7 +89,7 @@ Line find_line(const SummerType &summer) {
     SampleType E = summer.Sum();
     double denom = (N * E.xx - E.x * E.x);
     if (denom == 0) {
-        // printf("Would have divided by 0\n");
+        // Would have divided by 0
         return bad_line;
     }
     double m = (N * E.xy - E.x * E.y) / denom;
@@ -102,9 +98,15 @@ Line find_line(const SummerType &summer) {
 }
 
 double rrc3_altitude_conversion_to_feet(double P_sta_kpa) {
-    double P_sta_mbar = P_sta_kpa * 10.0;
-    double alt_ft = (1 - pow(P_sta_mbar / 1013.25, 0.190284)) * 145366.45;
-    return alt_ft;
+    // Constants from https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
+    static constexpr double standard_atmosphere_exponent = 0.190284;
+    static constexpr double standard_atmosphere_factor = 145366.45;
+
+    static constexpr double kpa_to_mbar = 10.0;
+    static constexpr double sea_level_pressure_mbar = 1013.25;
+    double P_sta_mbar = P_sta_kpa * kpa_to_mbar;
+
+    return (1 - pow(P_sta_mbar / sea_level_pressure_mbar, standard_atmosphere_exponent)) * standard_atmosphere_factor;
 }
 
 using BoostDebouncerT = CDebouncer<ThresholdDirection::Over, double>;
