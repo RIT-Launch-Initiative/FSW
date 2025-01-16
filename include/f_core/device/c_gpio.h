@@ -30,6 +30,12 @@ public:
      */
     int pin_set(int value);
 
+    /**
+     * Toggles the logical level of the pin
+     * @return 0 if successful, -EIO if I/O error, -EWOULDBLOCK if operation would block
+     */
+    int pin_toggle();
+
 private:
     const gpio_dt_spec* gpioDev;
 };
