@@ -261,7 +261,7 @@ def main():
     logger.info("Simulation complete")
 
     print_results()
-
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
