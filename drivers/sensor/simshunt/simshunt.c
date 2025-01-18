@@ -25,7 +25,7 @@ static int simshunt_sample_fetch(const struct device *dev, enum sensor_channel c
 }
 
 static int simshunt_channel_get(const struct device *dev, enum sensor_channel chan, struct sensor_value *val) {
-    struct simshunt_config *config = dev->config;
+    const struct simshunt_config *config = dev->config;
 
     switch (chan) {
         case SENSOR_CHAN_VOLTAGE: // Want volts
