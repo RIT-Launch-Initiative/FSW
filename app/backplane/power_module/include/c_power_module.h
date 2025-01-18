@@ -48,11 +48,14 @@ private:
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
+    // TODO: Add ADC message port here, type uint32_t
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    // TODO: Add ADC tenant here
+    // TODO: Create new UDP Broadcast Tenant for ADC data, on same task because they share Spibus
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 1024, 0};

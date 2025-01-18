@@ -23,6 +23,8 @@ void CPowerModule::AddTenantsToTasks() {
 
     // Data Logging
     dataLoggingTask.AddTenant(dataLoggerTenant);
+
+    // TODO: Add ADC tenant here
 }
 
 void CPowerModule::AddTasksToRtos() {
@@ -30,7 +32,7 @@ void CPowerModule::AddTasksToRtos() {
     NRtos::AddTask(networkTask);
 
     // Sensing
-    NRtos::AddTask(sensingTask);
+    NRtos::AddTask(sensingTask); // TODO: DELETE THIS COMMENT LATER; ADC Tenant will be in Sensing task
 
     // Data Logging
     NRtos::AddTask(dataLoggingTask);

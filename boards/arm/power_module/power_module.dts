@@ -79,6 +79,7 @@
     apb2-prescaler = <1>;
 };
 
+// TODO: DELETE THIS COMMENT LATER This is where the place to read ADC from is defined, just uncomment when ready
 /*
 &adc1 {
     pinctrl-0 = <&adc1_in4_pa4>;
