@@ -8,6 +8,7 @@ public:
     /**
      * Constructor
      * @param[in] dev Zephyr device structure
+     * @param[in] output bool, true if pin is for output
      */
     explicit CGpio(const gpio_dt_spec& gpioDev, const bool output = true) : gpioDev(&gpioDev) {
         if (output) {
