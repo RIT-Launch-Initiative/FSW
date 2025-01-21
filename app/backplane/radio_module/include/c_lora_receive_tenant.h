@@ -47,6 +47,4 @@ private:
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
 };
 
-
-
 #endif //C_LORA_RECEIVE_TENANT_H
