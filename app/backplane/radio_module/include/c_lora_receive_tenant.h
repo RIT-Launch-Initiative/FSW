@@ -15,12 +15,24 @@ public:
     explicit CLoraReceiveTenant(const char* name, CLora& lora, const char* ip, const uint16_t srcPort, CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
         : CTenant(name), lora(lora), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort)), loraTransmitPort(*loraTransmitPort) {}
 
+    /**
+     * See Parent Docs
+     */
     ~CLoraReceiveTenant() override = default;
 
+    /**
+     * See Parent Docs
+     */
     void Startup() override;
 
+    /**
+     * See Parent Docs
+     */
     void PostStartup() override;
 
+    /**
+     * See Parent Docs
+     */
     void Run() override;
 
 private:
