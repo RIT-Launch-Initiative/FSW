@@ -32,10 +32,10 @@ void CLoraReceiveTenant::Run() {
 
         if (port == 12000) { // Command
             // Apply commands to pins
-            gpios[0].pin_set(buffer[2] & 1);
-            gpios[1].pin_set((buffer[2] & (1 << 1)) >> 1);
-            gpios[2].pin_set((buffer[2] & (1 << 2)) >> 2);
-            gpios[3].pin_set((buffer[2] & (1 << 3)) >> 3);
+            gpios[0].PinSet(buffer[2] & 1);
+            gpios[1].PinSet((buffer[2] & (1 << 1)) >> 1);
+            gpios[2].PinSet((buffer[2] & (1 << 2)) >> 2);
+            gpios[3].PinSet((buffer[2] & (1 << 3)) >> 3);
 
             // Pack status into RadioBroadcastData
             NTypes::RadioBroadcastData pinStatus = {0};
@@ -43,10 +43,10 @@ void CLoraReceiveTenant::Run() {
             pinStatus.size = size;
 
             // Get status of pins
-            pinStatus.data[0] |= gpios[0].pin_get();
-            pinStatus.data[0] |= gpios[1].pin_get() << 1;
-            pinStatus.data[0] |= gpios[2].pin_get() << 2;
-            pinStatus.data[0] |= gpios[3].pin_get() << 3;
+            pinStatus.data[0] |= gpios[0].PinGet();
+            pinStatus.data[0] |= gpios[1].PinGet() << 1;
+            pinStatus.data[0] |= gpios[2].PinGet() << 2;
+            pinStatus.data[0] |= gpios[3].PinGet() << 3;
 
             // Retransmit status so GS can verify
             loraTransmitPort.Send(pinStatus);

@@ -1,14 +1,14 @@
 #include <f_core/device/c_gpio.h>
 #include <zephyr/drivers/gpio.h>
 
-int CGpio::pin_get() const {
+int CGpio::PinGet() const {
     return gpio_pin_get_dt(gpioDev);
 }
 
-int CGpio::pin_set(int value) {
+int CGpio::PinSet(int value) {
     return gpio_pin_set_dt(gpioDev, value);
 }
 
-int CGpio::pin_toggle() {
+int CGpio::PinToggle() {
     return gpio_pin_toggle_dt(gpioDev);
 }
