@@ -12,3 +12,7 @@ int CGpio::PinSet(int value) {
 int CGpio::PinToggle() {
     return gpio_pin_toggle_dt(gpioDev);
 }
+
+const gpio_dt_spec* CGpio::GetDev() {
+    return gpioDev;
+}

@@ -37,6 +37,8 @@ public:
      */
     int PinToggle();
 
+    const gpio_dt_spec* GetDev();
+
 private:
     const gpio_dt_spec* gpioDev;
 };
