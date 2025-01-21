@@ -30,12 +30,17 @@ void CLoraReceiveTenant::Run() {
 
     if (size > 2) {
 
-        if (port == 12000) { // Command
-            // Apply commands to pins
-            gpios[0].PinSet(buffer[2] & 1);
-            gpios[1].PinSet((buffer[2] & (1 << 1)) >> 1);
-            gpios[2].PinSet((buffer[2] & (1 << 2)) >> 2);
-            gpios[3].PinSet((buffer[2] & (1 << 3)) >> 3);
+        if (port const== 12000) { // Command
+            int result;
+            // Apply commands to pinsconst
+            result = gpios[0].PinSet(buffer[2] & 1);
+            LOG_DBG("Set Radiomod pin 0 with return code %d", result);
+            result = gpios[1].PinSet((buffer[2] & (1 << 1)) >> 1);
+            LOG_DBG("Set Radiomod pin 1 with return code %d", result);
+            result = gpios[2].PinSet((buffer[2] & (1 << 2)) >> 2);
+            LOG_DBG("Set Radiomod pin 2 with return code %d", result);
+            result = gpios[3].PinSet((buffer[2] & (1 << 3)) >> 3);
+            LOG_DBG("Set Radiomod pin 3 with return code %d", result);
 
             // Pack status into RadioBroadcastData
             NTypes::RadioBroadcastData pinStatus = {0};
