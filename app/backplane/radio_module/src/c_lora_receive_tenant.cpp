@@ -30,7 +30,7 @@ void CLoraReceiveTenant::Run() {
 
     if (size > 2) {
 
-        if (port const== 12000) { // Command
+        if (port == 12000) { // Command
             int result;
             // Apply commands to pinsconst
             result = gpios[0].PinSet(buffer[2] & 1);
