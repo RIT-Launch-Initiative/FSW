@@ -30,5 +30,6 @@ void NRtos::StopRtos() {
         task->~CTask();
     }
 
-    LOG_INF("RTOS Stopped!");
+    LOG_RAW("RTOS Stopped!\n");
+    LOG_RAW("\n");
 }

@@ -7,10 +7,6 @@ menuconfig OPENROCKET_SENSORS
 
 
 if OPENROCKET_SENSORS
-    module = OPENROCKET
-    module-str = OPENROCKET
-    source "subsys/logging/Kconfig.template.log_config"
-
     rsource "imu/Kconfig"
     rsource "barometer/Kconfig"
     rsource "gnss/Kconfig"

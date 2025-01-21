@@ -42,8 +42,8 @@ public:
     void Cleanup();
 
 private:
-    static constexpr const char* ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, CONFIG_BOARD_REVISION, CONFIG_MODULE_ID);
-    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
+    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID)).c_str();
+    static constexpr int telemetryBroadcastPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;

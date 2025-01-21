@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    static constexpr const char* ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, CONFIG_BOARD_REVISION, CONFIG_MODULE_ID);
+    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID).c_str()).c_str();
     static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
 
     // Message Ports
