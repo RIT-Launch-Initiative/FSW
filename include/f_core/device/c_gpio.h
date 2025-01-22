@@ -22,20 +22,20 @@ public:
      * Gets the logical level of the pin
      * @return 1 if active, 0 if inactive, -EIO if I/O error, -EWOULDBLOCK if operation would block
      */
-    int PinGet() const;
+    int GetPin() const;
 
     /**
      * Sets the logical level of the pin
      * @param value[in] level to set the pin to
      * @return 0 if successful, -EIO if I/O error, -EWOULDBLOCK if operation would block
      */
-    int PinSet(int value);
+    int SetPin(int value);
 
     /**
      * Toggles the logical level of the pin
      * @return 0 if successful, -EIO if I/O error, -EWOULDBLOCK if operation would block
      */
-    int PinToggle();
+    int TogglePin();
 
     const gpio_dt_spec* GetDev();
 

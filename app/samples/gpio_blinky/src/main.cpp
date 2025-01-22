@@ -16,9 +16,9 @@ int main() {
     CGpio led(ledPin);
 
     while (true) {
-        led.PinSet(1);
+        led.SetPin(1);
         k_msleep(1000);
-        led.PinSet(0);
+        led.SetPin(0);
         k_msleep(1000);
     }
 

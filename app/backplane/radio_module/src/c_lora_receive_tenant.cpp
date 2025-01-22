@@ -33,13 +33,13 @@ void CLoraReceiveTenant::Run() {
         if (port == 12000) { // Command
             int result;
             // Apply commands to pinsconst
-            result = gpios[0].PinSet(buffer[2] & 1);
+            result = gpios[0].SetPin(buffer[2] & 1);
             LOG_DBG("Set Radiomod pin 0 with return code %d", result);
-            result = gpios[1].PinSet((buffer[2] & (1 << 1)) >> 1);
+            result = gpios[1].SetPin((buffer[2] & (1 << 1)) >> 1);
             LOG_DBG("Set Radiomod pin 1 with return code %d", result);
-            result = gpios[2].PinSet((buffer[2] & (1 << 2)) >> 2);
+            result = gpios[2].SetPin((buffer[2] & (1 << 2)) >> 2);
             LOG_DBG("Set Radiomod pin 2 with return code %d", result);
-            result = gpios[3].PinSet((buffer[2] & (1 << 3)) >> 3);
+            result = gpios[3].SetPin((buffer[2] & (1 << 3)) >> 3);
             LOG_DBG("Set Radiomod pin 3 with return code %d", result);
 
             // Pack status into RadioBroadcastData
@@ -48,10 +48,10 @@ void CLoraReceiveTenant::Run() {
             pinStatus.size = size;
 
             // Get status of pins
-            pinStatus.data[0] |= gpios[0].PinGet();
-            pinStatus.data[0] |= gpios[1].PinGet() << 1;
-            pinStatus.data[0] |= gpios[2].PinGet() << 2;
-            pinStatus.data[0] |= gpios[3].PinGet() << 3;
+            pinStatus.data[0] |= gpios[0].GetPin();
+            pinStatus.data[0] |= gpios[1].GetPin() << 1;
+            pinStatus.data[0] |= gpios[2].GetPin() << 2;
+            pinStatus.data[0] |= gpios[3].GetPin() << 3;
 
             // Retransmit status so GS can verify
             loraTransmitPort.Send(pinStatus);
