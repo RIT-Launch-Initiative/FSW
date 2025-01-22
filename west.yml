@@ -21,5 +21,6 @@ manifest:
           - littlefs
           - loramac-node
           - hal_st
+          - hal_espressif
       clone-depth: 1
 
