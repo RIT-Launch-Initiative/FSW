@@ -92,33 +92,36 @@
 
 
 			st7789v: st7789v@0 {
+				// LOOK AT OTHER HALF OF IFDEF IN ST7789_Init.h
 				compatible = "sitronix,st7789v";
 				reg = <0>;
 				mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
 				mipi-max-frequency = <20000000>;
 
-				vcom = <0x28>;
-				gctrl = <0x35>;
-				vrhs = <0x10>;
+				vcom = <0x1A>;
+				gctrl = <0x75>;
+				vrhs = <0x13>;
 				vdvs = <0x20>;
-
+				
 				/* Landscape */
 				width = <320>;
 				height = <240>;
-				x-offset = <0>; // ?
-				y-offset = <0>; // ?
-				mdac = <0x60>; // ?
 
-				gamma = <0x01>; // ?
-				colmod = <0x55>; // ?
-				lcm = <0x2C>; // ?
-				porch-param = [0C 0C 00 33 33]; // ?
-				cmd2en-param = [5A 69 02 01]; // ?
-				pwctrl1-param = [A4 A1]; // ?
-				pvgam-param = [D0 00 02 07 0A 28 32 44 42 06 0E 12 14 17]; // ?
-				nvgam-param = [D0 00 02 07 0A 28 31 54 47 0E 1C 17 1B 1E]; // ?
-				ram-param = [00 E0]; //?
-				rgb-param = [CD 08 14]; //?
+				x-offset = <0>;
+				y-offset = <0>;
+				mdac = <0x60>; 
+				colmod = <0x05>; // c
+
+				gamma = <0x01>; // default
+				lcm = <0x2C>; // c
+				porch-param = [0C 0C 00 33 33]; // c
+				cmd2en-param = [5A 69 02 00]; // default from datasheet. not set by tft?
+				pwctrl1-param = [A4 A1]; // c
+				pvgam-param = [D0 0D 14 0D 0D 09 38 44 4E 3A 17 18 2F 30]; // c
+				nvgam-param = [D0 09 0F 08 07 14 37 44 4D 38 15 16 2C 3E]; // c
+				
+				ram-param = [00 E0]; 
+				rgb-param = [40 02 14]; //default from datasheet
 		};
 	};
 };
