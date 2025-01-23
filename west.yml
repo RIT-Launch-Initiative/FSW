@@ -22,5 +22,6 @@ manifest:
           - loramac-node
           - hal_st
           - hal_espressif
+          - lvgl
       clone-depth: 1
 

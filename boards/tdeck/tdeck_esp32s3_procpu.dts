@@ -18,6 +18,8 @@
 	aliases {
 		i2c-0 = &i2c0;
 		watchdog0 = &wdt0;
+		led0 = &backlight;
+		stuffenable = &stuffenable;
 	};
 
 	chosen {
@@ -27,11 +29,24 @@
 		zephyr,flash = &flash0;
 		zephyr,code-partition = &slot0_partition;
 		zephyr,bt-hci = &esp32_bt_hci;
+		zephyr,display = &st7789v;
 	};
 
 	aliases {
 		uart-0 = &uart0;
 		sw0 = &button0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		backlight: backlight_0 {
+			gpios = <&gpio1 10 (GPIO_ACTIVE_HIGH)>; // IO42
+			label = "Screen Backlight GPIO";
+		};
+		stuffenable: stuffenable0 {
+			gpios = <&gpio0 10 (GPIO_ACTIVE_HIGH)>; // IO10
+			label = "Stuff enable GPIO";
+		};
 	};
 
 	buttons {
@@ -40,6 +55,70 @@
 			gpios = <&gpio0 0 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "BOOT Button";
 			zephyr,code = <INPUT_KEY_0>;
+		};
+
+		button_left: button_left {
+			gpios = <&gpio0 1 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Left Button";
+			zephyr,code = <INPUT_KEY_0>;
+		};
+		button_right: button_right {
+			gpios = <&gpio0 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Right Button";
+			zephyr,code = <INPUT_KEY_0>;
+		};
+
+		button_up: button_up {
+			gpios = <&gpio0 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Up Button";
+			zephyr,code = <INPUT_KEY_0>;
+		};
+		button_down: button_down {
+			gpios = <&gpio0 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Right Button";
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
+
+	mipi{
+		compatible = "zephyr,mipi-dbi-spi";
+
+			spi-dev = <&spi3>;
+			dc-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
+			// reset-gpios = <&arduino_header 14 GPIO_ACTIVE_LOW>;
+			write-only;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+
+			st7789v: st7789v@0 {
+				compatible = "sitronix,st7789v";
+				reg = <0>;
+				mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+				mipi-max-frequency = <20000000>;
+
+				vcom = <0x28>;
+				gctrl = <0x35>;
+				vrhs = <0x10>;
+				vdvs = <0x20>;
+
+				/* Landscape */
+				width = <320>;
+				height = <240>;
+				x-offset = <0>; // ?
+				y-offset = <0>; // ?
+				mdac = <0x60>; // ?
+
+				gamma = <0x01>; // ?
+				colmod = <0x55>; // ?
+				lcm = <0x2C>; // ?
+				porch-param = [0C 0C 00 33 33]; // ?
+				cmd2en-param = [5A 69 02 01]; // ?
+				pwctrl1-param = [A4 A1]; // ?
+				pvgam-param = [D0 00 02 07 0A 28 32 44 42 06 0E 12 14 17]; // ?
+				nvgam-param = [D0 00 02 07 0A 28 31 54 47 0E 1C 17 1B 1E]; // ?
+				ram-param = [00 E0]; //?
+				rgb-param = [CD 08 14]; //?
 		};
 	};
 };
@@ -79,6 +158,7 @@
 	clock-frequency = <I2C_BITRATE_STANDARD>;
 	pinctrl-0 = <&i2c0_default>;
 	pinctrl-names = "default";
+	status = "okay";
 };
 
 &i2c1 {
@@ -107,12 +187,19 @@
 	pinctrl-names = "default";
 };
 
+
+
+
 &spi3 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
 	pinctrl-0 = <&spim3_default>;
 	pinctrl-names = "default";
+	status = "okay";
+
+	// LCD CS, LORA CS
+	cs-gpios = <&gpio0 12 GPIO_ACTIVE_LOW>, <&gpio0 9 GPIO_ACTIVE_LOW>;
 };
 
 &twai {
