@@ -105,7 +105,7 @@ int main(void) {
     setBrightness(15);
 
     /*Change the active screen's background color*/
-    lv_obj_set_style_bg_color(lv_scr_act(), lv_color_make(255, 0, 0), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(lv_scr_act(), lv_color_make(255, 255, 255), LV_PART_MAIN);
 
     hello_world_label = lv_label_create(lv_screen_active());
 
