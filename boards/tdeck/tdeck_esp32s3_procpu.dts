@@ -29,7 +29,7 @@
 		zephyr,code-partition = &slot0_partition;
 		zephyr,bt-hci = &esp32_bt_hci;
 		zephyr,display = &st7789v;
-		zephyr,touch = &lvgl_pointer;
+		zephyr,touch = &gt911;
 	};
 
 	aliases {
@@ -93,7 +93,7 @@
 		input = <&gt911>;
 		// flip x, y here
 		swap-xy;
-		invert-x;
+		//invert-x;
 		invert-y;
 	};
 

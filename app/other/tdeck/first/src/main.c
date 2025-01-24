@@ -40,6 +40,7 @@ int main(void) {
     char count_str[11] = {0};
     const struct device *display_dev;
     lv_obj_t *hello_world_label;
+    lv_obj_t *hello_world_label2;
     lv_obj_t *count_label;
 
     display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
@@ -78,6 +79,14 @@ int main(void) {
         lv_obj_align(hello_world_button, LV_ALIGN_CENTER, 0, -15);
         lv_obj_add_event_cb(hello_world_button, lv_btn_click_callback, LV_EVENT_CLICKED, NULL);
         hello_world_label = lv_label_create(hello_world_button);
+
+        lv_obj_t *hello_world_button2;
+
+        hello_world_button2 = lv_button_create(lv_screen_active());
+        lv_obj_align(hello_world_button2, LV_ALIGN_CENTER, 0, 24);
+        lv_obj_add_event_cb(hello_world_button2, lv_btn_click_callback, LV_EVENT_CLICKED, NULL);
+        hello_world_label2 = lv_label_create(hello_world_button2);
+
     } else {
         hello_world_label = lv_label_create(lv_screen_active());
     }
@@ -94,7 +103,7 @@ int main(void) {
     display_blanking_off(display_dev);
 
     while (1) {
-        if ((count % 100) == 0U) {
+        if ((count % 10) == 0U) {
             sprintf(count_str, "%d", count / 100U);
             lv_label_set_text(count_label, count_str);
         }
