@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "aw9364.h"
+
 #include <lvgl.h>
 #include <lvgl_input_device.h>
 #include <stdio.h>
@@ -16,44 +18,20 @@
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(app);
 
-static struct gpio_dt_spec bl_gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+LOG_MODULE_REGISTER(app);
 static struct gpio_dt_spec stuff_gpio = GPIO_DT_SPEC_GET(DT_ALIAS(stuffenable), gpios);
+
+const struct device *bl_dev = DEVICE_DT_GET(DT_NODELABEL(backlight));
 
 static uint32_t count;
 
-// LilyGo  T-Deck  control backlight chip has 16 levels of adjustment range
-// The adjustable range is 0~15, 0 is the minimum brightness, 15 is the maximum
-// brightness
-void setBrightness(uint8_t value) {
-    static uint8_t level = 0;
-    static uint8_t steps = 16;
-    if (value == 0) {
-        gpio_pin_set_dt(&bl_gpio, 0);
-        // delay(3);
-        k_msleep(3);
-        level = 0;
-        return;
-    }
-    if (level == 0) {
-        gpio_pin_set_dt(&bl_gpio, 1);
-        level = steps;
-        // delayMicroseconds(30);
-        k_usleep(30);
-    }
-    int from = steps - level;
-    int to = steps - value;
-    int num = (steps + to - from) % steps;
-    for (int i = 0; i < num; i++) {
-        gpio_pin_set_dt(&bl_gpio, 0);
-        k_usleep(1);
-        gpio_pin_set_dt(&bl_gpio, 1);
-        // digitalWrite(BOARD_BL_PIN, 0);
-        // digitalWrite(BOARD_BL_PIN, 1);
-    }
-    level = value;
+static void lv_btn_click_callback(lv_event_t *e) {
+    ARG_UNUSED(e);
+
+    count = 0;
 }
+
 int main(void) {
     for (int i = 0; i < 50; i++) {
         printk("ASDASDASDA\n");
@@ -72,19 +50,6 @@ int main(void) {
     printk("device ready\n");
     k_msleep(10);
 
-    if (gpio_is_ready_dt(&bl_gpio)) {
-        int err;
-        printk("bl Is ready\n");
-        err = gpio_pin_configure_dt(&bl_gpio, GPIO_OUTPUT);
-        if (err) {
-            printk("failed to configure backlight gpio: %d", err);
-            return 0;
-        }
-        printk("bl confirured");
-    } else {
-        printk(" bl gpio not ready\n");
-    }
-
     if (gpio_is_ready_dt(&stuff_gpio)) {
         int err;
         printk("stuff Is ready\n");
@@ -102,15 +67,23 @@ int main(void) {
     if (gerr != 0) {
         printk("couldnt set stuff gpuio\n");
     }
-    setBrightness(15);
 
     /*Change the active screen's background color*/
     lv_obj_set_style_bg_color(lv_scr_act(), lv_color_make(255, 255, 255), LV_PART_MAIN);
 
-    hello_world_label = lv_label_create(lv_screen_active());
+    if (IS_ENABLED(CONFIG_LV_Z_POINTER_INPUT)) {
+        lv_obj_t *hello_world_button;
+
+        hello_world_button = lv_button_create(lv_screen_active());
+        lv_obj_align(hello_world_button, LV_ALIGN_CENTER, 0, -15);
+        lv_obj_add_event_cb(hello_world_button, lv_btn_click_callback, LV_EVENT_CLICKED, NULL);
+        hello_world_label = lv_label_create(hello_world_button);
+    } else {
+        hello_world_label = lv_label_create(lv_screen_active());
+    }
 
     printk("saying hello workld\n");
-    lv_label_set_text(hello_world_label, "Hello world<");
+    lv_label_set_text(hello_world_label, "Hello world!");
     lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
 
     printk("saying count\n");

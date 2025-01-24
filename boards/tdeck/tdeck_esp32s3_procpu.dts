@@ -18,7 +18,6 @@
 	aliases {
 		i2c-0 = &i2c0;
 		watchdog0 = &wdt0;
-		led0 = &backlight;
 		stuffenable = &stuffenable;
 	};
 
@@ -30,6 +29,7 @@
 		zephyr,code-partition = &slot0_partition;
 		zephyr,bt-hci = &esp32_bt_hci;
 		zephyr,display = &st7789v;
+		zephyr,touch = &lvgl_pointer;
 	};
 
 	aliases {
@@ -37,17 +37,23 @@
 		sw0 = &button0;
 	};
 
+
+
+
 	leds {
 		compatible = "gpio-leds";
-		backlight: backlight_0 {
-			gpios = <&gpio1 10 (GPIO_ACTIVE_HIGH)>; // IO42
-			label = "Screen Backlight GPIO";
-		};
 		stuffenable: stuffenable0 {
 			gpios = <&gpio0 10 (GPIO_ACTIVE_HIGH)>; // IO10
 			label = "Stuff enable GPIO";
 		};
 	};
+	backlight: backlight{
+		compatible = "awinic,aw9364";
+		status = "okay";
+		one-wire-gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
+		initial-brightness = <15>;
+	};
+
 
 	buttons {
 		compatible = "gpio-keys";
@@ -80,12 +86,24 @@
 		};
 	};
 
+	lvgl_pointer:lvgl_pointer {
+		// DT_HAS_ZEPHYR_LVGL_POINTER_INPUT_ENABLED
+		compatible = "zephyr,lvgl-pointer-input";
+		status="okay";
+		input = <&gt911>;
+		// flip x, y here
+		swap-xy;
+		invert-x;
+		invert-y;
+	};
+
+
+	// Display
 	mipi{
 		compatible = "zephyr,mipi-dbi-spi";
 
 			spi-dev = <&spi3>;
 			dc-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
-			// reset-gpios = <&arduino_header 14 GPIO_ACTIVE_LOW>;
 			write-only;
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -145,29 +163,34 @@
 	status = "okay";
 };
 
-&touch {
-	debounce-interval-ms = <30>;
-	href-microvolt = <2700000>;
-	lref-microvolt = <500000>;
-	href-atten-microvolt = <1000000>;
-	filter-mode = <ESP32_TOUCH_FILTER_MODE_IIR_16>;
-	filter-debounce-cnt = <1>;
-	filter-noise-thr = <ESP32_TOUCH_FILTER_NOISE_THR_4_8TH>;
-	filter-jitter-step = <4>;
-	filter-smooth-level = <ESP32_TOUCH_FILTER_SMOOTH_MODE_IIR_2>;
-};
 
 &i2c0 {
 	clock-frequency = <I2C_BITRATE_STANDARD>;
 	pinctrl-0 = <&i2c0_default>;
 	pinctrl-names = "default";
 	status = "okay";
+
+
+	// GT911@5d
+	// interrupt IO16
+	// reset in hardware
+	gt911: gt911@5d{
+		status = "okay";
+		compatible = "goodix,gt911";
+		reg = <0x5d>;
+		irq-gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
+	};
+
+	// Keyboard
+
 };
 
 &i2c1 {
 	clock-frequency = <I2C_BITRATE_STANDARD>;
 	pinctrl-0 = <&i2c1_default>;
 	pinctrl-names = "default";
+
+
 };
 
 &i2s0 {
