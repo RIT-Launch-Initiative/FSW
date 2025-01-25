@@ -1,0 +1,21 @@
+# Copyright (c) 2025 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+description: Simulated Bidirectional Current/Voltage/Power Sensor
+
+compatible: "sim,simshunt"
+
+include: [sensor-device.yaml]
+
+properties:
+  simulated-voltage:
+    type: int
+    required: true
+    description: |
+      The voltage that the simulated sensor will always read in mV (millivolts)
+
+  simulated-current:
+    type: int
+    required: true
+    description: |
+      The current that the simulated sensor will always read in mA (milliamps)

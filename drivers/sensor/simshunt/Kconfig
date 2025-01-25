@@ -1,0 +1,12 @@
+# Simulated Bidirectional Current/Voltage/Power Sensor
+
+# Copyright (c) 2025 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig SIMSHUNT
+	bool "SIMSHUNT Current Power Sensor"
+	default y
+	depends on DT_HAS_SIM_SIMSHUNT_ENABLED
+	help
+	  Enable driver for SIMSHUNT Bidirectional Current/Voltage/Power Sensor.
+

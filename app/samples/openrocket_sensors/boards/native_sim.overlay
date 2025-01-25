@@ -47,6 +47,12 @@
         noise = <1000>;
     };
 
+    shnt: shnt{
+        status = "okay";
+        compatible = "sim,simshunt";
+        simulated-voltage = <5000>;   // milliVolts
+        simulated-current = <100>;    // milliAmps
+    };
 };
 &rtc {
     status = "okay";
