@@ -28,11 +28,11 @@ static int simshunt_channel_get(const struct device *dev, enum sensor_channel ch
     const struct simshunt_config *config = dev->config;
 
     switch (chan) {
-        case SENSOR_CHAN_VOLTAGE: // Want volts
+        case SENSOR_CHAN_VOLTAGE: // Unit: Volts (not milliVolts)
             return sensor_value_from_float(val, config->simulated_voltage);
-        case SENSOR_CHAN_CURRENT: // Want Amps
+        case SENSOR_CHAN_CURRENT: // Unit: Amps (not milliAmps)
             return sensor_value_from_float(val, config->simulated_current);
-        case SENSOR_CHAN_POWER: // Want power
+        case SENSOR_CHAN_POWER:
             return sensor_value_from_float(val, config->simulated_voltage * config->simulated_current);
 
         default:
