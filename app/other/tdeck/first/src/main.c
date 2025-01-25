@@ -14,6 +14,8 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/input/input.h>
 #include <zephyr/kernel.h>
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
@@ -26,17 +28,29 @@ const struct device *bl_dev = DEVICE_DT_GET(DT_NODELABEL(backlight));
 
 static uint32_t count;
 
-static void lv_btn_click_callback(lv_event_t *e) {
+static void callback_delta(lv_event_t *e) {
     ARG_UNUSED(e);
 
-    count = 0;
+    int32_t delta = (int *) lv_event_get_user_data(e);
+
+    count = count + delta;
 }
 
-int main(void) {
-    for (int i = 0; i < 50; i++) {
-        printk("ASDASDASDA\n");
-        k_msleep(10);
+void input_cb(struct input_event *evt, void *user_data) {
+    LOG_INF("Input callback");
+
+    if (evt->code == INPUT_KEY_UP) {
+        count = count + 1;
+    } else if (evt->code == INPUT_KEY_DOWN) {
+        count -= 1;
     }
+
+    return;
+}
+
+INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(DT_NODELABEL(buttons)), input_cb, 0);
+
+int main(void) {
     char count_str[11] = {0};
     const struct device *display_dev;
     lv_obj_t *hello_world_label;
@@ -68,7 +82,6 @@ int main(void) {
     if (gerr != 0) {
         printk("couldnt set stuff gpuio\n");
     }
-
     /*Change the active screen's background color*/
     lv_obj_set_style_bg_color(lv_scr_act(), lv_color_make(255, 255, 255), LV_PART_MAIN);
 
@@ -76,39 +89,41 @@ int main(void) {
         lv_obj_t *hello_world_button;
 
         hello_world_button = lv_button_create(lv_screen_active());
-        lv_obj_align(hello_world_button, LV_ALIGN_CENTER, 0, -15);
-        lv_obj_add_event_cb(hello_world_button, lv_btn_click_callback, LV_EVENT_CLICKED, NULL);
+        lv_obj_align(hello_world_button, LV_ALIGN_TOP_MID, 0, 20);
+        lv_obj_add_event_cb(hello_world_button, callback_delta, LV_EVENT_CLICKED, (void *) 1);
         hello_world_label = lv_label_create(hello_world_button);
 
         lv_obj_t *hello_world_button2;
 
         hello_world_button2 = lv_button_create(lv_screen_active());
-        lv_obj_align(hello_world_button2, LV_ALIGN_CENTER, 0, 24);
-        lv_obj_add_event_cb(hello_world_button2, lv_btn_click_callback, LV_EVENT_CLICKED, NULL);
+        lv_obj_align(hello_world_button2, LV_ALIGN_BOTTOM_MID, 0, -20);
+        lv_obj_add_event_cb(hello_world_button2, callback_delta, LV_EVENT_CLICKED, (void *) -1);
         hello_world_label2 = lv_label_create(hello_world_button2);
 
     } else {
         hello_world_label = lv_label_create(lv_screen_active());
     }
 
-    printk("saying hello workld\n");
-    lv_label_set_text(hello_world_label, "Hello world!");
+    lv_label_set_text(hello_world_label, "+1");
     lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
 
-    printk("saying count\n");
+    lv_label_set_text(hello_world_label2, "-1");
+    lv_obj_align(hello_world_label2, LV_ALIGN_CENTER, 0, 0);
+
     count_label = lv_label_create(lv_screen_active());
-    lv_obj_align(count_label, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_align(count_label, LV_ALIGN_CENTER, 0, 0);
 
     lv_timer_handler();
     display_blanking_off(display_dev);
 
+    int last_count = ~0;
     while (1) {
-        if ((count % 10) == 0U) {
-            sprintf(count_str, "%d", count / 100U);
+        if (count != last_count) {
+            sprintf(count_str, "%d", count);
             lv_label_set_text(count_label, count_str);
+            last_count = count;
         }
         lv_timer_handler();
-        ++count;
         k_sleep(K_MSEC(10));
     }
 }

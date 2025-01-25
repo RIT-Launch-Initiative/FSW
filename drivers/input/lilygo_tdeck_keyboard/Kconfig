@@ -1,0 +1,11 @@
+# Copyright (c) 2025 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig TDECK_KEYBOARD
+	bool "tdeck keyboard driver"
+	default y
+	depends on DT_HAS_LILYGO_TDECK_KEYBOARD_ENABLED
+	select GPIO
+	help
+	  Enable driver for lilygo tdeck keyboard
+

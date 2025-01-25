@@ -55,45 +55,44 @@
 	};
 
 
-	buttons {
+	buttons: buttons {
 		compatible = "gpio-keys";
+		debounce-interval-ms = <10>;
+
 		button0: button_0 {
 			gpios = <&gpio0 0 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "BOOT Button";
-			zephyr,code = <INPUT_KEY_0>;
+			zephyr,code = <INPUT_KEY_POWER>;
 		};
 
 		button_left: button_left {
 			gpios = <&gpio0 1 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Left Button";
-			zephyr,code = <INPUT_KEY_0>;
+			zephyr,code = <INPUT_KEY_LEFT>;
 		};
 		button_right: button_right {
-			gpios = <&gpio0 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			gpios = <&gpio0 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Right Button";
-			zephyr,code = <INPUT_KEY_0>;
+			zephyr,code = <INPUT_KEY_RIGHT>;
 		};
 
 		button_up: button_up {
-			gpios = <&gpio0 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			gpios = <&gpio0 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Up Button";
-			zephyr,code = <INPUT_KEY_0>;
+			zephyr,code = <INPUT_KEY_UP>;
 		};
 		button_down: button_down {
-			gpios = <&gpio0 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			gpios = <&gpio0 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 			label = "Right Button";
-			zephyr,code = <INPUT_KEY_0>;
+			zephyr,code = <INPUT_KEY_DOWN>;
 		};
 	};
 
-	lvgl_pointer:lvgl_pointer {
-		// DT_HAS_ZEPHYR_LVGL_POINTER_INPUT_ENABLED
+	lvgl_pointer: lvgl_pointer {
 		compatible = "zephyr,lvgl-pointer-input";
 		status="okay";
 		input = <&gt911>;
-		// flip x, y here
 		swap-xy;
-		//invert-x;
 		invert-y;
 	};
 
@@ -182,7 +181,13 @@
 	};
 
 	// Keyboard
+	keyboard: keyboard@55{
+		status = "okay";
+		compatible = "lilygo,tdeck-keyboard";
+		reg = <0x55>;
 
+		interrupt-gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 &i2c1 {
