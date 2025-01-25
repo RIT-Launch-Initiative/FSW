@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: data_log_shell
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.data_log_shell.default: {}
