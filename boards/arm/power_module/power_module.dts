@@ -79,17 +79,16 @@
     apb2-prescaler = <1>;
 };
 
-// TODO: DELETE THIS COMMENT LATER This is where the place to read ADC from is defined, just uncomment when ready
-/*
+
 &adc1 {
-    pinctrl-0 = <&adc1_in4_pa4>;
-    pinctrl-names = "default";
-    st,adc-clock-source = <SYNC>;
-    st,adc-prescaler = <2>;
+	pinctrl-0 = <&adc1_in4_pa4>;
+	pinctrl-names = "default";
+	st,adc-clock-source = "SYNC";
+	st,adc-prescaler = <2>;
     status = "okay";
     #address-cells = <1>;
     #size-cells = <0>;
-
+    
     channel@4 {
         reg = <4>;
         zephyr,gain = "ADC_GAIN_1";
@@ -97,8 +96,9 @@
         zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
         zephyr,resolution = <12>;
     };
+
 };
-*/
+
 &i2c1 {
     pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
     pinctrl-names = "default";
