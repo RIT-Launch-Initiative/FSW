@@ -33,28 +33,47 @@ int isr_cb() {
     // k workqueue submit
     return 0;
 }
+
+int myc = 0;
+static void gpio_keys_interrupt(const struct device *dev, struct gpio_callback *cbdata, uint32_t pins) {
+    // struct gpio_keys_callback *keys_cb = CONTAINER_OF(cbdata, struct gpio_keys_callback, gpio_cb);
+    // struct gpio_keys_pin_data *pin_data = CONTAINER_OF(keys_cb, struct gpio_keys_pin_data, cb_data);
+    // const struct gpio_keys_config *cfg = pin_data->dev->config;
+
+    // ARG_UNUSED(dev); /* GPIO device pointer. */
+    // ARG_UNUSED(pins);
+
+    // k_work_reschedule(&pin_data->work, K_MSEC(cfg->debounce_interval_ms));
+    myc++;
+}
+
 int tdeck_kbd_init(const struct device *dev) {
     const struct tdeck_kbd_config *cfg = dev->config;
     // setup interrupt that
+    int ret = 0;
+    gpio_init_callback(&cfg->callback, gpio_keys_interrupt, BIT(cfg->interrupt_pin.pin));
+    if (ret < 0) {
+        LOG_ERR("Could not init gpio callback");
+        return ret;
+    }
 
-    // int ret = gpio_init_callback(&cfg->callback, gpio_keys_interrupt, BIT(cfg->interrupt_pin.pin));
-    // if (ret < 0) {
-    //     LOG_ERR("Could not init gpio callback");
-    //     return ret;
-    // }
+    ret = gpio_add_callback_dt(&cfg->interrupt_pin, &cfg->callback);
+    if (ret < 0) {
+        LOG_ERR("Could not set gpio callback");
+        return ret;
+    }
 
-    // ret = gpio_add_callback_dt(&cfg->interrupt_pin, &cfg->callback);
-    // if (ret < 0) {
-    //     LOG_ERR("Could not set gpio callback");
-    //     return ret;
-    // }
+    // LOG_DBG("port=%s, pin=%d", gpio_spec->port->name, gpio_spec->pin);
 
-    // // LOG_DBG("port=%s, pin=%d", gpio_spec->port->name, gpio_spec->pin);
+    int res = gpio_pin_interrupt_configure_dt(&cfg->interrupt_pin, GPIO_INT_EDGE_BOTH);
+    if (res < 0) {
+        LOG_ERR("Unable to configure interrupt for gpio: %d", res);
+        return res;
+    }
 
-    // int res = gpio_pin_interrupt_configure_dt(&cfg->interrupt_pin, GPIO_INT_EDGE_BOTH);
-    // if (res < 0) {
-    //     LOG_ERR("Unable to configure interrupt for gpio: %d", res);
-    //     return res;
+    // while (true) {
+    // LOG_INF("myc: %d", myc);
+    // k_msleep(10);
     // }
     return 0;
 }
