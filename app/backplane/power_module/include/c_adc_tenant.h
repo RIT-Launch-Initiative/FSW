@@ -1,32 +1,33 @@
-#ifndef C_SENSING_TENANT_H
-#define C_SENSING_TENANT_H
+#ifndef C_ADC_TENANT_H
+#define C_ADC_TENANT_H
 
 #include <n_autocoder_types.h>
 
 #include <f_core/messaging/c_message_port.h>
+#include <f_core/device/c_adc.h>
 #include <f_core/os/c_tenant.h>
 
-# TODO: Replace with Adc instead of Sensing
+#include <zephyr/devicetree.h>
 
-class CSensingTenant : public CTenant {
+class CAdcTenant : public CTenant {
 public:
-    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::SensorData> &dataToLog)
+    explicit CAdcTenant(const char* name, CMessagePort<int32_t> &dataToBroadcast, CMessagePort<int32_t> &dataToLog)
         : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog)
     {
     }
 
-    ~CSensingTenant() override = default;
+    ~CAdcTenant() override = default;
 
     void Startup() override;
 
     void PostStartup() override;
 
-    void Run() override; // TODO: read from c_adc.cpp, use that math thing from the doc schematic
+    void Run() override;
 
 private:
-    CMessagePort<NTypes::SensorData> &dataToBroadcast;
-    CMessagePort<NTypes::SensorData> &dataToLog;
+    CAdc adc = CAdc(ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0));
+    CMessagePort<int32_t> &dataToBroadcast;
+    CMessagePort<int32_t> &dataToLog;
 };
 
-
-#endif //C_SENSING_TENANT_H
+#endif //C_ADC_TENANT_H

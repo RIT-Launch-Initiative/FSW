@@ -1,5 +1,26 @@
-// This is how you can get the ADC channel from the device tree, only index zero from the zephyr user node since theres only one
-// Ask aaron if there will ever be a future ADC channel
-// const struct adc_dt_spec adc_channel = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+#include "c_adc_tenant.h"
 
 #include <f_core/device/c_adc.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(CAdcTenant);
+
+void CAdcTenant::Startup() {
+}
+
+void CAdcTenant::PostStartup() {
+}
+
+void CAdcTenant::Run() {
+    if (adc.UpdateAdcValue() < 0) {
+        LOG_DBG("Skipping ADC read");
+        return;
+    }
+
+    int32_t adcValue = adc.GetAdcValue();
+
+    // TODO: Calculate using that math thing from the doc schematic
+
+    dataToBroadcast.Send(adcValue, K_MSEC(5));
+    dataToLog.Send(adcValue, K_MSEC(5));
+}

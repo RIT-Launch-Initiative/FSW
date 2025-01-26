@@ -6,17 +6,28 @@
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
 
-K_MSGQ_DEFINE(broadcastQueue, sizeof(NTypes::SensorData), 10, 4);
-static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQueue);
+// Sensing
+K_MSGQ_DEFINE(sensorBroadcastQueue, sizeof(NTypes::SensorData), 10, 4);
+static auto sensorBroadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(sensorBroadcastQueue);
 
-K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
-static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
+K_MSGQ_DEFINE(sensorDataLogQueue, sizeof(NTypes::SensorData), 10, 4);
+static auto sensorDataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(sensorDataLogQueue);
 
-CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), sensorDataLogMessagePort(dataLogMsgQueue) {}
+// ADC
+K_MSGQ_DEFINE(adcBroadcastQueue, sizeof(int32_t), 10, 4);
+static auto adcBroadcastMsgQueue = CMsgqMessagePort<int32_t>(adcBroadcastQueue);
+
+K_MSGQ_DEFINE(adcDataLogQueue, sizeof(int32_t), 10, 4);
+static auto adcDataLogMsgQueue = CMsgqMessagePort<int32_t>(adcDataLogQueue);
+
+CPowerModule::CPowerModule() : CProjectConfiguration(),
+sensorDataBroadcastMessagePort(sensorBroadcastMsgQueue), sensorDataLogMessagePort(sensorDataLogMsgQueue),
+adcDataBroadcastMessagePort(adcBroadcastMsgQueue), adcDataLogMessagePort(adcDataLogMsgQueue) {}
 
 void CPowerModule::AddTenantsToTasks() {
     // Networking
-    networkTask.AddTenant(broadcastTenant);
+    networkTask.AddTenant(sensorBroadcastTenant);
+    networkTask.AddTenant(adcBroadcastTenant);
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);

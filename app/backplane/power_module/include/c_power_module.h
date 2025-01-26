@@ -2,6 +2,7 @@
 #define C_SENSOR_MODULE_H
 
 #include "c_sensing_tenant.h"
+#include "c_adc_tenant.h"
 
 #include <n_autocoder_types.h>
 
@@ -48,14 +49,15 @@ private:
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
-    // TODO: Add ADC message port here, type uint32_t
+    CMessagePort<int32_t>& adcDataBroadcastMessagePort;
+    CMessagePort<int32_t>& adcDataLogMessagePort;
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
-    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
+    CUdpBroadcastTenant<NTypes::SensorData> sensorBroadcastTenant{"Sensor Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
-    // TODO: Add ADC tenant here
-    // TODO: Create new UDP Broadcast Tenant for ADC data, on same task because they share Spibus
+    CAdcTenant adcTenant{"ADC Tenant", adcDataBroadcastMessagePort, adcDataLogMessagePort};
+    CUdpBroadcastTenant<int32_t> adcBroadcastTenant{"ADC Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, adcDataBroadcastMessagePort};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 1024, 0};
