@@ -10,6 +10,7 @@
 #include <zephyr/dt-bindings/input/esp32-touch-sensor-input.h>
 #include <espressif/partitions_0x0_amp.dtsi>
 #include "tdeck-pinctrl.dtsi"
+#include <zephyr/dt-bindings/lvgl/lvgl.h>
 
 / {
 	model = "Espressif ESP32S3-DevkitC PROCPU";
@@ -54,6 +55,12 @@
 		initial-brightness = <15>;
 	};
 
+   vbatt {
+      compatible = "voltage-divider";
+      io-channels = <&adc1 1>;
+      output-ohms = <100000>;
+      full-ohms = <(100000 + 100000)>;
+   };
 
 	buttons: buttons {
 		compatible = "gpio-keys";
@@ -95,6 +102,14 @@
 		swap-xy;
 		invert-y;
 	};
+
+	lvgl_keypad_input {
+			compatible = "zephyr,lvgl-keypad-input";
+			input = <&keyboard>;
+			input-codes = <INPUT_KEY_A INPUT_KEY_B>;
+			lvgl-codes = <0x41 0x42>;
+	};
+
 
 
 	// Display
@@ -143,6 +158,23 @@
 	};
 };
 
+&adc1 {
+    status = "okay";
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    channel@1 {
+        reg = <1>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
+};
+&coretemp{
+	status = "okay";
+};
+
 &usb_serial {
 	status = "okay";
 };
@@ -185,8 +217,8 @@
 		status = "okay";
 		compatible = "lilygo,tdeck-keyboard";
 		reg = <0x55>;
-
-		interrupt-gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
+		initial-brightness = <200>;
+		// interrupt-gpios = <&gpio 14 GPIO_ACTIVE_HIGH>;
 	};
 };
 

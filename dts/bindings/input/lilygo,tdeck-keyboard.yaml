@@ -7,18 +7,18 @@ compatible: lilygo,tdeck-keyboard
 include: [base.yaml, i2c-device.yaml]
 
 properties:
-  interrupt-gpios:
-    type: phandle-array
-    description: |
-      Interrupt gpio
+  # interrupt-gpios:
+  #   type: phandle-array
+  #   description: |
+  #     Interrupt gpio
   initial-brightness:
     type: int
-    default: 127
+    default: 30
     description: |
-      The brightness when initialized
-  default-brightness:
+      The brightness of the keyboard when initialized
+  restart-brightness:
     type: int
-    default: 255
+    default: 127
     description: |
       the brightness setting to use when pressing Alt-B
       if brightness was set to 0 and Alt-B is pressed, this brightness will be used

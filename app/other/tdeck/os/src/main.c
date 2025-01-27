@@ -31,7 +31,7 @@ static uint32_t count;
 static void callback_delta(lv_event_t *e) {
     ARG_UNUSED(e);
 
-    int32_t delta = (int *) lv_event_get_user_data(e);
+    int32_t delta = (int) lv_event_get_user_data(e);
 
     count = count + delta;
 }
@@ -82,10 +82,6 @@ int main(void) {
     if (gerr != 0) {
         printk("couldnt set stuff gpuio\n");
     }
-
-    lv_demo_music();
-    return 0;
-
     /*Change the active screen's background color*/
     lv_obj_set_style_bg_color(lv_scr_act(), lv_color_make(255, 255, 255), LV_PART_MAIN);
 
@@ -93,14 +89,14 @@ int main(void) {
         lv_obj_t *hello_world_button;
 
         hello_world_button = lv_button_create(lv_screen_active());
-        lv_obj_align(hello_world_button, LV_ALIGN_TOP_MID, 0, 20);
+        lv_obj_align(hello_world_button, LV_ALIGN_TOP_RIGHT, 0, 10);
         lv_obj_add_event_cb(hello_world_button, callback_delta, LV_EVENT_CLICKED, (void *) 1);
         hello_world_label = lv_label_create(hello_world_button);
 
         lv_obj_t *hello_world_button2;
 
         hello_world_button2 = lv_button_create(lv_screen_active());
-        lv_obj_align(hello_world_button2, LV_ALIGN_BOTTOM_MID, 0, -20);
+        lv_obj_align(hello_world_button2, LV_ALIGN_TOP_LEFT, 0, 10);
         lv_obj_add_event_cb(hello_world_button2, callback_delta, LV_EVENT_CLICKED, (void *) -1);
         hello_world_label2 = lv_label_create(hello_world_button2);
 
@@ -115,9 +111,16 @@ int main(void) {
     lv_obj_align(hello_world_label2, LV_ALIGN_CENTER, 0, 0);
 
     count_label = lv_label_create(lv_screen_active());
-    lv_obj_align(count_label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(count_label, LV_ALIGN_TOP_MID, 0, 20);
 
     lv_timer_handler();
+
+    lv_obj_t *ta = lv_textarea_create(lv_screen_active());
+    lv_textarea_set_one_line(ta, true);
+    lv_obj_align(ta, LV_ALIGN_CENTER, 0, 20);
+    // lv_obj_add_event_cb(ta, textarea_event_handler, LV_EVENT_READY, ta);
+    // lv_obj_add_state(ta, LV_STATE_FOCUSED); /*To be sure the cursor is visible*/
+
     display_blanking_off(display_dev);
 
     int last_count = ~0;
