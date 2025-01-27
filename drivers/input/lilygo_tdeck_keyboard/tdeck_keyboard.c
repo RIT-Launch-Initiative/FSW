@@ -48,8 +48,8 @@ struct tdeck_kbd_data {
 };
 
 static int set_brightness(const struct tdeck_kbd_config *cfg, uint8_t brightness) {
-    uint8_t tx_data = LILYGO_KB_BRIGHTNESS_CMD;
-    uint8_t rx_buf[2] = {0};
+    // uint8_t tx_data = LILYGO_KB_BRIGHTNESS_CMD;
+    // uint8_t rx_buf[2] = {0};
 
     int rc = -1; //i2c_write_read_dt(&cfg->bus, &tx_data, sizeof(tx_data), rx_buf, sizeof(rx_buf));
     if (rc < 0) {
@@ -60,7 +60,7 @@ static int set_brightness(const struct tdeck_kbd_config *cfg, uint8_t brightness
 }
 static int set_restart_brightness(const struct tdeck_kbd_config *cfg, uint8_t brightness) { return -1; }
 static int readKey(const struct tdeck_kbd_config *cfg, uint8_t *key) {
-    uint8_t tx_data[1] = {0};
+    // uint8_t tx_data[1] = {0};
     uint8_t rx_data[1] = {0};
 
     int rc = i2c_read_dt(&cfg->bus, rx_data, 1);

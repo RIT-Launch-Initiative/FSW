@@ -22,7 +22,7 @@
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(app);
-static struct gpio_dt_spec stuff_gpio = GPIO_DT_SPEC_GET(DT_ALIAS(stuffenable), gpios);
+// static struct gpio_dt_spec stuff_gpio = GPIO_DT_SPEC_GET(DT_ALIAS(stuffenable), gpios);
 
 const struct device *bl_dev = DEVICE_DT_GET(DT_NODELABEL(backlight));
 
@@ -65,23 +65,10 @@ int main(void) {
     printk("device ready\n");
     k_msleep(10);
 
-    if (gpio_is_ready_dt(&stuff_gpio)) {
-        int err;
-        printk("stuff Is ready\n");
-        err = gpio_pin_configure_dt(&stuff_gpio, GPIO_OUTPUT);
-        if (err) {
-            printk("failed to configure stuff gpio: %d", err);
-            return 0;
-        }
-        printk("stuff confirured\n");
-
-    } else {
-        printk("stuff gpio not ready\n");
-    }
-    int gerr = gpio_pin_set_dt(&stuff_gpio, 1);
-    if (gerr != 0) {
-        printk("couldnt set stuff gpuio\n");
-    }
+    // int gerr = gpio_pin_set_dt(&stuff_gpio, 1);
+    // if (gerr != 0) {
+    // printk("couldnt set stuff gpuio\n");
+    // }
     /*Change the active screen's background color*/
     lv_obj_set_style_bg_color(lv_scr_act(), lv_color_make(255, 255, 255), LV_PART_MAIN);
 
