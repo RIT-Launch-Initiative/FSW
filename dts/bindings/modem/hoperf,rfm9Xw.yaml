@@ -33,7 +33,6 @@ properties:
     enum:
       - "RfmModulationType_FSK"
       - "RfmModulationType_OOK"
-      - "RfmModulationType_OOK_BitBang4FSK"
   low-frequency-mode:
     type: string
     default: "RfmLowFrequencyMode_LowFrequency"
