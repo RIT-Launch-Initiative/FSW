@@ -11,7 +11,7 @@
 
 / {
     model = "Power Module";
-    compatible = "st,stm32f446re-nucleo";
+    compatible = "st,stm32f446xx";
 
     chosen {
         zephyr,sram = &sram0;
@@ -79,6 +79,7 @@
     apb2-prescaler = <1>;
 };
 
+/*
 &adc1 {
     pinctrl-0 = <&adc1_in4_pa4>;
     pinctrl-names = "default";
@@ -96,7 +97,7 @@
         zephyr,resolution = <12>;
     };
 };
-
+*/
 &i2c1 {
     pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
     pinctrl-names = "default";

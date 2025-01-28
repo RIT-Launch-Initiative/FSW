@@ -1,5 +1,4 @@
 Folder for tools related to FSW development and testing. Some nice to haves might include.
-- Backplane Definitions Generator
 - Backplane Ethernet Command Tool
 - Backplane Ethernet Fake Data Generator
 - UART Telemetry Dump Tool (TBD. Need to look at Zephyr Shell commands)

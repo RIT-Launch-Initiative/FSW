@@ -1,0 +1,27 @@
+general:
+  commandPort: 9000
+  notificationPort: 9999
+
+modules:
+  power:
+    id: 1
+    base_port: 11000
+    port_offsets:
+      ina_data:
+        port_number: 15
+      adc_data:
+        port_number: 50
+
+  radio:
+    id: 2
+    base_port: 12000
+    port_offsets:
+      gnss_data:
+        port_number: 1
+
+  sensor:
+    id: 3
+    base_port: 13000
+    port_offsets:
+      telemetry:
+        port_number: 100
