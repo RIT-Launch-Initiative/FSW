@@ -24,7 +24,7 @@
 		carrier-frequency = <DT_FREQ_M(434)>;
 		deviation-frequency = <900>;
 		bitrate = <100>;
-		modulation-type = "RfmModulationType_OOK_BitBang4FSK";
+		modulation-type = "RfmModulationType_FSK";
 
 		reset-gpios = <&arduino_header 5 GPIO_ACTIVE_HIGH>;
 		power-amplifier = "RfmPowerAmplifierSelection_PaBoost";

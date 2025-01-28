@@ -10,7 +10,7 @@ extern "C" {
 #include <stdint.h>
 #include <zephyr/device.h>
 
-#define RFM_NUM_DIOS 6
+#define RFM_MAX_NUM_DIOS 6
 
 #define REG_OP_MODE_LONG_RANGE_MODE_MASK (0b10000000)
 #define REG_OP_MODE_MODULATION_TYPE_MASK (0b01100000)
@@ -65,11 +65,6 @@ enum RfmModulationType {
     // Built in Modulation Types (register values)
     RfmModulationType_FSK = 0b00000000,
     RfmModulationType_OOK = 0b00100000,
-    //
-    // Custom Modulation Types (not actual register values)
-    // Values assigned to not clash with actual register values
-    RfmModulationType_FSK_BitBangFSK = 0x01,
-    RfmModulationType_OOK_BitBang4FSK = 0x02,
 };
 
 enum RfmLowFrequencyMode {
@@ -150,40 +145,83 @@ enum RfmPaRamp {
 #define RFM_REG_DIO_MAPPING1_MASK_DIO0 0b11000000
 enum RfmDio0Mapping {
     //Datasheet: Page 65, Table 28,29
-    RfmDio0Mapping_Continuous_SyncAddressTxReady = 0x00,
-    RfmDio0Mapping_Continuous_RssiPreambleDetect = 0x1,
-    RfmDio0Mapping_Continuous_RxReadyTxReady = 0x2,
-    RfmDio0Mapping_Continuous_Nothing = 0x3,
+    RfmDio0Mapping_Continuous_SyncAddressTxReady = 0b00000000, // Default
+    RfmDio0Mapping_Continuous_RssiPreambleDetect = 0b01000000,
+    RfmDio0Mapping_Continuous_RxReadyTxReady = 0b10000000,
+    RfmDio0Mapping_Continuous_Nothing = 0b11000000,
 
-    RfmDio0Mapping_Packet_PayloadReadyPacketSent = 0x00,
-    RfmDio0Mapping_Packet_RxCrcOk = 0x1,
-    RfmDio0Mapping_Packet_Nothing = 0x2,
-    RfmDio0Mapping_Packet_TempChangeLowBat = 0x3,
+    RfmDio0Mapping_Packet_PayloadReadyPacketSent = 0b00000000,
+    RfmDio0Mapping_Packet_RxCrcOk = 0b01000000,
+    RfmDio0Mapping_Packet_Nothing = 0b10000000,
+    RfmDio0Mapping_Packet_TempChangeLowBat = 0b11000000,
 };
 
 #define RFM_REG_DIO_MAPPING1_MASK_DIO1 0b00110000
 enum RfmDio1Mapping {
     //Datasheet: Page 65, Table 28,29
-    RfmDio1Mapping_Continuous_Dclk = 0x00,
-    RfmDio1Mapping_Continuous_RssiPreambleDetect = 0x1,
-    RfmDio1Mapping_Continuous_Nothing = 0x2, // 0x03 is also nothing
+    RfmDio1Mapping_Continuous_Dclk = 0b000000, // Default
+    RfmDio1Mapping_Continuous_RssiPreambleDetect = 0b010000,
+    RfmDio1Mapping_Continuous_Nothing = 0b100000, // 0x03 is also nothing
 
-    RfmDio1Mapping_Packet_FifoLevel = 0x00,
-    RfmDio1Mapping_Packet_FifoEmpty = 0x1,
-    RfmDio1Mapping_Packet_Nothing = 0x2,
-    RfmDio1Mapping_Packet_TempChangeLowBat = 0x3,
+    RfmDio1Mapping_Packet_FifoLevel = 0b000000,
+    RfmDio1Mapping_Packet_FifoEmpty = 0b010000,
+    RfmDio1Mapping_Packet_Nothing = 0b100000,
+    RfmDio1Mapping_Packet_TempChangeLowBat = 0b110000,
 };
 
 #define RFM_REG_DIO_MAPPING1_MASK_DIO2 0b00001100
-enum RfmDio2Mapping { RfmDio2Mapping_IDK };
+enum RfmDio2Mapping {
+    //Datasheet: Page 65, Table 28,29
+    // 00, 01, 10, 11 all are Data
+    RfmDio2Mapping_Continuous_Data = 0b0000, // Default
+
+    RfmDio2Mapping_Packet_FifoFull = 0b0000,
+    RfmDio2Mapping_Packet_RxReady = 0b0100,
+    RfmDio2Mapping_Packet_FifoFull_RxTimeout = 0b1000,
+    RfmDio2Mapping_Packet_FifoFull_SyncAddress = 0b1100,
+
+};
 
 #define RFM_REG_DIO_MAPPING1_MASK_DIO3 0b00000011
-enum RfmDio3Mapping { RfmDio3Mapping_IDK };
+enum RfmDio3Mapping {
+    //Datasheet: Page 65, Table 28,29
+    RfmDio3Mapping_Continuous_Timeout = 0b00, // Default
+    RfmDio3Mapping_Continuous_RssiPreambleDetect = 0b01,
+    RfmDio3Mapping_Continuous_Nothing = 0b10,
+    RfmDio3Mapping_Continuous_TempChangeLowBat = 0b11,
+
+    RfmDio3Mapping_Packet_FifoEmpty = 0b00,
+    RfmDio3Mapping_Packet_TxReady = 0b01,
+    // 0x2, 0x3 also FifoEmpty
+
+};
 
 #define RFM_REG_DIO_MAPPING2_MASK_DIO4 0b11000000
-enum RfmDio4Mapping { RfmDio4Mapping_IDK };
+enum RfmDio4Mapping {
+    //Datasheet: Page 65, Table 28,29
+    RfmDio4Mapping_Continuous_TempChangeLowBat = 0b00000000, // Default
+    RfmDio4Mapping_Continuous_PllLock = 0b01000000,
+    RfmDio4Mapping_Continuous_Timeout = 0b10000000,
+    RfmDio4Mapping_Continuous_ModeReady = 0b11000000,
+
+    RfmDio4Mapping_Packet_TempChangeLowBat = 0b00000000,
+    RfmDio4Mapping_Packet_PllLock = 0b01000000,
+    RfmDio4Mapping_Packet_Timeout = 0b10000000,
+    RfmDio4Mapping_Packet_RssiPreambleDetect = 0b11000000,
+};
 #define RFM_REG_DIO_MAPPING2_MASK_DIO5 0b00110000
-enum RfmDio5Mapping { RfmDio5Mapping_IDK };
+enum RfmDio5Mapping {
+    //Datasheet: Page 65, Table 28,29
+    RfmDio5Mapping_Continuous_ClkOut = 0b000000, // Default
+    RfmDio5Mapping_Continuous_PllLock = 0b010000,
+    RfmDio5Mapping_Continuous_RssiPreambleDetect = 0b100000,
+    RfmDio5Mapping_Continuous_ModeReady = 0b110000,
+
+    RfmDio5Mapping_Packet_ClkOut = 0b000000,
+    RfmDio5Mapping_Packet_PllLock = 0b010000,
+    RfmDio5Mapping_Packet_Data = 0b100000,
+    RfmDio5Mapping_Packet_ModeReady = 0b110000,
+};
 
 #define RFM_REG_DIO_MAPPING2_MASK_MAP_PREAMBLE_DETECT 0b00000001
 enum RfmMapPreambleDetectInterrupt {
@@ -199,66 +237,18 @@ enum RfmDcFreeEncodingType {
 
 /**
  * Read temperature in C
- * <0 return is error
+ * @param[in] dev rfm9xw device
+ * @param[out] celsius temperature of radio in celsius
+ * @return 0 on success. <0 on error from spi transmission
  */
 int32_t rfm9xw_read_temperature(const struct device *dev, int8_t *celsius);
 
-int32_t rfm9xw_software_reset(const struct device *dev);
-
-// Honk mimimimi (TODO add detail about power details when in standby
-int32_t rfm9xw_sleep(const struct device *dev);
-// Stop transmitting (TODO add detail about power details when in standby)
-int32_t rfm9xw_standby(const struct device *dev);
-
-// FSK, OOK, BitBangFSK,
-struct RfmFSKModulationSettings {
-    uint32_t frequency;
-    uint32_t frequency_deviation;
-    uint32_t bitrate;
-    // Power settings
-    enum RfmModulationShaping modulation_shaping;
-    enum RfmPaRamp ramp;
-};
-
-struct RfmOOKModulationSettings {
-    // TODO
-    uint32_t frequency;
-    uint32_t bitrate;
-    enum RfmModulationShaping modulation_shaping;
-    enum RfmPaRamp ramp;
-};
-struct RfmBitBangFSKModulationSettings {
-    uint32_t frequency;
-    uint32_t frequency_deviation;
-    uint32_t bitrate;
-};
-struct RfmBitBang4FSKModulationSettings {
-    uint32_t frequency;
-    uint32_t frequency_deviation;
-    uint32_t bitrate;
-};
-
-int32_t rfm9xw_setup_transmission_fsk(const struct device *dev, const struct RfmFSKModulationSettings *settings);
-int32_t rfm9xw_setup_transmission_ook(const struct device *dev, const struct RfmOOKModulationSettings *settings);
-int32_t rfm9xw_setup_transmission_bitbang_fsk(const struct device *dev,
-                                              const struct RfmBitBangFSKModulationSettings *settings);
-int32_t rfm9xw_setup_transmission_bitbang_4fsk(const struct device *dev,
-                                               const struct RfmBitBang4FSKModulationSettings *settings);
-int32_t rfm9xw_set_power_settings();
-
-// maybe don't use these unless you know what you're doing.
-int32_t rfm9xw_set_dio0_mapping(const struct device *dev, enum RfmDio0Mapping);
-int32_t rfm9xw_set_dio1_mapping(const struct device *dev, enum RfmDio0Mapping);
-int32_t rfm9xw_set_dio2_mapping(const struct device *dev, enum RfmDio0Mapping);
-int32_t rfm9xw_set_dio3_mapping(const struct device *dev, enum RfmDio0Mapping);
-int32_t rfm9xw_set_dio4_mapping(const struct device *dev, enum RfmDio0Mapping);
-int32_t rfm9xw_set_dio5_mapping(const struct device *dev, enum RfmDio0Mapping);
-
 /**
- * Send a packet over the radio using the transmission type assigned with rfm9xw_setup_transmission_* types
- * IS BLOCKING!!!!!!
+ * Perform a 'Manual Reset' of the module 
+ * (Datasheet pg.111 section 7.2.2)
+ * @param[in] dev rfm9xw device
  */
-int32_t rfm9xw_send_packet(const struct device *, uint8_t *packet_data, int32_t packet_len);
+int32_t rfm9xw_software_reset(const struct device *dev);
 
 #ifdef __cplusplus
 }

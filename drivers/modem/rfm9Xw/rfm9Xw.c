@@ -10,8 +10,6 @@
 LOG_MODULE_REGISTER(rfm9xw);
 
 #define HORUS_L2_RX
-// #define DEBUG1
-// #define DEBUG0
 #include "horusl2.h"
 
 #define DT_DRV_COMPAT hoperf_rfm9xw
@@ -20,7 +18,7 @@ struct rfm9Xw_config {
     struct spi_dt_spec bus;
     enum RfmModelNumber model_num;
     struct gpio_dt_spec reset_gpios;
-    struct gpio_dt_spec dio_gpios[RFM_NUM_DIOS];
+    struct gpio_dt_spec dio_gpios[RFM_MAX_NUM_DIOS];
     enum RfmPowerAmplifierSelection power_amplifier;
 };
 
@@ -47,6 +45,7 @@ struct rfm9Xw_data {
     uint8_t sync_word_len;
     uint64_t sync_word;
 };
+
 #define RFM_SPI_WRITE_BIT 0b10000000
 #define RFM_SPI_REG_MASK  0b01111111
 int read_rfm_reg(const struct rfm9Xw_config *config, const uint8_t reg, uint8_t *const result) {
@@ -185,8 +184,8 @@ int write_rfm_reg(const struct rfm9Xw_config *config, const uint8_t reg, uint8_t
  * @return -ERANGE if the desired bitrate is not allowed
  * the actual value of bitrate that will be used.
  */
-int32_t bitrate_regs_from_bitrate_fsk(uint32_t bits_per_sec, uint8_t *bitrate_msb, uint8_t *bitrate_lsb,
-                                      uint8_t *bitrate_frac) {
+static int32_t bitrate_regs_from_bitrate_fsk(uint32_t bits_per_sec, uint8_t *bitrate_msb, uint8_t *bitrate_lsb,
+                                             uint8_t *bitrate_frac) {
     // bits_per_sec = FXOSC/(BitRate(15,0) + BitRateFrac/16)
     // min(bits_per_sec) = FXOSC/(65536)
     // max(bits_per_sec) = FXOSC/(1/16)
@@ -221,7 +220,8 @@ int32_t bitrate_regs_from_bitrate_fsk(uint32_t bits_per_sec, uint8_t *bitrate_ms
  * @return -ERANGE if the requested frequency is out of range for this model
  * 0 if conversion was successful
  */
-int32_t frf_reg_from_frequency(enum RfmModelNumber model, uint32_t freq, uint8_t *msb, uint8_t *mid, uint8_t *lsb) {
+static int32_t frf_reg_from_frequency(enum RfmModelNumber model, uint32_t freq, uint8_t *msb, uint8_t *mid,
+                                      uint8_t *lsb) {
     switch (model) {
         case RfmModelNumber_95W:
             if (freq < RFM95_SYNTH_MIN_HZ || freq > RFM95_SYNTH_MAX_HZ) {
@@ -327,7 +327,7 @@ static const char *reg_names[0x71] = {
     [REG_PLL] = "RegPll",
 };
 
-int32_t dump_registers(const struct rfm9Xw_config *config) {
+static int32_t dump_registers(const struct rfm9Xw_config *config) {
     static uint8_t registers[] = {
         REG_FIFO,
         REG_OP_MODE,
@@ -412,108 +412,6 @@ int32_t dump_registers(const struct rfm9Xw_config *config) {
     return 0;
 }
 
-//BitRate = FXOSC/(BitRate(15,0)+BitRateFrac/16)
-
-//FXOSC = 32 Mhz
-//FSTEP = FXOSC/(2^19)
-//Fdev = Fstep x Fdev(15,0)
-//Frf = Fstep x Frf(23,0)
-
-void rfm9x_print_data(enum RfmLongRangeModeSetting long_range_mode, enum RfmModulationType modulation_type,
-                      enum RfmLowFrequencyMode low_frequency_mode, enum RfmTransceiverMode transceiver_mode,
-                      uint8_t frf_msb, uint8_t frf_mid, uint8_t frf_lsb, uint16_t reg_bitrate, uint8_t reg_bitrate_frac,
-                      enum RfmPacketConfigDataMode data_mode) {
-    if (long_range_mode == RfmLongRangeModeSetting_LoraTmMode) {
-        LOG_INF("LongRangeMode: LoRa(TM) Mode (0b1)");
-        LOG_WRN("Not showing more data until LoRa(TM) mode is implemented");
-        return;
-    } else {
-        LOG_INF("LongRangeMode: FSK/OOK Mode (0b0) (default)");
-    }
-    if (modulation_type == RfmModulationType_FSK) {
-        LOG_INF("ModulationType: FSK (0b0) (default)");
-    } else if (modulation_type == RfmModulationType_OOK) {
-        LOG_INF("ModulationType: OOK (0b1)");
-    } else {
-        LOG_WRN("ModulationType: RESERVED");
-    }
-
-    LOG_INF("LowFrequencyMode: 0x%02x", (uint8_t) (low_frequency_mode >> 3));
-
-    switch (transceiver_mode) {
-        case RfmTransceiverMode_Sleep:
-            LOG_INF("TransceiverMode: Sleep (0b000)");
-            break;
-        case RfmTransceiverMode_Standby:
-            LOG_INF("TransceiverMode: Standby (0b001) (default)");
-            break;
-        case RfmTransceiverMode_FsModeTx:
-            LOG_INF("TransceiverMode: FS mode TX (0b010)");
-            break;
-        case RfmTransceiverMode_Transmitter:
-            LOG_INF("TransceiverMode: Transmitter (0b011)");
-            break;
-        case RfmTransceiverMode_FsModeRx:
-            LOG_INF("TransceiverMode: FS mode TX (0b100)");
-            break;
-        case RfmTransceiverMode_Receiver:
-            LOG_INF("TransceiverMode: Receiver (0b101)");
-            break;
-        default:
-            LOG_WRN("TransceiverMode: RESERVED VALUE");
-            break;
-    }
-
-    //BitRate = FXOSC/(BitRate(15,0)+BitRateFrac/16)
-    double bitrate = FXOSC_HZ / ((double) reg_bitrate + (double) reg_bitrate_frac / 16.0);
-    LOG_INF("BitRate: %.3f: (0x%04x)", bitrate, reg_bitrate);
-
-    const double fstep = 61.03515625;
-    double frf = fstep * (double) ((frf_msb << 16) | (frf_mid << 8) | frf_lsb);
-    LOG_INF("Carrier Frequency = %.4f - (%02x, %02x, %02x)", frf, frf_msb, frf_mid, frf_lsb);
-
-    if (data_mode == RfmPacketConfigDataMode_Continuous) {
-        LOG_INF("DataMode: Continuous");
-    } else if (data_mode == RfmPacketConfigDataMode_Packet) {
-        LOG_INF("DataMode: Packet (Default)");
-    } else {
-        LOG_WRN("DataMode: UNKNOWN");
-    }
-}
-int32_t rfm9x_print_reg_info(const struct rfm9Xw_config *config) {
-    uint8_t reg_op_mode = 0;
-    read_rfm_reg(config, REG_OP_MODE, &reg_op_mode);
-
-    enum RfmLongRangeModeSetting long_range_mode = reg_op_mode & REG_OP_MODE_LONG_RANGE_MODE_MASK;
-    enum RfmLowFrequencyMode low_freq_mode = reg_op_mode & REG_OP_MODE_LOW_FREQ_MODE_MASK;
-    enum RfmModulationType mod_type = reg_op_mode & REG_OP_MODE_MODULATION_TYPE_MASK;
-    enum RfmTransceiverMode trans_mode = reg_op_mode & REG_OP_MODE_TRANS_MODE_MASK;
-
-    uint8_t bitrate_parts[2] = {0};
-    read_rfm_reg(config, REG_BITRATE_MSB, &bitrate_parts[0]);
-    read_rfm_reg(config, REG_BITRATE_LSB, &bitrate_parts[1]);
-    uint16_t reg_bitrate = (bitrate_parts[0] << 8) | bitrate_parts[1];
-
-    uint8_t reg_bitrate_frac = 0;
-    read_rfm_reg(config, REG_BITRATEFRAC, &reg_bitrate_frac);
-
-    uint8_t frf_msb = 0;
-    uint8_t frf_mid = 0;
-    uint8_t frf_lsb = 0;
-    read_rfm_reg(config, REG_FRF_MSB, &frf_msb);
-    read_rfm_reg(config, REG_FRF_MID, &frf_mid);
-    read_rfm_reg(config, REG_FRF_LSB, &frf_lsb);
-
-    uint8_t reg_packet_config2 = 0;
-    read_rfm_reg(config, REG_PACKET_CONFIG2, &reg_packet_config2);
-    enum RfmPacketConfigDataMode data_mode = reg_packet_config2 & REG_PACKET_CONFIG2_DATA_MODE_MASK;
-
-    LOG_INF("Device Information:");
-    rfm9x_print_data(long_range_mode, mod_type, low_freq_mode, trans_mode, frf_msb, frf_mid, frf_lsb, reg_bitrate,
-                     reg_bitrate_frac, data_mode);
-    return 0;
-}
-
 /**
  * Sets the RF carrier frequency registers on the module.
  * This does not immediately change the frequency that the module is transmitting at or receiving from.
@@ -522,7 +420,7 @@ int32_t rfm9x_print_reg_info(const struct rfm9Xw_config *config) {
  * - Restarting the receiver 
  * Datasheet pg. 89
  */
-int32_t set_frequency_by_reg(const struct rfm9Xw_config *config, uint8_t msb, uint8_t mid, uint8_t lsb) {
+static int32_t set_frequency_by_reg(const struct rfm9Xw_config *config, uint8_t msb, uint8_t mid, uint8_t lsb) {
     uint8_t reg_frf[3] = {msb, mid, lsb};
     return write_rfm_reg_burst(config, REG_FRF_MSB, reg_frf, 3);
 }
@@ -570,20 +468,18 @@ int32_t set_bitrate_by_reg(const struct device *dev, uint8_t msb, uint8_t lsb, u
     return write_rfm_reg(config, REG_BITRATEFRAC, frac);
 }
 
-int32_t set_bitrate(const struct device *dev, uint32_t bitrate) {
+static int32_t set_bitrate(const struct device *dev, uint32_t bitrate) {
     uint8_t bitrate_msb = 0;
     uint8_t bitrate_lsb = 0;
     uint8_t bitrate_frac = 0;
     int32_t res = bitrate_regs_from_bitrate_fsk(bitrate, &bitrate_msb, &bitrate_lsb, &bitrate_frac);
     if (res < 0) {
         return res;
-    } else {
-        LOG_INF("Achieved bitrate: %d", res);
     }
     return set_bitrate_by_reg(dev, bitrate_msb, bitrate_lsb, bitrate_frac);
 }
 
-int32_t set_pramble_len(const struct device *dev, uint16_t preamble_len) {
+static int32_t set_pramble_len(const struct device *dev, uint16_t preamble_len) {
     const struct rfm9Xw_config *config = dev->config;
     uint8_t msb = (preamble_len >> 8) & 0xff;
     uint8_t lsb = (preamble_len >> 8) & 0xff;
@@ -628,6 +524,7 @@ static int32_t set_frequency_deviation_by_reg(const struct device *dev, uint8_t 
     uint8_t data[2] = {msb, lsb};
     return write_rfm_reg_burst(config, REG_FDEV_MSB, data, 2);
 }
+
 static int32_t set_frequency_deviation(const struct device *dev, uint32_t freq_dev) {
     uint8_t msb = 0;
     uint8_t lsb = 0;
@@ -647,9 +544,9 @@ static int32_t set_modulation_shaping(const struct device *dev, enum RfmModulati
                          (shaping & RFM_REG_PA_RAMP_MASK_MODULATION_SHAPING) | (ramp & RFM_REG_PA_RAMP_MASK_PA_RAMP));
 }
 
-int32_t set_operating_mode(const struct device *dev, enum RfmLongRangeModeSetting long_range_mode,
-                           enum RfmModulationType mod_type, enum RfmLowFrequencyMode low_freq_mode,
-                           enum RfmTransceiverMode trans_mode) {
+static int32_t set_operating_mode(const struct device *dev, enum RfmLongRangeModeSetting long_range_mode,
+                                  enum RfmModulationType mod_type, enum RfmLowFrequencyMode low_freq_mode,
+                                  enum RfmTransceiverMode trans_mode) {
     const struct rfm9Xw_config *config = dev->config;
     uint8_t val = (long_range_mode & REG_OP_MODE_LONG_RANGE_MODE_MASK) | (mod_type & REG_OP_MODE_MODULATION_TYPE_MASK) |
                   (low_freq_mode & REG_OP_MODE_LOW_FREQ_MODE_MASK) | (trans_mode & REG_OP_MODE_TRANS_MODE_MASK);
@@ -657,92 +554,6 @@ int32_t set_operating_mode(const struct device *dev, enum RfmLongRangeModeSettin
     return write_rfm_reg(config, REG_OP_MODE, val);
 }
 
-unsigned short crc16(char *ptr, int count) {
-    int crc;
-    char i;
-    crc = 0xffff;
-    while (--count >= 0) {
-        crc = crc ^ (int) *ptr++ << 8;
-        i = 8;
-        do {
-            if (crc & 0x8000) crc = crc << 1 ^ 0x1021;
-            else
-                crc = crc << 1;
-        } while (--i);
-    }
-    return (crc);
-}
-
-int32_t transmit_4fsk_packet(const struct device *dev, uint8_t preamble_len, uint8_t *buf, uint32_t len) {
-
-    // LOG_HEXDUMP_INF(buf, len, "Packet");
-    // LOG_INF("Packet Length: %d", len);
-    const struct rfm9Xw_config *config = dev->config;
-    struct rfm9Xw_data *data = dev->data;
-
-    const uint32_t carrier = data->carrier_freq;
-    const uint32_t deviation = data->deviation_freq;
-
-    const uint32_t bitrate = 100;
-    const int usec_per_symbol = 1000000 / bitrate;
-
-    const uint32_t high = carrier + deviation;
-    const uint32_t step = deviation * 2 / 3;
-    const uint32_t symbols_fdev[4] = {3 * step, 2 * step, step, 0};
-
-    // internal radio preamble, not horus preamble. when len = 0, radio transmits on the low end of its 2FSK. where this falls is controlled by frequency_deviation
-    // we achieve fast frequency control by switching the deviation
-    // transmitted_freq = high - fdev
-    set_pramble_len(dev, 0);
-    set_carrier_frequency(dev, high);
-    // start transmitting
-    set_frequency_deviation(dev, symbols_fdev[0]);
-    set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK, RfmLowFrequencyMode_LowFrequency,
-                       RfmTransceiverMode_Transmitter);
-
-    struct k_timer bitrate_timer;
-    k_timer_init(&bitrate_timer, NULL, NULL);
-    k_timer_start(&bitrate_timer, K_USEC(usec_per_symbol), K_USEC(usec_per_symbol));
-
-    // transmit preamble 0,1,2,3 (low, 2nd lowest, 2nfd highest, highest)
-    for (int i = 0; i < preamble_len; i++) {
-        for (int j = 0; j < 4; j++) {
-            k_timer_status_sync(&bitrate_timer);
-            set_frequency_deviation(dev, symbols_fdev[j]);
-        }
-    }
-
-    for (int byte_index = 0; byte_index < len; byte_index++) {
-        const uint8_t byte = buf[byte_index];
-        const uint8_t syms[4] = {
-            (byte >> 6) & 0b11,
-            (byte >> 4) & 0b11,
-            (byte >> 2) & 0b11,
-            (byte >> 0) & 0b11,
-        };
-        for (int sym_index = 0; sym_index < 4; sym_index++) {
-            uint8_t sym = syms[sym_index];
-            uint32_t fdev = symbols_fdev[sym];
-            k_timer_status_sync(&bitrate_timer);
-            set_frequency_deviation(dev, fdev);
-        }
-    }
-    // Last symbol
-    k_timer_status_sync(&bitrate_timer);
-    // Then turn off
-    set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK, RfmLowFrequencyMode_LowFrequency,
-                       RfmTransceiverMode_Standby);
-    k_timer_stop(&bitrate_timer);
-
-    return 0;
-}
-
-/**
- * Perform a 'Manual Reset' of the module 
- * (Datasheet pg.111 section 7.2.2)
- * @param config the module config 
- * @return any errors from configuring GPIO
- */
 int32_t rfm9xw_software_reset(const struct device *dev) {
     const struct rfm9Xw_config *config = dev->config;
 
@@ -762,7 +573,7 @@ int32_t rfm9xw_software_reset(const struct device *dev) {
     return 0;
 }
 
-int init_gpios(const struct rfm9Xw_config *config, struct rfm9Xw_data *data) {
+static int init_gpios(const struct rfm9Xw_config *config, struct rfm9Xw_data *data) {
     if (config->reset_gpios.port != NULL) {
         // Setup GPIO
         if (!gpio_is_ready_dt(&config->reset_gpios)) {
@@ -776,7 +587,7 @@ int init_gpios(const struct rfm9Xw_config *config, struct rfm9Xw_data *data) {
     } else {
         LOG_WRN("No reset GPIO supplied for RFM9XW. Strange results may happen");
     }
-    for (size_t i = 0; i < RFM_NUM_DIOS; i++) {
+    for (size_t i = 0; i < RFM_MAX_NUM_DIOS; i++) {
         if (config->dio_gpios[i].port != NULL) {
             LOG_INF("Initting DIO%d", i);
             if (!gpio_is_ready_dt(&config->dio_gpios[i])) {
@@ -814,33 +625,8 @@ static int rfm9xw_init(const struct device *dev) {
         LOG_ERR("Unable to reset: %d", res);
     }
 
-    if (data->modulation_type == RfmModulationType_FSK) {
-        // Checks for FSK
-        if (data->deviation_freq > RFM_FREQUENCY_DEVIATION_MAX || data->deviation_freq < RFM_FREQUENCY_DEVIATION_MIN) {
-            LOG_ERR("Unsupported deviation frequency: %d. Must be between %d and %d", data->deviation_freq,
-                    RFM_FREQUENCY_DEVIATION_MIN, RFM_FREQUENCY_DEVIATION_MAX);
-            return -ERANGE;
-        }
-        if (data->bitrate > RFM_BIT_RATE_FSK_BPS_MAX || data->bitrate < RFM_BIT_RATE_FSK_BPS_MIN) {
-            LOG_ERR("Unsupported FSK bitrate: %d. Must be between %d and %d", data->bitrate, RFM_BIT_RATE_FSK_BPS_MIN,
-                    RFM_BIT_RATE_FSK_BPS_MAX);
-            return -ERANGE;
-        }
-        if (data->deviation_freq + data->bitrate / 2 > 250000) {
-            // Datasheet: pg. 14: FDA condition
-            LOG_ERR("Invalid Frequency deviation or bitrate: frequency_deviation + bitrate/2 =< 250 kHz");
-            return -ERANGE;
-        }
-    }
-
-    // Set to standby
-    set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_FSK, RfmLowFrequencyMode_LowFrequency,
-                       RfmTransceiverMode_Standby);
-
     set_power_amplifier(dev, config->power_amplifier, data->max_power, data->output_power);
     set_modulation_shaping(dev, data->modulation_shaping, data->pa_ramp);
-
-    dump_registers(config);
     return 0;
 }
 
@@ -901,75 +687,3 @@ int32_t rfm9xw_read_temperature(const struct device *dev, int8_t *celsius) {
     DEVICE_DT_INST_DEFINE(n, rfm9xw_init, NULL, &rfm9Xw_data_##n, &rfm9Xw_config_##n, POST_KERNEL, 90, NULL);
 
 DT_INST_FOREACH_STATUS_OKAY(RFM9XW_INIT)
-
-int32_t edgy_fsk(const struct device *dev, struct rfm9Xw_data *data, const char *msg, size_t len, int32_t delay_ms,
-                 int32_t deviation_hz) {
-    const struct rfm9Xw_config *config = dev->config;
-    uint8_t freq1_msb = 0;
-    uint8_t freq1_mid = 0;
-    uint8_t freq1_lsb = 0;
-    frf_reg_from_frequency(config->model_num, data->carrier_freq - deviation_hz, &freq1_msb, &freq1_mid, &freq1_lsb);
-
-    int32_t got1 = RFM_FSTEP_HZ * ((freq1_msb << 16) | (freq1_mid << 8) | freq1_lsb);
-
-    uint8_t freq2_msb = 0;
-    uint8_t freq2_mid = 0;
-    uint8_t freq2_lsb = 0;
-    frf_reg_from_frequency(config->model_num, data->carrier_freq + deviation_hz, &freq2_msb, &freq2_mid, &freq2_lsb);
-    int32_t got2 = RFM_FSTEP_HZ * ((freq2_msb << 16) | (freq2_mid << 8) | freq2_lsb);
-    LOG_INF("Actually using %d and %d", got1, got2);
-
-    struct k_timer bitrate_timer;
-    k_timer_init(&bitrate_timer, NULL, NULL);
-    k_timer_start(&bitrate_timer, K_MSEC(delay_ms), K_MSEC(delay_ms));
-
-    int32_t res = 0;
-    uint8_t last_bit = 1;
-    res = set_frequency_by_reg(config, freq1_msb, freq1_mid, freq1_lsb);
-
-    // SET PREAMBLE TO NOTHING SO YOURE NOT GOING 0101010110101010 forever. OR SET THE BITRATE REAL HIGH AND THE DEVIATION REAL LOW
-    // set_carrier_frequency(config, 433500000);
-    // set_bitrate(config, 1200);
-    // set_power_amplifier(config, config->power_amplifier, data->max_power, data->output_power);
-    // set_pramble_len(config, 1);
-    // set_frequency_deviation(config, 0);
-
-    while (1) {
-        int64_t start = k_uptime_get();
-
-        for (int biti = 0; biti < len * 8; biti++) {
-            uint8_t byte = msg[biti / 8];
-            uint8_t subindex = 7 - (biti % 8);
-            uint8_t bit = (byte >> (subindex)) & 0x1;
-
-            k_timer_status_sync(&bitrate_timer);
-
-            if (bit != last_bit) {
-                if (bit) {
-                    res = set_frequency_by_reg(config, freq1_msb, freq1_mid, freq1_lsb);
-                } else {
-                    res = set_frequency_by_reg(config, freq2_msb, freq2_mid, freq2_lsb);
-                }
-                set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_OOK,
-                                   RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_FsModeTx);
-
-                set_operating_mode(dev, RfmLongRangeModeSetting_FskOokMode, RfmModulationType_OOK,
-                                   RfmLowFrequencyMode_LowFrequency, RfmTransceiverMode_Transmitter);
-
-                if (res < 0) {
-                    LOG_ERR("Error switching frequency");
-                }
-            }
-            last_bit = bit;
-        }
-        k_timer_status_sync(&bitrate_timer);
-
-        int64_t end = k_uptime_get();
-        int64_t elapsed = end - start;
-        double ms_per = (double) elapsed / (double) (len * 8);
-        LOG_INF("Transmitted %d bits over %lldms. Time per symbol = %.2f ms", len * 8, elapsed, ms_per);
-        k_msleep(5000);
-    }
-    k_timer_stop(&bitrate_timer);
-    return 0;
-}
