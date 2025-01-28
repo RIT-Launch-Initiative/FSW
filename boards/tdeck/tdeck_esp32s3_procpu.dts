@@ -146,6 +146,8 @@
 &gpio0 {
 	status = "okay";
 	mux-hog {
+		// Temporary: PWR_EN to turn on screen, keyboard
+		// Really should be CONFIG_PM power domain but for some reason that crashes everything
 		gpio-hog;
 		gpios = <10 GPIO_ACTIVE_HIGH>;
 		output-high;
@@ -165,9 +167,6 @@
 	status = "okay";
 
 
-	// GT911@5d
-	// interrupt IO16
-	// reset in hardware
 	gt911: gt911@5d{
 		status = "okay";
 		compatible = "goodix,gt911";
