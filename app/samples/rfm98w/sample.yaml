@@ -1,10 +1,10 @@
 sample:
   description:
-  name: shield_blinky
+  name: shield_rfm9xw
 common:
   build_only: true
   platform_allow:
     - nucleo_f446re
 tests:
-  samples.shield_blinky.default:
+  samples.shield_rfm9xw.default:
     extra_args: SHIELD="launch_mikroe"
