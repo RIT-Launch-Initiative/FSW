@@ -19,7 +19,7 @@
 	aliases {
 		i2c-0 = &i2c0;
 		watchdog0 = &wdt0;
-		lora0 = &sx1272;
+		lora0 = &sx1262;
 	};
 
 	chosen {
@@ -54,13 +54,6 @@
 		one-wire-gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
 		initial-brightness = <15>;
 	};
-
-   vbatt {
-      compatible = "voltage-divider";
-      io-channels = <&adc1 1>;
-      output-ohms = <100000>;
-      full-ohms = <(100000 + 100000)>;
-   };
 
 	buttons: buttons {
 		compatible = "gpio-keys";
@@ -272,18 +265,16 @@
 		};
 	};
 
-	sx1272: sx1272@1 {
-			compatible = "semtech,sx1272";
+	sx1262: sx1262@1 {
+			compatible = "semtech,sx1262";
 			reg = <0x01>;
 			spi-max-frequency = <3000000>;
 
-			reset-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>; 
+			reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>; 
 
-			dio-gpios = <&gpio0 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>,       /* DIO0 is D2 */
-						<&gpio1 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;       /* DIO1 is D3 */
+			busy-gpios = <&gpio0 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			dio1-gpios = <&gpio1 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 
-
-			power-amplifier-output = "rfo";
 	};
 
 
