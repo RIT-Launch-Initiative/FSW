@@ -14,6 +14,7 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/lora.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/input/input.h>
 #include <zephyr/kernel.h>
@@ -26,8 +27,39 @@ LOG_MODULE_REGISTER(app);
 
 const struct device *bl_dev = DEVICE_DT_GET(DT_NODELABEL(backlight));
 
+#define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
+BUILD_ASSERT(DT_NODE_HAS_STATUS_OKAY(DEFAULT_RADIO_NODE), "No default LoRa radio specified in DT");
+const struct device *const lora_dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
+
 static uint32_t countx = 0;
 static uint32_t county = 0;
+
+int setup_lora() {
+    struct lora_modem_config config;
+    int ret;
+
+    if (!device_is_ready(lora_dev)) {
+        LOG_ERR("%s Device not ready", lora_dev->name);
+        return -ENODEV;
+    }
+
+    config.frequency = 434000000;
+    config.bandwidth = BW_125_KHZ;
+    config.datarate = SF_10;
+    config.preamble_len = 8;
+    config.coding_rate = CR_4_5;
+    config.iq_inverted = false;
+    config.public_network = false;
+    config.tx_power = 4;
+    config.tx = true;
+
+    ret = lora_config(lora_dev, &config);
+    if (ret < 0) {
+        LOG_ERR("LoRa config failed");
+        return ret;
+    }
+    return 0;
+}
 
 static void callback_delta(lv_event_t *e) {
     ARG_UNUSED(e);
@@ -35,6 +67,15 @@ static void callback_delta(lv_event_t *e) {
     int32_t delta = (int) lv_event_get_user_data(e);
 
     county = county + delta;
+}
+
+static void radio_callback(lv_event_t *e) {
+    uint8_t data[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    int ret = lora_send(lora_dev, data, 8);
+    if (ret < 0) {
+        LOG_ERR("LoRa send failed");
+        return;
+    }
 }
 
 void input_cb(struct input_event *evt, void *user_data) {
@@ -58,8 +99,9 @@ INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(DT_NODELABEL(buttons)), input_cb, 0);
 int main(void) {
     char count_str[11] = {0};
     const struct device *display_dev;
-    lv_obj_t *hello_world_label;
-    lv_obj_t *hello_world_label2;
+    lv_obj_t *add1label;
+    lv_obj_t *sub1label;
+    lv_obj_t *radiolabel;
     lv_obj_t *count_labelx;
     lv_obj_t *count_labely;
 
@@ -69,39 +111,29 @@ int main(void) {
         return 0;
     }
     printk("device ready\n");
-    k_msleep(10);
+    setup_lora();
 
-    // int gerr = gpio_pin_set_dt(&stuff_gpio, 1);
-    // if (gerr != 0) {
-    // printk("couldnt set stuff gpuio\n");
-    // }
     /*Change the active screen's background color*/
     lv_obj_set_style_bg_color(lv_scr_act(), lv_color_make(255, 255, 255), LV_PART_MAIN);
 
-    if (IS_ENABLED(CONFIG_LV_Z_POINTER_INPUT)) {
-        lv_obj_t *hello_world_button;
+    lv_obj_t *add1button;
+    lv_obj_t *sub1button;
 
-        hello_world_button = lv_button_create(lv_screen_active());
-        lv_obj_align(hello_world_button, LV_ALIGN_TOP_RIGHT, 0, 10);
-        lv_obj_add_event_cb(hello_world_button, callback_delta, LV_EVENT_CLICKED, (void *) 1);
-        hello_world_label = lv_label_create(hello_world_button);
+    add1button = lv_button_create(lv_screen_active());
+    lv_obj_align(add1button, LV_ALIGN_TOP_RIGHT, 0, 10);
+    lv_obj_add_event_cb(add1button, callback_delta, LV_EVENT_CLICKED, (void *) 1);
+    add1label = lv_label_create(add1button);
 
-        lv_obj_t *hello_world_button2;
+    sub1button = lv_button_create(lv_screen_active());
+    lv_obj_align(sub1button, LV_ALIGN_TOP_LEFT, 0, 10);
+    lv_obj_add_event_cb(sub1button, callback_delta, LV_EVENT_CLICKED, (void *) -1);
+    sub1label = lv_label_create(sub1button);
 
-        hello_world_button2 = lv_button_create(lv_screen_active());
-        lv_obj_align(hello_world_button2, LV_ALIGN_TOP_LEFT, 0, 10);
-        lv_obj_add_event_cb(hello_world_button2, callback_delta, LV_EVENT_CLICKED, (void *) -1);
-        hello_world_label2 = lv_label_create(hello_world_button2);
+    lv_label_set_text(add1label, "+1");
+    lv_obj_align(add1label, LV_ALIGN_CENTER, 0, 0);
 
-    } else {
-        hello_world_label = lv_label_create(lv_screen_active());
-    }
-
-    lv_label_set_text(hello_world_label, "+1");
-    lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
-
-    lv_label_set_text(hello_world_label2, "-1");
-    lv_obj_align(hello_world_label2, LV_ALIGN_CENTER, 0, 0);
+    lv_label_set_text(sub1label, "-1");
+    lv_obj_align(sub1label, LV_ALIGN_CENTER, 0, 0);
 
     count_labelx = lv_label_create(lv_screen_active());
     lv_obj_align(count_labelx, LV_ALIGN_TOP_MID, 0, 20);
@@ -109,11 +141,17 @@ int main(void) {
     count_labely = lv_label_create(lv_screen_active());
     lv_obj_align(count_labely, LV_ALIGN_TOP_MID, 0, 50);
 
-    lv_timer_handler();
+    lv_obj_t *radiobutton;
 
-    lv_obj_t *ta = lv_textarea_create(lv_screen_active());
-    lv_textarea_set_one_line(ta, true);
-    lv_obj_align(ta, LV_ALIGN_CENTER, 0, 20);
+    radiobutton = lv_button_create(lv_screen_active());
+    lv_obj_align(radiobutton, LV_ALIGN_CENTER, 0, 10);
+    lv_obj_add_event_cb(radiobutton, radio_callback, LV_EVENT_CLICKED, 0);
+    radiolabel = lv_label_create(radiobutton);
+
+    lv_label_set_text(radiolabel, "Beep!");
+    lv_obj_align(radiolabel, LV_ALIGN_CENTER, 0, 0);
+
+    lv_timer_handler();
 
     display_blanking_off(display_dev);
 

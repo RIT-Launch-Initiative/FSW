@@ -12,6 +12,7 @@
 #include <espressif/partitions_0x0_amp.dtsi>
 #include "tdeck-pinctrl.dtsi"
 #include <zephyr/dt-bindings/lvgl/lvgl.h>
+#include <zephyr/dt-bindings/lora/sx126x.h>
 
 / {
 	model = "Espressif ESP32S3-DevkitC PROCPU";
@@ -265,6 +266,10 @@
 			reg = <0x01>;
 			spi-max-frequency = <3000000>;
 
+			dio2-tx-enable;
+			dio3-tcxo-voltage = <SX126X_DIO3_TCXO_1V8>;
+			tcxo-power-startup-delay-ms = <100>;
+			
 			reset-gpios = <&gpio0 17 GPIO_ACTIVE_LOW>; 
 
 			busy-gpios = <&gpio0 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
