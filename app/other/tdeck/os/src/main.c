@@ -26,23 +26,28 @@ LOG_MODULE_REGISTER(app);
 
 const struct device *bl_dev = DEVICE_DT_GET(DT_NODELABEL(backlight));
 
-static uint32_t count = 0;
+static uint32_t countx = 0;
+static uint32_t county = 0;
 
 static void callback_delta(lv_event_t *e) {
     ARG_UNUSED(e);
 
     int32_t delta = (int) lv_event_get_user_data(e);
 
-    count = count + delta;
+    county = county + delta;
 }
 
 void input_cb(struct input_event *evt, void *user_data) {
     LOG_INF("Input callback");
 
     if (evt->code == INPUT_KEY_UP) {
-        count = count + 1;
+        county = county + 1;
     } else if (evt->code == INPUT_KEY_DOWN) {
-        count -= 1;
+        county -= 1;
+    } else if (evt->code == INPUT_KEY_LEFT) {
+        countx -= 1;
+    } else if (evt->code == INPUT_KEY_RIGHT) {
+        countx += 1;
     }
 
     return;
@@ -55,7 +60,8 @@ int main(void) {
     const struct device *display_dev;
     lv_obj_t *hello_world_label;
     lv_obj_t *hello_world_label2;
-    lv_obj_t *count_label;
+    lv_obj_t *count_labelx;
+    lv_obj_t *count_labely;
 
     display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
     if (!device_is_ready(display_dev)) {
@@ -97,8 +103,11 @@ int main(void) {
     lv_label_set_text(hello_world_label2, "-1");
     lv_obj_align(hello_world_label2, LV_ALIGN_CENTER, 0, 0);
 
-    count_label = lv_label_create(lv_screen_active());
-    lv_obj_align(count_label, LV_ALIGN_TOP_MID, 0, 20);
+    count_labelx = lv_label_create(lv_screen_active());
+    lv_obj_align(count_labelx, LV_ALIGN_TOP_MID, 0, 20);
+
+    count_labely = lv_label_create(lv_screen_active());
+    lv_obj_align(count_labely, LV_ALIGN_TOP_MID, 0, 50);
 
     lv_timer_handler();
 
@@ -108,13 +117,21 @@ int main(void) {
 
     display_blanking_off(display_dev);
 
-    int last_count = ~0;
+    int last_countx = ~0;
+    int last_county = ~0;
     while (1) {
-        if (count != last_count) {
-            sprintf(count_str, "%d", count);
-            lv_label_set_text(count_label, count_str);
-            last_count = count;
+        if (countx != last_countx) {
+            sprintf(count_str, "x: %d", countx);
+            lv_label_set_text(count_labelx, count_str);
+            last_countx = countx;
         }
+
+        if (county != last_county) {
+            sprintf(count_str, "y: %d", county);
+            lv_label_set_text(count_labely, count_str);
+            last_county = county;
+        }
+
         lv_timer_handler();
         k_sleep(K_MSEC(10));
     }
