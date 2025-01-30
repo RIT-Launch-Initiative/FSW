@@ -6,6 +6,7 @@
 /dts-v1/;
 
 #include <espressif/esp32s3/esp32s3_wroom_n16r8.dtsi>
+
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/dt-bindings/input/esp32-touch-sensor-input.h>
 #include <espressif/partitions_0x0_amp.dtsi>
@@ -225,46 +226,40 @@
 	mipi@0{
 		compatible = "zephyr,mipi-dbi-spi";
 		reg = <0>;
-			spi-dev = <&spi3>;
-			dc-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
-			write-only;
-			#address-cells = <1>;
-			#size-cells = <0>;
+		spi-dev = <&spi3>;
+		dc-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
+		write-only;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		st7789v: st7789v@0 {
+			compatible = "sitronix,st7789v";
+			reg = <0>;
+			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+			mipi-max-frequency = <20000000>;
+			vcom = <0x1A>;
+			gctrl = <0x75>;
+			vrhs = <0x13>;
+			vdvs = <0x20>;
 
+			/* Landscape */
+			width = <320>;
+			height = <240>;
+			x-offset = <0>;
+			y-offset = <0>;
+			mdac = <0x60>; 
+			colmod = <0x05>; // c
+			gamma = <0x01>; // default
+			lcm = <0x2C>; // c
+			porch-param = [0C 0C 00 33 33]; // c
+			cmd2en-param = [5A 69 02 00]; // default from datasheet. not set by tft?
+			pwctrl1-param = [A4 A1]; // c
+			pvgam-param = [D0 0D 14 0D 0D 09 38 44 4E 3A 17 18 2F 30]; // c
+			nvgam-param = [D0 09 0F 08 07 14 37 44 4D 38 15 16 2C 3E]; // c
 
-			st7789v: st7789v@0 {
-				compatible = "sitronix,st7789v";
-				reg = <0>;
-				mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
-				mipi-max-frequency = <20000000>;
-
-				vcom = <0x1A>;
-				gctrl = <0x75>;
-				vrhs = <0x13>;
-				vdvs = <0x20>;
-				
-				/* Landscape */
-				width = <320>;
-				height = <240>;
-
-				x-offset = <0>;
-				y-offset = <0>;
-				mdac = <0x60>; 
-				colmod = <0x05>; // c
-
-				gamma = <0x01>; // default
-				lcm = <0x2C>; // c
-				porch-param = [0C 0C 00 33 33]; // c
-				cmd2en-param = [5A 69 02 00]; // default from datasheet. not set by tft?
-				pwctrl1-param = [A4 A1]; // c
-				pvgam-param = [D0 0D 14 0D 0D 09 38 44 4E 3A 17 18 2F 30]; // c
-				nvgam-param = [D0 09 0F 08 07 14 37 44 4D 38 15 16 2C 3E]; // c
-				
-				ram-param = [00 E0]; 
-				rgb-param = [40 02 14]; //default from datasheet
+			ram-param = [00 E0]; 
+			rgb-param = [40 02 14]; //default from datasheet
 		};
 	};
-
 	sx1262: sx1262@1 {
 			compatible = "semtech,sx1262";
 			reg = <0x01>;
