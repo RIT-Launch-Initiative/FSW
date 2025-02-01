@@ -1,6 +1,8 @@
 #include "c_lora_receive_tenant.h"
 #include "c_radio_module.h"
 
+#include <n_autocoder_network_defs.h>
+
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CLoraReceiveTenant);
@@ -30,7 +32,7 @@ void CLoraReceiveTenant::Run() {
 
     if (size > 2) {
 
-        if (port == 12000) { // Command
+        if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
             int result;
             // Apply commands to pinsconst
             result = gpios[0].SetPin(buffer[2] & 1);
@@ -44,7 +46,7 @@ void CLoraReceiveTenant::Run() {
 
             // Pack status into RadioBroadcastData
             NTypes::RadioBroadcastData pinStatus = {0};
-            pinStatus.port = 12001;
+            pinStatus.port = NNetworkDefs::RADIO_MODULE_COMMAND_RESPONSE_PORT;
             pinStatus.size = size;
 
             // Get status of pins
