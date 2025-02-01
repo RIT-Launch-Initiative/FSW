@@ -14,7 +14,7 @@ void CLoraTransmitTenant::PostStartup() {
 void CLoraTransmitTenant::Run() {
     NTypes::RadioBroadcastData data{};
     uint8_t txData[256]{};
-    if (int ret = loraTransmitPort.Receive(data); ret < 0) {
+    if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
         LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
         return;
     }
@@ -39,5 +39,5 @@ void CLoraTransmitTenant::Run() {
     memcpy(txData, &data, sizeof(data.data));
 #endif
     LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
-    lora.TransmitAsynchronous(txData, data.size, nullptr);
+    lora.TransmitSynchronous(txData, data.size);
 }

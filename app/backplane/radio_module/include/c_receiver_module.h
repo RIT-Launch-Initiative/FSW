@@ -56,8 +56,7 @@ private:
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 1024, 0};
-    CTask loraTxTask{"LoRa Tx Task", 15, 1024, 0};
-    CTask loraRxTask{"LoRa Rx Task", 15, 2048, 0};
+    CTask loraTask{"LoRa Rx Task", 15, 2048, 0};
 };
 
 #endif //C_RECEIVER_MODULE_H
