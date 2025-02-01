@@ -12,6 +12,8 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
+    LOG_INF("Entering LoRa transmit tenant");
+
     NTypes::RadioBroadcastData data{};
     uint8_t txData[256]{};
     if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
@@ -38,5 +40,6 @@ void CLoraTransmitTenant::Run() {
 #else
     memcpy(txData, &data, sizeof(data.data));
 #endif
+    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
     lora.TransmitSynchronous(txData, data.size + 2);
 }

@@ -15,7 +15,8 @@ void CLoraReceiveTenant::PostStartup() {
 
 void CLoraReceiveTenant::Run() {
     uint8_t buffer[255] = {0};
-    const int size = lora.ReceiveSynchronous(&buffer, sizeof(buffer), nullptr, nullptr);
+    LOG_INF("Entering LoRa receive tenant");
+    const int size = lora.ReceiveSynchronous(&buffer, sizeof(buffer), nullptr, nullptr, K_SECONDS(5));
     if (size < 0 && size != -EAGAIN) {
         LOG_ERR("Failed to receive over LoRa (%d)", size);
         return;
@@ -59,7 +60,8 @@ void CLoraReceiveTenant::Run() {
             pinStatus.data[0] |= gpios[3].GetPin() << 3;
 
             // Retransmit status so GS can verify
-            loraTransmitPort.Send(pinStatus);
+            // TODO: Figure out why this blocks lora task from continuing
+            // loraTransmitPort.Send(pinStatus);
         } else {
             udp.SetDstPort(port);
             udp.TransmitAsynchronous(&buffer[2], size - portOffset);
