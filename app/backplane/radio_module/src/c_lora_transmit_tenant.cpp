@@ -38,6 +38,5 @@ void CLoraTransmitTenant::Run() {
 #else
     memcpy(txData, &data, sizeof(data.data));
 #endif
-    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
-    lora.TransmitSynchronous(txData, data.size);
+    lora.TransmitSynchronous(txData, data.size + 2);
 }

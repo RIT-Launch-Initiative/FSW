@@ -16,8 +16,12 @@ void CLoraReceiveTenant::PostStartup() {
 void CLoraReceiveTenant::Run() {
     uint8_t buffer[255] = {0};
     const int size = lora.ReceiveSynchronous(&buffer, sizeof(buffer), nullptr, nullptr);
-    if (size < 0) {
+    if (size < 0 && size != -EAGAIN) {
         LOG_ERR("Failed to receive over LoRa (%d)", size);
+        return;
+    }
+
+    if (size == -EAGAIN) {
         return;
     }
 
