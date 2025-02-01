@@ -35,18 +35,17 @@ void CLoraReceiveTenant::Run() {
     LOG_INF("Received %d bytes from LoRa for port %d", size, port);
 
     if (size > 2) {
-
         if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
-            int result;
+            LOG_INF("Command: %d", buffer[2]);
             // Apply commands to pinsconst
-            result = gpios[0].SetPin(buffer[2] & 1);
-            LOG_DBG("Set Radiomod pin 0 with return code %d", result);
+            int result = gpios[0].SetPin(buffer[2] & 1);
+            LOG_INF("Set Radiomod pin 0 with return code %d", result);
             result = gpios[1].SetPin((buffer[2] & (1 << 1)) >> 1);
-            LOG_DBG("Set Radiomod pin 1 with return code %d", result);
+            LOG_INF("Set Radiomod pin 1 with return code %d", result);
             result = gpios[2].SetPin((buffer[2] & (1 << 2)) >> 2);
-            LOG_DBG("Set Radiomod pin 2 with return code %d", result);
+            LOG_INF("Set Radiomod pin 2 with return code %d", result);
             result = gpios[3].SetPin((buffer[2] & (1 << 3)) >> 3);
-            LOG_DBG("Set Radiomod pin 3 with return code %d", result);
+            LOG_INF("Set Radiomod pin 3 with return code %d", result);
 
             // Pack status into RadioBroadcastData
             NTypes::RadioBroadcastData pinStatus = {0};

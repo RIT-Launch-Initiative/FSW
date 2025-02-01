@@ -73,7 +73,7 @@ private:
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
     CTask gnssTask{"GNSS Task", 15, 1024, 0};
-    CTask dataLoggingTask{"Data Logging Task", 15, 1024, 0};
+    CTask dataLoggingTask{"Data Logging Task", 15, 2048, 0};
     CTask loraTask{"LoRa Task", 15, 2048, 0};
 
 };
