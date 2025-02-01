@@ -39,8 +39,4 @@ void CLoraTransmitTenant::Run() {
 
     LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
     lora.TransmitSynchronous(txData, data.size + 2);
-
-    if (data.port == 12001) {
-        LOG_INF("0x%x", txData[2]);
-    }
 }
