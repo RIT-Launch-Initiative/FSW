@@ -34,12 +34,13 @@ void CLoraTransmitTenant::Run() {
         return;
     }
 
-#ifndef CONFIG_RADIO_MODULE_RECEIVER
     memcpy(txData, &data.port, 2); // Copy port number to first 2 bytes
     memcpy(txData + 2, &data.data, data.size); // Copy payload to the rest of the buffer
-#else
-    memcpy(txData, &data, sizeof(data.data));
-#endif
+
     LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
     lora.TransmitSynchronous(txData, data.size + 2);
+
+    if (data.port == 12001) {
+        LOG_INF("0x%x", txData[2]);
+    }
 }

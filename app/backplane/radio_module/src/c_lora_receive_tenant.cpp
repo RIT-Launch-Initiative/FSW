@@ -37,7 +37,7 @@ void CLoraReceiveTenant::Run() {
 
     if (size > 2) {
         if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
-            LOG_INF("Command: %d", buffer[2]);
+            LOG_INF("Command: 0x%x", buffer[2]);
             // Apply commands to pinsconst
             int result = gpios[0].SetPin(buffer[2] & 1);
             LOG_INF("Set Radiomod pin 0 with return code %d", result);
