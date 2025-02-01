@@ -6,7 +6,7 @@
 #include "c_gnss_tenant.h"
 #include "c_lora_receive_tenant.h"
 #include "c_lora_transmit_tenant.h"
-#include "c_lora_to_udp_tenant.h"
+#include "c_udp_listener_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -52,7 +52,7 @@ private:
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandSourcePort, &loraBroadcastMessagePort};
 
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
+    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort, &loraBroadcastMessagePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};

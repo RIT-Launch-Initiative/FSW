@@ -23,6 +23,6 @@ void CUdpListenerTenant::Run() {
     radioBroadcastData.port = listenPort;
     radioBroadcastData.size = static_cast<uint8_t>(rcvResult);
 
-    LOG_DBG("Received %d bytes from UDP port %d", rcvResult, radioBroadcastData.port);
+    LOG_INF("Received %d bytes from UDP port %d", rcvResult, radioBroadcastData.port);
     loraTransmitPort.Send(radioBroadcastData);
 }
