@@ -28,7 +28,7 @@ void CLoraReceiveTenant::Run() {
 
     const int port = buffer[1] << 8 | buffer[0];
     constexpr int portOffset = 2;
-    LOG_DBG("Received %d bytes from LoRa for port %d", size, port);
+    LOG_INF("Received %d bytes from LoRa for port %d", size, port);
 
     if (size > 2) {
 

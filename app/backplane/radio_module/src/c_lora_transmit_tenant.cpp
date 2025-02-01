@@ -38,6 +38,6 @@ void CLoraTransmitTenant::Run() {
 #else
     memcpy(txData, &data, sizeof(data.data));
 #endif
-    LOG_DBG("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
+    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
     lora.TransmitAsynchronous(txData, data.size, nullptr);
 }
