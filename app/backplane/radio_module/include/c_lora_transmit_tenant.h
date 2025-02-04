@@ -6,6 +6,8 @@
 #include <f_core/os/c_tenant.h>
 
 #include <f_core/net/device/c_lora.h>
+#include <f_core/utils/c_soft_timer.h>
+
 
 class CLoraTransmitTenant : public CTenant {
 public:

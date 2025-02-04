@@ -16,8 +16,12 @@ modules:
     id: 2
     base_port: 12000
     port_offsets:
-      gnss_data:
+      command:
         port_number: 1
+      command_response:
+        port_number: 2
+      gnss_data:
+        port_number: 5
 
   sensor:
     id: 3
