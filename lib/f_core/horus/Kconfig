@@ -1,5 +1,6 @@
 config HORUSV2
     bool "HorusV2"
+    select F_CORE
     help
       This option enables Horus V2 packet creation
 
