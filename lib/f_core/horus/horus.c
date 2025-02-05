@@ -50,7 +50,7 @@
 
 \*---------------------------------------------------------------------------*/
 
-#include "horus_l2.h"
+#include "f_core/horus/horus.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -182,7 +182,6 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
                 golayparitybit = (golayparity >> (10 - i)) & 0x1;
                 paritybyte = paritybyte | golayparitybit;
                 LOG_INF(stderr, "    i: %d golayparitybit: %d paritybyte: 0x%02x\n", i, golayparitybit, paritybyte);
-#endif
                 nparitybits++;
                 if (nparitybits % 8) {
                     paritybyte <<= 1;
@@ -397,9 +396,7 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
     LOG_INF("\npin - output_payload_data: %ld num_payload_data_bytes: %d\n", pout - output_payload_data,
             num_payload_data_bytes);
 
-    if (pout != (output_payload_data + num_payload_data_bytes)) {
-        LOG_ERR("Packet length incorrect. Got %d, expected %d", pout, (output_payload_data + num_payload_data_bytes));
-    }
+    assert(pout == (output_payload_data + num_payload_data_bytes));
 }
 #endif
 
@@ -616,14 +613,8 @@ int main(void) {
 #ifdef CONFIG_HORUS_L2_RX
 static int inited = 0;
 
-#ifdef RUN_TIME_TABLES
 static int encoding_table[4096], decoding_table[2048];
-#else
-#include "golaydectable.h"
-#include "golayenctable.h"
-#endif
 
-#ifdef RUN_TIME_TABLES
 static int arr2int(int a[], int r)
 /*
  * Convert a binary vector of Hamming weight r, and nonzero positions in
@@ -641,7 +632,6 @@ static int arr2int(int a[], int r)
     }
     return (result);
 }
-#endif
 #endif
 
 #ifdef CONFIG_HORUS_L2_RX
@@ -695,7 +685,6 @@ int32_t get_syndrome(int32_t pattern)
 \*---------------------------------------------------------------------------*/
 
 void golay23_init(void) {
-#ifdef RUN_TIME_TABLES
     int i;
     long temp;
     int a[4];
@@ -762,7 +751,6 @@ void golay23_init(void) {
         temp = arr2int(a, 3);
         decoding_table[get_syndrome(temp)] = temp;
     }
-#endif
     inited = 1;
 }
 
@@ -781,7 +769,6 @@ int golay23_encode(int data) {
     assert(inited);
     assert(data <= 0xfff);
 
-    //printf("data: 0x%x\n", data);
     return encoding_table[data];
 }
 
