@@ -17,11 +17,10 @@ void CAdcTenant::Run() {
         return;
     }
 
-    int32_t adcValue = adc.GetAdcValue(); // Gets RAW ADC value
+    int32_t vin_sense = adc.GetAdcValue(); // Gets RAW ADC value
 
-    // TODO: Calculate using that math thing from the doc schematic
-    
+    int32_t vin = vin_sense * 11.1; // Math according to doc scematic
 
-    dataToBroadcast.Send(adcValue, K_MSEC(5));
-    dataToLog.Send(adcValue, K_MSEC(5));
+    dataToBroadcast.Send(vin, K_MSEC(5));
+    dataToLog.Send(vin, K_MSEC(5));
 }
