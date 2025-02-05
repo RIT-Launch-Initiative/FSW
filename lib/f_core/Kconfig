@@ -1,7 +1,7 @@
 # Copyright (c) 2024 RIT Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
-rsource "horus/Kconfig"
+rsource "protocols/horus/Kconfig"
 
 config F_CORE
     bool "F-Core"

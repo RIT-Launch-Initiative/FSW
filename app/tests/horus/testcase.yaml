@@ -1,0 +1,7 @@
+common:
+  tags:
+    - lib
+    - utilities
+tests:
+  protocols.horus:
+    type: unit

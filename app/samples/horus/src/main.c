@@ -5,7 +5,7 @@
 
 #include <zephyr/drivers/gpio.h>
 #include <stdio.h>
-#include "f_core/horus/horus.h"
+#include "f_core/protocols/horus/horus.h"
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main);
 

@@ -16,6 +16,9 @@ FILE(GLOB sources
         os/*.cpp
 
         utils/*.cpp
-        horus/*.c
+        protocols/horus/*.c
 )
+
+add_subdirectory(protocols/horus)
+
 zephyr_library_sources(${sources})

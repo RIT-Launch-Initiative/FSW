@@ -5,6 +5,7 @@ extern "C" {
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(HORUSV2, CONFIG_HORUS_LOG_LEVEL);
 #include <assert.h>
+#error "yea man wassup"
 /*---------------------------------------------------------------------------*\
 
   FILE........: horus_l2.c
@@ -57,13 +58,11 @@ LOG_MODULE_REGISTER(HORUSV2, CONFIG_HORUS_LOG_LEVEL);
 
 \*---------------------------------------------------------------------------*/
 
-#include "f_core/horus/horus.h"
+#include "f_core/protocols/horus/horus.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define RUN_TIME_TABLES
 
 #define INTERLEAVER
 #define SCRAMBLER
@@ -804,7 +803,7 @@ int horusv2_decode(horus_packet_v2_encoded_buffer_t*input_buffer, struct horus_p
                                sizeof(struct horus_packet_v2));
     return 0;
 }
-bool horusv2_checksum_verify(struct horus_packet_v2 *input_packet){
+bool horusv2_checksum_verify(const struct horus_packet_v2 *input_packet){
     uint16_t checksum =  gen_crc16((unsigned char*)input_packet, sizeof(struct horus_packet_v2) - sizeof(uint16_t));
     return checksum == input_packet->checksum;
 }

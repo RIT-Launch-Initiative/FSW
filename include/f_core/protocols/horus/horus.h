@@ -4,6 +4,7 @@ extern "C" {
 // https://github.com/mikaelnousiainen/RS41ng/tree/main
 
 #include <stdint.h>
+#include <stdbool.h>
 
 // Horus Binary v2 Packet Format
 // See: https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet
@@ -42,7 +43,7 @@ int horusv2_encode(struct horus_packet_v2 *input_packet, horus_packet_v2_encoded
 
 #ifdef CONFIG_HORUSV2_RX
 int horusv2_decode(horus_packet_v2_encoded_buffer_t*input_buffer, struct horus_packet_v2 *output_packet);
-bool horusv2_checksum_verify(struct horus_packet_v2 *input_packet);
+bool horusv2_checksum_verify(const struct horus_packet_v2 *input_packet);
 #endif
 
 
