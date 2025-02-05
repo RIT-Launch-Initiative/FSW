@@ -17,9 +17,10 @@ void CAdcTenant::Run() {
         return;
     }
 
-    int32_t adcValue = adc.GetAdcValue();
+    int32_t adcValue = adc.GetAdcValue(); // Gets RAW ADC value
 
     // TODO: Calculate using that math thing from the doc schematic
+    
 
     dataToBroadcast.Send(adcValue, K_MSEC(5));
     dataToLog.Send(adcValue, K_MSEC(5));
