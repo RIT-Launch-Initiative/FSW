@@ -1,0 +1,10 @@
+/ {
+	chosen {
+		zephyr,console = &usart2;
+	};
+	aliases {
+		led = &shield_led; 
+	};
+
+};
+

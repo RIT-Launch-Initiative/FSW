@@ -1,6 +1,6 @@
-#ifndef CONFIG_HORUSV2_ENCODING
-#warning "horus encoding disabed. Enable CONFIG_HORUS_ENCODING to use horus featurees"
-
+#ifndef CONFIG_HORUSV2
+#warning "horus encoding disabed. Enable CONFIG_HORUSV2 to use horus featurees"
+#else
 // https://github.com/mikaelnousiainen/RS41ng/tree/main
 
 #include <stdint.h>
@@ -10,7 +10,7 @@
 // Note that we need to pack this to 1-byte alignment, hence the #pragma flags below
 // Refer: https://gcc.gnu.org/onlinedocs/gcc-4.4.4/gcc/Structure_002dPacking-Pragmas.html
 #pragma pack(push, 1)
-typedef struct _horus_packet_v2 {
+typedef struct horus_packet_v2 {
     uint16_t PayloadID; // Payload ID (0-65535)
     uint16_t Counter; // Sequence number
     uint8_t Hours; // Time of day, Hours
@@ -28,6 +28,8 @@ typedef struct _horus_packet_v2 {
 } horus_packet_v2;  //  __attribute__ ((packed)); // Doesn't work?
 #pragma pack(pop)
 
-size_t horus_packet_v2_create(uint8_t *payload, size_t length, telemetry_data *data, uint16_t payload_id);
+#define HORUS_PACKET_SIZE sizeof(struct horus_packet_v2)
+// As calculated by horus_l2_get_num_tx_data_bytes(sizeof(horus_packet_v2))
+#define HORUS_ENCODED_BUFFER_SIZE 65
 
 #endif

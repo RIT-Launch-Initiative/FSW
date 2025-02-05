@@ -1,0 +1,22 @@
+config HORUSV2
+    bool "HorusV2"
+    help
+      This option enables Horus V2 packet creation
+
+if HORUSV2
+    config HORUS_INTERLEAVER
+        bool "Horus Interleaver"
+        default y
+        help
+           Enable Horus V2 packet interleaver
+    config HORUS_SCRAMBLER
+        bool "Horus Scrambler"
+        default y
+        help
+           Enable Horus V2 packet scrambler
+    config HORUSV2_RX
+        bool "Horus V2 RX"
+        help
+            Enable Horus V2 Decoding
+          
+endif

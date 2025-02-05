@@ -251,7 +251,7 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
     return num_tx_data_bytes;
 }
 
-#ifdef CONFIG_HORUS_L2_RX
+#ifdef CONFIG_HORUSV2_RX
 void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char *input_rx_data,
                                int num_payload_data_bytes) {
     int num_payload_data_bits;
@@ -393,7 +393,7 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
         }
     }
 
-    LOG_INF("\npin - output_payload_data: %ld num_payload_data_bytes: %d\n", pout - output_payload_data,
+    LOG_INF("pin - output_payload_data: %ld num_payload_data_bytes: %d\n", pout - output_payload_data,
             num_payload_data_bytes);
 
     assert(pout == (output_payload_data + num_payload_data_bytes));
@@ -505,37 +505,6 @@ void scramble(unsigned char *inout, int nbytes) {
 
 #endif
 
-#ifdef GEN_TX_BITS
-/* generate a file of tx_bits to modulate using fsk_horus.m for modem simulations */
-
-int main(void) {
-    int nbytes = sizeof(struct TBinaryPacket);
-    struct TBinaryPacket input_payload;
-    int num_tx_data_bytes = horus_l2_get_num_tx_data_bytes(nbytes);
-    unsigned char tx[num_tx_data_bytes];
-    int i;
-
-    /* all zeros is nastiest sequence for demod before scrambling */
-
-    memset(&input_payload, 0, nbytes);
-    input_payload.Checksum = gen_crc16((unsigned char *) &input_payload, nbytes - 2);
-
-    horus_l2_encode_tx_packet(tx, (unsigned char *) &input_payload, nbytes);
-
-    FILE *f = fopen("../octave/horus_tx_bits_binary.txt", "wt");
-    assert(f != NULL);
-    int b, tx_bit;
-    for (i = 0; i < num_tx_data_bytes; i++) {
-        for (b = 0; b < 8; b++) {
-            tx_bit = (tx[i] >> (7 - b)) & 0x1; /* msb first */
-            fprintf(f, "%d ", tx_bit);
-        }
-    }
-    fclose(f);
-
-    return 0;
-}
-#endif
 
 /*---------------------------------------------------------------------------*\
 
@@ -610,7 +579,7 @@ int main(void) {
  * a[] = auxiliary array to generate correctable error patterns
  */
 
-#ifdef CONFIG_HORUS_L2_RX
+#ifdef CONFIG_HORUSV2_RX
 static int inited = 0;
 
 static int encoding_table[4096], decoding_table[2048];
@@ -634,7 +603,7 @@ static int arr2int(int a[], int r)
 }
 #endif
 
-#ifdef CONFIG_HORUS_L2_RX
+#ifdef CONFIG_HORUSV2_RX
 void nextcomb(int n, int r, int a[])
 /*
  * Calculate next r-combination of an n-set.
@@ -672,7 +641,7 @@ int32_t get_syndrome(int32_t pattern)
     return (pattern);
 }
 
-#ifdef CONFIG_HORUS_L2_RX
+#ifdef CONFIG_HORUSV2_RX
 
 /*---------------------------------------------------------------------------*\
 
@@ -786,7 +755,7 @@ int golay23_decode(int received_codeword) {
     assert(inited);
     assert((received_codeword < (1 << 23)) && (received_codeword >= 0));
 
-    //printf("syndrome: 0x%x\n", get_syndrome(received_codeword));
+    LOG_INF("syndrome: 0x%x\n", get_syndrome(received_codeword));
     return received_codeword ^= decoding_table[get_syndrome(received_codeword)];
 }
 
@@ -818,3 +787,5 @@ unsigned short gen_crc16(unsigned char *data_p, unsigned char length) {
     }
     return crc;
 }
+
+SYS_INIT(golay23_init, POST_KERNEL, 0);
