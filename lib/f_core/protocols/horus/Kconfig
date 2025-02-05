@@ -4,6 +4,10 @@ config HORUSV2
     help
       This option enables Horus V2 packet creation
 
+module = HORUS
+module-str = Horus
+source "subsys/logging/Kconfig.template.log_config"
+
 if HORUSV2
     config HORUS_INTERLEAVER
         bool "Horus Interleaver"
@@ -20,9 +24,5 @@ if HORUSV2
         help
             Enable Horus V2 Decoding
 
-
-    module = HORUS
-    module-str = Horus
-    source "subsys/logging/Kconfig.template.log_config"
           
 endif

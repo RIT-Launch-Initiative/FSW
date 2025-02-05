@@ -5,7 +5,7 @@ extern "C" {
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(HORUSV2, CONFIG_HORUS_LOG_LEVEL);
 #include <assert.h>
-#error "yea man wassup"
+//#error "yea man wassup"
 /*---------------------------------------------------------------------------*\
 
   FILE........: horus_l2.c

@@ -16,7 +16,6 @@ FILE(GLOB sources
         os/*.cpp
 
         utils/*.cpp
-        protocols/horus/*.c
 )
 
 add_subdirectory(protocols/horus)
