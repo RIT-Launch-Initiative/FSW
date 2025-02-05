@@ -18,5 +18,10 @@ if HORUSV2
         bool "Horus V2 RX"
         help
             Enable Horus V2 Decoding
+
+
+    module = HORUS
+    module-str = Horus
+    source "subsys/logging/Kconfig.template.log_config"
           
 endif
