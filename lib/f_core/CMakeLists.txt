@@ -16,5 +16,6 @@ FILE(GLOB sources
         os/*.cpp
 
         utils/*.cpp
+        horus/*.c
 )
 zephyr_library_sources(${sources})
