@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "f_core/protocols/horus/horus.h"
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(main);
+LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 int main(void) {
 	struct horus_packet_v2 asdf = {0};
@@ -17,13 +17,13 @@ int main(void) {
 	horus_packet_v2_encoded_buffer_t output_buf = {0};
 
 	int i  = horusv2_encode(&asdf, &output_buf);
-	LOG_HEXDUMP_ERR(output_buf, sizeof(output_buf), "output");
+	LOG_HEXDUMP_INF(output_buf, sizeof(output_buf), "output");
 	for (int i = 0; i < 10; i++){
 		output_buf[i] = 0;
 		output_buf[HORUS_ENCODED_BUFFER_SIZE - i - 1] = 0;
 	}
-	LOG_HEXDUMP_ERR(output_buf, sizeof(output_buf), "output with modifications");
-	
+	LOG_HEXDUMP_INF(output_buf, sizeof(output_buf), "output with modifications");
+
 	int res = horusv2_decode(&output_buf, &asdf2);
 	bool checksum_matches = horusv2_checksum_verify(&asdf2);
 	if (checksum_matches){
