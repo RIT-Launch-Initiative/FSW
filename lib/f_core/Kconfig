@@ -11,7 +11,7 @@ config F_CORE_DEVICE
     help
       This option enables basic device functionality for F-Core
 
-config F_CORE_DEVICE_SENSOR
+config F_CORE_SENSOR
     bool "Sensor"
     help
       This option enables sensor functionality for F-Core
