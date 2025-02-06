@@ -6,3 +6,27 @@ config F_CORE
     help
       This option enables core functionality for all flight software
 
+config F_CORE_DEVICE
+    bool "Device"
+    help
+      This option enables basic device functionality for F-Core
+
+config F_CORE_DEVICE_SENSOR
+    bool "Sensor"
+    help
+      This option enables sensor functionality for F-Core
+
+config F_CORE_NET
+    bool "Network"
+    help
+      This option enables network functionality for F-Core
+
+config F_CORE_OS
+    bool "OS"
+    help
+      This option enables OS functionality for F-Core
+
+config F_CORE_UTIL
+    bool "Utility"
+    help
+      This option enables utility functionality for F-Core
