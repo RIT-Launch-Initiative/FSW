@@ -5,3 +5,6 @@ common:
 tests:
   protocols.horus:
     type: unit
+    extra_configs:
+      - CONFIG_F_CORE=y
+      - CONFIG_qasdsadsada=y
