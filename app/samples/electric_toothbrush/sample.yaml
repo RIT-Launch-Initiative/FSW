@@ -1,0 +1,10 @@
+sample:
+  description:
+  name: electric-toothbrush
+common:
+  build_only: true
+  platform_allow:
+    - nucleo_f446re
+    - native_sim
+tests:
+  samples.electric_toothbrush.default: {}
