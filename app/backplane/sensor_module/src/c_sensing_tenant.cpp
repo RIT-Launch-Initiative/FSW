@@ -1,4 +1,5 @@
 #include "c_sensing_tenant.h"
+
 #include "c_sensor_module.h"
 
 #include <f_core/device/sensor/c_accelerometer.h>
@@ -10,37 +11,29 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-CSensingTenant::CSensingTenant(const char* name,
-                               CMessagePort<NTypes::SensorData>& dataToBroadcast,
+CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
                                CMessagePort<NTypes::SensorData>& dataToLog)
-    : CTenant(name),
-      dataToBroadcast(dataToBroadcast),
-      dataToLog(dataToLog),
-      imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))),
-      imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
+    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog),
+      imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
-      accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer))),
-      thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer))),
-      magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer))),
-      sensors{
-          &imuAccelerometer,
-          &imuGyroscope,
-          &primaryBarometer,
-          &secondaryBarometer,
-          &accelerometer,
-          &thermometer
+      accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer))), thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer))),
+      magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer))), sensors{&imuAccelerometer,
+                                                                    &imuGyroscope,
+                                                                    &primaryBarometer,
+                                                                    &secondaryBarometer,
+                                                                    &accelerometer,
+                                                                    &thermometer
 #ifndef CONFIG_ARCH_POSIX
-          , &magnetometer
+                                                                    ,
+                                                                    &magnetometer
 #endif
-      } {}
+                                                            } {
+}
 
 void CSensingTenant::Startup() {
 #ifndef CONFIG_ARCH_POSIX
-    const sensor_value imuOdr{
-        .val1 = 104,
-        .val2 = 0
-    };
+    const sensor_value imuOdr{.val1 = 104, .val2 = 0};
 
     if (imuAccelerometer.Configure(SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &imuOdr)) {
         LOG_WRN("IMU Accelerometer ODR configuration failed. IMU accelerations will report 0.");
@@ -88,8 +81,10 @@ void CSensingTenant::Run() {
 
         data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
-        dataToBroadcast.Send(data, K_MSEC(5));
-        dataToLog.Send(data, K_MSEC(5));
+        // If we can't send immediately, drop the packet
+        // we're gonna sleep then give it new data anywas
+        dataToBroadcast.Send(data, K_NO_WAIT);
+        dataToLog.Send(data, K_NO_WAIT);
 
         k_msleep(100);
     }

@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <cstdio>
+#include <f_core/os/flight_log.hpp>
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 
