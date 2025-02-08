@@ -38,7 +38,7 @@ void CLoraReceiveTenant::PadRun() {
             // Pack status into RadioBroadcastData
             NTypes::RadioBroadcastData pinStatus = {0};
             pinStatus.port = 12001;
-            pinStatus.size = size;
+            pinStatus.size = rxSize;
 
             // Get status of pins
             pinStatus.data[0] |= gpios[0].GetPin();
@@ -50,7 +50,7 @@ void CLoraReceiveTenant::PadRun() {
             loraTransmitPort.Send(pinStatus);
         } else {
             udp.SetDstPort(port);
-            udp.TransmitAsynchronous(&buffer[2], size - portOffset);
+            udp.TransmitAsynchronous(&buffer[2], rxSize - portOffset);
         }
     }
 }
@@ -89,6 +89,6 @@ int CLoraReceiveTenant::receive(const uint8_t* buffer, const int buffSize, int* 
     }
 
     *port = buffer[1] << 8 | buffer[0];
-    LOG_DBG("Received %d bytes from LoRa for port %d", size, port);
+    LOG_DBG("Received %d bytes from LoRa for port %d", size, *port);
     return size;
 }

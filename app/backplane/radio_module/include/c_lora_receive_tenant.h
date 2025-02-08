@@ -67,9 +67,9 @@ private:
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
-    constexpr int portOffset = 2;
+    static constexpr int portOffset = 2;
 
-    int receive(const uint8_t *buffer, const int size, const int *port);
+    int receive(const uint8_t *buffer, const int size, int *port);
 };
 
 #endif //C_LORA_RECEIVE_TENANT_H
