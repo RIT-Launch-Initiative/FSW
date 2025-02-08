@@ -53,9 +53,6 @@ void CLoraReceiveTenant::PadRun() {
             udp.TransmitAsynchronous(&buffer[2], size - portOffset);
         }
     }
-
-
-
 }
 
 void CLoraReceiveTenant::FlightRun() {
@@ -67,7 +64,16 @@ void CLoraReceiveTenant::LandedRun() {
 }
 
 void CLoraReceiveTenant::GroundRun() {
+    int port = 0;
     uint8_t buffer[255] = {0};
+
+    int rxSize = receive(buffer, sizeof(buffer), &port);
+    if (rxSize <= 0) {
+        return;
+    }
+
+    udp.SetDstPort(port);
+    udp.TransmitAsynchronous(buffer, rxSize);
 }
 
 int CLoraReceiveTenant::receive(const uint8_t* buffer, const int buffSize, int* port) {
