@@ -2,7 +2,12 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../APRS-Forwarder" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../DAQ-TFTP-Client" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../GSW" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../GSW-2021" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../bob" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../../../modules/fs/littlefs" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../../../modules/hal/cmsis" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../../../modules/hal/st" vcs="Git" />
