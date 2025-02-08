@@ -46,6 +46,11 @@ public:
      */
     void LandedRun() override;
 
+    /**
+     * See Parent Docs
+     */
+    void GroundRun() override;
+
 private:
     CLora& lora;
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;

@@ -36,10 +36,6 @@ protected:
                     state = State::FLIGHT;
                 }
 
-                if (StateMachineGlobals::groundModule) {
-                    state = State::GROUND;
-                }
-
                 break;
             case State::FLIGHT:
                 FlightRun();
@@ -47,6 +43,7 @@ protected:
                 if (landingDetected) {
                     state = State::LANDED;
                 }
+
                 break;
             case State::LANDED:
                 LandedRun();

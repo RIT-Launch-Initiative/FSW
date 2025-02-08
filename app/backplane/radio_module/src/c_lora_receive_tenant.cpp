@@ -5,31 +5,24 @@
 
 LOG_MODULE_REGISTER(CLoraReceiveTenant);
 
-void CLoraReceiveTenant::Startup() {
-}
+void CLoraReceiveTenant::CLoraReceiveTenant::Startup() {}
 
-void CLoraReceiveTenant::PostStartup() {
-}
+void CLoraReceiveTenant::CLoraReceiveTenant::PostStartup() {}
 
-void CLoraReceiveTenant::Run() {
-    uint8_t buffer[255] = {0};
-    const int size = lora.ReceiveSynchronous(&buffer, sizeof(buffer), nullptr, nullptr);
-    if (size < 0) {
-        LOG_ERR("Failed to receive over LoRa (%d)", size);
-        return;
-    }
-
-    if (size == 0) {
-        LOG_WRN("Got 0 bytes from LoRa");
-        return;
-    }
-
-    const int port = buffer[1] << 8 | buffer[0];
+void CLoraReceiveTenant::CLoraReceiveTenant::Run() {
     constexpr int portOffset = 2;
-    LOG_DBG("Received %d bytes from LoRa for port %d", size, port);
+}
 
-    if (size > 2) {
+void CLoraReceiveTenant::PadRun() {
+    int port = 0;
+    uint8_t buffer[255] = {0};
 
+    int rxSize = receive(buffer, sizeof(buffer), &port);
+    if (rxSize <= 0) {
+        return;
+    }
+
+    if (rxSize > 2) {
         if (port == 12000) { // Command
             int result;
             // Apply commands to pinsconst
@@ -60,4 +53,36 @@ void CLoraReceiveTenant::Run() {
             udp.TransmitAsynchronous(&buffer[2], size - portOffset);
         }
     }
+
+
+
+}
+
+void CLoraReceiveTenant::FlightRun() {
+    // Should not receive anything while in flight
+}
+
+void CLoraReceiveTenant::LandedRun() {
+    // Should not receive anything while landed
+}
+
+void CLoraReceiveTenant::GroundRun() {
+    uint8_t buffer[255] = {0};
+}
+
+int CLoraReceiveTenant::receive(const uint8_t* buffer, const int buffSize, int* port) {
+    const int size = lora.ReceiveSynchronous(&buffer, buffSize, nullptr, nullptr);
+    if (size < 0) {
+        LOG_ERR("Failed to receive over LoRa (%d)", size);
+        return size;
+    }
+
+    if (size == 0) {
+        LOG_WRN("Got 0 bytes from LoRa");
+        return size;
+    }
+
+    *port = buffer[1] << 8 | buffer[0];
+    LOG_DBG("Received %d bytes from LoRa for port %d", size, port);
+    return size;
 }
