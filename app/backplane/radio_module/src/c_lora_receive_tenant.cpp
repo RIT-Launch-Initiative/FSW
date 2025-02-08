@@ -1,6 +1,8 @@
 #include "c_lora_receive_tenant.h"
 #include "c_radio_module.h"
 
+#include <n_autocoder_network_defs.h>
+
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CLoraReceiveTenant);
@@ -23,21 +25,22 @@ void CLoraReceiveTenant::PadRun() {
     }
 
     if (rxSize > 2) {
-        if (port == 12000) { // Command
-            int result;
+        if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
+            LOG_INF("Command: 0x%x", buffer[2]);
             // Apply commands to pinsconst
-            result = gpios[0].SetPin(buffer[2] & 1);
-            LOG_DBG("Set Radiomod pin 0 with return code %d", result);
+            int result = gpios[0].SetPin(buffer[2] & 1);
+            LOG_INF("Set Radiomod pin 0 with return code %d", result);
             result = gpios[1].SetPin((buffer[2] & (1 << 1)) >> 1);
-            LOG_DBG("Set Radiomod pin 1 with return code %d", result);
+            LOG_INF("Set Radiomod pin 1 with return code %d", result);
             result = gpios[2].SetPin((buffer[2] & (1 << 2)) >> 2);
-            LOG_DBG("Set Radiomod pin 2 with return code %d", result);
+            LOG_INF("Set Radiomod pin 2 with return code %d", result);
             result = gpios[3].SetPin((buffer[2] & (1 << 3)) >> 3);
-            LOG_DBG("Set Radiomod pin 3 with return code %d", result);
+            LOG_INF("Set Radiomod pin 3 with return code %d", result);
 
             // Pack status into RadioBroadcastData
             NTypes::RadioBroadcastData pinStatus = {0};
-            pinStatus.port = 12001;
+
+            pinStatus.port = NNetworkDefs::RADIO_MODULE_COMMAND_RESPONSE_PORT;
             pinStatus.size = rxSize;
 
             // Get status of pins
@@ -47,7 +50,8 @@ void CLoraReceiveTenant::PadRun() {
             pinStatus.data[0] |= gpios[3].GetPin() << 3;
 
             // Retransmit status so GS can verify
-            loraTransmitPort.Send(pinStatus);
+            // TODO: Figure out why this blocks lora task from continuing
+            // loraTransmitPort.Send(pinStatus);
         } else {
             udp.SetDstPort(port);
             udp.TransmitAsynchronous(&buffer[2], rxSize - portOffset);
@@ -78,10 +82,15 @@ void CLoraReceiveTenant::GroundRun() {
 
 int CLoraReceiveTenant::receive(const uint8_t* buffer, const int buffSize, int* port) {
     const int size = lora.ReceiveSynchronous(&buffer, buffSize, nullptr, nullptr);
+    if (size == -EAGAIN) {
+        return size;
+    }
+
     if (size < 0) {
         LOG_ERR("Failed to receive over LoRa (%d)", size);
         return size;
     }
+
 
     if (size == 0) {
         LOG_WRN("Got 0 bytes from LoRa");
