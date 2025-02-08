@@ -1,1 +1,2 @@
 openrocket	Device tree bindings that get their data from openrocket simulation CSVs
+sim		Generic simulated sensors
