@@ -19,5 +19,5 @@ class CDetectionHandler {
     BaromGroundDetector primary_ground_noseover{ground_velocity_thresshold, ground_time_thresshold};
     BaromGroundDetector secondary_ground_noseover{ground_velocity_thresshold, ground_time_thresshold};
 
-    void HandleData(const SensorData* data);
+    void HandleData(uint32_t timestamp, const SensorData* data);
 };

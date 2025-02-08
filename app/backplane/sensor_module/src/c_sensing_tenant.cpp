@@ -51,6 +51,8 @@ void CSensingTenant::PostStartup() {}
 void CSensingTenant::Run() {
     NTypes::SensorData data{};
     while (true) {
+        uint32_t ts = k_uptime_get();
+        
         for (auto sensor : sensors) {
             if (sensor) {
                 sensor->UpdateSensorValue();
