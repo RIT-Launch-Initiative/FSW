@@ -42,21 +42,21 @@ class CSensorModule : public CProjectConfiguration {
     void Cleanup() { dataLoggerTenant.Cleanup(); }
 
   private:
-    const char* ipAddrStr =
-        (CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID).c_str()).c_str();
+    const char* ipAddrStr = "1.2.3.4";
+    // (CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID).c_str()).c_str();
     static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
 
-
-    
     CFlightLog flight_log{"/lfs/flight_log.txt"};
     SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, &flight_log};
+    CDetectionHandler detection_handler{controller};
 
     // Tenants
-    CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
+    CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort,
+                                 detection_handler};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort,
                                                             telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin",

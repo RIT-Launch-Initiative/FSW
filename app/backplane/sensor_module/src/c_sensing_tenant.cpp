@@ -12,8 +12,8 @@
 LOG_MODULE_REGISTER(CSensingTenant);
 
 CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
-                               CMessagePort<NTypes::SensorData>& dataToLog)
-    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog),
+                               CMessagePort<NTypes::SensorData>& dataToLog, CDetectionHandler& handler)
+    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), detection_handler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
@@ -50,9 +50,13 @@ void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
     NTypes::SensorData data{};
+    k_timer timer;
+    k_timer_init(&timer, nullptr, nullptr);
+    k_timer_start(&timer, K_MSEC(10), K_MSEC(10));
     while (true) {
-        uint32_t ts = k_uptime_get();
-        
+        k_timer_status_sync(&timer);
+        uint64_t uptime = k_uptime_get();
+
         for (auto sensor : sensors) {
             if (sensor) {
                 sensor->UpdateSensorValue();
@@ -83,11 +87,12 @@ void CSensingTenant::Run() {
 
         data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
+        detection_handler.HandleData(uptime, data);
         // If we can't send immediately, drop the packet
         // we're gonna sleep then give it new data anywas
         dataToBroadcast.Send(data, K_NO_WAIT);
         dataToLog.Send(data, K_NO_WAIT);
 
-        k_msleep(100);
+        // k_msleep(100);
     }
 }

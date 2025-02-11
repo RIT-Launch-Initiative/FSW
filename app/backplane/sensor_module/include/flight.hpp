@@ -5,7 +5,7 @@
 #include <f_core/flight/c_phase_controller.h>
 
 // Boost
-static constexpr float boost_threshold_m_s2 = 5;       //m/s^2
+static constexpr float boost_threshold_m_s2 = 5 * 9.8; //m/s^2
 static constexpr uint32_t boost_time_thresshold = 250; //ms
 
 // Noseover
