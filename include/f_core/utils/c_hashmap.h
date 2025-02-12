@@ -24,6 +24,7 @@ public:
         for (std::size_t i = 0; i < Capacity; ++i) {
             std::size_t probeIndex = (index + i) % Capacity;
             if (!data[probeIndex].occupied) break;
+
             if (data[probeIndex].key == key) {
                 data[probeIndex].occupied = false;
                 return true;
@@ -41,8 +42,6 @@ public:
         }
         return std::nullopt;
     }
-
-
 private:
     struct Entry {
         Key key;

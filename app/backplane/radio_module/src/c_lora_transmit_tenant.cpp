@@ -6,9 +6,45 @@
 LOG_MODULE_REGISTER(CLoraTransmitTenant);
 
 void CLoraTransmitTenant::Startup() {
+    bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {});
+    success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {});
+    success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {});
+
+    if (!success) {
+        LOG_ERR("Failed to insert all ports into hashmap");
+        k_oops();
+    }
 }
 
 void CLoraTransmitTenant::PostStartup() {
+    // TODO: Blast later
+    uint8_t *bufferOne = portDataMap.Get(NNetworkDefs::POWER_MODULE_INA_DATA_PORT).value();
+    if (bufferOne == nullptr) {
+        LOG_ERR("Failed to get buffer for port %d", NNetworkDefs::POWER_MODULE_INA_DATA_PORT);
+        k_oops();
+    }
+
+
+    uint8_t *bufferTwo = portDataMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).value();
+    if (bufferTwo == nullptr) {
+        LOG_ERR("Failed to get buffer for port %d", NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT);
+        k_oops();
+    }
+
+    uint8_t *bufferThree = portDataMap.Get(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT).value();
+    if (bufferThree == nullptr) {
+        LOG_ERR("Failed to get buffer for port %d", NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT);
+        k_oops();
+    }
+
+
+    for (uint8_t i = 0; i < 255; i++) {
+        bufferOne[i] = i;
+        bufferTwo[i] = i;
+        bufferThree[i] = i;
+    }
+
+    LOG_INF("Buffers populated");
 }
 
 void CLoraTransmitTenant::Run() {
@@ -19,6 +55,11 @@ void CLoraTransmitTenant::Run() {
     if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
         LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
         return;
+    }
+
+    uint8_t *buffer = portDataMap.Get(data.port).value();
+    if (buffer != nullptr) {
+        memcpy(buffer, data.data, data.size);
     }
 
     if (data.size > (256 - 2)) {
