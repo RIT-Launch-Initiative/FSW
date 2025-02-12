@@ -6,7 +6,7 @@
 #include <f_core/os/c_tenant.h>
 
 #include <f_core/net/device/c_lora.h>
-#include <f_core/utils/c_soft_timer.h>
+#include <f_core/utils/c_hashmap.h>
 
 
 class CLoraTransmitTenant : public CTenant {
@@ -25,8 +25,11 @@ public:
     void Run() override;
 
 private:
+    static constexpr uint8_t totalPortsListenedTo = 3;
+
     CLora& lora;
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
+    CHashMap<uint16_t, uint8_t[255], totalPortsListenedTo> portDataMap;
 };
 
 #endif //C_LORA_TRANSMIT_TENANT_H
