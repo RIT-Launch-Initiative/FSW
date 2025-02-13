@@ -38,7 +38,7 @@ enum Sources : uint8_t {
     NumSources
 };
 inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
-    "LowGIMU (LSM6DSL)", "HighGImu",          "BaromBMP",     "BaromMS5611",
+    "LowGIMU (LSM6DSL)", "HighGImu (ADXL)",   "BaromBMP",     "BaromMS5611",
     "Noseover Lockout",  "Full Flight Timer", "VideoOffTimer"};
 
 inline constexpr std::size_t num_timer_events = 3;

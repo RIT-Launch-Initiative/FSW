@@ -92,7 +92,5 @@ void CSensingTenant::Run() {
         // we're gonna sleep then give it new data anywas
         dataToBroadcast.Send(data, K_NO_WAIT);
         dataToLog.Send(data, K_NO_WAIT);
-
-        // k_msleep(100);
     }
 }

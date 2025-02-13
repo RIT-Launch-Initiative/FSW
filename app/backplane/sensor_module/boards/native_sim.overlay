@@ -1,9 +1,9 @@
 / {
 	aliases {
 		primary-barometer = &barom;
-		secondary-barometer = &barom;
+		secondary-barometer = &secondbarom;
 		imu = &imu;
-		accelerometer = &imu;
+		accelerometer = &secondimu;
 		magnetometer = &imu;
 		thermometer = &barom;
 	};
@@ -14,7 +14,7 @@
         vertical-axis = "OPENROCKET_AXIS_Z";
         vertical-axis-invert;
         lateral-axis = "OPENROCKET_AXIS_X";
-        lag-time-us = <1000>;
+        lag-time-us = <0>;
         sampling-period-us = <10>;
 
         roll-axis = "OPENROCKET_AXIS_Z";
@@ -22,10 +22,33 @@
         yaw-axis = "OPENROCKET_AXIS_X";
     };
 
+
+    secondimu: secondimu {
+        status = "okay";
+        compatible = "openrocket,imu";
+        vertical-axis = "OPENROCKET_AXIS_Z";
+        vertical-axis-invert;
+        lateral-axis = "OPENROCKET_AXIS_X";
+        lag-time-us = <0>;
+        sampling-period-us = <10>;
+
+        roll-axis = "OPENROCKET_AXIS_Z";
+        pitch-axis = "OPENROCKET_AXIS_Y";
+        yaw-axis = "OPENROCKET_AXIS_X";
+    };
+
+
     barom: barom {
         status = "okay";
         compatible = "openrocket,barometer";
-        lag-time-us = <1000>;
+        lag-time-us = <10000>;
+        sampling-period-us = <10>;
+    };
+
+    secondbarom: secondbarom {
+        status = "okay";
+        compatible = "openrocket,barometer";
+        lag-time-us = <100000>;
         sampling-period-us = <10>;
     };
 

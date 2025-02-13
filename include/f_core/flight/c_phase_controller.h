@@ -80,6 +80,10 @@ class CPhaseController {
             flight_log->Write("CPhaseController initialized");
         }
     }
+    // Delete copy constructor. Zephyr timers, events require constant memory addresses to work
+    CPhaseController(const CPhaseController &) = delete;
+    CPhaseController &operator=(const CPhaseController &) = delete;
+
     ~CPhaseController() {
         for (std::size_t i = 0; i < num_timers; i++) {
             k_timer_stop(&timers[i]);

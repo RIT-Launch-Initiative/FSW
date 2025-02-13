@@ -77,7 +77,7 @@ template <typename T, std::size_t window_size>
 bool find_slope(const CRollingSum<LinearFitSample<T>, window_size> &data, T &slope) {
     std::size_t N = data.Size();
     LinearFitSample<T> E = data.Sum();
-    float denom = (N * E.xx - E.x * E.x);
+    T denom = (N * E.xx - E.x * E.x);
 
     if (denom == 0) {
         // Would have divided by zero
