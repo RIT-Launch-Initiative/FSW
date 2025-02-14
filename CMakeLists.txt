@@ -8,7 +8,9 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(Backplane-Flight-Computer)
 
-zephyr_include_directories(include)
+zephyr_syscall_include_directories(include)
 
+zephyr_include_directories(include)
+        
 add_subdirectory(drivers)
 add_subdirectory(lib)
