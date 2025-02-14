@@ -5,6 +5,7 @@
  */
 
 #include "aw9364.h"
+#include "loramac-node/src/radio.h"
 
 #include <lvgl.h>
 #include <lvgl_input_device.h>
@@ -78,6 +79,13 @@ static void radio_callback(lv_event_t *e) {
     }
 }
 
+static void fsk4_callback(lv_event_t *e) {
+    for (int i = 0; i < 10000; i += 1000) {
+        lora_test_cw(lora_dev, 434000000 + i, 14, 1);
+        k_msleep(1100);
+    }
+}
+
 void input_cb(struct input_event *evt, void *user_data) {
     LOG_INF("Input callback");
 
@@ -101,7 +109,6 @@ int main(void) {
     const struct device *display_dev;
     lv_obj_t *add1label;
     lv_obj_t *sub1label;
-    lv_obj_t *radiolabel;
     lv_obj_t *count_labelx;
     lv_obj_t *count_labely;
 
@@ -142,14 +149,29 @@ int main(void) {
     lv_obj_align(count_labely, LV_ALIGN_TOP_MID, 0, 50);
 
     lv_obj_t *radiobutton;
+    lv_obj_t *radiolabel;
 
     radiobutton = lv_button_create(lv_screen_active());
-    lv_obj_align(radiobutton, LV_ALIGN_CENTER, 0, 10);
+    lv_obj_align(radiobutton, LV_ALIGN_CENTER, 0, -10);
     lv_obj_add_event_cb(radiobutton, radio_callback, LV_EVENT_CLICKED, 0);
     radiolabel = lv_label_create(radiobutton);
 
-    lv_label_set_text(radiolabel, "Beep!");
+    lv_label_set_text(radiolabel, "LORA Beep!");
     lv_obj_align(radiolabel, LV_ALIGN_CENTER, 0, 0);
+
+    //
+    lv_obj_t *fsk4button;
+    lv_obj_t *fsk4label;
+
+    fsk4button = lv_button_create(lv_screen_active());
+    lv_obj_align(fsk4button, LV_ALIGN_CENTER, 0, 20);
+    lv_obj_add_event_cb(fsk4button, fsk4_callback, LV_EVENT_CLICKED, 0);
+    fsk4label = lv_label_create(fsk4button);
+
+    lv_label_set_text(fsk4label, "4FSK Beep!");
+    lv_obj_align(fsk4label, LV_ALIGN_CENTER, 0, 0);
+
+    //
 
     lv_timer_handler();
 
