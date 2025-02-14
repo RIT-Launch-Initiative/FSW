@@ -5,7 +5,7 @@ extern "C" {
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(HORUSV2, CONFIG_HORUS_LOG_LEVEL);
 #include <assert.h>
-//#error "yea man wassup"
+
 /*---------------------------------------------------------------------------*\
 
   FILE........: horus_l2.c
@@ -108,7 +108,6 @@ int horus_l2_get_num_tx_data_bytes(int num_payload_data_bytes) {
     num_tx_data_bytes = num_tx_data_bits / 8;
     if (num_tx_data_bits % 8) /* round up to nearest byte, may mean some unused bits */
         num_tx_data_bytes++;
-
 
     LOG_INF("num_payload_data_bytes: %d", num_payload_data_bytes);
     LOG_INF("num_golay_codewords...: %d", num_golay_codewords);
@@ -402,6 +401,7 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
             num_payload_data_bytes);
 
     assert(pout == (output_payload_data + num_payload_data_bytes));
+    return num_tx_bytes;
 }
 #endif
 
@@ -463,7 +463,6 @@ void interleave(unsigned char *inout, int nbytes, int dir) {
     memcpy(inout, out, nbytes);
 
     LOG_HEXDUMP_INF(inout, nbytes, "Interleaver Out");
-
 }
 
 #endif
@@ -508,7 +507,6 @@ void scramble(unsigned char *inout, int nbytes) {
 }
 
 #endif
-
 
 /*---------------------------------------------------------------------------*\
 
@@ -604,7 +602,6 @@ static int arr2int(int a[], int r)
     }
     return (result);
 }
-
 
 void nextcomb(int n, int r, int a[])
 /*
@@ -741,7 +738,6 @@ int golay23_encode(int data) {
     return encoding_table[data];
 }
 
-
 #ifdef CONFIG_HORUSV2_RX
 
 /*---------------------------------------------------------------------------*\
@@ -791,30 +787,31 @@ unsigned short gen_crc16(unsigned char *data_p, unsigned char length) {
     return crc;
 }
 
-int horusv2_encode(struct horus_packet_v2 *input_packet, horus_packet_v2_encoded_buffer_t*output_buffer) {
-    input_packet->checksum =  gen_crc16((unsigned char*)input_packet, sizeof(struct horus_packet_v2) - sizeof(uint16_t));
-    horus_l2_encode_tx_packet((unsigned char *)&output_buffer[0], (unsigned char*)input_packet, sizeof(struct horus_packet_v2));
+/*
+ * Added code, not from RS41ng, to wrap generic encoding for specifically V2 use
+ */
+
+int horusv2_encode(struct horus_packet_v2 *input_packet, horus_packet_v2_encoded_buffer_t *output_buffer) {
+    input_packet->checksum =
+        gen_crc16((unsigned char *) input_packet, sizeof(struct horus_packet_v2) - sizeof(uint16_t));
+    horus_l2_encode_tx_packet((unsigned char *) &output_buffer[0], (unsigned char *) input_packet,
+                              sizeof(struct horus_packet_v2));
     return 0;
 }
 
 #ifdef CONFIG_HORUSV2_RX
-int horusv2_decode(horus_packet_v2_encoded_buffer_t*input_buffer, struct horus_packet_v2 *output_packet){
-    horus_l2_decode_rx_packet((unsigned char *)output_packet, (unsigned char*)input_buffer,
-                               sizeof(struct horus_packet_v2));
-    return 0;
+void horusv2_decode(horus_packet_v2_encoded_buffer_t *input_buffer, struct horus_packet_v2 *output_packet) {
+    horus_l2_decode_rx_packet((unsigned char *) output_packet, (unsigned char *) input_buffer,
+                              sizeof(struct horus_packet_v2));
 }
-bool horusv2_checksum_verify(const struct horus_packet_v2 *input_packet){
-    uint16_t checksum =  gen_crc16((unsigned char*)input_packet, sizeof(struct horus_packet_v2) - sizeof(uint16_t));
+bool horusv2_checksum_verify(const struct horus_packet_v2 *input_packet) {
+    uint16_t checksum = gen_crc16((unsigned char *) input_packet, sizeof(struct horus_packet_v2) - sizeof(uint16_t));
     return checksum == input_packet->checksum;
 }
 #endif
 
-
-
 // Initialize the golay tables
 SYS_INIT(golay23_init, POST_KERNEL, 0);
-
-
 
 #ifdef __cplusplus
 }
