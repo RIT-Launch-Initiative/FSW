@@ -401,7 +401,6 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
             num_payload_data_bytes);
 
     assert(pout == (output_payload_data + num_payload_data_bytes));
-    return num_tx_bytes;
 }
 #endif
 
@@ -800,7 +799,7 @@ int horusv2_encode(struct horus_packet_v2 *input_packet, horus_packet_v2_encoded
 }
 
 #ifdef CONFIG_HORUSV2_RX
-void horusv2_decode(horus_packet_v2_encoded_buffer_t *input_buffer, struct horus_packet_v2 *output_packet) {
+void horusv2_decode(const horus_packet_v2_encoded_buffer_t *input_buffer, struct horus_packet_v2 *output_packet) {
     horus_l2_decode_rx_packet((unsigned char *) output_packet, (unsigned char *) input_buffer,
                               sizeof(struct horus_packet_v2));
 }
