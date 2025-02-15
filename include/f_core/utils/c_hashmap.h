@@ -3,68 +3,61 @@
 
 #include <iostream>
 #include <optional>
+#include <unordered_map>
+#include <zephyr/logging/log.h>
 
-template <typename Key, typename Value, std::size_t Capacity>
+template <typename Key, typename Value>
 class CHashMap {
 public:
     CHashMap() = default;
 
     bool Insert(const Key& key, const Value& value) {
-        const std::size_t index = hash(key);
-        for (std::size_t i = 0; i < Capacity; ++i) {
-            std::size_t probeIndex = (index + i) % Capacity;
-            if (!data[probeIndex].occupied || data[probeIndex].key == key) {
-                data[probeIndex] = {key, value, true};
-                return true;
+        if (!isMainThreadRunning()) {
+            if (size >= maxSizeAtStartup) {
+                printk("Attempted to insert more than the maximum size of the hashmap post-startup"); // LOG doesn't work well in templates
+                k_oops();
+                return false;
             }
+
         }
-        return false;
+
+        if (++size > maxSizeAtStartup) {
+            maxSizeAtStartup = size;
+        }
+
+        return map.insert(std::make_pair(key, value)).second;
     }
 
     bool Remove(const Key& key) {
-        const std::size_t index = hash(key);
-        for (std::size_t i = 0; i < Capacity; ++i) {
-            std::size_t probeIndex = (index + i) % Capacity;
-            if (!data[probeIndex].occupied) break;
-
-            if (data[probeIndex].key == key) {
-                data[probeIndex].occupied = false;
-                return true;
-            }
-        }
-        return false;
+        size--;
+        return map.erase(key);
     }
 
     std::optional<Value> Get(const Key& key) const {
-        const std::size_t index = hash(key);
-        for (std::size_t i = 0; i < Capacity; ++i) {
-            std::size_t probeIndex = (index + i) % Capacity;
-            if (!data[probeIndex].occupied) break;  // Stop if empty slot found
-            if (data[probeIndex].key == key) return data[probeIndex].value;
-        }
-        return std::nullopt;
+        return map.at(key);
     }
 
-    std::array<Key, Capacity> Keys() const {
-        std::array<Key, Capacity> keys;
-        std::size_t j = 0;
-        for (std::size_t i = 0; i < Capacity; ++i) {
-            if (data[i].occupied) keys[j++] = data[i].key;
-        }
-        return keys;
+    [[nodiscard]] std::size_t Size() const {
+        return size;
+    }
+
+    typename std::unordered_map<Key, Value>::iterator begin() {
+        return map.begin();
+    }
+
+    typename std::unordered_map<Key, Value>::iterator end() {
+        return map.end();
     }
 
 private:
-    struct Entry {
-        Key key;
-        Value value;
-        bool occupied = false;
-    };
+    std::unordered_map<Key, Value> map;
+    std::size_t size = 0;
+    std::size_t maxSizeAtStartup = 0;
 
-    Entry data[Capacity] = {};
-
-    std::size_t hash(const Key& key) const {
-        return std::hash<Key>{}(key) % Capacity;
+    bool isMainThreadRunning() {
+        // TODO
+        // k_thread_name_get(k_current_get()) == "main";
+        return true;
     }
 };
 

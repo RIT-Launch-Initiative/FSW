@@ -40,17 +40,15 @@ void CLoraTransmitTenant::Run() {
 void CLoraTransmitTenant::PadRun() {
     NTypes::RadioBroadcastData data{};
 
-    for (const uint16_t port : portDataMap.Keys()) {
-        if (padDataRequestedMap.Get(port).value_or(false)) {
-            std::array<uint8_t, 254> payload = portDataMap.Get(port).value();
-            if (!payload.empty()) {
-                data.port = port;
-                data.size = payload.size();
-                memcpy(data.data, payload.data(), payload.size());
-
-                transmit(data);
-            }
+    // Iterate on both ports and transmit data if requested
+    for (const auto &[port, requested] : padDataRequestedMap) {
+        if (requested) {
+            data.port = port;
+            data.size = portDataMap.Get(port).value().size();
+            memcpy(data.data, portDataMap.Get(port).value().data(), data.size);
+            transmit(data);
         }
+
     }
 }
 

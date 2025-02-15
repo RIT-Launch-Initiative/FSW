@@ -72,8 +72,8 @@ private:
 
     CLora& lora;
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
-    CHashMap<uint16_t, std::array<uint8_t, 254>, totalPortsListenedTo> portDataMap; // 254 bytes to leave room for port
-    CHashMap<uint16_t, bool, totalPortsListenedTo> padDataRequestedMap;
+    CHashMap<uint16_t, std::array<uint8_t, 254>> portDataMap; // 254 bytes to leave room for port
+    CHashMap<uint16_t, bool> padDataRequestedMap;
 };
 
 #endif //C_LORA_TRANSMIT_TENANT_H
