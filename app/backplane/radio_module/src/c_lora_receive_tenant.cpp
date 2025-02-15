@@ -12,7 +12,6 @@ void CLoraReceiveTenant::CLoraReceiveTenant::Startup() {}
 void CLoraReceiveTenant::CLoraReceiveTenant::PostStartup() {}
 
 void CLoraReceiveTenant::CLoraReceiveTenant::Run() {
-    constexpr int portOffset = 2;
 }
 
 void CLoraReceiveTenant::PadRun() {

@@ -7,6 +7,8 @@
 template <typename Key, typename Value, std::size_t Capacity>
 class CHashMap {
 public:
+    CHashMap() = default;
+
     bool Insert(const Key& key, const Value& value) {
         const std::size_t index = hash(key);
         for (std::size_t i = 0; i < Capacity; ++i) {
@@ -42,6 +44,16 @@ public:
         }
         return std::nullopt;
     }
+
+    std::array<Key, Capacity> Keys() const {
+        std::array<Key, Capacity> keys;
+        std::size_t j = 0;
+        for (std::size_t i = 0; i < Capacity; ++i) {
+            if (data[i].occupied) keys[j++] = data[i].key;
+        }
+        return keys;
+    }
+
 private:
     struct Entry {
         Key key;

@@ -10,6 +10,10 @@ void CLoraTransmitTenant::Startup() {
     success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {});
     success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {});
 
+    success &= padDataRequestedMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, false);
+    success &= padDataRequestedMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, false);
+    success &= padDataRequestedMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, false);
+
     if (!success) {
         LOG_ERR("Failed to insert all ports into hashmap");
         k_oops();
@@ -34,20 +38,31 @@ void CLoraTransmitTenant::Run() {
 }
 
 void CLoraTransmitTenant::PadRun() {
+    NTypes::RadioBroadcastData data{};
 
+    for (const uint16_t port : portDataMap.Keys()) {
+        if (padDataRequestedMap.Get(port).value_or(false)) {
+            std::array<uint8_t, 254> payload = portDataMap.Get(port).value();
+            if (!payload.empty()) {
+                data.port = port;
+                data.size = payload.size();
+                memcpy(data.data, payload.data(), payload.size());
+
+                transmit(data);
+            }
+        }
+    }
 }
 
 
 void CLoraTransmitTenant::FlightRun() {
     NTypes::RadioBroadcastData data{};
-    if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
-        LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
-        return;
-    }
+    if (readTransmitQueue(data)) {
+        uint8_t* buffer = portDataMap.Get(data.port).value().data();
 
-    uint8_t* buffer = portDataMap.Get(data.port).value().data();
-    if (buffer != nullptr) {
-        memcpy(buffer, data.data, data.size);
+        if (buffer != nullptr) {
+            memcpy(buffer, data.data, data.size);
+        }
     }
 }
 
@@ -55,13 +70,7 @@ void CLoraTransmitTenant::FlightRun() {
 void CLoraTransmitTenant::LandedRun() {
     NTypes::RadioBroadcastData data{};
 
-    if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
-        LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
-        return;
-    }
-
-    // Only transmit GNSS data
-    if (data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
+    if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
         transmit(data);
     }
 }
@@ -69,15 +78,12 @@ void CLoraTransmitTenant::LandedRun() {
 
 void CLoraTransmitTenant::GroundRun() {
     NTypes::RadioBroadcastData data{};
-    if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
-        LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
-        return;
+    if (readTransmitQueue(data)) {
+        transmit(data);
     }
-
-    transmit(data);
 }
 
-void CLoraTransmitTenant::transmit(NTypes::RadioBroadcastData data) const {
+void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
     if (data.size > (256 - 2)) {
@@ -96,4 +102,13 @@ void CLoraTransmitTenant::transmit(NTypes::RadioBroadcastData data) const {
 
     LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
     lora.TransmitSynchronous(txData.data(), data.size + 2);
+}
+
+bool CLoraTransmitTenant::readTransmitQueue(NTypes::RadioBroadcastData& data) const {
+    if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
+        LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
+        return false;
+    }
+
+    return true;
 }

@@ -59,13 +59,21 @@ private:
 
     /**
      * Helper function for converting struct into a uint8_t buffer and transmitting over LoRa
-     * @param data Radio broadcast data structure
+     * @param[in] data Radio broadcast data structure
      */
-    void transmit(NTypes::RadioBroadcastData data) const;
+    void transmit(const NTypes::RadioBroadcastData& data) const;
+
+    /**
+     * Helper function for reading from the transmit queue
+     * @param[out] data Data received from queue to transmit over LoRa
+     * @return True if new data needs to be transmitted, false otherwise
+     */
+    bool readTransmitQueue(NTypes::RadioBroadcastData& data) const;
 
     CLora& lora;
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
-    CHashMap<uint16_t, std::array<uint8_t, 256>, totalPortsListenedTo> portDataMap;
+    CHashMap<uint16_t, std::array<uint8_t, 254>, totalPortsListenedTo> portDataMap; // 254 bytes to leave room for port
+    CHashMap<uint16_t, bool, totalPortsListenedTo> padDataRequestedMap;
 };
 
 #endif //C_LORA_TRANSMIT_TENANT_H
