@@ -38,6 +38,10 @@ public:
      * Cleanup the tenant
      */
     virtual void Cleanup() {};
+
+    const char *GetName() const {
+        return name;
+    }
 protected:
     const char *name;
 };

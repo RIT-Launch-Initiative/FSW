@@ -70,7 +70,9 @@ void CTask::AddTenant(CTenant& tenant) {
 }
 
 void CTask::Run() {
+    LOG_INF("Running task %s", name);
     for (CTenant* tenant : tenants) {
+        LOG_INF("\tRunning tenant %s", tenant->GetName());
         tenant->Run();
     }
     k_msleep(sleepTimeMs);

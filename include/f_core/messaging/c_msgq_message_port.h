@@ -37,6 +37,13 @@ public:
         return k_msgq_get(queue, &message, timeout);
     }
 
+    /**
+     * See parent docs
+     */
+    void Clear() {
+        k_msgq_purge(queue);
+    }
+
 private:
     k_msgq *queue;
 };

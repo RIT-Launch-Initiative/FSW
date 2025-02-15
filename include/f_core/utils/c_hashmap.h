@@ -13,7 +13,7 @@ public:
 
     bool Insert(const Key& key, const Value& value) {
         if (!isMainThreadRunning()) {
-            if (size >= maxSizeAtStartup) {
+            if (!map.contains(key) && size >= maxSizeAtStartup) {
                 printk("Attempted to insert more than the maximum size of the hashmap post-startup"); // LOG doesn't work well in templates
                 k_oops();
                 return false;

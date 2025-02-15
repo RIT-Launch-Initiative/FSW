@@ -71,8 +71,8 @@ private:
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
 
     // Tasks
-    CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
-    CTask gnssTask{"GNSS Task", 15, 1024, 0};
+    CTask networkingTask{"UDP Listener Task", 15, 1024, 0};
+    CTask gnssTask{"GNSS Task", 15, 1024, 2000};
     CTask dataLoggingTask{"Data Logging Task", 15, 2048, 0};
     CTask loraTask{"LoRa Task", 15, 2048, 0};
 

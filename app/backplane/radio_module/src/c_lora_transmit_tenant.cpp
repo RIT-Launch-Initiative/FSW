@@ -25,24 +25,28 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-    padDataRequestedMap.Insert(69, false);
     SetBoostDetected(NStateMachineGlobals::boostDetected);
     SetLandingDetected(NStateMachineGlobals::landingDetected);
     Clock();
 }
 
 void CLoraTransmitTenant::PadRun() {
-    NTypes::RadioBroadcastData data{};
+    NTypes::RadioBroadcastData rxData{};
+    readTransmitQueue(rxData);
 
-    // Iterate on both ports and transmit data if requested
+    portDataMap.Insert(rxData.port, rxData);
+
     for (const auto &[port, requested] : padDataRequestedMap) {
+        LOG_INF("Port: %d, Requested: %d", port, requested);
         if (!requested) {
-            data.port = port;
-            data.size = portDataMap.Get(port).value().size();
-            memcpy(data.data, portDataMap.Get(port).value().data(), data.size);
+            NTypes::RadioBroadcastData data = portDataMap.Get(port).value_or(NTypes::RadioBroadcastData{.port = 0, .size = 0});
+            if (port == 0 && data.size == 0) {
+                LOG_WRN("Fuck");
+                continue;
+            }
+
             transmit(data);
         }
-
     }
 }
 
@@ -50,11 +54,7 @@ void CLoraTransmitTenant::PadRun() {
 void CLoraTransmitTenant::FlightRun() {
     NTypes::RadioBroadcastData data{};
     if (readTransmitQueue(data)) {
-        uint8_t* buffer = portDataMap.Get(data.port).value().data();
 
-        if (buffer != nullptr) {
-            memcpy(buffer, data.data, data.size);
-        }
     }
 }
 
