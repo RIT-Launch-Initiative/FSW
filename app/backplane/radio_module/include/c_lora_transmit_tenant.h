@@ -57,7 +57,11 @@ public:
 private:
     static constexpr uint8_t totalPortsListenedTo = 3;
 
-    void transmit(uint8_t *data, uint8_t size) {}
+    /**
+     * Helper function for converting struct into a uint8_t buffer and transmitting over LoRa
+     * @param data Radio broadcast data structure
+     */
+    void transmit(NTypes::RadioBroadcastData data) const;
 
     CLora& lora;
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;

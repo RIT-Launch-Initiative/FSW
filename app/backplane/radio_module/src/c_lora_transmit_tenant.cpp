@@ -31,21 +31,6 @@ void CLoraTransmitTenant::Run() {
     if (buffer != nullptr) {
         memcpy(buffer, data.data, data.size);
     }
-
-    if (data.size > (256 - 2)) {
-        // This case should never occur. If it does, then developer is sending too much data
-        LOG_ERR("Received data exceeds LoRa packet size from port %d", data.port);
-        k_oops();
-        return;
-    } else if (data.size == 0) {
-        // This case should *rarely* occur.
-        // TODO: There might be a bug somewhere with copying that needs to be investigated.
-        LOG_WRN_ONCE("Received data is empty from port %d", data.port);
-        // k_oops();
-        return;
-    }
-
-    transmit(data);
 }
 
 void CLoraTransmitTenant::PadRun() {
@@ -54,12 +39,31 @@ void CLoraTransmitTenant::PadRun() {
 
 
 void CLoraTransmitTenant::FlightRun() {
+    NTypes::RadioBroadcastData data{};
+    if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
+        LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
+        return;
+    }
 
+    uint8_t* buffer = portDataMap.Get(data.port).value().data();
+    if (buffer != nullptr) {
+        memcpy(buffer, data.data, data.size);
+    }
 }
 
 
 void CLoraTransmitTenant::LandedRun() {
+    NTypes::RadioBroadcastData data{};
 
+    if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
+        LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
+        return;
+    }
+
+    // Only transmit GNSS data
+    if (data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
+        transmit(data);
+    }
 }
 
 
@@ -70,13 +74,10 @@ void CLoraTransmitTenant::GroundRun() {
         return;
     }
 
-    data
-
-
     transmit(data);
 }
 
-void CLoraTransmitTenant::transmit(NTypes::RadioBroadcastData data) {
+void CLoraTransmitTenant::transmit(NTypes::RadioBroadcastData data) const {
     std::array<uint8_t, 256> txData{};
 
     if (data.size > (256 - 2)) {
