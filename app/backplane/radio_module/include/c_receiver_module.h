@@ -14,6 +14,8 @@
 #include <f_core/os/c_task.h>
 #include <f_core/net/device/c_lora.h>
 
+#include <n_autocoder_network_defs.h>
+
 class CReceiverModule : public CProjectConfiguration {
 public:
     /**
@@ -52,7 +54,7 @@ private:
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandSourcePort, &loraBroadcastMessagePort};
 
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort, &loraBroadcastMessagePort};
+    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 1024, 0};

@@ -1,11 +1,14 @@
 #include "c_lora_transmit_tenant.h"
 #include "c_radio_module.h"
 
+#include <array>
+#include <n_autocoder_network_defs.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CLoraTransmitTenant);
 
 void CLoraTransmitTenant::Startup() {
+#ifndef RADIO_MODULE_RECEIVER
     bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {.port = 0, .size = 0});
     success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {.port = 0, .size = 0});
     success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {.port = 0, .size = 0});
@@ -18,6 +21,7 @@ void CLoraTransmitTenant::Startup() {
         LOG_ERR("Failed to insert all ports into hashmap");
         k_oops();
     }
+#endif
 }
 
 void CLoraTransmitTenant::PostStartup() {
