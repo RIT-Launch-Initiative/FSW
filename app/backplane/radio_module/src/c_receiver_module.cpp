@@ -17,6 +17,7 @@ CReceiverModule::CReceiverModule() : CProjectConfiguration(), lora(*DEVICE_DT_GE
 void CReceiverModule::AddTenantsToTasks() {
     // Networking
     networkingTask.AddTenant(commandListenerTenant);
+    networkingTask.AddTenant(dataRequestListenerTenant);
 
     // LoRa
     loraTask.AddTenant(loraTransmitTenant);

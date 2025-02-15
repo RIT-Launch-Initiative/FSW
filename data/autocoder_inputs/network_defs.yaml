@@ -21,7 +21,7 @@ modules:
       command_response:
         port_number: 2
       data_request:
-        port_number: 3
+        port_number: 999
       gnss_data:
         port_number: 5
 

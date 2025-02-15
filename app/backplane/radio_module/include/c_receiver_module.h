@@ -53,7 +53,7 @@ private:
     // Tenants
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandPort, &loraBroadcastMessagePort};
-    CUdpListenerTenant portDataRequestListenerTenant{"Radio Module Port Data Request Listener Tenant", ipAddrStr, radioModuleDataRequestPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant dataRequestListenerTenant{"Radio Module Port Data Request Listener Tenant", ipAddrStr, radioModuleDataRequestPort, &loraBroadcastMessagePort};
 
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, NNetworkDefs::RADIO_BASE_PORT};
 

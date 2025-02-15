@@ -6,6 +6,7 @@
 LOG_MODULE_REGISTER(CUdpListenerTenant);
 
 void CUdpListenerTenant::Startup() {
+    LOG_INF("Listening on port %d", listenPort);
 }
 
 void CUdpListenerTenant::PostStartup() {
