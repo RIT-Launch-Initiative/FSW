@@ -25,16 +25,7 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-    NTypes::RadioBroadcastData data{};
-    if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
-        LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
-        return;
-    }
-
-    uint8_t* buffer = portDataMap.Get(data.port).value().data();
-    if (buffer != nullptr) {
-        memcpy(buffer, data.data, data.size);
-    }
+    CPadFlightLandedStateMachine::Clock();
 }
 
 void CLoraTransmitTenant::PadRun() {
@@ -42,7 +33,7 @@ void CLoraTransmitTenant::PadRun() {
 
     // Iterate on both ports and transmit data if requested
     for (const auto &[port, requested] : padDataRequestedMap) {
-        if (requested) {
+        if (!requested) {
             data.port = port;
             data.size = portDataMap.Get(port).value().size();
             memcpy(data.data, portDataMap.Get(port).value().data(), data.size);

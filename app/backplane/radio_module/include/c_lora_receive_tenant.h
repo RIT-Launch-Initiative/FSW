@@ -12,7 +12,7 @@
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/device/c_gpio.h>
 
-class CLoraReceiveTenant : public CTenant, public PadFlightLandedStateMachine {
+class CLoraReceiveTenant : public CTenant, public CPadFlightLandedStateMachine {
 public:
     explicit CLoraReceiveTenant(const char* name, CLora& lora, const char* ip, const uint16_t srcPort, CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
         : CTenant(name), lora(lora), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort)), loraTransmitPort(*loraTransmitPort) {}

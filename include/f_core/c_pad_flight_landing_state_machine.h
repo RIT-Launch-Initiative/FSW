@@ -4,12 +4,12 @@
 // We shouldn't define globals, but this is a quick and dirty way
 // to avoid a bunch of inter-thread communication. Should
 namespace StateMachineGlobals {
-    static bool boostDetected = false;
-    static bool landingDetected = false;
-    static bool groundModule = false;
+    static volatile bool boostDetected = false;
+    static volatile bool landingDetected = false;
+    static volatile bool isGroundModule = false;
 }
 
-class PadFlightLandedStateMachine {
+class CPadFlightLandedStateMachine {
 public:
     enum class State {
         PAD = 0,
@@ -18,13 +18,13 @@ public:
         GROUND
     };
 
-    PadFlightLandedStateMachine() : state(State::PAD), boostDetected(false), landingDetected(false) {};
+    CPadFlightLandedStateMachine() : state(State::PAD), boostDetected(false), landingDetected(false), isGroundModule(false) {};
 
 protected:
     State state;
 
     void Clock() {
-        if (StateMachineGlobals::groundModule) {
+        if (StateMachineGlobals::isGroundModule) {
             state = State::GROUND;
         }
 
@@ -66,6 +66,10 @@ protected:
         landingDetected = detected;
     }
 
+    void SetIsGroundModule(bool isGroundModule) {
+        isGroundModule = isGroundModule;
+    }
+
     virtual void PadRun() = 0;
 
     virtual void FlightRun() = 0;
@@ -77,6 +81,7 @@ protected:
 private:
     bool boostDetected;
     bool landingDetected;
+    bool isGroundModule;
 };
 
 #endif //PADFLIGHTSTATEMACHINE_H

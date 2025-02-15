@@ -11,7 +11,7 @@
 #include <f_core/c_pad_flight_landing_state_machine.h>
 #include <f_core/utils/c_hashmap.h>
 
-class CLoraTransmitTenant : public CTenant, public PadFlightLandedStateMachine {
+class CLoraTransmitTenant : public CTenant, public CPadFlightLandedStateMachine {
 public:
     explicit CLoraTransmitTenant(const char* name, CLora& lora,
                                  CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
