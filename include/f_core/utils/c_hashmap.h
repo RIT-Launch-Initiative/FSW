@@ -55,9 +55,7 @@ private:
     std::size_t maxSizeAtStartup = 0;
 
     bool isMainThreadRunning() {
-        // TODO
-        // k_thread_name_get(k_current_get()) == "main";
-        return true;
+        return strncmp(k_thread_name_get(k_current_get()), "main", 4) == 0;
     }
 };
 
