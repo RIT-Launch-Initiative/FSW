@@ -6,7 +6,6 @@
 namespace NStateMachineGlobals {
     static volatile bool boostDetected = false;
     static volatile bool landingDetected = false;
-    static volatile bool isGroundModule = false;
 }
 
 class CPadFlightLandedStateMachine {
@@ -24,7 +23,7 @@ protected:
     State state;
 
     void Clock() {
-        if (NStateMachineGlobals::isGroundModule) {
+        if (isGroundModule) {
             state = State::GROUND;
         }
 
@@ -66,8 +65,8 @@ protected:
         landingDetected = detected;
     }
 
-    void SetIsGroundModule(bool isGroundModule) {
-        isGroundModule = isGroundModule;
+    void SetIsGroundModule(const bool is) {
+        isGroundModule = is;
     }
 
     virtual void PadRun() = 0;
