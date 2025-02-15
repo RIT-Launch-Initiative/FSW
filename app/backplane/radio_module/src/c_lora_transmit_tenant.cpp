@@ -77,7 +77,6 @@ void CLoraTransmitTenant::LandedRun() {
 
 void CLoraTransmitTenant::GroundRun() {
     NTypes::RadioBroadcastData data{};
-    LOG_INF("Running ground");
     if (readTransmitQueue(data)) {
         transmit(data);
     }

@@ -26,7 +26,6 @@ void CReceiverModule::AddTenantsToTasks() {
 void CReceiverModule::AddTasksToRtos() {
     // Networking
     NRtos::AddTask(networkingTask);
-    // NRtos::AddTask(loraTxTask);
     NRtos::AddTask(loraTask);
 }
 
