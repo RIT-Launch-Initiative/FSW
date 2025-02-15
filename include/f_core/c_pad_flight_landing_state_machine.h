@@ -4,9 +4,9 @@
 // We shouldn't define globals, but this is a quick and dirty way
 // to avoid a bunch of inter-thread communication. Should
 namespace StateMachineGlobals {
-    bool boostDetected = false;
-    bool landingDetected = false;
-    bool groundModule = false;
+    static bool boostDetected = false;
+    static bool landingDetected = false;
+    static bool groundModule = false;
 }
 
 class PadFlightLandedStateMachine {
@@ -18,7 +18,7 @@ public:
         GROUND
     };
 
-    PadFlightLandedStateMachine();
+    PadFlightLandedStateMachine() : state(State::PAD), boostDetected(false), landingDetected(false) {};
 
 protected:
     State state;
