@@ -6,9 +6,9 @@
 LOG_MODULE_REGISTER(CLoraTransmitTenant);
 
 void CLoraTransmitTenant::Startup() {
-    bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {});
-    success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {});
-    success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {});
+    bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {.port = 0, .size = 0});
+    success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {.port = 0, .size = 0});
+    success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {.port = 0, .size = 0});
 
     success &= padDataRequestedMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, false);
     success &= padDataRequestedMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, false);
@@ -41,20 +41,21 @@ void CLoraTransmitTenant::PadRun() {
         if (!requested) {
             NTypes::RadioBroadcastData data = portDataMap.Get(port).value_or(NTypes::RadioBroadcastData{.port = 0, .size = 0});
             if (port == 0 && data.size == 0) {
-                LOG_WRN("Fuck");
                 continue;
             }
 
             transmit(data);
+            padDataRequestedMap[port] = false;
         }
     }
 }
 
 
 void CLoraTransmitTenant::FlightRun() {
+    LOG_INF("Flight Run");
     NTypes::RadioBroadcastData data{};
     if (readTransmitQueue(data)) {
-
+        transmit(data);
     }
 }
 

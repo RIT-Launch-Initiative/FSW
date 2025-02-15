@@ -83,7 +83,7 @@ void CLoraReceiveTenant::GroundRun() {
 }
 
 int CLoraReceiveTenant::receive(const uint8_t* buffer, const int buffSize, int* port) {
-    const int size = lora.ReceiveSynchronous(&buffer, buffSize, nullptr, nullptr);
+    const int size = lora.ReceiveSynchronous(&buffer, buffSize, nullptr, nullptr, K_NO_WAIT);
     if (size == -EAGAIN) {
         return size;
     }
