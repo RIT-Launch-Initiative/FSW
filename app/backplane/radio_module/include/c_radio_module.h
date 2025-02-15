@@ -7,7 +7,7 @@
 #include "c_gnss_tenant.h"
 #include "c_udp_listener_tenant.h"
 #include "c_lora_transmit_tenant.h"
-#include "c_lora_to_udp_tenant.h"
+#include "c_lora_receive_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -42,11 +42,11 @@ public:
     void SetupCallbacks() override;
 
 private:
-    static constexpr const char* ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, CONFIG_BOARD_REVISION, CONFIG_MODULE_ID);
+    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
 
-    static constexpr uint16_t powerModuleTelemetryPort = 11000;
-    static constexpr uint16_t radioModuleSourcePort = 12000;
-    static constexpr uint16_t sensorModuleTelemetryPort = 12100;
+    static constexpr uint16_t powerModuleTelemetryPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
+    static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
+    static constexpr uint16_t sensorModuleTelemetryPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
 
     // Devices
 #ifndef CONFIG_ARCH_POSIX
@@ -65,7 +65,7 @@ private:
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
 #ifndef CONFIG_ARCH_POSIX
-    CLoraToUdpTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort};
+    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort, &loraBroadcastMessagePort};
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
@@ -73,8 +73,8 @@ private:
     // Tasks
     CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
     CTask gnssTask{"GNSS Task", 15, 1024, 0};
-    CTask dataLoggingTask{"Data Logging Task", 15, 512, 0};
-    CTask loraTask{"LoRa Task", 15, 1024, 0};
+    CTask dataLoggingTask{"Data Logging Task", 15, 2048, 0};
+    CTask loraTask{"LoRa Task", 15, 2048, 0};
 
 };
 

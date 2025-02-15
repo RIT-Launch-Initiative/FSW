@@ -65,6 +65,4 @@ private:
     CTask dataLoggingTask{"Data Logging Task", 15, 1500, 0};
 };
 
-
-
 #endif //C_SENSOR_MODULE_H
