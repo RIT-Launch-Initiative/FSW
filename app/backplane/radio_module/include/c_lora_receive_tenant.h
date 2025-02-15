@@ -2,6 +2,8 @@
 #define C_LORA_RECEIVE_TENANT_H
 
 
+#include <c_lora_transmit_tenant.h>
+
 #include "n_radio_module_types.h"
 
 #include <f_core/c_pad_flight_landing_state_machine.h>
@@ -14,8 +16,8 @@
 
 class CLoraReceiveTenant : public CTenant, public CPadFlightLandedStateMachine {
 public:
-    explicit CLoraReceiveTenant(const char* name, CLora& lora, const char* ip, const uint16_t srcPort, CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
-        : CTenant(name), lora(lora), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort)), loraTransmitPort(*loraTransmitPort) {}
+    explicit CLoraReceiveTenant(const char* name, CLoraTransmitTenant& loraTransmitTenant, const char* ip, const uint16_t srcPort)
+        : CTenant(name), loraTransmitTenant(loraTransmitTenant), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort)) {}
 
     /**
      * See Parent Docs
@@ -58,7 +60,7 @@ public:
     void GroundRun() override;
 
 private:
-    CLora& lora;
+    CLoraTransmitTenant& loraTransmitTenant;
     CUdpSocket udp; 
     CGpio gpios[4] = {
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
@@ -66,10 +68,9 @@ private:
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
-    CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
     static constexpr int portOffset = 2;
 
-    int receive(const uint8_t *buffer, const int size, int *port);
+    int receive(const uint8_t *buffer, const int size, int *port) const;
 };
 
 #endif //C_LORA_RECEIVE_TENANT_H

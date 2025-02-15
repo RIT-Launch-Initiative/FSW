@@ -13,6 +13,8 @@
 
 class CLoraTransmitTenant : public CTenant, public CPadFlightLandedStateMachine {
 public:
+    friend class CLoraReceiveTenant;
+
     explicit CLoraTransmitTenant(const char* name, CLora& lora,
                                  CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
         : CTenant(name), lora(lora), loraTransmitPort(*loraTransmitPort) {}

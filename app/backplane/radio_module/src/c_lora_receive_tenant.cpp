@@ -52,8 +52,11 @@ void CLoraReceiveTenant::PadRun() {
             pinStatus.data[0] |= gpios[3].GetPin() << 3;
 
             // Retransmit status so GS can verify
-            // TODO: Figure out why this blocks lora task from continuing
-            // loraTransmitPort.Send(pinStatus);
+            loraTransmitTenant.transmit(pinStatus);
+        } else if (port == NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT) { // Data Request
+            for (int i = 2; i < rxSize; i += 2) {
+                loraTransmitTenant.padDataRequestedMap[buffer[i] << 8 | buffer[i + 1]] = true;
+            }
         } else {
             udp.SetDstPort(port);
             udp.TransmitAsynchronous(&buffer[2], rxSize - portOffset);
@@ -82,8 +85,8 @@ void CLoraReceiveTenant::GroundRun() {
     udp.TransmitAsynchronous(buffer, rxSize);
 }
 
-int CLoraReceiveTenant::receive(const uint8_t* buffer, const int buffSize, int* port) {
-    const int size = lora.ReceiveSynchronous(&buffer, buffSize, nullptr, nullptr, K_NO_WAIT);
+int CLoraReceiveTenant::receive(const uint8_t* buffer, const int buffSize, int* port) const {
+    const int size = loraTransmitTenant.lora.ReceiveSynchronous(&buffer, buffSize, nullptr, nullptr, K_NO_WAIT);
     if (size == -EAGAIN) {
         return size;
     }
