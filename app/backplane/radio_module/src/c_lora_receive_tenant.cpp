@@ -57,6 +57,7 @@ void CLoraReceiveTenant::PadRun() {
                 loraTransmitTenant.padDataRequestedMap[buffer[i] << 8 | buffer[i + 1]] = true;
             }
         } else {
+            LOG_INF("Sending LoRa received data to UDP %d", port);
             udp.SetDstPort(port);
             udp.TransmitAsynchronous(&buffer[2], rxSize - portOffset);
         }
@@ -85,7 +86,8 @@ void CLoraReceiveTenant::GroundRun() {
 }
 
 int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
-    const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_NO_WAIT);
+    LOG_INF("Waiting for LoRa data");
+    const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(3));
     if (size == -EAGAIN) {
         return size;
     }
@@ -101,5 +103,6 @@ int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) 
     }
 
     *port = buffer[1] << 8 | buffer[0];
+    LOG_INF("Got data for port %d from LoRa", *port);
     return size;
 }
