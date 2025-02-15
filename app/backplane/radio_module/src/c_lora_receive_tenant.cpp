@@ -12,6 +12,9 @@ void CLoraReceiveTenant::CLoraReceiveTenant::Startup() {}
 void CLoraReceiveTenant::CLoraReceiveTenant::PostStartup() {}
 
 void CLoraReceiveTenant::CLoraReceiveTenant::Run() {
+    SetBoostDetected(NStateMachineGlobals::boostDetected);
+    SetLandingDetected(NStateMachineGlobals::landingDetected);
+    Clock();
 }
 
 void CLoraReceiveTenant::PadRun() {

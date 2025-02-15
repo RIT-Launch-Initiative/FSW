@@ -25,7 +25,9 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-    CPadFlightLandedStateMachine::Clock();
+    SetBoostDetected(NStateMachineGlobals::boostDetected);
+    SetLandingDetected(NStateMachineGlobals::landingDetected);
+    Clock();
 }
 
 void CLoraTransmitTenant::PadRun() {

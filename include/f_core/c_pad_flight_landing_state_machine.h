@@ -3,7 +3,7 @@
 
 // We shouldn't define globals, but this is a quick and dirty way
 // to avoid a bunch of inter-thread communication. Should
-namespace StateMachineGlobals {
+namespace NStateMachineGlobals {
     static volatile bool boostDetected = false;
     static volatile bool landingDetected = false;
     static volatile bool isGroundModule = false;
@@ -24,7 +24,7 @@ protected:
     State state;
 
     void Clock() {
-        if (StateMachineGlobals::isGroundModule) {
+        if (NStateMachineGlobals::isGroundModule) {
             state = State::GROUND;
         }
 
