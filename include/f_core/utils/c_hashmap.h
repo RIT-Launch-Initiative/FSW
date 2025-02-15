@@ -29,6 +29,15 @@ public:
         return map.insert(std::make_pair(key, value)).second;
     }
 
+    bool Set(const Key& key, const Value& value) {
+        if (map.contains(key)) {
+            map[key] = value;
+            return true;
+        }
+
+        return false;
+    }
+
     bool Remove(const Key& key) {
         size--;
         return map.erase(key);
@@ -36,6 +45,10 @@ public:
 
     std::optional<Value> Get(const Key& key) const {
         return map.at(key);
+    }
+
+    bool Contains(Key key) const {
+        return map.contains(key);
     }
 
     [[nodiscard]] std::size_t Size() const {
@@ -51,6 +64,11 @@ public:
     }
 
     Value& operator[](const Key& key) {
+        if (!map.contains(key)) {
+            printk("Attempted to access a key that does not exist in the hashmap"); // LOG doesn't work well in templates
+            k_oops();
+        }
+
         return map[key];
     }
 
