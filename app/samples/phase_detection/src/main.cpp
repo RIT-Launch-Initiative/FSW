@@ -1,7 +1,7 @@
 // F-Core Includes
 #include "f_core/os/flight_log.hpp"
-#include "f_core/util/debouncer.hpp"
-#include "f_core/util/linear_fit.hpp"
+#include "f_core/utils/debouncer.hpp"
+#include "f_core/utils/linear_fit.hpp"
 #include "flight.h"
 
 #include <array>

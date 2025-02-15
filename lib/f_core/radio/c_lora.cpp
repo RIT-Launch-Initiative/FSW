@@ -1,4 +1,4 @@
-#include <f_core/net/device/c_lora.h>
+#include <f_core/radio/c_lora.h>
 #include <zephyr/drivers/spi.h>
 
 CLora::CLora(const device& lora_dev) : lora_dev(&lora_dev) {

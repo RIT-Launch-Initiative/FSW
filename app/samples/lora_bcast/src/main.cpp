@@ -8,7 +8,7 @@
 #include <string>
 
 // F-Core Includes
-#include <f_core/net/device/c_lora.h>
+#include <f_core/radio/c_lora.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>

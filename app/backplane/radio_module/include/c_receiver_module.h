@@ -12,7 +12,7 @@
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
-#include <f_core/net/device/c_lora.h>
+#include <f_core/radio/c_lora.h>
 
 class CReceiverModule : public CProjectConfiguration {
 public:
