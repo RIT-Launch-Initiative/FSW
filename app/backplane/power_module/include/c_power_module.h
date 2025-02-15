@@ -44,7 +44,8 @@ public:
 
 private:
     const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID)).c_str();
-    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
+    static constexpr int inaDataPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
+    static constexpr int adcDataPort = NNetworkDefs::POWER_MODULE_ADC_DATA_PORT;
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
@@ -54,10 +55,10 @@ private:
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
-    CUdpBroadcastTenant<NTypes::SensorData> sensorBroadcastTenant{"Sensor Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
+    CUdpBroadcastTenant<NTypes::SensorData> sensorBroadcastTenant{"Sensor Broadcast Tenant", ipAddrStr, inaDataPort, inaDataPort, sensorDataBroadcastMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
     CAdcTenant adcTenant{"ADC Tenant", adcDataBroadcastMessagePort, adcDataLogMessagePort};
-    CUdpBroadcastTenant<int32_t> adcBroadcastTenant{"ADC Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, adcDataBroadcastMessagePort};
+    CUdpBroadcastTenant<int32_t> adcBroadcastTenant{"ADC Broadcast Tenant", ipAddrStr, adcDataPort, adcDataPort, adcDataBroadcastMessagePort};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 1024, 0};
