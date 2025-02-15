@@ -23,7 +23,8 @@ config F_CORE_NET
 
 config F_CORE_RADIO
     bool "Radio"
-    This option enables radio functionality for F-Core
+    help
+      This option enables radio functionality for F-Core
 
 config F_CORE_OS
     bool "OS"
