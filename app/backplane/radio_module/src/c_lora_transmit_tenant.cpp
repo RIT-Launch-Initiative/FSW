@@ -29,8 +29,12 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
+#ifdef CONFIG_RADIO_MODULE_RECEIVER
+    SetIsGroundModule(true);
+#else
     SetBoostDetected(NStateMachineGlobals::boostDetected);
     SetLandingDetected(NStateMachineGlobals::landingDetected);
+#endif
     Clock();
 }
 
@@ -73,6 +77,7 @@ void CLoraTransmitTenant::LandedRun() {
 
 void CLoraTransmitTenant::GroundRun() {
     NTypes::RadioBroadcastData data{};
+    LOG_INF("Running ground");
     if (readTransmitQueue(data)) {
         transmit(data);
     }

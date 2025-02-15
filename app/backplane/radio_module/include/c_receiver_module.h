@@ -40,8 +40,8 @@ public:
 
 private:
     static constexpr const char* ipAddrStr = "10.2.1.1";
-    static constexpr uint16_t radioModuleSourcePort = 12000;
-    static constexpr uint16_t radioModuleCommandSourcePort = 12001;
+    static constexpr uint16_t radioModuleCommandPort = NNetworkDefs::RADIO_BASE_PORT;
+    static constexpr uint16_t radioModuleDataRequestPort = NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT;
 
     // Devices
     CLora lora;
@@ -52,9 +52,10 @@ private:
 
     // Tenants
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandSourcePort, &loraBroadcastMessagePort};
+    CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant portDataRequestListenerTenant{"Radio Module Port Data Request Listener Tenant", ipAddrStr, radioModuleDataRequestPort, &loraBroadcastMessagePort};
 
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
+    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, NNetworkDefs::RADIO_BASE_PORT};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 1024, 0};

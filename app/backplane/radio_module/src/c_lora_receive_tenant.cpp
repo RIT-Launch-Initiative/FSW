@@ -7,13 +7,17 @@
 
 LOG_MODULE_REGISTER(CLoraReceiveTenant);
 
-void CLoraReceiveTenant::CLoraReceiveTenant::Startup() {}
+void CLoraReceiveTenant::Startup() {}
 
-void CLoraReceiveTenant::CLoraReceiveTenant::PostStartup() {}
+void CLoraReceiveTenant::PostStartup() {}
 
-void CLoraReceiveTenant::CLoraReceiveTenant::Run() {
+void CLoraReceiveTenant::Run() {
+#ifdef CONFIG_RADIO_MODULE_RECEIVER
+    SetIsGroundModule(true);
+#else
     SetBoostDetected(NStateMachineGlobals::boostDetected);
     SetLandingDetected(NStateMachineGlobals::landingDetected);
+#endif
     Clock();
 }
 
