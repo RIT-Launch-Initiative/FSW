@@ -18,20 +18,20 @@ void CLoraTransmitTenant::Startup() {
 
 void CLoraTransmitTenant::PostStartup() {
     // TODO: Blast later
-    uint8_t *bufferOne = portDataMap.Get(NNetworkDefs::POWER_MODULE_INA_DATA_PORT).value();
+    uint8_t *bufferOne = portDataMap.Get(NNetworkDefs::POWER_MODULE_INA_DATA_PORT).value().data();
     if (bufferOne == nullptr) {
         LOG_ERR("Failed to get buffer for port %d", NNetworkDefs::POWER_MODULE_INA_DATA_PORT);
         k_oops();
     }
 
 
-    uint8_t *bufferTwo = portDataMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).value();
+    uint8_t *bufferTwo = portDataMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).value().data();
     if (bufferTwo == nullptr) {
         LOG_ERR("Failed to get buffer for port %d", NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT);
         k_oops();
     }
 
-    uint8_t *bufferThree = portDataMap.Get(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT).value();
+    uint8_t *bufferThree = portDataMap.Get(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT).value().data();
     if (bufferThree == nullptr) {
         LOG_ERR("Failed to get buffer for port %d", NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT);
         k_oops();
@@ -57,7 +57,7 @@ void CLoraTransmitTenant::Run() {
         return;
     }
 
-    uint8_t *buffer = portDataMap.Get(data.port).value();
+    uint8_t *buffer = portDataMap.Get(data.port).value().data();
     if (buffer != nullptr) {
         memcpy(buffer, data.data, data.size);
     }

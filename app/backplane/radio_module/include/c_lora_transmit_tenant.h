@@ -1,6 +1,8 @@
 #ifndef C_LORA_TRANSMIT_TENANT_H
 #define C_LORA_TRANSMIT_TENANT_H
 
+#include <array>
+
 #include "n_radio_module_types.h"
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
@@ -29,7 +31,7 @@ private:
 
     CLora& lora;
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
-    CHashMap<uint16_t, uint8_t[255], totalPortsListenedTo> portDataMap;
+    CHashMap<uint16_t, std::array<uint8_t, 256>, totalPortsListenedTo> portDataMap;
 };
 
 #endif //C_LORA_TRANSMIT_TENANT_H
