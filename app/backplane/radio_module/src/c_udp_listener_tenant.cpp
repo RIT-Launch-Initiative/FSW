@@ -24,7 +24,6 @@ void CUdpListenerTenant::Run() {
     radioBroadcastData.port = listenPort;
     radioBroadcastData.size = static_cast<uint8_t>(rcvResult);
 
-    LOG_INF("Received %d bytes from UDP port %d", rcvResult, radioBroadcastData.port);
     if (loraTransmitPort.Send(radioBroadcastData) == -ENOMSG) {
         LOG_WRN_ONCE("Failed to send to broadcast queue");
         loraTransmitPort.Clear();

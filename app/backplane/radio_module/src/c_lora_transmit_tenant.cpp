@@ -58,7 +58,6 @@ void CLoraTransmitTenant::PadRun() {
 
 
 void CLoraTransmitTenant::FlightRun() {
-    LOG_INF("Flight Run");
     NTypes::RadioBroadcastData data{};
     if (readTransmitQueue(data)) {
         transmit(data);

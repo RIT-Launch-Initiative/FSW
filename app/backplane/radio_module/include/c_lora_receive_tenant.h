@@ -70,7 +70,7 @@ private:
     };
     static constexpr int portOffset = 2;
 
-    int receive(const uint8_t *buffer, const int size, int *port) const;
+    int receive(uint8_t *buffer, const int size, int *port) const;
 };
 
 #endif //C_LORA_RECEIVE_TENANT_H
