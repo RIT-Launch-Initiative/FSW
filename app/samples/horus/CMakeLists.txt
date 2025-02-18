@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Legrand North America, LLC.
+# Copyright (c) 2025 Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.20.0)
