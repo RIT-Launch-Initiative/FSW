@@ -13,15 +13,15 @@
  * *Events* are things that happen during flight that could affect behavior of the system (Boost, Noseover, Landing, etc)
  * *Sources* are different mechanism the flight computer has of detecting events (IMU, Barometer, GPS, Timer, etc)
  * @tparam EventID an enum type identifying Events. Any value of type EventID should not exceed num_events
- * @tparam num_events the number of unique events that will be passed to any member function. num_events > any value of type EventID
+ * @tparam numEvents the number of unique events that will be passed to any member function. num_events > any value of type EventID
  * @tparam SourceID an enum type identifying Sources. Any value of type SourceID should not exceed num_sources
- * @tparam num_sources the number of unique sources that will be passed to any member function. num_sources > any value of type SourceID
- * @tparam num_timers the number of timer-triggered events that will be used
+ * @tparam numSources the number of unique sources that will be passed to any member function. num_sources > any value of type SourceID
+ * @tparam numTimers the number of timer-triggered events that will be used
  */
-template <typename EventID, std::size_t num_events, typename SourceID, std::size_t num_sources, std::size_t num_timers>
+template <typename EventID, std::size_t numEvents, typename SourceID, std::size_t numSources, std::size_t numTimers>
 class CPhaseController {
   public:
-    static_assert(num_events <= 32, "Current implementation is limited to 32 events");
+    static_assert(numEvents <= 32, "Current implementation is limited to 32 events");
     static_assert(std::is_enum_v<EventID>, "EventIDs must be enums");
     static_assert(std::is_enum_v<SourceID>, "SourceID must be enums");
 
@@ -43,7 +43,7 @@ class CPhaseController {
      * Decision functions take this and come to a conclusion about whether or
      * not the event has passed the threshold for actually happening
      */
-    using SourceStates = std::array<bool, num_sources>;
+    using SourceStates = std::array<bool, numSources>;
 
     /**
      * Decide if an event has actually happened based on whether or not the possible sources believe it has
@@ -61,13 +61,13 @@ class CPhaseController {
      * @param flightLogFileName a file name 
      * The lifetime of all these paramters should exceed the lifetime of an instance of CPhaseController
      */
-    CPhaseController(const std::array<const char *, num_sources> &sourceNames,
-                     const std::array<const char *, num_events> &eventNames,
-                     const std::array<TimerEvent, num_timers> &timerEvents,
-                     const std::array<DecisionFunc, num_events> &deciders, CFlightLog *flight_log)
-        : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), flight_log(flight_log) {
+    CPhaseController(const std::array<const char *, numSources> &sourceNames,
+                     const std::array<const char *, numEvents> &eventNames,
+                     const std::array<TimerEvent, numTimers> &timerEvents,
+                     const std::array<DecisionFunc, numEvents> &deciders, CFlightLog *flightLog)
+        : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), flightLog(flightLog) {
 
-        for (std::size_t i = 0; i < num_timers; i++) {
+        for (std::size_t i = 0; i < numTimers; i++) {
             timerUserdata[i] = InternalTimerEvent{.controller = this, .event = timerEvents[i]};
             k_timer_init(&timers[i], timer_expiry_cb, NULL);
             k_timer_user_data_set(&timers[i], (void *) &timerUserdata[i]);
@@ -75,12 +75,12 @@ class CPhaseController {
 
         k_event_init(&osEvents);
         k_event_clear(&osEvents, 0xFFFFFFFF);
-        if (flight_log != nullptr) {
-            flight_log->Write("CPhaseController initialized");
+        if (flightLog != nullptr) {
+            flightLog->Write("CPhaseController initialized");
         }
     }
     ~CPhaseController() {
-        for (std::size_t i = 0; i < num_timers; i++) {
+        for (std::size_t i = 0; i < numTimers; i++) {
             k_timer_stop(&timers[i]);
         }
     }
@@ -89,7 +89,7 @@ class CPhaseController {
      * Gets the flight log that this controller is reporting to
      * @return pointer to the active flight log. null if no flight log was passed in
      */
-    CFlightLog *GetFlightLog() { return flight_log; }
+    CFlightLog *flightLog() { return flightLog; }
 
     /**
      * Log a message like "1234ms: Boost from IMU1"
@@ -98,11 +98,11 @@ class CPhaseController {
      * @return 0 if successfully written to the flight log. Otherwise, the filesystem error from writing.
      */
     int LogSourceEvent(EventID event, SourceID source) {
-        if (flight_log != nullptr) {
-            constexpr size_t buf_size = 64;
-            char string_buf[buf_size] = {0};
-            int num_wrote = snprintf(string_buf, buf_size, "%-10s from %s", eventNames[event], sourceNames[source]);
-            return flight_log->Write(string_buf, num_wrote);
+        if (flightLog != nullptr) {
+            constexpr size_t bufferSize = 64;
+            char stringBuffer[bufferSize] = {0};
+            int bytesWritten = snprintf(stringBuffer, bufferSize, "%-10s from %s", eventNames[event], sourceNames[source]);
+            return flightLog->Write(stringBuffer, bytesWritten);
         }
         return 0;
     }
@@ -114,12 +114,12 @@ class CPhaseController {
      * @return 0 if successfully written to the flight log. Otherwise, the filesystem error from writing.
      */
     int LogEventConfirmed(EventID event, bool currentState) {
-        if (flight_log != nullptr) {
+        if (flightLog != nullptr) {
             constexpr size_t buf_size = 64;
             char string_buf[buf_size] = {0};
             int num_wrote = snprintf(string_buf, buf_size, "%-10s confirmed%s", eventNames[event],
                                      currentState ? " but already happened. Not dispatching" : "");
-            return flight_log->Write(string_buf, num_wrote);
+            return flightLog->Write(string_buf, num_wrote);
         }
         return 0;
     }
@@ -131,26 +131,26 @@ class CPhaseController {
      * @param event the event that the source thinks happened
      */
     void SubmitEvent(SourceID source, EventID event) {
-        uint32_t event_bit = (1 << (uint32_t) event);
+        uint32_t eventBit = (1 << (uint32_t) event);
         sourceStates[event][source] = true;
 
         // If that event submission caused the event to fully trigger, send message
         if (deciders[event](sourceStates[event])) {
-            bool last_state = eventStates[event];
-            if (!last_state) {
+            bool lastState = eventStates[event];
+            if (!lastState) {
                 // dispatch event
                 eventStates[event] = true;
-                k_event_post(&osEvents, event_bit);
+                k_event_post(&osEvents, eventBit);
 
                 // start any necessary timers
-                for (std::size_t i = 0; i < num_timers; i++) {
+                for (std::size_t i = 0; i < numTimers; i++) {
                     if (timerUserdata[i].event.start == event) {
                         k_timer_start(&timers[i], timerUserdata[i].event.time, K_NO_WAIT);
                     }
                 }
             }
             LogSourceEvent(event, source);
-            LogEventConfirmed(event, last_state);
+            LogEventConfirmed(event, lastState);
         } else {
             LogSourceEvent(event, source);
         }
@@ -170,9 +170,9 @@ class CPhaseController {
      * @return True if the event occured. False if the timeout occured.
      */
     bool WaitUntilEvent(EventID event, k_timeout_t timeout = K_FOREVER) {
-        uint32_t event_bit = (1 << (uint32_t) event);
-        uint32_t event_that_happened = k_event_wait(&osEvents, event_bit, false, timeout);
-        return event_that_happened != 0;
+        uint32_t eventBit = (1 << (uint32_t) event);
+        uint32_t eventThatHappened = k_event_wait(&osEvents, eventBit, false, timeout);
+        return eventThatHappened != 0;
     }
 
   private:
@@ -191,32 +191,32 @@ class CPhaseController {
      */
     constexpr static auto timer_expiry_cb = [](struct k_timer *timer) {
         void *data = k_timer_user_data_get(timer);
-        InternalTimerEvent event_info = *static_cast<InternalTimerEvent *>(data);
-        event_info.controller->SubmitEvent(event_info.event.source, event_info.event.event);
+        InternalTimerEvent eventInfo = *static_cast<InternalTimerEvent *>(data);
+        eventInfo.controller->SubmitEvent(eventInfo.event.source, eventInfo.event.event);
     };
 
     // Current State of the system
 
     /// state of events per source
-    std::array<SourceStates, num_events> sourceStates = {false};
+    std::array<SourceStates, numEvents> sourceStates = {false};
     /// the state of events that have been agreed to have happened based on deciders and per-source states
-    std::array<bool, num_events> eventStates = {false};
+    std::array<bool, numEvents> eventStates = {false};
 
     // Timer handling
-    std::array<struct k_timer, num_timers> timers = {0};
-    std::array<InternalTimerEvent, num_timers> timerUserdata = {0};
+    std::array<struct k_timer, numTimers> timers = {0};
+    std::array<InternalTimerEvent, numTimers> timerUserdata = {0};
 
     // OS events for handling synchronization
     k_event osEvents;
 
     // consts for logging and deciding. These will not change after construction
-    const std::array<const char *, num_sources> &sourceNames;
-    const std::array<const char *, num_events> &eventNames;
+    const std::array<const char *, numSources> &sourceNames;
+    const std::array<const char *, numEvents> &eventNames;
 
-    const std::array<DecisionFunc, num_events> &deciders;
+    const std::array<DecisionFunc, numEvents> &deciders;
 
     // Flight Log or nullptr if no logging is requested.
-    CFlightLog *flight_log;
+    CFlightLog *flightLog;
 };
 
 #endif
