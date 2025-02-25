@@ -1,4 +1,4 @@
-#include "f_core/protocols/horus/horus.h"
+#include "f_core/radio/protocols/horus/horus.h"
 #include "zephyr/logging/log.h"
 
 #include <stdio.h>
