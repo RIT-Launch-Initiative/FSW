@@ -7,6 +7,8 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 
+#include <f_core/os/flight_log.hpp>
+
 /**
  * Phase Controller
  * Handles the detection of states for a rocket flight.
