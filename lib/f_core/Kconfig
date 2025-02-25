@@ -42,4 +42,4 @@ config F_CORE_PROTOCOLS
     help
       This option enables support for some protocols for F-Core
 
-rsource "protocols/horus/Kconfig"
+rsource "radio/Kconfig"

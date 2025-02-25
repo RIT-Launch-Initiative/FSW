@@ -18,7 +18,7 @@ int main(void) {
 
     int i = horusv2_encode(&packet1, &output_buf);
     LOG_HEXDUMP_INF(output_buf, sizeof(output_buf), "output");
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 5; i++) {
         output_buf[i] = 0;
         output_buf[HORUS_ENCODED_BUFFER_SIZE - i - 1] = 0;
     }

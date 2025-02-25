@@ -6,6 +6,9 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+// As calculated by horus_l2_get_num_tx_data_bytes(sizeof(horus_packet_v2))
+#define HORUS_ENCODED_BUFFER_SIZE 65
+
 // Horus Binary v2 Packet Format
 // See: https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet
 // Note that we need to pack this to 1-byte alignment, hence the #pragma flags below
@@ -24,8 +27,8 @@ struct horus_packet_v2 {
     uint8_t sats;        // Number of GPS satellites visible
     int8_t temp; // Temperature in Celsius, as a signed value (-128 to +128, though sensor limited to -64 to +64 deg C)
     uint8_t battery_voltage; // 0 = 0v, 255 = 5.0V, linear steps in-between.
-    uint8_t custom_data
-        [9]; // Custom data, see: https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet#interpreting-the-custom-data-section
+    // Custom data, see: https://github.com/projecthorus/horusdemodlib/wiki/5-Customising-a-Horus-Binary-v2-Packet#interpreting-the-custom-data-section
+    uint8_t custom_data[9];
     uint16_t checksum; // CRC16-CCITT Checksum.
 };
 #pragma pack(pop)
@@ -36,8 +39,6 @@ struct horus_packet_v2 {
  */
 
 #define HORUS_PACKET_SIZE sizeof(struct horus_packet_v2)
-// As calculated by horus_l2_get_num_tx_data_bytes(sizeof(horus_packet_v2))
-#define HORUS_ENCODED_BUFFER_SIZE 65
 
 /**
  * byte buffer that will fit a horus_packet_v2 after encoding

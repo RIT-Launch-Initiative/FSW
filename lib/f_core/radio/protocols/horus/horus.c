@@ -101,18 +101,20 @@ int horus_l2_get_num_tx_data_bytes(int num_payload_data_bytes) {
 
     num_payload_data_bits = num_payload_data_bytes * 8;
     num_golay_codewords = num_payload_data_bits / 12;
-    if (num_payload_data_bits % 12) /* round up to 12 bits, may mean some unused bits */
+    if (num_payload_data_bits % 12) { /* round up to 12 bits, may mean some unused bits */
         num_golay_codewords++;
+    }
 
-    num_tx_data_bits = sizeof(uw) * 8 + num_payload_data_bits + num_golay_codewords * 11;
+    num_tx_data_bits = (sizeof(uw) * 8) + num_payload_data_bits + (num_golay_codewords * 11);
     num_tx_data_bytes = num_tx_data_bits / 8;
-    if (num_tx_data_bits % 8) /* round up to nearest byte, may mean some unused bits */
+    if (num_tx_data_bits % 8) { /* round up to nearest byte, may mean some unused bits */
         num_tx_data_bytes++;
+    }
 
-    LOG_INF("num_payload_data_bytes: %d", num_payload_data_bytes);
-    LOG_INF("num_golay_codewords...: %d", num_golay_codewords);
-    LOG_INF("num_tx_data_bits......: %d", num_tx_data_bits);
-    LOG_INF("num_tx_data_bytes.....: %d", num_tx_data_bytes);
+    LOG_DBG("num_payload_data_bytes: %d", num_payload_data_bytes);
+    LOG_DBG("num_golay_codewords...: %d", num_golay_codewords);
+    LOG_DBG("num_tx_data_bits......: %d", num_tx_data_bits);
+    LOG_DBG("num_tx_data_bytes.....: %d", num_tx_data_bytes);
 
     return num_tx_data_bytes;
 }
@@ -131,13 +133,9 @@ int horus_l2_get_num_tx_data_bytes(int num_payload_data_bytes) {
 
 int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *input_payload_data,
                               int num_payload_data_bytes) {
-    int num_tx_data_bytes, num_payload_data_bits;
     unsigned char *pout = output_tx_data;
-    int ninbit, ningolay, nparitybits;
-    int32_t ingolay, paritybyte, inbit, golayparity;
-    int ninbyte, shift, golayparitybit, i;
 
-    num_tx_data_bytes = horus_l2_get_num_tx_data_bytes(num_payload_data_bytes);
+    int num_tx_data_bytes = horus_l2_get_num_tx_data_bytes(num_payload_data_bytes);
     memcpy(pout, uw, sizeof(uw));
     pout += sizeof(uw);
     memcpy(pout, input_payload_data, num_payload_data_bytes);
@@ -146,21 +144,19 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
     /* Read input bits one at a time.  Fill input Golay codeword.  Find output Golay codeword.
        Write this to parity bits.  Write parity bytes when we have 8 parity bits.  Bits are
        written MSB first. */
-
-    num_payload_data_bits = num_payload_data_bytes * 8;
-    ninbit = 0;
-    ingolay = 0;
-    ningolay = 0;
-    paritybyte = 0;
-    nparitybits = 0;
+    int num_payload_data_bits = num_payload_data_bytes * 8;
+    int ninbit = 0;
+    int32_t ingolay = 0;
+    int32_t ningolay = 0;
+    int32_t paritybyte = 0;
+    int nparitybits = 0;
 
     while (ninbit < num_payload_data_bits) {
 
         /* extract input data bit */
-
-        ninbyte = ninbit / 8;
-        shift = 7 - (ninbit % 8);
-        inbit = (input_payload_data[ninbyte] >> shift) & 0x1;
+        int ninbyte = ninbit / 8;
+        int shift = 7 - (ninbit % 8);
+        int inbit = (input_payload_data[ninbyte] >> shift) & 0x1;
         LOG_DBG("inbit %d ninbyte: %d inbyte: 0x%02x inbit: %d", ninbit, ninbyte, input_payload_data[ninbyte], inbit);
         ninbit++;
 
@@ -175,15 +171,15 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
             ingolay <<= 1;
         } else {
             LOG_INF("ningolay: %d ingolay: 0x%04x", ningolay, ingolay);
-            golayparity = get_syndrome(ingolay << 11);
+            int32_t golayparity = get_syndrome(ingolay << 11);
             ingolay = 0;
 
             LOG_INF("golayparity: 0x%04x", golayparity);
 
             /* write parity bits to output data */
 
-            for (i = 0; i < 11; i++) {
-                golayparitybit = (golayparity >> (10 - i)) & 0x1;
+            for (int i = 0; i < 11; i++) {
+                int golayparitybit = (golayparity >> (10 - i)) & 0x1;
                 paritybyte = paritybyte | golayparitybit;
                 LOG_INF("i: %d golayparitybit: %d paritybyte: 0x%02x", i, golayparitybit, paritybyte);
                 nparitybits++;
@@ -198,7 +194,7 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
                 }
             }
         }
-    } /* while(.... */
+    }
 
     /* Complete final Golay encode, we may have partially finished ingolay, paritybyte */
 
@@ -206,14 +202,14 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
 
     if (ningolay % 12) {
         ingolay >>= 1;
-        golayparity = get_syndrome(ingolay << 12);
+        int32_t golayparity = get_syndrome(ingolay << 12);
         LOG_INF("  ningolay: %d ingolay: 0x%04x", ningolay, ingolay);
         LOG_INF("  golayparity: 0x%04x", golayparity);
 
         /* write parity bits to output data */
 
-        for (i = 0; i < 11; i++) {
-            golayparitybit = (golayparity >> (10 - i)) & 0x1;
+        for (int i = 0; i < 11; i++) {
+            int golayparitybit = (golayparity >> (10 - i)) & 0x1;
             paritybyte = paritybyte | golayparitybit;
             LOG_DBG("    i: %d golayparitybit: %d paritybyte: 0x%02x", i, golayparitybit, paritybyte);
             nparitybits++;
@@ -258,11 +254,9 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
 #ifdef CONFIG_HORUSV2_RX
 void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char *input_rx_data,
                                int num_payload_data_bytes) {
-    int num_payload_data_bits;
     unsigned char *pout = output_payload_data;
     unsigned char *pin = input_rx_data;
-    int ninbit, ingolay, ningolay, paritybyte, nparitybits;
-    int ninbyte, shift, inbit, golayparitybit, i, outbit, outbyte, noutbits, outdata;
+    // int ninbyte, shift, inbit, golayparitybit, i, outbit, outbyte, noutbits, outdata;
     int num_tx_data_bytes = horus_l2_get_num_tx_data_bytes(num_payload_data_bytes);
 
     /* optional scrambler and interleaver - we dont interleave UW */
@@ -280,24 +274,24 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
     /* Read input data bits one at a time.  When we have 12 read 11 parity bits. Golay decode.
        Write decoded (output data) bits every time we have 8 of them. */
 
-    num_payload_data_bits = num_payload_data_bytes * 8;
-    ninbit = 0;
-    ingolay = 0;
-    ningolay = 0;
-    nparitybits = 0;
-    paritybyte = *pin++;
+    int num_payload_data_bits = num_payload_data_bytes * 8;
+    int ninbit = 0;
+    int ingolay = 0;
+    int ningolay = 0;
+    int nparitybits = 0;
+    int paritybyte = *pin++;
     LOG_INF("Read paritybyte: 0x%02x", paritybyte);
     pout = output_payload_data;
-    noutbits = 0;
-    outbyte = 0;
+    int noutbits = 0;
+    int outbyte = 0;
 
     while (ninbit < num_payload_data_bits) {
 
         /* extract input data bit */
 
-        ninbyte = ninbit / 8 + sizeof(uw);
-        shift = 7 - (ninbit % 8);
-        inbit = (input_rx_data[ninbyte] >> shift) & 0x1;
+        int ninbyte = ninbit / 8 + sizeof(uw);
+        int shift = 7 - (ninbit % 8);
+        int inbit = (input_rx_data[ninbyte] >> shift) & 0x1;
         LOG_DBG("inbit %d ninbyte: %d inbyte: 0x%02x inbit: %d", ninbit, ninbyte, input_rx_data[ninbyte], inbit);
         ninbit++;
 
@@ -311,9 +305,9 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
 
         if ((ningolay % 12) == 0) {
             LOG_INF("ningolay: %d ingolay: 0x%04x", ningolay, ingolay >> 1);
-            for (i = 0; i < 11; i++) {
+            for (int i = 0; i < 11; i++) {
                 shift = 7 - (nparitybits % 8);
-                golayparitybit = (paritybyte >> shift) & 0x1;
+                int golayparitybit = (paritybyte >> shift) & 0x1;
                 ingolay |= golayparitybit;
                 if (i != 10) ingolay <<= 1;
                 nparitybits++;
@@ -329,12 +323,12 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
 
             /* write decoded/error corrected bits to output payload data */
 
-            outdata = golay23_decode(ingolay) >> 11;
+            int outdata = golay23_decode(ingolay) >> 11;
             LOG_INF("  outdata...: 0x%04x", outdata);
 
-            for (i = 0; i < 12; i++) {
+            for (int i = 0; i < 12; i++) {
                 shift = 11 - i;
-                outbit = (outdata >> shift) & 0x1;
+                int outbit = (outdata >> shift) & 0x1;
                 outbyte |= outbit;
                 noutbits++;
                 if (noutbits % 8) {
@@ -356,9 +350,9 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
 
     int golayparity = 0;
     if (ningolay % 12) {
-        for (i = 0; i < 11; i++) {
-            shift = 7 - (nparitybits % 8);
-            golayparitybit = (paritybyte >> shift) & 0x1;
+        for (int i = 0; i < 11; i++) {
+            int shift = 7 - (nparitybits % 8);
+            int golayparitybit = (paritybyte >> shift) & 0x1;
             golayparity |= golayparitybit;
             if (i != 10) golayparity <<= 1;
             nparitybits++;
@@ -371,20 +365,20 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
 
         ingolay >>= 1;
         int codeword = (ingolay << 12) + golayparity;
-        LOG_INF("  ningolay: %d ingolay: 0x%04x", ningolay, ingolay);
-        LOG_INF("  golay code word: 0x%04x", codeword);
-        LOG_INF("  golay decode...: 0x%04x", golay23_decode(codeword));
+        LOG_INF("\tningolay: %d ingolay: 0x%04x", ningolay, ingolay);
+        LOG_INF("\tgolay code word: 0x%04x", codeword);
+        LOG_INF("\tgolay decode...: 0x%04x", golay23_decode(codeword));
 
-        outdata = golay23_decode(codeword) >> 11;
-        LOG_INF("  outdata...: 0x%04x", outdata);
-        LOG_INF("  num_payload_data_bits: %d noutbits: %d", num_payload_data_bits, noutbits);
+        int outdata = golay23_decode(codeword) >> 11;
+        LOG_INF("\toutdata...: 0x%04x", outdata);
+        LOG_INF("\tnum_payload_data_bits: %d noutbits: %d", num_payload_data_bits, noutbits);
 
         /* write final byte */
 
         int ntogo = num_payload_data_bits - noutbits;
-        for (i = 0; i < ntogo; i++) {
-            shift = ntogo - i;
-            outbit = (outdata >> shift) & 0x1;
+        for (int i = 0; i < ntogo; i++) {
+            int shift = ntogo - i;
+            int outbit = (outdata >> shift) & 0x1;
             outbyte |= outbit;
             noutbits++;
             if (noutbits % 8) {
