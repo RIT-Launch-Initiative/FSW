@@ -5,23 +5,20 @@
 #include <f_core/flight/c_phase_controller.h>
 
 // Boost
-static constexpr float boost_threshold_m_s2 = 5 * 9.8; //m/s^2
-static constexpr uint32_t boost_time_thresshold = 250; //ms
+static constexpr double boost_threshold_m_s2 = 5 * 9.8; //m/s^2
+static constexpr uint32_t boost_time_thresshold = 250;  //ms
 
 // Noseover
-static constexpr float noseover_velocity_thresshold = 5;  //ft/s
+static constexpr double noseover_velocity_thresshold = 5; //ft/s
 static constexpr uint32_t noseover_time_thresshold = 250; //ms
 
 // Ground
-static constexpr float ground_velocity_thresshold = 10;   //ft/s
+static constexpr double ground_velocity_thresshold = 10;  //ft/s
 static constexpr uint32_t ground_time_thresshold = 10000; //ms (10s)
 
-enum Events : uint8_t { Boost, Noseover, GroundHit, CamerasOff, NumEvents };
+enum Events : uint8_t { Boost, NoseoverLockout, Noseover, GroundHit, CamerasOff, NumEvents };
 inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
-    "Boost",
-    "Noseover",
-    "GroundHit",
-    "CamerasOff",
+    "Boost", "NoseoverLockout", "Noseover", "GroundHit", "CamerasOff",
 };
 
 /**
@@ -87,6 +84,11 @@ inline constexpr std::array<SensorModulePhaseController::DecisionFunc, Events::N
     arr[Events::Boost] = [](SensorModulePhaseController::SourceStates states) -> bool {
         return (states[Sources::LowGImu] || states[Sources::HighGImu] || states[Sources::BaromBMP] ||
                 states[Sources::BaromMS5611]);
+    };
+
+    // NoseoverLockout
+    arr[Events::NoseoverLockout] = [](SensorModulePhaseController::SourceStates states) -> bool {
+        return states[Sources::NoseoverLockout];
     };
 
     // Noseover

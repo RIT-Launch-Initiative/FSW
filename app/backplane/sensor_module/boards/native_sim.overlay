@@ -41,15 +41,17 @@
     barom: barom {
         status = "okay";
         compatible = "openrocket,barometer";
-        lag-time-us = <10000>;
+        lag-time-us = <300000>; // from grim analysis
+		pressure-noise = <10>;
         sampling-period-us = <10>;
     };
 
     secondbarom: secondbarom {
         status = "okay";
         compatible = "openrocket,barometer";
-        lag-time-us = <100000>;
-        sampling-period-us = <10>;
+        lag-time-us = <300000>; // from grim analysis
+		pressure-noise = <10>;
+		sampling-period-us = <10>;
     };
 
 	fstab {

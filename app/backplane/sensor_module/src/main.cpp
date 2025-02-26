@@ -18,7 +18,7 @@ int main() {
     NRtos::StartRtos();
 
 #ifdef CONFIG_ARCH_POSIX
-    k_sleep(K_SECONDS(240));
+    k_sleep(K_SECONDS(900));
     NRtos::StopRtos();
     sensorModule.Cleanup();
     k_sleep(K_FOREVER);
