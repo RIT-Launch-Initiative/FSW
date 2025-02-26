@@ -9,8 +9,8 @@ static constexpr double boost_threshold_m_s2 = 5 * 9.8; //m/s^2
 static constexpr uint32_t boost_time_thresshold = 250;  //ms
 
 // Noseover
-static constexpr double noseover_velocity_thresshold = 5; //ft/s
-static constexpr uint32_t noseover_time_thresshold = 250; //ms
+static constexpr double noseover_velocity_thresshold = 10; //ft/s
+static constexpr uint32_t noseover_time_thresshold = 250;  //ms
 
 // Ground
 static constexpr double ground_velocity_thresshold = 10;  //ft/s
@@ -29,7 +29,7 @@ enum Sources : uint8_t {
     HighGImu,
     BaromBMP,
     BaromMS5611,
-    NoseoverLockout,
+    NoseoverLockoutTimer,
     FullFlightTimer,
     VideoOffTimer,
     NumSources
@@ -46,13 +46,13 @@ using SensorModulePhaseController =
  * Special events triggered not by sensors but by timers between phases
  */
 inline std::array<SensorModulePhaseController::TimerEvent, num_timer_events> timer_events = {
-    // We dont want to accidentally detect noseover when still burning or while going really fast.
+    // We dont want to accidentally detect noseover when still burning and the baroms are lagging.
     // Adds a lockout timer so even if our sensors say we nosed over, don't trust them until we've had time to slowdown
     SensorModulePhaseController::TimerEvent{
         .start = Events::Boost,
-        .event = Events::Noseover,
+        .event = Events::NoseoverLockout,
         .time = K_SECONDS(15),
-        .source = Sources::NoseoverLockout,
+        .source = Sources::NoseoverLockoutTimer,
     },
     // We know our entire flight will not last longer than X seconds even if we main at apogee.
     //This stops us from overwriting flight data if we don't detect the end
@@ -88,7 +88,7 @@ inline constexpr std::array<SensorModulePhaseController::DecisionFunc, Events::N
 
     // NoseoverLockout
     arr[Events::NoseoverLockout] = [](SensorModulePhaseController::SourceStates states) -> bool {
-        return states[Sources::NoseoverLockout];
+        return states[Sources::NoseoverLockoutTimer];
     };
 
     // Noseover

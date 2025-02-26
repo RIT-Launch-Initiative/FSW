@@ -9,13 +9,13 @@ double asl_from_pressure(double kpa) {
 
 void CDetectionHandler::HandleData(uint64_t timestamp, const NTypes::SensorData& data) {
     double t_seconds = (double) timestamp / 1000.0;
-    // printk("T: %.3f\n", (double) t_seconds);
+
     double primary_barom_asl = asl_from_pressure(data.PrimaryBarometer.Pressure);
     double secondary_barom_asl = asl_from_pressure(data.SecondaryBarometer.Pressure);
 
     primary_barom_velocity_finder.Feed(LinearFitSample(t_seconds, primary_barom_asl));
     secondary_barom_velocity_finder.Feed(LinearFitSample(t_seconds, secondary_barom_asl));
-    // printf("%.2f, %.2f\n", t_seconds, primary_barom_asl);
+
     if (!controller.HasEventOccured(Events::Boost)) {
         HandleBoost(timestamp, data);
     }
@@ -28,11 +28,11 @@ void CDetectionHandler::HandleData(uint64_t timestamp, const NTypes::SensorData&
     }
 
     uint32_t t_plus_ms = timestamp - boost_detected_time - boost_time_thresshold;
-    double slope = 0;
-    bool good_slope = find_slope(primary_barom_velocity_finder, slope);
+    // double slope = 0;
+    // find_slope(primary_barom_velocity_finder, slope);
 
-    printf("%d: %.2f, %.2f, %.2f, %.2f\n", (int) good_slope, (t_plus_ms / 1000.0), primary_barom_asl,
-           secondary_barom_asl, slope);
+    // printf("%d: %.2f, %.2f, %.2f, %.2f\n", (int) good_slope, (t_plus_ms / 1000.0), primary_barom_asl,
+    //    secondary_barom_asl, slope);
     if (!controller.HasEventOccured(Events::Noseover)) {
         HandleNoseover(t_plus_ms, data);
     }
@@ -93,7 +93,6 @@ void CDetectionHandler::HandleBoost(uint64_t timestamp, const NTypes::SensorData
                                         data.ImuAcceleration.Y * data.ImuAcceleration.Y +
                                         data.ImuAcceleration.Z * data.ImuAcceleration.Z;
 
-    // printk("Mag: %.2f\n", primary_mag_squared_m_s2);
     primary_imu_boost_squared_detector.feed(timestamp, primary_mag_squared_m_s2);
     secondary_imu_boost_squared_detector.feed(timestamp, secondary_mag_squared_m_s2);
 
