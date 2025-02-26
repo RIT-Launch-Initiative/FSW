@@ -24,6 +24,7 @@ env:
     app/samples/datalogger
     app/samples/gpio_blinky
     app/samples/phase_detection
+    app/samples/horus
 
   platforms: |
     nucleo_f446re

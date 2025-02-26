@@ -15,7 +15,7 @@ ZTEST(debouncer, test_working_good) {
     Value timeOver = 100; //ms
     Value valOver = 10.0; //meters or something
 
-    CDebuouncer<ThresholdDirection::Over, Timestamp, Value> db(timeOver, valOver);
+    CDebouncer<ThresholdDirection::Over, Timestamp, Value> db(timeOver, valOver);
 
     zassert_equal(db.passed(), false, "Have no data. shouldn't be passing");
     // first sample
@@ -38,7 +38,7 @@ ZTEST(debouncer, test_working_zig_zag) {
     Value timeOver = 100; //ms
     Value valOver = 10.0; //meters or something
 
-    CDebuouncer<ThresholdDirection::Over, Timestamp, Value> db(timeOver, valOver);
+    CDebouncer<ThresholdDirection::Over, Timestamp, Value> db(timeOver, valOver);
 
     zassert_equal(db.passed(), false, "Have no data. shouldn't be passing");
     // first sample
@@ -62,7 +62,7 @@ ZTEST(debouncer, test_simulated_flight) {
     Value valOver = 4.0; //meters or something
     auto flight = [](Timestamp t) -> Value { return (-2 * t * t + 6 * t); };
 
-    CDebuouncer<ThresholdDirection::Over, Timestamp, Value> db(timeOver, valOver);
+    CDebouncer<ThresholdDirection::Over, Timestamp, Value> db(timeOver, valOver);
 
     for (float t = 0; t < 2; t += 0.001) {
         Value v = flight(t);
