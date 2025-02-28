@@ -93,7 +93,7 @@ inline constexpr std::array<SensorModulePhaseController::DecisionFunc, Events::N
 
     // Noseover
     arr[Events::Noseover] = [](SensorModulePhaseController::SourceStates states) -> bool {
-        return states[Sources::BaromBMP] && states[Sources::BaromMS5611];
+        return states[Sources::BaromBMP] || states[Sources::BaromMS5611];
     };
 
     // On the ground

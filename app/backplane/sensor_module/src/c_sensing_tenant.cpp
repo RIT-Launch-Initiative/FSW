@@ -57,12 +57,17 @@ void CSensingTenant::Run() {
         k_timer_status_sync(&timer);
         uint64_t uptime = k_uptime_get();
 
-        for (auto sensor : sensors) {
-            if (sensor) {
-                sensor->UpdateSensorValue();
-            }
-        }
+        CDetectionHandler::SensorWorkings sensor_states = {};
 
+        sensor_states.primary_acc_ok = imuAccelerometer.UpdateSensorValue();
+        imuGyroscope.UpdateSensorValue();
+        sensor_states.primary_barometer_ok = primaryBarometer.UpdateSensorValue();
+        sensor_states.secondary_barometer_ok = secondaryBarometer.UpdateSensorValue();
+        sensor_states.secondary_acc_ok = accelerometer.UpdateSensorValue();
+        thermometer.UpdateSensorValue();
+#ifndef CONFIG_ARCH_POSIX
+        magnetometer.UpdateSensorValue();
+#endif
         data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
         data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
         data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
@@ -87,7 +92,7 @@ void CSensingTenant::Run() {
 
         data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
-        detection_handler.HandleData(uptime, data);
+        detection_handler.HandleData(uptime, data, sensor_states);
         // If we can't send immediately, drop the packet
         // we're gonna sleep then give it new data anywas
         dataToBroadcast.Send(data, K_NO_WAIT);

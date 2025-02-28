@@ -7,6 +7,12 @@
 
 class CDetectionHandler {
   public:
+    struct SensorWorkings {
+        bool primary_acc_ok;
+        bool secondary_acc_ok;
+        bool primary_barometer_ok;
+        bool secondary_barometer_ok;
+    };
     static constexpr std::size_t window_size = 10; // @100hz, 1 second window.
     using VelocityFinder = CRollingSum<LinearFitSample<double>, window_size>;
 
@@ -45,9 +51,9 @@ class CDetectionHandler {
     static constexpr uint64_t BOOST_NOT_YET_HAPPENED = ~0;
     uint64_t boost_detected_time = BOOST_NOT_YET_HAPPENED;
 
-    void HandleData(uint64_t uptime, const NTypes::SensorData &data);
+    void HandleData(uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
 
-    void HandleBoost(uint64_t uptime, const NTypes::SensorData &data);
-    void HandleNoseover(uint32_t t_plus_ms, const NTypes::SensorData &data);
-    void HandleGround(uint32_t t_plus_ms, const NTypes::SensorData &data);
+    void HandleBoost(uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
+    void HandleNoseover(uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
+    void HandleGround(uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
 };

@@ -44,6 +44,7 @@
         lag-time-us = <300000>; // from grim analysis
 		pressure-noise = <10>;
         sampling-period-us = <10>;
+		broken;
     };
 
     secondbarom: secondbarom {
@@ -51,6 +52,13 @@
         compatible = "openrocket,barometer";
         lag-time-us = <300000>; // from grim analysis
 		pressure-noise = <10>;
+		sampling-period-us = <10>;
+    };
+
+    magn: magn {
+        status = "okay";
+        compatible = "openrocket,magnetometer";
+        lag-time-us = <1000>;
 		sampling-period-us = <10>;
     };
 
