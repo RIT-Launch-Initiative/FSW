@@ -8,7 +8,7 @@
 
 #include <f_core/c_pad_flight_landing_state_machine.h>
 #include <f_core/os/c_tenant.h>
-#include <f_core/net/device/c_lora.h>
+#include <f_core/radio/c_lora.h>
 #include <f_core/net/network/c_ipv4.h>
 #include <f_core/net/transport/c_udp_socket.h>
 #include <f_core/messaging/c_message_port.h>
