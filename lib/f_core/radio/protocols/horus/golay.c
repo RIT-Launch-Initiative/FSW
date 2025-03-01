@@ -69,6 +69,7 @@ LOG_MODULE_REGISTER(GOLAY_ENC, CONFIG_HORUS_LOG_LEVEL);
  * a[] = auxiliary array to generate correctable error patterns
  */
 
+// Tables are to be initialized at startup with SYS_INIT. Will be set to true on startup
 static bool inited = false;
 
 static int encoding_table[4096], decoding_table[2048];
@@ -243,7 +244,7 @@ int golay23_decode(int received_codeword) {
     return received_codeword ^= decoding_table[get_syndrome(received_codeword)];
 }
 
-int golay23_count_errors(int recd_codeword, int corrected_codeword) {
+int golay23_count_errors(int received_codeword, int corrected_codeword) {
     int errors = 0;
     int diff, i;
 
