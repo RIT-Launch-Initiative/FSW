@@ -22,18 +22,7 @@ class CDetectionHandler {
 
     using BaromNoseoverDetector = CDebouncer<ThresholdDirection::Under, double>;
     using BaromGroundDetector = CDebouncer<ThresholdDirection::Under, double>;
-    CDetectionHandler(SensorModulePhaseController &controller)
-        : controller(controller),
-          primary_imu_boost_squared_detector(boost_time_thresshold, boost_threshold_m_s2 * boost_threshold_m_s2),
-          secondary_imu_boost_squared_detector{boost_time_thresshold, boost_threshold_m_s2 * boost_threshold_m_s2},
-
-          primary_barom_velocity_finder{LinearFitSample<double>{0, 0}},
-          secondary_barom_velocity_finder{LinearFitSample<double>{0, 0}},
-
-          primary_barom_noseover_detector{noseover_time_thresshold, noseover_velocity_thresshold},
-          secondary_barom_noseover_detector{noseover_time_thresshold, noseover_velocity_thresshold},
-          primary_barom_ground_detector{ground_time_thresshold, ground_velocity_thresshold},
-          secondary_barom_ground_detector{ground_time_thresshold, ground_velocity_thresshold} {}
+    CDetectionHandler(SensorModulePhaseController &controller);
 
     SensorModulePhaseController &controller;
     AccBoostDetector primary_imu_boost_squared_detector;
@@ -56,4 +45,9 @@ class CDetectionHandler {
     void HandleBoost(uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
     void HandleNoseover(uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
     void HandleGround(uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
+
+    /**
+     * @return true if the detection system wants more data, false if we're all finished
+     */
+    bool ContinueCollecting();
 };

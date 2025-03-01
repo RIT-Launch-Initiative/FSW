@@ -7,6 +7,21 @@ double asl_from_pressure(double kpa) {
     return (1.0 - pow(mbar / 1013.25, 0.190284)) * 145366.45;
 }
 
+CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller)
+    : controller(controller),
+      primary_imu_boost_squared_detector(boost_time_thresshold, boost_threshold_m_s2 * boost_threshold_m_s2),
+      secondary_imu_boost_squared_detector{boost_time_thresshold, boost_threshold_m_s2 * boost_threshold_m_s2},
+
+      primary_barom_velocity_finder{LinearFitSample<double>{0, 0}},
+      secondary_barom_velocity_finder{LinearFitSample<double>{0, 0}},
+
+      primary_barom_noseover_detector{noseover_time_thresshold, noseover_velocity_thresshold},
+      secondary_barom_noseover_detector{noseover_time_thresshold, noseover_velocity_thresshold},
+      primary_barom_ground_detector{ground_time_thresshold, ground_velocity_thresshold},
+      secondary_barom_ground_detector{ground_time_thresshold, ground_velocity_thresshold} {}
+
+bool CDetectionHandler::ContinueCollecting() { return !controller.HasEventOccured(Events::GroundHit); }
+
 void CDetectionHandler::HandleData(uint64_t timestamp, const NTypes::SensorData& data,
                                    const SensorWorkings& sensor_states) {
     double t_seconds = (double) timestamp / 1000.0;

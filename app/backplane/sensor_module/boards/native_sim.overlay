@@ -44,7 +44,6 @@
         lag-time-us = <300000>; // from grim analysis
 		pressure-noise = <10>;
         sampling-period-us = <10>;
-		broken;
     };
 
     secondbarom: secondbarom {

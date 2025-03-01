@@ -3,17 +3,13 @@
 
 LOG_MODULE_REGISTER(CMagnetometer);
 
-CMagnetometer::CMagnetometer(const device& dev)
-    : CSensorDevice(dev) {
-}
+CMagnetometer::CMagnetometer(const device& dev) : CSensorDevice(dev) {}
 
 bool CMagnetometer::UpdateSensorValue() {
-    if ((CBase::UpdateSensorValue()) &&
-        (0 == sensor_channel_get(&dev, SENSOR_CHAN_MAGN_XYZ, &magData.x))) {
+    if ((CBase::UpdateSensorValue()) && (0 == sensor_channel_get(&dev, SENSOR_CHAN_MAGN_XYZ, &magData.x))) {
         return true;
     }
 
-    LOG_WRN("Failed to update sensor values");
     return false;
 }
 

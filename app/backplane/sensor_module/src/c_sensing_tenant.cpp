@@ -53,7 +53,7 @@ void CSensingTenant::Run() {
     k_timer timer;
     k_timer_init(&timer, nullptr, nullptr);
     k_timer_start(&timer, K_MSEC(10), K_MSEC(10));
-    while (true) {
+    while (detection_handler.ContinueCollecting()) {
         k_timer_status_sync(&timer);
         uint64_t uptime = k_uptime_get();
 
@@ -98,4 +98,6 @@ void CSensingTenant::Run() {
         dataToBroadcast.Send(data, K_NO_WAIT);
         dataToLog.Send(data, K_NO_WAIT);
     }
+    LOG_INF("Finishing up data collection\n");
+    k_timer_stop(&timer);
 }
