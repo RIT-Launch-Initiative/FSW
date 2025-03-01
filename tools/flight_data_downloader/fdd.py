@@ -1,13 +1,20 @@
 import signal
 
+from flight_data_downloader.fdd_transport import FDDTransport
+
+transport: FDDTransport = None
+
 def handle_set_command(args):
     pass
 
-def handle_tree_command(args):
-    pass
+def handle_tree_command():
+    if transport is not None:
+        transport.tree()
 
 def handle_download_command(args):
-    pass
+    if transport is not None:
+        for file in args:
+            transport.download(file)
 
 def handle_exit_command(args):
     exit(0)
@@ -32,7 +39,7 @@ def main():
             case "set":
                 handle_set_command(arguments)
             case "tree":
-                handle_tree_command(arguments)
+                handle_tree_command()
             case "download":
                 handle_download_command(arguments)
             case "clear":
