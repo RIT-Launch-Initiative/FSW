@@ -1,17 +1,24 @@
 #ifndef C_HASHMAP_H
 #define C_HASHMAP_H
 
-#include <iostream>
 #include <optional>
 #include <unordered_map>
 #include <zephyr/logging/log.h>
 
-template <typename Key, typename Value>
+/**
+ * Wrapper around C++ unordered_map that blocks inserting new keys during RTOS runtime (threads)
+ * Main thread is the only thread allowed to allocate to the map, so the function is expected
+ * to only be called when tenants are initializing
+ *
+ * @tparam KeyType Type for the key
+ * @tparam ValueType Type for the value
+ */
+template <typename KeyType, typename ValueType>
 class CHashMap {
 public:
     CHashMap() = default;
 
-    bool Insert(const Key& key, const Value& value) {
+    bool Insert(const KeyType& key, const ValueType& value) {
         if (!isMainThreadRunning()) {
             if (!map.contains(key) && size > maxSizeAtStartup) {
                 printk("Attempted to insert more than the maximum size of the hashmap post-startup"); // LOG doesn't work well in templates
@@ -29,7 +36,7 @@ public:
         return map.insert(std::make_pair(key, value)).second;
     }
 
-    bool Set(const Key& key, const Value& value) {
+    bool Set(const KeyType& key, const ValueType& value) {
         if (map.contains(key)) {
             map[key] = value;
             return true;
@@ -38,16 +45,16 @@ public:
         return false;
     }
 
-    bool Remove(const Key& key) {
+    bool Remove(const KeyType& key) {
         size--;
         return map.erase(key);
     }
 
-    std::optional<Value> Get(const Key& key) const {
+    std::optional<ValueType> Get(const KeyType& key) const {
         return map.at(key);
     }
 
-    bool Contains(Key key) const {
+    bool Contains(KeyType key) const {
         return map.contains(key);
     }
 
@@ -55,15 +62,15 @@ public:
         return size;
     }
 
-    typename std::unordered_map<Key, Value>::iterator begin() {
+    typename std::unordered_map<KeyType, ValueType>::iterator begin() {
         return map.begin();
     }
 
-    typename std::unordered_map<Key, Value>::iterator end() {
+    typename std::unordered_map<KeyType, ValueType>::iterator end() {
         return map.end();
     }
 
-    Value& operator[](const Key& key) {
+    ValueType& operator[](const KeyType& key) {
         if (!map.contains(key)) {
             printk("Attempted to access a key that does not exist in the hashmap"); // LOG doesn't work well in templates
             k_oops();
@@ -73,7 +80,7 @@ public:
     }
 
 private:
-    std::unordered_map<Key, Value> map;
+    std::unordered_map<KeyType, ValueType> map;
     std::size_t size = 0;
     std::size_t maxSizeAtStartup = 0;
 
