@@ -18,17 +18,12 @@ CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
       accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer))), thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer))),
-      magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer))), sensors{&imuAccelerometer,
-                                                                    &imuGyroscope,
-                                                                    &primaryBarometer,
-                                                                    &secondaryBarometer,
-                                                                    &accelerometer,
-                                                                    &thermometer
+      magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer))),
+      sensors{&imuAccelerometer, &imuGyroscope, &primaryBarometer, &secondaryBarometer, &accelerometer, &thermometer,
 #ifndef CONFIG_ARCH_POSIX
-                                                                    ,
-                                                                    &magnetometer
+              &magnetometer
 #endif
-                                                            } {
+      } {
 }
 
 void CSensingTenant::Startup() {
