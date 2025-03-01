@@ -91,7 +91,7 @@ static const struct sensor_driver_api or_barom_api = {
             {                                                                                                          \
                 .broken = DT_INST_PROP(n, broken),                                                                     \
                 .sampling_period_us = DT_INST_PROP(n, sampling_period_us),                                             \
-                .lag_time_ms = DT_INST_PROP(n, lag_time_us),                                                           \
+                .lag_time_us = DT_INST_PROP(n, lag_time_us),                                                           \
                 .measurement_us = DT_INST_PROP(n, measurement_us),                                                     \
             },                                                                                                         \
         .temp_noise_scale = SCALE_OPENROCKET_NOISE(DT_INST_PROP(n, temp_noise)),                                       \

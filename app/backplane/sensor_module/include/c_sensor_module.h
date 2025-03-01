@@ -2,18 +2,20 @@
 #define C_SENSOR_MODULE_H
 
 #include "c_sensing_tenant.h"
+#include "flight.hpp"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
-#include <f_core/os/c_task.h>
-#include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
+#include <f_core/os/c_task.h>
+#include <f_core/os/flight_log.hpp>
+#include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
 
 class CSensorModule : public CProjectConfiguration {
-public:
+  public:
     /**
      * Constructor
      */
@@ -37,30 +39,34 @@ public:
     /**
     * Cleanup
     */
-    void Cleanup() {
-        dataLoggerTenant.Cleanup();
-    }
+    void Cleanup() { dataLoggerTenant.Cleanup(); }
 
-private:
-    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID).c_str()).c_str();
-    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
+  private:
+    const char* ipAddrStr = "1.2.3.4"; // 4
+    // (CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID).c_str()).c_str();
+    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT; // 8
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
 
+    CFlightLog flight_log{"/lfs/flight_log.txt"};
+    SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, &flight_log};
+    CDetectionHandler detection_handler{controller};
+
     // Tenants
-    CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
-    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
-    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort,
+                                 detection_handler};
+    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort,
+                                                            telemetryBroadcastPort, sensorDataBroadcastMessagePort};
+    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin",
+                                                           LogMode::Growing, 0, sensorDataLogMessagePort};
     // CRs485Tenant rs485Tenant{"RS485 Tenant"};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 1024, 0};
-    CTask sensingTask{"Sensing Task", 15, 1024, 0};
+    CTask sensingTask{"Sensing Task", 15, 1024, 10};
     CTask dataLogTask{"Data Logging Task", 15, 1300, 0};
 };
-
-
 
 #endif //C_SENSOR_MODULE_H
