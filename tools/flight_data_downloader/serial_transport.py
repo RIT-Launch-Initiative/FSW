@@ -1,8 +1,8 @@
-import fdd_transport
+from fdd_transport import FDDTransport
 
 class SerialTransport(FDDTransport):
     def __init__(self):
-        pass
+        super().__init__()
 
-    def download(file: str):
-        pass
+    def _get_file(self, file: str) -> bytes:
+        raise NotImplementedError("FDDTransport is an abstract class")

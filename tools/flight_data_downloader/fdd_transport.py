@@ -9,7 +9,7 @@ class FDDTransport:
     def set_output_folder(self, folder: str):
         self.output_folder = folder
 
-    def _get_file(self, file: str) -> str:
+    def _get_file(self, file: str) -> bytes:
         raise NotImplementedError("FDDTransport is an abstract class")
 
     def tree(self):
