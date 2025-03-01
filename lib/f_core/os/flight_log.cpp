@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(flight_log, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(flight_log);
 
 CFlightLog::CFlightLog(const char *filename) : CFlightLog(filename, k_uptime_get()) {}
 CFlightLog::CFlightLog(const char *filename, int64_t timestamp) {
