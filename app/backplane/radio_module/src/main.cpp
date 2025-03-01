@@ -29,6 +29,7 @@ int main() {
     radioModule.SetupCallbacks();
 
     NRtos::StartRtos();
+    k_sched_time_slice_set(5000, 15);
 
 #ifdef CONFIG_ARCH_POSIX
     k_sleep(K_SECONDS(300));

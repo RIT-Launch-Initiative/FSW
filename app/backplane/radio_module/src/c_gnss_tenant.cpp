@@ -52,6 +52,4 @@ void CGnssTenant::Run() {
 
         gnssUpdated = 0;
     }
-
-
 }

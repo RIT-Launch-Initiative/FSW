@@ -24,7 +24,7 @@ public:
      * @param timeout Time before sending times out
      * @return Zephyr status code
      */
-    virtual int Send(const T &message, const k_timeout_t timeout = K_FOREVER) = 0;
+    virtual int Send(const T &message, const k_timeout_t timeout = K_NO_WAIT) = 0;
 
     /**
      * Receive a message
@@ -32,7 +32,12 @@ public:
      * @param timeout Time before receiving times out
      * @return Zephyr status code
      */
-    virtual int Receive(T& message, const k_timeout_t timeout = K_FOREVER) = 0;
+    virtual int Receive(T& message, const k_timeout_t timeout = K_NO_WAIT) = 0;
+
+    /**
+     * Clear the message port
+     */
+    virtual void Clear() = 0;
 };
 
 
