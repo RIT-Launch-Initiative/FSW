@@ -281,8 +281,7 @@ def convert_unit(value: float, from_unit: str, to_unit: str):
             factor = scaling_conversions[from_unit][to_unit]
             return value * factor
     else:
-        raise Exception(f"Unsupported unit conversion {
-                        from_unit} to {to_unit}")
+        raise Exception(f"Unsupported unit conversion {from_unit} to {to_unit}")
 
 
 # order in the c struct. this will have to update as time goes on

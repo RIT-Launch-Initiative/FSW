@@ -9,4 +9,4 @@ add_subdirectory_ifdef(CONFIG_F_CORE_NET net)
 add_subdirectory_ifdef(CONFIG_F_CORE_RADIO radio)
 add_subdirectory_ifdef(CONFIG_F_CORE_OS os)
 add_subdirectory_ifdef(CONFIG_F_CORE_UTILS utils)
-
+add_subdirectory_ifdef(CONFIG_F_CORE_PROTOCOLS radio/protocols)
