@@ -2,7 +2,7 @@
 #define PADFLIGHTSTATEMACHINE_H
 
 // We shouldn't define globals, but this is a quick and dirty way
-// to avoid a bunch of inter-thread communication. Should
+// to avoid a bunch of inter-thread communication.
 namespace NStateMachineGlobals {
     static volatile bool boostDetected = false;
     static volatile bool landingDetected = false;

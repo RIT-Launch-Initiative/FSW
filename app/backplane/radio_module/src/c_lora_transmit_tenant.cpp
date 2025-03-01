@@ -102,7 +102,7 @@ void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const
     lora.TransmitSynchronous(txData.data(), data.size + 2);
 }
 
-// TODO: Maybe make a thread safe HashMap CMessagePort that directly writes instead of all this overhead
+// TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead
 bool CLoraTransmitTenant::readTransmitQueue(NTypes::RadioBroadcastData& data) const {
     if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
         LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);

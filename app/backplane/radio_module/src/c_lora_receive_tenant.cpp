@@ -33,10 +33,9 @@ void CLoraReceiveTenant::PadRun() {
     if (rxSize > 2) {
         if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
             // Apply commands to pinsconst
-            gpios[0].SetPin(buffer[2] & 1);
-            gpios[1].SetPin((buffer[2] & (1 << 1)) >> 1);
-            gpios[2].SetPin((buffer[2] & (1 << 2)) >> 2);
-            gpios[3].SetPin((buffer[2] & (1 << 3)) >> 3);
+            for (int i = 0; i < 4; i++)  {
+                gpios[i].SetPin((buffer[2] >> i) & 1);
+            }
 
             // Pack status into RadioBroadcastData
             NTypes::RadioBroadcastData pinStatus = {0};
