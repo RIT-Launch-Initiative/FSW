@@ -49,55 +49,51 @@ void CSensingTenant::Startup() {
 void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
-    NTypes::SensorData data{};
-    k_timer timer;
-    k_timer_init(&timer, nullptr, nullptr);
-    k_timer_start(&timer, K_MSEC(10), K_MSEC(10));
-    while (detection_handler.ContinueCollecting()) {
-        k_timer_status_sync(&timer);
-        uint64_t uptime = k_uptime_get();
-
-        CDetectionHandler::SensorWorkings sensor_states = {};
-
-        sensor_states.primary_acc_ok = imuAccelerometer.UpdateSensorValue();
-        imuGyroscope.UpdateSensorValue();
-        sensor_states.primary_barometer_ok = primaryBarometer.UpdateSensorValue();
-        sensor_states.secondary_barometer_ok = secondaryBarometer.UpdateSensorValue();
-        sensor_states.secondary_acc_ok = accelerometer.UpdateSensorValue();
-        thermometer.UpdateSensorValue();
-#ifndef CONFIG_ARCH_POSIX
-        magnetometer.UpdateSensorValue();
-#endif
-        data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
-        data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
-        data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
-
-        data.ImuAcceleration.X = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
-        data.ImuAcceleration.Y = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
-        data.ImuAcceleration.Z = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
-
-        data.ImuGyroscope.X = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
-        data.ImuGyroscope.Y = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
-        data.ImuGyroscope.Z = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
-
-        data.Magnetometer.X = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_X);
-        data.Magnetometer.Y = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Y);
-        data.Magnetometer.Z = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Z);
-
-        data.PrimaryBarometer.Pressure = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
-        data.PrimaryBarometer.Temperature = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
-
-        data.SecondaryBarometer.Pressure = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
-        data.SecondaryBarometer.Temperature = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
-
-        data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
-
-        detection_handler.HandleData(uptime, data, sensor_states);
-        // If we can't send immediately, drop the packet
-        // we're gonna sleep then give it new data anywas
-        dataToBroadcast.Send(data, K_NO_WAIT);
-        dataToLog.Send(data, K_NO_WAIT);
+    if (!detection_handler.ContinueCollecting()) {
+        return;
     }
-    LOG_INF("Finishing up data collection\n");
-    k_timer_stop(&timer);
+    NTypes::SensorData data{};
+
+    uint64_t uptime = k_uptime_get();
+
+    CDetectionHandler::SensorWorkings sensor_states = {};
+    imuGyroscope.UpdateSensorValue();
+    sensor_states.primary_acc_ok = imuAccelerometer.UpdateSensorValue();
+    sensor_states.primary_barometer_ok = primaryBarometer.UpdateSensorValue();
+    sensor_states.secondary_barometer_ok = secondaryBarometer.UpdateSensorValue();
+    sensor_states.secondary_acc_ok = accelerometer.UpdateSensorValue();
+    thermometer.UpdateSensorValue();
+#ifndef CONFIG_ARCH_POSIX
+    magnetometer.UpdateSensorValue();
+#endif
+    data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
+    data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+    data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
+
+    data.ImuAcceleration.X = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
+    data.ImuAcceleration.Y = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+    data.ImuAcceleration.Z = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
+
+    data.ImuGyroscope.X = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
+    data.ImuGyroscope.Y = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
+    data.ImuGyroscope.Z = imuGyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
+
+    data.Magnetometer.X = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_X);
+    data.Magnetometer.Y = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Y);
+    data.Magnetometer.Z = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Z);
+
+    data.PrimaryBarometer.Pressure = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
+    data.PrimaryBarometer.Temperature = primaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+
+    data.SecondaryBarometer.Pressure = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_PRESS);
+    data.SecondaryBarometer.Temperature = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+
+    data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+
+    detection_handler.HandleData(uptime, data, sensor_states);
+    // If we can't send immediately, drop the packet
+    // we're gonna sleep then give it new data anywas
+    dataToBroadcast.Send(data, K_NO_WAIT);
+    dataToLog.Send(data, K_NO_WAIT);
+    printk("tick\n");
 }

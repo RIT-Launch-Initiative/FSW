@@ -1,8 +1,8 @@
 #include "c_sensor_module.h"
 
 // F-Core Tenant
-#include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
+#include <f_core/os/n_rtos.h>
 
 K_MSGQ_DEFINE(broadcastQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQueue);
@@ -10,8 +10,9 @@ static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQu
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
 
-CSensorModule::CSensorModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), sensorDataLogMessagePort(dataLogMsgQueue) {
-}
+CSensorModule::CSensorModule()
+    : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),
+      sensorDataLogMessagePort(dataLogMsgQueue) {}
 
 void CSensorModule::AddTenantsToTasks() {
     // Networking
@@ -35,8 +36,4 @@ void CSensorModule::AddTasksToRtos() {
     NRtos::AddTask(dataLogTask);
 }
 
-void CSensorModule::SetupCallbacks() {
-}
-
-
-
+void CSensorModule::SetupCallbacks() {}

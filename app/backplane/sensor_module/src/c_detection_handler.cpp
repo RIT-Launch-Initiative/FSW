@@ -100,12 +100,12 @@ void CDetectionHandler::HandleNoseover(uint32_t t_plus_ms, const NTypes::SensorD
 
 void CDetectionHandler::HandleBoost(uint64_t timestamp, const NTypes::SensorData& data,
                                     const SensorWorkings& sensor_states) {
-    double primary_mag_squared_m_s2 = data.Acceleration.X * data.Acceleration.X +
-                                      data.Acceleration.Y * data.Acceleration.Y +
-                                      data.Acceleration.Z * data.Acceleration.Z;
-    double secondary_mag_squared_m_s2 = data.ImuAcceleration.X * data.ImuAcceleration.X +
-                                        data.ImuAcceleration.Y * data.ImuAcceleration.Y +
-                                        data.ImuAcceleration.Z * data.ImuAcceleration.Z;
+    double primary_mag_squared_m_s2 = data.ImuAcceleration.X * data.ImuAcceleration.X +
+                                      data.ImuAcceleration.Y * data.ImuAcceleration.Y +
+                                      data.ImuAcceleration.Z * data.ImuAcceleration.Z;
+    double secondary_mag_squared_m_s2 = data.Acceleration.X * data.Acceleration.X +
+                                        data.Acceleration.Y * data.Acceleration.Y +
+                                        data.Acceleration.Z * data.Acceleration.Z;
 
     primary_imu_boost_squared_detector.feed(timestamp, primary_mag_squared_m_s2);
     secondary_imu_boost_squared_detector.feed(timestamp, secondary_mag_squared_m_s2);
