@@ -1,6 +1,6 @@
 // All in one holder for all the detection we do
-#include "f_core/util/debouncer.hpp"
-#include "f_core/util/linear_fit.hpp"
+#include "f_core/utils/debouncer.hpp"
+#include "f_core/utils/linear_fit.hpp"
 #include "flight.hpp"
 
 #include <n_autocoder_types.h>
