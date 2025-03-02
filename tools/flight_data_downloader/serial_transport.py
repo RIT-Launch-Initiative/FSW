@@ -17,7 +17,7 @@ class SerialTransport(FDDTransport):
         if self.__serial_port is None:
             print("Serial port not set")
 
-        self.__serial_port.baudrate = baud_rate
+        self.__baud_rate = baud_rate
 
     def _get_file(self, file: str) -> bytes:
         if self.__serial_port is None:
