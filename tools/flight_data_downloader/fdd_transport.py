@@ -34,3 +34,6 @@ class FDDTransport:
 
     def set_attribute(self, attribute, args: list):
         raise NotImplementedError("FDDTransport is an abstract class")
+
+    def __str__(self):
+        return "unset"

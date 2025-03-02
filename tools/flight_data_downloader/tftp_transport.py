@@ -28,3 +28,6 @@ class TFTPTransport(FDDTransport):
             self.set_ip(args[0])
         else:
             print("Invalid argument(s).")
+
+    def __str__(self):
+        return "tftp"

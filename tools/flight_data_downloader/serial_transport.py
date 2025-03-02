@@ -45,3 +45,6 @@ class SerialTransport(FDDTransport):
             self.set_baud_rate(int(args[1]))
         else:
             print("Invalid argument(s).")
+
+    def __str__(self):
+        return "serial"

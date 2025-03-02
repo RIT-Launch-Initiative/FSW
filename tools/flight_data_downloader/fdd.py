@@ -78,7 +78,7 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
 
     while True:
-        print(">> ", end="")
+        print(str(transport) + ">> ", end="")
         user_input = input().lower()
         command = user_input.split(" ")[0]
         arguments = user_input.split(" ")[1:]
