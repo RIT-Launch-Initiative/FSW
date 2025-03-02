@@ -24,8 +24,6 @@ def handle_set_command(args):
 
     attribute = args[0]
     args = args[1:]
-    print(attribute)
-    print(args)
 
     if attribute == "transport":
         if args[0] == "tftp":
@@ -43,6 +41,8 @@ def handle_set_command(args):
             print("Output folder not specified")
         else:  # Spaces in folder name
             print("Invalid output folder")
+
+        return
 
     if transport is not None:
         transport.set_attribute(attribute, args)
