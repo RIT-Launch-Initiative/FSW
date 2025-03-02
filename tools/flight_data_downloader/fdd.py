@@ -1,8 +1,7 @@
 import signal
 
-from flight_data_downloader.fdd_transport import FDDTransport
-from flight_data_downloader.serial_transport import SerialTransport
-from flight_data_downloader.tftp_transport import TFTPTransport
+from serial_transport import SerialTransport
+from tftp_transport import TFTPTransport
 
 transport = None
 
@@ -66,6 +65,20 @@ def clear_screen():
     print("\033[H\033[J")
 
 
+def print_help():
+    print("Available commands:")
+    print("\tset transport <tftp|serial> - Set the transport method")
+    print("\tset output <folder> - Set the output folder")
+    print("\tset ip <address> - Set the TFTP server IP address")
+    print("\tset serial_port <port> - Set the serial port")
+    print("\tset baud_rate <rate> - Set the serial baud rate")
+    print("\ttree - Display the file tree")
+    print("\tdownload <file> - Download a file")
+    print("\tclear - Clear the screen")
+    print("\texit - Exit the program")
+    print("\thelp - Display this help message")
+
+
 def signal_handler(sig, frame):
     if sig == signal.SIGINT:
         handle_exit_command([])
@@ -89,6 +102,8 @@ def main():
                 handle_download_command(arguments)
             case "clear":
                 clear_screen()
+            case "help":
+                print_help()
             case "exit":
                 handle_exit_command(arguments)
             case "":
