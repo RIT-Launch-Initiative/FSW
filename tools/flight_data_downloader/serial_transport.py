@@ -38,7 +38,7 @@ class SerialTransport(FDDTransport):
             # Read bytes from serial
             return ser.read(file_size)
 
-    def set_attribute(self, args: list):
+    def set_attribute(self, attribute, args: list):
         if args[0] == "port":
             self.set_serial_port(args[1])
             print_green("Serial port set to {}".format(self.__serial_port))
