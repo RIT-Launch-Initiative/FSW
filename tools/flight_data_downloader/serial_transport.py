@@ -8,6 +8,7 @@ class SerialTransport(FDDTransport):
     def __init__(self):
         super().__init__()
         self.__serial_port = None
+        self.__baud_rate = 115200
 
     def set_serial_port(self, serial_port: str):
         self.__serial_port = serial_port
