@@ -1,6 +1,7 @@
 from fdd_transport import FDDTransport
 import serial
 
+
 class SerialTransport(FDDTransport):
     __slots__ = ["__serial_port", "__baud_rate"]
 
@@ -22,7 +23,7 @@ class SerialTransport(FDDTransport):
             print("Serial port not set")
 
         with serial.Serial(self.__serial_port, baudrate=self.__baud_rate) as ser:
-            ser.timeout = 5 # 5 seconds
+            ser.timeout = 5  # 5 seconds
 
             # Request the data
             ser.write("GET {}\n".format(file).encode())
@@ -35,3 +36,6 @@ class SerialTransport(FDDTransport):
 
             # Read bytes from serial
             return ser.read(file_size)
+
+    def set_attribute(self, args: list):
+        raise NotImplementedError("FDDTransport is an abstract class")

@@ -6,11 +6,13 @@ from flight_data_downloader.tftp_transport import TFTPTransport
 
 transport = None
 
+
 def handle_set_command_serial(args):
     if args[0] == "serial_port":
         transport.set_serial_port(args[1])
     elif args[0] == "baud_rate":
         transport.set_baud_rate(int(args[1]))
+
 
 def handle_set_command_tftp(args):
     if args[0] == "ip":
@@ -20,33 +22,30 @@ def handle_set_command_tftp(args):
 def handle_set_command(args):
     global transport
 
-    # Set the transport
-    if args[0] == "transport":
-        if args[1] == "tftp":
+    attribute = args[0]
+    args = args[1:]
+
+    if attribute == "transport":
+        if args[0] == "tftp":
             transport = TFTPTransport()
-        elif args[1] == "serial":
+        elif args[0] == "serial":
             transport = SerialTransport()
         else:
             print("Invalid transport")
         return
 
-    # Set the output folder
-    if args[0] == "output":
+    if attribute == "output":
         if len(args) == 1:
-            transport.set_output_folder(args[1])
-        elif len(args) == 0: # No folder specified
+            transport.set_output_folder(args[0])
+        elif len(args) == 0:  # No folder specified
             print("Output folder not specified")
-        else: # Spaces in folder name
+        else:  # Spaces in folder name
             print("Invalid output folder")
 
-    # Applies to specific transports
     if transport is not None:
-        if isinstance(transport, TFTPTransport):
-            handle_set_command_tftp(args)
-        elif isinstance(transport, SerialTransport):
-            handle_set_command_serial(args)
-    else:
-        print("Transport not set")
+        transport.set_attribute(attribute, args)
+        return
+
 
 def handle_tree_command():
     if transport is not None:

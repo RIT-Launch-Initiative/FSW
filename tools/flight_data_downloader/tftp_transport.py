@@ -2,6 +2,7 @@ from fdd_transport import FDDTransport
 import tftpy
 import io
 
+
 class TFTPTransport(FDDTransport):
     __slots__ = ["__client"]
 
@@ -20,3 +21,6 @@ class TFTPTransport(FDDTransport):
         self.__client.download(file, buffer)
 
         return buffer.getvalue()
+
+    def set_attribute(self, attribute: str, args: list):
+        raise NotImplementedError("FDDTransport is an abstract class")
