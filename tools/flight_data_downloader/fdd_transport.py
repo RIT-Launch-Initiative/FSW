@@ -19,7 +19,11 @@ class FDDTransport:
         out_path = os.path.join(current_output_folder, file_name)
 
         with open(out_path, "w") as fout:
-            fout.write(self._get_file(file))
+            contents = self._get_file(file)
+            if contents is not None:
+                fout.write(contents)
+            else:
+                print("Error downloading file")
 
     def set_output_folder(self, folder: str):
         global current_output_folder

@@ -33,7 +33,7 @@ class SerialTransport(FDDTransport):
             file_size = int(ser.read(8).decode())
             if file_size == 0:
                 print("File not found")
-                return b""
+                return None
 
             # Read bytes from serial
             return ser.read(file_size)

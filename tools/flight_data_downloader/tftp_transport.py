@@ -16,6 +16,7 @@ class TFTPTransport(FDDTransport):
     def _get_file(self, file: str) -> bytes:
         if self.__client is None:
             print("IP address not set")
+            return None
 
         buffer = io.BytesIO()
         self.__client.download(file, buffer)
