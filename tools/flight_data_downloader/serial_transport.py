@@ -39,9 +39,9 @@ class SerialTransport(FDDTransport):
             return ser.read(file_size)
 
     def set_attribute(self, args: list):
-        if args[0] == "serial_port":
+        if args[0] == "port":
             self.set_serial_port(args[1])
-        elif args[0] == "baud_rate":
+        elif args[0] == "baud":
             self.set_baud_rate(int(args[1]))
         else:
             print("Invalid argument(s).")

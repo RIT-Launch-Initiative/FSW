@@ -6,19 +6,6 @@ from tftp_transport import TFTPTransport
 
 transport = FDDTransport()
 
-
-def handle_set_command_serial(args):
-    if args[0] == "serial_port":
-        transport.set_serial_port(args[1])
-    elif args[0] == "baud_rate":
-        transport.set_baud_rate(int(args[1]))
-
-
-def handle_set_command_tftp(args):
-    if args[0] == "ip":
-        transport.set_ip(args[1])
-
-
 def handle_set_command(args):
     global transport
 
@@ -73,8 +60,8 @@ def print_help():
     print("\tset transport <tftp|serial> - Set the transport method")
     print("\tset output <folder> - Set the output folder")
     print("\tset ip <address> - Set the TFTP server IP address")
-    print("\tset serial_port <port> - Set the serial port")
-    print("\tset baud_rate <rate> - Set the serial baud rate")
+    print("\tset port <port> - Set the serial port")
+    print("\tset baud <rate> - Set the serial baud rate")
     print("\ttree - Display the file tree")
     print("\tdownload <file> - Download a file")
     print("\tclear - Clear the screen")
