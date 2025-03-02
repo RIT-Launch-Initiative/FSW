@@ -42,9 +42,9 @@ class CSensorModule : public CProjectConfiguration {
     void Cleanup() { dataLoggerTenant.Cleanup(); }
 
   private:
-    const char* ipAddrStr = "1.2.3.4"; // 4
+    const char* ipAddrStr = "1.2.3.4"; 
     // (CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID).c_str()).c_str();
-    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT; // 8
+    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT; 
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;

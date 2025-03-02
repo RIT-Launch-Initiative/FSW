@@ -15,7 +15,7 @@
         vertical-axis-invert;
         lateral-axis = "OPENROCKET_AXIS_X";
         lag-time-us = <0>;
-        sampling-period-us = <10>;
+        sampling-period-us = <1000>;
 
         roll-axis = "OPENROCKET_AXIS_Z";
         pitch-axis = "OPENROCKET_AXIS_Y";
@@ -30,7 +30,7 @@
         vertical-axis-invert;
         lateral-axis = "OPENROCKET_AXIS_X";
         lag-time-us = <0>;
-        sampling-period-us = <10>;
+        sampling-period-us = <1000>;
 
         roll-axis = "OPENROCKET_AXIS_Z";
         pitch-axis = "OPENROCKET_AXIS_Y";
@@ -43,7 +43,7 @@
         compatible = "openrocket,barometer";
         lag-time-us = <300000>; // from grim analysis
 		pressure-noise = <10>;
-        sampling-period-us = <10>;
+        sampling-period-us = <1000>;
     };
 
     secondbarom: secondbarom {
@@ -51,7 +51,7 @@
         compatible = "openrocket,barometer";
         lag-time-us = <300000>; // from grim analysis
 		pressure-noise = <10>;
-		sampling-period-us = <10>;
+		sampling-period-us = <10000>;
     };
 
     magn: magn {

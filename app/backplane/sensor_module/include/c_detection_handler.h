@@ -13,7 +13,7 @@ class CDetectionHandler {
         bool primary_barometer_ok;
         bool secondary_barometer_ok;
     };
-    static constexpr std::size_t window_size = 10; // @100hz, 1 second window.
+    static constexpr std::size_t window_size = 10; // @100hz, 0.1 second window.
     using VelocityFinder = CRollingSum<LinearFitSample<double>, window_size>;
 
     // Boost Detectors
