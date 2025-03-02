@@ -1,9 +1,10 @@
 import signal
 
+from fdd_transport import FDDTransport
 from serial_transport import SerialTransport
 from tftp_transport import TFTPTransport
 
-transport = None
+transport = FDDTransport()
 
 
 def handle_set_command_serial(args):
@@ -23,6 +24,8 @@ def handle_set_command(args):
 
     attribute = args[0]
     args = args[1:]
+    print(attribute)
+    print(args)
 
     if attribute == "transport":
         if args[0] == "tftp":
