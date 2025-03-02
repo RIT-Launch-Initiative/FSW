@@ -3,6 +3,7 @@ import signal
 from fdd_transport import FDDTransport
 from serial_transport import SerialTransport
 from tftp_transport import TFTPTransport
+from print_colors import print_red
 
 transport = FDDTransport()
 
@@ -99,7 +100,7 @@ def main():
             case "":
                 continue
             case _:
-                print("Invalid command")
+                print_red("Invalid command")
 
 
 if __name__ == '__main__':

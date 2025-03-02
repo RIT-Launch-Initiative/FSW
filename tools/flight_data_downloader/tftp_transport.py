@@ -2,6 +2,9 @@ from fdd_transport import FDDTransport
 import tftpy
 import io
 
+from print_colors import print_red
+
+RED_ASCII = "\033[91m"
 
 class TFTPTransport(FDDTransport):
     __slots__ = ["__client"]
@@ -15,7 +18,7 @@ class TFTPTransport(FDDTransport):
 
     def _get_file(self, file: str) -> bytes:
         if self.__client is None:
-            print("IP address not set")
+            print_red("IP address not set")
             return None
 
         buffer = io.BytesIO()
@@ -27,7 +30,7 @@ class TFTPTransport(FDDTransport):
         if attribute == "ip":
             self.set_ip(args[0])
         else:
-            print("Invalid argument(s).")
+            print_red("Invalid argument(s).")
 
     def __str__(self):
         return "tftp"

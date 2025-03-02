@@ -1,4 +1,5 @@
 from fdd_transport import FDDTransport
+from print_colors import print_red, print_green
 import serial
 
 
@@ -15,13 +16,13 @@ class SerialTransport(FDDTransport):
 
     def set_baud_rate(self, baud_rate: int):
         if self.__serial_port is None:
-            print("Serial port not set")
+            print_red("Serial port not set")
 
         self.__baud_rate = baud_rate
 
     def _get_file(self, file: str) -> bytes:
         if self.__serial_port is None:
-            print("Serial port not set")
+            print_red("Serial port not set")
 
         with serial.Serial(self.__serial_port, baudrate=self.__baud_rate) as ser:
             ser.timeout = 5  # 5 seconds
@@ -32,7 +33,6 @@ class SerialTransport(FDDTransport):
             # Read size of file (64 bits / 8 bytes)
             file_size = int(ser.read(8).decode())
             if file_size == 0:
-                print("File not found")
                 return None
 
             # Read bytes from serial
@@ -41,10 +41,12 @@ class SerialTransport(FDDTransport):
     def set_attribute(self, args: list):
         if args[0] == "port":
             self.set_serial_port(args[1])
+            print_green("Serial port set to {}".format(self.__serial_port))
         elif args[0] == "baud":
             self.set_baud_rate(int(args[1]))
+            print_green("Serial port set to {}".format(self.__serial_port))
         else:
-            print("Invalid argument(s).")
+            print_red("Invalid argument(s).")
 
     def __str__(self):
         return "serial"

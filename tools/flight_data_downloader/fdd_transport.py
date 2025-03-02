@@ -1,5 +1,5 @@
 import os
-
+from print_colors import print_red
 
 current_output_folder = os.getcwd()
 
@@ -9,7 +9,7 @@ class FDDTransport:
         pass
 
     def _get_file(self, file: str) -> bytes:
-        raise NotImplementedError("FDDTransport is an abstract class")
+        print_red("FDDTransport is an abstract class")
 
     def tree(self):
         print("\n" + self._get_file("tree"))
@@ -23,7 +23,7 @@ class FDDTransport:
             if contents is not None:
                 fout.write(contents)
             else:
-                print("Error downloading file")
+                print_red("Error downloading file")
 
     def set_output_folder(self, folder: str):
         global current_output_folder
@@ -33,7 +33,7 @@ class FDDTransport:
             os.makedirs(folder)
 
     def set_attribute(self, attribute, args: list):
-        raise NotImplementedError("FDDTransport is an abstract class")
+        print_red("FDDTransport is an abstract class")
 
     def __str__(self):
         return "unset"
