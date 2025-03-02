@@ -38,4 +38,9 @@ class SerialTransport(FDDTransport):
             return ser.read(file_size)
 
     def set_attribute(self, args: list):
-        raise NotImplementedError("FDDTransport is an abstract class")
+        if args[0] == "serial_port":
+            self.set_serial_port(args[1])
+        elif args[0] == "baud_rate":
+            self.set_baud_rate(int(args[1]))
+        else:
+            print("Invalid argument(s).")

@@ -23,4 +23,7 @@ class TFTPTransport(FDDTransport):
         return buffer.getvalue()
 
     def set_attribute(self, attribute: str, args: list):
-        raise NotImplementedError("FDDTransport is an abstract class")
+        if attribute == "ip":
+            self.set_ip(args[0])
+        else:
+            print("Invalid argument(s).")
