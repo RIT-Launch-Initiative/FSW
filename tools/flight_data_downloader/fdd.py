@@ -3,7 +3,7 @@ import signal
 from fdd_transport import FDDTransport
 from serial_transport import SerialTransport
 from tftp_transport import TFTPTransport
-from print_colors import print_red
+from print_colors import print_red, print_green
 
 transport = FDDTransport()
 
@@ -16,19 +16,22 @@ def handle_set_command(args):
     if attribute == "transport":
         if args[0] == "tftp":
             transport = TFTPTransport()
+            print_green("Set to TFTP.")
         elif args[0] == "serial":
             transport = SerialTransport()
+            print_green("Set to serial.")
         else:
-            print("Invalid transport")
+            print_red("Invalid transport")
         return
 
     if attribute == "output":
         if len(args) == 1:
             transport.set_output_folder(args[0])
+            print_green("Set output folder to {}".format(args[0]))
         elif len(args) == 0:  # No folder specified
-            print("Output folder not specified")
+            print_red("Output folder not specified")
         else:  # Spaces in folder name
-            print("Invalid output folder")
+            print_red("Invalid output folder")
 
         return
 

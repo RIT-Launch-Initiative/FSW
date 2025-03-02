@@ -2,7 +2,7 @@ from fdd_transport import FDDTransport
 import tftpy
 import io
 
-from print_colors import print_red
+from print_colors import print_red, print_green
 
 RED_ASCII = "\033[91m"
 
@@ -29,6 +29,7 @@ class TFTPTransport(FDDTransport):
     def set_attribute(self, attribute: str, args: list):
         if attribute == "ip":
             self.set_ip(args[0])
+            print_green("TFTP server IP set to {}".format(args[0]))
         else:
             print_red("Invalid argument(s).")
 

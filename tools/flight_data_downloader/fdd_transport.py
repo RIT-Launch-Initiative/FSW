@@ -12,7 +12,11 @@ class FDDTransport:
         print_red("FDDTransport is an abstract class")
 
     def tree(self):
-        print("\n" + self._get_file("tree"))
+        contents = self._get_file("tree")
+        if contents is not None:
+            print(contents)
+        else:
+            print_red("Error downloading tree file.")
 
     def download(self, file: str):
         file_name = file.split("/")[-1]
