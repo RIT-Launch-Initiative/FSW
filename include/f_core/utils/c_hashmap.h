@@ -19,8 +19,8 @@ public:
     CHashMap() = default;
 
     bool Insert(const KeyType& key, const ValueType& value) {
-        if (!isMainThreadRunning()) {
-            if (!map.contains(key) && size > maxSizeAtStartup) {
+        if (!isMainThreadCurrent()) {
+            if (!map.contains(key) && size > maxSizeReachedAtStartup) {
                 printk("Attempted to insert more than the maximum size of the hashmap post-startup"); // LOG doesn't work well in templates
                 k_oops();
 
@@ -29,8 +29,8 @@ public:
 
         }
 
-        if (++size > maxSizeAtStartup) {
-            maxSizeAtStartup = size;
+        if (++size > maxSizeReachedAtStartup) {
+            maxSizeReachedAtStartup = size;
         }
 
         return map.insert(std::make_pair(key, value)).second;
@@ -51,6 +51,10 @@ public:
     }
 
     std::optional<ValueType> Get(const KeyType& key) const {
+        if (!map.contains(key)) {
+            return std::nullopt;
+        }
+
         return map.at(key);
     }
 
@@ -82,9 +86,9 @@ public:
 private:
     std::unordered_map<KeyType, ValueType> map;
     std::size_t size = 0;
-    std::size_t maxSizeAtStartup = 0;
+    std::size_t maxSizeReachedAtStartup = 0;
 
-    bool isMainThreadRunning() {
+    bool isMainThreadCurrent() {
         return strncmp(k_thread_name_get(k_current_get()), "main", 4) == 0;
     }
 };

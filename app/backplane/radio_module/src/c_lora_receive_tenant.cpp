@@ -52,7 +52,8 @@ void CLoraReceiveTenant::PadRun() {
             // Retransmit status so GS can verify
             loraTransmitTenant.transmit(pinStatus);
         } else if (port == NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT) { // Data Request
-            for (int i = 2; i < rxSize; i += 2) {
+            constexpr int bytesPerPort = 2;
+            for (int i = 2; i < rxSize; i += bytesPerPort) {
                 loraTransmitTenant.padDataRequestedMap[buffer[i] << 8 | buffer[i + 1]] = true;
             }
         } else {
