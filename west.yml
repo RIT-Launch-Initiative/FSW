@@ -8,6 +8,8 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
+    - name: zephyr-meshtastic
+      url-base: git@github.com:cowsed
 
   projects:
     - name: zephyr
@@ -25,3 +27,6 @@ manifest:
           - lvgl
       clone-depth: 1
 
+    - name: zephyr-meshtastic
+      remote: zephyr-meshtastic
+      revision: main

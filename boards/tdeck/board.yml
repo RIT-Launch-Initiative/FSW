@@ -1,6 +1,0 @@
-board:
-  name: tdeck
-  full_name: TDeck
-  vendor: espressif
-  socs:
-    - name: esp32s3
