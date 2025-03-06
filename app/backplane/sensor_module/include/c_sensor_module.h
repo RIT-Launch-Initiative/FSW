@@ -52,11 +52,11 @@ class CSensorModule : public CProjectConfiguration {
 
     CFlightLog flight_log{"/lfs/flight_log.txt"};
     SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, &flight_log};
-    CDetectionHandler detection_handler{controller};
+    CDetectionHandler detectionHandler{controller};
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort,
-                                 detection_handler};
+                                 detectionHandler};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort,
                                                             telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin",

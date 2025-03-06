@@ -40,13 +40,38 @@ class CDetectionHandler {
     static constexpr uint64_t BOOST_NOT_YET_HAPPENED = ~0;
     uint64_t boost_detected_time = BOOST_NOT_YET_HAPPENED;
 
-    void HandleData(uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
-
-    void HandleBoost(uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
-    void HandleNoseover(uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
-    void HandleGround(uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
+    /**
+     * Process sensor information 
+     * @param uptime uptime in milliseconds of the system
+     * @param data sensor data from Sensing Tenant
+     * @param workings a description of which sensors were read correctly
+     */
+    void HandleData(const uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
 
     /**
+     * Process sensor information before boost has been detected
+     * @param t_plus_ms milliseconds since boost
+     * @param data sensor data from Sensing Tenant
+     * @param workings a description of which sensors were read correctly
+     */
+    void HandleBoost(const uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
+    /**
+     * Process sensor information before the noseover has been reached
+     * @param t_plus_ms milliseconds since boost
+     * @param data sensor data from Sensing Tenant
+     * @param workings a description of which sensors were read correctly
+     */
+    void HandleNoseover(const uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
+    /**
+     * Process sensor information before the ground has been hit
+     * @param t_plus_ms milliseconds since boost
+     * @param data sensor data from Sensing Tenant
+     * @param workings a description of which sensors were read correctly
+     */
+    void HandleGround(const uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
+
+    /**
+     * Whether or not the phase detector needs more data. True before ground hit, false after
      * @return true if the detection system wants more data, false if we're all finished
      */
     bool ContinueCollecting();

@@ -9,8 +9,8 @@ double asl_from_pressure(double kpa) {
 
 CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller)
     : controller(controller),
-      primary_imu_boost_squared_detector(boost_time_thresshold, boost_threshold_m_s2 * boost_threshold_m_s2),
-      secondary_imu_boost_squared_detector{boost_time_thresshold, boost_threshold_m_s2 * boost_threshold_m_s2},
+      primary_imu_boost_squared_detector(boost_time_threshold, boost_threshold_m_s2 * boost_threshold_m_s2),
+      secondary_imu_boost_squared_detector{boost_time_threshold, boost_threshold_m_s2 * boost_threshold_m_s2},
 
       primary_barom_velocity_finder{LinearFitSample<double>{0, 0}},
       secondary_barom_velocity_finder{LinearFitSample<double>{0, 0}},
@@ -22,7 +22,7 @@ CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller)
 
 bool CDetectionHandler::ContinueCollecting() { return !controller.HasEventOccured(Events::GroundHit); }
 
-void CDetectionHandler::HandleData(uint64_t timestamp, const NTypes::SensorData& data,
+void CDetectionHandler::HandleData(const uint64_t timestamp, const NTypes::SensorData& data,
                                    const SensorWorkings& sensor_states) {
     double t_seconds = (double) timestamp / 1000.0;
 
@@ -40,7 +40,7 @@ void CDetectionHandler::HandleData(uint64_t timestamp, const NTypes::SensorData&
         return;
     }
 
-    uint32_t t_plus_ms = timestamp - boost_detected_time - boost_time_thresshold;
+    uint32_t t_plus_ms = timestamp - boost_detected_time - boost_time_threshold;
 
     if (!controller.HasEventOccured(Events::Noseover)) {
         HandleNoseover(t_plus_ms, data, sensor_states);
@@ -50,7 +50,7 @@ void CDetectionHandler::HandleData(uint64_t timestamp, const NTypes::SensorData&
     }
 }
 
-void CDetectionHandler::HandleGround(uint32_t t_plus_ms, const NTypes::SensorData& data,
+void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::SensorData& data,
                                      const SensorWorkings& sensor_states) {
     double primary_barom_velocity = 0;
     double secondary_barom_velocity = 0;
@@ -73,7 +73,7 @@ void CDetectionHandler::HandleGround(uint32_t t_plus_ms, const NTypes::SensorDat
     }
 }
 
-void CDetectionHandler::HandleNoseover(uint32_t t_plus_ms, const NTypes::SensorData& data,
+void CDetectionHandler::HandleNoseover(const uint32_t t_plus_ms, const NTypes::SensorData& data,
                                        const SensorWorkings& sensor_states) {
     double primary_barom_velocity = 0;
     double secondary_barom_velocity = 0;
@@ -98,7 +98,7 @@ void CDetectionHandler::HandleNoseover(uint32_t t_plus_ms, const NTypes::SensorD
     }
 }
 
-void CDetectionHandler::HandleBoost(uint64_t timestamp, const NTypes::SensorData& data,
+void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::SensorData& data,
                                     const SensorWorkings& sensor_states) {
     double primary_mag_squared_m_s2 = data.ImuAcceleration.X * data.ImuAcceleration.X +
                                       data.ImuAcceleration.Y * data.ImuAcceleration.Y +

@@ -74,7 +74,7 @@ struct LinearFitSample {
 };
 
 template <typename T, std::size_t window_size>
-bool find_slope(const CRollingSum<LinearFitSample<T>, window_size> &data, T &slope) {
+bool FindSlope(const CRollingSum<LinearFitSample<T>, window_size> &data, T &slope) {
     std::size_t N = data.Size();
     LinearFitSample<T> E = data.Sum();
     T denom = (N * E.xx - E.x * E.x);

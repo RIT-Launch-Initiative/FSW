@@ -6,7 +6,7 @@
 
 // Boost
 static constexpr double boost_threshold_m_s2 = 5 * 9.8; //m/s^2
-static constexpr uint32_t boost_time_thresshold = 250;  //ms
+static constexpr uint32_t boost_time_threshold = 250;   //ms
 
 // Noseover
 static constexpr double noseover_velocity_thresshold = 10; //ft/s

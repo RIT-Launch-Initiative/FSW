@@ -21,7 +21,6 @@ int main() {
     k_sleep(K_SECONDS(900));
     NRtos::StopRtos();
     sensorModule.Cleanup();
-    // k_sleep(K_FOREVER);
 #endif
 
     return 0;
