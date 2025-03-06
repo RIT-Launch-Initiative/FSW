@@ -55,12 +55,12 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
     double primary_barom_velocity = 0;
     double secondary_barom_velocity = 0;
 
-    bool primary_good = find_slope(primary_barom_velocity_finder, primary_barom_velocity);
+    bool primary_good = FindSlope(primary_barom_velocity_finder, primary_barom_velocity);
     if (primary_good) {
         primary_barom_ground_detector.feed(t_plus_ms, fabs(primary_barom_velocity));
     }
 
-    bool secondary_good = find_slope(secondary_barom_velocity_finder, secondary_barom_velocity);
+    bool secondary_good = FindSlope(secondary_barom_velocity_finder, secondary_barom_velocity);
     if (secondary_good) {
         secondary_barom_ground_detector.feed(t_plus_ms, fabs(secondary_barom_velocity));
     }
@@ -78,12 +78,12 @@ void CDetectionHandler::HandleNoseover(const uint32_t t_plus_ms, const NTypes::S
     double primary_barom_velocity = 0;
     double secondary_barom_velocity = 0;
 
-    bool primary_vel_good = find_slope(primary_barom_velocity_finder, primary_barom_velocity);
+    bool primary_vel_good = FindSlope(primary_barom_velocity_finder, primary_barom_velocity);
     if (primary_vel_good) {
         primary_barom_noseover_detector.feed(t_plus_ms, primary_barom_velocity);
     }
 
-    bool secondary_vel_good = find_slope(secondary_barom_velocity_finder, secondary_barom_velocity);
+    bool secondary_vel_good = FindSlope(secondary_barom_velocity_finder, secondary_barom_velocity);
     if (secondary_vel_good) {
         secondary_barom_noseover_detector.feed(t_plus_ms, secondary_barom_velocity);
     }
