@@ -25,6 +25,7 @@ manifest:
           - hal_st
           - hal_espressif
           - lvgl
+          - nanopb
       clone-depth: 1
 
     - name: zephyr-meshtastic
