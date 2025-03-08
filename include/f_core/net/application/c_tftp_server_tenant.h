@@ -1,6 +1,7 @@
 #ifndef C_TFTP_SERVER_H
 #define C_TFTP_SERVER_H
 
+#include "f_core/os/c_tenant.h"
 #include "f_core/net/network/c_ipv4.h"
 #include "f_core/net/transport/c_udp_socket.h"
 
@@ -30,6 +31,12 @@ private:
     CUdpSocket sock;
 
     typedef enum {
+        NETASCII = 0,
+        OCTET = 1, // This is the only one we care about
+        MAIL = 2
+    } TftpMode;
+
+    typedef enum {
         RRQ = 1, // Read request
         WRQ = 2, // Write request
         DATA = 3, // Data
@@ -37,17 +44,23 @@ private:
         ERROR = 5 // Error
     } TftpOpcode;
 
+    typedef enum {
+        FILE_NOT_FOUND = 1,
+        ACCESS_VIOLATION = 2,
+        DISK_FULL = 3,
+        ILLEGAL_OPERATION = 4,
+        UNKNOWN_TRANSFER_ID = 5,
+        FILE_ALREADY_EXISTS = 6,
+        NO_SUCH_USER = 7
+    } TftpErrorCodes;
+
     CTftpServerTenant(const CIPv4& ipv4, uint16_t port = TFTP_DEFAULT_PORT) : CTenant("TFTP server"), sock(ipv4, port, port) {};
 
     void handleReadRequest(const char *filename, const char *mode, const CIPv4& clientAddr, uint16_t clientPort);
 
     void handleWriteRequest(const char *filename, const char *mode, const CIPv4& clientAddr, uint16_t clientPort);
 
-    void handleData(const char *data, size_t len, const CIPv4& clientAddr, uint16_t clientPort);
-
-    void handleAck(uint16_t blockNum, const CIPv4& clientAddr, uint16_t clientPort);
-
-    void handleError(uint16_t errorCode, const char *errorMsg, const CIPv4& clientAddr, uint16_t clientPort);
+    void serveFile(const char *filename, const CIPv4& clientAddr, uint16_t clientPort);
 };
 
 

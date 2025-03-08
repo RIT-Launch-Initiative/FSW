@@ -13,6 +13,7 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
+    CTftpServerTenant *tftpServer = CTftpServerTenant::getInstance(CIPv4("10.0.0.1"));
 
     return 0;
 }
