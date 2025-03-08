@@ -35,17 +35,17 @@ enum Sources : uint8_t {
     NumSources
 };
 inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
-    "LowGIMU (LSM6DSL)", "HighGImu (ADXL)",   "BaromBMP",     "BaromMS5611",
+    "LowGIMU (LSM6DSL)", "HighGIMU (ADXL375)",   "BaromBMP388",     "BaromMS5611",
     "Noseover Lockout",  "Full Flight Timer", "VideoOffTimer"};
 
-inline constexpr std::size_t num_timer_events = 3;
+inline constexpr std::size_t numTimerEvents = 3;
 using SensorModulePhaseController =
-    CPhaseController<Events, Events::NumEvents, Sources, Sources::NumSources, num_timer_events>;
+    CPhaseController<Events, Events::NumEvents, Sources, Sources::NumSources, numTimerEvents>;
 
 /**
  * Special events triggered not by sensors but by timers between phases
  */
-inline std::array<SensorModulePhaseController::TimerEvent, num_timer_events> timer_events = {
+inline std::array<SensorModulePhaseController::TimerEvent, numTimerEvents> timer_events = {
     // We dont want to accidentally detect noseover when still burning and the baroms are lagging.
     // Adds a lockout timer so even if our sensors say we nosed over, don't trust them until we've had time to slowdown
     SensorModulePhaseController::TimerEvent{

@@ -2,11 +2,17 @@
 
 #include <math.h>
 
-double asl_from_pressure(double kpa) {
-    double mbar = kpa * 10;
-    return (1.0 - pow(mbar / 1013.25, 0.190284)) * 145366.45;
-}
+double asl_from_pressure(double P_sta_kpa) {
+    // Constants from https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
+    static constexpr double standard_atmosphere_exponent = 0.190284;
+    static constexpr double standard_atmosphere_factor = 145366.45;
 
+    static constexpr double kpa_to_mbar = 10.0;
+    static constexpr double sea_level_pressure_mbar = 1013.25;
+    double P_sta_mbar = P_sta_kpa * kpa_to_mbar;
+
+    return (1 - pow(P_sta_mbar / sea_level_pressure_mbar, standard_atmosphere_exponent)) * standard_atmosphere_factor;
+}
 CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller)
     : controller(controller),
       primary_imu_boost_squared_detector(boost_time_threshold, boost_threshold_m_s2 * boost_threshold_m_s2),
@@ -24,7 +30,7 @@ bool CDetectionHandler::ContinueCollecting() { return !controller.HasEventOccure
 
 void CDetectionHandler::HandleData(const uint64_t timestamp, const NTypes::SensorData& data,
                                    const SensorWorkings& sensor_states) {
-    double t_seconds = (double) timestamp / 1000.0;
+    double t_seconds = static_cast<double>(timestamp) / 1000.0;
 
     double primary_barom_asl = asl_from_pressure(data.PrimaryBarometer.Pressure);
     double secondary_barom_asl = asl_from_pressure(data.SecondaryBarometer.Pressure);
