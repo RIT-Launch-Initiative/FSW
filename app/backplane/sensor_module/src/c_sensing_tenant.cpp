@@ -53,10 +53,10 @@ void CSensingTenant::Run() {
 
     CDetectionHandler::SensorWorkings sensor_states = {};
     imuGyroscope.UpdateSensorValue();
-    sensor_states.primary_acc_ok = imuAccelerometer.UpdateSensorValue();
-    sensor_states.primary_barometer_ok = primaryBarometer.UpdateSensorValue();
-    sensor_states.secondary_barometer_ok = secondaryBarometer.UpdateSensorValue();
-    sensor_states.secondary_acc_ok = accelerometer.UpdateSensorValue();
+    sensor_states.primaryAccOk = imuAccelerometer.UpdateSensorValue();
+    sensor_states.primaryBarometerOk = primaryBarometer.UpdateSensorValue();
+    sensor_states.secondaryBarometerOk = secondaryBarometer.UpdateSensorValue();
+    sensor_states.secondaryAccOk = accelerometer.UpdateSensorValue();
     thermometer.UpdateSensorValue();
 #ifndef CONFIG_ARCH_POSIX
     magnetometer.UpdateSensorValue();

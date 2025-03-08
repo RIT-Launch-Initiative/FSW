@@ -8,13 +8,13 @@
 class CDetectionHandler {
   public:
     struct SensorWorkings {
-        bool primary_acc_ok;
-        bool secondary_acc_ok;
-        bool primary_barometer_ok;
-        bool secondary_barometer_ok;
+        bool primaryAccOk;
+        bool secondaryAccOk;
+        bool primaryBarometerOk;
+        bool secondaryBarometerOk;
     };
-    static constexpr std::size_t window_size = 10; // @100hz, 0.1 second window.
-    using VelocityFinder = CRollingSum<LinearFitSample<double>, window_size>;
+    static constexpr std::size_t BAROM_VELOCITY_FINDER_WINDOW_SIZE = 10; // @100hz, 0.1 second window.
+    using VelocityFinder = CRollingSum<LinearFitSample<double>, BAROM_VELOCITY_FINDER_WINDOW_SIZE>;
 
     // Boost Detectors
     using AccBoostDetector = CDebouncer<ThresholdDirection::Over, double>;
@@ -25,17 +25,17 @@ class CDetectionHandler {
     CDetectionHandler(SensorModulePhaseController &controller);
 
     SensorModulePhaseController &controller;
-    AccBoostDetector primary_imu_boost_squared_detector;
-    AccBoostDetector secondary_imu_boost_squared_detector;
+    AccBoostDetector primaryImuBoostSquaredDetector;
+    AccBoostDetector secondaryImuBoostSquaredDetector;
 
-    VelocityFinder primary_barom_velocity_finder;
-    VelocityFinder secondary_barom_velocity_finder;
+    VelocityFinder primaryBaromVelocityFinder;
+    VelocityFinder secondaryBaromVelocityFinder;
 
-    BaromNoseoverDetector primary_barom_noseover_detector;
-    BaromNoseoverDetector secondary_barom_noseover_detector;
+    BaromNoseoverDetector primaryBaromNoseoverDetector;
+    BaromNoseoverDetector secondaryBaromNoseoverDetector;
 
-    BaromGroundDetector primary_barom_ground_detector;
-    BaromGroundDetector secondary_barom_ground_detector;
+    BaromGroundDetector primaryBaromGroundDetector;
+    BaromGroundDetector secondaryBaromGroundDetector;
 
     static constexpr uint64_t BOOST_NOT_YET_HAPPENED = ~0;
     uint64_t boost_detected_time = BOOST_NOT_YET_HAPPENED;
