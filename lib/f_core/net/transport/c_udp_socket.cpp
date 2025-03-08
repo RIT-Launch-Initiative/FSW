@@ -62,8 +62,8 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
     return ret;
 }
 
-int CUdpSocket::ReceiveSynchronous(void* data, size_t len) {
-    return zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
+int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr *srcAddr, socklen_t *srcAddrLen) {
+    return zsock_recvfrom(sock, data, len, 0, srcAddr, srcAddrLen);
 }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
@@ -95,7 +95,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
     return ret;
 }
 
-int CUdpSocket::ReceiveAsynchronous(void* data, size_t len) {
+int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr *srcAddr, socklen_t *srcAddrLen) {
     int flags = zsock_fcntl(sock, F_GETFL, 0);
     if (flags < 0) {
         LOG_ERR("Failed to get socket flags (%d)", flags);
@@ -110,7 +110,7 @@ int CUdpSocket::ReceiveAsynchronous(void* data, size_t len) {
         }
     }
 
-    const int ret = zsock_recvfrom(sock, data, len, 0, nullptr, nullptr);
+    const int ret = zsock_recvfrom(sock, data, len, 0, srcAddr, srcAddrLen);
     if (ret < 0) {
         if ((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
             return 0;

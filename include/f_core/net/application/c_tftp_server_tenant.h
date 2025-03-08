@@ -30,10 +30,17 @@ public:
 private:
     CUdpSocket sock;
 
+    //  2 bytes    string        string
+    // -- -- -- -- -- -- -- -- -- -- -- --
+    // | Opcode | Filename | 0 | Mode | 0 |
+    // -- -- -- -- -- -- -- -- -- -- -- --
+    // Assumes file path is less than  bytes (512 - 2 (zero terminator) - 2 (opcode) - strlen(TftpMode))
+    static constexpr int rwRequestPacketSize = 512;
+
     typedef enum {
-        NETASCII = 0,
-        OCTET = 1, // This is the only one we care about
-        MAIL = 2
+        NETASCII = "netascii",
+        OCTET = "octet", // This is the only one we care about
+        MAIL = "mail"
     } TftpMode;
 
     typedef enum {
@@ -60,7 +67,8 @@ private:
 
     void handleWriteRequest(const char *filename, const char *mode, const CIPv4& clientAddr, uint16_t clientPort);
 
-    void serveFile(const char *filename, const CIPv4& clientAddr, uint16_t clientPort);
+    void serveFile(;
+
 };
 
 
