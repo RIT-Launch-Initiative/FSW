@@ -1,8 +1,8 @@
 import signal
 
 from fdd_transport import FDDTransport
-from serial_transport import SerialTransport
-from tftp_transport import TFTPTransport
+from serial_transport import SerialTransport, print_serial_help
+from tftp_transport import TFTPTransport, print_tftp_help
 from print_colors import print_red, print_green
 
 transport = FDDTransport()
@@ -35,10 +35,11 @@ def handle_set_command(args):
 
         return
 
-    if transport is not None:
+    if transport is not None and not isinstance(transport, FDDTransport):
         transport.set_attribute(attribute, args)
         return
-
+    else:
+        print_red("Transport not set")
 
 def handle_tree_command():
     if transport is not None:
@@ -60,17 +61,17 @@ def clear_screen():
 
 
 def print_help():
-    print("Available commands:")
+    print("General commands:")
     print("\tset transport <tftp|serial> - Set the transport method")
     print("\tset output <folder> - Set the output folder")
-    print("\tset ip <address> - Set the TFTP server IP address")
-    print("\tset port <port> - Set the serial port")
-    print("\tset baud <rate> - Set the serial baud rate")
     print("\ttree - Display the file tree")
     print("\tdownload <file> - Download a file")
     print("\tclear - Clear the screen")
     print("\texit - Exit the program")
     print("\thelp - Display this help message")
+
+    print_tftp_help()
+    print_serial_help()
 
 
 def signal_handler(sig, frame):
@@ -80,6 +81,8 @@ def signal_handler(sig, frame):
 
 def main():
     signal.signal(signal.SIGINT, signal_handler)
+
+    print_help()
 
     while True:
         print(str(transport) + ">> ", end="")

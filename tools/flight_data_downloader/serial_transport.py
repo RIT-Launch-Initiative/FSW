@@ -2,6 +2,10 @@ from fdd_transport import FDDTransport
 from print_colors import print_red, print_green
 import serial
 
+def print_serial_help():
+    print("Serial commands:")
+    print("\tport <port> - Set the serial port")
+    print("\tbaud <baud_rate> - Set the baud rate")
 
 class SerialTransport(FDDTransport):
     __slots__ = ["__serial_port", "__baud_rate"]
