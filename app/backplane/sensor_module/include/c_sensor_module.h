@@ -42,23 +42,25 @@ class CSensorModule : public CProjectConfiguration {
     void Cleanup() { dataLoggerTenant.Cleanup(); }
 
   private:
-    const char* ipAddrStr = "1.2.3.4"; 
-    // (CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID).c_str()).c_str();
-    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT; 
+    static std::string generateFlightLogPath();
+
+    std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID);
+    static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
 
-    CFlightLog flight_log{"/lfs/flight_log.txt"};
+    CFlightLog flight_log;
     SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, &flight_log};
     CDetectionHandler detectionHandler{controller};
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort,
                                  detectionHandler};
-    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort,
-                                                            telemetryBroadcastPort, sensorDataBroadcastMessagePort};
+    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(),
+                                                            telemetryBroadcastPort, telemetryBroadcastPort,
+                                                            sensorDataBroadcastMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin",
                                                            LogMode::Growing, 0, sensorDataLogMessagePort};
     // CRs485Tenant rs485Tenant{"RS485 Tenant"};
