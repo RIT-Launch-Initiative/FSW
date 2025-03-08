@@ -30,18 +30,15 @@ public:
 private:
     CUdpSocket sock;
 
-    //  2 bytes    string        string
-    // -- -- -- -- -- -- -- -- -- -- -- --
-    // | Opcode | Filename | 0 | Mode | 0 |
-    // -- -- -- -- -- -- -- -- -- -- -- --
-    // Assumes file path is less than  bytes (512 - 2 (zero terminator) - 2 (opcode) - strlen(TftpMode))
-    static constexpr int rwRequestPacketSize = 512;
-
     typedef enum {
-        NETASCII = "netascii",
-        OCTET = "octet", // This is the only one we care about
-        MAIL = "mail"
+        NETASCII = 0,
+        OCTET, // This is the only one we care about
+        MAIL,
+        NUM_MODES,
+        UNDEFINED_TFTP_MODE = -1 // Not in the specification. Just an initialization placeholder
     } TftpMode;
+
+
 
     typedef enum {
         RRQ = 1, // Read request
@@ -61,13 +58,22 @@ private:
         NO_SUCH_USER = 7
     } TftpErrorCodes;
 
+    //  2 bytes    string        string
+    // -- -- -- -- -- -- -- -- -- -- -- --
+    // | Opcode | Filename | 0 | Mode | 0 |
+    // -- -- -- -- -- -- -- -- -- -- -- --
+    // Assumes file path is less than  bytes (512 - 2 (zero terminator) - 2 (opcode) - strlen(TftpMode))
+    static constexpr int rwRequestPacketSize = 512;
+
+    static constexpr const char *tftpModeStrings[NUM_MODES] = {
+        "netascii",
+        "octet",
+        "mail"
+    };
+
     CTftpServerTenant(const CIPv4& ipv4, uint16_t port = TFTP_DEFAULT_PORT) : CTenant("TFTP server"), sock(ipv4, port, port) {};
 
-    void handleReadRequest(const char *filename, const char *mode, const CIPv4& clientAddr, uint16_t clientPort);
-
-    void handleWriteRequest(const char *filename, const char *mode, const CIPv4& clientAddr, uint16_t clientPort);
-
-    void serveFile(;
+    void handleReadRequest(const sockaddr& srcAddr, const uint8_t* packet, const uint8_t len);
 
 };
 
