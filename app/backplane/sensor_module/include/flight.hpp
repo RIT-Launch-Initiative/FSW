@@ -5,16 +5,16 @@
 #include <f_core/flight/c_phase_controller.h>
 
 // Boost
-static constexpr double boostThresholdMPerS2 = 5 * 9.8; //m/s^2
-static constexpr uint32_t boostTimeThreshold = 250;     //ms
+static constexpr double boostThresholdMPerS2 = 5 * 9.8; // m/s^2
+static constexpr uint32_t boostTimeThreshold = 250;     // ms
 
 // Noseover
-static constexpr double noseoverVelocityThresshold = 10; //ft/s
-static constexpr uint32_t noseoverTimeThreshold = 250;   //ms
+static constexpr double noseoverVelocityThresshold = 10; // ft/s
+static constexpr uint32_t noseoverTimeThreshold = 250;   // ms
 
 // Ground
-static constexpr double groundVelocityThreshold = 10;  //ft/s
-static constexpr uint32_t groundTimeThreshold = 10000; //ms (10s)
+static constexpr double groundVelocityThreshold = 10;  // ft/s
+static constexpr uint32_t groundTimeThreshold = 10000; // ms (10s)
 
 enum Events : uint8_t { Boost, NoseoverLockout, Noseover, GroundHit, CamerasOff, NumEvents };
 inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
