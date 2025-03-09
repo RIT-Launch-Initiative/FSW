@@ -72,12 +72,13 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
     }
 
 
-    uint16_t opcode = DATA;
+    const uint8_t dataBlockOffset = 4;
+    const uint16_t opcode = DATA;
     uint16_t blockNumber = 1;
 
     for (off_t offset = 0; offset < fileSize; offset += 512) {
         uint8_t response[516] = {0}; // 2 byte opcode. 2 byte block number. 512 byte data
-        uint8_t *dataBlock = &response[4];
+        uint8_t *dataBlock = &response[dataBlockOffset];
 
         // Fill in with DATA opcode
         response[0] = opcode >> 8;
@@ -94,6 +95,8 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
             LOG_ERR("Error reading file %s", filename);
             return;
         }
+
+        sock.TransmitAsynchronous(response, readLen + dataBlockOffset);
 
         blockNumber++;
     }
