@@ -15,16 +15,16 @@ double asl_from_pressure(double P_sta_kpa) {
 }
 CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller)
     : controller(controller),
-      primaryImuBoostSquaredDetector(boost_time_threshold, boost_threshold_m_s2 * boost_threshold_m_s2),
-      secondaryImuBoostSquaredDetector{boost_time_threshold, boost_threshold_m_s2 * boost_threshold_m_s2},
+      primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
+      secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},
 
       primaryBaromVelocityFinder{LinearFitSample<double>{0, 0}},
       secondaryBaromVelocityFinder{LinearFitSample<double>{0, 0}},
 
-      primaryBaromNoseoverDetector{noseover_time_thresshold, noseover_velocity_thresshold},
-      secondaryBaromNoseoverDetector{noseover_time_thresshold, noseover_velocity_thresshold},
-      primaryBaromGroundDetector{ground_time_thresshold, ground_velocity_thresshold},
-      secondaryBaromGroundDetector{ground_time_thresshold, ground_velocity_thresshold} {}
+      primaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
+      secondaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
+      primaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
+      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold} {}
 
 bool CDetectionHandler::ContinueCollecting() { return !controller.HasEventOccured(Events::GroundHit); }
 
@@ -46,7 +46,7 @@ void CDetectionHandler::HandleData(const uint64_t timestamp, const NTypes::Senso
         return;
     }
 
-    uint32_t t_plus_ms = timestamp - boost_detected_time - boost_time_threshold;
+    uint32_t t_plus_ms = timestamp - boost_detected_time - boostTimeThreshold;
 
     if (!controller.HasEventOccured(Events::Noseover)) {
         HandleNoseover(t_plus_ms, data, sensor_states);

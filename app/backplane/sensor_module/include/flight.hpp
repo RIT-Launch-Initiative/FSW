@@ -5,16 +5,16 @@
 #include <f_core/flight/c_phase_controller.h>
 
 // Boost
-static constexpr double boost_threshold_m_s2 = 5 * 9.8; //m/s^2
-static constexpr uint32_t boost_time_threshold = 250;   //ms
+static constexpr double boostThresholdMPerS2 = 5 * 9.8; //m/s^2
+static constexpr uint32_t boostTimeThreshold = 250;     //ms
 
 // Noseover
-static constexpr double noseover_velocity_thresshold = 10; //ft/s
-static constexpr uint32_t noseover_time_thresshold = 250;  //ms
+static constexpr double noseoverVelocityThresshold = 10; //ft/s
+static constexpr uint32_t noseoverTimeThreshold = 250;   //ms
 
 // Ground
-static constexpr double ground_velocity_thresshold = 10;  //ft/s
-static constexpr uint32_t ground_time_thresshold = 10000; //ms (10s)
+static constexpr double groundVelocityThreshold = 10;  //ft/s
+static constexpr uint32_t groundTimeThreshold = 10000; //ms (10s)
 
 enum Events : uint8_t { Boost, NoseoverLockout, Noseover, GroundHit, CamerasOff, NumEvents };
 inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
@@ -35,8 +35,8 @@ enum Sources : uint8_t {
     NumSources
 };
 inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
-    "LowGIMU (LSM6DSL)", "HighGIMU (ADXL375)",   "BaromBMP388",     "BaromMS5611",
-    "Noseover Lockout",  "Full Flight Timer", "VideoOffTimer"};
+    "LowGIMU (LSM6DSL)", "HighGIMU (ADXL375)", "BaromBMP388",  "BaromMS5611",
+    "Noseover Lockout",  "Full Flight Timer",  "VideoOffTimer"};
 
 inline constexpr std::size_t numTimerEvents = 3;
 using SensorModulePhaseController =
