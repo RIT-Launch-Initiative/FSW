@@ -75,6 +75,9 @@ private:
 
     void handleReadRequest(const sockaddr& srcAddr, const uint8_t* packet, const uint8_t len);
 
+    // Not defined by the TFTP specification.
+    int generateTree();
+
 };
 
 

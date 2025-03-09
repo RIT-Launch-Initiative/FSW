@@ -1,5 +1,7 @@
 #ifndef C_FILE_H
 #define C_FILE_H
+
+#include <sys/types.h>
 #include <zephyr/fs/fs_interface.h>
 
 class CFile {

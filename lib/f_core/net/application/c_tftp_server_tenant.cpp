@@ -45,6 +45,13 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
     const char *modeStr = reinterpret_cast<const char*>(&packet[2 + strlen(filename) + 1]);
     TftpMode mode = UNDEFINED_TFTP_MODE;
 
+    if (strncmp(filename, "tree", 4) == 0) {
+        if (const int ret = generateTree(); ret < 0) {
+            LOG_ERR("Error generating tree");
+            return;
+        }
+    }
+
     for (int i = 0; i < NUM_MODES; i++) {
         if (strcmp(modeStr, tftpModeStrings[i]) == 0) {
             mode = static_cast<TftpMode>(i);
@@ -101,3 +108,5 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
         blockNumber++;
     }
 }
+
+int CTftpServerTenant::generateTree() {}
