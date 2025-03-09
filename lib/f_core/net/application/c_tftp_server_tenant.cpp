@@ -109,4 +109,7 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
     }
 }
 
-int CTftpServerTenant::generateTree() {}
+int CTftpServerTenant::generateTree() {
+    // TODO: Implement in another PR
+    return -1;
+}
