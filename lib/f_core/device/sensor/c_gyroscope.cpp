@@ -3,17 +3,13 @@
 
 LOG_MODULE_REGISTER(CGyroscope);
 
-CGyroscope::CGyroscope(const device& dev)
-    : CSensorDevice(dev) {
-}
+CGyroscope::CGyroscope(const device& dev) : CSensorDevice(dev) {}
 
 bool CGyroscope::UpdateSensorValue() {
-    if ((CBase::UpdateSensorValue()) &&
-        (0 == sensor_channel_get(&dev, SENSOR_CHAN_GYRO_XYZ, &gyroscopeData.x))) {
+    if ((CBase::UpdateSensorValue()) && (0 == sensor_channel_get(&dev, SENSOR_CHAN_GYRO_XYZ, &gyroscopeData.x))) {
         return true;
     }
 
-    LOG_WRN("Failed to update sensor values");
     return false;
 }
 

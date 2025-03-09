@@ -73,3 +73,5 @@ app_grim_reefer/extra/out/*
 
 # Python files
 __pycache__
+
+flash/
