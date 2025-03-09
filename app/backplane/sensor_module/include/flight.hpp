@@ -16,27 +16,20 @@ static constexpr uint32_t noseoverTimeThreshold = 250;   // ms
 static constexpr double groundVelocityThreshold = 10;  // ft/s
 static constexpr uint32_t groundTimeThreshold = 10000; // ms (10s)
 
-enum Events : uint8_t { Boost, NoseoverLockout, Noseover, GroundHit, CamerasOff, NumEvents };
+enum Events : uint8_t { Boost, NoseoverLockout, Noseover, GroundHit, NumEvents };
 inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
-    "Boost", "NoseoverLockout", "Noseover", "GroundHit", "CamerasOff",
+    "Boost",
+    "NoseoverLockout",
+    "Noseover",
+    "GroundHit",
 };
 
 /**
  * Sources of flight events
  */
-enum Sources : uint8_t {
-    LowGImu,
-    HighGImu,
-    BaromBMP,
-    BaromMS5611,
-    NoseoverLockoutTimer,
-    FullFlightTimer,
-    VideoOffTimer,
-    NumSources
-};
+enum Sources : uint8_t { LowGImu, HighGImu, BaromBMP, BaromMS5611, NoseoverLockoutTimer, FullFlightTimer, NumSources };
 inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
-    "LowGIMU (LSM6DSL)", "HighGIMU (ADXL375)", "BaromBMP388",  "BaromMS5611",
-    "Noseover Lockout",  "Full Flight Timer",  "VideoOffTimer"};
+    "LowGIMU (LSM6DSL)", "HighGIMU (ADXL375)", "BaromBMP388", "BaromMS5611", "Noseover Lockout", "Full Flight Timer"};
 
 inline constexpr std::size_t numTimerEvents = 3;
 using SensorModulePhaseController =
@@ -62,13 +55,7 @@ inline std::array<SensorModulePhaseController::TimerEvent, numTimerEvents> timer
         .time = K_SECONDS(350),
         .source = Sources::FullFlightTimer,
     },
-    // After we hit the ground, keep the cameras going for a while longer
-    SensorModulePhaseController::TimerEvent{
-        .start = Events::GroundHit,
-        .event = Events::CamerasOff,
-        .time = K_SECONDS(100),
-        .source = Sources::VideoOffTimer,
-    },
+
 };
 
 /**
@@ -99,11 +86,6 @@ inline constexpr std::array<SensorModulePhaseController::DecisionFunc, Events::N
     // On the ground
     arr[Events::GroundHit] = [](SensorModulePhaseController::SourceStates states) -> bool {
         return states[Sources::BaromBMP] || states[Sources::BaromMS5611] || states[Sources::FullFlightTimer];
-    };
-
-    // After finishing stuff
-    arr[Events::CamerasOff] = [](SensorModulePhaseController::SourceStates states) -> bool {
-        return states[Sources::VideoOffTimer];
     };
 
     return arr;
