@@ -33,7 +33,7 @@ size_t CFile::GetFileSize() const {
     return entry.size;
 }
 
-int CFile::Read(void* data, const size_t len) {
+int CFile::Read(void* data, const size_t len, off_t offset) {
     if (initStatus < 0) {
         LOG_ERR("File not initialized");
         return -1;
@@ -42,10 +42,18 @@ int CFile::Read(void* data, const size_t len) {
         return -1;
     }
 
+    // Seek to offset
+    if (offset > 0) {
+        if (fs_seek(&file, offset, FS_SEEK_SET) < 0) {
+            LOG_ERR("Error seeking file");
+            return -1;
+        }
+    }
+
     return fs_read(&file, data, len);
 }
 
-int CFile::Write(const void* data, const size_t len) {
+int CFile::Write(const void* data, const off_t len) {
     if (initStatus < 0) {
         LOG_ERR("File not initialized");
         return -1;

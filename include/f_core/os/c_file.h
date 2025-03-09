@@ -10,9 +10,11 @@ public:
 
     size_t GetFileSize() const;
 
-    int Read(void *data, size_t len);
+    int Read(void *data, size_t len, off_t offset = 0);
 
     int Write(const void *data, size_t len);
+
+    int GetStatus() const { return initStatus; }
 
 private:
     fs_file_t file;
