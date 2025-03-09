@@ -111,5 +111,8 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
 
 int CTftpServerTenant::generateTree() {
     // TODO: Implement in another PR
+    CFile file("tree", FS_O_WRITE | FS_O_CREATE);
+    file.Write("reee", 4);
+
     return -1;
 }
