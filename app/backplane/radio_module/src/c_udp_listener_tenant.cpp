@@ -3,9 +3,10 @@
 
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(CBroadcastReceiveTenant);
+LOG_MODULE_REGISTER(CUdpListenerTenant);
 
 void CUdpListenerTenant::Startup() {
+    LOG_INF("Listening on port %d", listenPort);
 }
 
 void CUdpListenerTenant::PostStartup() {
@@ -23,6 +24,8 @@ void CUdpListenerTenant::Run() {
     radioBroadcastData.port = listenPort;
     radioBroadcastData.size = static_cast<uint8_t>(rcvResult);
 
-    LOG_DBG("Received %d bytes from UDP port %d", rcvResult, radioBroadcastData.port);
-    loraTransmitPort.Send(radioBroadcastData);
+    if (loraTransmitPort.Send(radioBroadcastData) == -ENOMSG) {
+        LOG_WRN_ONCE("Failed to send to broadcast queue");
+        loraTransmitPort.Clear();
+    }
 }

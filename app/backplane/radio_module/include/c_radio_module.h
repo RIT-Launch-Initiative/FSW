@@ -65,14 +65,14 @@ private:
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
 #ifndef CONFIG_ARCH_POSIX
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort, &loraBroadcastMessagePort};
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
+    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
 
     // Tasks
-    CTask networkingTask{"UDP Listener Task", 14, 1024, 0};
-    CTask gnssTask{"GNSS Task", 15, 1024, 0};
+    CTask networkingTask{"UDP Listener Task", 15, 1024, 0};
+    CTask gnssTask{"GNSS Task", 15, 1024, 2000};
     CTask dataLoggingTask{"Data Logging Task", 15, 2048, 0};
     CTask loraTask{"LoRa Task", 15, 2048, 0};
 
