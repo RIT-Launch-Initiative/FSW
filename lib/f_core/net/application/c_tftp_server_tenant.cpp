@@ -1,4 +1,5 @@
 #include "f_core/net/application/c_tftp_server_tenant.h"
+#include "f_core/os/c_file.h"
 
 #include <zephyr/kernel.h>
 
@@ -57,5 +58,6 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
 
     LOG_INF("Received read request for %s from %s", filename, inet_ntoa(reinterpret_cast<const sockaddr_in*>(&srcAddr)->sin_addr));
 
+    CFile file;
 
 }
