@@ -11,10 +11,10 @@ static bool camerasTurnedOff = false;
 void shutoffTimerExpirationFn(k_timer* timer) {
     LOG_INF("Shutting off cameras");
 
-    CGpio &gpios = *static_cast<CGpio*>(k_timer_user_data_get(timer));
+    CGpio *gpios = static_cast<CGpio*>(k_timer_user_data_get(timer));
 
-    for (auto &gpio : gpios) {
-        gpio.SetPin(0);
+    for (int i = 0; i < 4; i++)  {
+        gpios[i].SetPin(0);
     }
 
     camerasTurnedOff = true;
