@@ -1,8 +1,8 @@
 #include "f_core/net/application/c_tftp_server_tenant.h"
-
 #include "f_core/os/c_file.h"
 
 #include <cstdio>
+#include <cstring>
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -19,7 +19,6 @@ char *inet_ntoa(struct in_addr in)
     return buf;
 }
 
-
 void CTftpServerTenant::Startup() {
 }
 
@@ -30,7 +29,7 @@ void CTftpServerTenant::Run() {
     sockaddr srcAddr = {0};
     socklen_t srcAddrLen = sizeof(srcAddr);
     uint8_t packet[rwRequestPacketSize] = {0};
-    uint8_t rxLen = sock.ReceiveAsynchronous(packet, rwRequestPacketSize, &srcAddr, &srcAddrLen);
+    int rxLen = sock.ReceiveAsynchronous(packet, rwRequestPacketSize, &srcAddr, &srcAddrLen);
 
     if (rxLen == 0) {
         return;
@@ -39,45 +38,58 @@ void CTftpServerTenant::Run() {
         return;
     }
 
-    // Opcode is the first two bytes
-    uint8_t opcode = packet[0] << 8 | packet[1];
+    // Opcode is the first two bytes in network order.
+    uint16_t opcode = (packet[0] << 8) | packet[1];
     switch (opcode) {
         case RRQ:
             handleReadRequest(srcAddr, packet, rxLen);
             break;
-
         default:
-            // We currently don't care about other operations
             LOG_ERR("Undefined opcode operation %d", opcode);
     }
 }
 
-int CTftpServerTenant::waitForAck(const sockaddr& srcAddr, uint16_t blockNum) {
-    uint8_t ack[4] = {0}; // 2 byte opcode. 2 byte block number
+int CTftpServerTenant::waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr, uint16_t blockNum) {
+    static constexpr uint16_t ACK_PKT_SIZE = 4;
+    uint8_t ack[ACK_PKT_SIZE] = {0}; // 2 bytes for opcode, 2 for block number
+    const int maxRetries = 5;
+    int retries = 0;
 
-    while (sock.ReceiveAsynchronous(ack, 4, const_cast<sockaddr*>(&srcAddr), nullptr) < 0) {
-        if (errno != EWOULDBLOCK && errno != EAGAIN) {
-            LOG_ERR("Failed to receive ACK (%d)", errno);
-            return errno;
-        }
+    while (retries < maxRetries) {
+        int ret = dataSock.ReceiveAsynchronous(ack, 4, const_cast<sockaddr *>(&srcAddr), nullptr);
+        if (ret < 0) {
+            // If no data available yet, wait and retry.
+            if (errno == EWOULDBLOCK || errno == EAGAIN) {
+                k_sleep(K_MSEC(100));
+                retries++;
+                continue;
+            } else {
+                LOG_ERR("Failed to receive ACK (%d)", errno);
+                return errno;
+            }
+        } else if (ret == ACK_PKT_SIZE) {
+            uint16_t receivedOpcode = (ack[0] << 8) | ack[1];
+            uint16_t receivedBlockNum = (ack[2] << 8) | ack[3];
 
-        uint16_t opcode = ack[0] << 8 | ack[1];
-        uint16_t receivedBlockNum = ack[2] << 8 | ack[3];
+            if (receivedOpcode == ACK && receivedBlockNum == blockNum) {
+                return 0; // Valid ACK received.
+            }
 
-        if (opcode != ACK || receivedBlockNum != blockNum) {
             LOG_ERR("Received invalid ACK. Expected block %d, received block %d", blockNum, receivedBlockNum);
             return -1;
         }
-
-
     }
+
+    LOG_ERR("Timeout waiting for ACK for block %d", blockNum);
+    return -1;
 }
 
-void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t* packet, const uint8_t len) {
-    const char *filename = reinterpret_cast<const char*>(&packet[2]); // Skips opcode and expects null terminated string
-    const char *modeStr = reinterpret_cast<const char*>(&packet[2 + strlen(filename) + 1]);
+void CTftpServerTenant::handleReadRequest(const sockaddr &clientAddr, const uint8_t *packet, int len) {
+    const char *filename = reinterpret_cast<const char *>(&packet[2]);
+    const char *modeStr = reinterpret_cast<const char *>(&packet[2 + strlen(filename) + 1]);
     TftpMode mode = UNDEFINED_TFTP_MODE;
 
+    // Handle a special "tree" request.
     if (strncmp(filename, "tree", 4) == 0) {
         if (const int ret = generateTree(); ret < 0) {
             LOG_ERR("Error generating tree");
@@ -97,7 +109,8 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
         return;
     }
 
-    LOG_INF("Received read request for %s from %s", filename, inet_ntoa(reinterpret_cast<const sockaddr_in*>(&srcAddr)->sin_addr));
+    LOG_INF("Received read request for %s from %s", filename,
+            inet_ntoa(reinterpret_cast<const sockaddr_in *>(&clientAddr)->sin_addr));
 
     CFile file(filename, FS_O_READ);
     if (file.GetStatus() < 0) {
@@ -106,46 +119,61 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
     }
 
     const off_t fileSize = static_cast<off_t>(file.GetFileSize());
-    if (fileSize == 0) {
+    if (fileSize < 0) {
         LOG_ERR("Error getting file size for %s", filename);
         return;
     }
 
+    uint16_t clientPort = reinterpret_cast<const sockaddr_in *>(&clientAddr)->sin_port;
+    clientPort = (clientPort >> 8) | (clientPort << 8);
+    
+    CUdpSocket dataSock(ip, 0, clientPort);
 
-    const uint8_t dataBlockOffset = 4;
-    const uint16_t opcode = DATA;
     uint16_t blockNumber = 1;
+    constexpr uint16_t opcode = DATA;
+    constexpr int maxDataSize = 512;
+    off_t offset = 0;
 
-    for (off_t offset = 0; offset < fileSize; offset += 512) {
-        uint8_t response[516] = {0}; // 2 byte opcode. 2 byte block number. 512 byte data
-        uint8_t *dataBlock = &response[dataBlockOffset];
-
-        // Fill in with DATA opcode
-        response[0] = opcode >> 8;
-        response[1] = opcode & 0xFF;
-
-        // Fill in with block number
-        response[2] = blockNumber >> 8;
-        response[3] = blockNumber & 0xFF;
-
-        // Fill in with data
-        const size_t readLen = file.Read(dataBlock, 512, offset);
-
-        if (readLen == 0) {
+    while (offset < fileSize) {
+        uint8_t response[516] = {0}; // 2 bytes opcode, 2 bytes block number, up to 512 bytes data
+        size_t readLen = file.Read(&response[4], maxDataSize, offset);
+        if (readLen <= 0) {
             LOG_ERR("Error reading file %s", filename);
             return;
         }
 
-        sock.TransmitAsynchronous(response, readLen + dataBlockOffset);
+        // Fill in with DATA opcode
+        response[0] = opcode >> 8;
+        response[1] = opcode & 0xFF;
+        response[2] = blockNumber >> 8;
+        response[3] = blockNumber & 0xFF;
 
+        // Transmit the data block on the data socket.
+        dataSock.TransmitAsynchronous(response, readLen + 4);
+
+        // Wait for ACK before sending the next block.
+        if (waitForAck(dataSock, clientAddr, blockNumber) != 0) {
+            LOG_ERR("Failed to receive ACK for block %d", blockNumber);
+            return;
+        }
         blockNumber++;
+        offset += readLen;
+    }
+
+    // If the file size is an exact multiple of 512, send a final empty data packet.
+    if ((fileSize % maxDataSize) == 0) {
+        uint8_t finalResponse[4] = {0};
+        finalResponse[0] = opcode >> 8;
+        finalResponse[1] = opcode & 0xFF;
+        finalResponse[2] = blockNumber >> 8;
+        finalResponse[3] = blockNumber & 0xFF;
+        dataSock.TransmitAsynchronous(finalResponse, 4);
+        waitForAck(dataSock, clientAddr, blockNumber);
     }
 }
 
 int CTftpServerTenant::generateTree() {
-    // TODO: Implement in another PR
     CFile file("tree", FS_O_WRITE | FS_O_CREATE);
     file.Write("reee", 4);
-
     return -1;
 }

@@ -11,41 +11,38 @@ public:
     inline static CTftpServerTenant *instance = nullptr;
 
     /**
-	 * Singleton getter to avoid multiple instances of the TFTP server
-	 */
-    static CTftpServerTenant *getInstance(const CIPv4& ipv4, uint16_t port = TFTP_DEFAULT_PORT) {
+     * Singleton getter to avoid multiple instances of the TFTP server.
+     */
+    static CTftpServerTenant *getInstance(const CIPv4 &ipv4, uint16_t port = TFTP_DEFAULT_PORT) {
         if (instance == nullptr) {
             instance = new CTftpServerTenant(ipv4, port);
         }
-
         return instance;
     }
 
     void Startup() override;
-
     void Cleanup() override;
-
     void Run() override;
 
 private:
+    // The control socket bound to port 69 (or specified port)
     CUdpSocket sock;
+    CIPv4 ip; // Store to create new sockets for data transfers
 
     typedef enum {
         NETASCII = 0,
-        OCTET, // This is the only one we care about
+        OCTET, // We only support octet mode
         MAIL,
         NUM_MODES,
-        UNDEFINED_TFTP_MODE = -1 // Not in the specification. Just an initialization placeholder
+        UNDEFINED_TFTP_MODE = -1 // Initialization placeholder
     } TftpMode;
 
-
-
     typedef enum {
-        RRQ = 1, // Read request
-        WRQ = 2, // Write request
-        DATA = 3, // Data
-        ACK = 4, // Acknowledgement
-        ERROR = 5 // Error
+        RRQ = 1,   // Read request
+        WRQ = 2,   // Write request
+        DATA = 3,  // Data packet
+        ACK = 4,   // Acknowledgement
+        ERROR = 5  // Error packet
     } TftpOpcode;
 
     typedef enum {
@@ -71,17 +68,12 @@ private:
         "mail"
     };
 
-    CTftpServerTenant(const CIPv4& ipv4, uint16_t port = TFTP_DEFAULT_PORT) : CTenant("TFTP server"), sock(ipv4, port, port) {};
+    CTftpServerTenant(const CIPv4 &ipv4, uint16_t port = TFTP_DEFAULT_PORT)
+        : CTenant("TFTP server"), sock(ipv4, port, port), ip(ipv4) {};
 
-    void handleReadRequest(const sockaddr& srcAddr, const uint8_t* packet, const uint8_t len);
-
-    int waitForAck(const sockaddr& srcAddr, uint16_t blockNum);
-
-    // Not defined by the TFTP specification.
+    void handleReadRequest(const sockaddr &srcAddr, const uint8_t *packet, int len);
+    int waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr, uint16_t blockNum);
     int generateTree();
-
 };
 
-
-
-#endif //C_TFTP_SERVER_H
+#endif // C_TFTP_SERVER_H

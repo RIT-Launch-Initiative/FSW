@@ -16,7 +16,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 int main() {
     CIPv4 ip("10.0.0.1");
     CTftpServerTenant *tftpServer = CTftpServerTenant::getInstance(ip);
-    CUdpSocket udp(ip, 10000, 10000); // Just broadcast timestamps to ensure we can run both on the same thread
+    // CUdpSocket udp(ip, 10000, 10000); // Just broadcast timestamps to ensure we can run both on the same thread
 
     LOG_INF("Creating file");
 
@@ -33,9 +33,9 @@ int main() {
 
     uint32_t uptime = k_uptime_get_32();
     while (true) {
-        uptime = k_uptime_get_32();
+        // uptime = k_uptime_get_32();
         tftpServer->Run();
-        udp.TransmitAsynchronous(&uptime, sizeof(uint32_t));
+        // udp.TransmitAsynchronous(&uptime, sizeof(uint32_t));
         k_msleep(100);
     }
 

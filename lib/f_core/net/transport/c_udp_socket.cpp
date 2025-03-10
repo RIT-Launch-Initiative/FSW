@@ -85,7 +85,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
         }
     }
 
-    z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
+    z_impl_net_addr_pton(AF_INET, "10.0.0.0", const_cast<in_addr*>(&addr.sin_addr));
 
     int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
