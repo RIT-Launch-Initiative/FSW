@@ -63,18 +63,18 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
 
     bool primary_good = FindSlope(primaryBaromVelocityFinder, primary_barom_velocity);
     if (primary_good) {
-        primaryBaromGroundDetector.feed(t_plus_ms, fabs(primary_barom_velocity));
+        primaryBaromGroundDetector.Feed(t_plus_ms, fabs(primary_barom_velocity));
     }
 
     bool secondary_good = FindSlope(secondaryBaromVelocityFinder, secondary_barom_velocity);
     if (secondary_good) {
-        secondaryBaromGroundDetector.feed(t_plus_ms, fabs(secondary_barom_velocity));
+        secondaryBaromGroundDetector.Feed(t_plus_ms, fabs(secondary_barom_velocity));
     }
 
-    if (primaryBaromGroundDetector.passed() && sensor_states.primaryBarometerOk) {
+    if (primaryBaromGroundDetector.Passed() && sensor_states.primaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromMS5611, Events::GroundHit);
     }
-    if (secondaryBaromGroundDetector.passed() && sensor_states.secondaryBarometerOk) {
+    if (secondaryBaromGroundDetector.Passed() && sensor_states.secondaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromBMP, Events::GroundHit);
     }
 }
@@ -86,19 +86,19 @@ void CDetectionHandler::HandleNoseover(const uint32_t t_plus_ms, const NTypes::S
 
     bool primary_vel_good = FindSlope(primaryBaromVelocityFinder, primary_barom_velocity);
     if (primary_vel_good) {
-        primaryBaromNoseoverDetector.feed(t_plus_ms, primary_barom_velocity);
+        primaryBaromNoseoverDetector.Feed(t_plus_ms, primary_barom_velocity);
     }
 
     bool secondary_vel_good = FindSlope(secondaryBaromVelocityFinder, secondary_barom_velocity);
     if (secondary_vel_good) {
-        secondaryBaromNoseoverDetector.feed(t_plus_ms, secondary_barom_velocity);
+        secondaryBaromNoseoverDetector.Feed(t_plus_ms, secondary_barom_velocity);
     }
 
-    if (primaryBaromNoseoverDetector.passed() && controller.HasEventOccured(Events::NoseoverLockout) &&
+    if (primaryBaromNoseoverDetector.Passed() && controller.HasEventOccured(Events::NoseoverLockout) &&
         sensor_states.primaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromMS5611, Events::Noseover);
     }
-    if (secondaryBaromNoseoverDetector.passed() && controller.HasEventOccured(Events::NoseoverLockout) &&
+    if (secondaryBaromNoseoverDetector.Passed() && controller.HasEventOccured(Events::NoseoverLockout) &&
         sensor_states.secondaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromBMP, Events::Noseover);
     }
@@ -113,13 +113,13 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
                                         data.Acceleration.Y * data.Acceleration.Y +
                                         data.Acceleration.Z * data.Acceleration.Z;
 
-    primaryImuBoostSquaredDetector.feed(timestamp, primary_mag_squared_m_s2);
-    secondaryImuBoostSquaredDetector.feed(timestamp, secondary_mag_squared_m_s2);
+    primaryImuBoostSquaredDetector.Feed(timestamp, primary_mag_squared_m_s2);
+    secondaryImuBoostSquaredDetector.Feed(timestamp, secondary_mag_squared_m_s2);
 
-    if (primaryImuBoostSquaredDetector.passed() && sensor_states.primaryAccOk) {
+    if (primaryImuBoostSquaredDetector.Passed() && sensor_states.primaryAccOk) {
         controller.SubmitEvent(Sources::HighGImu, Events::Boost);
     }
-    if (secondaryImuBoostSquaredDetector.passed() && sensor_states.secondaryAccOk) {
+    if (secondaryImuBoostSquaredDetector.Passed() && sensor_states.secondaryAccOk) {
         controller.SubmitEvent(Sources::LowGImu, Events::Boost);
     }
 
