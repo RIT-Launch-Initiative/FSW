@@ -13,9 +13,7 @@ class CUdpListenerTenant : public CTenant {
 public:
     explicit CUdpListenerTenant(const char* name, const char *ipStr, const uint16_t listenPort, CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
         : CTenant(name), ip(CIPv4{ipStr}), udp(CUdpSocket{ip, listenPort, listenPort}),
-          loraTransmitPort(*loraTransmitPort), listenPort(listenPort)
-    {
-    }
+          loraTransmitPort(*loraTransmitPort), listenPort(listenPort) {}
 
     ~CUdpListenerTenant() override = default;
 

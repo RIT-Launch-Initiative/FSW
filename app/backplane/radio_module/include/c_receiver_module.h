@@ -14,6 +14,8 @@
 #include <f_core/os/c_task.h>
 #include <f_core/radio/c_lora.h>
 
+#include <n_autocoder_network_defs.h>
+
 class CReceiverModule : public CProjectConfiguration {
 public:
     /**
@@ -37,9 +39,9 @@ public:
     void SetupCallbacks() override;
 
 private:
-    static constexpr const char* ipAddrStr = "10.2.1.1";
-    static constexpr uint16_t radioModuleSourcePort = 12000;
-    static constexpr uint16_t radioModuleCommandSourcePort = 12001;
+    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
+    static constexpr uint16_t radioModuleCommandPort = NNetworkDefs::RADIO_MODULE_COMMAND_PORT;
+    static constexpr uint16_t radioModuleDataRequestPort = NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT;
 
     // Devices
     CLora lora;
@@ -50,9 +52,10 @@ private:
 
     // Tenants
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandSourcePort, &loraBroadcastMessagePort};
+    CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr, radioModuleCommandPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant dataRequestListenerTenant{"Radio Module Data Request Listener Tenant", ipAddrStr, radioModuleDataRequestPort, &loraBroadcastMessagePort};
 
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort, &loraBroadcastMessagePort};
+    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, NNetworkDefs::RADIO_BASE_PORT};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 1024, 0};
