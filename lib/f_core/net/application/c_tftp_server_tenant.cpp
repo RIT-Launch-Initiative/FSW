@@ -149,13 +149,16 @@ void CTftpServerTenant::handleReadRequest(const sockaddr &clientAddr, const uint
         response[3] = blockNumber & 0xFF;
 
         // Transmit the data block on the data socket.
+        LOG_INF("Sending block %d of size %d", blockNumber, readLen);
         dataSock.TransmitAsynchronous(response, readLen + 4);
 
         // Wait for ACK before sending the next block.
+        LOG_INF("Waiting for ACK for block %d", blockNumber);
         if (waitForAck(dataSock, clientAddr, blockNumber) != 0) {
             LOG_ERR("Failed to receive ACK for block %d", blockNumber);
             return;
         }
+        LOG_INF("Received ACK for block %d", blockNumber);
         blockNumber++;
         offset += readLen;
     }
