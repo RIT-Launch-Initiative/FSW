@@ -49,7 +49,7 @@ or_scalar_t or_get_time(const struct or_common_params* cfg) {
     if (cfg->sampling_period_us != 0) {
         us = (us / cfg->sampling_period_us) * cfg->sampling_period_us;
     }
-    us -= cfg->lag_time_ms * 1000;
+    us -= cfg->lag_time_us;
     us -= CONFIG_OPENROCKET_MS_BEFORE_LAUNCH * 1000;
     return ((or_scalar_t) (us)) / 1000000.0;
 }

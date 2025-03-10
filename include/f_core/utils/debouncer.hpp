@@ -10,7 +10,7 @@ template <ThresholdDirection direction, typename Scalar = float, typename Timest
 class CDebouncer {
   public:
     constexpr CDebouncer(Timestamp duration, Scalar target_value) : duration(duration), target_value(target_value) {}
-    constexpr void feed(Timestamp t, Scalar new_value) {
+    constexpr void Feed(Timestamp t, Scalar new_value) {
         if (passesOne(new_value)) {
             lastTimePassed = t;
             if (firstTimePassed == NOT_PASSED) {
@@ -21,7 +21,7 @@ class CDebouncer {
             lastTimePassed = NOT_PASSED;
         }
     }
-    constexpr bool passed() {
+    constexpr bool Passed() {
         if (firstTimePassed == NOT_PASSED || lastTimePassed == NOT_PASSED) {
             return false;
         }
