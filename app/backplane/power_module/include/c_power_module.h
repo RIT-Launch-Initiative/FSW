@@ -13,6 +13,7 @@
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
 
 #include <n_autocoder_network_defs.h>
+#include <f_core/net/application/c_tftp_server_tenant.h>
 
 class CPowerModule : public CProjectConfiguration {
 public:
@@ -53,6 +54,7 @@ private:
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    CTftpServerTenant tftpServerTenant = *CTftpServerTenant::getInstance(CIPv4(ipAddrStr));
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 1024, 0};
