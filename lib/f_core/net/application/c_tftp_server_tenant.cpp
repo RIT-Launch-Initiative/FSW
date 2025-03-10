@@ -173,7 +173,7 @@ void CTftpServerTenant::handleReadRequest(const sockaddr &clientAddr, const uint
 }
 
 int CTftpServerTenant::generateTree() {
-    CFile file("tree", FS_O_WRITE | FS_O_CREATE);
+    CFile file("/lfs/tree", FS_O_WRITE | FS_O_CREATE);
     file.Write("reee", 4);
     return -1;
 }
