@@ -10,14 +10,10 @@ LOG_MODULE_REGISTER(CLoraReceiveTenant);
 static bool camerasTurnedOff = false;
 void shutoffTimerExpirationFn(k_timer* timer) {
     LOG_INF("Shutting off cameras");
-    CGpio gpios[4] = {
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
-    };
 
-    for (auto & gpio : gpios) {
+    CGpio &gpios = *static_cast<CGpio*>(k_timer_user_data_get(timer));
+
+    for (auto &gpio : gpios) {
         gpio.SetPin(0);
     }
 
@@ -88,15 +84,13 @@ void CLoraReceiveTenant::FlightRun() {
 
 
 void CLoraReceiveTenant::LandedRun() {
-    static bool timerFinishedExecuting = false;
-
-    if (!timerFinishedExecuting) {
+    if (!shutoffTimer.IsRunning() && !camerasTurnedOff) {
+        shutoffTimer.SetUserData(gpios);
         shutoffTimer.StartTimer(1000 * 60 * 10); // 10 minutes
+    }
 
-        if (camerasTurnedOff) {
-            shutoffTimer.StopTimer();
-            timerFinishedExecuting = true;
-        }
+    if (shutoffTimer.IsRunning() && camerasTurnedOff) {
+        shutoffTimer.StopTimer();
     }
 }
 
