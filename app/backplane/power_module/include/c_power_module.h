@@ -57,7 +57,7 @@ private:
     CTftpServerTenant tftpServerTenant = *CTftpServerTenant::getInstance(CIPv4(ipAddrStr));
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 1024, 0};
+    CTask networkTask{"Networking Task", 15, 3072, 0};
     CTask sensingTask{"Sensing Task", 15, 1024, 0};
     CTask dataLoggingTask{"Data Logging Task", 15, 1500, 0};
 };

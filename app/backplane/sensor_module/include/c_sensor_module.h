@@ -57,7 +57,7 @@ private:
 
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 1024, 0};
+    CTask networkTask{"Networking Task", 15, 3072, 0};
     CTask sensingTask{"Sensing Task", 15, 1024, 0};
     CTask dataLogTask{"Data Logging Task", 15, 1300, 0};
 };
