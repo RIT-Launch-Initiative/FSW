@@ -52,6 +52,27 @@ void CTftpServerTenant::Run() {
     }
 }
 
+int CTftpServerTenant::waitForAck(const sockaddr& srcAddr, uint16_t blockNum) {
+    uint8_t ack[4] = {0}; // 2 byte opcode. 2 byte block number
+
+    while (sock.ReceiveAsynchronous(ack, 4, const_cast<sockaddr*>(&srcAddr), nullptr) < 0) {
+        if (errno != EWOULDBLOCK && errno != EAGAIN) {
+            LOG_ERR("Failed to receive ACK (%d)", errno);
+            return errno;
+        }
+
+        uint16_t opcode = ack[0] << 8 | ack[1];
+        uint16_t receivedBlockNum = ack[2] << 8 | ack[3];
+
+        if (opcode != ACK || receivedBlockNum != blockNum) {
+            LOG_ERR("Received invalid ACK. Expected block %d, received block %d", blockNum, receivedBlockNum);
+            return -1;
+        }
+
+
+    }
+}
+
 void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t* packet, const uint8_t len) {
     const char *filename = reinterpret_cast<const char*>(&packet[2]); // Skips opcode and expects null terminated string
     const char *modeStr = reinterpret_cast<const char*>(&packet[2 + strlen(filename) + 1]);
