@@ -14,7 +14,7 @@ public:
 
     int Read(void *data, size_t len, off_t offset = 0);
 
-    int Write(const void *data, size_t len);
+    int Write(const void *data, off_t len);
 
     int GetStatus() const { return initStatus; }
 

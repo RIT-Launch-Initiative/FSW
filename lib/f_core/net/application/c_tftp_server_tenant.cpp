@@ -2,11 +2,23 @@
 
 #include "f_core/os/c_file.h"
 
+#include <cstdio>
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CTftpServerTenant);
+
+char *inet_ntoa(struct in_addr in)
+{
+    static char buf[INET_ADDRSTRLEN];
+    unsigned char *bytes = (unsigned char *)&in.s_addr;
+
+    snprintf(buf, sizeof(buf), "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
+
+    return buf;
+}
+
 
 void CTftpServerTenant::Startup() {
 }
@@ -72,7 +84,7 @@ void CTftpServerTenant::handleReadRequest(const sockaddr& srcAddr, const uint8_t
         return;
     }
 
-    const size_t fileSize = file.GetFileSize();
+    const off_t fileSize = static_cast<off_t>(file.GetFileSize());
     if (fileSize == 0) {
         LOG_ERR("Error getting file size for %s", filename);
         return;
