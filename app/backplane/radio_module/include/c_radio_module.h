@@ -11,6 +11,7 @@
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
+#include <f_core/net/application/c_tftp_server_tenant.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
@@ -67,7 +68,7 @@ private:
 #ifndef CONFIG_ARCH_POSIX
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", lora, ipAddrStr, radioModuleSourcePort, &loraBroadcastMessagePort};
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-#else
+#endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
     CTftpServerTenant tftpServerTenant = *CTftpServerTenant::getInstance(CIPv4(ipAddrStr));
 
@@ -80,4 +81,4 @@ private:
 };
 
 #endif //C_RADIO_MODULE_H
-#endif //C_RADIO_MODULE_H
+#endif //CONFIG_RADIO_MODULE_RECEIVER

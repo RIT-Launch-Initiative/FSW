@@ -21,7 +21,7 @@ int main() {
     LOG_INF("Creating file");
 
     CFile file("/lfs/test.txt", FS_O_READ | FS_O_WRITE | FS_O_CREATE);
-    if (file.GetStatus() < 0) {
+    if (file.GetInitStatus() < 0) {
         LOG_ERR("Error opening file");
         return -1;
     }

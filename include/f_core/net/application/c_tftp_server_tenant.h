@@ -20,8 +20,19 @@ public:
         return instance;
     }
 
+    /**
+     * See parent docs
+     */
     void Startup() override;
+
+    /**
+     * See parent docs
+     */
     void Cleanup() override;
+
+    /**
+     * See parent docs
+     */
     void Run() override;
 
 private:
@@ -68,11 +79,35 @@ private:
         "mail"
     };
 
+    /**
+     *
+     * @param ipv4 IPv4 Address to bind to
+     * @param port Port to bind to. Standard is 69
+     */
     CTftpServerTenant(const CIPv4 &ipv4, uint16_t port = TFTP_DEFAULT_PORT)
         : CTenant("TFTP server"), sock(ipv4, port, port), ip(ipv4) {};
 
+    /**
+     * Handles TFTP RRQ requests
+     * @param srcAddr Source address of the request
+     * @param packet Packet data
+     * @param len Length of the packet
+     */
     void handleReadRequest(const sockaddr &srcAddr, const uint8_t *packet, int len);
+
+    /**
+     * Wait for acknowledgement from the client
+     * @param dataSock Socket to read from
+     * @param srcAddr Source address of the request
+     * @param blockNum Block number to wait for
+     * @return 0 on success, negative error code on failure
+     */
     int waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr, uint16_t blockNum);
+
+    /**
+     * Non-standard TFTP function for generating a filesystem tree
+     * @return 0 on success, negative error code on failure
+     */
     int generateTree();
 };
 

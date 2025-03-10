@@ -113,7 +113,7 @@ void CTftpServerTenant::handleReadRequest(const sockaddr &clientAddr, const uint
             inet_ntoa(reinterpret_cast<const sockaddr_in *>(&clientAddr)->sin_addr));
 
     CFile file(filename, FS_O_READ);
-    if (file.GetStatus() < 0) {
+    if (file.GetInitStatus() < 0) {
         LOG_ERR("Error opening file %s", filename);
         return;
     }
