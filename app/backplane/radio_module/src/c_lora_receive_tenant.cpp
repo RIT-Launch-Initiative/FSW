@@ -7,6 +7,23 @@
 
 LOG_MODULE_REGISTER(CLoraReceiveTenant);
 
+static bool camerasTurnedOff = false;
+void shutoffTimerExpirationFn(k_timer* timer) {
+    LOG_INF("Shutting off cameras");
+    CGpio gpios[4] = {
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
+    };
+
+    for (auto & gpio : gpios) {
+        gpio.SetPin(0);
+    }
+
+    camerasTurnedOff = true;
+}
+
 void CLoraReceiveTenant::Startup() {}
 
 void CLoraReceiveTenant::PostStartup() {}
@@ -68,26 +85,19 @@ void CLoraReceiveTenant::FlightRun() {
     // Should not receive anything while in flight
 }
 
-static void shutoffTimerExpirationFn(k_timer* timer) {
-    LOG_INF("Shutting off cameras");
-    CGpio gpios[4] = {
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
-    };
 
-    for (auto & gpio : gpios) {
-        gpio.SetPin(0);
-    }
-}
 
 void CLoraReceiveTenant::LandedRun() {
-    // Should not receive anything while landed
-    CSoftTimer shutoffTimer{shutoffTimerExpirationFn, nullptr};
-    shutoffTimer.StartTimer(1000 * 60 * 10); // 10 minutes
-    shutoffTimer.BlockUntilExpired();
-    shutoffTimer.StopTimer();
+    static bool timerFinishedExecuting = false;
+
+    if (!timerFinishedExecuting) {
+        shutoffTimer.StartTimer(1000 * 60 * 10); // 10 minutes
+
+        if (camerasTurnedOff) {
+            shutoffTimer.StopTimer();
+            timerFinishedExecuting = true;
+        }
+    }
 }
 
 void CLoraReceiveTenant::GroundRun() {
