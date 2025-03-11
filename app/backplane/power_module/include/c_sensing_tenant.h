@@ -4,13 +4,12 @@
 #include <n_autocoder_types.h>
 
 #include <f_core/messaging/c_message_port.h>
-#include <f_core/os/c_tenant.h>
 #include <f_core/os/tenants/c_observer_tenant.h>
 
-class CSensingTenant : public CTenant, CObserverTenant {
+class CSensingTenant : public CObserverTenant {
 public:
     explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::SensorData> &dataToLog)
-        : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog)
+        : CObserverTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog)
     {
     }
 

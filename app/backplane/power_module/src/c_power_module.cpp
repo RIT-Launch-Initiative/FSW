@@ -37,6 +37,7 @@ void CPowerModule::AddTasksToRtos() {
 }
 
 void CPowerModule::SetupCallbacks() {
+    alertTenant.Subscribe(&sensingTenant);
 }
 
 void CPowerModule::Cleanup() {

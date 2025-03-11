@@ -68,10 +68,12 @@ void CSensingTenant::Run() {
 void CSensingTenant::Notify(void *ctx) {
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::BOOST:
+            LOG_INF("Boost detected. Logging data.");
             logData = true;
             break;
 
         case NAlerts::LANDED:
+            LOG_INF("Landing detected. Disabling logging.");
             logData = false;
             break;
 

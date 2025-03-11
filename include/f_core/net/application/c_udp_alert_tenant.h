@@ -21,7 +21,7 @@ public:
      * Subscribe an observer to receive alerts
      * @param observer Observer to subscribe for alerts
      */
-    void Subscribe(CObserverTenant& observer);
+    void Subscribe(CObserverTenant* observer);
 
 private:
     CUdpSocket sock;
