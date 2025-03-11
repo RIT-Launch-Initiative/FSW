@@ -1,7 +1,9 @@
 #ifndef N_ALERTS_H
 #define N_ALERTS_H
+
 #include <array>
-#include <stdint.h>
+#include <cstdint>
+#include <cstddef>
 
 namespace NAlerts {
     // TODO: Autocoder?
