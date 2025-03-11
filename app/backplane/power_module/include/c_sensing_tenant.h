@@ -5,8 +5,9 @@
 
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
+#include <f_core/os/tenants/c_observer_tenant.h>
 
-class CSensingTenant : public CTenant {
+class CSensingTenant : public CTenant, CObserverTenant {
 public:
     explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::SensorData> &dataToLog)
         : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog)
@@ -21,9 +22,12 @@ public:
 
     void Run() override;
 
+    void Notify(void *ctx) override;
+
 private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
     CMessagePort<NTypes::SensorData> &dataToLog;
+    bool logData = false;
 };
 
 

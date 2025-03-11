@@ -1,4 +1,7 @@
 #include "f_core/net/application/c_udp_alert_tenant.h"
+#include <f_core/n_alerts.h>
+
+#include <array>
 
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
@@ -7,15 +10,15 @@ void CUdpAlertTenant::Subscribe(CObserverTenant& observer) {
 }
 
 void CUdpAlertTenant::Run() {
-    std::array<uint8_t, MAGIC_BYTE_SIGNATURE_SIZE> buff{};
-    if (sock.ReceiveAsynchronous(buff.data(), MAGIC_BYTE_SIGNATURE_SIZE)) {
-        for (size_t i = 0; i < MAGIC_BYTE_SIGNATURE_SIZE; i++) {
-            if (buff[i] != MAGIC_BYTE_SIGNATURE[i]) {
+    std::array<uint8_t, NAlerts::MAGIC_BYTE_SIGNATURE_SIZE> buff{};
+    if (sock.ReceiveAsynchronous(buff.data(), NAlerts::MAGIC_BYTE_SIGNATURE_SIZE) > 0) {
+        for (size_t i = 0; i < NAlerts::MAGIC_BYTE_SIGNATURE_SIZE; i++) {
+            if (buff[i] != NAlerts::MAGIC_BYTE_SIGNATURE[i]) {
                 return;
             }
         }
 
-        AlertType alertType = static_cast<AlertType>(buff[MAGIC_BYTE_SIGNATURE_SIZE]);
+        NAlerts::AlertType alertType = static_cast<NAlerts::AlertType>(buff[NAlerts::MAGIC_BYTE_SIGNATURE_SIZE]);
         LOG_DBG("Received alert type %c", alertType); // Would have to be changed to %d if alerts go past 8 bits
         for (auto observer : observers) {
             observer->Notify(&alertType);

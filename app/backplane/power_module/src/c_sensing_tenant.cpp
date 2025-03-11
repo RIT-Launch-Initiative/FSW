@@ -58,5 +58,14 @@ void CSensingTenant::Run() {
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
-    dataToLog.Send(data, K_MSEC(5));
+
+    if (logData) {
+        dataToLog.Send(data, K_MSEC(5));
+    }
+}
+
+void CSensingTenant::Notify(void *ctx) {
+    if ()
+
+    logData = true;
 }
