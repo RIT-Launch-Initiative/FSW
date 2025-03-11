@@ -66,6 +66,7 @@ void CSensingTenant::Run() {
 }
 
 void CSensingTenant::Notify(void *ctx) {
+    // TODO: Knock, knock! Race condition...
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::BOOST:
             LOG_INF("Boost detected. Logging data.");

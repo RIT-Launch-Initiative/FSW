@@ -18,6 +18,7 @@ void CUdpAlertTenant::Run() {
             }
         }
 
+        // Potential alternative is using signals, but that might require passing in a lot of variables around
         NAlerts::AlertType alertType = static_cast<NAlerts::AlertType>(buff[NAlerts::MAGIC_BYTE_SIGNATURE_SIZE]);
         LOG_DBG("Received alert type %c", alertType); // Would have to be changed to %d if alerts go past 8 bits
         for (auto observer : observers) {

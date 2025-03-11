@@ -8,6 +8,7 @@
 #include "c_udp_listener_tenant.h"
 #include "c_lora_transmit_tenant.h"
 #include "c_lora_receive_tenant.h"
+#include "c_state_machine_updater.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -18,7 +19,6 @@
 #include <f_core/radio/c_lora.h>
 
 // Autocoder Includes
-#include <c_pad_state_machine_updater.h>
 #include <n_autocoder_network_defs.h>
 
 class CRadioModule : public CProjectConfiguration {

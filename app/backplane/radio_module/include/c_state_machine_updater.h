@@ -16,9 +16,9 @@ public:
     ~CStateMachineUpdater() override = default;
 
     /**
-     * Update the state machine based on notifications
+     * See parent docs
      */
-    void Notify(void *ctx) = 0;
+    void Notify(void *ctx) override;
 };
 
 #endif //C_STATE_MACHINE_UPDATER_H

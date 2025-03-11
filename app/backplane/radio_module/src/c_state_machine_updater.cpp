@@ -4,6 +4,7 @@
 #include <f_core/n_alerts.h>
 
 void CStateMachineUpdater::Notify(void* ctx) {
+    // TODO: Make these atomic too probably
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::BOOST:
             NStateMachineGlobals::boostDetected = true;
