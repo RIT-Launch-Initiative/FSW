@@ -1,11 +1,9 @@
 #ifndef C_OBSERVER_H
 #define C_OBSERVER_H
 
-#include "f_core/os/c_tenant.h"
-
-class CObserverTenant : public CTenant { // CObserverTenant inheriting from CTenant avoids ambi
+class CObserverTenant {
 public:
-    CObserverTenant(const char* name) : CTenant(name) {}
+    virtual ~CObserverTenant() = default;
 
     /**
      * Notify the observer of an event. The only time another thread can access a tenant, it doesn't own
