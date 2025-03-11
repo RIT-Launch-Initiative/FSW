@@ -40,7 +40,7 @@ int CLora::ReceiveAsynchronous(const lora_recv_cb cb) {
         return ret;
     }
 
-    return lora_recv_async(lora_dev, cb);
+    return lora_recv_async(lora_dev, cb, nullptr);
 }
 
 inline int CLora::setTxRx(const Direction transmitDirection) {
