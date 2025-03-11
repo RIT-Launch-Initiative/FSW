@@ -26,7 +26,7 @@ enum gyro_axis {
 struct or_common_params {
     bool broken;                     // True if the sensor is broken and won't return data
     unsigned int sampling_period_us; // How often the sensor updates
-    unsigned int lag_time_ms;        // How far behind 'real time' is this sensor measuring
+    unsigned int lag_time_us;        // How far behind 'real time' is this sensor measuring
     unsigned int measurement_us;     // How long does it take a sensor to read
 };
 
@@ -48,9 +48,7 @@ or_scalar_t or_lerp(or_scalar_t a, or_scalar_t b, or_scalar_t t);
 
 /**
  * @brief Get the time to pass to the openrocket interpolator based on this device's specific parameters 
- * @param sampling_period_us the sample will be taken at the start of this period and stay the same throughout this period
- * @param lag_time_ms the sample will be delayed by this amount by the real amount 
- * @return the time (T+) used by openrocket to interpolate and get sensor values
+ * @param cfg the description of this sensors timing parameters
  * This function is limited in precisison by CONFIG_SYS_CLOCK_TICKS_PER_SEC
  */
 or_scalar_t or_get_time(const struct or_common_params* cfg);

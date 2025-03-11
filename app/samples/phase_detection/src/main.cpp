@@ -57,14 +57,14 @@ void imu_thread_f(void *vp_controller, void *, void *) {
 
         // Boost Detecting
         if (!controller.HasEventOccured(Events::Boost)) {
-            boost_detector.feed(timestamp, mag);
-            coast_detector.feed(timestamp, mag);
-            if (boost_detector.passed()) {
+            boost_detector.Feed(timestamp, mag);
+            coast_detector.Feed(timestamp, mag);
+            if (boost_detector.Passed()) {
                 controller.SubmitEvent(Sources::IMU1, Events::Boost);
             }
         } else if (!controller.HasEventOccured(Events::Coast)) {
-            coast_detector.feed(timestamp, mag);
-            if (coast_detector.passed()) {
+            coast_detector.Feed(timestamp, mag);
+            if (coast_detector.Passed()) {
                 controller.SubmitEvent(Sources::IMU1, Events::Coast);
             }
         }
@@ -184,14 +184,14 @@ void barom_thread_f(void *vp_controller, void *, void *) {
         // Check
         if (!controller.HasEventOccured(Events::Boost)) {
             ground_level_avger.Feed(feet);
-            boost_debouncer.feed(time_ms, velocity_ft_s);
-            if (boost_debouncer.passed()) {
+            boost_debouncer.Feed(time_ms, velocity_ft_s);
+            if (boost_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Boost);
             }
         }
         if (!controller.HasEventOccured(Events::Noseover)) {
-            noseover_debouncer.feed(time_ms, velocity_ft_s);
-            if (controller.HasEventOccured(Events::Boost) && noseover_debouncer.passed()) {
+            noseover_debouncer.Feed(time_ms, velocity_ft_s);
+            if (controller.HasEventOccured(Events::Boost) && noseover_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Noseover);
                 if (controller.GetFlightLog() != nullptr) {
                     char print_buf[256] = {0};
@@ -203,14 +203,14 @@ void barom_thread_f(void *vp_controller, void *, void *) {
             }
         }
         if (!controller.HasEventOccured(Events::MainChute)) {
-            mainheight_debouncer.feed(time_ms, feet_agl);
-            if (controller.HasEventOccured(Events::Noseover) && mainheight_debouncer.passed()) {
+            mainheight_debouncer.Feed(time_ms, feet_agl);
+            if (controller.HasEventOccured(Events::Noseover) && mainheight_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::MainChute);
             }
         }
         if (!controller.HasEventOccured(Events::GroundHit)) {
-            no_vel_debouncer.feed(time_ms, fabs(velocity_ft_s));
-            if (controller.HasEventOccured(Events::Boost) && no_vel_debouncer.passed()) {
+            no_vel_debouncer.Feed(time_ms, fabs(velocity_ft_s));
+            if (controller.HasEventOccured(Events::Boost) && no_vel_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::GroundHit);
             }
         }

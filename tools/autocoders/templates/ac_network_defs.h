@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <string>
 
-#define CREATE_IP_ADDR(base, octet3, octet4) std::string(base) + "." + std::to_string(octet3) + "." + std::to_string(octet4)
+#define CREATE_IP_ADDR(base, octet3, octet4) (std::string(base) + "." + std::to_string(octet3) + "." + std::to_string(octet4))
 
 namespace NNetworkDefs {
     // General
