@@ -4,15 +4,10 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 #include <f_core/os/n_rtos.h>
 #include <zephyr/logging/log.h>
+
 LOG_MODULE_REGISTER(deployment_module);
 
-
-K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
-static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
-
-CDeploymentModule::CDeploymentModule()
-    : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),
-      flight_log{generateFlightLogPath()} {}
+CDeploymentModule::CDeploymentModule(): CProjectConfiguration(), flight_log{generateFlightLogPath()} {}
 
 std::string CDeploymentModule::generateFlightLogPath() {
     constexpr size_t MAX_FLIGHT_LOG_PATH_SIZE = 32;
@@ -38,7 +33,6 @@ void CDeploymentModule::AddTenantsToTasks() {
     // Networking
 
     // Data Logging
-    dataLogTask.AddTenant(dataLoggerTenant);
 }
 
 void CDeploymentModule::AddTasksToRtos() {

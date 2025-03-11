@@ -31,3 +31,11 @@ modules:
     port_offsets:
       telemetry:
         port_number: 100
+
+  deployment:
+    id: 4
+    base_port: 14000
+    port_offsets:
+      # No ports for deployment module. This is a placeholder for parsing.
+      unused:
+        port_number: 0
