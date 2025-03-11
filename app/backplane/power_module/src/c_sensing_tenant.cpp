@@ -66,7 +66,7 @@ void CSensingTenant::Run() {
 }
 
 void CSensingTenant::Notify(void *ctx) {
-    switch (NAlerts::AlertType alert = *static_cast<NAlerts::AlertType*>(ctx)) {
+    switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::BOOST:
             logData = true;
             break;

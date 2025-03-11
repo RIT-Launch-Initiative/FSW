@@ -14,22 +14,8 @@ public:
     /**
      * See parent docs
      */
-    void Startup() override = delete;
-
-    /**
-     * See parent docs
-     */
-    void PostStartup() override = delete;
-
-    /**
-     * See parent docs
-     */
     void Run() override;
 
-    /**
-     * See parent docs
-     */
-    void Cleanup() override = delete;
 
     /**
      * Subscribe an observer to receive alerts

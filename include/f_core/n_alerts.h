@@ -1,9 +1,7 @@
-//
-// Created by aaron on 3/11/25.
-//
-
 #ifndef N_ALERTS_H
 #define N_ALERTS_H
+#include <array>
+
 namespace NAlerts {
     // TODO: Autocoder?
     // 16 bits instead of 8 for potential future expansion (Although I hope we don't have to deal with >255 events!)
