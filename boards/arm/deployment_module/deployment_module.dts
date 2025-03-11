@@ -15,8 +15,26 @@
         zephyr,shell-uart = &uart5;
 		zephyr,uart-pipe = &uart5;
 
-//		storage = &w25q128;
+		storage = &storage_partition;
+		logfs = &lfs1;
 	};
+
+	fstab {
+        compatible = "zephyr,fstab";
+
+        lfs1: lfs1 {
+            compatible = "zephyr,fstab,littlefs";
+            mount-point = "/lfs";
+            partition = <&storage_partition>;
+            automount;
+
+            read-size = <16>;
+            prog-size = <16>;
+            cache-size = <64>;
+            lookahead-size = <32>;
+            block-cycles = <(90 * 1000)>;
+        };
+    };
 
 	aliases {
 		led0 = &red_led_1;
@@ -134,15 +152,6 @@
 	status = "okay";
 };
 
-//&pll {
-//    div-m = <8>;
-//    mul-n = <384>;
-//    div-p = <2>;
-//    div-q = <2>;
-//    clocks = <&clk_hsi>;
-//    status = "okay";
-//};
-
 &rcc {
 	clocks = <&clk_hsi>;
 	clock-frequency = <DT_FREQ_M(16)>;
@@ -165,13 +174,6 @@
 	current-speed = <115200>;
 	status = "okay";
 };
-
-//&i2s2 {
-//	status = "okay";
-//
-//
-//};
-
 
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5
@@ -205,6 +207,15 @@
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_STANDARD>;
 };
+
+// TODO: Figure this out when we need it
+//&i2s3 {
+//	mck-enabled;
+//	pinctrl-0 = <&i2s3_ws_pa4 &i2s3_ck_pc10 &i2s3_sd_pc12 &i2s3_mck_pc7>;
+//	pinctrl-names = "default";
+//	clocks = <&rcc STM32_CLOCK(APB1, 15U)>;
+//	status = "okay";
+//};
 
 &rtc {
 	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
