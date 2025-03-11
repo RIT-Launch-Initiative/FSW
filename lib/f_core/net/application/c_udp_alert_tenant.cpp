@@ -5,7 +5,7 @@
 
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
-void CUdpAlertTenant::Subscribe(CObserverTenant* observer) {
+void CUdpAlertTenant::Subscribe(CObserver* observer) {
     observers.push_back(observer);
 }
 

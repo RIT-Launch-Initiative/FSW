@@ -12,6 +12,7 @@
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
+#include <f_core/net/application/c_udp_alert_tenant.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/radio/c_lora.h>
@@ -63,6 +64,8 @@ private:
 
     CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
+
+    CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};

@@ -1,9 +1,9 @@
 #ifndef C_OBSERVER_H
 #define C_OBSERVER_H
 
-class CObserverTenant {
+class CObserver {
 public:
-    virtual ~CObserverTenant() = default;
+    virtual ~CObserver() = default;
 
     /**
      * Notify the observer of an event. The only time another thread can access a tenant, it doesn't own

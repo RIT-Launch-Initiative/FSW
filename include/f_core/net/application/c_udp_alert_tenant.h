@@ -5,7 +5,7 @@
 #include <f_core/net/network/c_ipv4.h>
 #include <f_core/net/transport/c_udp_socket.h>
 #include "f_core/os/c_tenant.h"
-#include "f_core/os/tenants/c_observer_tenant.h"
+#include "f_core/utils/c_observer.h"
 
 class CUdpAlertTenant : public CTenant {
 public:
@@ -21,11 +21,11 @@ public:
      * Subscribe an observer to receive alerts
      * @param observer Observer to subscribe for alerts
      */
-    void Subscribe(CObserverTenant* observer);
+    void Subscribe(CObserver* observer);
 
 private:
     CUdpSocket sock;
-    std::vector<CObserverTenant*> observers;
+    std::vector<CObserver*> observers;
 };
 
 
