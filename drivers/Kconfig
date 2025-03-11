@@ -5,5 +5,4 @@ menu "Drivers"
 rsource "input/Kconfig"
 rsource "sensor/Kconfig"
 rsource "adc/Kconfig"
-rsource "misc/aw9364/Kconfig"
 endmenu
