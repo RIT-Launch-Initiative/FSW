@@ -5,8 +5,8 @@ menu "Zephyr"
 source "Kconfig.zephyr"
 endmenu
 
-module = APP_SENSOR_MODULE
-module-str = APP_SENSOR_MODULE
+module = APP_DEPLOYMENT_MODULE
+module-str = APP_DEPLOYMENT_MODULE
 source "subsys/logging/Kconfig.template.log_config"
 
 config MODULE_ID
