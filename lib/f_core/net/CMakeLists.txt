@@ -3,6 +3,7 @@
 
 zephyr_library()
 FILE(GLOB sources 
+        application/*.cpp
         device/*.cpp
         network/*.cpp
         transport/*.cpp
