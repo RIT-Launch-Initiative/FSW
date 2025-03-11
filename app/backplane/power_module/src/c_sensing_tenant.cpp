@@ -1,6 +1,7 @@
 #include "c_sensing_tenant.h"
 #include "c_power_module.h"
 
+#include <f_core/n_alerts.h>
 #include <f_core/device/sensor/c_shunt.h>
 #include <zephyr/logging/log.h>
 
@@ -65,7 +66,16 @@ void CSensingTenant::Run() {
 }
 
 void CSensingTenant::Notify(void *ctx) {
-    if ()
+    switch (NAlerts::AlertType alert = *static_cast<NAlerts::AlertType*>(ctx)) {
+        case NAlerts::BOOST:
+            logData = true;
+            break;
 
-    logData = true;
+        case NAlerts::LANDED:
+            logData = false;
+            break;
+
+        default:
+            return;
+    }
 }
