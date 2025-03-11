@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSharedSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Simulation" ENABLED="true" GENERATION_DIR="build-simulation" GENERATION_OPTIONS="-G Ninja -DBOARD=native_sim" />
+      <configuration PROFILE_NAME="Flight Release" ENABLED="true" GENERATION_DIR="build-flight-release" GENERATION_OPTIONS="-G Ninja -DBOARD=deployment_module" />
+      <configuration PROFILE_NAME="Flight Debug" ENABLED="true" GENERATION_DIR="build-flight-debug" GENERATION_OPTIONS="-G Ninja -DBOARD=deployment_module -DDEBUG=y" />
+    </configurations>
+  </component>
+</project>
