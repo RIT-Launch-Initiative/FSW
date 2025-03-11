@@ -10,7 +10,7 @@
 #include <f_core/utils/c_observer.h>
 #include <f_core/utils/c_hashmap.h>
 
-class CLoraTransmitTenant : public CTenant, public CPadFlightLandedStateMachine, public CObserver {
+class CLoraTransmitTenant : public CTenant, public CPadFlightLandedStateMachine {
 public:
     friend class CLoraReceiveTenant;
 

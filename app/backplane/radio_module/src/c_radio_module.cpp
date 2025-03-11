@@ -1,6 +1,7 @@
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
 
 #include "c_radio_module.h"
+#include "c_pad_state_machine_updater.h"
 
 // F-Core Tenant
 #include <f_core/os/n_rtos.h>

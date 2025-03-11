@@ -18,6 +18,7 @@
 #include <f_core/radio/c_lora.h>
 
 // Autocoder Includes
+#include <c_pad_state_machine_updater.h>
 #include <n_autocoder_network_defs.h>
 
 class CRadioModule : public CProjectConfiguration {
@@ -72,6 +73,9 @@ private:
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
+
+
+    CStateMachineUpdater stateMachineUpdater;
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 1024, 0};
