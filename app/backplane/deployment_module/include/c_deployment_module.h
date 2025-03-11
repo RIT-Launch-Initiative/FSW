@@ -3,12 +3,10 @@
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
-#include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/flight_log.hpp>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <n_autocoder_network_defs.h>
-#include <n_autocoder_types.h>
 
 class CDeploymentModule : public CProjectConfiguration {
   public:
@@ -45,10 +43,10 @@ class CDeploymentModule : public CProjectConfiguration {
     CFlightLog flight_log;
 
     // Tenants
+    // TODO: Tenant for listening to events
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 1024, 0};
-    CTask dataLogTask{"Data Logging Task", 15, 1300, 0};
 };
 
 #endif //C_DEPLOYMENT_MODULE_H

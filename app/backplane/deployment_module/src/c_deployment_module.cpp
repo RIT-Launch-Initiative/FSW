@@ -1,11 +1,11 @@
 #include "c_deployment_module.h"
 
-// F-Core Tenant
+// F-Core
 #include <f_core/messaging/c_msgq_message_port.h>
 #include <f_core/os/n_rtos.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(deployment_module);
+LOG_MODULE_REGISTER(CDeploymentModule);
 
 CDeploymentModule::CDeploymentModule(): CProjectConfiguration(), flight_log{generateFlightLogPath()} {}
 
