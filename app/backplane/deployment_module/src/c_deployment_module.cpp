@@ -38,9 +38,6 @@ void CDeploymentModule::AddTenantsToTasks() {
 void CDeploymentModule::AddTasksToRtos() {
     // Networking
     NRtos::AddTask(networkTask);
-
-    // Data Logging
-    NRtos::AddTask(dataLogTask);
 }
 
 void CDeploymentModule::SetupCallbacks() {}
