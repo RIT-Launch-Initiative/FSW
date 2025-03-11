@@ -2,6 +2,10 @@
 
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
+void CUdpAlertTenant::Subscribe(CObserverTenant& observer) {
+    observers.push_back(&observer);
+}
+
 void CUdpAlertTenant::Run() {
     std::array<uint8_t, MAGIC_BYTE_SIGNATURE_SIZE> buff{};
     if (sock.ReceiveAsynchronous(buff.data(), MAGIC_BYTE_SIGNATURE_SIZE)) {
@@ -13,5 +17,8 @@ void CUdpAlertTenant::Run() {
 
         AlertType alertType = static_cast<AlertType>(buff[MAGIC_BYTE_SIGNATURE_SIZE]);
         LOG_DBG("Received alert type %c", alertType); // Would have to be changed to %d if alerts go past 8 bits
+        for (auto observer : observers) {
+            observer->Notify(&alertType);
+        }
     }
 }
