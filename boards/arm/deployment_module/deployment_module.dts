@@ -51,7 +51,7 @@
 
 		red_led_1: led_1 {
 			gpios = <&gpiob 13 GPIO_ACTIVE_HIGH>;
-			label = "User LED1";
+			label = "USER LED1";
 		};
 
 		red_led_2: led_2 {
@@ -61,7 +61,7 @@
 
 		red_led_3: led_3 {
 			gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
-			label = "User LED3";
+			label = "USER LED3";
 		};
 
 		wiz_led: wiz_led {
@@ -99,7 +99,7 @@
 
 		pyro_sns_0: pyro_sns_0 {
 			gpios = <&gpioa 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-			label = "PYRO SENSE CHANNEL 1";
+			label = "PYRO SENSE CHANNEL 0";
 		};
 
 		pyro_sns_1: pyro_sns_1 {
@@ -123,22 +123,22 @@
 
 		pyro_ctrl_0: pyros_ctrl_0 {
 			gpios = <&gpioa 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-			label = "PYRO SENSE CHANNEL 1";
+			label = "PYRO CTRL CHANNEL 0";
 		};
 
 		pyro_ctrl_1: pyros_ctrl_1 {
 			gpios = <&gpioa 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-			label = "PYRO SENSE CHANNEL 1";
+			label = "PYRO CTRL CHANNEL 1";
 		};
 
 		pyro_ctrl_2: pyros_ctrl_2 {
 			gpios = <&gpioc 9 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-			label = "PYRO SENSE CHANNEL 2";
+			label = "PYRO CTRL CHANNEL 2";
 		};
 
 		pyro_ctrl_3: pyros_ctrl_3 {
 			gpios = <&gpioc 8 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
-			label = "PYRO SENSE CHANNEL 3";
+			label = "PYRO CTRL CHANNEL 3";
 		};
 	};
 };
