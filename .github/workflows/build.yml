@@ -12,11 +12,13 @@ on:
 
 env:
   test_roots: |
+    app/backplane/deployment_module
     app/backplane/power_module
     app/backplane/radio_module
     app/backplane/sensor_module
   platforms: |
     nucleo_f446re
+    deployment_module
     radio_module
     sensor_module
     power_module

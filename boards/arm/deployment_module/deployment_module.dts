@@ -1,0 +1,267 @@
+/dts-v1/;
+#include <st/f4/stm32f446Xe.dtsi>
+#include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "Deployment Module";
+	compatible = "st,stm32f446xx";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+
+		zephyr,console = &uart5;
+		zephyr,shell-uart = &uart5;
+		zephyr,uart-pipe = &uart5;
+
+		storage = &storage_partition;
+		logfs = &lfs1;
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&storage_partition>;
+			automount;
+
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <64>;
+			lookahead-size = <32>;
+			block-cycles = <(90 * 1000)>;
+		};
+	};
+
+	aliases {
+		led0 = &red_led_1;
+		led1 = &red_led_2;
+	};
+
+	leds: leds {
+		compatible = "gpio-leds";
+
+		red_led_0: led_0 {
+			gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
+			label = "USER LED0";
+		};
+
+		red_led_1: led_1 {
+			gpios = <&gpiob 13 GPIO_ACTIVE_HIGH>;
+			label = "USER LED1";
+		};
+
+		red_led_2: led_2 {
+			gpios = <&gpiob 14 GPIO_ACTIVE_HIGH>;
+			label = "USER LED2";
+		};
+
+		red_led_3: led_3 {
+			gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
+			label = "USER LED3";
+		};
+
+		wiz_led: wiz_led {
+			gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
+			label = "Wiznet LED";
+		};
+	};
+
+	connector: gpios {
+		compatible = "gpio-keys";
+
+		gpio_0: gpios_0 {
+			gpios = <&gpioc 3 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "CONNECTOR GPIO 0";
+		};
+
+		gpio_1: gpios_1 {
+			gpios = <&gpioc 4 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "CONNECTOR GPIO 1";
+		};
+
+		gpio_2: gpios_2 {
+			gpios = <&gpioc 5 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "CONNECTOR GPIO 2";
+		};
+
+		gpio_3: gpios_3 {
+			gpios = <&gpioa 6 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "CONNECTOR GPIO 3";
+		};
+	};
+
+	pyro_sns: pyro_sns {
+		compatible = "gpio-keys";
+
+		pyro_sns_0: pyro_sns_0 {
+			gpios = <&gpioa 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "PYRO SENSE CHANNEL 0";
+		};
+
+		pyro_sns_1: pyro_sns_1 {
+			gpios = <&gpioc 0 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "PYRO SENSE CHANNEL 1";
+		};
+
+		pyro_sns_2: pyro_sns_2 {
+			gpios = <&gpioc 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "PYRO SENSE CHANNEL 2";
+		};
+
+		pyro_sns_3: pyro_sns_3 {
+			gpios = <&gpioc 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "PYRO SENSE CHANNEL 3";
+		};
+	};
+
+	pyro_ctrl: pyro_ctrl {
+		compatible = "gpio-keys";
+
+		pyro_ctrl_0: pyros_ctrl_0 {
+			gpios = <&gpioa 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "PYRO CTRL CHANNEL 0";
+		};
+
+		pyro_ctrl_1: pyros_ctrl_1 {
+			gpios = <&gpioa 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "PYRO CTRL CHANNEL 1";
+		};
+
+		pyro_ctrl_2: pyros_ctrl_2 {
+			gpios = <&gpioc 9 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "PYRO CTRL CHANNEL 2";
+		};
+
+		pyro_ctrl_3: pyros_ctrl_3 {
+			gpios = <&gpioc 8 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			label = "PYRO CTRL CHANNEL 3";
+		};
+	};
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	clock-frequency = <DT_FREQ_M(16)>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&clk_hsi>;
+	clock-frequency = <DT_FREQ_M(16)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <2>;
+	apb2-prescaler = <1>;
+};
+
+&usart2 {
+	pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
+
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&uart5 {
+	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pa5
+				 &spi1_miso_pa6 &spi1_mosi_pa7>;
+	cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
+
+	pinctrl-names = "default";
+	status = "okay";
+
+	w5500: w5500@0 {
+		compatible = "wiznet,w5500";
+		reg = <0x0>;
+		spi-max-frequency = <10000000>;
+		int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
+		zephyr,random-mac-address;
+	};
+};
+
+&spi2 {
+	pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
+	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+};
+
+// TODO: Figure this out when we need it
+//&i2s3 {
+//	mck-enabled;
+//	pinctrl-0 = <&i2s3_ws_pa4 &i2s3_ck_pc10 &i2s3_sd_pc12 &i2s3_mck_pc7>;
+//	pinctrl-names = "default";
+//	clocks = <&rcc STM32_CLOCK(APB1, 15U)>;
+//	status = "okay";
+//};
+
+&rtc {
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
+			 <&rcc STM32_SRC_LSI RTC_SEL(2)>;
+	status = "okay";
+};
+
+&backup_sram {
+	status = "okay";
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 DT_SIZE_K(64)>;
+			read-only;
+		};
+
+		/*
+		 * The flash starting at 0x00010000 and ending at
+		 * 0x0001ffff (sectors 16-31) is reserved for use
+		 * by the application.
+		 */
+		storage_partition: partition@10000 {
+			label = "storage";
+			reg = <0x00010000 DT_SIZE_K(64)>;
+		};
+
+		slot0_partition: partition@20000 {
+			label = "image-0";
+			reg = <0x00020000 DT_SIZE_K(128)>;
+		};
+
+		slot1_partition: partition@40000 {
+			label = "image-1";
+			reg = <0x00040000 DT_SIZE_K(128)>;
+		};
+
+		scratch_partition: partition@60000 {
+			label = "image-scratch";
+			reg = <0x00060000 DT_SIZE_K(128)>;
+		};
+	};
+};

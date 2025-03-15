@@ -1,0 +1,12 @@
+sample:
+  description:
+  name: deployment-module
+common:
+  build_only: true
+  integration_platforms:
+    - deployment_module
+tests:
+  backplane.deployment_module.default: {}
+  backplane.deployment_module.debug:
+    extra_overlay_confs:
+      - debug.conf
