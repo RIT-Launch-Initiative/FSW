@@ -35,7 +35,7 @@ def handle_set_command(args):
 
         return
 
-    if transport is not None and not isinstance(transport, FDDTransport):
+    if transport is not None and not transport is FDDTransport:
         transport.set_attribute(attribute, args)
         return
     else:

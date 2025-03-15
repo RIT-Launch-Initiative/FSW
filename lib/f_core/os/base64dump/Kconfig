@@ -1,0 +1,6 @@
+config F_CORE_BASE64_DATA_DUMP_SHELL
+    bool "F Core base 64 data dump shell"
+    depends on FILE_SYSTEM
+    select BASE64
+    select SHELL
+    select FILE_SYSTEM_SHELL
