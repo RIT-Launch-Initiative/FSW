@@ -1,0 +1,5 @@
+board:
+  name: deployment_module
+  vendor: launch
+  socs:
+    - name: stm32f446xx
