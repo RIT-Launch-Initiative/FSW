@@ -8,7 +8,7 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
-    - name: zephyr-meshtastic
+    - name: cowsed
       url-base: git@github.com:cowsed
 
   projects:
@@ -31,5 +31,9 @@ manifest:
       clone-depth: 1
 
     - name: zephyr-meshtastic
-      remote: zephyr-meshtastic
+      remote: cowsed
+      revision: main
+
+    - name: zephyr_pl_mpeg
+      remote: cowsed
       revision: main
