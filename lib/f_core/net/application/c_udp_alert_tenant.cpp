@@ -11,7 +11,7 @@ void CUdpAlertTenant::Subscribe(CObserver* observer) {
 
 void CUdpAlertTenant::Run() {
     std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE>  buff{};
-    if (sock.ReceiveAsynchronous(buff.data(), NAlerts::MAGIC_BYTE_SIGNATURE_SIZE) > 0) {
+    if (sock.ReceiveAsynchronous(buff.data(), NAlerts::ALERT_PACKET_SIZE) > 0) {
         for (size_t i = 0; i < NAlerts::MAGIC_BYTE_SIGNATURE_SIZE; i++) {
             if (buff[i] != NAlerts::MAGIC_BYTE_SIGNATURE[i]) {
                 return;
