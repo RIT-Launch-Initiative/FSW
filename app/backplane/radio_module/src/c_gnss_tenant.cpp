@@ -43,7 +43,7 @@ void CGnssTenant::Run() {
         dataLoggingPort.Send(logData);
 
         if (transmitTimer.IsExpired()) {
-            broadcastData.port = 12000;
+            broadcastData.port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
             broadcastData.size = sizeof(NTypes::GnssBroadcastData);
             memcpy(broadcastData.data, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
             reinterpret_cast<NTypes::GnssBroadcastData*>(broadcastData.data)->updated = 1;
