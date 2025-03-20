@@ -7,10 +7,20 @@ void CSntpServerTenant::Startup() {}
 void CSntpServerTenant::Cleanup() {}
 
 void CSntpServerTenant::Run() {
-    uint32_t packet[32] = {0};
-    socklen_t srcAddrLen = sizeof(srcAddr);
+    SntpPacket clientPacket = {0};
+    rtc_time time{0};
+    uint32_t rxPacketSecondsTimestamp = 0;
+    uint32_t rxPacketNanosecondsTimestamp = 0;
+    uint32_t txPacketSecondsTimestamp = 0;
+    uint32_t txPacketNanosecondsTimestamp = 0;
+    uint32_t lastUpdateTimeSeconds = 0;
+    uint32_t lastUpdateTimeNanoseconds = 0;
 
-    int rxLen = sock.ReceiveAsynchronous(packet, 32, &srcAddr, &srcAddrLen);
+    // TODO: Merge TFTP code with the new UDP socket code
+    int rxLen = sock.ReceiveAsynchronous(&clientPacket, sizeof(clientPacket));
+    if (getRtcTimeAsSeconds(rxPacketSecondsTimestamp, rxPacketNanosecondsTimestamp) != 0) {
+        return;
+    }
 
     if (rxLen == 0) {
         return;
@@ -19,43 +29,72 @@ void CSntpServerTenant::Run() {
         return;
     }
 
+    if (clientPacket.mode != MODE_CLIENT) {
+        LOG_INF("Received SNTP packet that was not from a client", clientPacket.mode);
+        return;
+    }
 
-    sockaddr srcAddr{0};
-    rtc_time time{0};
-    uint8_t li = NO_WARNING;
+    uint8_t li = LI_NO_WARNING;
+    if (getRtcTimeAsSeconds(txPacketSecondsTimestamp, txPacketNanosecondsTimestamp) |
+        getLastUpdateTime(lastUpdateTimeSeconds, lastUpdateTimeNanoseconds) != 0) {
+        li = LI_ALARM_CONDITION;
+        // Keep going. The packet will be sent with the alarm condition signaling we are desynchronized
+    }
 
+    SntpPacket packet = {
+        .li = li,
+        .vn = SERVER_VERSION_NUMBER,
+        .mode = MODE_SERVER,
+        .stratum = stratum,
+        .poll = pollInterval,
+        .precision = precisionExponent,
+        .rootDelay = 0,                    // Unknown, but very small with the assumption Ethernet is used
+        .rootDispersion = GNSS_ROOT_DISPERSION_FIXED_POINT,          // 0.5 ms
+        .referenceId = GPS_REFERENCE_CODE, // Currently only GPS is the expected reference (stratum 1)
+        .refTimestampSeconds = lastUpdateTimeSeconds,
+        .refTimestampFraction = lastUpdateTimeNanoseconds,
+        .originateTimestampSeconds = clientPacket.txTimestampSeconds,
+        .originateTimestampFraction = clientPacket.txTimestampFraction,
+        .rxTimestampSeconds = rxPacketSecondsTimestamp,
+        .rxTimestampFraction = rxPacketNanosecondsTimestamp,
+        .txTimestampSeconds = txPacketSecondsTimestamp,
+        .txTimestampFraction = txPacketNanosecondsTimestamp,
+    };
+
+    // TODO: Direct this thang
+    int ret = sock.TransmitAsynchronous(&packet, sizeof(packet));
+    if (ret < 0) {
+        LOG_ERR("Failed to transmit packet (%d)", ret);
+    }
+}
+
+
+int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) {
+    rtc_time time;
     int ret = rtc_get_time(&rtcDevice, &time);
     if (ret != 0) {
         if (ret == -ENODATA) {
             LOG_ERR("RTC time not set");
-            li = ALARM_CONDITION;
         } else {
-            LOG_ERR("RTC time get failed");
+            LOG_ERR("RTC time get failed (%d)", ret);
         }
+
+        return ret;
     }
 
-    uint32_t lastUpdateTimeSeconds = time.tm_sec + time.tm_min * 60 + time.tm_hour * 3600;
-    uint32_t lastUpdateTimeNanoseconds = time.tm_nsec;
+    seconds = time.tm_sec + time.tm_min * 60 + time.tm_hour * 3600;
+    nanoseconds = time.tm_nsec;
+    return 0;
+}
 
-    uint8_t li_vn_mode = (li << LEAP_INDICATOR_BIT_OFFSET | SERVER_VERSION_NUMBER << VERSION_NUMBER_BIT_OFFSET | 4);
-    SntpPacket packet = {
-        .li_vn_mode = li_vn_mode,
-        .stratum = stratum,
-        .poll = pollInterval,
-        .precision = precisionExponent,
-        .root_delay = 0, // Unknown, but very small with the assumption Ethernet is used
-        .root_dispersion = 0.0005, // 0.5 ms
-        .reference_id = GPS_REFERENCE_CODE, // Currently only GPS is the expected reference (stratum 1)
-        .reference_timestamp = lastUpdateTimeSeconds << 32 | lastUpdateTimeNanoseconds,
-        .originate_timestamp = 0, // TODO
+int CSntpServerTenant::getLastUpdateTime(uint32_t& seconds, uint32_t& nanoseconds) {
+    if (lastUpdatedTime == nullptr) {
+        LOG_ERR("lastUpdatedTime is null");
+        return -ENODATA;
+    }
 
-    };
+    seconds = lastUpdatedTime->tm_sec + lastUpdatedTime->tm_min * 60 + lastUpdatedTime->tm_hour * 3600;
+    nanoseconds = lastUpdatedTime->tm_nsec;
 
-
-
-
-
-
-
-    
+    return 0;
 }
