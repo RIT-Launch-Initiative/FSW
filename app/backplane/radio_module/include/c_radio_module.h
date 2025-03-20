@@ -8,10 +8,12 @@
 #include "c_udp_listener_tenant.h"
 #include "c_lora_transmit_tenant.h"
 #include "c_lora_receive_tenant.h"
+#include "c_state_machine_updater.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
+#include <f_core/net/application/c_udp_alert_tenant.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/radio/c_lora.h>
@@ -64,11 +66,16 @@ private:
     CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
 
+    CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
+
 #ifndef CONFIG_ARCH_POSIX
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
+
+
+    CStateMachineUpdater stateMachineUpdater;
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 1024, 0};

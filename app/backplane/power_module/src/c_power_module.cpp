@@ -17,6 +17,7 @@ CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessa
 void CPowerModule::AddTenantsToTasks() {
     // Networking
     networkTask.AddTenant(broadcastTenant);
+    networkTask.AddTenant(alertTenant);
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);
@@ -37,6 +38,7 @@ void CPowerModule::AddTasksToRtos() {
 }
 
 void CPowerModule::SetupCallbacks() {
+    alertTenant.Subscribe(&sensingTenant);
 }
 
 void CPowerModule::Cleanup() {
