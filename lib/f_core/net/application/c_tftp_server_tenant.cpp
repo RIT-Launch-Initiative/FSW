@@ -50,8 +50,8 @@ void CTftpServerTenant::Run() {
 }
 
 int CTftpServerTenant::waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr, uint16_t blockNum) {
-    static constexpr uint16_t ACK_PKT_SIZE = 4;
-    uint8_t ack[ACK_PKT_SIZE] = {0}; // 2 bytes for opcode, 2 for block number
+    static constexpr uint16_t ackPktSize = 4;
+    uint8_t ack[ackPktSize] = {0}; // 2 bytes for opcode, 2 for block number
     const int maxRetries = 5;
     int retries = 0;
 
@@ -67,7 +67,7 @@ int CTftpServerTenant::waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr,
                 LOG_ERR("Failed to receive ACK (%d)", errno);
                 return errno;
             }
-        } else if (ret == ACK_PKT_SIZE) {
+        } else if (ret == ackPktSize) {
             uint16_t receivedOpcode = (ack[0] << 8) | ack[1];
             uint16_t receivedBlockNum = (ack[2] << 8) | ack[3];
 
@@ -85,8 +85,10 @@ int CTftpServerTenant::waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr,
 }
 
 void CTftpServerTenant::handleReadRequest(const sockaddr &clientAddr, const uint8_t *packet, int len) {
+    static constexpr uint16_t maxFilenameLen = rwRequestPacketSize - strlen(tftpModeStrings[NETASCII]) + 4; // 4 for opcode and both zero terminators
     const char *filename = reinterpret_cast<const char *>(&packet[2]);
-    const char *modeStr = reinterpret_cast<const char *>(&packet[2 + strlen(filename) + 1]);
+    const uint16_t filenameLen = strnlen(filename, maxFilenameLen);
+    const char *modeStr = reinterpret_cast<const char *>(&packet[2 + filenameLen + 1]);
     TftpMode mode = UNDEFINED_TFTP_MODE;
 
     // Handle a special "tree" request.
