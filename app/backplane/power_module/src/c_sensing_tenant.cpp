@@ -1,6 +1,7 @@
 #include "c_sensing_tenant.h"
 #include "c_power_module.h"
 
+#include <f_core/n_alerts.h>
 #include <f_core/device/sensor/c_shunt.h>
 #include <zephyr/logging/log.h>
 
@@ -58,5 +59,26 @@ void CSensingTenant::Run() {
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
-    dataToLog.Send(data, K_MSEC(5));
+
+    if (logData) {
+        dataToLog.Send(data, K_MSEC(5));
+    }
+}
+
+void CSensingTenant::Notify(void *ctx) {
+    // TODO: Knock, knock! Race condition...
+    switch (*static_cast<NAlerts::AlertType*>(ctx)) {
+        case NAlerts::BOOST:
+            LOG_INF("Boost detected. Logging data.");
+            logData = true;
+            break;
+
+        case NAlerts::LANDED:
+            LOG_INF("Landing detected. Disabling logging.");
+            logData = false;
+            break;
+
+        default:
+            return;
+    }
 }
