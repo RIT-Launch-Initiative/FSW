@@ -53,7 +53,7 @@ int CFile::Read(void* data, const size_t len, off_t offset) {
     return fs_read(&file, data, len);
 }
 
-int CFile::Write(const void* data, const off_t len) {
+int CFile::Write(const void* data, const size_t len) {
     if (initStatus < 0) {
         LOG_ERR("File not initialized");
         return -1;

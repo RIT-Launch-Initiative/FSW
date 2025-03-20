@@ -48,7 +48,7 @@ public:
      * @param len Size of the buffer
      * @return Number of bytes written. -1 on error
      */
-    int Write(const void *data, off_t len);
+    int Write(const void *data, size_t len);
 
     /**
      * Get the initialization status of the file
