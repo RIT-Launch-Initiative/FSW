@@ -42,6 +42,8 @@ public:
      */
     void SetupCallbacks() override;
 
+    static rtc_time lastGnssUpdateTime;
+
 private:
     const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
 

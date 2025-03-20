@@ -2,6 +2,7 @@
 #include "c_radio_module.h"
 
 #include <f_core/utils/n_gnss_utils.h>
+#include <zephyr/drivers/rtc.h>
 
 #include <zephyr/logging/log.h>
 
@@ -22,6 +23,19 @@ static void gnssCallback(const device *, const gnss_data *data) {
         static_cast<double>(coordinates.latitude),
         static_cast<double>(coordinates.longitude),
         static_cast<double>(coordinates.altitude));
+
+    // Set the rtc time
+    CRadioModule::lastGnssUpdateTime = {
+        .tm_year = data->utc.century_year,
+        .tm_mon = data->utc.month,
+        .tm_mday = data->utc.month_day,
+        .tm_hour = data->utc.hour,
+        .tm_min = data->utc.minute,
+        .tm_sec = data->utc.millisecond / 1000,
+        .tm_nsec = data->utc.millisecond % 1000,
+    };
+
+    rtc_set_time(&DEVICE_DT_GET(DT_ALIAS(rtc)), &CRadioModule::lastGnssUpdateTime);
 }
 
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnssCallback);
