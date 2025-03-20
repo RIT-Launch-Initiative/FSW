@@ -42,9 +42,15 @@ void CSntpServerTenant::Run() {
     }
 
     SntpPacket packet = {
+#ifdef CONFIG_LITTLE_ENDIAN // ISO C++ compliance :v
+        .mode = MODE_SERVER,
+        .vn = SERVER_VERSION_NUMBER,
+        .li = li,
+#else
         .li = li,
         .vn = SERVER_VERSION_NUMBER,
         .mode = MODE_SERVER,
+#endif
         .stratum = stratum,
         .poll = pollInterval,
         .precision = precisionExponent,
