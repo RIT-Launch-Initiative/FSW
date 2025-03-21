@@ -21,6 +21,7 @@ env:
     app/samples/openrocket_sensors
     app/samples/soft_timer
     app/samples/tenants_and_tasks
+    app/samples/tftp_server
     app/samples/datalogger
     app/samples/gpio_blinky
     app/samples/phase_detection
