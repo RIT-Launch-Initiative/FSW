@@ -20,7 +20,7 @@ int main() {
     NRtos::StartRtos();
 
 #ifdef CONFIG_ARCH_POSIX
-    k_sleep(K_SECONDS(10));
+    k_sleep(K_SECONDS(300));
     NRtos::StopRtos();
     powerModule.Cleanup();
     k_sleep(K_FOREVER);
