@@ -9,7 +9,7 @@ LOG_MODULE_REGISTER(CDeploymentControlObserver);
 
 void CDeploymentControlObserver::logTimestamp() {
     static const device* rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    static uint8_t timestampBuff[20]{0};
+    static uint8_t timestampBuff[100]{0};
     rtc_time time{0};
 
     rtc_get_time(rtc, &time);
@@ -19,6 +19,8 @@ void CDeploymentControlObserver::logTimestamp() {
 }
 
 void CDeploymentControlObserver::Notify(void* ctx) {
+    uint8_t pyroCount = 0;
+    uint8_t pyroCountStr[2]{0}; // 2 to deal with truncation warnings
 
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::NOSEOVER:
@@ -27,13 +29,12 @@ void CDeploymentControlObserver::Notify(void* ctx) {
             logFile.Write(" - Noseover detected. Deploying charges.\n", 40);
             // TODO: Settings library for handling deployment timing
 
-            uint8_t pyroCount = 0;
-            uint8_t pyroCountStr[1];
+
             for (auto& [sense, ctrl] : pyroPairs) {
                 if (sense.GetPin() == 1) {
                     logTimestamp();
 
-                    snprintf(reinterpret_cast<char*>(pyroCountStr), 1, "%d", pyroCount);
+                    snprintf(reinterpret_cast<char*>(pyroCountStr), 2, "%d", pyroCount);
                     logFile.Write(pyroCountStr, 1);
                     logFile.Write(" - Deployed pyro ", 17);
 
@@ -42,6 +43,8 @@ void CDeploymentControlObserver::Notify(void* ctx) {
                 pyroCount++;
             }
 
+            break;
+        default:
             break;
     }
 }
