@@ -1,5 +1,5 @@
-#ifndef C_DEPLOYMENT_CONTROL_H
-#define C_DEPLOYMENT_CONTROL_H
+#ifndef C_PYRO_CONTROL_OBSERVER_H
+#define C_PYRO_CONTROL_OBSERVER_H
 
 #include <array>
 #include <f_core/device/c_gpio.h>
@@ -7,12 +7,16 @@
 #include <f_core/utils/c_observer.h>
 
 
-class CDeploymentControlObserver : public CObserver {
+class CPyroControlObserver : public CObserver {
 public:
-    CDeploymentControlObserver() = default;
+    CPyroControlObserver() = default;
 
-    ~CDeploymentControlObserver() override = default;
+    ~CPyroControlObserver() override = default;
 
+    /**
+     * See parent docs
+     * @param ctx Alert number
+     */
     void Notify(void* ctx) override;
 
 private:
@@ -50,8 +54,11 @@ private:
         },
     };
 
+    /**
+     * Write the timestamp to the log file
+     */
     void logTimestamp();
 };
 
 
-#endif //C_DEPLOYMENT_CONTROL_H
+#endif //C_PYRO_CONTROL_OBSERVER_H

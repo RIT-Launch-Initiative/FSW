@@ -1,13 +1,13 @@
-#include "c_deployment_control_tenant.h"
+#include "c_pyro_control_observer.h"
 
 #include <cstdio>
 #include <f_core/n_alerts.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/rtc.h>
 
-LOG_MODULE_REGISTER(CDeploymentControlObserver);
+LOG_MODULE_REGISTER(CPyroControlObserver);
 
-void CDeploymentControlObserver::logTimestamp() {
+void CPyroControlObserver::logTimestamp() {
     static const device* rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
     static uint8_t timestampBuff[100]{0};
     rtc_time time{0};
@@ -18,7 +18,7 @@ void CDeploymentControlObserver::logTimestamp() {
     logFile.Write(timestampBuff, sizeof(timestampBuff));
 }
 
-void CDeploymentControlObserver::Notify(void* ctx) {
+void CPyroControlObserver::Notify(void* ctx) {
     uint8_t pyroCount = 0;
     uint8_t pyroCountStr[2]{0}; // 2 to deal with truncation warnings
 
