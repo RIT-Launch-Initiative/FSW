@@ -1,4 +1,4 @@
-.idea/* export-ignore
+**/.idea/* export-ignore
 data/orksim_csv/* export-ignore
 data/sim/* export-ignore
 
