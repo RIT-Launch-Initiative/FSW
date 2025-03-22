@@ -32,6 +32,18 @@ public:
     }
 
     /**
+    * Start the timer with the given expiration time
+    * @param millis Time in milliseconds until the timer expires
+    * @param initialExpirationMillis Time in milliseconds to wait before the first expiration
+    */
+    void StartTimer(int millis, int initialExpirationMillis) {
+        // Duration (second arg) is the initial expiration time
+        // Period (third arg) is the time set after each expiration
+        k_timer_start(&timer, K_MSEC(initialExpirationMillis), K_MSEC(millis));
+        running = true;
+    }
+
+    /**
     * Stop the timer
     */
     void StopTimer() {

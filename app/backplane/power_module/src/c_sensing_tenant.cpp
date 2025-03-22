@@ -9,7 +9,7 @@ LOG_MODULE_REGISTER(CSensingTenant);
 
 void CSensingTenant::Startup() {
     static constexpr uint32_t minuteInMillis = 1000 * 60;
-    timer.StartTimer(minuteInMillis); // Log every minute on the pad
+    timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
 }
 
 void CSensingTenant::PostStartup() {
