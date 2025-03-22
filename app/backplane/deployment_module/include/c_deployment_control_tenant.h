@@ -8,7 +8,7 @@
 
 class CDeploymentControlObserver : public CObserver {
 public:
-    CDeploymentControlObserver();
+    CDeploymentControlObserver() = default;
 
     ~CDeploymentControlObserver() override = default;
 
@@ -21,14 +21,14 @@ private:
     };
 
 
-    const std::array<CGpio, 4> de9Gpios{
+    std::array<CGpio, 4> de9Gpios{
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
 
-    const std::array<PyroPair, 4> pyroPairs{
+    std::array<PyroPair, 4> pyroPairs{
         PyroPair{
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_sns_0), gpios)),
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_0), gpios))
