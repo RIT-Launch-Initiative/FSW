@@ -63,7 +63,6 @@ void CSensingTenant::Run() {
     dataToBroadcast.Send(data, K_MSEC(5));
 
     if (timer.IsExpired()) {
-        LOG_INF("Logged data");
         dataToLog.Send(data, K_MSEC(5));
     }
 }
