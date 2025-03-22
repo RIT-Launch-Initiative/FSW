@@ -1,4 +1,4 @@
-**/.idea/* export-ignore
-data/orksim_csv/* export-ignore
-data/sim/* export-ignore
+**/.idea/* export-ignore linguist-generated=true
+data/orksim_csv/* export-ignore linguist-generated=true
+data/sim/* export-ignore linguist-generated=true
 
