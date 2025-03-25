@@ -1,11 +1,7 @@
 if BOARD_CONTROL_FREAK
 
-config BOARD
-	default "control_freak"
-
 config SPI_STM32_INTERRUPT
 	default y
 	depends on SPI
-
 
 endif # BOARD_CONTROL_FREAK
