@@ -15,18 +15,14 @@
     model = "Control Freak";
     compatible = "st,stm32f446re-nucleo";
 
-    zephyr,user {
-        io-channels = <&adc 0>;
-    };
-
     chosen {
-        zephyr,console = &usart2;
-        zephyr,shell-uart = &usart2;
+        zephyr,console = &usart1;
+        zephyr,shell-uart = &usart1;
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
     };
     aliases {
-        storage = &w25q512;
+        storage = &w25q128;
         logfs = &lfs1;
         debug-serial = &uart4;
     };
@@ -43,17 +39,28 @@
             label = "D2 on board";
         };
         buzzer: buzzer{
-            gpios = <&gpiob 4 (GPIO_ACTIVE_HIGH )>;
+            gpios = <&gpioa 2 (GPIO_ACTIVE_HIGH )>;
             label = "buzzer pin";
         };
-        ldo_enable: ldo-enable{
-            gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
-            label = "Enable pin for LDO";
+        servo_enable: servo-enable{
+            gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
+            label = "Enable pin for the servo";
         };
-        cam_enable: cam-enable{
-            gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
-            label = "Enable pin for Cameras";
-
+        pump_enable: pump-enable{
+            gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
+            label = "Enable pin for pumps";
+        };
+        ldo5v_enable: ldo5v-enable{
+            gpios = <&gpioh 1 GPIO_ACTIVE_HIGH>;
+            label = "Enable pin for 5v ldo";
+        };
+        cam1_enable: cam1-enable{
+            gpios = <&gpioc 14 GPIO_ACTIVE_HIGH>;
+            label = "Enable pin for Camera 1";
+        };
+        cam2_enable: cam2-enable{
+            gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>;
+            label = "Enable pin for Camera 2";
         };
     };
 
@@ -79,12 +86,6 @@
 };
 
 
-&uart4 {
-    status = "okay";
-    pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
-    pinctrl-names = "default";
-    current-speed = <115200>;
-};
 
 
 &clk_lsi {
@@ -115,11 +116,34 @@
     apb2-prescaler = <1>;
 };
 
-&usart2 {
-    pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
+// USB uart
+&usart1 {
+    pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
     pinctrl-names = "default";
     current-speed = <115200>;
     status = "okay";
+};
+// Debug uart
+&uart4 {
+    status = "okay";
+    pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
+    pinctrl-names = "default";
+    current-speed = <115200>;
+};
+
+// GPS
+&uart5 {
+    status = "okay";
+    pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+    pinctrl-names = "default";
+    current-speed = <115200>;
+    // also add gnss-pps when GPS in hand
+    // RST: PA11
+    // PPS: PA12
+    gnss: gnss{
+        compatible = "gnss-nmea-generic";
+
+    };
 };
 
 &i2c1 {
@@ -128,9 +152,9 @@
     status = "okay";
     clock-frequency = <I2C_BITRATE_STANDARD>;
 
-    bme280: bme280@77 {
+    bmp390: bmp390@77 {
         status = "okay";
-        compatible = "bosch,bme280";
+        compatible = "bosch,bmp390";
         reg = <0x77>;
     };
 
@@ -141,7 +165,8 @@
         irq-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>, <&gpiob 8 GPIO_ACTIVE_LOW>;
 
     };
-    ina260_ldo: ina260-ldo@40 {// LDO Load Cell Power - expect 5v
+    ina260_servo: ina260-servo@40 {
+        // Servo Power - expect 7.4 V
         status = "okay";
         compatible = "ti,ina260";
         reg = <0x40>;
@@ -150,7 +175,9 @@
         i-conv-time = "CONV_TIME_1100US";
 
     };
-    ina260_3v3: ina260-3v3@41 {// Grim Logic level - expect 3.3v
+    ina260_pump: ina260-pump@41 {
+        // Pump Power - expect 5 V
+        // {test/ask deanathan for expected current draw at different parts of inflation }
         status = "okay";
         compatible = "ti,ina260";
         reg = <0x41>;
@@ -159,25 +186,15 @@
         i-conv-time = "CONV_TIME_1100US";
 
     };
-    ina260_battery: ina260-battery@44 {// Battery level - expect 7.4v
-        status = "okay";
-        compatible = "ti,ina260";
-        reg = <0x44>;
-        average = "AVG_1";
-        v-conv-time = "CONV_TIME_1100US";
-        i-conv-time = "CONV_TIME_1100US";
-
-    };
-
 };
 
 &dma2 {
     status = "okay";
 };
 
-&spi1 {
-    pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
-    cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
+&spi2 {
+    pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
+    cs-gpios = <&gpioc 3 GPIO_ACTIVE_LOW>;
     pinctrl-names = "default";
     status = "okay";
 
@@ -187,19 +204,20 @@
     dma-names = "tx", "rx";
 
 
-    w25q512: w25q512jv@0 {
-        compatible = "jedec,spi-nor"; // conforms to JEDEC SFDP
+	pinctrl-names = "default";
+	status = "okay";
+
+    w25q128: w25q128jv@0 {
+        compatible = "jedec,spi-nor";
         reg = <0>;
 
-        size = <DT_SIZE_M(512)>; // w25q512 - 512 MBit (S 9.4, p.92)
-        jedec-id = [ ef 40 20  ]; // 0xef4020 (Table 8.1.1, p.25)
-        spi-max-frequency = <DT_FREQ_M(50)>; // fR = 50 MHz (Table 9.6, p.86)
+        spi-max-frequency = <(10 * 1000 * 1000)>;
+        size = <DT_SIZE_M(128)>;
+        jedec-id = [ef 40 18];
 
         has-dpd;
-        // Power-down 0xB9 (S 8.2.21)
-        t-enter-dpd = <(3 * 1000)>; // tDP = 3 us (Table 9.6, p.87)
-        // Release Power-down 0xAB (S 8.2.22)
-        t-exit-dpd = <(3 * 1000)>; // tRES1 = 3 us (Table 9.6, p.87)
+        t-enter-dpd = <(3 * 1000)>;
+        t-exit-dpd = <(3 * 1000)>;
 
         partitions {
             compatible = "fixed-partitions";
@@ -208,45 +226,31 @@
 
             external_storage_partition: partition@0 {
                 label = "w25q-storage";
-                reg = <0 DT_SIZE_M(64)>; // takes up the whole flash
+                reg = <0 DT_SIZE_M(16)>;
             };
         };
     };
-
 };
 
-&spi2 {
-    pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
-    cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+&spi1 {
+    pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
+    cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
     pinctrl-names = "default";
     status = "okay";
-    // ADC
-    adc: mcp3561@0 {
-        #io-channel-cells = <1>;
-        #address-cells = <1>;
-        #size-cells = <0>;
-
-        status = "okay";
-        compatible = "microchip,mcp356x";
+    lora: lora@0{
         reg = <0>;
-        device-address = <1>;
-        clock-selection = "CLK_INTERNAL";
-        prescale = "PRE_1";
-        spi-max-frequency = <DT_FREQ_M(10)>; // pg. 12, Table 1.1 MAX 20MHz
+        spi-max-frequency = <(10 * 1000 * 1000)>;
+        compatible = "semtech,sx1276";
 
-
-        channel@0 {
-            reg = <0>;
-            zephyr,gain = "ADC_GAIN_8";
-            zephyr,reference = "ADC_REF_INTERNAL";
-            zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-
-            zephyr,resolution = <24>;
-
-            zephyr,input-positive = <0x1>;
-            zephyr,input-negative = <0x0>;
-
-        };
+        reset-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+        dio-gpios =   <&gpioc 5  GPIO_ACTIVE_HIGH>,
+                      <&gpiob 0  GPIO_ACTIVE_HIGH>,
+                      <&gpiob 1  GPIO_ACTIVE_HIGH>,
+                      <&gpiob 12 GPIO_ACTIVE_HIGH>,
+                      <&gpiob 13 GPIO_ACTIVE_HIGH>,
+                      <&gpiob 14 GPIO_ACTIVE_HIGH>;
+        power-amplifier-output = "pa-boost";
+        tcxo-power-startup-delay-ms = <100>;
     };
 };
 
