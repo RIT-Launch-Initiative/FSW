@@ -10,7 +10,7 @@
 
 class CPyroControlObserver : public CObserver {
 public:
-    CPyroControlObserver() = default;
+    CPyroControlObserver();
 
     ~CPyroControlObserver() override = default;
 

@@ -7,6 +7,11 @@
 
 LOG_MODULE_REGISTER(CPyroControlObserver);
 
+CPyroControlObserver::CPyroControlObserver() {
+    flightLog.Write("Booted up.");
+}
+
+
 void CPyroControlObserver::Notify(void* ctx) {
     uint8_t pyroCount = 0;
 
@@ -25,9 +30,10 @@ void CPyroControlObserver::Notify(void* ctx) {
                 pyroCount++;
             }
             flightLog.Write("Finished deploying charges");
-
             break;
         default:
             break;
     }
+
+    flightLog.Sync();
 }
