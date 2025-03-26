@@ -4,6 +4,7 @@
 #include <array>
 #include <f_core/device/c_gpio.h>
 #include <f_core/os/c_file.h>
+#include <f_core/os/flight_log.hpp>
 #include <f_core/utils/c_observer.h>
 
 
@@ -33,7 +34,7 @@ private:
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
 
-    CFile logFile{"deployment_log.txt", CFile::READ_WRITE_FLAG | CFile::CREATE_FLAG | CFile::APPEND_FLAG};
+    CFlightLog flightLog{"/lfs/log.txt"};
 
     std::array<PyroPair, 4> pyroPairs{
         PyroPair{
@@ -53,11 +54,6 @@ private:
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_3), gpios))
         },
     };
-
-    /**
-     * Write the timestamp to the log file
-     */
-    void logTimestamp();
 };
 
 
