@@ -26,7 +26,7 @@ static void gnssCallback(const device *, const gnss_data *data) {
         static_cast<double>(coordinates.altitude));
 
     // Set the rtc time
-    CRadioModule::lastGnssUpdateTime = {
+    rtc_time lastUpdated = {
         .tm_sec = data->utc.millisecond / 1000,
         .tm_min = data->utc.minute,
         .tm_hour = data->utc.hour,
@@ -39,7 +39,8 @@ static void gnssCallback(const device *, const gnss_data *data) {
         .tm_nsec = data->utc.millisecond % 1000,
     };
 
-    rtc_set_time(rtc, &CRadioModule::lastGnssUpdateTime);
+    CSntpServerTenant::SetLastUpdatedTime(lastUpdated);
+    rtc_set_time(rtc, &lastUpdated);
 }
 
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnssCallback);

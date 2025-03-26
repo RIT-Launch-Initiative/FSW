@@ -94,15 +94,3 @@ int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseco
     nanoseconds = time.tm_nsec;
     return 0;
 }
-
-int CSntpServerTenant::getLastUpdateTime(uint32_t& seconds, uint32_t& nanoseconds) {
-    if (lastUpdatedTime == nullptr) {
-        LOG_ERR("lastUpdatedTime is null");
-        return -ENODATA;
-    }
-
-    seconds = lastUpdatedTime->tm_sec + lastUpdatedTime->tm_min * 60 + lastUpdatedTime->tm_hour * 3600;
-    nanoseconds = lastUpdatedTime->tm_nsec;
-
-    return 0;
-}

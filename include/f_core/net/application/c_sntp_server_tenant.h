@@ -7,6 +7,11 @@
 #include "f_core/net/network/c_ipv4.h"
 #include "f_core/net/transport/c_udp_socket.h"
 
+// Static instances
+// Note these must be defined outside the class to avoid linker issues
+static rtc_time lastUpdatedTime;
+static k_mutex lastUpdatedTimeLock;
+
 class CSntpServerTenant : public CTenant {
 public:
     enum SntpPrecisionExponents : int8_t {
@@ -17,12 +22,11 @@ public:
     };
 
     static constexpr uint16_t SNTP_DEFAULT_PORT = 123;
-    inline static CSntpServerTenant* instance = nullptr;
 
     /**
      * Singleton getter to avoid multiple instances of the SNTP server.
      */
-    static CSntpServerTenant* getInstance(const device& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT,
+    static CSntpServerTenant* GetInstance(const device& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT,
                                           uint8_t stratum = 1,
                                           uint8_t pollInterval = 4,
                                           int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION) {
@@ -30,6 +34,28 @@ public:
             instance = new CSntpServerTenant(rtc, ipv4, port, stratum, pollInterval, precisionExponent);
         }
         return instance;
+    }
+
+    /**
+     * Set the last updated time for the SNTP server
+     * @param time[in] Time to set for last updated
+     * @param timeout[in] Timeout for the mutex lock
+     */
+    static void SetLastUpdatedTime(const rtc_time& time, const k_timeout_t timeout = K_MSEC(10)) {
+        k_mutex_lock(&lastUpdatedTimeLock, timeout);
+        lastUpdatedTime = time;
+        k_mutex_unlock(&lastUpdatedTimeLock);
+    }
+
+    /**
+     * Gets the last updated time for the SNTP server
+     * @param time[out] Object to store the result in
+     * @param timeout[in] Timeout for mutex lock
+     */
+    static void GetLastUpdatedTime(rtc_time& time, const k_timeout_t timeout = K_MSEC(10)) {
+        k_mutex_lock(&lastUpdatedTimeLock, timeout);
+        time = lastUpdatedTime;
+        k_mutex_unlock(&lastUpdatedTimeLock);
     }
 
     /**
@@ -48,6 +74,8 @@ public:
     void Run() override;
 
 private:
+    inline static CSntpServerTenant* instance = nullptr;
+
     static constexpr uint8_t SERVER_VERSION_NUMBER = 4;
 
     // Bit offsets for the li_vn_mode field
@@ -57,13 +85,13 @@ private:
     // Fixed point representation of 0.5 ms
     static constexpr uint32_t GNSS_ROOT_DISPERSION_FIXED_POINT = static_cast<uint32_t>(0.0005f * 65536);
 
+
     CUdpSocket sock; // The socket bound to port 123 (or specified port)
     CIPv4 ip;
     const device& rtcDevice;
     const uint8_t stratum;
     const uint8_t pollInterval;
     const int8_t precisionExponent;
-    rtc_time* lastUpdatedTime; // Somewhat messy, but Zephyr API doesn't track last rtc_settime
 
 
     enum LeapIndicator : uint8_t {
@@ -117,7 +145,7 @@ private:
     CSntpServerTenant(const device& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
                       uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
         : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtcDevice(rtc), stratum(stratum),
-          pollInterval(pollInterval), precisionExponent(precisionExponent), lastUpdatedTime(nullptr) {}
+          pollInterval(pollInterval), precisionExponent(precisionExponent) {}
 
     int getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) const;
 
