@@ -12,6 +12,8 @@ void CSntpServerTenant::PostStartup() {
     if (rtc_get_time(&rtcDevice, &time) == -ENODATA) {
         LOG_INF("Failed to get RTC time on SNTP server startup. Defaulting to 1970-01-01 00:00:00");
         // Default to 1970-01-01 00:00:00 until the RTC is set
+        // TODO: Note there might be some weird Zephyr bug here to be investigated. Date is inaccurate and it might be because of the ordering of the struct?
+        // Investigate this at a later time
         constexpr rtc_time tm = {
             .tm_sec = 0,
             .tm_min = 0,
