@@ -13,6 +13,7 @@ static NGnssUtils::GnssCoordinates coordinates{0};
 static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
+    static const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
     gnssLogData.systemTime = k_uptime_get();
     PopulateGnssStruct(data, &gnssLogData.gnssData);
 
@@ -26,16 +27,19 @@ static void gnssCallback(const device *, const gnss_data *data) {
 
     // Set the rtc time
     CRadioModule::lastGnssUpdateTime = {
-        .tm_year = data->utc.century_year,
-        .tm_mon = data->utc.month,
-        .tm_mday = data->utc.month_day,
-        .tm_hour = data->utc.hour,
-        .tm_min = data->utc.minute,
         .tm_sec = data->utc.millisecond / 1000,
+        .tm_min = data->utc.minute,
+        .tm_hour = data->utc.hour,
+        .tm_mday = data->utc.month_day,
+        .tm_mon = data->utc.month,
+        .tm_year = data->utc.century_year,
+        .tm_wday = -1,
+        .tm_yday = -1,
+        .tm_isdst = -1,
         .tm_nsec = data->utc.millisecond % 1000,
     };
 
-    rtc_set_time(&DEVICE_DT_GET(DT_ALIAS(rtc)), &CRadioModule::lastGnssUpdateTime);
+    rtc_set_time(rtc, &CRadioModule::lastGnssUpdateTime);
 }
 
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnssCallback);
