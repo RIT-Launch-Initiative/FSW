@@ -103,9 +103,9 @@ void CSntpServerTenant::Run() {
 
     sockaddr_in clientAddr = *reinterpret_cast<const sockaddr_in *>(&srcAddr);
     uint16_t clientPort = ntohs(clientAddr.sin_port);
-    CUdpSocket respondSock(ip, sockPort, clientPort);
+    sock.SetDstPort(clientPort);
 
-    int ret = respondSock.TransmitAsynchronous(&packet, sizeof(packet));
+    int ret = sock.TransmitAsynchronous(&packet, sizeof(packet));
     if (ret < 0) {
         LOG_ERR("Failed to transmit packet (%d)", ret);
     }
