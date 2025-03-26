@@ -61,7 +61,7 @@ class CSensorModule : public CProjectConfiguration {
                              detectionHandler};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(), telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
-    CTftpServerTenant tftpServerTenant = *CTftpServerTenant::getInstance(CIPv4(ipAddrStr.c_str()));
+    CTftpServerTenant tftpServerTenant = *CTftpServerTenant::GetInstance(CIPv4(ipAddrStr.c_str()));
 
 
     // Tasks

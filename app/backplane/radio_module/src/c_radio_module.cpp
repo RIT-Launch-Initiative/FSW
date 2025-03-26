@@ -26,6 +26,7 @@ void CRadioModule::AddTenantsToTasks() {
     networkingTask.AddTenant(sensorModuleListenerTenant);
     networkingTask.AddTenant(powerModuleListenerTenant);
     networkingTask.AddTenant(tftpServerTenant);
+    networkingTask.AddTenant(sntpServerTenant);
     networkingTask.AddTenant(alertTenant);
 
 #ifndef CONFIG_ARCH_POSIX

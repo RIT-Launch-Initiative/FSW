@@ -13,7 +13,7 @@ public:
     /**
      * Singleton getter to avoid multiple instances of the TFTP server.
      */
-    static CTftpServerTenant *getInstance(const CIPv4 &ipv4, uint16_t port = TFTP_DEFAULT_PORT) {
+    static CTftpServerTenant *GetInstance(const CIPv4 &ipv4, uint16_t port = TFTP_DEFAULT_PORT) {
         if (instance == nullptr) {
             instance = new CTftpServerTenant(ipv4, port);
         }

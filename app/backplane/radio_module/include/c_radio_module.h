@@ -49,6 +49,7 @@ public:
 
 private:
     const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
+    const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
 
     static constexpr uint16_t powerModuleTelemetryPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
     static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
@@ -77,7 +78,8 @@ private:
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
-    CTftpServerTenant tftpServerTenant = *CTftpServerTenant::getInstance(CIPv4(ipAddrStr));
+    CTftpServerTenant tftpServerTenant = *CTftpServerTenant::GetInstance(CIPv4(ipAddrStr));
+    CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(*rtc, CIPv4(ipAddrStr));
 
 
     CStateMachineUpdater stateMachineUpdater;
