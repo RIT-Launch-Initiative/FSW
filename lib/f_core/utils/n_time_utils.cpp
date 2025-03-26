@@ -1,71 +1,34 @@
 /*
- * Copyright (c) 2024 RIT Launch Initiative
+* Copyright (c) 2024 RIT Launch Initiative
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "f_core/utils/n_time_utils.h"
-#include <stdint.h>
+#include <time.h>
 
 #ifdef CONFIG_SNTP
-
-// Days in each month (non-leap year)
-static constexpr int daysInMonth[12] = {
-    31, 28, 31, 30, 31, 30,
-    31, 31, 30, 31, 30, 31
-};
-
-static bool isLeapYear(int year) {
-    year += 1900;
-    return (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0));
-}
-
-static int calculateWeekday(uint64_t daysSinceEpoch) {
-    // Jan 1, 1970 was a Thursday (4)
-    return (static_cast<int>(daysSinceEpoch) + 4) % 7;
-}
-
 void NTimeUtils::SntpToRtcTime(const sntp_time& sntp, rtc_time& rtc) {
-    // Imagine gmtime causes linker issues with Zephyr C++ libs
-    // so you need to hand-roll your own implementation :/
-    uint64_t seconds = sntp.seconds;
-    uint64_t days = seconds / 86400;
-    uint64_t rem = seconds % 86400;
+    auto rawTime = static_cast<time_t>(sntp.seconds);
 
-    rtc.tm_hour = rem / 3600;
-    rem %= 3600;
-    rtc.tm_min = rem / 60;
-    rtc.tm_sec = rem % 60;
-
-    int year = 70; // Since 1900
-    int dayCount = static_cast<int>(days);
-
-    while (true) {
-        int daysInYear = isLeapYear(year) ? 366 : 365;
-        if (dayCount < daysInYear) break;
-        dayCount -= daysInYear;
-        year++;
+    tm* tmPtr = gmtime(&rawTime);
+    if (!tmPtr) {
+        memset(&rtc, 0, sizeof(rtc));
+        return;
     }
 
-    rtc.tm_year = year;
-    rtc.tm_yday = dayCount;
-
-    int month = 0;
-    while (month < 12) {
-        int dim = daysInMonth[month];
-        if (month == 1 && isLeapYear(year)) dim += 1;
-        if (dayCount < dim) break;
-        dayCount -= dim;
-        month++;
-    }
-
-    rtc.tm_mon = month;
-    rtc.tm_mday = dayCount + 1;
-    rtc.tm_wday = calculateWeekday(days);
-    rtc.tm_isdst = -1;
-
+    rtc.tm_sec = tmPtr->tm_sec;
+    rtc.tm_min = tmPtr->tm_min;
+    rtc.tm_hour = tmPtr->tm_hour;
+    rtc.tm_mday = tmPtr->tm_mday;
+    rtc.tm_mon = tmPtr->tm_mon;
+    rtc.tm_year = tmPtr->tm_year;
+    rtc.tm_wday = tmPtr->tm_wday;
+    rtc.tm_yday = tmPtr->tm_yday;
+    rtc.tm_isdst = tmPtr->tm_isdst;
     rtc.tm_nsec = static_cast<int>((static_cast<uint64_t>(sntp.fraction) * 1000000000ULL) >> 32);
-}
+}   
+
 
 int NTimeUtils::SntpSynchronize(const device& rtc, const char* serverAddress, const int maxRetries) {
     int retryCount = 0;
@@ -78,7 +41,7 @@ int NTimeUtils::SntpSynchronize(const device& rtc, const char* serverAddress, co
         retryCount++;
     }
 
-    if (retryCount >= maxRetries) {
+    if (retryCount >= 5) {
         return -1;
     }
 
@@ -87,5 +50,4 @@ int NTimeUtils::SntpSynchronize(const device& rtc, const char* serverAddress, co
 
     return 0;
 }
-
 #endif

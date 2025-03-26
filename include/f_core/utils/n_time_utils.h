@@ -1,12 +1,12 @@
 #ifndef N_TIME_UTILS_H
 #define N_TIME_UTILS_H
 
+#include <zephyr/drivers/rtc.h>
+#include <zephyr/net/sntp.h>
 
 namespace NTimeUtils {
 #ifdef CONFIG_SNTP
-#include <string>
-#include <zephyr/drivers/rtc.h>
-#include <zephyr/net/sntp.h>
+
 
 	/**
 	 * Convert an SNTP time to an RTC time

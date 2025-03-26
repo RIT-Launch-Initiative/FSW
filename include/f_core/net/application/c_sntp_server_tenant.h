@@ -22,9 +22,12 @@ public:
     /**
      * Singleton getter to avoid multiple instances of the SNTP server.
      */
-    static CSntpServerTenant* getInstance(const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT) {
+    static CSntpServerTenant* getInstance(const device& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT,
+                                          uint8_t stratum = 1,
+                                          uint8_t pollInterval = 4,
+                                          int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION) {
         if (instance == nullptr) {
-            instance = new CSntpServerTenant(ipv4, port);
+            instance = new CSntpServerTenant(rtc, ipv4, port, stratum, pollInterval, precisionExponent);
         }
         return instance;
     }
@@ -105,17 +108,18 @@ private:
         uint32_t rxTimestampFraction;
         uint32_t txTimestampSeconds;
         uint32_t txTimestampFraction;
-    } __packed;
+    }
+        __packed;
 
 
     static constexpr uint32_t GPS_REFERENCE_CODE = 0x47505300; // "GPS\0"
 
-    CSntpServerTenant(const CIPv4& ipv4, device& rtc, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
+    CSntpServerTenant(const device& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
                       uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
         : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtcDevice(rtc), stratum(stratum),
           pollInterval(pollInterval), precisionExponent(precisionExponent), lastUpdatedTime(nullptr) {}
 
-    int getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds);
+    int getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) const;
 
     int getLastUpdateTime(uint32_t& seconds, uint32_t& nanoseconds);
 };

@@ -32,13 +32,13 @@ void CSntpServerTenant::Run() {
     }
 
     if (clientPacket.mode != MODE_CLIENT) {
-        LOG_INF("Received SNTP packet that was not from a client", clientPacket.mode);
+        LOG_INF("Received SNTP packet that was not from a client (%d)", clientPacket.mode);
         return;
     }
 
     uint8_t li = LI_NO_WARNING;
-    if (getRtcTimeAsSeconds(txPacketSecondsTimestamp, txPacketNanosecondsTimestamp) |
-        getLastUpdateTime(lastUpdateTimeSeconds, lastUpdateTimeNanoseconds) != 0) {
+    if (getRtcTimeAsSeconds(txPacketSecondsTimestamp, txPacketNanosecondsTimestamp) ||
+        getLastUpdateTime(lastUpdateTimeSeconds, lastUpdateTimeNanoseconds)) {
         li = LI_ALARM_CONDITION;
         // Keep going. The packet will be sent with the alarm condition signaling we are desynchronized
     }
@@ -77,7 +77,7 @@ void CSntpServerTenant::Run() {
 }
 
 
-int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) {
+int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) const {
     rtc_time time;
     int ret = rtc_get_time(&rtcDevice, &time);
     if (ret != 0) {
