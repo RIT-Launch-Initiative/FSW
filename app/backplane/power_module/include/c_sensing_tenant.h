@@ -6,6 +6,7 @@
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 #include <f_core/utils/c_observer.h>
+#include <f_core/utils/c_soft_timer.h>
 
 class CSensingTenant : public CTenant, public CObserver {
 public:
@@ -25,7 +26,7 @@ public:
 private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
     CMessagePort<NTypes::SensorData> &dataToLog;
-    bool logData = false;
+    CSoftTimer timer{nullptr, nullptr};
 };
 
 
