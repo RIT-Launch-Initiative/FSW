@@ -30,6 +30,14 @@ int main() {
 
     NRtos::StartRtos();
     k_sched_time_slice_set(5000, 15);
+    while (true) {
+        rtc_time time{0};
+        const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
+        rtc_get_time(rtc, &time);
+
+        LOG_INF("%d-%02d-%02d %02d:%02d:%02d", time.tm_year + 1900, time.tm_mon + 1, time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec);
+        k_sleep(K_SECONDS(2));
+    }
 
 #ifdef CONFIG_ARCH_POSIX
     k_sleep(K_SECONDS(300));

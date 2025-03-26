@@ -32,7 +32,7 @@ static void gnssCallback(const device *, const gnss_data *data) {
         .tm_hour = data->utc.hour,
         .tm_mday = data->utc.month_day,
         .tm_mon = data->utc.month,
-        .tm_year = data->utc.century_year,
+        .tm_year = data->utc.century_year - 1900,
         .tm_wday = -1,
         .tm_yday = -1,
         .tm_isdst = -1,

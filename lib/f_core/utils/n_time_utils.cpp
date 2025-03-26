@@ -38,15 +38,15 @@ int NTimeUtils::SntpSynchronize(const device& rtc, const char* serverAddress, co
     rtc_time rtcTime{0};
 
     // Note this is a 100ms timeout. Zephyr does a poor job of documenting this.
-    LOG_INF("Synchronizing SNTP with server %s", serverAddress);
+    LOG_INF("Synchronizing time using NTP with server %s", serverAddress);
     while (sntp_simple(serverAddress, 1000, &ts) && retryCount < maxRetries) {
         k_sleep(K_SECONDS(1));
         retryCount++;
-        LOG_INF("Failed to synchronize SNTP. Retrying (%d)", retryCount);
+        LOG_INF("Failed to synchronize time. Retrying (%d)", retryCount);
     }
 
     if (retryCount >= 5) {
-        LOG_ERR("Failed to synchronize SNTP with server %s", serverAddress);
+        LOG_ERR("Failed to synchronize time with server %s", serverAddress);
         return -1;
     }
 

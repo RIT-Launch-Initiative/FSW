@@ -11,14 +11,15 @@ void CSntpServerTenant::PostStartup() {
     rtc_time time = {0};
     if (rtc_get_time(&rtcDevice, &time) == -ENODATA) {
         LOG_INF("Failed to get RTC time on SNTP server startup. Defaulting to 2025-01-01 00:00:00");
-        // Default to 1970-01-01 00:00:00 until the RTC is set
+        // Default to 2025-01-01 00:00:00 until the RTC is set
         constexpr rtc_time tm = {
             .tm_sec = 0,
             .tm_min = 0,
             .tm_hour = 0,
             .tm_mday = 1,
             .tm_mon = 0,
-            .tm_year = 2025 - 1900, // We can't use 1970 because settime fails on it for some reason? Should investigate
+            // STM32 RTC is from 2000. This leads to some scuffed things. 100 will correspond to 1900, but 101 corresponds to 2001. See rtc_ll_stm32.c
+            .tm_year = 125, // 2025 - 1900 = 125
             .tm_wday = 4,
             .tm_yday = 0,
             .tm_isdst = -1,
