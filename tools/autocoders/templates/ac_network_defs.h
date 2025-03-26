@@ -16,7 +16,7 @@ namespace NNetworkDefs {
     // General
     static constexpr uint16_t GENERAL_COMMAND_PORT = {{ general.commandPort }};
 
-    static constexpr uint16_t NOTIFICATION_PORT = {{ general.notificationPort }};
+    static constexpr uint16_t ALERT_PORT = {{ general.alertPort }};
     {% for module_name, module_info in modules.items() %}
     // {{ module_name.capitalize() }} Module
     static constexpr const char* {{ module_name.upper() }}_MODULE_IP_ADDR_BASE = "10.{{ module_info.id }}";

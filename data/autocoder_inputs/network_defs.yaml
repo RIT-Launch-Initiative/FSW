@@ -1,6 +1,6 @@
 general:
   commandPort: 9000
-  notificationPort: 9999
+  alertPort: 9999
 
 modules:
   power:

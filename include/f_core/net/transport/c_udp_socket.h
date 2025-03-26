@@ -3,10 +3,11 @@
 
 #include <cstdint>
 #include <f_core/net/c_transciever.h>
+#include <zephyr/net/net_ip.h>
 
 class CIPv4;
 
-class CUdpSocket : public CTransceiver {
+class CUdpSocket {
 public:
     /**
      * Constructor
@@ -24,32 +25,32 @@ public:
     /**
      * See parent docs
      */
-    int TransmitSynchronous(const void *data, size_t len) override;
+    int TransmitSynchronous(const void *data, size_t len);
 
     /**
      * See parent docs
      */
-    int ReceiveSynchronous(void *data, size_t len) override;
+    int ReceiveSynchronous(void *data, size_t len, sockaddr *srcAddr = nullptr, socklen_t *srcAddrLen = nullptr);
 
     /**
      * See parent docs
      */
-    int TransmitAsynchronous(const void *data, size_t len) override;
+    int TransmitAsynchronous(const void *data, size_t len);
 
     /**
      * See parent docs
      */
-    int ReceiveAsynchronous(void *data, size_t len) override;
+    int ReceiveAsynchronous(void *data, size_t len, sockaddr *srcAddr = nullptr, socklen_t *srcAddrLen = nullptr);
 
      /**
      * See parent docs
      */
-    int SetTxTimeout(int timeoutMillis) override;
+    int SetTxTimeout(int timeoutMillis);
 
     /**
      * See parent docs
      */
-    int SetRxTimeout(int timeoutMillis) override;
+    int SetRxTimeout(int timeoutMillis);
 
     void SetDstPort(const int port) {
         dstPort = port;

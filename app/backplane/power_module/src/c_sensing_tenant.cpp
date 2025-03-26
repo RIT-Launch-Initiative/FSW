@@ -1,12 +1,15 @@
 #include "c_sensing_tenant.h"
 #include "c_power_module.h"
 
+#include <f_core/n_alerts.h>
 #include <f_core/device/sensor/c_shunt.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
 void CSensingTenant::Startup() {
+    static constexpr uint32_t minuteInMillis = 1000 * 60;
+    timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
 }
 
 void CSensingTenant::PostStartup() {
@@ -58,5 +61,26 @@ void CSensingTenant::Run() {
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
-    dataToLog.Send(data, K_MSEC(5));
+
+    if (timer.IsExpired()) {
+        dataToLog.Send(data, K_MSEC(5));
+    }
+}
+
+void CSensingTenant::Notify(void *ctx) {
+    // TODO: Knock, knock! Race condition...
+    switch (*static_cast<NAlerts::AlertType*>(ctx)) {
+        case NAlerts::BOOST:
+            LOG_INF("Boost detected. Logging data.");
+            timer.StartTimer(500); // Log every half a second during flight
+            break;
+
+        case NAlerts::LANDED:
+            LOG_INF("Landing detected. Disabling logging.");
+            timer.StopTimer(); // Stop logging
+            break;
+
+        default:
+            return;
+    }
 }
