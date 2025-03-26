@@ -27,7 +27,7 @@ void NTimeUtils::SntpToRtcTime(const sntp_time& sntp, rtc_time& rtc) {
     rtc.tm_yday = tmPtr->tm_yday;
     rtc.tm_isdst = tmPtr->tm_isdst;
     rtc.tm_nsec = static_cast<int>((static_cast<uint64_t>(sntp.fraction) * 1000000000ULL) >> 32);
-}   
+}
 
 
 int NTimeUtils::SntpSynchronize(const device& rtc, const char* serverAddress, const int maxRetries) {
