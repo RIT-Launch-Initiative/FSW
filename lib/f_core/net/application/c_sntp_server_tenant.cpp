@@ -35,7 +35,13 @@ void CSntpServerTenant::PostStartup() {
             }
         }
     }
-    SetLastUpdatedTime(time);
+
+    int retryCount = 0;
+    while (SetLastUpdatedTime(time) != 0 && retryCount < 5) {
+        k_sleep(K_MSEC(100));
+        retryCount++;
+        LOG_INF("Failed to set last updated time. Retrying (%d)", retryCount);
+    }
 }
 
 void CSntpServerTenant::Cleanup() {}
