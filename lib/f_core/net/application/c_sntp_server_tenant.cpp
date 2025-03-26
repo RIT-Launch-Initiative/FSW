@@ -10,7 +10,6 @@ void CSntpServerTenant::Cleanup() {}
 
 void CSntpServerTenant::Run() {
     SntpPacket clientPacket = {0};
-    rtc_time time{0};
     uint32_t rxPacketSecondsTimestamp = 0;
     uint32_t rxPacketNanosecondsTimestamp = 0;
     uint32_t txPacketSecondsTimestamp = 0;
@@ -38,7 +37,7 @@ void CSntpServerTenant::Run() {
 
     uint8_t li = LI_NO_WARNING;
     if (getRtcTimeAsSeconds(txPacketSecondsTimestamp, txPacketNanosecondsTimestamp) ||
-        getLastUpdateTime(lastUpdateTimeSeconds, lastUpdateTimeNanoseconds)) {
+        getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds, lastUpdateTimeNanoseconds)) {
         li = LI_ALARM_CONDITION;
         // Keep going. The packet will be sent with the alarm condition signaling we are desynchronized
     }
@@ -56,8 +55,8 @@ void CSntpServerTenant::Run() {
         .stratum = stratum,
         .poll = pollInterval,
         .precision = precisionExponent,
-        .rootDelay = 0,                    // Unknown, but very small with the assumption Ethernet is used
-        .rootDispersion = GNSS_ROOT_DISPERSION_FIXED_POINT,          // 0.5 ms
+        .rootDelay = 0, // Unknown, but very small with the assumption Ethernet is used
+        .rootDispersion = GNSS_ROOT_DISPERSION_FIXED_POINT, // 0.5 ms
         .referenceId = GPS_REFERENCE_CODE, // Currently only GPS is the expected reference (stratum 1)
         .refTimestampSeconds = lastUpdateTimeSeconds,
         .refTimestampFraction = lastUpdateTimeNanoseconds,
@@ -87,6 +86,18 @@ int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseco
             LOG_ERR("RTC time get failed (%d)", ret);
         }
 
+        return ret;
+    }
+
+    seconds = time.tm_sec + time.tm_min * 60 + time.tm_hour * 3600;
+    nanoseconds = time.tm_nsec;
+    return 0;
+}
+
+int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) {
+    rtc_time time;
+    int ret = GetLastUpdatedTime(time, K_NO_WAIT);
+    if (ret != 0) {
         return ret;
     }
 

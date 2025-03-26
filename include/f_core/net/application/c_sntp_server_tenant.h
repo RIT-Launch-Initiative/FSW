@@ -40,22 +40,33 @@ public:
      * Set the last updated time for the SNTP server
      * @param time[in] Time to set for last updated
      * @param timeout[in] Timeout for the mutex lock
+     * @return 0 on success, -1 on failure to acquire lock in time
      */
-    static void SetLastUpdatedTime(const rtc_time& time, const k_timeout_t timeout = K_MSEC(10)) {
+    static int SetLastUpdatedTime(const rtc_time& time, const k_timeout_t timeout = K_MSEC(10)) {
+        if (k_mutex_lock(&lastUpdatedTimeLock, timeout) != 0) {
+            return -1;
+        }
+
         k_mutex_lock(&lastUpdatedTimeLock, timeout);
         lastUpdatedTime = time;
         k_mutex_unlock(&lastUpdatedTimeLock);
+        return 0;
     }
 
     /**
      * Gets the last updated time for the SNTP server
      * @param time[out] Object to store the result in
      * @param timeout[in] Timeout for mutex lock
+     * @return 0 on success, -1 on failure to acquire lock in time
      */
-    static void GetLastUpdatedTime(rtc_time& time, const k_timeout_t timeout = K_MSEC(10)) {
-        k_mutex_lock(&lastUpdatedTimeLock, timeout);
+    static int GetLastUpdatedTime(rtc_time& time, const k_timeout_t timeout = K_MSEC(10)) {
+        if (k_mutex_lock(&lastUpdatedTimeLock, timeout) != 0) {
+            return -1;
+        }
+
         time = lastUpdatedTime;
         k_mutex_unlock(&lastUpdatedTimeLock);
+        return 0;
     }
 
     /**
@@ -149,7 +160,7 @@ private:
 
     int getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) const;
 
-    int getLastUpdateTime(uint32_t& seconds, uint32_t& nanoseconds);
+    int getLastUpdateTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds);
 };
 
 #endif // C_SNTP_SERVER_H
