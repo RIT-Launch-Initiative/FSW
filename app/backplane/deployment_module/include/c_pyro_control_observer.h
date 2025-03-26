@@ -26,7 +26,6 @@ private:
         CGpio ctrl;
     };
 
-
     std::array<CGpio, 4> de9Gpios{
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
@@ -34,7 +33,7 @@ private:
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
 
-    CFlightLog flightLog{"/lfs/log.txt"};
+    CFlightLog flightLog;
 
     std::array<PyroPair, 4> pyroPairs{
         PyroPair{
