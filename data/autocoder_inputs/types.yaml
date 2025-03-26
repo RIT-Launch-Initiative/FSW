@@ -7,7 +7,7 @@ AccelerometerData:
       type: float
     - name: Z
       type: float
-  timestamp: true
+  timestamp: false
 
 BarometerData:
   description: Barometer telemetry data.
@@ -16,7 +16,7 @@ BarometerData:
       type: float
     - name: Temperature
       type: float
-  timestamp:
+  timestamp: false
 
 GyroscopeData:
   description: Gyroscope telemetry data.
@@ -27,7 +27,7 @@ GyroscopeData:
       type: float
     - name: Z
       type: float
-  timestamp:
+  timestamp: false
 
 MagnetometerData:
   description: Magnetometer telemetry data.
@@ -38,7 +38,7 @@ MagnetometerData:
       type: float
     - name: Z
       type: float
-  timestamp:
+  timestamp: false
 
 ShuntData:
   description: Shunt telemetry data.
@@ -49,14 +49,14 @@ ShuntData:
       type: float
     - name: Power
       type: float
-  timestamp:
+  timestamp: false
 
 TemperatureData:
   description: Single temperature reading.
   fields:
     - name: Temperature
       type: float
-  timestamp:
+  timestamp: false
 
 LoRaSignalData:
   description: LoRa signal data.
@@ -65,7 +65,7 @@ LoRaSignalData:
       type: float
     - name: SNR
       type: float
-  timestamp:
+  timestamp: false
 
 GnssCoordinateData:
   description: GNSS coordinate data.
@@ -76,4 +76,4 @@ GnssCoordinateData:
       type: double
     - name: Altitude
       type: float
-  timestamp:
+  timestamp: false
