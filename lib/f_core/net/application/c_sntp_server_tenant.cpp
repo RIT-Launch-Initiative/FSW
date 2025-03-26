@@ -16,9 +16,10 @@ void CSntpServerTenant::Run() {
     uint32_t txPacketNanosecondsTimestamp = 0;
     uint32_t lastUpdateTimeSeconds = 0;
     uint32_t lastUpdateTimeNanoseconds = 0;
+    sockaddr srcAddr = {0};
+    socklen_t srcAddrLen = sizeof(srcAddr);
 
-    // TODO: Merge TFTP code with the new UDP socket code
-    int rxLen = sock.ReceiveAsynchronous(&clientPacket, sizeof(clientPacket));
+    const int rxLen = sock.ReceiveAsynchronous(&clientPacket, sizeof(clientPacket), &srcAddr, &srcAddrLen);
     if (getRtcTimeAsSeconds(rxPacketSecondsTimestamp, rxPacketNanosecondsTimestamp) != 0) {
         return;
     }
@@ -69,7 +70,11 @@ void CSntpServerTenant::Run() {
     };
 
     // TODO: Direct this thang
-    int ret = sock.TransmitAsynchronous(&packet, sizeof(packet));
+    uint16_t clientPort = reinterpret_cast<const sockaddr_in *>(&srcAddr)->sin_port;
+    clientPort = (clientPort >> 8) | (clientPort << 8);
+    CUdpSocket respondSock(ip, sockPort, clientPort);
+
+    int ret = respondSock.TransmitAsynchronous(&packet, sizeof(packet));
     if (ret < 0) {
         LOG_ERR("Failed to transmit packet (%d)", ret);
     }
