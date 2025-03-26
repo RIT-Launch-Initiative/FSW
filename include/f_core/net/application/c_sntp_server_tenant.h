@@ -110,8 +110,10 @@ private:
 
     static constexpr uint32_t GPS_REFERENCE_CODE = 0x47505300; // "GPS\0"
 
-    CSntpServerTenant(const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT)
-        : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4) {};
+    CSntpServerTenant(const CIPv4& ipv4, device& rtc, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
+                      uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
+        : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtcDevice(rtc), stratum(stratum),
+          pollInterval(pollInterval), precisionExponent(precisionExponent), lastUpdatedTime(nullptr) {}
 
     int getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds);
 

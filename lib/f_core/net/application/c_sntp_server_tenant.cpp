@@ -2,6 +2,8 @@
 
 #include <zephyr/drivers/rtc.h>
 
+LOG_MODULE_REGISTER(CSntpServerTenant);
+
 void CSntpServerTenant::Startup() {}
 
 void CSntpServerTenant::Cleanup() {}
