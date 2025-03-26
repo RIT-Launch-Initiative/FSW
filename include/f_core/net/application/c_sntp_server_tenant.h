@@ -10,7 +10,7 @@
 // Static instances
 // Note these must be defined outside the class to avoid linker issues
 static rtc_time lastUpdatedTime;
-static k_mutex lastUpdatedTimeLock;
+static K_MUTEX_DEFINE(lastUpdatedTimeLock); // Use macro here so we dont need to call init
 
 class CSntpServerTenant : public CTenant {
 public:

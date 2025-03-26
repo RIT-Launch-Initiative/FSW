@@ -7,6 +7,8 @@
 #include "f_core/utils/n_time_utils.h"
 #include <time.h>
 
+LOG_MODULE_REGISTER(NTimeUtils);
+
 #ifdef CONFIG_SNTP
 void NTimeUtils::SntpToRtcTime(const sntp_time& sntp, rtc_time& rtc) {
     auto rawTime = static_cast<time_t>(sntp.seconds);
@@ -36,15 +38,19 @@ int NTimeUtils::SntpSynchronize(const device& rtc, const char* serverAddress, co
     rtc_time rtcTime{0};
 
     // Note this is a 100ms timeout. Zephyr does a poor job of documenting this.
-    while (sntp_simple(serverAddress, 100, &ts) && retryCount < maxRetries) {
+    LOG_INF("Synchronizing SNTP with server %s", serverAddress);
+    while (sntp_simple(serverAddress, 1000, &ts) && retryCount < maxRetries) {
         k_sleep(K_SECONDS(1));
         retryCount++;
+        LOG_INF("Failed to synchronize SNTP. Retrying (%d)", retryCount);
     }
 
     if (retryCount >= 5) {
+        LOG_ERR("Failed to synchronize SNTP with server %s", serverAddress);
         return -1;
     }
 
+    LOG_INF("SNTP synchronized with server %s", serverAddress);
     SntpToRtcTime(ts, rtcTime);
     rtc_set_time(&rtc, &rtcTime);
 

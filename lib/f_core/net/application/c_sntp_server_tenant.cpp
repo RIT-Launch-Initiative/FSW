@@ -12,21 +12,26 @@ void CSntpServerTenant::PostStartup() {
     if (rtc_get_time(&rtcDevice, &time) == -ENODATA) {
         LOG_INF("Failed to get RTC time on SNTP server startup. Defaulting to 1970-01-01 00:00:00");
         // Default to 1970-01-01 00:00:00 until the RTC is set
-        // TODO: Note there might be some weird Zephyr bug here to be investigated. Date is inaccurate and it might be because of the ordering of the struct?
-        // Investigate this at a later time
-        constexpr rtc_time tm = {
+        rtc_time tm = {
             .tm_sec = 0,
             .tm_min = 0,
             .tm_hour = 0,
             .tm_mday = 1,
             .tm_mon = 1,
             .tm_year = 70,
+            .tm_wday = -1,
+            .tm_yday = -1,
+            .tm_isdst = -1,
+            .tm_nsec = 0
         };
-        int ret = rtc_set_time(DEVICE_DT_GET(DT_ALIAS(rtc)), &tm);
+        // TODO: Note there might be some weird Zephyr bug here to be investigated. Date is inaccurate and it might be because of the ordering of the struct?
+        // Investigate this at a later time
+        int ret = rtc_set_time(&rtcDevice, &tm);
         if (ret != 0) {
             LOG_ERR("Failed to set RTC time on SNTP server startup (%d)", ret);
         }
     }
+    SetLastUpdatedTime(time);
 }
 
 void CSntpServerTenant::Cleanup() {}
@@ -93,9 +98,8 @@ void CSntpServerTenant::Run() {
         .txTimestampFraction = txPacketNanosecondsTimestamp,
     };
 
-    // TODO: Direct this thang
-    uint16_t clientPort = reinterpret_cast<const sockaddr_in *>(&srcAddr)->sin_port;
-    clientPort = (clientPort >> 8) | (clientPort << 8);
+    sockaddr_in clientAddr = *reinterpret_cast<const sockaddr_in *>(&srcAddr);
+    uint16_t clientPort = ntohs(clientAddr.sin_port);
     CUdpSocket respondSock(ip, sockPort, clientPort);
 
     int ret = respondSock.TransmitAsynchronous(&packet, sizeof(packet));
@@ -118,14 +122,13 @@ int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseco
         return ret;
     }
 
-    // Calculate seconds since epoch properly with all time components
-    struct tm timeinfo = {
+    tm timeinfo = {
         .tm_sec = time.tm_sec,
         .tm_min = time.tm_min,
         .tm_hour = time.tm_hour,
         .tm_mday = time.tm_mday,
-        .tm_mon = time.tm_mon - 1, // tm months are 0-11
-        .tm_year = time.tm_year,   // already years since 1900
+        .tm_mon = time.tm_mon - 1,
+        .tm_year = time.tm_year,
     };
     seconds = mktime(&timeinfo);
     nanoseconds = time.tm_nsec;
@@ -133,7 +136,7 @@ int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseco
 }
 
 int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) {
-    rtc_time time;
+    rtc_time time{0};
     int ret = GetLastUpdatedTime(time, K_NO_WAIT);
     if (ret != 0) {
         return ret;

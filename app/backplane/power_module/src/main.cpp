@@ -24,7 +24,7 @@ int main() {
 
     // const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
     const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    const char* sntpServerAddr = (CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID)).c_str();
+    const char* sntpServerAddr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
     if (NTimeUtils::SntpSynchronize(*rtc, sntpServerAddr, 5)) {
         LOG_ERR("Failed to synchronize over SNTP");
     } else {

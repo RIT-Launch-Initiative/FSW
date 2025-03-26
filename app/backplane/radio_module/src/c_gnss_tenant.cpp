@@ -36,7 +36,7 @@ static void gnssCallback(const device *, const gnss_data *data) {
         .tm_wday = -1,
         .tm_yday = -1,
         .tm_isdst = -1,
-        .tm_nsec = data->utc.millisecond % 1000,
+        .tm_nsec = (data->utc.millisecond % 1000) * 1000000,
     };
 
     CSntpServerTenant::SetLastUpdatedTime(lastUpdated);
