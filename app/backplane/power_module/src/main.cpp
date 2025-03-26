@@ -27,6 +27,11 @@ int main() {
     const char* sntpServerAddr = (CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID)).c_str();
     if (NTimeUtils::SntpSynchronize(*rtc, sntpServerAddr, 5)) {
         LOG_ERR("Failed to synchronize over SNTP");
+    } else {
+        LOG_INF("SNTP synchronized");
+        rtc_time time{0};
+        rtc_get_time(rtc, &time);
+        LOG_INF("Time: %d:%d:%d", time.tm_hour, time.tm_min, time.tm_sec);
     }
 
 #ifdef CONFIG_ARCH_POSIX
