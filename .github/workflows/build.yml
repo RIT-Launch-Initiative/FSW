@@ -49,10 +49,12 @@ jobs:
           fi
 
       - name: Cache Python dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: python-${{ runner.os }}-${{ hashFiles('**/*.lock') }}
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python3.12/site-packages
+          key: python-${{ runner.os }}-${{ hashFiles('**/requirements.txt', '**/pyproject.toml', '**/*requirements*.txt') }}
           restore-keys: |
             python-${{ runner.os }}-
 
@@ -62,14 +64,33 @@ jobs:
           python-version: 3.12
 
       - name: Cache Zephyr dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/west
             ~/.cache/zephyr
-          key: zephyr-${{ runner.os }}-${{ hashFiles('**/*.txt') }}
+            ~/.west
+            modules
+          key: zephyr-${{ runner.os }}-${{ hashFiles('west.yml', '**/west*.yml') }}
           restore-keys: |
             zephyr-${{ runner.os }}-
+
+      - name: Cache SDK 
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/zephyr-sdk
+          key: sdk-${{ runner.os }}-${{ hashFiles('west.yml') }}
+          restore-keys: |
+            sdk-${{ runner.os }}-
+
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: FSW/build
+          key: cmake-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            cmake-${{ runner.os }}-
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
