@@ -47,7 +47,6 @@ public:
             return -1;
         }
 
-        k_mutex_lock(&lastUpdatedTimeLock, timeout);
         lastUpdatedTime = time;
         k_mutex_unlock(&lastUpdatedTimeLock);
         return 0;

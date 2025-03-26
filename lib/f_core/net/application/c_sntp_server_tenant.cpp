@@ -4,7 +4,9 @@
 
 LOG_MODULE_REGISTER(CSntpServerTenant);
 
-void CSntpServerTenant::Startup() {}
+void CSntpServerTenant::Startup() {
+    LOG_INF("Starting SNTP server on port %d", sockPort);
+}
 void CSntpServerTenant::PostStartup() {
     rtc_time time = {0};
     if (rtc_get_time(&rtcDevice, &time) == -ENODATA) {
@@ -39,14 +41,15 @@ void CSntpServerTenant::Run() {
     socklen_t srcAddrLen = sizeof(srcAddr);
 
     const int rxLen = sock.ReceiveAsynchronous(&clientPacket, sizeof(clientPacket), &srcAddr, &srcAddrLen);
-    if (getRtcTimeAsSeconds(rxPacketSecondsTimestamp, rxPacketNanosecondsTimestamp) != 0) {
-        return;
-    }
 
     if (rxLen == 0) {
         return;
     } else if (rxLen < 0) {
         LOG_ERR("Failed to receive packet (%d)", rxLen);
+        return;
+    }
+
+    if (getRtcTimeAsSeconds(rxPacketSecondsTimestamp, rxPacketNanosecondsTimestamp) != 0) {
         return;
     }
 
@@ -113,7 +116,16 @@ int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseco
         return ret;
     }
 
-    seconds = time.tm_sec + time.tm_min * 60 + time.tm_hour * 3600;
+    // Calculate seconds since epoch properly with all time components
+    struct tm timeinfo = {
+        .tm_sec = time.tm_sec,
+        .tm_min = time.tm_min,
+        .tm_hour = time.tm_hour,
+        .tm_mday = time.tm_mday,
+        .tm_mon = time.tm_mon - 1, // tm months are 0-11
+        .tm_year = time.tm_year,   // already years since 1900
+    };
+    seconds = mktime(&timeinfo);
     nanoseconds = time.tm_nsec;
     return 0;
 }
@@ -125,7 +137,16 @@ int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds, uint32_t& n
         return ret;
     }
 
-    seconds = time.tm_sec + time.tm_min * 60 + time.tm_hour * 3600;
+    // Calculate seconds since epoch properly with all time components
+    struct tm timeinfo = {
+        .tm_sec = time.tm_sec,
+        .tm_min = time.tm_min,
+        .tm_hour = time.tm_hour,
+        .tm_mday = time.tm_mday,
+        .tm_mon = time.tm_mon - 1, // tm months are 0-11
+        .tm_year = time.tm_year,   // already years since 1900
+    };
+    seconds = mktime(&timeinfo);
     nanoseconds = time.tm_nsec;
     return 0;
 }

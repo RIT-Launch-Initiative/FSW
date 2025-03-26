@@ -74,7 +74,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
     int flags = zsock_fcntl(sock, F_GETFL, 0);
     if (flags < 0) {
         LOG_ERR("Failed to get socket flags (%d)", flags);
-        return -1;
+        return flags;
     }
 
     if (!(flags & O_NONBLOCK)) {
