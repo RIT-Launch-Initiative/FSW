@@ -16,22 +16,6 @@
 
 LOG_MODULE_REGISTER(main);
 
-void initRtcTo1970() {
-    rtc_time time = {
-        .tm_sec = 0,
-        .tm_min = 0,
-        .tm_hour = 0,
-        .tm_mday = 1,
-        .tm_mon = 0,
-        .tm_year = 70,
-        .tm_wday = 4,
-        .tm_yday = 0,
-        .tm_isdst = 0,
-        .tm_nsec = 0,
-    };
-    rtc_set_time(DEVICE_DT_GET(DT_ALIAS(rtc)), &time);
-}
-
 int main() {
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
     LOG_INF("Transmitter started");

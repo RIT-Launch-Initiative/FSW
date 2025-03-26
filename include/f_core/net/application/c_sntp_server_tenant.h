@@ -77,6 +77,11 @@ public:
     /**
      * See parent docs
      */
+    void PostStartup() override;
+
+    /**
+     * See parent docs
+     */
     void Cleanup() override;
 
     /**

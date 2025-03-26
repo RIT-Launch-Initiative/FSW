@@ -78,7 +78,6 @@ private:
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
-    CTftpServerTenant tftpServerTenant = *CTftpServerTenant::GetInstance(CIPv4(ipAddrStr));
     CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(*rtc, CIPv4(ipAddrStr));
 
 

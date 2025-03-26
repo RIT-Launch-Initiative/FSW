@@ -5,6 +5,26 @@
 LOG_MODULE_REGISTER(CSntpServerTenant);
 
 void CSntpServerTenant::Startup() {}
+void CSntpServerTenant::PostStartup() {
+    rtc_time time = {0};
+    if (rtc_get_time(&rtcDevice, &time) == -ENODATA) {
+        LOG_INF("Failed to get RTC time on SNTP server startup. Defaulting to 1970-01-01 00:00:00");
+        // Default to 1970-01-01 00:00:00 until the RTC is set
+        rtc_time time = {
+            .tm_sec = 0,
+            .tm_min = 0,
+            .tm_hour = 0,
+            .tm_mday = 1,
+            .tm_mon = 0,
+            .tm_year = 70,
+            .tm_wday = 4,
+            .tm_yday = 0,
+            .tm_isdst = 0,
+            .tm_nsec = 0,
+        };
+        rtc_set_time(DEVICE_DT_GET(DT_ALIAS(rtc)), &time);
+    }
+}
 
 void CSntpServerTenant::Cleanup() {}
 
