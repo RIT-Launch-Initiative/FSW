@@ -91,7 +91,6 @@ void CSntpServerTenant::Run() {
         .precision = precisionExponent,
         .rootDelay = 0, // Unknown, but very small with the assumption Ethernet is used
         .rootDispersion = GNSS_ROOT_DISPERSION_FIXED_POINT, // 0.5 ms
-        .referenceId = GPS_REFERENCE_CODE, // Currently only GPS is the expected reference (stratum 1)
         .refTimestampSeconds = lastUpdateTimeSeconds,
         .refTimestampFraction = lastUpdateTimeNanoseconds,
         .originateTimestampSeconds = clientPacket.txTimestampSeconds,
@@ -101,6 +100,8 @@ void CSntpServerTenant::Run() {
         .txTimestampSeconds = txPacketSecondsTimestamp,
         .txTimestampFraction = txPacketNanosecondsTimestamp,
     };
+    // Currently only GPS is the expected reference (stratum 1)
+    memcpy(packet.referenceId, GPS_REFERENCE_CODE, sizeof(GPS_REFERENCE_CODE));
 
     sockaddr_in clientAddr = *reinterpret_cast<const sockaddr_in *>(&srcAddr);
     uint16_t clientPort = ntohs(clientAddr.sin_port);

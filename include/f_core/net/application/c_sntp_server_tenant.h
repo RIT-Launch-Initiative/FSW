@@ -143,7 +143,7 @@ private:
         int8_t precision;
         uint32_t rootDelay;
         uint32_t rootDispersion;
-        uint32_t referenceId;
+        char referenceId[4] = {0};
         uint32_t refTimestampSeconds;
         uint32_t refTimestampFraction;
         uint32_t originateTimestampSeconds;
@@ -154,8 +154,8 @@ private:
         uint32_t txTimestampFraction;
     } __packed;
 
+    static constexpr char GPS_REFERENCE_CODE[] = "GPS";
 
-    static constexpr uint32_t GPS_REFERENCE_CODE = 0x47505300; // "GPS\0"
 
     CSntpServerTenant(const device& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
                       uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
