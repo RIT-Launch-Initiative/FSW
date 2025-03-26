@@ -8,7 +8,6 @@
 LOG_MODULE_REGISTER(CPyroControlObserver);
 
 CPyroControlObserver::CPyroControlObserver() {
-    flightLog = CFlightLog("flight.log");
     flightLog.Write("Pyro Controller Observer initialized");
 }
 

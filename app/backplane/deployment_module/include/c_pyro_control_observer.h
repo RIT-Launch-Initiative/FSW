@@ -33,7 +33,7 @@ private:
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
 
-    CFlightLog flightLog;
+    CFlightLog flightLog{"flight.log"};
 
     std::array<PyroPair, 4> pyroPairs{
         PyroPair{
