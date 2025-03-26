@@ -10,25 +10,28 @@ void CSntpServerTenant::Startup() {
 void CSntpServerTenant::PostStartup() {
     rtc_time time = {0};
     if (rtc_get_time(&rtcDevice, &time) == -ENODATA) {
-        LOG_INF("Failed to get RTC time on SNTP server startup. Defaulting to 1970-01-01 00:00:00");
+        LOG_INF("Failed to get RTC time on SNTP server startup. Defaulting to 2025-01-01 00:00:00");
         // Default to 1970-01-01 00:00:00 until the RTC is set
-        rtc_time tm = {
+        constexpr rtc_time tm = {
             .tm_sec = 0,
             .tm_min = 0,
             .tm_hour = 0,
             .tm_mday = 1,
-            .tm_mon = 1,
-            .tm_year = 70,
-            .tm_wday = -1,
-            .tm_yday = -1,
+            .tm_mon = 0,
+            .tm_year = 2025 - 1900, // We can't use 1970 because settime fails on it for some reason? Should investigate
+            .tm_wday = 4,
+            .tm_yday = 0,
             .tm_isdst = -1,
-            .tm_nsec = 0
+            .tm_nsec = 0,
         };
         // TODO: Note there might be some weird Zephyr bug here to be investigated. Date is inaccurate and it might be because of the ordering of the struct?
         // Investigate this at a later time
         int ret = rtc_set_time(&rtcDevice, &tm);
         if (ret != 0) {
             LOG_ERR("Failed to set RTC time on SNTP server startup (%d)", ret);
+            if (ret == -EINVAL) {
+                LOG_ERR("EINVAL error setting RTC. Confirm tm struct is properly formatted");
+            }
         }
     }
     SetLastUpdatedTime(time);
