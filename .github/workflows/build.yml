@@ -73,28 +73,6 @@ jobs:
           sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib
           sudo cp -r /var/cache/apt/archives/*.deb ~/.apt-cache/ || true
 
-      - name: Cache Homebrew (macOS)
-        if: runner.os == 'macOS'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/Homebrew
-            /usr/local/Homebrew
-          key: brew-${{ runner.os }}-${{ env.BREW_HASH }}
-          restore-keys: |
-            brew-${{ runner.os }}-
-
-      - name: Cache Chocolatey Packages (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:\ProgramData\chocolatey\lib\Wget
-            C:\ProgramData\chocolatey\lib\ninja
-          key: choco-${{ runner.os }}-${{ env.CHOCO_HASH }}
-          restore-keys: |
-            choco-${{ runner.os }}-
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -113,34 +91,8 @@ jobs:
           restore-keys: |
             zephyr-${{ runner.os }}-
 
-      - name: Cache SDK (Non-Windows)
-        if: runner.os != 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/zephyr-sdk
-          key: sdk-${{ runner.os }}-${{ env.SDK_HASH }}
-          restore-keys: |
-            sdk-${{ runner.os }}-
-
-      - name: Cache SDK (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: C:\Users\runner\AppData\Local\zephyr-sdk
-          key: sdk-${{ runner.os }}-${{ env.SDK_HASH }}
-          restore-keys: |
-            sdk-${{ runner.os }}-
-
-      - name: Cache CMake build
-        uses: actions/cache@v4
-        with:
-          path: FSW/build
-          key: cmake-${{ runner.os }}-${{ env.CMAKE_HASH }}
-          restore-keys: |
-            cmake-${{ runner.os }}-
-
       - name: Setup Zephyr project
-        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        uses: zephyrproject-rtos/action-zephyr-setup@v1.0.6
         with:
           app-path: FSW
           toolchains: arm-zephyr-eabi

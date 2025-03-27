@@ -84,28 +84,6 @@ jobs:
           sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib
           sudo cp -r /var/cache/apt/archives/*.deb ~/.apt-cache/ || true
 
-      - name: Cache Homebrew (macOS)
-        if: runner.os == 'macOS'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/Homebrew
-            /usr/local/Homebrew
-          key: brew-samples-${{ runner.os }}-${{ env.BREW_HASH }}
-          restore-keys: |
-            brew-samples-${{ runner.os }}-
-
-      - name: Cache Chocolatey packages (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:\ProgramData\chocolatey\lib
-            C:\ProgramData\chocolatey\bin
-          key: choco-samples-${{ runner.os }}-${{ env.CHOCO_HASH }}
-          restore-keys: |
-            choco-samples-${{ runner.os }}-
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -123,32 +101,6 @@ jobs:
           key: zephyr-samples-${{ runner.os }}-${{ env.ZEPHYR_HASH }}
           restore-keys: |
             zephyr-samples-${{ runner.os }}-
-
-      - name: Cache SDK (Non-Windows)
-        if: runner.os != 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/zephyr-sdk
-          key: sdk-samples-${{ runner.os }}-${{ env.SDK_HASH }}
-          restore-keys: |
-            sdk-samples-${{ runner.os }}-
-
-      - name: Cache SDK (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: C:\Users\runner\AppData\Local\zephyr-sdk
-          key: sdk-samples-${{ runner.os }}-${{ env.SDK_HASH }}
-          restore-keys: |
-            sdk-samples-${{ runner.os }}-
-
-      - name: Cache CMake build
-        uses: actions/cache@v4
-        with:
-          path: build
-          key: cmake-samples-${{ runner.os }}-${{ env.CMAKE_HASH }}
-          restore-keys: |
-            cmake-samples-${{ runner.os }}-
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
