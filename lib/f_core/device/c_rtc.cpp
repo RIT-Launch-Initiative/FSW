@@ -47,7 +47,6 @@ int CRtc::SetTime(rtc_time& time) {
     }
 #endif
 
-
     if (ret < 0) {
         LOG_ERR("Failed to set RTC time: %d", ret);
         return ret;
