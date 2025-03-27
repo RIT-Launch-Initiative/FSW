@@ -2,11 +2,13 @@ name: Format Code
 
 on:
   workflow_run:
-    workflows: ["Build", "Build Samples"]
+    workflows: ["Build Projects", "Build Samples"]
     types:
       - completed
     branches:
-      - "*"
+      - main
+      - 'feature/**'
+      - 'bugfix/**'
 
 jobs:
   format:
