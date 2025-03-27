@@ -56,6 +56,7 @@ jobs:
           echo "APT_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
           echo "BREW_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
           echo "VCPKG_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
+          echo "CHOCO_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
           echo "PYTHON_HASH=${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}" >> $GITHUB_ENV
           echo "ZEPHYR_HASH=${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}" >> $GITHUB_ENV
           echo "SDK_HASH=${{ hashFiles('FSW/west.yml') }}" >> $GITHUB_ENV
@@ -94,17 +95,16 @@ jobs:
           restore-keys: |
             brew-samples-${{ runner.os }}-
 
-      - name: Cache vcpkg (Windows)
+      - name: Cache Chocolatey packages (Windows)
         if: runner.os == 'Windows'
         uses: actions/cache@v4
         with:
           path: |
-            C:\vcpkg\installed
-            C:\vcpkg\packages
-            C:\vcpkg\downloads
-          key: vcpkg-samples-${{ runner.os }}-${{ env.VCPKG_HASH }}
+            C:\ProgramData\chocolatey\lib
+            C:\ProgramData\chocolatey\bin
+          key: choco-samples-${{ runner.os }}-${{ env.CHOCO_HASH }}
           restore-keys: |
-            vcpkg-samples-${{ runner.os }}-
+            choco-samples-${{ runner.os }}-
 
       - name: Set up Python
         uses: actions/setup-python@v4
