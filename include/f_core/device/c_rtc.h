@@ -1,12 +1,13 @@
 #ifndef C_RTC_H
 #define C_RTC_H
 
+#include <time.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/rtc.h>
 
 class CRtc {
 public:
-    CRtc(const device& dev);
+    explicit CRtc(const device& dev);
 
     int GetTime(rtc_time& time);
 
