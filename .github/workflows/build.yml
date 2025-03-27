@@ -24,11 +24,6 @@ env:
     power_module
   linux_only_platforms: |
     native_sim
-  native_sim_dependencies:
-    pkg-config
-    libfuse-dev
-    gcc-multilib
-    g++-multilib
 
 jobs:
   build:
@@ -38,49 +33,8 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-        with:
-          path: FSW
-
-      - name: Compute Cache Hashes
-        id: compute_hashes
-        shell: bash
-        run: |
-          echo "ZEPHYR_HASH=${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}" >> $GITHUB_ENV
-
-      - name: Install Native Sim Dependencies (Linux)  # native_sim goes for 32bit, not available by default
-        shell: bash
-        run: |
-          if [ "${{ runner.os }}" = "Linux" ]; then 
-            sudo dpkg --add-architecture i386
-            sudo apt update
-            sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib;
-          fi
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
-          cache: "pip"
-
-      - name: Cache Zephyr dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/west
-            ~/.cache/zephyr
-            ~/.west
-            modules
-          key: zephyr-${{ runner.os }}-${{ env.ZEPHYR_HASH }}
-          restore-keys: |
-            zephyr-${{ runner.os }}-
-
-      - name: Setup Zephyr project
-        uses: zephyrproject-rtos/action-zephyr-setup@v1.0.6
-        with:
-          app-path: FSW
-          toolchains: arm-zephyr-eabi
+      - name: Run Starter Steps
+        uses: ./.github/workflows/setup.yml
 
       - name: Build firmware
         working-directory: FSW
