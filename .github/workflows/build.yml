@@ -47,14 +47,7 @@ jobs:
         id: compute_hashes
         shell: bash
         run: |
-          echo "APT_HASH=${{ hashFiles('FSW/.github/workflows/build.yml') }}" >> $GITHUB_ENV
-          echo "BREW_HASH=${{ hashFiles('FSW/.github/workflows/build.yml') }}" >> $GITHUB_ENV
-          echo "VCPKG_HASH=${{ hashFiles('FSW/.github/workflows/build.yml') }}" >> $GITHUB_ENV
-          echo "CHOCO_HASH=${{ hashFiles('FSW/.github/workflows/build.yml') }}" >> $GITHUB_ENV
-          echo "PYTHON_HASH=${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}" >> $GITHUB_ENV
           echo "ZEPHYR_HASH=${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}" >> $GITHUB_ENV
-          echo "SDK_HASH=${{ hashFiles('FSW/west.yml') }}" >> $GITHUB_ENV
-          echo "CMAKE_HASH=${{ hashFiles('FSW/**/CMakeLists.txt', 'FSW/**/*.cmake', 'FSW/cmake/**') }}" >> $GITHUB_ENV
 
       - uses: awalsh128/cache-apt-pkgs-action@latest
         if: runner.os == 'Linux'
