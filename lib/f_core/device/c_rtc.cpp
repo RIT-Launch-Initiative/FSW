@@ -68,9 +68,7 @@ int CRtc::SetUnixTime(time_t unixTimestamp) {
         return -1;
     }
 
-    SetTime(*reinterpret_cast<rtc_time*>(tmTime));
-
-    return 0;
+    return SetTime(*reinterpret_cast<rtc_time*>(tmTime));
 }
 
 
