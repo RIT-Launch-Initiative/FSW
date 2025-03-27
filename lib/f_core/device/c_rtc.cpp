@@ -22,7 +22,7 @@ int CRtc::GetTime(tm& time) {
     return GetTime(reinterpret_cast<rtc_time&>(time));
 }
 
-int CRtc::GetUnixTime(time_t &unixTimestamp) {
+int CRtc::GetUnixTime(time_t& unixTimestamp) {
     rtc_time time{0};
     if (int ret = GetTime(time); ret < 0) {
         return ret;
@@ -34,7 +34,6 @@ int CRtc::GetUnixTime(time_t &unixTimestamp) {
         return -1;
     }
 
-
     unixTimestamp = mktime(tmTime) + RTC_UNIX_SECONDS_DIFFERENCE;
     return 0;
 }
@@ -45,9 +44,6 @@ int CRtc::SetTime(rtc_time& rtcTime) {
         LOG_WRN("STM32 does not support years before 2000. This will most likely result in an EINVAL when setting RTC");
     }
 #endif
-
-    LOG_INF("%02d-%02d-%04d %02d:%02d", rtcTime.tm_mon + 1, rtcTime.tm_mday, rtcTime.tm_year + 1900, rtcTime.tm_hour, rtcTime.tm_min);
-
 
     int ret = rtc_set_time(&rtc, &rtcTime);
     if (ret < 0) {
@@ -62,7 +58,7 @@ int CRtc::SetTime(tm& time) {
 }
 
 int CRtc::SetUnixTime(time_t unixTimestamp) {
-    tm *tmTime = gmtime(&unixTimestamp);
+    tm* tmTime = gmtime(&unixTimestamp);
     if (tmTime == nullptr) {
         LOG_ERR("Failed to convert UNIX time to tm structure");
         return -1;
