@@ -1,4 +1,6 @@
 #include "f_core/device/c_rtc.h"
+
+#include <time.h>
 #include <zephyr/device.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/rtc.h>
@@ -20,8 +22,20 @@ int CRtc::GetTime(tm& time) {
     return GetTime(reinterpret_cast<rtc_time&>(time));
 }
 
-int CRtc::GetUnixTime(uint32_t unixTimestamp) {
+int CRtc::GetUnixTime(time_t &unixTimestamp) {
+    rtc_time time{0};
+    if (int ret = GetTime(time); ret < 0) {
+        return ret;
+    }
 
+    tm* tmTime = rtc_time_to_tm(&time);
+    if (tmTime == nullptr) {
+        LOG_ERR("Failed to convert RTC time to tm structure");
+        return -1;
+    }
+
+
+    unixTimestamp = mktime(tmTime) + RTC_UNIX_SECONDS_DIFFERENCE;
     return 0;
 }
 
@@ -38,7 +52,15 @@ int CRtc::SetTime(tm& time) {
     return SetTime(reinterpret_cast<rtc_time&>(time));
 }
 
-int CRtc::SetUnixTime(uint32_t unixTimestamp) {
+int CRtc::SetUnixTime(time_t unixTimestamp) {
+    const tm *tmTime = gmtime(&unixTimestamp);
+    if (tmTime == nullptr) {
+        LOG_ERR("Failed to convert UNIX time to tm structure");
+        return -1;
+    }
+
+    SetTime(reinterpret_cast<rtc_time&>(tmTime));
+
     return 0;
 }
 
