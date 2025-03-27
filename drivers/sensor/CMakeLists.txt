@@ -4,3 +4,6 @@
 add_subdirectory_ifdef(CONFIG_ADXL375 adxl375)
 add_subdirectory_ifdef(CONFIG_MS5611 ms5611)
 add_subdirectory_ifdef(CONFIG_INA260 ina260)
+add_subdirectory_ifdef(CONFIG_OPENROCKET_SENSORS openrocket)
+add_subdirectory_ifdef(CONFIG_SIMSHUNT simshunt)
+

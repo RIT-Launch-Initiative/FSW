@@ -8,14 +8,11 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
-    - name: u-blox
-      url-base: https://github.com/u-blox
-
 
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: v3.6.0
+      revision: v4.1.0
       import:
         name-allowlist:
           - cmsis
@@ -24,12 +21,5 @@ manifest:
           - littlefs
           - loramac-node
           - hal_st
-    - name: ubxlib
-      remote: u-blox
-      path: ubxlib
-      revision: master
-      import:
-        name-allowlist:
-          - gnss
       clone-depth: 1
 

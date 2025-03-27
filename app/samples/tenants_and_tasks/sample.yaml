@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: tenants-and-tasks
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.tenants_and_taks.default: {}

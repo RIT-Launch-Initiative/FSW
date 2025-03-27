@@ -1,4 +1,4 @@
-name: Build
+name: Build Projects
 
 on:
   push:
@@ -10,16 +10,27 @@ on:
   schedule:
     - cron: "0 0 * * 1"
 
+env:
+  test_roots: |
+    app/backplane/deployment_module
+    app/backplane/power_module
+    app/backplane/radio_module
+    app/backplane/sensor_module
+  platforms: |
+    nucleo_f446re
+    deployment_module
+    radio_module
+    sensor_module
+    power_module
+  linux_only_platforms: |
+    native_sim
+
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        app:
-          - app/backplane/app_power_module
-          - app/backplane/app_radio_module
-          - app/backplane/app_sensor_module
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -28,8 +39,17 @@ jobs:
         with:
           path: FSW
 
+      - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then 
+            sudo dpkg --add-architecture i386
+            sudo apt update
+            sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib;
+          fi
+
       - name: Cache Python dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: python-${{ runner.os }}-${{ hashFiles('**/*.lock') }}
@@ -39,10 +59,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: 3.12
 
       - name: Cache Zephyr dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/west
@@ -64,13 +84,18 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
-          west twister -T ${{ matrix.app }} -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+          fi
+          
+          function add_arglist () {
+            echo "$2" | while read -r line; do
+              [ -z "$line" ] && continue
+              echo -n " $1 $line "
+            done;
+          }       
+          
+          west twister $(add_arglist -T "${{ env.test_roots}}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms}}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
 
-#      - name: Twister Tests
-#        working-directory: ${{ matrix.app }}
-#        shell: bash
-#        run: |
-#          if [ "${{ runner.os }}" = "Windows" ]; then
-#            EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
-#          fi
-#          west twister -T tests -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+

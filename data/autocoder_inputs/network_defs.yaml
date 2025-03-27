@@ -1,0 +1,41 @@
+general:
+  commandPort: 9000
+  alertPort: 9999
+
+modules:
+  power:
+    id: 1
+    base_port: 11000
+    port_offsets:
+      ina_data:
+        port_number: 15
+      adc_data:
+        port_number: 50
+
+  radio:
+    id: 2
+    base_port: 12000
+    port_offsets:
+      command:
+        port_number: 1
+      command_response:
+        port_number: 2
+      data_request:
+        port_number: 999
+      gnss_data:
+        port_number: 5
+
+  sensor:
+    id: 3
+    base_port: 13000
+    port_offsets:
+      telemetry:
+        port_number: 100
+
+  deployment:
+    id: 4
+    base_port: 14000
+    port_offsets:
+      # No ports for deployment module. This is a placeholder for parsing.
+      unused:
+        port_number: 0

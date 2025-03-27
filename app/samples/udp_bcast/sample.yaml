@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: udp-bcast
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.udp_bcast.default: {}

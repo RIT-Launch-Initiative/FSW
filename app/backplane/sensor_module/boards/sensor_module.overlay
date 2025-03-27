@@ -1,0 +1,13 @@
+/ {
+	aliases {
+		primary-barometer = &ms5611;
+		secondary-barometer = &bmp388;
+		imu = &lsm6dsl;
+		accelerometer = &adxl375;
+		magnetometer = &lis3mdl;
+		thermometer = &tmp117;
+
+		rs485-uart = &uart5;
+		rs485-de = &de_hack;
+	};
+};

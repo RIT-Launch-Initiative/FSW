@@ -12,11 +12,12 @@
 
 / {
     model = "Radio Module";
-    compatible = "st,stm32f446re-nucleo";
+    compatible = "st,stm32f446xx";
 
     chosen {
         zephyr,console = &uart4;
         zephyr,shell-uart = &uart4;
+
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
 
@@ -53,17 +54,45 @@
             gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
             label = "User LED2";
         };
+    };
+    
+    connector: gpios {
+        compatible = "gpio-leds";
 
+        gpio_0: gpios_0 {
+            gpios = <&gpioc 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            label = "CONNECTOR GPIO 0";
+        };
+
+        gpio_1: gpios_1 {
+            gpios = <&gpioc 2 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            label = "CONNECTOR GPIO 1";
+        };
+
+        gpio_2: gpios_2 {
+            gpios = <&gpioc 3 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            label = "CONNECTOR GPIO 2";
+        };
+
+        gpio_3: gpios_3 {
+            gpios = <&gpioa 1 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+            label = "CONNECTOR GPIO 3";
+        };
     };
 
     aliases {
         led0 = &red_led_1;
         led1 = &red_led_2;
 
+        gpio0 = &gpio_0;
+        gpio1 = &gpio_1;
+        gpio2 = &gpio_2;
+        gpio3 = &gpio_3;
+
         dbguart = &uart4;
         ubxlib-usart2 = &usart2;
 
-        lora0 = &lora;
+        lora = &lora0;
         gnss = &maxm10s;
     };
 };
@@ -144,7 +173,7 @@
     pinctrl-names = "default";
     status = "okay";
 
-    lora: lora@0 {
+    lora0: lora0@0 {
         compatible = "semtech,sx1276";
         reg = <0>;
         reset-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;

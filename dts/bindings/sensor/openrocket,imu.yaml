@@ -1,0 +1,110 @@
+# Copyright (c) 2024 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+description: IMU that takes its inputs from an openrocket simulation CSV
+
+compatible: "openrocket,imu"
+
+include: [openrocket-sensor-device.yaml]
+
+properties:
+  vertical-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is up (the direction the rocket goes)
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+      
+  vertical-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the vertical axis (multiply by -1). 
+      This is helpful if your actual IMU is upside down
+
+  lateral-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is sideways
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+
+  roll-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is roll
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+  pitch-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is pitch
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+  yaw-axis:
+    type: string
+    required: true
+    description: |
+      Which axis is yaw
+      Options:
+      - OPENROCKET_AXIS_X
+      - OPENROCKET_AXIS_Y
+      - OPENROCKET_AXIS_Z
+    enum:
+      - "OPENROCKET_AXIS_X"
+      - "OPENROCKET_AXIS_Y"
+      - "OPENROCKET_AXIS_Z"
+  roll-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 
+  pitch-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 
+  yaw-axis-invert:
+    type: boolean
+    description: |
+      If set, invert the roll axis (multiply by -1). 
+
+  accel-noise:
+    type: int
+    default: 0
+    description: |
+      Magnitude of noise added to each axis of accelerometer readings * 1000 
+      As device tree does not support floating point numbers, this value is in mm/s^2
+      Randomness is added by generating a number from -1 to 1 then multiplying by this value/1000 before adding on to the baseline value for each component
+  gyro-noise:
+    type: int
+    default: 0
+    description: |
+      Magnitude of noise added to each axis of gyro readings * 1000 
+      As device tree does not support floating point numbers, this value is in milliradians/s
+      Randomness is added by generating a number from -1 to 1 then multiplying by this value/1000 before adding on to the baseline value for each component

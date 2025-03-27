@@ -1,0 +1,3 @@
+name: bpl-networking
+append:
+  EXTRA_CONF_FILE: bpl-networking.conf

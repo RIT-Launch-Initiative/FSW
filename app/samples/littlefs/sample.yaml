@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: littlefs
+common:
+  build_only: true
+  platform_allow:
+    - nucleo_f446re
+tests:
+  samples.littlefs.default: {}

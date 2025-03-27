@@ -53,6 +53,8 @@ dkms.conf
 
 build/
 *-build
+**/*build*
+twister-out*/
 
 # Zephyr files
 .west
@@ -60,8 +62,16 @@ build/
 *cmake-*
 # IDE Files
 .vscode/
-.idea/
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+**/.idea/dtsSettings.xml
+
 .cache/
 zephyr-windows.code-workspace
 flash.bin
 app_grim_reefer/extra/out/*
+
+# Python files
+__pycache__
+
+flash/

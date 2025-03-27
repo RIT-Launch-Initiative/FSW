@@ -1,0 +1,62 @@
+/ {
+    chosen {
+        zephyr,console = &uart0;
+        zephyr,shell-uart = &uart0;
+    };
+
+
+    imu: imu {
+        status = "okay";
+        compatible = "openrocket,imu";
+        vertical-axis = "OPENROCKET_AXIS_Z";
+        vertical-axis-invert;
+        lateral-axis = "OPENROCKET_AXIS_X";
+        lag-time-us = <1000>;
+        sampling-period-us = <10>;
+
+        roll-axis = "OPENROCKET_AXIS_Z";
+        pitch-axis = "OPENROCKET_AXIS_Y";
+        yaw-axis = "OPENROCKET_AXIS_X";
+
+        accel-noise = <500>;
+        gyro-noise = <200>;
+    };
+
+    barom: barom {
+        status = "okay";
+        compatible = "openrocket,barometer";
+        lag-time-us = <1000>;
+        sampling-period-us = <10>;
+        temp-noise = <100>; // millicelsius
+        pressure-noise = <100>; // pascals
+    };
+
+    gnss: gnss{
+        status = "okay";
+        compatible = "openrocket,gnss";
+        lag-time-us = <1000>;
+        sampling-period-us = <(5*1000*1000)>;
+        rtc = <&rtc>;
+    };
+
+    magn: magn{
+        status = "okay";
+        compatible = "openrocket,magnetometer";
+        lag-time-us = <1000>;
+        sampling-period-us = <(5*1000*1000)>;
+        noise = <1000>;
+    };
+
+    shnt: shnt{
+        status = "okay";
+        compatible = "sim,simshunt";
+        simulated-voltage = <5000>;   // milliVolts
+        simulated-current = <100>;    // milliAmps
+    };
+};
+&rtc {
+    status = "okay";
+};
+&uart0 {
+    status = "okay";
+};
