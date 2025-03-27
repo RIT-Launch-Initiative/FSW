@@ -9,8 +9,7 @@
 
 LOG_MODULE_REGISTER(CTftpServerTenant);
 
-char *inet_ntoa(struct in_addr in)
-{
+char *inet_ntoa(struct in_addr in) {
     static char buf[INET_ADDRSTRLEN];
     unsigned char *bytes = (unsigned char *)&in.s_addr;
 
