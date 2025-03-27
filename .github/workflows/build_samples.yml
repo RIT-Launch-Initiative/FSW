@@ -45,13 +45,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: FSW
           fetch-depth: 2
 
       - name: Run Starter Steps
-        uses: FSW/.github/workflows/setup.yml
+        uses: ./.github/workflows/setup.yml
 
       - name: Build firmware
         working-directory: FSW
