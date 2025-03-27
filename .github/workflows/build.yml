@@ -25,13 +25,20 @@ env:
   linux_only_platforms: |
     native_sim
 
+  APT_HASH: ${{ hashFiles('FSW/.github/workflows/build.yml') }}
+  BREW_HASH: ${{ hashFiles('FSW/.github/workflows/build.yml') }}
+  VCPKG_HASH: ${{ hashFiles('FSW/.github/workflows/build.yml') }}
+  PYTHON_HASH: ${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}
+  ZEPHYR_HASH: ${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}
+  SDK_HASH: ${{ hashFiles('FSW/west.yml') }}
+  CMAKE_HASH: ${{ hashFiles('FSW/**/CMakeLists.txt', 'FSW/**/*.cmake', 'FSW/cmake/**') }}
+
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -45,7 +52,7 @@ jobs:
         id: apt-cache
         with:
           path: ~/.apt-cache
-          key: apt-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build.yml') }}
+          key: apt-${{ runner.os }}-${{ env.APT_HASH }}
           restore-keys: |
             apt-${{ runner.os }}-
 
@@ -70,7 +77,7 @@ jobs:
           path: |
             ~/Library/Caches/Homebrew
             /usr/local/Homebrew
-          key: brew-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build.yml') }}
+          key: brew-${{ runner.os }}-${{ env.BREW_HASH }}
           restore-keys: |
             brew-${{ runner.os }}-
 
@@ -83,7 +90,7 @@ jobs:
             C:/vcpkg/installed
             C:/vcpkg/packages
             C:/vcpkg/downloads
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build.yml') }}
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_HASH }}
           restore-keys: |
             vcpkg-${{ runner.os }}-
 
@@ -94,7 +101,7 @@ jobs:
             ~/.cache/pip
             ~/.local/lib/python3.12/site-packages
             ~/AppData/Local/pip/Cache
-          key: python-${{ runner.os }}-${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}
+          key: python-${{ runner.os }}-${{ env.PYTHON_HASH }}
           restore-keys: |
             python-${{ runner.os }}-
 
@@ -111,7 +118,7 @@ jobs:
             ~/.cache/zephyr
             ~/.west
             modules
-          key: zephyr-${{ runner.os }}-${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}
+          key: zephyr-${{ runner.os }}-${{ env.ZEPHYR_HASH }}
           restore-keys: |
             zephyr-${{ runner.os }}-
 
@@ -120,7 +127,7 @@ jobs:
         with:
           path: |
             ~/.local/zephyr-sdk
-          key: sdk-${{ runner.os }}-${{ hashFiles('FSW/west.yml') }}
+          key: sdk-${{ runner.os }}-${{ env.SDK_HASH }}
           restore-keys: |
             sdk-${{ runner.os }}-
 
@@ -128,7 +135,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: FSW/build
-          key: cmake-${{ runner.os }}-${{ hashFiles('FSW/**/CMakeLists.txt', 'FSW/**/*.cmake', 'FSW/cmake/**') }}
+          key: cmake-${{ runner.os }}-${{ env.CMAKE_HASH }}
           restore-keys: |
             cmake-${{ runner.os }}-
 

@@ -37,13 +37,20 @@ env:
   linux_only_platforms: |
     native_sim
 
+  APT_HASH: ${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+  BREW_HASH: ${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+  VCPKG_HASH: ${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+  PYTHON_HASH: ${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}
+  ZEPHYR_HASH: ${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}
+  SDK_HASH: ${{ hashFiles('FSW/west.yml') }}
+  CMAKE_HASH: ${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'cmake/**') }}
+
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -57,7 +64,7 @@ jobs:
         id: apt-cache
         with:
           path: ~/.apt-cache
-          key: apt-samples-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+          key: apt-samples-${{ runner.os }}-${{ env.APT_HASH }}
           restore-keys: |
             apt-samples-${{ runner.os }}-
 
@@ -82,7 +89,7 @@ jobs:
           path: |
             ~/Library/Caches/Homebrew
             /usr/local/Homebrew
-          key: brew-samples-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+          key: brew-samples-${{ runner.os }}-${{ env.BREW_HASH }}
           restore-keys: |
             brew-samples-${{ runner.os }}-
 
@@ -95,7 +102,7 @@ jobs:
             C:/vcpkg/installed
             C:/vcpkg/packages
             C:/vcpkg/downloads
-          key: vcpkg-samples-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+          key: vcpkg-samples-${{ runner.os }}-${{ env.VCPKG_HASH }}
           restore-keys: |
             vcpkg-samples-${{ runner.os }}-
 
@@ -106,7 +113,7 @@ jobs:
             ~/.cache/pip
             ~/.local/lib/python3.12/site-packages
             ~/AppData/Local/pip/Cache
-          key: python-samples-${{ runner.os }}-${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}
+          key: python-samples-${{ runner.os }}-${{ env.PYTHON_HASH }}
           restore-keys: |
             python-samples-${{ runner.os }}-
 
@@ -123,7 +130,7 @@ jobs:
             ~/.cache/zephyr
             ~/.west
             modules
-          key: zephyr-samples-${{ runner.os }}-${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}
+          key: zephyr-samples-${{ runner.os }}-${{ env.ZEPHYR_HASH }}
           restore-keys: |
             zephyr-samples-${{ runner.os }}-
 
@@ -132,7 +139,7 @@ jobs:
         with:
           path: |
             ~/.local/zephyr-sdk
-          key: sdk-samples-${{ runner.os }}-${{ hashFiles('FSW/west.yml') }}
+          key: sdk-samples-${{ runner.os }}-${{ env.SDK_HASH }}
           restore-keys: |
             sdk-samples-${{ runner.os }}-
 
@@ -140,7 +147,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build
-          key: cmake-samples-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'cmake/**') }}
+          key: cmake-samples-${{ runner.os }}-${{ env.CMAKE_HASH }}
           restore-keys: |
             cmake-samples-${{ runner.os }}-
 
