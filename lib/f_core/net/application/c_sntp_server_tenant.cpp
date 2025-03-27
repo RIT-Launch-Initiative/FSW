@@ -107,7 +107,7 @@ void CSntpServerTenant::Run() {
         .txTimestampFraction = txPacketNanosecondsTimestamp,
     };
     // Currently only GPS is the expected reference (stratum 1)
-    memcpy(packet.referenceId, GPS_REFERENCE_CODE, sizeof(GPS_REFERENCE_CODE));
+    memcpy(packet.referenceId, GPS_REFERENCE_CODE, 4);
 
     sockaddr_in clientAddr = *reinterpret_cast<const sockaddr_in *>(&srcAddr);
     uint16_t clientPort = ntohs(clientAddr.sin_port);
