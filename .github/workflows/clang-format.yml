@@ -1,14 +1,10 @@
 name: Format Code
 
 on:
-  workflow_run:
-    workflows: ["Build Projects", "Build Samples"]
-    types:
-      - completed
+  push:
     branches:
-      - main
-      - 'feature/**'
-      - 'bugfix/**'
+      - '*'
+
 
 jobs:
   format:
