@@ -49,11 +49,8 @@ void CSntpServerTenant::Cleanup() {}
 void CSntpServerTenant::Run() {
     SntpPacket clientPacket = {0};
     uint32_t rxPacketSecondsTimestamp = 0;
-    uint32_t rxPacketNanosecondsTimestamp = 0;
     uint32_t txPacketSecondsTimestamp = 0;
-    uint32_t txPacketNanosecondsTimestamp = 0;
     uint32_t lastUpdateTimeSeconds = 0;
-    uint32_t lastUpdateTimeNanoseconds = 0;
     sockaddr srcAddr = {0};
     socklen_t srcAddrLen = sizeof(srcAddr);
 
@@ -66,7 +63,7 @@ void CSntpServerTenant::Run() {
         return;
     }
 
-    if (getRtcTimeAsSeconds(rxPacketSecondsTimestamp, rxPacketNanosecondsTimestamp) != 0) {
+    if (getRtcTimeAsSeconds(rxPacketSecondsTimestamp) != 0) {
         return;
     }
 
@@ -76,8 +73,8 @@ void CSntpServerTenant::Run() {
     }
 
     uint8_t li = LI_NO_WARNING;
-    if (getRtcTimeAsSeconds(txPacketSecondsTimestamp, txPacketNanosecondsTimestamp) ||
-        getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds, lastUpdateTimeNanoseconds)) {
+    if (getRtcTimeAsSeconds(txPacketSecondsTimestamp) ||
+        getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds)) {
         li = LI_ALARM_CONDITION;
         // Keep going. The packet will be sent with the alarm condition signaling we are desynchronized
     }
@@ -98,13 +95,11 @@ void CSntpServerTenant::Run() {
         .rootDelay = 0, // Unknown, but very small with the assumption Ethernet is used
         .rootDispersion = GNSS_ROOT_DISPERSION_FIXED_POINT, // 0.5 ms
         .refTimestampSeconds = lastUpdateTimeSeconds,
-        .refTimestampFraction = lastUpdateTimeNanoseconds,
+        .refTimestampFraction = 0,
         .originateTimestampSeconds = clientPacket.txTimestampSeconds,
         .originateTimestampFraction = clientPacket.txTimestampFraction,
         .rxTimestampSeconds = rxPacketSecondsTimestamp,
-        .rxTimestampFraction = rxPacketNanosecondsTimestamp,
         .txTimestampSeconds = txPacketSecondsTimestamp,
-        .txTimestampFraction = txPacketNanosecondsTimestamp,
     };
     // Currently only GPS is the expected reference (stratum 1)
     memcpy(packet.referenceId, GPS_REFERENCE_CODE, 4);
@@ -120,7 +115,7 @@ void CSntpServerTenant::Run() {
 }
 
 
-int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) const {
+int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds) const {
     rtc_time time;
     int ret = rtc_get_time(&rtcDevice, &time);
     if (ret != 0) {
@@ -142,11 +137,10 @@ int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseco
         .tm_year = time.tm_year,
     };
     seconds = mktime(&timeinfo);
-    nanoseconds = time.tm_nsec;
     return 0;
 }
 
-int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) {
+int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     rtc_time time{0};
     int ret = GetLastUpdatedTime(time, K_NO_WAIT);
     if (ret != 0) {
@@ -163,6 +157,5 @@ int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds, uint32_t& n
         .tm_year = time.tm_year,   // already years since 1900
     };
     seconds = mktime(&timeinfo);
-    nanoseconds = time.tm_nsec;
     return 0;
 }

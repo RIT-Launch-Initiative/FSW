@@ -144,14 +144,15 @@ private:
         uint32_t rootDelay;
         uint32_t rootDispersion;
         char referenceId[4] = {0};
+        // Don't care about fractional timestamps. Exception is originate since that needs to align with client.
         uint32_t refTimestampSeconds;
-        uint32_t refTimestampFraction;
+        uint32_t refTimestampFraction = 0;
         uint32_t originateTimestampSeconds;
         uint32_t originateTimestampFraction;
         uint32_t rxTimestampSeconds;
-        uint32_t rxTimestampFraction;
+        uint32_t rxTimestampFraction = 0;
         uint32_t txTimestampSeconds;
-        uint32_t txTimestampFraction;
+        uint32_t txTimestampFraction = 0;
     } __packed;
 
     static constexpr char GPS_REFERENCE_CODE[] = "GPS";
@@ -162,9 +163,9 @@ private:
         : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtcDevice(rtc), stratum(stratum),
           pollInterval(pollInterval), precisionExponent(precisionExponent), sockPort(port) {}
 
-    int getRtcTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds) const;
+    int getRtcTimeAsSeconds(uint32_t& seconds) const;
 
-    int getLastUpdateTimeAsSeconds(uint32_t& seconds, uint32_t& nanoseconds);
+    int getLastUpdateTimeAsSeconds(uint32_t& seconds);
 };
 
 #endif // C_SNTP_SERVER_H
