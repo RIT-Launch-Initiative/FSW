@@ -84,12 +84,13 @@ jobs:
           restore-keys: |
             brew-${{ runner.os }}-
 
-      - name: Cache Chocolatey Wget (Windows)
+      - name: Cache Chocolatey Packages (Windows)
         if: runner.os == 'Windows'
         uses: actions/cache@v4
         with:
           path: |
             C:\ProgramData\chocolatey\lib\Wget
+            C:\ProgramData\chocolatey\lib\ninja
           key: choco-${{ runner.os }}-${{ env.CHOCO_HASH }}
           restore-keys: |
             choco-${{ runner.os }}-
