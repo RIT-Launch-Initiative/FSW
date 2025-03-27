@@ -49,13 +49,6 @@ jobs:
         run: |
           echo "ZEPHYR_HASH=${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}" >> $GITHUB_ENV
 
-      - uses: awalsh128/cache-apt-pkgs-action@latest
-        if: runner.os == 'Linux'
-        with:
-          packages: ${{ env.native_sim_dependencies }}
-          version: 1.0
-          execute_install_scripts: true
-
       - name: Install Native Sim Dependencies (Linux)  # native_sim goes for 32bit, not available by default
         shell: bash
         run: |
