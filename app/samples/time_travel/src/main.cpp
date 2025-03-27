@@ -10,7 +10,7 @@
 
 LOG_MODULE_REGISTER(main);
 
-void printTime(rtc_time time) {
+void printTime(const rtc_time &time) {
     LOG_INF("%02d-%02d-%04d %02d:%02d", time.tm_mon + 1, time.tm_mday, time.tm_year + 1900, time.tm_hour);
 }
 
@@ -19,7 +19,7 @@ int main() {
     const device *rtcDev = DEVICE_DT_GET(DT_ALIAS(rtc));
     CRtc rtc{*rtcDev};
 
-    rtc.SetUnixTime(0);
+    rtc.SetUnixTime(1743106890);
 
     rtc_time rtcTime{0};
     rtc.GetTime(rtcTime);

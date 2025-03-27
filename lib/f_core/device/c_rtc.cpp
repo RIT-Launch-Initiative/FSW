@@ -40,13 +40,13 @@ int CRtc::GetUnixTime(time_t &unixTimestamp) {
 }
 
 int CRtc::SetTime(rtc_time& time) {
-    int ret = rtc_set_time(&rtc, &time);
 #ifdef CONFIG_RTC_STM32
     if (time.tm_year < 100) {
         LOG_WRN("STM32 does not support years before 2000. This will most likely result in an EINVAL when setting RTC");
     }
 #endif
 
+    int ret = rtc_set_time(&rtc, &time);
     if (ret < 0) {
         LOG_ERR("Failed to set RTC time: %d", ret);
         return ret;
