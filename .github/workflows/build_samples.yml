@@ -53,36 +53,16 @@ jobs:
         id: compute_hashes
         shell: bash
         run: |
-          echo "APT_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
-          echo "BREW_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
-          echo "VCPKG_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
-          echo "CHOCO_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
-          echo "PYTHON_HASH=${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}" >> $GITHUB_ENV
           echo "ZEPHYR_HASH=${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}" >> $GITHUB_ENV
-          echo "SDK_HASH=${{ hashFiles('FSW/west.yml') }}" >> $GITHUB_ENV
-          echo "CMAKE_HASH=${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'cmake/**') }}" >> $GITHUB_ENV
 
-      - name: Cache APT packages (Linux)
-        if: runner.os == 'Linux'
-        uses: actions/cache@v4
-        with:
-          path: ~/.apt-cache
-          key: apt-samples-${{ runner.os }}-${{ env.APT_HASH }}
-          restore-keys: |
-            apt-samples-${{ runner.os }}-
-
-      - name: Install Native Sim Dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install Native Sim Dependencies (Linux)  # native_sim goes for 32bit, not available by default
         shell: bash
         run: |
-          sudo dpkg --add-architecture i386
-          sudo apt update
-          if [ -d ~/.apt-cache ] && [ "$(ls -A ~/.apt-cache)" ]; then
-            sudo cp -r ~/.apt-cache/* /var/cache/apt/archives/
+          if [ "${{ runner.os }}" = "Linux" ]; then 
+            sudo dpkg --add-architecture i386
+            sudo apt update
+            sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib;
           fi
-          mkdir -p ~/.apt-cache
-          sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib
-          sudo cp -r /var/cache/apt/archives/*.deb ~/.apt-cache/ || true
 
       - name: Set up Python
         uses: actions/setup-python@v4
