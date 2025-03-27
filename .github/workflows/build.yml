@@ -33,6 +33,12 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          path: FSW
+          fetch-depth: 2
+
       - name: Run Starter Steps
         uses: ./.github/workflows/setup.yml
 

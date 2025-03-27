@@ -4,11 +4,6 @@ description: |
 runs:
   using: "composite"
   steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
-      with:
-        path: FSW
-
     - name: Compute Cache Hashes
       id: compute_hashes
       shell: bash
