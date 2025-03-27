@@ -64,7 +64,6 @@ jobs:
       - name: Cache APT packages (Linux)
         if: runner.os == 'Linux'
         uses: actions/cache@v4
-        id: apt-cache
         with:
           path: ~/.apt-cache
           key: apt-samples-${{ runner.os }}-${{ env.APT_HASH }}
@@ -87,7 +86,6 @@ jobs:
       - name: Cache Homebrew (macOS)
         if: runner.os == 'macOS'
         uses: actions/cache@v4
-        id: brew-cache
         with:
           path: |
             ~/Library/Caches/Homebrew
@@ -99,31 +97,20 @@ jobs:
       - name: Cache vcpkg (Windows)
         if: runner.os == 'Windows'
         uses: actions/cache@v4
-        id: vcpkg-cache
         with:
           path: |
-            C:/vcpkg/installed
-            C:/vcpkg/packages
-            C:/vcpkg/downloads
+            C:\vcpkg\installed
+            C:\vcpkg\packages
+            C:\vcpkg\downloads
           key: vcpkg-samples-${{ runner.os }}-${{ env.VCPKG_HASH }}
           restore-keys: |
             vcpkg-samples-${{ runner.os }}-
-
-      - name: Cache Python dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.local/lib/python3.12/site-packages
-            ~/AppData/Local/pip/Cache
-          key: python-samples-${{ runner.os }}-${{ env.PYTHON_HASH }}
-          restore-keys: |
-            python-samples-${{ runner.os }}-
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.12
+          cache: "pip"
 
       - name: Cache Zephyr dependencies
         uses: actions/cache@v4
@@ -137,11 +124,20 @@ jobs:
           restore-keys: |
             zephyr-samples-${{ runner.os }}-
 
-      - name: Cache SDK
+      - name: Cache SDK (Non-Windows)
+        if: runner.os != 'Windows'
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.local/zephyr-sdk
+          path: ~/.local/zephyr-sdk
+          key: sdk-samples-${{ runner.os }}-${{ env.SDK_HASH }}
+          restore-keys: |
+            sdk-samples-${{ runner.os }}-
+
+      - name: Cache SDK (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: C:\Users\runner\AppData\Local\zephyr-sdk
           key: sdk-samples-${{ runner.os }}-${{ env.SDK_HASH }}
           restore-keys: |
             sdk-samples-${{ runner.os }}-
@@ -167,16 +163,13 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
-
           if [ "${{ runner.os }}" = "Linux" ]; then
             export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
           fi
-
           function add_arglist () {
             echo "$2" | while read -r line; do
               [ -z "$line" ] && continue
               echo -n " $1 $line "
             done;
-          }       
-          
+          }
           west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms }}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
