@@ -41,9 +41,10 @@ int main() {
     printTime(currentTime, unixTime);
 
     // Travel to Y2K
-    // LOG_INF("Travel to Y2K using tm");
-    // rtc.SetTime(timeToSet);
-    // rtc.GetTime(currentTime);
+    LOG_INF("Travel to Y2K using tm");
+    rtc.SetTime(timeToSet);
+    rtc.GetTime(currentTime);
+    printTime(currentTime, unixTime);
 
 
     //
