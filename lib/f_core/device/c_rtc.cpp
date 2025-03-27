@@ -39,14 +39,17 @@ int CRtc::GetUnixTime(time_t &unixTimestamp) {
     return 0;
 }
 
-int CRtc::SetTime(rtc_time& time) {
+int CRtc::SetTime(rtc_time& rtcTime) {
 #ifdef CONFIG_RTC_STM32
     if (time.tm_year < 100) {
         LOG_WRN("STM32 does not support years before 2000. This will most likely result in an EINVAL when setting RTC");
     }
 #endif
 
-    int ret = rtc_set_time(&rtc, &time);
+    LOG_INF("%02d-%02d-%04d %02d:%02d", rtcTime.tm_mon + 1, rtcTime.tm_mday, rtcTime.tm_year + 1900, rtcTime.tm_hour, rtcTime.tm_min);
+
+
+    int ret = rtc_set_time(&rtc, &rtcTime);
     if (ret < 0) {
         LOG_ERR("Failed to set RTC time: %d", ret);
         return ret;
@@ -55,17 +58,17 @@ int CRtc::SetTime(rtc_time& time) {
 }
 
 int CRtc::SetTime(tm& time) {
-    return SetTime(reinterpret_cast<rtc_time&>(time));
+    return SetTime(*reinterpret_cast<rtc_time*>(&time));
 }
 
 int CRtc::SetUnixTime(time_t unixTimestamp) {
-    const tm *tmTime = gmtime(&unixTimestamp);
+    tm *tmTime = gmtime(&unixTimestamp);
     if (tmTime == nullptr) {
         LOG_ERR("Failed to convert UNIX time to tm structure");
         return -1;
     }
 
-    SetTime(reinterpret_cast<rtc_time&>(tmTime));
+    SetTime(*reinterpret_cast<rtc_time*>(tmTime));
 
     return 0;
 }

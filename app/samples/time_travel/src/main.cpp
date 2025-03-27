@@ -11,7 +11,7 @@
 LOG_MODULE_REGISTER(main);
 
 void printTime(const rtc_time &time) {
-    LOG_INF("%02d-%02d-%04d %02d:%02d", time.tm_mon + 1, time.tm_mday, time.tm_year + 1900, time.tm_hour);
+    LOG_INF("%02d-%02d-%04d %02d:%02d", time.tm_mon + 1, time.tm_mday, time.tm_year + 1900, time.tm_hour, time.tm_min);
 }
 
 

@@ -15,7 +15,7 @@ public:
 
     int GetUnixTime(time_t &unixTimestamp);
 
-    int SetTime(rtc_time& time);
+    int SetTime(rtc_time& rtcTime);
 
     int SetTime(tm& time);
 
