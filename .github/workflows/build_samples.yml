@@ -51,7 +51,7 @@ jobs:
           fetch-depth: 2
 
       - name: Run Starter Steps
-        uses: ./.github/workflows/setup.yml
+        uses: ./.github/workflows/fsw_setup
 
       - name: Build firmware
         working-directory: FSW
