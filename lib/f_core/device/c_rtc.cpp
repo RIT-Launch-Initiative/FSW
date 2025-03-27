@@ -23,18 +23,12 @@ int CRtc::GetTime(tm& time) {
 }
 
 int CRtc::GetUnixTime(time_t& unixTimestamp) {
-    rtc_time time{0};
+    tm time{0};
     if (int ret = GetTime(time); ret < 0) {
         return ret;
     }
 
-    tm* tmTime = rtc_time_to_tm(&time);
-    if (tmTime == nullptr) {
-        LOG_ERR("Failed to convert RTC time to tm structure");
-        return -1;
-    }
-
-    unixTimestamp = mktime(tmTime) + RTC_UNIX_SECONDS_DIFFERENCE;
+    unixTimestamp = mktime(&time);
     return 0;
 }
 

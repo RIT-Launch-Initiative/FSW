@@ -10,8 +10,9 @@
 
 LOG_MODULE_REGISTER(main);
 
-void printTime(const tm &time) {
-    LOG_INF("%02d-%02d-%04d %02d:%02d:%02d", time.tm_mon + 1, time.tm_mday, time.tm_year + 1900, time.tm_hour, time.tm_min, time.tm_sec);
+void printTime(const tm &time, time_t unixTime) {
+    LOG_INF("\t%02d-%02d-%04d %02d:%02d:%02d", time.tm_mon + 1, time.tm_mday, time.tm_year + 1900, time.tm_hour, time.tm_min, time.tm_sec);
+    LOG_INF("\t%d", unixTime);
 }
 
 
@@ -30,16 +31,22 @@ int main() {
     };
 
     tm currentTime{0};
+    time_t unixTime = 0;
 
     // Initial time 1-1-1970 00:00:00
     LOG_INF("Setting time to 1970 using UNIX");
     rtc.SetUnixTime(0);
     rtc.GetTime(currentTime);
-    printTime(currentTime);
+    rtc.GetUnixTime(unixTime);
+    printTime(currentTime, unixTime);
 
-    // Ensure we are still at the same time
-    LOG_INF("Travel to Y2K using tm");
-    rtc.SetTime(timeToSet);
+    // Travel to Y2K
+    // LOG_INF("Travel to Y2K using tm");
+    // rtc.SetTime(timeToSet);
+    // rtc.GetTime(currentTime);
+
+
+    //
 
 
 
