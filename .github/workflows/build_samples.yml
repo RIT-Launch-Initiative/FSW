@@ -45,34 +45,69 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
-        shell: bash
-        run: |
-          if [ "${{ runner.os }}" = "Linux" ]; then 
-            sudo apt-get install -y gcc-multilib g++-multilib; 
-          fi
-
       - name: Checkout
         uses: actions/checkout@v3
         with:
           path: FSW
       
-      - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
+      - name: Cache APT packages (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        id: apt-cache
+        with:
+          path: ~/.apt-cache
+          key: apt-samples-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+          restore-keys: |
+            apt-samples-${{ runner.os }}-
+
+      - name: Install Native Sim Dependencies (Linux)
+        if: runner.os == 'Linux'
         shell: bash
         run: |
-          if [ "${{ runner.os }}" = "Linux" ]; then 
-            sudo dpkg --add-architecture i386
-            sudo apt update
-            sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib;
+          sudo dpkg --add-architecture i386
+          sudo apt update
+          if [ -d ~/.apt-cache ]; then
+            sudo cp -r ~/.apt-cache/* /var/cache/apt/archives/
           fi
+          mkdir -p ~/.apt-cache
+          sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib
+          sudo cp -r /var/cache/apt/archives/*.deb ~/.apt-cache/ || true
+
+      - name: Cache Homebrew (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/cache@v4
+        id: brew-cache
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /usr/local/Homebrew
+          key: brew-samples-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+          restore-keys: |
+            brew-samples-${{ runner.os }}-
+
+      - name: Cache vcpkg (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        id: vcpkg-cache
+        with:
+          path: |
+            C:/vcpkg/installed
+            C:/vcpkg/packages
+            C:/vcpkg/downloads
+          key: vcpkg-samples-${{ runner.os }}-${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
+          restore-keys: |
+            vcpkg-samples-${{ runner.os }}-
 
       - name: Cache Python dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: python-${{ runner.os }}-${{ hashFiles('**/*.lock') }}
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python3.12/site-packages
+            ~/AppData/Local/pip/Cache
+          key: python-samples-${{ runner.os }}-${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}
           restore-keys: |
-            python-${{ runner.os }}-
+            python-samples-${{ runner.os }}-
     
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -80,15 +115,33 @@ jobs:
           python-version: 3.12
 
       - name: Cache Zephyr dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/west
             ~/.cache/zephyr
-          key: zephyr-${{ runner.os }}-${{ hashFiles('**/*.txt') }}
+            ~/.west
+            modules
+          key: zephyr-samples-${{ runner.os }}-${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}
           restore-keys: |
-            zephyr-${{ runner.os }}-
+            zephyr-samples-${{ runner.os }}-
+            
+      - name: Cache SDK 
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/zephyr-sdk
+          key: sdk-samples-${{ runner.os }}-${{ hashFiles('FSW/west.yml') }}
+          restore-keys: |
+            sdk-samples-${{ runner.os }}-
 
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: FSW/build
+          key: cmake-samples-${{ runner.os }}-${{ hashFiles('FSW/**/CMakeLists.txt', 'FSW/**/*.cmake', 'FSW/cmake/**') }}
+          restore-keys: |
+            cmake-samples-${{ runner.os }}-
 
       - name: Setup Zephyr project
         uses: zephyrproject-rtos/action-zephyr-setup@v1
@@ -116,4 +169,3 @@ jobs:
           }       
           
           west twister $(add_arglist -T "${{ env.test_roots}}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms}}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
-
