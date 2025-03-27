@@ -9,6 +9,7 @@ on:
       - '*'
   schedule:
     - cron: "0 0 * * 1"
+
 env:
   test_roots: |
     app/samples/littlefs
@@ -49,7 +50,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: FSW
-      
+
       - name: Cache APT packages (Linux)
         if: runner.os == 'Linux'
         uses: actions/cache@v4
@@ -66,7 +67,7 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt update
-          if [ -d ~/.apt-cache ]; then
+          if [ -d ~/.apt-cache ] && [ "$(ls -A ~/.apt-cache)" ]; then
             sudo cp -r ~/.apt-cache/* /var/cache/apt/archives/
           fi
           mkdir -p ~/.apt-cache
@@ -108,7 +109,7 @@ jobs:
           key: python-samples-${{ runner.os }}-${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}
           restore-keys: |
             python-samples-${{ runner.os }}-
-    
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -125,8 +126,8 @@ jobs:
           key: zephyr-samples-${{ runner.os }}-${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}
           restore-keys: |
             zephyr-samples-${{ runner.os }}-
-            
-      - name: Cache SDK 
+
+      - name: Cache SDK
         uses: actions/cache@v4
         with:
           path: |
@@ -138,8 +139,8 @@ jobs:
       - name: Cache CMake build
         uses: actions/cache@v4
         with:
-          path: FSW/build
-          key: cmake-samples-${{ runner.os }}-${{ hashFiles('FSW/**/CMakeLists.txt', 'FSW/**/*.cmake', 'FSW/cmake/**') }}
+          path: build
+          key: cmake-samples-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'cmake/**') }}
           restore-keys: |
             cmake-samples-${{ runner.os }}-
 
@@ -148,7 +149,7 @@ jobs:
         with:
           app-path: FSW
           toolchains: arm-zephyr-eabi
-          
+
       - name: Build firmware
         working-directory: FSW
         shell: bash

@@ -55,7 +55,7 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt update
-          if [ -d ~/.apt-cache ]; then
+          if [ -d ~/.apt-cache ] && [ "$(ls -A ~/.apt-cache)" ]; then
             sudo cp -r ~/.apt-cache/* /var/cache/apt/archives/
           fi
           mkdir -p ~/.apt-cache
@@ -115,7 +115,7 @@ jobs:
           restore-keys: |
             zephyr-${{ runner.os }}-
 
-      - name: Cache SDK 
+      - name: Cache SDK
         uses: actions/cache@v4
         with:
           path: |
@@ -158,5 +158,3 @@ jobs:
           }       
           
           west twister $(add_arglist -T "${{ env.test_roots}}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms}}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
-
-
