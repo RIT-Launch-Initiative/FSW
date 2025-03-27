@@ -8,6 +8,8 @@
 LOG_MODULE_REGISTER(CSensingTenant);
 
 void CSensingTenant::Startup() {
+    static constexpr uint32_t minuteInMillis = 1000 * 60;
+    timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
 }
 
 void CSensingTenant::PostStartup() {
@@ -60,7 +62,7 @@ void CSensingTenant::Run() {
 
     dataToBroadcast.Send(data, K_MSEC(5));
 
-    if (logData) {
+    if (timer.IsExpired()) {
         dataToLog.Send(data, K_MSEC(5));
     }
 }
@@ -70,12 +72,12 @@ void CSensingTenant::Notify(void *ctx) {
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::BOOST:
             LOG_INF("Boost detected. Logging data.");
-            logData = true;
+            timer.StartTimer(500); // Log every half a second during flight
             break;
 
         case NAlerts::LANDED:
             LOG_INF("Landing detected. Disabling logging.");
-            logData = false;
+            timer.StopTimer(); // Stop logging
             break;
 
         default:
