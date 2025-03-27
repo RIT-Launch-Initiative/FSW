@@ -27,7 +27,6 @@ env:
     app/samples/gpio_blinky
     app/samples/phase_detection
     app/samples/horus
-
   platforms: |
     nucleo_f446re
     radio_module
@@ -37,14 +36,6 @@ env:
   linux_only_platforms: |
     native_sim
 
-  APT_HASH: ${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
-  BREW_HASH: ${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
-  VCPKG_HASH: ${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}
-  PYTHON_HASH: ${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}
-  ZEPHYR_HASH: ${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}
-  SDK_HASH: ${{ hashFiles('FSW/west.yml') }}
-  CMAKE_HASH: ${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'cmake/**') }}
-
 jobs:
   build:
     strategy:
@@ -53,10 +44,22 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v3
         with:
           path: FSW
+
+      - name: Compute Cache Hashes
+        id: compute_hashes
+        shell: bash
+        run: |
+          echo "APT_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
+          echo "BREW_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
+          echo "VCPKG_HASH=${{ hashFiles('FSW/.github/workflows/build_samples.yml') }}" >> $GITHUB_ENV
+          echo "PYTHON_HASH=${{ hashFiles('**/requirements.txt', '**/*requirements*.txt') }}" >> $GITHUB_ENV
+          echo "ZEPHYR_HASH=${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}" >> $GITHUB_ENV
+          echo "SDK_HASH=${{ hashFiles('FSW/west.yml') }}" >> $GITHUB_ENV
+          echo "CMAKE_HASH=${{ hashFiles('**/CMakeLists.txt', '**/*.cmake', 'cmake/**') }}" >> $GITHUB_ENV
 
       - name: Cache APT packages (Linux)
         if: runner.os == 'Linux'
@@ -176,4 +179,4 @@ jobs:
             done;
           }       
           
-          west twister $(add_arglist -T "${{ env.test_roots}}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms}}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms }}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
