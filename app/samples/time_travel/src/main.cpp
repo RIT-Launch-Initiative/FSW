@@ -12,7 +12,12 @@ LOG_MODULE_REGISTER(main);
 
 void printTime(const tm &time, time_t unixTime) {
     LOG_INF("\t%02d-%02d-%04d %02d:%02d:%02d", time.tm_mon + 1, time.tm_mday, time.tm_year + 1900, time.tm_hour, time.tm_min, time.tm_sec);
+
+#ifdef CONFIG_RTC_STM32
+    LOG_INF("\t%lld", unixTime);
+#else
     LOG_INF("\t%d", unixTime);
+#endif
 }
 
 
@@ -35,6 +40,7 @@ int main() {
     time_t unixTime = 0;
 
     // Initial time 1-1-1970 00:00:00
+#ifndef CONFIG_RTC_STM32
     LOG_INF("Setting time to 1970 using UNIX");
 
     rtc.SetUnixTime(0);
@@ -51,6 +57,7 @@ int main() {
     rtc.GetUnixTime(unixTime);
 
     printTime(currentTime, unixTime);
+#endif
 
     // Travel to 2025
     LOG_INF("Travel to 2025 using UNIX");
