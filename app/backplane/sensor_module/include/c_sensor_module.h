@@ -63,6 +63,7 @@ class CSensorModule : public CProjectConfiguration {
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort,
                              detectionHandler};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(), telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
+    CUdpBroadcastTenant<NAlerts::AlertType> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
     CTftpServerTenant tftpServerTenant = *CTftpServerTenant::getInstance(CIPv4(ipAddrStr.c_str()));
 
