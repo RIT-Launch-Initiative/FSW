@@ -20,7 +20,8 @@ int main() {
     const device *rtcDev = DEVICE_DT_GET(DT_ALIAS(rtc));
     CRtc rtc{*rtcDev};
 
-    // Intentionally use tm instead of rtc_time so tm overload calls underlying rtc_time allowing us to test both
+    // Intentionally use tm instead of rtc_time since overloaded fn
+    // calls underlying rtc_time implementation, allowing us to test both
     tm timeToSet{
         .tm_sec = 0,
         .tm_min = 0,
@@ -35,22 +36,52 @@ int main() {
 
     // Initial time 1-1-1970 00:00:00
     LOG_INF("Setting time to 1970 using UNIX");
+
     rtc.SetUnixTime(0);
     rtc.GetTime(currentTime);
     rtc.GetUnixTime(unixTime);
+
     printTime(currentTime, unixTime);
 
     // Travel to Y2K
     LOG_INF("Travel to Y2K using tm");
+
     rtc.SetTime(timeToSet);
     rtc.GetTime(currentTime);
+    rtc.GetUnixTime(unixTime);
+
     printTime(currentTime, unixTime);
 
+    // Travel to 2025
+    LOG_INF("Travel to 2025 using UNIX");
 
-    //
+    rtc.SetUnixTime(1735689600);
+    rtc.GetTime(currentTime);
+    rtc.GetUnixTime(unixTime);
 
+    printTime(currentTime, unixTime);
 
+    // Christmas
+    LOG_INF("Christmas comes earlier every year...");
+    timeToSet.tm_year = 2025 - 1900;
+    timeToSet.tm_mon = 11;
+    timeToSet.tm_mday = 25;
+    timeToSet.tm_hour = 8;
+    timeToSet.tm_min = 0;
+    timeToSet.tm_sec = 0;
 
+    rtc.SetTime(timeToSet);
+    rtc.GetTime(currentTime);
+    rtc.GetUnixTime(unixTime);
+
+    printTime(currentTime, unixTime);
+
+    // Wait for 5 seconds
+    LOG_INF("Does sleeping count as time travel?");
+    k_msleep(5040); // 40 extra ms to guarantee we are past the second mark
+    rtc.GetTime(currentTime);
+    rtc.GetUnixTime(unixTime);
+    printTime(currentTime, unixTime);
 
     return 0;
 }
