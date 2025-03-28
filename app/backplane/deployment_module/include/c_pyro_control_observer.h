@@ -21,9 +21,10 @@ public:
     void Notify(void* ctx) override;
 
 private:
-    struct PyroPair {
+    struct PyroTrio {
         CGpio sense;
         CGpio ctrl;
+        CGpio debugLed;
     };
 
     std::array<CGpio, 4> de9Gpios{
@@ -35,22 +36,26 @@ private:
 
     CFlightLog flightLog{"flight.log"};
 
-    std::array<PyroPair, 4> pyroPairs{
-        PyroPair{
+    std::array<PyroTrio, 4> pyroPairs{
+        PyroTrio{
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_sns_0), gpios)),
-            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_0), gpios))
+            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_0), gpios)),
+            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios))
         },
-        PyroPair{
+        PyroTrio{
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_sns_1), gpios)),
-            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_1), gpios))
+            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_1), gpios)),
+            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios))
         },
-        PyroPair{
+        PyroTrio{
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_sns_2), gpios)),
-            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_2), gpios))
+            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_2), gpios)),
+            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios))
         },
-        PyroPair{
+        PyroTrio{
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_sns_3), gpios)),
-            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_3), gpios))
+            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_3), gpios)),
+            CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios))
         },
     };
 };

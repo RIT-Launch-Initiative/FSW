@@ -22,9 +22,10 @@ void CPyroControlObserver::Notify(void* ctx) {
             // TODO: Settings library for handling deployment timing
             k_sleep(K_SECONDS(1));
 
-            for (auto& [sense, ctrl] : pyroPairs) {
+            for (auto& [sense, ctrl, led] : pyroPairs) {
                 if (sense.GetPin() == 1) {
                     ctrl.SetPin(1);
+                    led.SetPin(1);
                     LOG_INF("Deployed charge %d", pyroCount);
                 }
                 pyroCount++;
