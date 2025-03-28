@@ -26,10 +26,17 @@ public:
     void PostStartup() override {};
 
     void Run() override {
-        LOG_INF("%d", id);
+        uint32_t startTime = k_uptime_get_32();
+        for (int32_t i = 0; i < max; i++) {
+            long long randomMath = max / .1f;
+            (void) randomMath;
+        }
+
+        LOG_INF("TimeHogTenant %d finished in %d ms", id, k_uptime_get_32() - startTime);
     };
 
 private:
+    static constexpr int32_t max = 0x7FFFFFFF;
     const int id;
 };
 
