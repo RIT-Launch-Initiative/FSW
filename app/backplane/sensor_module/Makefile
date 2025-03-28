@@ -15,7 +15,7 @@ sensor-sim-no-secondary-acc:
 	west build -b native_sim app/backplane/sensor_module -p auto -DDEBUG=y --extra-dtc-overlay boards/broken_sensor_overlays/secondary_imu_broken.overlay
 
 sensor-hw-sim:
-	west build -b sensor_module app/backplane/sensor_module -p auto --extra-dtc-overlay boards/sensor_hw_sim.overlay --extra-conf boards/native_sim.conf 
+	west build -b sensor_module app/backplane/sensor_module -p auto --extra-dtc-overlay boards/sensor_hw_sim.overlay --extra-conf boards/sensor_hw_sim.conf
 
 sensor-flight:
 	west build -b sensor_module app/backplane/sensor_module -p auto
