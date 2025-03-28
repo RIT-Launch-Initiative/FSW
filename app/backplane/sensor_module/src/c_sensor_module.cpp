@@ -12,9 +12,12 @@ static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQu
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
 
+K_MSGQ_DEFINE(alertQueue, sizeof(NAlerts::AlertType), 10, 4);
+static auto alertMsgQueue = CMsgqMessagePort<NAlerts::AlertType>(alertQueue);
+
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),
-      sensorDataLogMessagePort(dataLogMsgQueue), flight_log{generateFlightLogPath()} {}
+      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{generateFlightLogPath()} {}
 
 std::string CSensorModule::generateFlightLogPath() {
     constexpr size_t MAX_FLIGHT_LOG_PATH_SIZE = 32;

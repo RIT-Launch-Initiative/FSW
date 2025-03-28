@@ -27,7 +27,14 @@ extern const unsigned int or_events_size;
 static const char* event_to_str(enum or_event_t e);
 
 static void or_event_thread_handler(void);
-K_THREAD_DEFINE(or_event_thread, 1024, or_event_thread_handler, NULL, NULL, NULL, 0, 10,
+
+#ifdef CONFIG_ARCH_POSIX
+#define _ORK_SENSOR_THREAD_SLEEP_TIME 0
+#else
+#define _ORK_SENSOR_THREAD_SLEEP_TIME 50
+#endif
+
+K_THREAD_DEFINE(or_event_thread, 1024, or_event_thread_handler, NULL, NULL, NULL, 0, _ORK_SENSOR_THREAD_SLEEP_TIME,
                 CONFIG_OPENROCKET_MS_BEFORE_LAUNCH);
 #endif
 

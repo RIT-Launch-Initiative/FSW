@@ -13,7 +13,7 @@ double asl_from_pressure(double P_sta_kpa) {
 
     return (1 - pow(P_sta_mbar / sea_level_pressure_mbar, standard_atmosphere_exponent)) * standard_atmosphere_factor;
 }
-CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller)
+CDetectionHandler::CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<NAlerts::AlertType>& alertMessagePort)
     : controller(controller),
       primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
       secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},
@@ -24,7 +24,8 @@ CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller)
       primaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
       secondaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
       primaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
-      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold} {}
+      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
+      alertMessagePort(alertMessagePort) {}
 
 bool CDetectionHandler::ContinueCollecting() { return !controller.HasEventOccured(Events::GroundHit); }
 
