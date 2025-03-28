@@ -22,8 +22,6 @@ CPyroControlObserver::CPyroControlObserver() {
 void CPyroControlObserver::Notify(void* ctx) {
     uint8_t pyroCount = 0;
 
-
-
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::NOSEOVER:
             LOG_INF("Noseover detected. Deploying charges in one second.");
