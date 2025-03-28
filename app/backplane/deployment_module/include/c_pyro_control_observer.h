@@ -6,6 +6,7 @@
 #include <f_core/os/c_file.h>
 #include <f_core/os/flight_log.hpp>
 #include <f_core/utils/c_observer.h>
+#include <f_core/utils/c_soft_timer.h>
 
 
 class CPyroControlObserver : public CObserver {
@@ -19,6 +20,11 @@ public:
      * @param ctx Alert number
      */
     void Notify(void* ctx) override;
+
+    /**
+     * Callback for when the charge disable timer expires
+     */
+    void DisableCallback();
 
 private:
     struct PyroTrio {
@@ -35,8 +41,9 @@ private:
     };
 
     CFlightLog flightLog{"flight.log"};
+    CSoftTimer chargeDisableTimer;
 
-    std::array<PyroTrio, 4> pyroPairs{
+    std::array<PyroTrio, 4> pyroTrios{
         PyroTrio{
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_sns_0), gpios)),
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(pyro_ctrl_0), gpios)),
@@ -58,6 +65,8 @@ private:
             CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led3), gpios))
         },
     };
+
+
 };
 
 
