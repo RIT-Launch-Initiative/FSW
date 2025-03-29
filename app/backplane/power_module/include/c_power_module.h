@@ -7,14 +7,15 @@
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
+#include <f_core/device/c_rtc.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/net/application/c_udp_alert_tenant.h>
+#include <f_core/net/application/c_tftp_server_tenant.h>
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
 
 #include <n_autocoder_network_defs.h>
-#include <f_core/net/application/c_tftp_server_tenant.h>
 
 class CPowerModule : public CProjectConfiguration {
 public:
@@ -45,7 +46,11 @@ public:
 
 private:
     const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID)).c_str();
+    const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
     static constexpr int telemetryBroadcastPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
+
+    // Devices
+    CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
