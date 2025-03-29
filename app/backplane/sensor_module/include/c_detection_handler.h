@@ -4,6 +4,8 @@
 #include "flight.hpp"
 
 #include <n_autocoder_types.h>
+#include <f_core/n_alerts.h>
+#include <f_core/messaging/c_message_port.h>
 
 class CDetectionHandler {
   public:
@@ -22,7 +24,7 @@ class CDetectionHandler {
 
     using BaromNoseoverDetector = CDebouncer<ThresholdDirection::Under, double>;
     using BaromGroundDetector = CDebouncer<ThresholdDirection::Under, double>;
-    CDetectionHandler(SensorModulePhaseController &controller);
+    CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<NAlerts::AlertType>& alertMessagePort);
 
     SensorModulePhaseController &controller;
     AccBoostDetector primaryImuBoostSquaredDetector;
@@ -75,4 +77,8 @@ class CDetectionHandler {
      * @return true if the detection system wants more data, false if we're all finished
      */
     bool ContinueCollecting();
+
+private:
+    CMessagePort<NAlerts::AlertType>& alertMessagePort;
+
 };
