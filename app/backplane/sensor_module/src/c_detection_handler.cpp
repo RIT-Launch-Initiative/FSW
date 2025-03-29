@@ -13,7 +13,7 @@ double asl_from_pressure(double P_sta_kpa) {
 
     return (1 - pow(P_sta_mbar / sea_level_pressure_mbar, standard_atmosphere_exponent)) * standard_atmosphere_factor;
 }
-CDetectionHandler::CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<NAlerts::AlertType>& alertMessagePort)
+CDetectionHandler::CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<char[NAlerts::ALERT_PACKET_SIZE]>& alertMessagePort)
     : controller(controller),
       primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
       secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},
@@ -62,6 +62,8 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
     static constexpr uint32_t twoMinutesInMillis = 1000 * 60 * 2;
     double primary_barom_velocity = 0;
     double secondary_barom_velocity = 0;
+    static constexpr char landAlert[] = "LAUNCHl";
+
 
     bool primary_good = FindSlope(primaryBaromVelocityFinder, primary_barom_velocity);
     if (primary_good) {
@@ -75,7 +77,7 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
 
     if (primaryBaromGroundDetector.Passed() && sensor_states.primaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromMS5611, Events::GroundHit);
-        alertMessagePort.Send(NAlerts::LANDED);
+        alertMessagePort.Send(landAlert);
         if (!stopLoggingAfterGroundHitTimer.IsRunning()) {
             stopLoggingAfterGroundHitTimer.StartTimer(twoMinutesInMillis);
         }
@@ -83,7 +85,7 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
     }
     if (secondaryBaromGroundDetector.Passed() && sensor_states.secondaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromBMP, Events::GroundHit);
-        alertMessagePort.Send(NAlerts::LANDED);
+        alertMessagePort.Send(landAlert);
         if (!stopLoggingAfterGroundHitTimer.IsRunning()) {
             stopLoggingAfterGroundHitTimer.StartTimer(twoMinutesInMillis);
         }
@@ -109,12 +111,10 @@ void CDetectionHandler::HandleNoseover(const uint32_t t_plus_ms, const NTypes::S
     if (primaryBaromNoseoverDetector.Passed() && controller.HasEventOccured(Events::NoseoverLockout) &&
         sensor_states.primaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromMS5611, Events::Noseover);
-        alertMessagePort.Send(NAlerts::NOSEOVER);
     }
     if (secondaryBaromNoseoverDetector.Passed() && controller.HasEventOccured(Events::NoseoverLockout) &&
         sensor_states.secondaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromBMP, Events::Noseover);
-        alertMessagePort.Send(NAlerts::NOSEOVER);
     }
 }
 
@@ -127,25 +127,29 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
                                         data.Acceleration.Y * data.Acceleration.Y +
                                         data.Acceleration.Z * data.Acceleration.Z;
 
+    static constexpr char boostAlert[] = "LAUNCHb";
+
     primaryImuBoostSquaredDetector.Feed(timestamp, primary_mag_squared_m_s2);
     secondaryImuBoostSquaredDetector.Feed(timestamp, secondary_mag_squared_m_s2);
 
     if (primaryImuBoostSquaredDetector.Passed() && sensor_states.primaryAccOk) {
         controller.SubmitEvent(Sources::HighGImu, Events::Boost);
-        alertMessagePort.Send(NAlerts::BOOST);
+        alertMessagePort.Send(boostAlert);
         allowLogging = true;
     }
 
     if (secondaryImuBoostSquaredDetector.Passed() && sensor_states.secondaryAccOk) {
         controller.SubmitEvent(Sources::LowGImu, Events::Boost);
-        alertMessagePort.Send(NAlerts::BOOST);
+        alertMessagePort.Send(boostAlert);
         allowLogging = true;
     }
 
-    if (k_uptime_seconds() > 10) {
+    static bool past = false;
+    if (k_uptime_seconds() > 10 && !past) {
         controller.SubmitEvent(Sources::FullFlightTimer, Events::Boost);
-        alertMessagePort.Send(NAlerts::BOOST);
+        alertMessagePort.Send(boostAlert);
         allowLogging = true;
+        past = true;
         // led0.SetPin(1);
     }
 

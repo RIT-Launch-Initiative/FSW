@@ -32,7 +32,7 @@ class CDetectionHandler {
 
     using BaromNoseoverDetector = CDebouncer<ThresholdDirection::Under, double>;
     using BaromGroundDetector = CDebouncer<ThresholdDirection::Under, double>;
-    CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<NAlerts::AlertType>& alertMessagePort);
+    CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<char[NAlerts::ALERT_PACKET_SIZE]>& alertMessagePort);
 
     SensorModulePhaseController &controller;
     AccBoostDetector primaryImuBoostSquaredDetector;
@@ -89,7 +89,7 @@ class CDetectionHandler {
     bool allowLogging = false;
 
 private:
-    CMessagePort<NAlerts::AlertType>& alertMessagePort;
+    CMessagePort<char[NAlerts::ALERT_PACKET_SIZE]>& alertMessagePort;
     CSoftTimer stopLoggingAfterGroundHitTimer{disableLogging};
     CGpio led0 = CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios));
     CGpio led1 = CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios));

@@ -78,6 +78,7 @@ public:
      * @param port Destination port
      */
     void SetDstPort(const int port) {
+        printk("Setting destination port to %d\n", port);
         dstPort = port;
     }
 

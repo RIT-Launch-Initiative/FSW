@@ -91,7 +91,6 @@ void CSensingTenant::Run() {
     dataToBroadcast.Send(data, K_NO_WAIT);
 
     if (detectionHandler.allowLogging) {
-        LOG_INF("Logging data");
         dataToLog.Send(data, K_NO_WAIT);
     }
 }
