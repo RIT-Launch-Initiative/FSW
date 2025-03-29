@@ -6,7 +6,9 @@
 
 #include "f_core/utils/n_time_utils.h"
 #include <time.h>
+#include <tuple>
 #include <f_core/device/c_rtc.h>
+#include <f_core/utils/c_soft_timer.h>
 
 LOG_MODULE_REGISTER(NTimeUtils);
 
@@ -33,4 +35,25 @@ int NTimeUtils::SntpSynchronize(CRtc& rtc, const char* serverAddress, const int 
 
     return 0;
 }
+
+void NTimeUtils::SetupSntpSynchronizationCallback(CRtc& rtc, const char* serverAddress, const int maxRetries, int interval) {
+    static auto sntpCallback = [](k_timer* timer) {
+        auto data = static_cast<std::tuple<CRtc&, const char*, int>*>(k_timer_user_data_get(timer));
+        CRtc& rtc = std::get<0>(*data); // Note that RTC drivers "should be" thread safe, so KISS and don't do any synchronization here
+        const char* serverAddress = std::get<1>(*data);
+        int maxRetries = std::get<2>(*data);
+
+        NTimeUtils::SntpSynchronize(rtc, serverAddress, maxRetries);
+    };
+
+    static CSoftTimer timer{sntpCallback};
+    if (timer.IsRunning()) {
+        LOG_WRN("SNTP synchronization is already running!");
+        return;
+    }
+
+    timer.SetUserData(new std::tuple<CRtc&, const char*, int>(rtc, serverAddress, maxRetries));
+    timer.StartTimer(interval, 0);
+}
+
 #endif

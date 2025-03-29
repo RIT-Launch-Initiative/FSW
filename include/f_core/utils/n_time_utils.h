@@ -17,6 +17,18 @@ namespace NTimeUtils {
 	 * @return 0 on success, -1 on failure
 	 */
     int SntpSynchronize(CRtc& rtc, const char *serverAddress, const int maxRetries);
+
+    /**
+     * Set up a callback to synchronize the RTC with an SNTP server at regular intervals
+     * NOTE: Be smart about the interval and max retries, because it'll determine how long your callback executes for
+     *
+     * @param rtc RTC to be set
+     * @param serverAddress Address of the SNTP server
+     * @param maxRetries Max retries in a callback
+     * @param interval Interval in milliseconds for the callback to be called
+     */
+    void NTimeUtils::SetupSntpSynchronizationCallback(CRtc& rtc, const char* serverAddress, const int maxRetries, int interval);
+
 #endif
 }
 
