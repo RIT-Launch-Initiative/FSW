@@ -34,7 +34,7 @@ class CDeploymentModule : public CProjectConfiguration {
     /**
     * Cleanup
     */
-    void Cleanup() override {};
+    void Cleanup() = delete;
 
   private:
     static std::string generateFlightLogPath();
