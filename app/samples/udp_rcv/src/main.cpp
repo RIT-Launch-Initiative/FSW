@@ -16,13 +16,13 @@
 
 LOG_MODULE_REGISTER(main);
 
-K_MSGQ_DEFINE(broadcast_queue, sizeof(const char[32]), 10, 4);
+K_MSGQ_DEFINE(receiveQueue, sizeof(const char[32]), 10, 4);
 
 int main() {
     static constexpr char ipAddrStr[] = "10.0.0.0";
     static constexpr int udpPort = 10000;
-    auto messagePort = CMsgqMessagePort<char[broadcastStrLen]>(broadcast_queue);
-    CUdpBroadcastTenant broadcaster("Broadcast Tenant", ipAddrStr, udpPort, udpPort, messagePort);
+    static auto messagePort = CMsgqMessagePort<char[32]>(receiveQueue);
+
 
     while (true) {
     }
