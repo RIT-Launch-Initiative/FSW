@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: time-travel
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.time_travel.default: {}
