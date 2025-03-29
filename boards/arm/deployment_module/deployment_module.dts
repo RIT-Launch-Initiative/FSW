@@ -11,9 +11,9 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 
-		zephyr,console = &uart5;
-		zephyr,shell-uart = &uart5;
-		zephyr,uart-pipe = &uart5;
+		zephyr,console = &usart2;
+		zephyr,shell-uart = &usart2;
+		zephyr,uart-pipe = &usart2;
 
 		storage = &storage_partition;
 		logfs = &lfs1;
@@ -37,13 +37,31 @@
 	};
 
 	aliases {
-		led0 = &red_led_1;
-		led1 = &red_led_2;
+		led0 = &red_led_0;
+		led1 = &red_led_1;
+		led2 = &red_led_2;
+		led3 = &red_led_3;
+
+		gpio0 = &gpio_0;
+		gpio1 = &gpio_1;
+		gpio2 = &gpio_2;
+		gpio3 = &gpio_3;
+
+		pyro-sns-0 = &pyro_sns_0;
+		pyro-sns-1 = &pyro_sns_1;
+		pyro-sns-2 = &pyro_sns_2;
+		pyro-sns-3 = &pyro_sns_3;
+
+		pyro-ctrl-0 = &pyro_ctrl_0;
+		pyro-ctrl-1 = &pyro_ctrl_1;
+		pyro-ctrl-2 = &pyro_ctrl_2;
+		pyro-ctrl-3 = &pyro_ctrl_3;
 	};
 
 	leds: leds {
 		compatible = "gpio-leds";
 
+		// Note that GPIO_ACTIVE_HIGH means LEDs are OFF
 		red_led_0: led_0 {
 			gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
 			label = "USER LED0";
@@ -65,7 +83,7 @@
 		};
 
 		wiz_led: wiz_led {
-			gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
 			label = "Wiznet LED";
 		};
 	};
@@ -121,22 +139,22 @@
 	pyro_ctrl: pyro_ctrl {
 		compatible = "gpio-keys";
 
-		pyro_ctrl_0: pyros_ctrl_0 {
+		pyro_ctrl_0: pyro_ctrl_0 {
 			gpios = <&gpioa 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "PYRO CTRL CHANNEL 0";
 		};
 
-		pyro_ctrl_1: pyros_ctrl_1 {
+		pyro_ctrl_1: pyro_ctrl_1 {
 			gpios = <&gpioa 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "PYRO CTRL CHANNEL 1";
 		};
 
-		pyro_ctrl_2: pyros_ctrl_2 {
+		pyro_ctrl_2: pyro_ctrl_2 {
 			gpios = <&gpioc 9 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "PYRO CTRL CHANNEL 2";
 		};
 
-		pyro_ctrl_3: pyros_ctrl_3 {
+		pyro_ctrl_3: pyro_ctrl_3 {
 			gpios = <&gpioc 8 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "PYRO CTRL CHANNEL 3";
 		};
