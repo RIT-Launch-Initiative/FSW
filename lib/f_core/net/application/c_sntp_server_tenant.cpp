@@ -1,5 +1,5 @@
 #include "f_core/net/application/c_sntp_server_tenant.h"
-#include <arpa/inet.h>
+#include <zephyr/net/net_ip.h>
 
 LOG_MODULE_REGISTER(CSntpServerTenant);
 
@@ -92,35 +92,43 @@ void CSntpServerTenant::Run() {
         .stratum = stratum,
         .poll = pollInterval,
         .precision = precisionExponent,
-        .rootDelay = 0, // Unknown, but very small with the assumption Ethernet is used
-        .rootDispersion = GNSS_ROOT_DISPERSION_FIXED_POINT, // 0.5 ms
-        .refTimestampSeconds = lastUpdateTimeSeconds,
-        .refTimestampFraction = 0,
+        .rootDelay = htonl(0), // Unknown, but very small with the assumption Ethernet is used
+        .rootDispersion = htonl(GNSS_ROOT_DISPERSION_FIXED_POINT), // 0.5 ms
+        .refTimestampSeconds = htonl(lastUpdateTimeSeconds),
+        .refTimestampFraction = htonl(0),
         .originateTimestampSeconds = clientPacket.txTimestampSeconds,
         .originateTimestampFraction = clientPacket.txTimestampFraction,
-        .rxTimestampSeconds = rxPacketSecondsTimestamp,
-        .txTimestampSeconds = txPacketSecondsTimestamp,
+        .rxTimestampSeconds = htonl(rxPacketSecondsTimestamp),
+        .txTimestampSeconds = htonl(txPacketSecondsTimestamp),
     };
+
     // Currently only GPS is the expected reference (stratum 1)
     memcpy(packet.referenceId, GPS_REFERENCE_CODE, 4);
 
-    LOG_INF("li               %x", packet.li);
-    LOG_INF("vn               %x", packet.vn);
-    LOG_INF("mode             %x", packet.mode);
-    LOG_INF("stratum:         %x", packet.stratum);
-    LOG_INF("poll:            %x", packet.poll);
-    LOG_INF("precision:       %x", packet.precision);
-    LOG_INF("root_delay:      %x", ntohl(packet.rootDelay));
-    LOG_INF("root_dispersion: %x", ntohl(packet.rootDispersion));
-    LOG_INF("ref_id:          %s", packet.referenceId);
-    LOG_INF("ref_tm_s:        %x", ntohl(packet.refTimestampSeconds));
-    LOG_INF("ref_tm_f:        %x", ntohl(packet.refTimestampFraction));
-    LOG_INF("orig_tm_s:       %x", ntohl(packet.originateTimestampSeconds));
-    LOG_INF("orig_tm_f:       %x", ntohl(packet.originateTimestampFraction));
-    LOG_INF("rx_tm_s:         %x", ntohl(packet.rxTimestampSeconds));
-    LOG_INF("rx_tm_f:         %x", ntohl(packet.rxTimestampFraction));
-    LOG_INF("tx_tm_s:         %x", ntohl(packet.txTimestampSeconds));
-    LOG_INF("tx_tm_f:         %x", ntohl(packet.txTimestampFraction));
+    time_t wackTime = 0;
+    uint32_t otherWackTime = 0;
+    rtc.GetUnixTime(wackTime);
+    rtc.GetUnixTime(otherWackTime);
+    LOG_INF("TX PACKET TIME: 0x%x", packet.txTimestampSeconds);
+    LOG_INF("HTONL TX PACKET TIME 0x%x", ntohl(packet.txTimestampSeconds));
+
+    // LOG_INF("li               %x", packet.li);
+    // LOG_INF("vn               %x", packet.vn);
+    // LOG_INF("mode             %x", packet.mode);
+    // LOG_INF("stratum:         %x", packet.stratum);
+    // LOG_INF("poll:            %x", packet.poll);
+    // LOG_INF("precision:       %x", packet.precision);
+    // LOG_INF("root_delay:      %x", ntohl(packet.rootDelay));
+    // LOG_INF("root_dispersion: %x", ntohl(packet.rootDispersion));
+    // LOG_INF("ref_id:          %s", packet.referenceId);
+    // LOG_INF("ref_tm_s:        %x", ntohl(packet.refTimestampSeconds));
+    // LOG_INF("ref_tm_f:        %x", ntohl(packet.refTimestampFraction));
+    // LOG_INF("orig_tm_s:       %x", ntohl(packet.originateTimestampSeconds));
+    // LOG_INF("orig_tm_f:       %x", ntohl(packet.originateTimestampFraction));
+    // LOG_INF("rx_tm_s:         %x", ntohl(packet.rxTimestampSeconds));
+    // LOG_INF("rx_tm_f:         %x", ntohl(packet.rxTimestampFraction));
+    // LOG_INF("tx_tm_s:         %x", ntohl(packet.txTimestampSeconds));
+    // LOG_INF("tx_tm_f:         %x", ntohl(packet.txTimestampFraction));
 
     sockaddr_in clientAddr = *reinterpret_cast<const sockaddr_in *>(&srcAddr);
     uint16_t clientPort = ntohs(clientAddr.sin_port);
