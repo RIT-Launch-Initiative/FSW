@@ -6,6 +6,12 @@
 #include <n_autocoder_types.h>
 #include <f_core/n_alerts.h>
 #include <f_core/messaging/c_message_port.h>
+#include <f_core/utils/c_soft_timer.h>
+
+static void disableLogging(k_timer *timer) {
+    bool *allowLogging = static_cast<bool *>(k_timer_user_data_get(timer));
+    *allowLogging = false;
+}
 
 class CDetectionHandler {
   public:
@@ -78,7 +84,9 @@ class CDetectionHandler {
      */
     bool ContinueCollecting();
 
+    bool allowLogging = false;
+
 private:
     CMessagePort<NAlerts::AlertType>& alertMessagePort;
-
+    CSoftTimer stopLoggingAfterGroundHitTimer{disableLogging};
 };

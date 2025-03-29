@@ -87,7 +87,11 @@ void CSensingTenant::Run() {
 
     detectionHandler.HandleData(uptime, data, sensor_states);
     // If we can't send immediately, drop the packet
-    // we're gonna sleep then give it new data anywas
+    // we're gonna sleep then give it new data anyways
     dataToBroadcast.Send(data, K_NO_WAIT);
-    dataToLog.Send(data, K_NO_WAIT);
+
+    if (detectionHandler.allowLogging) {
+        LOG_INF("Logging data");
+        dataToLog.Send(data, K_NO_WAIT);
+    }
 }

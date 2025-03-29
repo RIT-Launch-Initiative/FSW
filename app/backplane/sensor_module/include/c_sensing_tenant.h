@@ -12,6 +12,7 @@
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 #include <n_autocoder_types.h>
+#include <f_core/utils/c_observer.h>
 #include <zephyr/device.h>
 
 class CSensorDevice;
