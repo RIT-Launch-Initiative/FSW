@@ -30,6 +30,4 @@ private:
     const uint16_t listenPort;
 };
 
-
-
 #endif //C_UDP_LISTENER_TENANT_H
