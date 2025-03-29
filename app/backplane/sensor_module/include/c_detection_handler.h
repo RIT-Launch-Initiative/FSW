@@ -5,8 +5,10 @@
 
 #include <n_autocoder_types.h>
 #include <f_core/n_alerts.h>
+#include <f_core/device/c_gpio.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/utils/c_soft_timer.h>
+#include <zephyr/drivers/gpio.h>
 
 static void disableLogging(k_timer *timer) {
     bool *allowLogging = static_cast<bool *>(k_timer_user_data_get(timer));
@@ -89,4 +91,7 @@ class CDetectionHandler {
 private:
     CMessagePort<NAlerts::AlertType>& alertMessagePort;
     CSoftTimer stopLoggingAfterGroundHitTimer{disableLogging};
+    CGpio led0 = CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios));
+    CGpio led1 = CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios));
+
 };
