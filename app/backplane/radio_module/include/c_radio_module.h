@@ -67,7 +67,6 @@ private:
 
     CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
-
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
@@ -75,17 +74,14 @@ private:
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
-    CTftpServerTenant tftpServerTenant = *CTftpServerTenant::getInstance(CIPv4(ipAddrStr));
-
-
     CStateMachineUpdater stateMachineUpdater;
 
     // Tasks
-    CTask networkingTask{"Networking Task", 14, 3072, 0};
+    CTask networkingTask{"Networking Task", 14, 3072, 5};
     CTask gnssTask{"GNSS Task", 15, 1024, 2000};
 
-    CTask dataLoggingTask{"Data Logging Task", 15, 2048, 0};
-    CTask loraTask{"LoRa Task", 15, 2048, 0};
+    CTask dataLoggingTask{"Data Logging Task", 15, 2048, 10};
+    CTask loraTask{"LoRa Task", 14, 2048, 10};
 
 };
 
