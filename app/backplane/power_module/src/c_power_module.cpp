@@ -40,7 +40,6 @@ void CPowerModule::AddTasksToRtos() {
 }
 
 void CPowerModule::SetupCallbacks() {
-    static constexpr int fiveMinutesInMillis = 5 * 60 * 1000;
     alertTenant.Subscribe(&sensingTenant);
 
     // Not a callback, but ¯\_(ツ)_/¯
