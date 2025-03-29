@@ -7,3 +7,4 @@ SensorData:
       type: ShuntData
     - name: Rail5v0
       type: ShuntData
+  timestamp: true

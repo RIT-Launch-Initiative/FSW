@@ -32,6 +32,24 @@ public:
     };
 
     /**
+     * First part of updating sensor data. Subclasses should call this and then update its own state
+     * @return true if fetching the sensor value was successful, false otherwise
+     */
+    virtual bool ReadSensorValue() {
+        return (isInitialized && 0 == sensor_sample_fetch(&dev));
+    }
+
+    /**
+     * Get a sensor value from a specific channel
+     * @param[in] chan Sensor channel to get the value from
+     * @return Sensor value
+     */
+    virtual sensor_value DecodeSensorValue(sensor_channel chan) const {
+        k_oops();
+        return {0, 0};
+    };
+
+    /**
      * Get a sensor value from a specific channel as a float
      * @param[in] chan Sensor channel to get the value from
      * @return Sensor value as a float

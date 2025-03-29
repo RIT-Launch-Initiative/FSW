@@ -15,3 +15,4 @@ SensorData:
       type: MagnetometerData
     - name: Temperature
       type: TemperatureData
+  timestamp: true
