@@ -4,18 +4,9 @@
 #include <zephyr/drivers/rtc.h>
 #include <zephyr/net/sntp.h>
 
+class CRtc;
 namespace NTimeUtils {
 #ifdef CONFIG_SNTP
-
-
-	/**
-	 * Convert an SNTP time to an RTC time
-	 *
-	 * @param sntp[in] SNTP time to be converted
-	 * @param rtc[out] RTC time to store the result to
-	 */
-	void SntpToRtcTime(const sntp_time &sntp, rtc_time &rtc);
-
 	/**
 	 * Synchronize the time with an SNTP server
 	 *
@@ -25,7 +16,7 @@ namespace NTimeUtils {
 	 *
 	 * @return 0 on success, -1 on failure
 	 */
-    int SntpSynchronize(const device& rtc, const char *serverAddress, const int maxRetries);
+    int SntpSynchronize(CRtc& rtc, const char *serverAddress, const int maxRetries);
 #endif
 }
 

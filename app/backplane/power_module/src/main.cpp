@@ -25,49 +25,17 @@ int main() {
 
     // NRtos::StartRtos();
 
-    // const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    // const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    // const char* sntpServerAddr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
-    // if (NTimeUtils::SntpSynchronize(*rtc, sntpServerAddr, 5)) {
-    //     LOG_ERR("Failed to synchronize over SNTP");
-    // } else {
-    //     LOG_INF("Time synchronized over NTP");
-    // }
-    //
 
-    struct sntp_ctx ctx;
-    struct sockaddr_in addr;
-    struct sntp_time sntp_time;
-    int rv;
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(123);
 
-    net_addr_pton(AF_INET, "10.2.1.1", &addr.sin_addr);
-
-    rv = sntp_init(&ctx, (struct sockaddr *) &addr,
-               sizeof(struct sockaddr_in));
-    if (rv < 0) {
-        LOG_ERR("Failed to init SNTP IPv4 ctx: %d", rv);
-    }
 
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
-
-    while (true) {
-        LOG_INF("Sending SNTP IPv4 request...");
-        rv = sntp_query(&ctx, 4 * MSEC_PER_SEC, &sntp_time);
-        if (rv < 0) {
-            LOG_ERR("SNTP IPv4 request failed: %d", rv);
-        } else {
-            LOG_INF("status: %d", rv);
-            LOG_INF("time since Epoch: high word: %u, low word: %u",
-                (uint32_t)(sntp_time.seconds >> 32), (uint32_t)sntp_time.seconds);
-            rtc.SetUnixTime(sntp_time.seconds);
-            break;
-        }
-
-        k_msleep(5000);
+    const char* sntpServerAddr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
+    if (NTimeUtils::SntpSynchronize(rtc, sntpServerAddr, 5)) {
+        LOG_ERR("Failed to synchronize over SNTP");
+    } else {
+        LOG_INF("Time synchronized over NTP");
     }
+
 
     while (true) {
         rtc_time time{0};
@@ -76,7 +44,6 @@ int main() {
         LOG_INF("%d-%02d-%02d %02d:%02d:%02d", time.tm_year + 1900, time.tm_mon + 1, time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec);
         k_sleep(K_SECONDS(1));
     }
-
 
     return 0;
 }

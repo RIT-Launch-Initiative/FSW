@@ -12,7 +12,7 @@ void CSntpServerTenant::PostStartup() {
 
     int ret = rtc.GetTime(time);
     if (ret < 0) {
-        LOG_INF("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
+        LOG_ERR("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
         // Default to 2025-01-01 00:00:00 until the RTC is set
         rtc_time tm = {
             .tm_sec = 0,
@@ -41,7 +41,7 @@ void CSntpServerTenant::PostStartup() {
     while (SetLastUpdatedTime(time) != 0 && retryCount < 5) {
         k_sleep(K_MSEC(100));
         retryCount++;
-        LOG_INF("Failed to set last updated time. Retrying (%d)", retryCount);
+        LOG_ERR("Failed to set last updated time. Retrying (%d)", retryCount);
     }
 }
 
@@ -69,7 +69,7 @@ void CSntpServerTenant::Run() {
     }
 
     if (clientPacket.mode != MODE_CLIENT) {
-        LOG_INF("Received SNTP packet that was not from a client (%d)", clientPacket.mode);
+        LOG_ERR("Received SNTP packet that was not from a client (%d)", clientPacket.mode);
         return;
     }
 
