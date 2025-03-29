@@ -13,7 +13,7 @@
 
 		zephyr,console = &uart4;
         zephyr,shell-uart = &uart4;
-		zephyr,uart-pipe = &uart4;
+		// zephyr,uart-pipe = &uart4;
 
 		storage = &w25q128;
 		logfs = &lfs1;

@@ -1,5 +1,7 @@
 #include "c_detection_handler.h"
 
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(detection_handler);
 #include <math.h>
 
 double asl_from_pressure(double P_sta_kpa) {
@@ -13,7 +15,8 @@ double asl_from_pressure(double P_sta_kpa) {
 
     return (1 - pow(P_sta_mbar / sea_level_pressure_mbar, standard_atmosphere_exponent)) * standard_atmosphere_factor;
 }
-CDetectionHandler::CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<NAlerts::AlertType>& alertMessagePort)
+CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller,
+                                     CMessagePort<NAlerts::AlertType>& alertMessagePort)
     : controller(controller),
       primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
       secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},
@@ -24,8 +27,7 @@ CDetectionHandler::CDetectionHandler(SensorModulePhaseController &controller, CM
       primaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
       secondaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
       primaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
-      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
-      alertMessagePort(alertMessagePort) {}
+      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold}, alertMessagePort(alertMessagePort) {}
 
 bool CDetectionHandler::ContinueCollecting() { return !controller.HasEventOccured(Events::GroundHit); }
 
@@ -35,7 +37,6 @@ void CDetectionHandler::HandleData(const uint64_t timestamp, const NTypes::Senso
 
     double primary_barom_asl = asl_from_pressure(data.PrimaryBarometer.Pressure);
     double secondary_barom_asl = asl_from_pressure(data.SecondaryBarometer.Pressure);
-
     primaryBaromVelocityFinder.Feed(LinearFitSample(t_seconds, primary_barom_asl));
     secondaryBaromVelocityFinder.Feed(LinearFitSample(t_seconds, secondary_barom_asl));
 
@@ -120,6 +121,8 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
 
     primaryImuBoostSquaredDetector.Feed(timestamp, primary_mag_squared_m_s2);
     secondaryImuBoostSquaredDetector.Feed(timestamp, secondary_mag_squared_m_s2);
+
+    LOG_INF("%llu handling boost pimu: %.2f", timestamp, primary_mag_squared_m_s2);
 
     if (primaryImuBoostSquaredDetector.Passed() && sensor_states.primaryAccOk) {
         controller.SubmitEvent(Sources::HighGImu, Events::Boost);
