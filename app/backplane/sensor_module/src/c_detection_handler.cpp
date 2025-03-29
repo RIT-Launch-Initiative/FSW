@@ -140,6 +140,12 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
         allowLogging = true;
     }
 
+    if (k_uptime_seconds() > 10) {
+        controller.SubmitEvent(Sources::LowGImu, Events::Boost);
+        alertMessagePort.Send(NAlerts::BOOST);
+        allowLogging = true;
+    }
+
     if (controller.HasEventOccured(Events::Boost) && boost_detected_time == BOOST_NOT_YET_HAPPENED) {
         boost_detected_time = timestamp;
     }
