@@ -12,6 +12,7 @@
 #include <f_core/utils/n_time_utils.h>
 #include <zephyr/net/sntp.h>
 #include <arpa/inet.h>
+#include <f_core/device/c_rtc.h>
 
 LOG_MODULE_REGISTER(main);
 
@@ -33,14 +34,6 @@ int main() {
     //     LOG_INF("Time synchronized over NTP");
     // }
     //
-    // while (true) {
-    //     rtc_time time{0};
-    //     const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    //     rtc_get_time(rtc, &time);
-    //
-    //     LOG_INF("%d-%02d-%02d %02d:%02d:%02d", time.tm_year + 1900, time.tm_mon + 1, time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec);
-    //     k_sleep(K_SECONDS(2));
-    // }
 
     struct sntp_ctx ctx;
     struct sockaddr_in addr;
@@ -58,6 +51,7 @@ int main() {
         LOG_ERR("Failed to init SNTP IPv4 ctx: %d", rv);
     }
 
+    CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     while (true) {
         LOG_INF("Sending SNTP IPv4 request...");
@@ -68,10 +62,22 @@ int main() {
             LOG_INF("status: %d", rv);
             LOG_INF("time since Epoch: high word: %u, low word: %u",
                 (uint32_t)(sntp_time.seconds >> 32), (uint32_t)sntp_time.seconds);
+            rtc.SetUnixTime(sntp_time.seconds);
+            break;
         }
 
         k_msleep(5000);
     }
+
+    while (true) {
+        rtc_time time{0};
+        rtc.GetTime(time);
+
+        LOG_INF("%d-%02d-%02d %02d:%02d:%02d", time.tm_year + 1900, time.tm_mon + 1, time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec);
+        k_sleep(K_SECONDS(1));
+    }
+
+
     return 0;
 }
 

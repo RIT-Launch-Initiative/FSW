@@ -14,7 +14,7 @@ void CSntpServerTenant::PostStartup() {
     if (ret < 0) {
         LOG_INF("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
         // Default to 2025-01-01 00:00:00 until the RTC is set
-        constexpr rtc_time tm = {
+        rtc_time tm = {
             .tm_sec = 0,
             .tm_min = 0,
             .tm_hour = 0,
@@ -28,7 +28,7 @@ void CSntpServerTenant::PostStartup() {
             .tm_nsec = 0,
         };
 
-        ret = rtc.SetTime(time);
+        ret = rtc.SetTime(tm);
         if (ret != 0) {
             LOG_ERR("Failed to set RTC time on SNTP server startup (%d)", ret);
             if (ret == -EINVAL) {

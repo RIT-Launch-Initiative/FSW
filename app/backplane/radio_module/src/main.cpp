@@ -38,7 +38,7 @@ int main() {
         rtc_get_time(rtc, &time);
 
         LOG_INF("%d-%02d-%02d %02d:%02d:%02d", time.tm_year + 1900, time.tm_mon + 1, time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec);
-        k_sleep(K_SECONDS(2));
+        k_sleep(K_SECONDS(1));
     }
 
 #ifdef CONFIG_ARCH_POSIX
