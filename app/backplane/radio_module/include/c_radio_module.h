@@ -50,7 +50,6 @@ public:
 
 private:
     const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
-    const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
 
     static constexpr uint16_t powerModuleTelemetryPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
     static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
@@ -60,6 +59,7 @@ private:
 #ifndef CONFIG_ARCH_POSIX
     CLora lora;
 #endif
+    CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     // Message Ports
     CMessagePort<NTypes::RadioBroadcastData>& loraBroadcastMessagePort;
@@ -71,7 +71,7 @@ private:
 
     CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
     CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
-    CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(*rtc, CIPv4(ipAddrStr));
+    CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(rtc, CIPv4(ipAddrStr));
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX

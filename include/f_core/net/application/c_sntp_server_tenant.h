@@ -1,7 +1,7 @@
 #ifndef C_SNTP_SERVER_H
 #define C_SNTP_SERVER_H
 
-#include <zephyr/drivers/rtc.h>
+#include <f_core/device/c_rtc.h>
 
 #include "f_core/os/c_tenant.h"
 #include "f_core/net/network/c_ipv4.h"
@@ -26,7 +26,7 @@ public:
     /**
      * Singleton getter to avoid multiple instances of the SNTP server.
      */
-    static CSntpServerTenant* GetInstance(const device& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT,
+    static CSntpServerTenant* GetInstance(CRtc& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT,
                                           uint8_t stratum = 1,
                                           uint8_t pollInterval = 4,
                                           int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION) {
@@ -103,7 +103,7 @@ private:
 
     CUdpSocket sock; // The socket bound to port 123 (or specified port)
     CIPv4 ip;
-    const device& rtcDevice;
+    CRtc& rtc;
     const uint8_t stratum;
     const uint8_t pollInterval;
     const int8_t precisionExponent;
@@ -158,12 +158,10 @@ private:
     static constexpr char GPS_REFERENCE_CODE[] = "GPS";
 
 
-    CSntpServerTenant(const device& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
+    CSntpServerTenant(CRtc& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
                       uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
-        : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtcDevice(rtc), stratum(stratum),
+        : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc), stratum(stratum),
           pollInterval(pollInterval), precisionExponent(precisionExponent), sockPort(port) {}
-
-    int getRtcTimeAsSeconds(uint32_t& seconds) const;
 
     int getLastUpdateTimeAsSeconds(uint32_t& seconds);
 };

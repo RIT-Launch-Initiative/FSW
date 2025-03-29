@@ -1,7 +1,5 @@
 #include "f_core/net/application/c_sntp_server_tenant.h"
 
-#include <zephyr/drivers/rtc.h>
-
 LOG_MODULE_REGISTER(CSntpServerTenant);
 
 void CSntpServerTenant::Startup() {
@@ -9,8 +7,10 @@ void CSntpServerTenant::Startup() {
 }
 void CSntpServerTenant::PostStartup() {
     rtc_time time = {0};
-    if (rtc_get_time(&rtcDevice, &time) == -ENODATA) {
-        LOG_INF("Failed to get RTC time on SNTP server startup. Defaulting to 2025-01-01 00:00:00");
+
+    int ret = rtc.GetTime(time);
+    if (ret < 0) {
+        LOG_INF("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
         // Default to 2025-01-01 00:00:00 until the RTC is set
         constexpr rtc_time tm = {
             .tm_sec = 0,
@@ -25,9 +25,8 @@ void CSntpServerTenant::PostStartup() {
             .tm_isdst = -1,
             .tm_nsec = 0,
         };
-        // TODO: Note there might be some weird Zephyr bug here to be investigated. Date is inaccurate and it might be because of the ordering of the struct?
-        // Investigate this at a later time
-        int ret = rtc_set_time(&rtcDevice, &tm);
+
+        ret = rtc.SetTime(time);
         if (ret != 0) {
             LOG_ERR("Failed to set RTC time on SNTP server startup (%d)", ret);
             if (ret == -EINVAL) {
@@ -63,8 +62,8 @@ void CSntpServerTenant::Run() {
         return;
     }
 
-    if (getRtcTimeAsSeconds(rxPacketSecondsTimestamp) != 0) {
-        return;
+    if (rtc.GetUnixTime(rxPacketSecondsTimestamp) != 0) {
+        LOG_ERR("Failed to get unix time on SNTP server startup");
     }
 
     if (clientPacket.mode != MODE_CLIENT) {
@@ -73,7 +72,7 @@ void CSntpServerTenant::Run() {
     }
 
     uint8_t li = LI_NO_WARNING;
-    if (getRtcTimeAsSeconds(txPacketSecondsTimestamp) ||
+    if (rtc.GetUnixTime(txPacketSecondsTimestamp) ||
         getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds)) {
         li = LI_ALARM_CONDITION;
         // Keep going. The packet will be sent with the alarm condition signaling we are desynchronized
@@ -114,36 +113,9 @@ void CSntpServerTenant::Run() {
     }
 }
 
-
-int CSntpServerTenant::getRtcTimeAsSeconds(uint32_t& seconds) const {
-    rtc_time time;
-    int ret = rtc_get_time(&rtcDevice, &time);
-    if (ret != 0) {
-        if (ret == -ENODATA) {
-            LOG_ERR("RTC time not set");
-        } else {
-            LOG_ERR("RTC time get failed (%d)", ret);
-        }
-
-        return ret;
-    }
-
-    tm timeinfo = {
-        .tm_sec = time.tm_sec,
-        .tm_min = time.tm_min,
-        .tm_hour = time.tm_hour,
-        .tm_mday = time.tm_mday,
-        .tm_mon = time.tm_mon - 1,
-        .tm_year = time.tm_year,
-    };
-    seconds = mktime(&timeinfo);
-    return 0;
-}
-
 int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     rtc_time time{0};
-    int ret = GetLastUpdatedTime(time, K_NO_WAIT);
-    if (ret != 0) {
+    if (int ret = GetLastUpdatedTime(time, K_NO_WAIT); ret != 0) {
         return ret;
     }
 
