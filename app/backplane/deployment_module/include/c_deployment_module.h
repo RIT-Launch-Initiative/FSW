@@ -46,7 +46,7 @@ class CDeploymentModule : public CProjectConfiguration {
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 1024, 0};
+    CTask networkTask{"Networking Task", 15, 2048, 5};
 
     // Observers
     CPyroControlObserver pyroControlObserver;
