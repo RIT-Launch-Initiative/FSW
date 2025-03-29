@@ -29,7 +29,9 @@ int main() {
     radioModule.SetupCallbacks();
 
     NRtos::StartRtos();
-    k_sched_time_slice_set(5000, 15);
+    k_sched_time_slice_set(1000, 10); // 1ms slice for priorities 0-10
+    k_sched_time_slice_set(5000, 15); // 5ms slice for priorities 11-15
+
     while (true) {
         rtc_time time{0};
         const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
