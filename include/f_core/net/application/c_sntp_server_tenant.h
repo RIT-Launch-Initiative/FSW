@@ -100,6 +100,8 @@ private:
     // Fixed point representation of 0.5 ms
     static constexpr uint32_t GNSS_ROOT_DISPERSION_FIXED_POINT = static_cast<uint32_t>(0.0005f * 65536);
 
+    // I hate my life
+    static constexpr uint32_t OFFSET_1970_JAN_1 = 2208988800;
 
     CUdpSocket sock; // The socket bound to port 123 (or specified port)
     CIPv4 ip;
@@ -164,6 +166,10 @@ private:
           pollInterval(pollInterval), precisionExponent(precisionExponent), sockPort(port) {}
 
     int getLastUpdateTimeAsSeconds(uint32_t& seconds);
+
+    uint32_t reckonAndByteSwapTimestamp(uint32_t timestamp) {
+        return htonl(timestamp + OFFSET_1970_JAN_1);
+    }
 };
 
 #endif // C_SNTP_SERVER_H
