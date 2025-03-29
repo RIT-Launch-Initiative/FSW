@@ -143,7 +143,7 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
     }
 
     if (k_uptime_seconds() > 10) {
-        controller.SubmitEvent(Sources::LowGImu, Events::Boost);
+        controller.SubmitEvent(Sources::FullFlightTimer, Events::Boost);
         alertMessagePort.Send(NAlerts::BOOST);
         allowLogging = true;
         led0.SetPin(1);

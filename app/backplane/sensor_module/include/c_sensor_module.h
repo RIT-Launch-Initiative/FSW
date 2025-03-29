@@ -70,8 +70,8 @@ class CSensorModule : public CProjectConfiguration {
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 3072, 5};
-    CTask sensingTask{"Sensing Task", 14, 1024, 10};
-    CTask dataLogTask{"Data Logging Task", 15, 1300, 5};
+    CTask sensingTask{"Sensing Task", 14, 8092, 50};
+    CTask dataLogTask{"Data Logging Task", 15, 4096, 5};
 };
 
 #endif //C_SENSOR_MODULE_H
