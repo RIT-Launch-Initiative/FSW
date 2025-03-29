@@ -79,7 +79,7 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
         if (!stopLoggingAfterGroundHitTimer.IsRunning()) {
             stopLoggingAfterGroundHitTimer.StartTimer(twoMinutesInMillis);
         }
-        led1.SetPin(0);
+        // led1.SetPin(0);
     }
     if (secondaryBaromGroundDetector.Passed() && sensor_states.secondaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromBMP, Events::GroundHit);
@@ -87,7 +87,7 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
         if (!stopLoggingAfterGroundHitTimer.IsRunning()) {
             stopLoggingAfterGroundHitTimer.StartTimer(twoMinutesInMillis);
         }
-        led1.SetPin(0);
+        // led1.SetPin(0);
     }
 }
 
@@ -146,7 +146,7 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
         controller.SubmitEvent(Sources::FullFlightTimer, Events::Boost);
         alertMessagePort.Send(NAlerts::BOOST);
         allowLogging = true;
-        led0.SetPin(1);
+        // led0.SetPin(1);
     }
 
     if (controller.HasEventOccured(Events::Boost) && boost_detected_time == BOOST_NOT_YET_HAPPENED) {
