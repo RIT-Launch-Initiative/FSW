@@ -40,4 +40,6 @@ void CDeploymentModule::AddTasksToRtos() {
     NRtos::AddTask(networkTask);
 }
 
-void CDeploymentModule::SetupCallbacks() {}
+void CDeploymentModule::SetupCallbacks() {
+
+}

@@ -14,6 +14,7 @@
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
+#include <f_core/device/c_rtc.h>
 
 class CSensorModule : public CProjectConfiguration {
   public:
@@ -46,7 +47,12 @@ class CSensorModule : public CProjectConfiguration {
     static std::string generateFlightLogPath();
 
     std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID);
+    const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
+
     static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
+
+    // Devices
+    CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;

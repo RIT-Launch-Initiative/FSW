@@ -32,15 +32,6 @@ int main() {
     k_sched_time_slice_set(1000, 10); // 1ms slice for priorities 0-10
     k_sched_time_slice_set(5000, 15); // 5ms slice for priorities 11-15
 
-    while (true) {
-        rtc_time time{0};
-        const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-        rtc_get_time(rtc, &time);
-
-        LOG_INF("%d-%02d-%02d %02d:%02d:%02d", time.tm_year + 1900, time.tm_mon + 1, time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec);
-        k_sleep(K_SECONDS(1));
-    }
-
 #ifdef CONFIG_ARCH_POSIX
     k_sleep(K_SECONDS(300));
     NRtos::StopRtos();
