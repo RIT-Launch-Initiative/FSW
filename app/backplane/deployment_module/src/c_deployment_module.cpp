@@ -7,32 +7,11 @@
 
 LOG_MODULE_REGISTER(CDeploymentModule);
 
-CDeploymentModule::CDeploymentModule(): CProjectConfiguration(), flight_log{generateFlightLogPath()} {}
+CDeploymentModule::CDeploymentModule(): CProjectConfiguration() {}
 
-std::string CDeploymentModule::generateFlightLogPath() {
-    constexpr size_t MAX_FLIGHT_LOG_PATH_SIZE = 32;
-    char flightLogPath[MAX_FLIGHT_LOG_PATH_SIZE] = {0};
-    for (size_t i = 0; i < 100; i++) {
-        snprintf(flightLogPath, MAX_FLIGHT_LOG_PATH_SIZE, "/lfs/flight_log%02d.txt", i);
-        struct fs_dirent ent;
-        int ret = fs_stat(flightLogPath, &ent);
-        if (ret == -ENOENT) {
-            // This path works
-            LOG_INF("Using %s for flight log", flightLogPath);
-            break;
-        } else if (ret != 0) {
-            LOG_WRN("Error reading filesystem for flight log. (error %d) Using name %s", ret, flightLogPath);
-            break;
-        }
-        // otherwise, keep counting up
-    }
-    std::string copystr{flightLogPath};
-    return copystr;
-}
 void CDeploymentModule::AddTenantsToTasks() {
     // Networking
-
-    // Data Logging
+    networkTask.AddTenant(alertTenant);
 }
 
 void CDeploymentModule::AddTasksToRtos() {
@@ -40,4 +19,6 @@ void CDeploymentModule::AddTasksToRtos() {
     NRtos::AddTask(networkTask);
 }
 
-void CDeploymentModule::SetupCallbacks() {}
+void CDeploymentModule::SetupCallbacks() {
+    alertTenant.Subscribe(&pyroControlObserver);
+}
