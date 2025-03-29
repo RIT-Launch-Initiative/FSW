@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: sntp-client
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.sntp_client.default: {}

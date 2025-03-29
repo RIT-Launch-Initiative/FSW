@@ -23,7 +23,7 @@ int NTimeUtils::SntpSynchronize(CRtc& rtc, const char* serverAddress, const int 
         LOG_ERR("Failed to synchronize time. Retrying (%d)", retryCount);
     }
 
-    if (retryCount >= 5) {
+    if (retryCount >= maxRetries) {
         LOG_ERR("Failed to synchronize time with server %s", serverAddress);
         return -1;
     }
