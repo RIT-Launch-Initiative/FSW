@@ -9,5 +9,6 @@
 
 		rs485-uart = &uart5;
 		rs485-de = &de_hack;
+		rtc = &rtc;
 	};
 };

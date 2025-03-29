@@ -26,6 +26,7 @@
         ina3v3 = &ina1;
         ina5v0 = &ina2;
         vin = &adc1;
+        rtc = &rtc;
     };
 
     leds: leds {
