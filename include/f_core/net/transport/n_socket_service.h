@@ -5,16 +5,17 @@
 #include <f_core/net/transport/c_udp_socket.h>
 #include <zephyr/net/socket_service.h>
 #include <zephyr/net/socket.h>
+#include <zephyr/net/udp.h>
 
-static void udp_service_handler(struct net_socket_service_event* pev) {
+static void udpServiceHandler(struct net_socket_service_event* pev) {
     CMessagePort<void *> *messagePort = static_cast<CMessagePort<void *> *>(pev->user_data);
     const zsock_pollfd* pfd = &pev->event;
-    int client = pfd->fd;
+    const int client = pfd->fd;
     sockaddr_in addr{0};
     socklen_t addrlen = sizeof(addr);
     uint8_t rcvBuff[messagePort->GetMessageSize()];
 
-    int len = recvfrom(client, rcvBuff, sizeof(rcvBuff), 0, reinterpret_cast<struct sockaddr*>(&addr), &addrlen);
+    int len = zsock_recvfrom(client, rcvBuff, sizeof(rcvBuff), 0, reinterpret_cast<struct sockaddr*>(&addr), &addrlen);
     if (len <= 0) {
         return;
     }
@@ -23,10 +24,16 @@ static void udp_service_handler(struct net_socket_service_event* pev) {
 }
 
 namespace NSocketService {
-    struct UserData {
-        CMessagePort<void *> *messagePort;
-        int messageSize;
-    };
+    constexpr net_socket_service_event MakeSocketEvent() {
+        return net_socket_service_event{
+            .callback = udpServiceHandler,
+            .event = { .fd = -1,
+                       .events = 0,
+                       .revents = 0 },
+            .user_data = nullptr,
+            .svc = nullptr,
+        };
+    }
 
     template <typename T>
     int SetupUdpReceiveCallback(CUdpSocket& socket, CMessagePort<T>& messagePort, net_socket_service_desc serviceDesc) {

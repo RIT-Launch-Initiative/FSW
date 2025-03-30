@@ -17,7 +17,10 @@
 
 LOG_MODULE_REGISTER(main);
 
+
 K_MSGQ_DEFINE(receiveQueue, sizeof(const char[32]), 10, 4);
+
+
 
 int main() {
     static constexpr char ipAddrStr[] = "10.0.0.0";
