@@ -38,6 +38,10 @@ public:
      * Clear the message port
      */
     virtual void Clear() = 0;
+
+    size_t GetMessageSize() const {
+        return sizeof(T);
+    }
 };
 
 

@@ -56,6 +56,10 @@ public:
         dstPort = port;
     }
 
+    int GetFd() {
+        return sock;
+    }
+
 private:
 // CONFIG_ARCH_POSIX uses loopback for broadcast
 #if defined(CONFIG_ARCH_POSIX) && defined(CONFIG_NET_NATIVE_OFFLOADED_SOCKETS)

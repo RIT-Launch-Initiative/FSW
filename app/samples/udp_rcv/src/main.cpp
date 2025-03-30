@@ -11,6 +11,7 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 
 // Zephyr Includes
+#include <f_core/os/c_task.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -23,10 +24,6 @@ int main() {
     static constexpr int udpPort = 10000;
     static auto messagePort = CMsgqMessagePort<char[32]>(receiveQueue);
 
-
-    while (true) {
-
-    }
 
 
     return 0;
