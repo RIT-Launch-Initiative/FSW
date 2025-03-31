@@ -53,6 +53,7 @@ void CPyroControlObserver::DisableCallback() {
         ctrl.SetPin(0);
         led.SetPin(0);
         LOG_INF("Disabled charge %d", pyroCount);
+        pyroCount++;
     }
     flightLog.Write("Finished disabling charges");
 }
