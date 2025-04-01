@@ -35,7 +35,7 @@ int main() {
     while (true) {
         messagePort.Send(broadcastStr, K_FOREVER);
         otherMessagePort.Send(otherBroadcastStr, K_FOREVER);
-        broadcaster.TransmitMessageAsynchronous();
+        broadcaster.TransmitMessageSynchronous();
         otherBroadcaster.TransmitMessageAsynchronous();
 
         LOG_INF("Transmitted");
