@@ -41,7 +41,7 @@ std::string CSensorModule::generateFlightLogPath() {
 }
 void CSensorModule::AddTenantsToTasks() {
     // Networking
-    // networkTask.AddTenant(broadcastTenant);
+    networkTask.AddTenant(broadcastTenant);
     networkTask.AddTenant(udpAlertTenant);
 
     // Sensing
