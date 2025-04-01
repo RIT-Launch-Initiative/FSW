@@ -48,6 +48,10 @@ public:
     void TransmitMessageAsynchronous() {
         T message{};
         if (messagesToBroadcast->Receive(message, K_NO_WAIT) == 0) {
+            if (sizeof(T) < 10) {
+                udp.TransmitAsynchronous(&message, sizeof(T), 9999);
+                return;
+            }
             udp.TransmitAsynchronous(&message, sizeof(T));
         }
     }

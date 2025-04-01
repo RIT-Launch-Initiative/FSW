@@ -12,8 +12,8 @@ static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQu
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
 
-K_MSGQ_DEFINE(alertQueue, sizeof(NAlerts::AlertType), 10, 4);
-static auto alertMsgQueue = CMsgqMessagePort<NAlerts::AlertType>(alertQueue);
+K_MSGQ_DEFINE(alertQueue, sizeof(const char *), 10, 4);
+static auto alertMsgQueue = CMsgqMessagePort<const char *>(alertQueue);
 
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),

@@ -24,7 +24,7 @@ class CDetectionHandler {
 
     using BaromNoseoverDetector = CDebouncer<ThresholdDirection::Under, double>;
     using BaromGroundDetector = CDebouncer<ThresholdDirection::Under, double>;
-    CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<NAlerts::AlertType>& alertMessagePort);
+    CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<const char *>& alertMessagePort);
 
     SensorModulePhaseController &controller;
     AccBoostDetector primaryImuBoostSquaredDetector;
@@ -79,6 +79,9 @@ class CDetectionHandler {
     bool ContinueCollecting();
 
 private:
-    CMessagePort<NAlerts::AlertType>& alertMessagePort;
+    CMessagePort<const char *>& alertMessagePort;
 
+    static constexpr std::string boostNotification = "LAUNCHb";
+    static constexpr std::string noseoverNotification = "LAUNCHn";
+    static constexpr std::string landingNotification = "LAUNCHl";
 };

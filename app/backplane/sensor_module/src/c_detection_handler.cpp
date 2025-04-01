@@ -13,7 +13,7 @@ double asl_from_pressure(double P_sta_kpa) {
 
     return (1 - pow(P_sta_mbar / sea_level_pressure_mbar, standard_atmosphere_exponent)) * standard_atmosphere_factor;
 }
-CDetectionHandler::CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<NAlerts::AlertType>& alertMessagePort)
+CDetectionHandler::CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<const char *>& alertMessagePort)
     : controller(controller),
       primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
       secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},
@@ -74,11 +74,11 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
 
     if (primaryBaromGroundDetector.Passed() && sensor_states.primaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromMS5611, Events::GroundHit);
-        alertMessagePort.Send(NAlerts::LANDED);
+        alertMessagePort.Send(landingNotification.data());
     }
     if (secondaryBaromGroundDetector.Passed() && sensor_states.secondaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromBMP, Events::GroundHit);
-        alertMessagePort.Send(NAlerts::LANDED);
+        alertMessagePort.Send(landingNotification.data());
     }
 }
 
@@ -100,12 +100,12 @@ void CDetectionHandler::HandleNoseover(const uint32_t t_plus_ms, const NTypes::S
     if (primaryBaromNoseoverDetector.Passed() && controller.HasEventOccured(Events::NoseoverLockout) &&
         sensor_states.primaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromMS5611, Events::Noseover);
-        alertMessagePort.Send(NAlerts::NOSEOVER);
+        alertMessagePort.Send(noseoverNotification.data());
     }
     if (secondaryBaromNoseoverDetector.Passed() && controller.HasEventOccured(Events::NoseoverLockout) &&
         sensor_states.secondaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromBMP, Events::Noseover);
-        alertMessagePort.Send(NAlerts::NOSEOVER);
+        alertMessagePort.Send(noseoverNotification.data());
     }
 }
 
@@ -123,14 +123,10 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
 
     if (primaryImuBoostSquaredDetector.Passed() && sensor_states.primaryAccOk) {
         controller.SubmitEvent(Sources::HighGImu, Events::Boost);
-        alertMessagePort.Send(NAlerts::BOOST);
+        alertMessagePort.Send(boostNotification.data());
     }
     if (secondaryImuBoostSquaredDetector.Passed() && sensor_states.secondaryAccOk) {
         controller.SubmitEvent(Sources::LowGImu, Events::Boost);
-        alertMessagePort.Send(NAlerts::BOOST);
-    }
-
-    if (controller.HasEventOccured(Events::Boost) && boost_detected_time == BOOST_NOT_YET_HAPPENED) {
-        boost_detected_time = timestamp;
+        alertMessagePort.Send(boostNotification.data());
     }
 }
