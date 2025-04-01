@@ -13,7 +13,7 @@ K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
 
 K_MSGQ_DEFINE(alertQueue, sizeof(const char *), 10, 4);
-static auto alertMsgQueue = CMsgqMessagePort<const char *>(alertQueue);
+static auto alertMsgQueue = CMsgqMessagePort<std::array<uint8_t, 7>>(alertQueue);
 
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),
@@ -41,7 +41,7 @@ std::string CSensorModule::generateFlightLogPath() {
 }
 void CSensorModule::AddTenantsToTasks() {
     // Networking
-    networkTask.AddTenant(broadcastTenant);
+    // networkTask.AddTenant(broadcastTenant);
     networkTask.AddTenant(udpAlertTenant);
 
     // Sensing

@@ -53,7 +53,7 @@ class CSensorModule : public CProjectConfiguration {
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
-    CMessagePort<const char *>& alertMessagePort;
+    CMessagePort<std::array<uint8_t, 7>>& alertMessagePort;
 
     CFlightLog flight_log;
     SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, &flight_log};
@@ -63,7 +63,7 @@ class CSensorModule : public CProjectConfiguration {
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort,
                              detectionHandler};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(), telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
-    CUdpBroadcastTenant<const char *> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
+    CUdpBroadcastTenant<std::array<uint8_t, 7>> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
     CTftpServerTenant tftpServerTenant = *CTftpServerTenant::getInstance(CIPv4(ipAddrStr.c_str()));
 

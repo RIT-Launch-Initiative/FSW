@@ -17,19 +17,26 @@
 LOG_MODULE_REGISTER(main);
 
 K_MSGQ_DEFINE(broadcast_queue, sizeof(const char[32]), 10, 4);
+K_MSGQ_DEFINE(other_broadcast_queue, sizeof(const char[16]), 10, 4);
 
 int main() {
     static constexpr char ipAddrStr[] = "10.0.0.0";
     static constexpr int udpPort = 10000;
-    static constexpr char broadcastStr[] = "Hello, Launch!";
+    static constexpr char broadcastStr[32] = "Hello, Launch!";
+    static constexpr char otherBroadcastStr[16] = "Hello, World!";
     static constexpr int broadcastStrLen = sizeof(broadcastStr);
 
     auto messagePort = CMsgqMessagePort<char[broadcastStrLen]>(broadcast_queue);
     CUdpBroadcastTenant broadcaster("Broadcast Tenant", ipAddrStr, udpPort, udpPort, messagePort);
 
+    auto otherMessagePort = CMsgqMessagePort<char[16]>(other_broadcast_queue);
+    CUdpBroadcastTenant otherBroadcaster("Broadcast Tenant", ipAddrStr, 13001, 13002, otherMessagePort);
+
     while (true) {
         messagePort.Send(broadcastStr, K_FOREVER);
+        otherMessagePort.Send(otherBroadcastStr, K_FOREVER);
         broadcaster.TransmitMessageAsynchronous();
+        otherBroadcaster.TransmitMessageAsynchronous();
 
         LOG_INF("Transmitted");
         k_sleep(K_SECONDS(1));
