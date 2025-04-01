@@ -51,7 +51,6 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
-    LOG_INF("Port is %d", dstPort);
 
     z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
 
