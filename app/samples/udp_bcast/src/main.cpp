@@ -25,16 +25,17 @@ int main() {
     static constexpr char broadcastStr[32] = "Hello, Launch!";
     static constexpr char otherBroadcastStr[16] = "Hello, World!";
     static constexpr int broadcastStrLen = sizeof(broadcastStr);
+    static constexpr int otherbroadcastStrLen = sizeof(otherBroadcastStr);
 
     auto messagePort = CMsgqMessagePort<char[broadcastStrLen]>(broadcast_queue);
     CUdpBroadcastTenant broadcaster("Broadcast Tenant", ipAddrStr, udpPort, udpPort, messagePort);
 
-    auto otherMessagePort = CMsgqMessagePort<char[16]>(other_broadcast_queue);
-    CUdpBroadcastTenant otherBroadcaster("Broadcast Tenant", ipAddrStr, 13001, 13002, otherMessagePort);
+    auto otherMessagePort = CMsgqMessagePort<char[otherbroadcastStrLen]>(other_broadcast_queue);
+    CUdpBroadcastTenant otherBroadcaster("Broadcast Tenant", ipAddrStr, 11000, 12001, otherMessagePort);
 
     while (true) {
-        messagePort.Send(broadcastStr, K_FOREVER);
-        otherMessagePort.Send(otherBroadcastStr, K_FOREVER);
+        messagePort.Send(broadcastStr, K_NO_WAIT);
+        otherMessagePort.Send(otherBroadcastStr, K_NO_WAIT);
         broadcaster.Run();
         otherBroadcaster.Run();
 
