@@ -66,7 +66,7 @@ public:
      * See parent docs
      */
     void Run() override {
-        TransmitMessageAsynchronous();
+        TransmitMessageSynchronous();
     }
 
 private:
