@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="JLink" type="com.jetbrains.cidr.embedded.customgdbserver.type" factoryName="com.jetbrains.cidr.embedded.customgdbserver.factory" PROGRAM_PARAMS="-if SWD -device STM32F446RE" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="radio-module" TARGET_NAME="zephyr_final" CONFIG_NAME="Flight Release" version="1" RUN_TARGET_PROJECT_NAME="sensor-module" RUN_TARGET_NAME="zephyr_final">
+  <configuration default="false" name="JLink" type="com.jetbrains.cidr.embedded.customgdbserver.type" factoryName="com.jetbrains.cidr.embedded.customgdbserver.factory" PROGRAM_PARAMS="-if SWD -device STM32F446RE" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="power-module" TARGET_NAME="zephyr" CONFIG_NAME="Flight Release" version="1" RUN_TARGET_PROJECT_NAME="power-module" RUN_TARGET_NAME="zephyr_final">
     <custom-gdb-server version="1" gdb-connect="tcp:localhost:2331" executable="/usr/bin/JLinkGDBServer" warmup-ms="0" download-type="UPDATED_ONLY" reset-cmd="monitor reset" reset-type="AFTER_DOWNLOAD">
       <debugger kind="GDB" isBundled="true" />
     </custom-gdb-server>
