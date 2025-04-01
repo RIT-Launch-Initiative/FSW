@@ -13,10 +13,7 @@ runs:
     - uses: awalsh128/cache-apt-pkgs-action@latest
       if: runner.os == 'Linux'
       with:
-        packages: pkg-config libfuse-dev:i1386 gcc-multilib g++-multilib ccache g++-13-multilib g++-multilib gcc-13-multilib gcc-multilib lib32asan8 |
-                  lib32atomic1 lib32gcc-13-dev lib32gomp1 lib32itm1 lib32quadmath0lib32stdc++-13-dev lib32ubsan1 libc6-dev-i386 libc6-dev-x32 libc6-x32 |
-                  libhiredis1.1.0 libx32asan8 libx32atomic1 libx32gcc-13-dev libx32gcc-s1 libx32gomp1 libx32itm1 libx32quadmath0 libx32stdc++-13-dev |
-                  libx32stdc++6 libx32ubsan1 ninja-build
+        packages: pkg-config libfuse-dev:i1386 gcc-multilib g++-multilib
         version: 1.0
 
     - name: Set up Python
