@@ -30,10 +30,14 @@
             gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
             label = "D2 on board";
         };
+    };
+    buzzer_pins: buzzer_pins{
         buzzer: buzzer{
-            gpios = <&gpioa 2 (GPIO_ACTIVE_HIGH )>;
+            gpios = <&gpioa 2 GPIO_ACTIVE_HIGH>;
             label = "buzzer pin";
         };
+    };
+    enables: enables{
         servo_enable: servo-enable{
             gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
             label = "Enable pin for the servo";
@@ -46,6 +50,8 @@
             gpios = <&gpioh 1 GPIO_ACTIVE_HIGH>;
             label = "Enable pin for 5v ldo";
         };
+    };
+    cam_enables: cam_enables{
         cam1_enable: cam1-enable{
             gpios = <&gpioc 14 GPIO_ACTIVE_HIGH>;
             label = "Enable pin for Camera 1";
