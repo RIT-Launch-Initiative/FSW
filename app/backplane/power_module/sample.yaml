@@ -13,3 +13,4 @@ tests:
   backplane.power_module.native_sim:
     extra_overlay_confs:
       - debug.conf
+      - sim.conf  
