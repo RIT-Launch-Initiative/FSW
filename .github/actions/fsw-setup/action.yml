@@ -10,14 +10,11 @@ runs:
       run: |
         echo "ZEPHYR_HASH=${{ hashFiles('FSW/west.yml', 'FSW/zephyr/module.yml') }}" >> $GITHUB_ENV
 
-    - name: Install Native Sim Dependencies (Linux)
-      shell: bash
-      run: |
-        if [ "${{ runner.os }}" = "Linux" ]; then 
-          sudo dpkg --add-architecture i386
-          sudo apt update
-          sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib;
-        fi
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      if: runner.os == 'Linux'
+      with:
+        packages: pkg-config libfuse-dev:i1386 gcc-multilib g++-multilib
+        version: 1.0
 
     - name: Set up Python
       uses: actions/setup-python@v5
