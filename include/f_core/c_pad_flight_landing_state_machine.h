@@ -17,16 +17,12 @@ public:
         GROUND
     };
 
-    CPadFlightLandedStateMachine() : state(State::PAD), boostDetected(false), landingDetected(false), isGroundModule(false) {};
+    CPadFlightLandedStateMachine() : state(State::PAD), boostDetected(false), landingDetected(false) {};
 
 protected:
     State state;
 
     void Clock() {
-        if (isGroundModule) {
-            state = State::GROUND;
-        }
-
         switch (state) {
             case State::PAD:
                 PadRun();
@@ -48,10 +44,6 @@ protected:
                 LandedRun();
                 break;
 
-            case State::GROUND:
-                GroundRun();
-                break;
-
             default:
                 break;
         }
@@ -65,22 +57,15 @@ protected:
         landingDetected = detected;
     }
 
-    void SetIsGroundModule(const bool is) {
-        isGroundModule = is;
-    }
-
     virtual void PadRun() = 0;
 
     virtual void FlightRun() = 0;
 
     virtual void LandedRun() = 0;
 
-    virtual void GroundRun() = 0;
-
 private:
     bool boostDetected;
     bool landingDetected;
-    bool isGroundModule;
 };
 
 #endif //PADFLIGHTSTATEMACHINE_H

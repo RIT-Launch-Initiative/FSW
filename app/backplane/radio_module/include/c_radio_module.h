@@ -1,5 +1,3 @@
-#ifndef CONFIG_RADIO_MODULE_RECEIVER
-
 #ifndef C_RADIO_MODULE_H
 #define C_RADIO_MODULE_H
 
@@ -89,4 +87,3 @@ private:
 };
 
 #endif //C_RADIO_MODULE_H
-#endif //CONFIG_RADIO_MODULE_RECEIVER

@@ -8,7 +8,6 @@
 LOG_MODULE_REGISTER(CLoraTransmitTenant);
 
 void CLoraTransmitTenant::Startup() {
-#ifndef RADIO_MODULE_RECEIVER
     bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {.port = 0, .size = 0});
     success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {.port = 0, .size = 0});
     success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {.port = 0, .size = 0});
@@ -21,7 +20,6 @@ void CLoraTransmitTenant::Startup() {
         LOG_ERR("Failed to insert all ports into hashmap");
         k_oops();
     }
-#endif
 }
 
 void CLoraTransmitTenant::PostStartup() {
@@ -29,12 +27,8 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-#ifdef CONFIG_RADIO_MODULE_RECEIVER
-    SetIsGroundModule(true);
-#else
     SetBoostDetected(NStateMachineGlobals::boostDetected);
     SetLandingDetected(NStateMachineGlobals::landingDetected);
-#endif
     Clock();
 }
 
@@ -69,14 +63,6 @@ void CLoraTransmitTenant::LandedRun() {
     NTypes::RadioBroadcastData data{};
 
     if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
-        transmit(data);
-    }
-}
-
-
-void CLoraTransmitTenant::GroundRun() {
-    NTypes::RadioBroadcastData data{};
-    if (readTransmitQueue(data)) {
         transmit(data);
     }
 }

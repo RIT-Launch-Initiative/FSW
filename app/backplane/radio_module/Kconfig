@@ -16,10 +16,6 @@ config MODULE_ID
     help
       The module ID to use as the fourth octet in the IP address.
 
-menuconfig RADIO_MODULE_RECEIVER
-	bool "Radio module is the ground receiver"
-	default n
-
 config GNSS_DATA_TX_INTERVAL
 	int "GNSS data tx interval (miliseconds)"
 	default 5000

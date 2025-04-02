@@ -8,22 +8,14 @@
 #include <f_core/os/n_rtos.h>
 #include <zephyr/drivers/gpio.h>
 
-#ifndef CONFIG_RADIO_MODULE_RECEIVER
 #include "c_radio_module.h"
-#else
-#include "c_receiver_module.h"
-#endif
 
 LOG_MODULE_REGISTER(main);
 
 int main() {
-#ifndef CONFIG_RADIO_MODULE_RECEIVER
     LOG_INF("Transmitter started");
     static CRadioModule radioModule{};
-#else
-    LOG_INF("Receiver started");
-    static CReceiverModule radioModule{};
-#endif
+
     radioModule.AddTenantsToTasks();
     radioModule.AddTasksToRtos();
     radioModule.SetupCallbacks();
