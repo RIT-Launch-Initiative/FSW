@@ -1,10 +1,10 @@
 sample:
-  description: Radio Module
+  description: Receiver Module
   name: receiver-module
 common:
   build_only: true
   integration_platforms:
-    - receiver_module
+    - radio_module
 tests:
   app.default: {}
   app.debug:

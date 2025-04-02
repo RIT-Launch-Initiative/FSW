@@ -8,20 +8,6 @@
 LOG_MODULE_REGISTER(CLoraTransmitTenant);
 
 void CLoraTransmitTenant::Startup() {
-#ifndef RADIO_MODULE_RECEIVER
-    bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {.port = 0, .size = 0});
-    success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {.port = 0, .size = 0});
-    success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {.port = 0, .size = 0});
-
-    success &= padDataRequestedMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, false);
-    success &= padDataRequestedMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, false);
-    success &= padDataRequestedMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, false);
-
-    if (!success) {
-        LOG_ERR("Failed to insert all ports into hashmap");
-        k_oops();
-    }
-#endif
 }
 
 void CLoraTransmitTenant::PostStartup() {
@@ -29,58 +15,11 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-#ifdef CONFIG_RADIO_MODULE_RECEIVER
-    SetIsGroundModule(true);
-#else
-    SetBoostDetected(NStateMachineGlobals::boostDetected);
-    SetLandingDetected(NStateMachineGlobals::landingDetected);
-#endif
-    Clock();
-}
-
-void CLoraTransmitTenant::PadRun() {
-    NTypes::RadioBroadcastData rxData{};
-    readTransmitQueue(rxData);
-    portDataMap.Set(rxData.port, rxData);
-
-    for (const auto &[port, requested] : padDataRequestedMap) {
-        if (requested) {
-            NTypes::RadioBroadcastData data = portDataMap.Get(port).value_or(NTypes::RadioBroadcastData{.port = 0, .size = 0});
-            if (port == 0) {
-                continue;
-            }
-
-            transmit(data);
-            padDataRequestedMap[port] = false;
-        }
-    }
-}
-
-
-void CLoraTransmitTenant::FlightRun() {
     NTypes::RadioBroadcastData data{};
     if (readTransmitQueue(data)) {
         transmit(data);
     }
 }
-
-
-void CLoraTransmitTenant::LandedRun() {
-    NTypes::RadioBroadcastData data{};
-
-    if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
-        transmit(data);
-    }
-}
-
-
-void CLoraTransmitTenant::GroundRun() {
-    NTypes::RadioBroadcastData data{};
-    if (readTransmitQueue(data)) {
-        transmit(data);
-    }
-}
-
 void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
@@ -102,7 +41,6 @@ void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const
     lora.TransmitSynchronous(txData.data(), data.size + 2);
 }
 
-// TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead
 bool CLoraTransmitTenant::readTransmitQueue(NTypes::RadioBroadcastData& data) const {
     if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
         LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);

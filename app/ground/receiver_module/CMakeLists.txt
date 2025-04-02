@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Backplane Radio Module Application
+# Backplane Receiver Module Application
 #
 # Copyright (c) 2023 Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
