@@ -32,7 +32,7 @@ endif ()
 cmake_minimum_required(VERSION 3.13.1)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
-project(radio-module LANGUAGES C CXX)
+project(receiver-module LANGUAGES C CXX)
 
 FILE(GLOB SOURCES src/*.c src/*.cpp)
 target_include_directories(app PRIVATE include)

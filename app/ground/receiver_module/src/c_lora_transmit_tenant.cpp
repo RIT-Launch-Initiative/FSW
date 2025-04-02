@@ -1,5 +1,5 @@
 #include "c_lora_transmit_tenant.h"
-#include "c_radio_module.h"
+#include "c_receiver_module.h"
 
 #include <array>
 #include <n_autocoder_network_defs.h>

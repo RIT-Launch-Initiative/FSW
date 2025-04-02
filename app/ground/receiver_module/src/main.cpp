@@ -9,7 +9,7 @@
 #include <zephyr/drivers/gpio.h>
 
 #ifndef CONFIG_RADIO_MODULE_RECEIVER
-#include "c_radio_module.h"
+#include "c_receiver_module.h"
 #else
 #include "c_receiver_module.h"
 #endif

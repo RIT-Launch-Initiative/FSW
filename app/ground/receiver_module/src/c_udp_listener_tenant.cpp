@@ -1,5 +1,5 @@
 #include "c_udp_listener_tenant.h"
-#include "c_radio_module.h"
+#include "c_receiver_module.h"
 
 #include <zephyr/logging/log.h>
 

@@ -1,7 +1,7 @@
 #ifndef C_LORA_TRANSMIT_TENANT_H
 #define C_LORA_TRANSMIT_TENANT_H
 
-#include "n_radio_module_types.h"
+#include "n_receiver_module_types.h"
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 
