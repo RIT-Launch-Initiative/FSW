@@ -1,0 +1,274 @@
+-- west build: running target ram_report
+[0/1] cd /home/unknown/Clubs/Launch/Zephyr/FSW.git/app/payload/control_freak/flight-software/build && /home/unknown/Clubs/Launch/Zephyr/.direnv/python-3.13/bin/python3 /home/unknown/Clubs/Launch/Zephyr/zephyr/scripts/footprint/size_report -k /home/unknown/Clubs/Launch/Zephyr/FSW.git/app/payload/control_freak/flight-software/build/zephyr/zephyr.elf -z /home/unknown/Clubs/Launch/Zephyr/zephyr -o /home/unknown/Clubs/Launch/Zephyr/FSW.git/app/payload/control_freak/flight-software/build --workspace=/home/unknown/Clubs/Launch/Zephyr -d 99 ram
+WARN: Symbol 'errno' section '.comment' is not in RAM or ROM.
+WARN: Symbol 'z_tls_current' section '' is not in RAM or ROM.
+WARN: Symbol 'vfscanf' section '.comment' is not in RAM or ROM.
+Path                                                                                             Size       %  Address    Section    
+==========================================================================================================================================
+Root                                                                                            37809 100.00%  - 
+├── (hidden)                                                                                       42   0.11%  - 
+├── (no paths)                                                                                  12027  31.81%  - 
+│   ├── SystemCoreClock                                                                             4   0.01%  0x200004d4 datas
+│   ├── _ZN12_GLOBAL__N_110eh_globalsE                                                             12   0.03%  0x20003424 bss
+│   ├── _ZN12_GLOBAL__N_114emergency_poolE                                                         16   0.04%  0x20003414 bss
+│   ├── _kernel                                                                                    36   0.10%  0x200033c0 bss
+│   ├── _sched_spinlock                                                                             1   0.00%  0x200033ec bss
+│   ├── _sw_isr_table                                                                             776   2.05%  0x08016144 sw_isr_table
+│   ├── _thread_dummy                                                                             184   0.49%  0x20000b38 bss
+│   ├── dynamic_regions.0                                                                          12   0.03%  0x20001110 bss
+│   ├── in_use.0                                                                                    1   0.00%  0x20003432 bss
+│   ├── k_sys_work_q                                                                              216   0.57%  0x20000c10 bss
+│   ├── optarg                                                                                      4   0.01%  0x20001128 bss
+│   ├── opterr                                                                                      4   0.01%  0x20000078 datas
+│   ├── optind                                                                                      4   0.01%  0x20000074 datas
+│   ├── optopt                                                                                      4   0.01%  0x20001130 bss
+│   ├── optreset                                                                                    4   0.01%  0x2000112c bss
+│   ├── partitions.0                                                                                4   0.01%  0x20000084 datas
+│   ├── tail.1                                                                                      1   0.00%  0x20003433 bss
+│   ├── wait_q.0                                                                                    8   0.02%  0x200004e0 datas
+│   ├── z_idle_threads                                                                            184   0.49%  0x200009c8 bss
+│   ├── z_interrupt_stacks                                                                       2112   5.59%  0x20003c80 noinit
+│   ├── z_main_stack                                                                             8256  21.84%  0x20004640 noinit
+│   └── z_main_thread                                                                             184   0.49%  0x20000a80 bss
+├── WORKSPACE                                                                                     104   0.28%  - 
+│   └── FSW.git                                                                                   104   0.28%  - 
+│       ├── app                                                                                    72   0.19%  - 
+│       │   └── payload                                                                            72   0.19%  - 
+│       │       └── control_freak                                                                  72   0.19%  - 
+│       │           └── flight-software                                                            72   0.19%  - 
+│       │               └── src                                                                    72   0.19%  - 
+│       │                   └── main.cpp                                                           72   0.19%  - 
+│       │                       ├── expand_logger                                                  24   0.06%  0x20000d18 bss
+│       │                       ├── fill_logger                                                    24   0.06%  0x20000d00 bss
+│       │                       └── wrap_logger                                                    24   0.06%  0x20000ce8 bss
+│       └── lib                                                                                    32   0.08%  - 
+│           └── f_core                                                                             32   0.08%  - 
+│               └── os                                                                             32   0.08%  - 
+│                   ├── c_datalogger.cpp                                                            4   0.01%  - 
+│                   │   └── log_dynamic_datalogger                                                  4   0.01%  0x20000568 log_dynamic_area
+│                   ├── c_file.cpp                                                                  4   0.01%  - 
+│                   │   └── log_dynamic_CFile                                                       4   0.01%  0x20000558 log_dynamic_area
+│                   ├── c_task.cpp                                                                  4   0.01%  - 
+│                   │   └── log_dynamic_CTask                                                       4   0.01%  0x2000055c log_dynamic_area
+│                   ├── flight_log.cpp                                                              4   0.01%  - 
+│                   │   └── log_dynamic_flight_log                                                  4   0.01%  0x20000578 log_dynamic_area
+│                   └── n_rtos.cpp                                                                 16   0.04%  - 
+│                       ├── log_dynamic_NRtos                                                       4   0.01%  0x20000560 log_dynamic_area
+│                       └── tasks                                                                  12   0.03%  0x200033b4 bss
+└── ZEPHYR_BASE                                                                                 25636  67.80%  - 
+    ├── arch                                                                                        9   0.02%  - 
+    │   └── arm                                                                                     9   0.02%  - 
+    │       └── core                                                                                9   0.02%  - 
+    │           ├── mpu                                                                             5   0.01%  - 
+    │           │   ├── arm_core_mpu.c                                                              4   0.01%  - 
+    │           │   │   └── log_dynamic_mpu                                                         4   0.01%  0x20000594 log_dynamic_area
+    │           │   └── arm_mpu.c                                                                   1   0.00%  - 
+    │           │       └── static_regions_num                                                      1   0.00%  0x20003435 bss
+    │           └── tls.c                                                                           4   0.01%  - 
+    │               └── z_arm_tls_ptr                                                               4   0.01%  0x2000110c bss
+    ├── drivers                                                                                   754   1.99%  - 
+    │   ├── clock_control                                                                           2   0.01%  - 
+    │   │   └── clock_stm32_ll_common.c                                                             2   0.01%  - 
+    │   │       └── __devstate_dts_ord_8                                                            2   0.01%  0x200004ea device_states
+    │   ├── flash                                                                                  80   0.21%  - 
+    │   │   ├── flash_stm32.c                                                                      34   0.09%  - 
+    │   │   │   ├── __devstate_dts_ord_89                                                           2   0.01%  0x200004ee device_states
+    │   │   │   ├── flash_data                                                                     28   0.07%  0x20000388 datas
+    │   │   │   └── log_dynamic_flash_stm32                                                         4   0.01%  0x20000570 log_dynamic_area
+    │   │   ├── flash_stm32f4x.c                                                                    4   0.01%  - 
+    │   │   │   └── log_dynamic_flash_stm32f4x                                                      4   0.01%  0x20000574 log_dynamic_area
+    │   │   ├── flash_util.c                                                                        4   0.01%  - 
+    │   │   │   └── log_dynamic_flash                                                               4   0.01%  0x2000056c log_dynamic_area
+    │   │   └── spi_nor.c                                                                          38   0.10%  - 
+    │   │       ├── __devstate_dts_ord_47                                                           2   0.01%  0x200004ec device_states
+    │   │       ├── log_dynamic_spi_nor                                                             4   0.01%  0x200005a8 log_dynamic_area
+    │   │       └── spi_nor_0_data                                                                 32   0.08%  0x200032e4 bss
+    │   ├── gpio                                                                                  180   0.48%  - 
+    │   │   └── gpio_stm32.c                                                                      180   0.48%  - 
+    │   │       ├── __devstate_dts_ord_103                                                          2   0.01%  0x200004f8 device_states
+    │   │       ├── __devstate_dts_ord_104                                                          2   0.01%  0x200004f6 device_states
+    │   │       ├── __devstate_dts_ord_105                                                          2   0.01%  0x200004f4 device_states
+    │   │       ├── __devstate_dts_ord_106                                                          2   0.01%  0x200004f2 device_states
+    │   │       ├── __devstate_dts_ord_107                                                          2   0.01%  0x200004f0 device_states
+    │   │       ├── __devstate_dts_ord_118                                                          2   0.01%  0x200004fe device_states
+    │   │       ├── __devstate_dts_ord_42                                                           2   0.01%  0x200004fa device_states
+    │   │       ├── __devstate_dts_ord_51                                                           2   0.01%  0x200004fc device_states
+    │   │       ├── gpio_stm32_data_a                                                              20   0.05%  0x20003390 bss
+    │   │       ├── gpio_stm32_data_b                                                              20   0.05%  0x2000337c bss
+    │   │       ├── gpio_stm32_data_c                                                              20   0.05%  0x20003368 bss
+    │   │       ├── gpio_stm32_data_d                                                              20   0.05%  0x20003354 bss
+    │   │       ├── gpio_stm32_data_e                                                              20   0.05%  0x20003340 bss
+    │   │       ├── gpio_stm32_data_f                                                              20   0.05%  0x2000332c bss
+    │   │       ├── gpio_stm32_data_g                                                              20   0.05%  0x20003318 bss
+    │   │       ├── gpio_stm32_data_h                                                              20   0.05%  0x20003304 bss
+    │   │       └── log_dynamic_stm32                                                               4   0.01%  0x200005ac log_dynamic_area
+    │   ├── interrupt_controller                                                                  146   0.39%  - 
+    │   │   └── intc_exti_stm32.c                                                                 146   0.39%  - 
+    │   │       ├── __devstate_dts_ord_67                                                           2   0.01%  0x200004e8 device_states
+    │   │       ├── exti_data                                                                     128   0.34%  0x20003264 bss
+    │   │       └── exti_irq_table                                                                 16   0.04%  0x20000378 datas
+    │   ├── led                                                                                     6   0.02%  - 
+    │   │   └── led_gpio.c                                                                          6   0.02%  - 
+    │   │       ├── __devstate_dts_ord_52                                                           2   0.01%  0x20000500 device_states
+    │   │       └── log_dynamic_led_gpio                                                            4   0.01%  0x20000584 log_dynamic_area
+    │   ├── reset                                                                                   2   0.01%  - 
+    │   │   └── reset_stm32.c                                                                       2   0.01%  - 
+    │   │       └── __devstate_dts_ord_69                                                           2   0.01%  0x20000502 device_states
+    │   ├── serial                                                                                 82   0.22%  - 
+    │   │   └── uart_stm32.c                                                                       82   0.22%  - 
+    │   │       ├── __devstate_dts_ord_112                                                          2   0.01%  0x20000504 device_states
+    │   │       ├── __devstate_dts_ord_75                                                           2   0.01%  0x20000506 device_states
+    │   │       ├── __devstate_dts_ord_78                                                           2   0.01%  0x20000508 device_states
+    │   │       ├── log_dynamic_uart_stm32                                                          4   0.01%  0x200005b0 log_dynamic_area
+    │   │       ├── uart_cfg_0                                                                      8   0.02%  0x200003e4 datas
+    │   │       ├── uart_cfg_1                                                                      8   0.02%  0x200003cc datas
+    │   │       ├── uart_cfg_2                                                                      8   0.02%  0x200003b4 datas
+    │   │       ├── uart_stm32_data_0                                                              16   0.04%  0x200003d4 datas
+    │   │       ├── uart_stm32_data_1                                                              16   0.04%  0x200003bc datas
+    │   │       └── uart_stm32_data_2                                                              16   0.04%  0x200003a4 datas
+    │   ├── spi                                                                                   240   0.63%  - 
+    │   │   └── spi_ll_stm32.c                                                                    240   0.63%  - 
+    │   │       ├── __devstate_dts_ord_117                                                          2   0.01%  0x2000050c device_states
+    │   │       ├── __devstate_dts_ord_46                                                           2   0.01%  0x2000050a device_states
+    │   │       ├── log_dynamic_spi_ll_stm32                                                        4   0.01%  0x200005a4 log_dynamic_area
+    │   │       ├── spi_stm32_dev_data_0                                                          116   0.31%  0x20000460 datas
+    │   │       └── spi_stm32_dev_data_1                                                          116   0.31%  0x200003ec datas
+    │   └── timer                                                                                  16   0.04%  - 
+    │       └── cortex_m_systick.c                                                                 16   0.04%  - 
+    │           ├── announced_cycles                                                                4   0.01%  0x200033a8 bss
+    │           ├── cycle_count                                                                     4   0.01%  0x200033ac bss
+    │           ├── last_load                                                                       4   0.01%  0x200033b0 bss
+    │           └── overflow_cyc                                                                    4   0.01%  0x200033a4 bss
+    ├── kernel                                                                                   9762  25.82%  - 
+    │   ├── init.c                                                                                389   1.03%  - 
+    │   │   ├── log_dynamic_os                                                                      4   0.01%  0x20000598 log_dynamic_area
+    │   │   ├── z_idle_stacks                                                                     384   1.02%  0x200044c0 noinit
+    │   │   └── z_sys_post_kernel                                                                   1   0.00%  0x20003436 bss
+    │   ├── mempool.c                                                                            8216  21.73%  - 
+    │   │   ├── _system_heap                                                                       24   0.06%  0x200005f4 k_heap_area
+    │   │   └── kheap__system_heap                                                               8192  21.67%  0x20006c40 noinit
+    │   ├── mutex.c                                                                                 1   0.00%  - 
+    │   │   └── lock                                                                                1   0.00%  0x200033e4 bss
+    │   ├── poll.c                                                                                  1   0.00%  - 
+    │   │   └── lock                                                                                1   0.00%  0x20003404 bss
+    │   ├── sem.c                                                                                   1   0.00%  - 
+    │   │   └── lock                                                                                1   0.00%  0x200033e8 bss
+    │   ├── system_work_q.c                                                                      1088   2.88%  - 
+    │   │   └── sys_work_q_stack                                                                 1088   2.88%  0x20006680 noinit
+    │   ├── timeout.c                                                                              20   0.05%  - 
+    │   │   ├── announce_remaining                                                                  4   0.01%  0x20003400 bss
+    │   │   ├── curr_tick                                                                           8   0.02%  0x20000c08 bss
+    │   │   └── timeout_list                                                                        8   0.02%  0x200004d8 datas
+    │   ├── timeslicing.c                                                                          37   0.10%  - 
+    │   │   ├── pending_current                                                                     4   0.01%  0x200033f0 bss
+    │   │   ├── slice_expired                                                                       1   0.00%  0x200033f4 bss
+    │   │   ├── slice_max_prio                                                                      4   0.01%  0x200033f8 bss
+    │   │   ├── slice_ticks                                                                         4   0.01%  0x200033fc bss
+    │   │   └── slice_timeouts                                                                     24   0.06%  0x20000bf0 bss
+    │   └── work.c                                                                                  9   0.02%  - 
+    │       ├── lock                                                                                1   0.00%  0x20003410 bss
+    │       └── pending_cancels                                                                     8   0.02%  0x20003408 bss
+    ├── lib                                                                                        68   0.18%  - 
+    │   ├── cpp                                                                                     4   0.01%  - 
+    │   │   └── abi                                                                                 4   0.01%  - 
+    │   │       └── cpp_dtors.c                                                                     4   0.01%  - 
+    │   │           └── __dso_handle                                                                4   0.01%  0x20000d30 bss
+    │   ├── libc                                                                                   32   0.08%  - 
+    │   │   └── common                                                                             32   0.08%  - 
+    │   │       └── source                                                                         32   0.08%  - 
+    │   │           └── stdlib                                                                     32   0.08%  - 
+    │   │               └── malloc.c                                                               32   0.08%  - 
+    │   │                   ├── z_malloc_heap                                                      12   0.03%  0x2000111c bss
+    │   │                   └── z_malloc_heap_mutex                                                20   0.05%  0x20000048 datas
+    │   ├── os                                                                                      4   0.01%  - 
+    │   │   └── cbprintf_packaged.c                                                                 4   0.01%  - 
+    │   │       └── log_dynamic_cbprintf_package                                                    4   0.01%  0x20000564 log_dynamic_area
+    │   └── posix                                                                                  28   0.07%  - 
+    │       └── options                                                                            28   0.07%  - 
+    │           └── getopt                                                                         28   0.07%  - 
+    │               ├── getopt.c                                                                    4   0.01%  - 
+    │               │   └── log_dynamic_getopt                                                      4   0.01%  0x20000580 log_dynamic_area
+    │               └── getopt_common.c                                                            24   0.06%  - 
+    │                   └── m_getopt_common_state                                                  24   0.06%  0x2000005c datas
+    ├── modules                                                                                     4   0.01%  - 
+    │   └── littlefs                                                                                4   0.01%  - 
+    │       └── zephyr_lfs_config.h                                                                 4   0.01%  - 
+    │           └── log_dynamic_littlefs                                                            4   0.01%  0x20000588 log_dynamic_area
+    └── subsys                                                                                  15039  39.78%  - 
+        ├── fs                                                                                  10360  27.40%  - 
+        │   ├── fs.c                                                                               48   0.13%  - 
+        │   │   ├── fs_mnt_list                                                                     8   0.02%  0x2000007c datas
+        │   │   ├── log_dynamic_fs                                                                  4   0.01%  0x2000057c log_dynamic_area
+        │   │   ├── mutex                                                                          20   0.05%  0x20000624 k_mutex_area
+        │   │   └── registry                                                                       16   0.04%  0x20001134 bss
+        │   ├── littlefs_fs.c                                                                    9712  25.69%  - 
+        │   │   ├── _k_mem_slab_buf_file_data_pool                                                400   1.06%  0x20008f10 noinit
+        │   │   ├── _k_mem_slab_buf_lfs_dir_pool                                                  208   0.55%  0x20008e40 noinit
+        │   │   ├── file_cache_heap                                                                24   0.06%  0x2000060c k_heap_area
+        │   │   ├── file_data_pool                                                                 32   0.08%  0x200005b4 k_mem_slab_area
+        │   │   ├── fs_data_0                                                                     276   0.73%  0x200000ac datas
+        │   │   ├── kheap_file_cache_heap                                                         384   1.02%  0x20006ac0 noinit
+        │   │   ├── lfs_dir_pool                                                                   32   0.08%  0x200005d4 k_mem_slab_area
+        │   │   ├── lookahead_buffer_0                                                            128   0.34%  0x20001144 bss
+        │   │   ├── prog_buffer_0                                                                4096  10.83%  0x200011c4 bss
+        │   │   ├── read_buffer_0                                                                4096  10.83%  0x200021c4 bss
+        │   │   └── z_fsmp_DT_N_S_fstab_S_lfs1                                                     36   0.10%  0x20000088 datas
+        │   └── shell.c                                                                           600   1.59%  - 
+        │       ├── cwd                                                                           128   0.34%  0x200001c0 datas
+        │       ├── lfs_data                                                                      276   0.73%  0x20000264 datas
+        │       ├── lfs_data_lookahead_buffer                                                      32   0.08%  0x200031c4 bss
+        │       ├── lfs_data_prog_buffer                                                           64   0.17%  0x200031e4 bss
+        │       ├── lfs_data_read_buffer                                                           64   0.17%  0x20003224 bss
+        │       └── littlefs_mnt                                                                   36   0.10%  0x20000240 datas
+        ├── logging                                                                               110   0.29%  - 
+        │   ├── log_core.c                                                                         98   0.26%  - 
+        │   │   ├── backend_attached                                                                1   0.00%  0x20003430 bss
+        │   │   ├── buffered_cnt                                                                    4   0.01%  0x20000d3c bss
+        │   │   ├── dropped_cnt                                                                     4   0.01%  0x20000d38 bss
+        │   │   ├── initialized                                                                     4   0.01%  0x20000d40 bss
+        │   │   ├── log_buffer                                                                     68   0.18%  0x20000510 log_mpsc_pbuf_area
+        │   │   ├── log_dynamic_log                                                                 4   0.01%  0x2000058c log_dynamic_area
+        │   │   ├── log_msg_ptr                                                                     4   0.01%  0x20000554 log_msg_ptr_area
+        │   │   ├── panic_mode                                                                      1   0.00%  0x20003431 bss
+        │   │   ├── timestamp_freq                                                                  4   0.01%  0x20000d34 bss
+        │   │   └── timestamp_func                                                                  4   0.01%  0x20000000 datas
+        │   ├── log_mgmt.c                                                                          4   0.01%  - 
+        │   │   └── log_dynamic_log_mgmt                                                            4   0.01%  0x20000590 log_dynamic_area
+        │   └── log_output.c                                                                        8   0.02%  - 
+        │       ├── freq                                                                            4   0.01%  0x20000d48 bss
+        │       └── timestamp_div                                                                   4   0.01%  0x20000d44 bss
+        ├── shell                                                                                4565  12.07%  - 
+        │   ├── backends                                                                         4546  12.02%  - 
+        │   │   └── shell_uart.c                                                                 4546  12.02%  - 
+        │   │       ├── backend_cb_shell_uart_backend                                               8   0.02%  0x200010e4 bss
+        │   │       ├── log_dynamic_shell_shell_uart                                                4   0.01%  0x2000059c log_dynamic_area
+        │   │       ├── log_dynamic_shell_uart                                                      4   0.01%  0x200005a0 log_dynamic_area
+        │   │       ├── shell_transport_uart                                                        8   0.02%  0x20000040 datas
+        │   │       ├── shell_transport_uart_shell_uart                                           216   0.57%  0x200008f0 bss
+        │   │       ├── shell_uart_control_block                                                    8   0.02%  0x200010d0 bss
+        │   │       ├── shell_uart_ctx                                                            808   2.14%  0x20000d64 bss
+        │   │       ├── shell_uart_fprintf_shell_fprintf_ctx                                        8   0.02%  0x20000008 datas
+        │   │       ├── shell_uart_history                                                         16   0.04%  0x20000010 datas
+        │   │       ├── shell_uart_history_ring_buf                                                32   0.08%  0x20000020 datas
+        │   │       ├── shell_uart_history_ring_buf_data                                          512   1.35%  0x20008c40 noinit
+        │   │       ├── shell_uart_log_output_control_block                                        12   0.03%  0x200010d8 bss
+        │   │       ├── shell_uart_mpsc_buffer                                                     68   0.18%  0x2000108c bss
+        │   │       ├── shell_uart_out_buffer                                                      30   0.08%  0x200010ec bss
+        │   │       ├── shell_uart_stack                                                         2112   5.59%  0x20003440 noinit
+        │   │       ├── shell_uart_stats                                                            4   0.01%  0x20000d60 bss
+        │   │       ├── shell_uart_thread                                                         184   0.49%  0x20000638 bss
+        │   │       └── shell_uartshell_uart_out_buffer                                           512   1.35%  0x200006f0 bss
+        │   └── modules                                                                            19   0.05%  - 
+        │       └── devmem_service.c                                                               19   0.05%  - 
+        │           ├── bytes                                                                       4   0.01%  0x20000d5c bss
+        │           ├── chunk                                                                       2   0.01%  0x20000d4c bss
+        │           ├── chunk_element                                                               4   0.01%  0x20000d50 bss
+        │           ├── data                                                                        4   0.01%  0x20000d58 bss
+        │           ├── littleendian                                                                1   0.00%  0x20003434 bss
+        │           └── sum                                                                         4   0.01%  0x20000d54 bss
+        └── storage                                                                                 4   0.01%  - 
+            └── flash_map                                                                           4   0.01%  - 
+                └── flash_map_default.c                                                             4   0.01%  - 
+                    └── flash_map                                                                   4   0.01%  0x20000004 datas
+==========================================================================================================================================
+                                                                                                37809
