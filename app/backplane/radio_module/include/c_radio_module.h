@@ -12,7 +12,6 @@
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
-#include <f_core/net/application/c_tftp_server_tenant.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/net/application/c_sntp_server_tenant.h>
 #include <f_core/net/application/c_udp_alert_tenant.h>
@@ -79,7 +78,6 @@ private:
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
-
     CStateMachineUpdater stateMachineUpdater;
 
     // Tasks

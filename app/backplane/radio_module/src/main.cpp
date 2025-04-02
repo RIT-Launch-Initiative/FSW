@@ -29,8 +29,8 @@ int main() {
     radioModule.SetupCallbacks();
 
     NRtos::StartRtos();
-    k_sched_time_slice_set(1000, 10); // 1ms slice for priorities 0-10
-    k_sched_time_slice_set(5000, 15); // 5ms slice for priorities 11-15
+    k_sched_time_slice_set(1000, 14); // 1ms slice for priority 14
+    k_sched_time_slice_set(5000, 15); // 5ms slice for priority 15
 
 #ifdef CONFIG_ARCH_POSIX
     k_sleep(K_SECONDS(300));
