@@ -1,0 +1,31 @@
+# Copyright (c) 2021 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+#
+# This file is the application Kconfig entry point. All application Kconfig
+# options can be defined here or included via other application Kconfig files.
+# You can browse these options using the west targets menuconfig (terminal) or
+# guiconfig (GUI).
+
+menu "Zephyr"
+source "Kconfig.zephyr"
+endmenu
+
+config MODULE_ID
+    int "Module ID number"
+    default 1
+    help
+      The module ID to use as the fourth octet in the IP address.
+
+menuconfig RADIO_MODULE_RECEIVER
+	bool "Radio module is the ground receiver"
+	default n
+
+config GNSS_DATA_TX_INTERVAL
+	int "GNSS data tx interval (miliseconds)"
+	default 5000
+	help
+	  The interval at which GNSS data is transmitted through LoRa in milliseconds.
+
+module = APP_RADIO_MODULE
+module-str = APP_RADIO_MODULE
+source "subsys/logging/Kconfig.template.log_config"
