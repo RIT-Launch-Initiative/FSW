@@ -17,17 +17,6 @@ int main() {
     CIPv4 ip("10.0.0.1");
     CTftpServerTenant *tftpServer = CTftpServerTenant::GetInstance(ip);
 
-    LOG_INF("Creating file");
-
-    CFile file("/lfs/test.txt", FS_O_READ | FS_O_WRITE | FS_O_CREATE);
-    if (file.GetInitStatus() < 0) {
-        LOG_ERR("Error opening file");
-        return -1;
-    }
-
-    int ret = file.Write("Hello, world!", 13);
-    LOG_INF("Wrote to file %d", ret);
-
     while (true) {
         tftpServer->Run();
         k_msleep(100);

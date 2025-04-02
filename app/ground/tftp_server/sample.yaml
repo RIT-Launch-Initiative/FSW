@@ -5,5 +5,9 @@ common:
   build_only: true
   platform_allow:
     - native_sim
+    - deployment_module
+    - power_module
+    - radio_module
+    - sensor_module
 tests:
   samples.tftp_server.default: {}
