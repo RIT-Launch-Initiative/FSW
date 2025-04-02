@@ -19,7 +19,7 @@ class CSensorDevice;
 class CSensingTenant : public CTenant {
   public:
     explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast,
-                            CMessagePort<NTypes::SensorData> &dataToLog, CDetectionHandler &handler);
+                            CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CDetectionHandler &handler);
     ~CSensingTenant() override = default;
 
     void Startup() override;
@@ -28,7 +28,7 @@ class CSensingTenant : public CTenant {
 
   private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
-    CMessagePort<NTypes::SensorData> &dataToLog;
+    CMessagePort<NTypes::TimestampedSensorData> &dataToLog;
 
     CDetectionHandler &detection_handler;
     // Sensor instances
@@ -41,6 +41,8 @@ class CSensingTenant : public CTenant {
     CMagnetometer magnetometer;
 
     std::array<CSensorDevice *, 7> sensors;
+
+    CRtc rtc{DEVICE_DT_GET(DT_ALIAS(rtc))};
 };
 
 #endif // C_SENSING_TENANT_H

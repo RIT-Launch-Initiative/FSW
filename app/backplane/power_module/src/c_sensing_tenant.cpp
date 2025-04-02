@@ -17,21 +17,26 @@ void CSensingTenant::PostStartup() {
 
 void CSensingTenant::Run() {
     // TODO: Zero out when we have simulated shunt
-    NTypes::SensorData data{
-        .RailBattery = {
-            .Voltage = 12.0f,
-            .Current = 0.0f,
-            .Power = 0.0f
-        },
-        .Rail3v3 = {
-            .Voltage = 3.3f,
-            .Current = 0.0f,
-            .Power = 0.0f
-        },
-        .Rail5v0 = {
-            .Voltage = 5.0f,
-            .Current = 0.0f,
-            .Power = 0.0f
+    time_t time = 0;
+
+    NTypes::TimestampedSensorData timestampedData{
+        .timestamp = 0,
+        .data = {
+            .RailBattery = {
+                .Voltage = 12.0f,
+                .Current = 0.0f,
+                .Power = 0.0f
+            },
+            .Rail3v3 = {
+                .Voltage = 3.3f,
+                .Current = 0.0f,
+                .Power = 0.0f
+            },
+            .Rail5v0 = {
+                .Voltage = 5.0f,
+                .Current = 0.0f,
+                .Power = 0.0f
+            }
         }
     };
 
@@ -46,24 +51,32 @@ void CSensingTenant::Run() {
     for (auto sensor: sensors) {
         sensor->UpdateSensorValue();
     }
+    
+    int errorCode = rtc.GetUnixTime(time);
 
-    data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
-    data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail3v3.Power = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    if (errorCode < 0) {
+        LOG_ERR("Failed to get time from RTC");
+    }
 
-    data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
-    data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    timestampedData.timestamp = static_cast<uint32_t>(time);
 
-    data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
-    data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    timestampedData.data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    timestampedData.data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+    timestampedData.data.Rail3v3.Power = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_POWER);
+
+    timestampedData.data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    timestampedData.data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+    timestampedData.data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
+
+    timestampedData.data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    timestampedData.data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+    timestampedData.data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
 #endif
 
-    dataToBroadcast.Send(data, K_MSEC(5));
+    dataToBroadcast.Send(timestampedData.data, K_MSEC(5));
 
     if (timer.IsExpired()) {
-        dataToLog.Send(data, K_MSEC(5));
+        dataToLog.Send(timestampedData, K_MSEC(5));
     }
 }
 

@@ -7,10 +7,11 @@
 #include <f_core/os/c_tenant.h>
 #include <f_core/utils/c_observer.h>
 #include <f_core/utils/c_soft_timer.h>
+#include <f_core/device/c_rtc.h>
 
 class CSensingTenant : public CTenant, public CObserver {
 public:
-    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::SensorData> &dataToLog)
+    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::TimestampedSensorData> &dataToLog)
         : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog) {}
 
     ~CSensingTenant() override = default;
@@ -25,8 +26,11 @@ public:
 
 private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
-    CMessagePort<NTypes::SensorData> &dataToLog;
+    CMessagePort<NTypes::TimestampedSensorData> &dataToLog;
     CSoftTimer timer{nullptr, nullptr};
+
+    const device *rtcDev = DEVICE_DT_GET(DT_ALIAS(rtc));
+    CRtc rtc{*rtcDev};
 };
 
 

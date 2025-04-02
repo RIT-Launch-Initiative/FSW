@@ -9,8 +9,8 @@
 K_MSGQ_DEFINE(broadcastQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQueue);
 
-K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
-static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
+K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::TimestampedSensorData), 10, 4);
+static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::TimestampedSensorData>(dataLogQueue);
 
 CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), sensorDataLogMessagePort(dataLogMsgQueue) {}
 
