@@ -17,6 +17,8 @@
 
 		storage = &w25q128;
 		logfs = &lfs1;
+
+		rtc = &rtc;
 	};
 
 	aliases {

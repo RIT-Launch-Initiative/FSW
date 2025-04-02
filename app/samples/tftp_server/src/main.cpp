@@ -15,7 +15,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 
 int main() {
     CIPv4 ip("10.0.0.1");
-    CTftpServerTenant *tftpServer = CTftpServerTenant::getInstance(ip);
+    CTftpServerTenant *tftpServer = CTftpServerTenant::GetInstance(ip);
 
     LOG_INF("Creating file");
 

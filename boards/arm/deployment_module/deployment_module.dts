@@ -18,6 +18,8 @@
 
 		storage = &storage_partition;
 		logfs = &lfs1;
+
+		rtc = &rtc;
 	};
 
 	fstab {
