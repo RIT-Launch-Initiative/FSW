@@ -13,11 +13,11 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    LOG_INF("Receiver started");
-    static CReceiverModule radioModule{};
-    radioModule.AddTenantsToTasks();
-    radioModule.AddTasksToRtos();
-    radioModule.SetupCallbacks();
+    LOG_INF("Receiver starting");
+    static CReceiverModule receiverModule{};
+    receiverModule.AddTenantsToTasks();
+    receiverModule.AddTasksToRtos();
+    receiverModule.SetupCallbacks();
 
     NRtos::StartRtos();
     k_sched_time_slice_set(1000, 14); // 1ms slice for priority 14
