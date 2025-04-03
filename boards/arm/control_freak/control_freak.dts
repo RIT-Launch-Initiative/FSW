@@ -172,7 +172,12 @@
 
     bmp390: bmp390@77 {
         status = "okay";
+        // status = "disabled";
+        
         compatible = "bosch,bmp390";
+        // odr = "200";
+        osr-press=<1>;
+        osr-temp=<1>;
         reg = <0x77>;
     };
 
