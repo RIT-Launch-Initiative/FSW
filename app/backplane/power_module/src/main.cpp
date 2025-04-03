@@ -3,10 +3,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "c_power_module.h"
 
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
+#include <n_autocoder_network_defs.h>
 
 LOG_MODULE_REGISTER(main);
 
@@ -25,7 +27,6 @@ int main() {
     powerModule.Cleanup();
     k_sleep(K_FOREVER);
 #endif
-
 
     return 0;
 }
