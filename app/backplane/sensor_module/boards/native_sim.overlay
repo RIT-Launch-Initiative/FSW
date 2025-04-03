@@ -6,6 +6,7 @@
 		accelerometer = &secondimu;
 		magnetometer = &imu;
 		thermometer = &barom;
+		rtc = &rtc;
 	};
 
     imu: imu {
