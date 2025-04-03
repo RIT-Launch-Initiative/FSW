@@ -1,6 +1,9 @@
 #include <zephyr/kernel.h>
 
 int main() {
-    printk("Hello!\n");
+    while (true) {
+        printk("Hello!\n");
+        k_msleep(500);
+    }
     return 0;
 }
