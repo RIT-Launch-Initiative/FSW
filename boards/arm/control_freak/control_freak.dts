@@ -21,6 +21,10 @@
         debug-serial = &uart4;
         led0 = &led1;
         buzz = &buzzer;
+        gnss = &gnss;
+        gpsreset = &gps_reset;
+        gpssafeboot = &gps_timepulse;
+        lora0 = &lora;
     };
 
 
@@ -52,6 +56,16 @@
             gpios = <&gpioh 1 GPIO_ACTIVE_HIGH>;
             label = "Enable pin for 5v ldo";
         };
+
+        gps_reset: gps-reset{
+            gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
+            label = "Reset pin on GPS";
+        };
+        gps_timepulse: gps-timepulse{
+            gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
+            label = "Reset pin on GPS";
+        };
+        
     };
     servos: servos{
         compatible = "gpio-leds";
@@ -139,6 +153,8 @@
     pinctrl-names = "default";
     current-speed = <115200>;
     status = "okay";
+        tx-rx-swap;
+
 };
 // Debug uart
 &uart4 {
@@ -152,12 +168,15 @@
 &uart5 {
     status = "okay";
     pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+
     pinctrl-names = "default";
-    current-speed = <115200>;
+    current-speed = <9600>;
+
     // also add gnss-pps when GPS in hand
     // RST: PA11
     // PPS: PA12
     gnss: gnss{
+        //  MAX-M10M-00B
         compatible = "gnss-nmea-generic";
         status="okay";
 
@@ -234,7 +253,7 @@
         compatible = "jedec,spi-nor";
         reg = <0>;
 
-        spi-max-frequency = <(10 * 1000 * 1000)>;
+        spi-max-frequency = <(1 * 1000 * 1000)>;
         size = <DT_SIZE_M(128)>;
         jedec-id = [ef 40 18];
 
