@@ -106,8 +106,8 @@
             // the binding reccomends defaults for these
             read-size = <16>;
             prog-size = <16>;
-            cache-size = <4096>; // may need to grow for optimization
-            lookahead-size = <128>;
+            cache-size = <16>; // may need to grow for optimization
+            lookahead-size = <16>;
             block-cycles = <(90 * 1000)>;
             // the datasheet gives 100K P-E cycles
             // NOTE: this seems to default to 512 for the mounted filesystem
@@ -230,9 +230,9 @@
     };
 };
 
-&dma2 {
-    status = "okay";
-};
+// &dma2 {
+    // status = "okay";
+// };
 
 &spi2 {
     pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
@@ -241,9 +241,9 @@
     status = "okay";
 
 
-    dmas = <&dma2 5 3 0x28440 0x03>,
-           <&dma2 2 3 0x28480 0x03>;
-    dma-names = "tx", "rx";
+    // dmas = <&dma2 5 3 0x28440 0x03>,
+        //    <&dma2 2 3 0x28480 0x03>;
+    // dma-names = "tx", "rx";
 
 
 	pinctrl-names = "default";
@@ -253,7 +253,7 @@
         compatible = "jedec,spi-nor";
         reg = <0>;
 
-        spi-max-frequency = <(1 * 1000 * 1000)>;
+        spi-max-frequency = <(50 * 1000 * 1000)>;
         size = <DT_SIZE_M(128)>;
         jedec-id = [ef 40 18];
 
