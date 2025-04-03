@@ -8,36 +8,38 @@
     compatible = "st,stm32f446re-nucleo";
 
     chosen {
-        zephyr,console = &usart1;
-        zephyr,shell-uart = &usart1;
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
+
+        zephyr,console = &uart4;
+        zephyr,shell-uart = &uart4;
+
     };
     aliases {
         storage = &w25q128;
         logfs = &lfs1;
         debug-serial = &uart4;
+        led0 = &led1;
+        buzz = &buzzer;
     };
 
 
     leds: leds {
         compatible = "gpio-leds";
         led1: led1{
-            gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
-            label = "D1 on board";
-        };
-        led2: led2{
-            gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
-            label = "D2 on board";
+            gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+            label = "GPS LED";
         };
     };
     buzzer_pins: buzzer_pins{
+        compatible = "gpio-leds";
         buzzer: buzzer{
             gpios = <&gpioa 2 GPIO_ACTIVE_HIGH>;
             label = "buzzer pin";
         };
     };
     enables: enables{
+        compatible = "gpio-leds";
         servo_enable: servo-enable{
             gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
             label = "Enable pin for the servo";
@@ -51,7 +53,24 @@
             label = "Enable pin for 5v ldo";
         };
     };
+    servos: servos{
+        compatible = "gpio-leds";
+        servo1: servo1{
+            gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
+            label = "PWM pin for servo 1";
+        };
+        servo2: servo2{
+            gpios = <&gpioc 6 GPIO_ACTIVE_HIGH>;
+            label = "PWM pin for servo 2";
+        };
+        servo3: servo3{
+            gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
+            label = "PWM pin for servo 3";
+        };
+
+    };
     cam_enables: cam_enables{
+        compatible = "gpio-leds";
         cam1_enable: cam1-enable{
             gpios = <&gpioc 14 GPIO_ACTIVE_HIGH>;
             label = "Enable pin for Camera 1";
@@ -140,6 +159,7 @@
     // PPS: PA12
     gnss: gnss{
         compatible = "gnss-nmea-generic";
+        status="okay";
 
     };
 };
