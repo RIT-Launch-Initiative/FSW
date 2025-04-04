@@ -25,12 +25,38 @@
         gpsreset = &gps_reset;
         gpssafeboot = &gps_timepulse;
         lora0 = &lora;
+        servo1 = &servo1;
+        servo2 = &servo2;
+        servo3 = &servo3;
     };
 
+    pwmleds: pwmleds{
+        status="okay";
+        compatible = "pwm-leds";
+        min-pulse = <PWM_USEC(100)>;
+        max-pulse = <PWM_USEC(3000)>;
+        servo1: servo1 {
+            label = "Servo 1 PWM";
+            // &gpioc 6 GPIO_ACTIVE_HIGH
+            pwms = <&pwm3 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+        };
+        servo2: servo2 {
+            label = "Servo 2 PWM";
+            // &gpioc 7 GPIO_ACTIVE_HIGH
+            pwms = <&pwm3 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+        };
+        servo3: servo3 {
+            label = "Servo 3 PWM";
+            // &gpiob 15 GPIO_ACTIVE_HIGH
+            pwms = <&pwm1 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+        };
+    };
 
     leds: leds {
         compatible = "gpio-leds";
         led1: led1{
+            // DOESNT WORK, TRANSISTOR ON BACKWARDS
+            // GOES FROM ON TO MORE ON
             gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
             label = "GPS LED";
         };
@@ -44,17 +70,19 @@
     };
     enables: enables{
         compatible = "gpio-leds";
+        // Servo power only, enable ldo5v for control
         servo_enable: servo-enable{
             gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
             label = "Enable pin for the servo";
         };
-        pump_enable: pump-enable{
-            gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
-            label = "Enable pin for pumps";
-        };
+        // Buzzer power, Servo signal power
         ldo5v_enable: ldo5v-enable{
             gpios = <&gpioh 1 GPIO_ACTIVE_HIGH>;
             label = "Enable pin for 5v ldo";
+        };
+        pump_enable: pump-enable{
+            gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
+            label = "Enable pin for pumps";
         };
 
         gps_reset: gps-reset{
@@ -66,22 +94,6 @@
             label = "Reset pin on GPS";
         };
         
-    };
-    servos: servos{
-        compatible = "gpio-leds";
-        servo1: servo1{
-            gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
-            label = "PWM pin for servo 1";
-        };
-        servo2: servo2{
-            gpios = <&gpioc 6 GPIO_ACTIVE_HIGH>;
-            label = "PWM pin for servo 2";
-        };
-        servo3: servo3{
-            gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
-            label = "PWM pin for servo 3";
-        };
-
     };
     cam_enables: cam_enables{
         compatible = "gpio-leds";
@@ -116,7 +128,25 @@
     };
 };
 
+&timers3{
+    st,prescaler = <1000>;
+    status="okay";
+	pwm3: pwm {
+        status = "okay";
+        pinctrl-0 = <&tim3_ch1_pc6 &tim3_ch2_pc7>;
+        pinctrl-names = "default";
 
+    };
+};
+&timers1{
+    st,prescaler = <1000>;
+    status="okay";
+	pwm1: pwm {
+        status = "okay";
+        pinctrl-0 = <&tim1_ch3n_pb15>;
+        pinctrl-names = "default";
+	};
+};
 
 
 &clk_lsi {
@@ -171,9 +201,6 @@
     pinctrl-names = "default";
     current-speed = <9600>;
 
-    // also add gnss-pps when GPS in hand
-    // RST: PA11
-    // PPS: PA12
     gnss: gnss{
         //  MAX-M10M-00B
         compatible = "gnss-nmea-generic";
@@ -229,9 +256,9 @@
     };
 };
 
-// &dma2 {
-    // status = "okay";
-// };
+&dma2 {
+    status = "okay";
+};
 
 &spi2 {
     pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
@@ -240,9 +267,9 @@
     status = "okay";
 
 
-    // dmas = <&dma2 5 3 0x28440 0x03>,
-        //    <&dma2 2 3 0x28480 0x03>;
-    // dma-names = "tx", "rx";
+    dmas = <&dma2 5 3 0x28440 0x03>,
+           <&dma2 2 3 0x28480 0x03>;
+    dma-names = "tx", "rx";
 
 
 	pinctrl-names = "default";
