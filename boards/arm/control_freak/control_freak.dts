@@ -153,7 +153,6 @@
     pinctrl-names = "default";
     current-speed = <115200>;
     status = "okay";
-        tx-rx-swap;
 
 };
 // Debug uart
