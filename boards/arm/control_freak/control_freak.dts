@@ -11,8 +11,8 @@
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
 
-        zephyr,console = &uart4;
-        zephyr,shell-uart = &uart4;
+        zephyr,console = &usart1;
+        zephyr,shell-uart = &usart1;
 
     };
     aliases {
@@ -252,7 +252,7 @@
         compatible = "jedec,spi-nor";
         reg = <0>;
 
-        spi-max-frequency = <(50 * 1000 * 1000)>;
+        spi-max-frequency = <(10 * 1000 * 1000)>;
         size = <DT_SIZE_M(128)>;
         jedec-id = [ef 40 18];
 
