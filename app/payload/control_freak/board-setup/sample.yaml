@@ -1,9 +1,9 @@
 sample:
   description:
-  name: control_freak
+  name: control_freak bring up and debugging
 common:
   build_only: true
   platform_allow:
-    - native_sim
+    - control_freak
 tests:
-  control_freak.flight.default: {}
+  control_freak.bringup.default: {}
