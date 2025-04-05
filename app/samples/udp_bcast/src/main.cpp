@@ -27,7 +27,7 @@ K_MSGQ_DEFINE(otherBroadcastQueue, sizeof(const char[OTHER_BROADCAST_STRLEN]), 1
 int main() {
     static constexpr char ipAddrStr[] = "10.0.0.0";
     static constexpr int udpPort = 10000;
-    static constexpr int otherBroadcasterSrcPort = 1000;
+    static constexpr int otherBroadcasterSrcPort = 11000;
     static constexpr int otherBroadcasterDstPort = 12001;
 
     auto messagePort = CMsgqMessagePort<char[BROADCAST_STRLEN]>(broadcastQueue);
