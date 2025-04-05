@@ -26,7 +26,7 @@ void CLoraReceiveTenant::Run() {
 
 int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
     LOG_INF("Waiting for LoRa data");
-    const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(3));
+    const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(5));
     if (size == -EAGAIN) {
         return size;
     }
