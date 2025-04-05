@@ -172,7 +172,7 @@ int NTimeUtils::UpdateTimeDriftCompensation() {
 
     // Calculate expected reference time based on local time and skew
     uint64_t localTimeMs = getUptimeTicks();
-    uint64_t expectedRefTime;
+    uint64_t expectedRefTime = 0;
     
     int ret = timeutil_sync_ref_from_local(&driftCompData.syncState, localTimeMs, &expectedRefTime);
     if (ret < 0) {
@@ -181,7 +181,7 @@ int NTimeUtils::UpdateTimeDriftCompensation() {
     }
 
     // Compare RTC time with expected time from sync calc
-    int64_t timeDiffMs = (currentRtcTime - static_cast<int64_t>(expectedRefTime)) * 1000
+    int64_t timeDiffMs = (currentRtcTime - static_cast<int64_t>(expectedRefTime)) * 1000;
     
     LOG_INF("Time drift check: actual=%lld expected=%lld diff=%lld ms",
             (long long)currentRtcTime, (long long)expectedRefTime, (long long)timeDiffMs);
@@ -217,8 +217,9 @@ int NTimeUtils::UpdateTimeDriftCompensation() {
         // Calc new skew based on the latest measurements
         float newSkew = timeutil_sync_estimate_skew(&driftCompData.syncState);
         if (newSkew > 0.0f) {
-            LOG_INF("Updated clock skew: %f (PPB: %d)", newSkew, timeutil_sync_skew_to_ppb(newSkew));
-            timeutil_sync_state_set_skew(&driftCompData.syncState, newSkew, NULL);
+            int32_t skewErr = timeutil_sync_skew_to_ppb(newSkew);
+            LOG_INF("Updated clock skew: %lf (PPB: %d)", static_cast<double>(newSkew), skewErr);
+            timeutil_sync_state_set_skew(&driftCompData.syncState, newSkew, nullptr);
         }
         
         return 1; // Intentionally 1. Signal we resynced
