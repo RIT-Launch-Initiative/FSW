@@ -95,6 +95,11 @@ namespace {
     };
 }
 
+static uint64_t getUptimeTicks() {
+    // Note that under the hood Zephyr uses a uint64_t and then return casts it to int64_t :P
+    return static_cast<uint64_t>(k_uptime_ticks());
+}
+
 int NTimeUtils::InitTimeDriftCompensation(CRtc& rtc, uint32_t syncIntervalSeconds, uint32_t syncThresholdMs,
                                           const char* serverAddress, int maxRetries) {
     if (driftCompData.initialized) {
@@ -136,7 +141,7 @@ int NTimeUtils::InitTimeDriftCompensation(CRtc& rtc, uint32_t syncIntervalSecond
     // Set base time reference point
     timeutil_sync_instant syncPoint = {
         .ref = static_cast<uint64_t>(refTime),
-        .local = k_uptime_get()
+        .local = getUptimeTicks()
     };
     
     if (timeutil_sync_state_update(&driftCompData.syncState, &syncPoint) < 0) {
@@ -166,7 +171,7 @@ int NTimeUtils::UpdateTimeDriftCompensation() {
     }
 
     // Calculate expected reference time based on local time and skew
-    uint64_t localTimeMs = k_uptime_get();
+    uint64_t localTimeMs = getUptimeTicks();
     uint64_t expectedRefTime;
     
     int ret = timeutil_sync_ref_from_local(&driftCompData.syncState, localTimeMs, &expectedRefTime);
@@ -198,10 +203,11 @@ int NTimeUtils::UpdateTimeDriftCompensation() {
             return -EIO;
         }
         
-        struct timeutil_sync_instant newSyncPoint = {
+        timeutil_sync_instant newSyncPoint = {
             .ref = static_cast<uint64_t>(newRtcTime),
-            .local = k_uptime_get()
         };
+        newSyncPoint.local = getUptimeTicks(); // Weird error when this is brace initialized
+
         
         if (timeutil_sync_state_update(&driftCompData.syncState, &newSyncPoint) < 0) {
             LOG_ERR("Failed to update sync state after resync");
