@@ -21,7 +21,7 @@ void CLoraReceiveTenant::Run() {
     }
 
     udp.SetDstPort(port);
-    udp.TransmitAsynchronous(buffer, rxSize);
+    udp.TransmitAsynchronous(buffer + 2, rxSize - 2);
 }
 
 int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
