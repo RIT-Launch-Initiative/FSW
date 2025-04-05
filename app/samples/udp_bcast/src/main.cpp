@@ -15,23 +15,26 @@
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
+static constexpr char broadcastStr[] = "Hello, Launch!";
+static constexpr char otherBroadcastStr[] = "Hello, World!";
 
-K_MSGQ_DEFINE(broadcast_queue, sizeof(const char[32]), 10, 4);
-K_MSGQ_DEFINE(other_broadcast_queue, sizeof(const char[16]), 10, 4);
+static constexpr size_t BROADCAST_STRLEN = sizeof(broadcastStr);
+static constexpr size_t OTHER_BROADCAST_STRLEN = sizeof(otherBroadcastStr);
+
+K_MSGQ_DEFINE(broadcastQueue, sizeof(const char[BROADCAST_STRLEN]), 10, 4);
+K_MSGQ_DEFINE(otherBroadcastQueue, sizeof(const char[OTHER_BROADCAST_STRLEN]), 10, 4);
 
 int main() {
     static constexpr char ipAddrStr[] = "10.0.0.0";
     static constexpr int udpPort = 10000;
-    static constexpr char broadcastStr[32] = "Hello, Launch!";
-    static constexpr char otherBroadcastStr[16] = "Hello, World!";
-    static constexpr int broadcastStrLen = sizeof(broadcastStr);
-    static constexpr int otherbroadcastStrLen = sizeof(otherBroadcastStr);
+    static constexpr int otherBroadcasterSrcPort = 1000;
+    static constexpr int otherBroadcasterDstPort = 12001;
 
-    auto messagePort = CMsgqMessagePort<char[broadcastStrLen]>(broadcast_queue);
+    auto messagePort = CMsgqMessagePort<char[BROADCAST_STRLEN]>(broadcastQueue);
     CUdpBroadcastTenant broadcaster("Broadcast Tenant", ipAddrStr, udpPort, udpPort, messagePort);
 
-    auto otherMessagePort = CMsgqMessagePort<char[otherbroadcastStrLen]>(other_broadcast_queue);
-    CUdpBroadcastTenant otherBroadcaster("Broadcast Tenant", ipAddrStr, 11000, 12001, otherMessagePort);
+    auto otherMessagePort = CMsgqMessagePort<char[OTHER_BROADCAST_STRLEN]>(otherBroadcastQueue);
+    CUdpBroadcastTenant otherBroadcaster("Broadcast Tenant", ipAddrStr, otherBroadcasterSrcPort, otherBroadcasterDstPort, otherMessagePort);
 
     while (true) {
         messagePort.Send(broadcastStr, K_NO_WAIT);
