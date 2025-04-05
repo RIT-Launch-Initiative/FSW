@@ -136,27 +136,3 @@ int main() {
     }
     return 0;
 }
-
-Pinctrl
-time1
-time2
-time3
-time4
-time5
-time8
-time9
-time10
-time11
-time12
-time13
-time14
-
-Datasheet
-1-14 the normal way
-
-stm32f4.dtsi
-1
-2
-3
-4
-5
