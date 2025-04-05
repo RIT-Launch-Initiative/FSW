@@ -1,5 +1,3 @@
-#ifndef CONFIG_RADIO_MODULE_RECEIVER
-
 #include "c_radio_module.h"
 
 // F-Core Tenant
@@ -53,5 +51,3 @@ void CRadioModule::AddTasksToRtos() {
 }
 
 void CRadioModule::SetupCallbacks() {}
-
-#endif //CONFIG_RADIO_MODULE_RECEIVER

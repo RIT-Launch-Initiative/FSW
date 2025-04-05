@@ -25,12 +25,8 @@ void CLoraReceiveTenant::Startup() {}
 void CLoraReceiveTenant::PostStartup() {}
 
 void CLoraReceiveTenant::Run() {
-#ifdef CONFIG_RADIO_MODULE_RECEIVER
-    SetIsGroundModule(true);
-#else
     SetBoostDetected(NStateMachineGlobals::boostDetected);
     SetLandingDetected(NStateMachineGlobals::landingDetected);
-#endif
     Clock();
 }
 
@@ -92,19 +88,6 @@ void CLoraReceiveTenant::LandedRun() {
     if (shutoffTimer.IsRunning() && camerasTurnedOff) {
         shutoffTimer.StopTimer();
     }
-}
-
-void CLoraReceiveTenant::GroundRun() {
-    int port = 0;
-    uint8_t buffer[255] = {0};
-
-    int rxSize = receive(buffer, sizeof(buffer), &port);
-    if (rxSize <= 0) {
-        return;
-    }
-
-    udp.SetDstPort(port);
-    udp.TransmitAsynchronous(buffer, rxSize);
 }
 
 int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
