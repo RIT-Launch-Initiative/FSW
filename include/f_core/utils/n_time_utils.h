@@ -3,6 +3,7 @@
 
 #include <zephyr/drivers/rtc.h>
 #include <zephyr/net/sntp.h>
+#include <zephyr/sys/timeutil.h>
 
 class CRtc;
 namespace NTimeUtils {
@@ -31,6 +32,34 @@ namespace NTimeUtils {
      */
      // void SetupSntpSynchronizationCallback(CRtc& rtc, const int interval, const char* serverAddress, const int maxRetries, const k_timeout_t retryDelay = K_MSEC(100));
 
+    /**
+     * Initialize a time synchronization context for managing time drift between modules
+     * 
+     * @param[in] rtc The RTC device to use for local time
+     * @param[in] syncIntervalSeconds How often to check and compensate for drift (in seconds)
+     * @param[in] syncThresholdMs Threshold in milliseconds that triggers a resynchronization
+     * @param[in] serverAddress The address of the SNTP server for resynchronization
+     * @param[in] maxRetries Max retries when connecting to SNTP server
+     * 
+     * @return 0 on success, negative error code on failure
+     */
+    int InitTimeDriftCompensation(CRtc& rtc, uint32_t syncIntervalSeconds, uint32_t syncThresholdMs, 
+                                  const char* serverAddress, int maxRetries);
+
+    /**
+     * Update time drift compensation state with current time values
+     * Should be called periodically to maintain synchronization
+     * 
+     * @return 0 if no sync needed, 1 if resynchronization was performed, negative on error
+     */
+    int UpdateTimeDriftCompensation();
+
+    /**
+     * Stop time drift compensation
+     * 
+     * @return 0 on success
+     */
+    int StopTimeDriftCompensation();
 
 #endif
 }
