@@ -26,7 +26,6 @@ void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const
     if (data.size > (256 - 2)) {
         // This case should never occur. If it does, then developer is sending too much data
         LOG_ERR("Received data exceeds LoRa packet size from port %d", data.port);
-        k_oops();
         return;
     } else if (data.size == 0) {
         // This case should *rarely* occur.
