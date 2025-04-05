@@ -84,10 +84,6 @@ void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const
     memcpy(txData.begin() + 2, &data.data, data.size); // Copy payload to the rest of the buffer
 
     LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
-    // Hexdump the data
-    LOG_INF("%02x %02x %02x %02x", txData[2], txData[3], txData[4], txData[5]);
-    float firstFloat = *(float*)&txData[2];
-    LOG_INF("First float: %f", firstFloat);
     lora.TransmitSynchronous(txData.data(), data.size + 2);
 }
 
