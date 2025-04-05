@@ -21,9 +21,8 @@ int NTimeUtils::SntpSynchronize(CRtc& rtc, const char* serverAddress, const int 
     LOG_INF("Synchronizing time using NTP with server %s", serverAddress);
     
     sntp_ctx ctx = {0};
-    zsock_addrinfo hints;
+    zsock_addrinfo hints = {0};
     zsock_addrinfo *addrList = nullptr;
-    zsock_addrinfo *addrIter = nullptr;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
@@ -37,7 +36,7 @@ int NTimeUtils::SntpSynchronize(CRtc& rtc, const char* serverAddress, const int 
 
     while (retryCount < maxRetries && !sntp_success) {
         // Ideally not multiple
-        for (addrIter = addrList; addrIter != nullptr && !sntp_success; addrIter = addrIter->ai_next) {
+        for (zsock_addrinfo *addrIter = addrList; addrIter != nullptr && !sntp_success; addrIter = addrIter->ai_next) {
             ret = sntp_init(&ctx, addrIter->ai_addr, addrIter->ai_addrlen);
             if (ret < 0) {
                 LOG_ERR("Failed to initialize SNTP context: %d", ret);
