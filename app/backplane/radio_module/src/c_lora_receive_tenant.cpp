@@ -43,6 +43,7 @@ void CLoraReceiveTenant::PadRun() {
         if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
             // Apply commands to pinsconst
             for (int i = 0; i < 4; i++)  {
+                LOG_INF("Set GPIO %d to %d", i, (buffer[2] >> i) & 1);
                 gpios[i].SetPin((buffer[2] >> i) & 1);
             }
 
