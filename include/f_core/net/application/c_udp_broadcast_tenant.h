@@ -17,7 +17,7 @@ public:
      * @param dstPort Destination port to broadcast to
      * @param messagePort Message port to receive messages to broadcast
      */
-    CUdpBroadcastTenant(const char* name, const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : CTenant(name), udp(CIPv4(ipAddr), srcPort, dstPort), messagesToBroadcast(&messagePort)  {}
+    CUdpBroadcastTenant(const char* name, const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : CTenant(name), udp(CIPv4(ipAddr), srcPort, dstPort), messagesToBroadcast(&messagePort), dstPort(dstPort)  {}
 
     /**
      * Constructor
@@ -48,7 +48,7 @@ public:
     void TransmitMessageAsynchronous() {
         T message{};
         if (messagesToBroadcast->Receive(message, K_NO_WAIT) == 0) {
-            udp.TransmitAsynchronous(&message, sizeof(T));
+            udp.TransmitAsynchronous(&message, sizeof(T), dstPort);
         }
     }
 
@@ -72,6 +72,7 @@ public:
 private:
     CUdpSocket udp;
     CMessagePort<T> *messagesToBroadcast;
+    uint16_t dstPort;
 };
 
 #endif //C_UDP_BROADCAST_TENANT_H
