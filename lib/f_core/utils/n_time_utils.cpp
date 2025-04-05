@@ -218,7 +218,7 @@ int NTimeUtils::UpdateTimeDriftCompensation() {
         float newSkew = timeutil_sync_estimate_skew(&driftCompData.syncState);
         if (newSkew > 0.0f) {
             int32_t skewErr = timeutil_sync_skew_to_ppb(newSkew);
-            LOG_INF("Updated clock skew: %lf (PPB: %d)", static_cast<double>(newSkew), skewErr);
+            LOG_INF("Updated clock skew: %f (PPB: %d)", static_cast<double>(newSkew), skewErr);
             timeutil_sync_state_set_skew(&driftCompData.syncState, newSkew, nullptr);
         }
         
