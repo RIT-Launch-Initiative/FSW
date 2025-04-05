@@ -15,21 +15,88 @@ LOG_MODULE_REGISTER(NTimeUtils);
 int NTimeUtils::SntpSynchronize(CRtc& rtc, const char* serverAddress, const int maxRetries, const k_timeout_t retryDelay) {
     int retryCount = 0;
     sntp_time ts{0};
+    int ret;
+    bool sntp_success = false;
 
-    // Note this is a 100ms timeout. Zephyr does a poor job of documenting this.
     LOG_INF("Synchronizing time using NTP with server %s", serverAddress);
-    while (sntp_simple(serverAddress, 10, &ts) && retryCount < maxRetries) {
-        k_sleep(retryDelay);
-        retryCount++;
-        LOG_ERR("Failed to synchronize time. Retrying (%d)", retryCount);
+    
+    sntp_ctx ctx = {0};
+    zsock_addrinfo hints;
+    zsock_addrinfo *addrList = nullptr;
+    zsock_addrinfo *addrIter = nullptr;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+
+    ret = zsock_getaddrinfo(serverAddress, "123", &hints, &addrList);
+    if (ret != 0 || addrList == nullptr) {
+        LOG_ERR("Failed to resolve SNTP server address: %s (%d)", serverAddress, ret);
+        return -EDOM;
     }
 
-    if (retryCount >= maxRetries) {
-        LOG_ERR("Failed to synchronize time with server %s", serverAddress);
+    while (retryCount < maxRetries && !sntp_success) {
+        // Ideally not multiple
+        for (addrIter = addrList; addrIter != nullptr && !sntp_success; addrIter = addrIter->ai_next) {
+            ret = sntp_init(&ctx, addrIter->ai_addr, addrIter->ai_addrlen);
+            if (ret < 0) {
+                LOG_ERR("Failed to initialize SNTP context: %d", ret);
+                continue;
+            }
+
+            // exponential backup up to 5 seconds
+            uint32_t query_timeout = 1000 * (1 << (retryCount < 3 ? retryCount : 2));
+            if (query_timeout > 5000) {
+                query_timeout = 5000;
+            }
+
+            LOG_DBG("SNTP query attempt %d with timeout %u ms", retryCount + 1, query_timeout);
+            ret = sntp_query(&ctx, query_timeout, &ts);
+
+            if (ret == 0) {
+                LOG_INF("SNTP query successful");
+                sntp_success = true;
+            } else if (ret == -ETIMEDOUT) {
+                LOG_WRN("SNTP query timeout");
+            } else if (ret == -ERANGE) {
+                // Try to recover from out-of-order packets
+                LOG_WRN("Received out-of-sequence packet, trying recovery");
+
+                for (int i = 0; i < 3 && !sntp_success; i++) {
+                    ret = sntp_recv_response(&ctx, 500, &ts);
+                    if (ret == 0) {
+                        LOG_INF("Successfully recovered from out-of-sequence packet");
+                        sntp_success = true;
+                    }
+                }
+            } else {
+                LOG_ERR("SNTP query failed with error: %d", ret);
+            }
+
+            sntp_close(&ctx);
+        }
+
+        if (!sntp_success) {
+            retryCount++;
+            if (retryCount < maxRetries) {
+                k_sleep(retryDelay);
+                LOG_WRN("Retrying SNTP synchronization (%d/%d)", retryCount, maxRetries);
+            }
+        }
+    }
+
+    if (addrList) {
+        zsock_freeaddrinfo(addrList);
+    }
+    
+    if (!sntp_success) {
+        LOG_ERR("Failed to synchronize time with %s after %d attempts", 
+                serverAddress, retryCount);
         return -1;
     }
 
-    LOG_INF("SNTP synchronized with server %s", serverAddress);
+    LOG_INF("SNTP synchronized with server %s, timestamp: %llu", 
+            serverAddress, (unsigned long long)ts.seconds);
     rtc.SetUnixTime(ts.seconds);
 
     return 0;
