@@ -92,14 +92,9 @@ void CLoraReceiveTenant::LandedRun() {
 }
 
 int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
-    LOG_INF("Waiting for LoRa data");
+    // LOG_INF("Waiting for LoRa data");
     const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(3));
     if (size == -EAGAIN) {
-        return size;
-    }
-
-    if (size < 0) {
-        LOG_ERR("Failed to receive over LoRa (%d)", size);
         return size;
     }
 
@@ -108,7 +103,14 @@ int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) 
         return size;
     }
 
+    if (size < 2) {
+        LOG_ERR("Failed to receive over LoRa (%d)", size);
+        return size;
+    }
+
+
     *port = buffer[1] << 8 | buffer[0];
+    buffer += 2;
     LOG_INF("Got data for port %d from LoRa", *port);
-    return size;
+    return size - 2;
 }
