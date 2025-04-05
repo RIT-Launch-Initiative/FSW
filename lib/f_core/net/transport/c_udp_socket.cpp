@@ -53,7 +53,7 @@ CUdpSocket::~CUdpSocket() {
 }
 
 int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
-    static const sockaddr_in addr{
+    const sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
@@ -73,7 +73,7 @@ int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr *srcAddr, so
 }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
-    static const sockaddr_in addr = {
+    const sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };

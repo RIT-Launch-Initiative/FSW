@@ -25,12 +25,8 @@ void CLoraReceiveTenant::Startup() {}
 void CLoraReceiveTenant::PostStartup() {}
 
 void CLoraReceiveTenant::Run() {
-#ifdef CONFIG_RADIO_MODULE_RECEIVER
-    SetIsGroundModule(true);
-#else
     SetBoostDetected(NStateMachineGlobals::boostDetected);
     SetLandingDetected(NStateMachineGlobals::landingDetected);
-#endif
     Clock();
 }
 
@@ -47,6 +43,7 @@ void CLoraReceiveTenant::PadRun() {
         if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
             // Apply commands to pinsconst
             for (int i = 0; i < 4; i++)  {
+                LOG_INF("Set GPIO %d to %d", i, (buffer[2] >> i) & 1);
                 gpios[i].SetPin((buffer[2] >> i) & 1);
             }
 
@@ -94,21 +91,7 @@ void CLoraReceiveTenant::LandedRun() {
     }
 }
 
-void CLoraReceiveTenant::GroundRun() {
-    int port = 0;
-    uint8_t buffer[255] = {0};
-
-    int rxSize = receive(buffer, sizeof(buffer), &port);
-    if (rxSize <= 0) {
-        return;
-    }
-
-    udp.SetDstPort(port);
-    udp.TransmitAsynchronous(buffer, rxSize);
-}
-
 int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
-    LOG_INF("Waiting for LoRa data");
     const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(3));
     if (size == -EAGAIN) {
         return size;

@@ -1,9 +1,7 @@
-#ifdef CONFIG_RADIO_MODULE_RECEIVER
 #ifndef C_RECEIVER_MODULE_H
 #define C_RECEIVER_MODULE_H
 
 #include "n_radio_module_types.h"
-#include "c_gnss_tenant.h"
 #include "c_lora_receive_tenant.h"
 #include "c_lora_transmit_tenant.h"
 #include "c_udp_listener_tenant.h"
@@ -39,7 +37,7 @@ public:
     void SetupCallbacks() override;
 
 private:
-    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
+    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, 1)).c_str();
     static constexpr uint16_t radioModuleCommandPort = NNetworkDefs::RADIO_MODULE_COMMAND_PORT;
     static constexpr uint16_t radioModuleDataRequestPort = NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT;
 
@@ -58,9 +56,8 @@ private:
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, NNetworkDefs::RADIO_BASE_PORT};
 
     // Tasks
-    CTask networkingTask{"UDP Listener Task", 15, 1024, 0};
-    CTask loraTask{"LoRa Rx Task", 15, 2048, 0};
+    CTask networkingTask{"UDP Listener Task", 15, 4096, 0};
+    CTask loraTask{"LoRa Task", 15, 4096, 0};
 };
 
 #endif //C_RECEIVER_MODULE_H
-#endif //RADIO_MODULE_RECEIVER
