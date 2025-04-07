@@ -56,15 +56,15 @@ int main() {
 
     printTestSet("Randomized data");
     srand(0);
-    for (int i = 0; i < sizeof(NTypes::EnvironmentData); ++i) {
+    for (uint32_t i = 0; i < sizeof(NTypes::EnvironmentData); ++i) {
         reinterpret_cast<uint8_t*>(&envData)[i] = static_cast<uint8_t>(rand() % 256);
     }
 
-    for (int i = 0; i < sizeof(NTypes::PowerData); ++i) {
+    for (uint32_t i = 0; i < sizeof(NTypes::PowerData); ++i) {
         reinterpret_cast<uint8_t*>(&powerData)[i] = static_cast<uint8_t>(rand() % 256);
     }
 
-    for (int i = 0; i < sizeof(NTypes::CoordinateData); ++i) {
+    for (uint32_t i = 0; i < sizeof(NTypes::CoordinateData); ++i) {
         reinterpret_cast<uint8_t*>(&coordData)[i] = static_cast<uint8_t>(rand() % 256);
     }
 
