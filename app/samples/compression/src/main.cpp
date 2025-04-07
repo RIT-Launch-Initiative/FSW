@@ -89,46 +89,12 @@ void getCompressionSafeStatistics(const char* type, void* data, const size_t dat
     getDecompressionSafeStatistics(type, compressedBuffer, data, compressedSize);
 }
 
-void getDecompressionUnsafeStatistics(const char* type, void* compressedData, void *uncompressedData, const size_t dataSize, const size_t uncompressedSize) {
-    uint8_t decompressedBuffer[MAX_BUFFER_SIZE] = {0};
-    const int64_t startTime = k_uptime_get();
-    const int decompressedSize = LZ4_decompress_safe_partial(reinterpret_cast<const char*>(compressedData),
-                                                              reinterpret_cast<char*>(decompressedBuffer), dataSize,
-                                                              10, MAX_BUFFER_SIZE);
-    const int64_t endTime = k_uptime_get();
-    const int64_t elapsedTime = endTime - startTime;
-    int errorCount = 0;
-    for (int i = 0; i < decompressedSize; ++i) {
-        if (decompressedBuffer[i] != static_cast<uint8_t*>(uncompressedData)[i]) {
-            errorCount++;
-        }
-    }
-
-    printk("\t\tDecompressed from %zu to %zu bytes in %ld milliseconds with %d errors\n", dataSize, decompressedSize, elapsedTime, errorCount);
-}
-
-void getCompressionUnsafeStatistics(const char* type, void* data, const size_t dataSize) {
-    uint8_t compressedBuffer[MAX_BUFFER_SIZE] = {0};
-    const int64_t startTime = k_uptime_get();
-    const int64_t endTime = k_uptime_get();
-    const int64_t elapsedTime = endTime - startTime;
-
-    const int decompressedSize = LZ4_compress(static_cast<const char*>(data), reinterpret_cast<char*>(compressedBuffer), dataSize);
-    printk("\t%s:\n", type);
-    printk("\t\tCompressed from %zu to %zu bytes in %ld milliseconds\n", dataSize, dataSize, elapsedTime);
-    getDecompressionUnsafeStatistics(type, data, data, dataSize, decompressedSize);
-}
-
-
 int main() {
     NTypes::EnvironmentData envData;
     NTypes::PowerData powerData;
     NTypes::CoordinateData coordData;
 
     randomizeFileBuffer();
-    for (int i =0 ; i < pretendFlightFileSize; ++i) {
-        printk("%d ", fileBuffer[i]);
-    }
 
     printTestSet("Zeroed Data");
     memset(&envData, 0, sizeof(NTypes::EnvironmentData));
@@ -138,11 +104,6 @@ int main() {
     getCompressionSafeStatistics("EnvironmentData", &envData, sizeof(envData));
     getCompressionSafeStatistics("PowerData", &powerData, sizeof(powerData));
     getCompressionSafeStatistics("CoordinateData", &coordData, sizeof(coordData));
-
-    printTestSet("Unsafe Zeroed Data");
-    getCompressionUnsafeStatistics("EnvironmentData", &envData, sizeof(envData));
-    getCompressionUnsafeStatistics("PowerData", &powerData, sizeof(powerData));
-    getCompressionUnsafeStatistics("CoordinateData", &coordData, sizeof(coordData));
 
     printTestSet("Randomized data");
     srand(0);
@@ -161,12 +122,6 @@ int main() {
     getCompressionSafeStatistics("EnvironmentData", &envData, sizeof(envData));
     getCompressionSafeStatistics("PowerData", &powerData, sizeof(powerData));
     getCompressionSafeStatistics("CoordinateData", &coordData, sizeof(coordData));
-
-    printTestSet("Unsafe Random Data");
-    getCompressionUnsafeStatistics("EnvironmentData", &envData, sizeof(envData));
-    getCompressionUnsafeStatistics("PowerData", &powerData, sizeof(powerData));
-    getCompressionUnsafeStatistics("CoordinateData", &coordData, sizeof(coordData));
-
 
     printTestSet("Expected data");
     NTypes::EnvironmentData realisticEnvData {
@@ -228,15 +183,8 @@ int main() {
     getCompressionSafeStatistics("PowerData", &realisticPowerData, sizeof(realisticPowerData));
     getCompressionSafeStatistics("CoordinateData", &realisticCoordData, sizeof(realisticCoordData));
 
-    printTestSet("Unsafe Expected Data");
-    getCompressionUnsafeStatistics("EnvironmentData", &envData, sizeof(envData));
-    getCompressionUnsafeStatistics("PowerData", &powerData, sizeof(powerData));
-    getCompressionUnsafeStatistics("CoordinateData", &coordData, sizeof(coordData));
-
-
     printTestSet("Pretend file");
     getCompressionSafeStatistics("File", &fileBuffer, sizeof(fileBuffer));
-    getCompressionUnsafeStatistics("File", &fileBuffer, sizeof(fileBuffer));
 
     return 0;
 }
