@@ -6,6 +6,50 @@
 #include <random>
 
 static constexpr size_t MAX_BUFFER_SIZE = 256;
+static constexpr size_t pretendFlightFileSize = sizeof(NTypes::EnvironmentData) * 100 * 60 * 3;
+static uint8_t fileBuffer[pretendFlightFileSize];
+static uint8_t compressedFileBuffer[pretendFlightFileSize];
+
+static constexpr void randomizeFileBuffer() {
+    // Gives less 0s if we initialize the buffer with some data
+    NTypes::EnvironmentData realisticEnvData {
+        .PrimaryBarometer = {
+            .Pressure = 1013.59,
+            .Temperature = -19.0,
+        },
+        .SecondaryBarometer = {
+            .Pressure = 998.45,
+            .Temperature = -22.0,
+        },
+        .Acceleration = {
+            .X = 6.13,
+            .Y = 9.37,
+            .Z = 50.0,
+        },
+        .ImuAcceleration = {
+            .X = 8.13,
+            .Y = 12.37,
+            .Z = 47.24,
+        },
+        .ImuGyroscope = {
+            .X = -50.0,
+            .Y = 50.0,
+            .Z = 15.0,
+        },
+        .Magnetometer = {
+            .X = 0.37,
+            .Y = 0.04,
+            .Z = 1.2,
+        },
+        .Temperature = -20.0,
+    };
+
+    for (size_t i = 0; i < pretendFlightFileSize / sizeof(NTypes::EnvironmentData); i++) {
+        memcpy(&fileBuffer[i * sizeof(NTypes::EnvironmentData)], &realisticEnvData, sizeof(NTypes::EnvironmentData));
+        // Change up some numbers
+        reinterpret_cast<NTypes::EnvironmentData*>(&fileBuffer[i * sizeof(NTypes::EnvironmentData)])->PrimaryBarometer.Pressure += static_cast<float>(rand() % 100) / 100.0f;
+    }
+}
 
 void printTestSet(std::string testSetName) {
     printk("----------------------\n");
@@ -69,10 +113,7 @@ void getCompressionUnsafeStatistics(const char* type, void* data, const size_t d
     const int64_t endTime = k_uptime_get();
     const int64_t elapsedTime = endTime - startTime;
 
-    const int decompressedSize = LZ4_decompress_safe_partial(static_cast<const char*>(data),
-                                                              reinterpret_cast<char*>(compressedBuffer), dataSize,
-                                                              10, MAX_BUFFER_SIZE);
-
+    const int decompressedSize = LZ4_compress(static_cast<const char*>(data), reinterpret_cast<char*>(compressedBuffer), dataSize);
     printk("\t%s:\n", type);
     printk("\t\tCompressed from %zu to %zu bytes in %ld milliseconds\n", dataSize, dataSize, elapsedTime);
     getDecompressionUnsafeStatistics(type, data, data, dataSize, decompressedSize);
@@ -83,6 +124,11 @@ int main() {
     NTypes::EnvironmentData envData;
     NTypes::PowerData powerData;
     NTypes::CoordinateData coordData;
+
+    randomizeFileBuffer();
+    for (int i =0 ; i < pretendFlightFileSize; ++i) {
+        printk("%d ", fileBuffer[i]);
+    }
 
     printTestSet("Zeroed Data");
     memset(&envData, 0, sizeof(NTypes::EnvironmentData));
@@ -187,6 +233,10 @@ int main() {
     getCompressionUnsafeStatistics("PowerData", &powerData, sizeof(powerData));
     getCompressionUnsafeStatistics("CoordinateData", &coordData, sizeof(coordData));
 
+
+    printTestSet("Pretend file");
+    getCompressionSafeStatistics("File", &fileBuffer, sizeof(fileBuffer));
+    getCompressionUnsafeStatistics("File", &fileBuffer, sizeof(fileBuffer));
 
     return 0;
 }
