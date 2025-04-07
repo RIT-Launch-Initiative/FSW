@@ -8,7 +8,6 @@
 static constexpr size_t MAX_BUFFER_SIZE = 256;
 static constexpr size_t pretendFlightFileSize = sizeof(NTypes::EnvironmentData) * 100 * 60 * 3;
 static uint8_t fileBuffer[pretendFlightFileSize] = {0};
-static uint8_t compressedFileBuffer[pretendFlightFileSize] = {0};
 
 static void randomizeFileBuffer() {
     // Gives less 0s if we initialize the buffer with some data
@@ -57,12 +56,12 @@ void printTestSet(std::string testSetName) {
     printk("----------------------\n");
 }
 
-void getDecompressionSafeStatistics(const char* type, void* compressedData, void *uncompressedData, const size_t dataSize) {
-    uint8_t decompressedBuffer[MAX_BUFFER_SIZE] = {0};
+void getDecompressionSafeStatistics(const char* type, void* compressedData, void *uncompressedData, const size_t dataSize, const int maxDataSize = MAX_BUFFER_SIZE) {
+    uint8_t decompressedBuffer[maxDataSize] = {0};
     const int64_t startTime = k_uptime_get();
     const int decompressedSize = LZ4_decompress_safe(reinterpret_cast<const char*>(compressedData),
                                                      reinterpret_cast<char*>(decompressedBuffer), dataSize,
-                                                     MAX_BUFFER_SIZE);
+                                                     maxDataSize);
     const int64_t endTime = k_uptime_get();
     const int64_t elapsedTime = endTime - startTime;
     int errorCount = 0;
@@ -72,21 +71,21 @@ void getDecompressionSafeStatistics(const char* type, void* compressedData, void
         }
     }
 
-    printk("\t\tDecompressed from %zu to %zu bytes in %ld milliseconds with %d errors\n", dataSize, decompressedSize, elapsedTime, errorCount);
+    printk("\t\tDecompressed from %zu to %zu bytes in %d milliseconds with %d errors\n", dataSize, decompressedSize, elapsedTime, errorCount);
 }
 
-void getCompressionSafeStatistics(const char* type, void* data, const size_t dataSize) {
-    uint8_t compressedBuffer[MAX_BUFFER_SIZE] = {0};
+void getCompressionSafeStatistics(const char* type, void* data, const size_t dataSize, const int maxDataSize = MAX_BUFFER_SIZE) {
+    uint8_t compressedBuffer[maxDataSize] = {0};
     const int64_t startTime = k_uptime_get();
     const int compressedSize = LZ4_compress_default(static_cast<const char*>(data),
                                                     reinterpret_cast<char*>(compressedBuffer), dataSize,
-                                                    MAX_BUFFER_SIZE);
+                                                    maxDataSize);
     const int64_t endTime = k_uptime_get();
     const int64_t elapsedTime = endTime - startTime;
 
     printk("\t%s:\n", type);
-    printk("\t\tCompressed from %d to %d bytes in %ld milliseconds\n", dataSize, compressedSize, elapsedTime);
-    getDecompressionSafeStatistics(type, compressedBuffer, data, compressedSize);
+    printk("\t\tCompressed from %d to %d bytes in %d milliseconds\n", dataSize, compressedSize, elapsedTime);
+    getDecompressionSafeStatistics(type, compressedBuffer, data, compressedSize, maxDataSize);
 }
 
 int main() {
@@ -184,7 +183,7 @@ int main() {
     getCompressionSafeStatistics("CoordinateData", &realisticCoordData, sizeof(realisticCoordData));
 
     printTestSet("Pretend file");
-    getCompressionSafeStatistics("File", &fileBuffer, sizeof(fileBuffer));
+    getCompressionSafeStatistics("File", &fileBuffer, sizeof(fileBuffer), pretendFlightFileSize);
 
     return 0;
 }
