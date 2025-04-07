@@ -1,7 +1,9 @@
 #include <zephyr/kernel.h>
 #include <n_autocoder_types.h>
 #include <lz4.h>
+#include <string.h>
 #include <string>
+#include <random>
 
 static constexpr size_t MAX_BUFFER_SIZE = 256;
 
@@ -11,7 +13,7 @@ void printTestSet(std::string testSetName) {
     printk("----------------------\n");
 }
 
-void getDecompressionStatistics(const std::string& type, void* data, int dataSize) {
+void getDecompressionStatistics(const std::string& type, void* data, const int dataSize) {
     uint8_t compressedBuffer[MAX_BUFFER_SIZE] = {0};
 
     const int64_t startTime = k_uptime_get();
@@ -19,10 +21,10 @@ void getDecompressionStatistics(const std::string& type, void* data, int dataSiz
     const int64_t endTime = k_uptime_get();
     const int64_t elapsedTime = endTime - startTime;
 
-    printk("\t\tDecompressed from %d to %d bytes in %ld milliseconds\n", type.c_str(), dataSize, decompressedSize, elapsedTime);
+    printk("\t\tDecompressed from %zu to %zu bytes in %ld milliseconds\n", type.c_str(), dataSize, decompressedSize, elapsedTime);
 }
 
-void getCompressionStatistics(const std::string& type, void* data, int dataSize) {
+void getCompressionStatistics(const std::string& type, void* data, const int dataSize) {
     uint8_t compressedBuffer[MAX_BUFFER_SIZE] = {0};
 
     const int64_t startTime = k_uptime_get();
@@ -31,22 +33,41 @@ void getCompressionStatistics(const std::string& type, void* data, int dataSize)
     const int64_t elapsedTime = endTime - startTime;
 
     printk("\t%s:\n", type.c_str());
-    printk("\t\tCompressed from %d to %d bytes in %ld milliseconds\n", type.c_str(), dataSize, compressedSize, elapsedTime);
+    printk("\t\tCompressed from %zu to %zu bytes in %ld milliseconds\n", type.c_str(), dataSize, compressedSize, elapsedTime);
     getDecompressionStatistics(type, compressedBuffer, compressedSize);
 }
 
 
 int main() {
-    NTypes::EnvironmentData envData = {0};
-    NTypes::PowerData powerData = {0};
-    NTypes::CoordinateData coordData = {0};
+    NTypes::EnvironmentData envData;
+    NTypes::PowerData powerData;
+    NTypes::CoordinateData coordData;
+
 
     printTestSet("Zeroed Data");
+    memset(&envData, 0, sizeof(NTypes::EnvironmentData));
+    memset(&powerData, 0, sizeof(NTypes::PowerData));
+    memset(&coordData, 0, sizeof(NTypes::CoordinateData));
+    printk("sizeof EnvironmentData: %zu\n", sizeof(NTypes::EnvironmentData));
+
     getCompressionStatistics("EnvironmentData", &envData, sizeof(envData));
     getCompressionStatistics("PowerData", &powerData, sizeof(powerData));
     getCompressionStatistics("CoordinateData", &coordData, sizeof(coordData));
 
     printTestSet("Randomized data");
+    srand(0);
+    for (int i = 0; i < sizeof(NTypes::EnvironmentData); ++i) {
+        reinterpret_cast<uint8_t*>(&envData)[i] = static_cast<uint8_t>(rand() % 256);
+    }
+
+    for (int i = 0; i < sizeof(NTypes::PowerData); ++i) {
+        reinterpret_cast<uint8_t*>(&powerData)[i] = static_cast<uint8_t>(rand() % 256);
+    }
+
+    for (int i = 0; i < sizeof(NTypes::CoordinateData); ++i) {
+        reinterpret_cast<uint8_t*>(&coordData)[i] = static_cast<uint8_t>(rand() % 256);
+    }
+
     getCompressionStatistics("EnvironmentData", &envData, sizeof(envData));
     getCompressionStatistics("PowerData", &powerData, sizeof(powerData));
     getCompressionStatistics("CoordinateData", &coordData, sizeof(coordData));
