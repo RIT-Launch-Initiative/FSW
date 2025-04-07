@@ -13,7 +13,7 @@ void printTestSet(std::string testSetName) {
     printk("----------------------\n");
 }
 
-void getDecompressionStatistics(const std::string& type, void* data, const int dataSize) {
+void getDecompressionStatistics(const char* type, void* data, const size_t dataSize) {
     uint8_t compressedBuffer[MAX_BUFFER_SIZE] = {0};
 
     const int64_t startTime = k_uptime_get();
@@ -21,10 +21,10 @@ void getDecompressionStatistics(const std::string& type, void* data, const int d
     const int64_t endTime = k_uptime_get();
     const int64_t elapsedTime = endTime - startTime;
 
-    printk("\t\tDecompressed from %zu to %zu bytes in %ld milliseconds\n", type.c_str(), dataSize, decompressedSize, elapsedTime);
+    printk("\t\tDecompressed from %zu to %zu bytes in %ld milliseconds\n", dataSize, decompressedSize, elapsedTime);
 }
 
-void getCompressionStatistics(const std::string& type, void* data, const int dataSize) {
+void getCompressionStatistics(const char* type, void* data, const size_t dataSize) {
     uint8_t compressedBuffer[MAX_BUFFER_SIZE] = {0};
 
     const int64_t startTime = k_uptime_get();
@@ -32,8 +32,8 @@ void getCompressionStatistics(const std::string& type, void* data, const int dat
     const int64_t endTime = k_uptime_get();
     const int64_t elapsedTime = endTime - startTime;
 
-    printk("\t%s:\n", type.c_str());
-    printk("\t\tCompressed from %zu to %zu bytes in %ld milliseconds\n", type.c_str(), dataSize, compressedSize, elapsedTime);
+    printk("\t%s:\n", type);
+    printk("\t\tCompressed from %d to %d bytes in %ld milliseconds\n", dataSize, compressedSize, elapsedTime);
     getDecompressionStatistics(type, compressedBuffer, compressedSize);
 }
 
