@@ -75,16 +75,6 @@ int main() {
 
     printTestSet("Expected data");
     NTypes::EnvironmentData realisticEnvData {
-        .Acceleration = {
-            .X = 6.13,
-            .Y = 9.37,
-            .Z = 50.0,
-        },
-        .Magnetometer = {
-            .X = 0.37,
-            .Y = 0.04,
-            .Z = 1.2,
-        },
         .PrimaryBarometer = {
             .Pressure = 1013.59,
             .Temperature = -19.0,
@@ -92,6 +82,11 @@ int main() {
         .SecondaryBarometer = {
             .Pressure = 998.45,
             .Temperature = -22.0,
+        },
+        .Acceleration = {
+            .X = 6.13,
+            .Y = 9.37,
+            .Z = 50.0,
         },
         .ImuAcceleration = {
             .X = 8.13,
@@ -103,24 +98,29 @@ int main() {
             .Y = 50.0,
             .Z = 15.0,
         },
+        .Magnetometer = {
+            .X = 0.37,
+            .Y = 0.04,
+            .Z = 1.2,
+        },
         .Temperature = -20.0,
     };
     NTypes::PowerData realisticPowerData{
         // I actually don't know current and voltage without reading actual sensors
+        .RailBattery = {
+            .Voltage = 12.0,
+            .Current = 13.37,
+            .Power = 6.0,
+        },
         .Rail3v3 = {
-            .Current = 0.5,
             .Voltage = 3.3,
+            .Current = 0.5,
             .Power = 1.0,
         },
         .Rail5v0 = {
-            .Current = 1,
             .Voltage = 5.0,
+            .Current = 1,
             .Power = 2.5,
-        }
-        .RailBattery = {
-            .Current = 13.37,
-            .Voltage = 12.0,
-            .Power = 6.0,
         },
     };
     NTypes::CoordinateData realisticCoordData = {
@@ -129,9 +129,9 @@ int main() {
         .Altitude = 1000,
     };
 
-    getCompressionStatistics("EnvironmentData", &envData, sizeof(envData));
-    getCompressionStatistics("PowerData", &powerData, sizeof(powerData));
-    getCompressionStatistics("CoordinateData", &coordData, sizeof(coordData));
+    getCompressionStatistics("EnvironmentData", &realisticEnvData, sizeof(realisticEnvData));
+    getCompressionStatistics("PowerData", &realisticPowerData, sizeof(realisticPowerData));
+    getCompressionStatistics("CoordinateData", &realisticCoordData, sizeof(realisticCoordData));
 
     return 0;
 }
