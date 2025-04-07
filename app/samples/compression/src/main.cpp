@@ -13,7 +13,7 @@ void printTestSet(std::string testSetName) {
     printk("----------------------\n");
 }
 
-void getDecompressionStatistics(const char* type, void* compressedData, void *uncompressedData, const size_t dataSize) {
+void getDecompressionSafeStatistics(const char* type, void* compressedData, void *uncompressedData, const size_t dataSize) {
     uint8_t compressedBuffer[MAX_BUFFER_SIZE] = {0};
     const int64_t startTime = k_uptime_get();
     const int decompressedSize = LZ4_decompress_safe(reinterpret_cast<const char*>(compressedData),
@@ -31,7 +31,7 @@ void getDecompressionStatistics(const char* type, void* compressedData, void *un
     printk("\t\tDecompressed from %zu to %zu bytes in %ld milliseconds with %d errors\n", dataSize, decompressedSize, elapsedTime, errorCount);
 }
 
-void getCompressionStatistics(const char* type, void* data, const size_t dataSize) {
+void getCompressionSafeStatistics(const char* type, void* data, const size_t dataSize) {
     uint8_t compressedBuffer[MAX_BUFFER_SIZE] = {0};
     const int64_t startTime = k_uptime_get();
     const int compressedSize = LZ4_compress_default(static_cast<const char*>(data),
@@ -42,7 +42,7 @@ void getCompressionStatistics(const char* type, void* data, const size_t dataSiz
 
     printk("\t%s:\n", type);
     printk("\t\tCompressed from %d to %d bytes in %ld milliseconds\n", dataSize, compressedSize, elapsedTime);
-    getDecompressionStatistics(type, compressedBuffer, data, compressedSize);
+    getDecompressionSafeStatistics(type, compressedBuffer, data, compressedSize);
 }
 
 
@@ -57,9 +57,9 @@ int main() {
     memset(&coordData, 0, sizeof(NTypes::CoordinateData));
     printk("sizeof EnvironmentData: %zu\n", sizeof(NTypes::EnvironmentData));
 
-    getCompressionStatistics("EnvironmentData", &envData, sizeof(envData));
-    getCompressionStatistics("PowerData", &powerData, sizeof(powerData));
-    getCompressionStatistics("CoordinateData", &coordData, sizeof(coordData));
+    getCompressionSafeStatistics("EnvironmentData", &envData, sizeof(envData));
+    getCompressionSafeStatistics("PowerData", &powerData, sizeof(powerData));
+    getCompressionSafeStatistics("CoordinateData", &coordData, sizeof(coordData));
 
     printTestSet("Randomized data");
     srand(0);
@@ -75,9 +75,9 @@ int main() {
         reinterpret_cast<uint8_t*>(&coordData)[i] = static_cast<uint8_t>(rand() % 256);
     }
 
-    getCompressionStatistics("EnvironmentData", &envData, sizeof(envData));
-    getCompressionStatistics("PowerData", &powerData, sizeof(powerData));
-    getCompressionStatistics("CoordinateData", &coordData, sizeof(coordData));
+    getCompressionSafeStatistics("EnvironmentData", &envData, sizeof(envData));
+    getCompressionSafeStatistics("PowerData", &powerData, sizeof(powerData));
+    getCompressionSafeStatistics("CoordinateData", &coordData, sizeof(coordData));
 
     printTestSet("Expected data");
     NTypes::EnvironmentData realisticEnvData {
@@ -135,9 +135,9 @@ int main() {
         .Altitude = 1000,
     };
 
-    getCompressionStatistics("EnvironmentData", &realisticEnvData, sizeof(realisticEnvData));
-    getCompressionStatistics("PowerData", &realisticPowerData, sizeof(realisticPowerData));
-    getCompressionStatistics("CoordinateData", &realisticCoordData, sizeof(realisticCoordData));
+    getCompressionSafeStatistics("EnvironmentData", &realisticEnvData, sizeof(realisticEnvData));
+    getCompressionSafeStatistics("PowerData", &realisticPowerData, sizeof(realisticPowerData));
+    getCompressionSafeStatistics("CoordinateData", &realisticCoordData, sizeof(realisticCoordData));
 
     return 0;
 }
