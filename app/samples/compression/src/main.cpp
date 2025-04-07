@@ -6,6 +6,9 @@
 #include <random>
 
 static constexpr size_t MAX_BUFFER_SIZE = 256;
+
+// Most embedded devices will be unable to handle a buffer this big in the binary
+#ifdef CONFIG_ARCH_POSIX
 static constexpr size_t pretendFlightFileSize = sizeof(NTypes::EnvironmentData) * 100 * 60 * 3;
 static uint8_t fileBuffer[pretendFlightFileSize] = {0};
 
@@ -49,6 +52,7 @@ static void randomizeFileBuffer() {
         reinterpret_cast<NTypes::EnvironmentData*>(&fileBuffer[i * sizeof(NTypes::EnvironmentData)])->PrimaryBarometer.Pressure += static_cast<float>(rand() % 100) / 100.0f;
     }
 }
+#endif
 
 void printTestSet(std::string testSetName) {
     printk("----------------------\n");
@@ -71,7 +75,7 @@ void getDecompressionSafeStatistics(const char* type, void* compressedData, void
         }
     }
 
-    printk("\t\tDecompressed from %zu to %zu bytes in %d milliseconds with %d errors\n", dataSize, decompressedSize, elapsedTime, errorCount);
+    printk("\t\tDecompressed from %zu to %zu bytes in %lld milliseconds with %d errors\n", dataSize, decompressedSize, elapsedTime, errorCount);
 }
 
 void getCompressionSafeStatistics(const char* type, void* data, const size_t dataSize, const int maxDataSize = MAX_BUFFER_SIZE) {
@@ -84,7 +88,7 @@ void getCompressionSafeStatistics(const char* type, void* data, const size_t dat
     const int64_t elapsedTime = endTime - startTime;
 
     printk("\t%s:\n", type);
-    printk("\t\tCompressed from %d to %d bytes in %d milliseconds\n", dataSize, compressedSize, elapsedTime);
+    printk("\t\tCompressed from %d to %d bytes in %lld milliseconds\n", dataSize, compressedSize, elapsedTime);
     getDecompressionSafeStatistics(type, compressedBuffer, data, compressedSize, maxDataSize);
 }
 
@@ -93,7 +97,9 @@ int main() {
     NTypes::PowerData powerData;
     NTypes::CoordinateData coordData;
 
+#ifdef CONFIG_ARCH_POSIX
     randomizeFileBuffer();
+#endif
 
     printTestSet("Zeroed Data");
     memset(&envData, 0, sizeof(NTypes::EnvironmentData));
@@ -182,8 +188,9 @@ int main() {
     getCompressionSafeStatistics("PowerData", &realisticPowerData, sizeof(realisticPowerData));
     getCompressionSafeStatistics("CoordinateData", &realisticCoordData, sizeof(realisticCoordData));
 
+#ifdef CONFIG_ARCH_POSIX
     printTestSet("Pretend file");
     getCompressionSafeStatistics("File", &fileBuffer, sizeof(fileBuffer), pretendFlightFileSize);
-
+#endif
     return 0;
 }
