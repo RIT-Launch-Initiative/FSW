@@ -119,7 +119,7 @@ int main() {
     //
     // return 0;
     while (1) {
-        printk("Seeting to %d\n", pulse_width);
+        // printk("Seeting to %d\n", pulse_width);
         for (int i = 0; i < 3; i++) {
             ret = pwm_set_pulse_dt(servos[i], pulse_width);
             if (ret < 0) {
