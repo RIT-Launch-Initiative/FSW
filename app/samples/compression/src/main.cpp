@@ -1,7 +1,7 @@
-#include "f_core/os/c_compression.h"
-
 #include <zephyr/kernel.h>
-
+#include <n_autocoder_types.h>
 int main() {
+
+
     return 0;
 }
