@@ -75,7 +75,7 @@ void getCompressionUnsafeStatistics(const char* type, void* data, const size_t d
 
     printk("\t%s:\n", type);
     printk("\t\tCompressed from %zu to %zu bytes in %ld milliseconds\n", dataSize, dataSize, elapsedTime);
-    GetDecompressionUnsafeStatistics(type, data, data, dataSize, decompressedSize);
+    getDecompressionUnsafeStatistics(type, data, data, dataSize, decompressedSize);
 }
 
 
@@ -88,7 +88,6 @@ int main() {
     memset(&envData, 0, sizeof(NTypes::EnvironmentData));
     memset(&powerData, 0, sizeof(NTypes::PowerData));
     memset(&coordData, 0, sizeof(NTypes::CoordinateData));
-    printk("sizeof EnvironmentData: %zu\n", sizeof(NTypes::EnvironmentData));
 
     getCompressionSafeStatistics("EnvironmentData", &envData, sizeof(envData));
     getCompressionSafeStatistics("PowerData", &powerData, sizeof(powerData));
