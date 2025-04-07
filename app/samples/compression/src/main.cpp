@@ -7,10 +7,10 @@
 
 static constexpr size_t MAX_BUFFER_SIZE = 256;
 static constexpr size_t pretendFlightFileSize = sizeof(NTypes::EnvironmentData) * 100 * 60 * 3;
-static uint8_t fileBuffer[pretendFlightFileSize];
-static uint8_t compressedFileBuffer[pretendFlightFileSize];
+static uint8_t fileBuffer[pretendFlightFileSize] = {0};
+static uint8_t compressedFileBuffer[pretendFlightFileSize] = {0};
 
-static constexpr void randomizeFileBuffer() {
+static void randomizeFileBuffer() {
     // Gives less 0s if we initialize the buffer with some data
     NTypes::EnvironmentData realisticEnvData {
         .PrimaryBarometer = {
