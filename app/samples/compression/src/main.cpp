@@ -190,7 +190,13 @@ int main() {
 
 #ifdef CONFIG_ARCH_POSIX
     printTestSet("Pretend file");
-    getCompressionSafeStatistics("File", &fileBuffer, sizeof(fileBuffer), pretendFlightFileSize);
+    getCompressionSafeStatistics("File 1", &fileBuffer, sizeof(fileBuffer), pretendFlightFileSize);
+
+    randomizeFileBuffer();
+    getCompressionSafeStatistics("File 2", &fileBuffer, sizeof(fileBuffer), pretendFlightFileSize);
+
+    randomizeFileBuffer();
+    getCompressionSafeStatistics("File 3", &fileBuffer, sizeof(fileBuffer), pretendFlightFileSize);
 #endif
     return 0;
 }
