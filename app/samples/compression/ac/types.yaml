@@ -1,0 +1,37 @@
+EnvironmentData:
+  description: Data from the environment sensors
+  fields:
+    - name: PrimaryBarometer
+      type: BarometerData
+    - name: SecondaryBarometer
+      type: BarometerData
+    - name: Acceleration
+      type: AccelerometerData
+    - name: ImuAcceleration
+      type: AccelerometerData
+    - name: ImuGyroscope
+      type: GyroscopeData
+    - name: Magnetometer
+      type: MagnetometerData
+    - name: Temperature
+      type: TemperatureData
+
+PowerData:
+  description: Data from shunt sensors
+  fields:
+    - name: RailBattery
+      type: ShuntData
+    - name: Rail3v3
+      type: ShuntData
+    - name: Rail5v0
+      type: ShuntData
+
+CoordinateData:
+  description: Data from the GPS
+  fields:
+      - name: Latitude
+        type: float
+      - name: Longitude
+        type: float
+      - name: Altitude
+        type: float
