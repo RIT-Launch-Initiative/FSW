@@ -41,12 +41,6 @@ private:
     CLoraTransmitTenant& loraTransmitTenant;
 
     CUdpSocket udp; 
-    CGpio gpios[4] = {
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
-    };
     static constexpr int portOffset = 2;
 
     int receive(uint8_t *buffer, const int size, int *port) const;
