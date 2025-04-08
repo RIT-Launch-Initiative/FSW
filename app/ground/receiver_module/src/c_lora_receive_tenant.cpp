@@ -30,7 +30,7 @@ int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) 
     int8_t snr = 0;
     const int rxSize = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, &rssi, &snr, K_SECONDS(5));
     if (rxSize == -EAGAIN) {
-        return size;
+        return rxSize;
     }
 
     LOG_INF("RSSI: %d SNR: %d", rssi, snr);
