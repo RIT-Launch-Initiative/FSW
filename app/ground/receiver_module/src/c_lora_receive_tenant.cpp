@@ -28,24 +28,24 @@ int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) 
     // LOG_INF("Waiting for LoRa data");
     int16_t rssi = 0;
     int8_t snr = 0;
-    const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, &rssi, &snr, K_SECONDS(5));
-    if (size == -EAGAIN) {
+    const int rxSize = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, &rssi, &snr, K_SECONDS(5));
+    if (rxSize == -EAGAIN) {
         return size;
     }
 
     LOG_INF("RSSI: %d SNR: %d", rssi, snr);
 
-    if (size < 0) {
-        LOG_ERR("Failed to receive over LoRa (%d)", size);
-        return size;
+    if (rxSize < 0) {
+        LOG_ERR("Failed to receive over LoRa (%d)", rxSize);
+        return rxSize;
     }
 
-    if (size == 0) {
+    if (rxSize == 0) {
         LOG_WRN("Got 0 bytes from LoRa");
-        return size;
+        return rxSize;
     }
 
     *port = buffer[1] << 8 | buffer[0];
     LOG_INF("Got data for port %d from LoRa", *port);
-    return size;
+    return rxSize;
 }
