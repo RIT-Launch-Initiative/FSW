@@ -16,6 +16,8 @@ env:
     app/backplane/power_module
     app/backplane/radio_module
     app/backplane/sensor_module
+    app/ground/receiver_module
+    app/ground/tftp_server
   platforms: |
     nucleo_f446re
     deployment_module
@@ -31,51 +33,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           path: FSW
+          fetch-depth: 2
 
-      - name: Install Native Sim Dependencies # native_sim goes for 32bit, not available by default
-        shell: bash
-        run: |
-          if [ "${{ runner.os }}" = "Linux" ]; then 
-            sudo dpkg --add-architecture i386
-            sudo apt update
-            sudo apt install -y pkg-config libfuse-dev:i386 gcc-multilib g++-multilib;
-          fi
-
-      - name: Cache Python dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: python-${{ runner.os }}-${{ hashFiles('**/*.lock') }}
-          restore-keys: |
-            python-${{ runner.os }}-
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.12
-
-      - name: Cache Zephyr dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/west
-            ~/.cache/zephyr
-          key: zephyr-${{ runner.os }}-${{ hashFiles('**/*.txt') }}
-          restore-keys: |
-            zephyr-${{ runner.os }}-
-
-      - name: Setup Zephyr project
-        uses: zephyrproject-rtos/action-zephyr-setup@v1
-        with:
-          app-path: FSW
-          toolchains: arm-zephyr-eabi
+      - name: Run Starter Steps
+        uses: ./FSW/.github/actions/fsw-setup
 
       - name: Build firmware
         working-directory: FSW
@@ -84,18 +51,13 @@ jobs:
           if [ "${{ runner.os }}" = "Windows" ]; then
             EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
           fi
-          
           if [ "${{ runner.os }}" = "Linux" ]; then
             export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
           fi
-          
           function add_arglist () {
             echo "$2" | while read -r line; do
               [ -z "$line" ] && continue
               echo -n " $1 $line "
             done;
-          }       
-          
-          west twister $(add_arglist -T "${{ env.test_roots}}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms}}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
-
-
+          }
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms }}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS

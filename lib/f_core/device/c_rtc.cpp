@@ -32,6 +32,17 @@ int CRtc::GetUnixTime(time_t& unixTimestamp) {
     return 0;
 }
 
+int CRtc::GetUnixTime(uint32_t& unixTimestamp) {
+    tm time{0};
+    if (int ret = GetTime(time); ret < 0) {
+        return ret;
+    }
+
+    unixTimestamp = static_cast<uint32_t>(mktime(&time));
+    return 0;
+}
+
+
 int CRtc::SetTime(rtc_time& rtcTime) {
 #ifdef CONFIG_RTC_STM32
     if (rtcTime.tm_year < 100) {

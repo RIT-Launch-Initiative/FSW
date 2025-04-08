@@ -53,11 +53,6 @@ public:
      */
     void LandedRun() override;
 
-    /**
-     * See Parent Docs
-     */
-    void GroundRun() override;
-
 private:
     CLoraTransmitTenant& loraTransmitTenant;
     CSoftTimer shutoffTimer{shutoffTimerExpirationFn, nullptr};

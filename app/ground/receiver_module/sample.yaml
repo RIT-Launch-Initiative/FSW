@@ -1,0 +1,12 @@
+sample:
+  description: Receiver Module
+  name: receiver-module
+common:
+  build_only: true
+  integration_platforms:
+    - radio_module
+tests:
+  ground.receiever_module.default: {}
+  ground.receiver_module.debug:
+    extra_overlay_confs:
+      - debug.conf

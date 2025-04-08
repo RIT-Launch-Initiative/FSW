@@ -17,6 +17,7 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
 
     sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
+        LOG_ERR("Failed to create socket: %d", errno);
         return;
     }
 
@@ -28,8 +29,10 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
     };
 
     if (zsock_bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
-        LOG_ERR("Failed to bind socket.");
+        LOG_ERR("Failed to bind socket: %d", errno);
         zsock_close(sock);
+        sock = -1;
+        return;
     }
 #else
     LOG_WRN("Skipping bind. Using native_sim loopback");
@@ -43,7 +46,10 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
 }
 
 CUdpSocket::~CUdpSocket() {
-    zsock_close(sock);
+    if (sock >= 0) {
+        zsock_close(sock);
+        sock = -1;
+    }
 }
 
 int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
@@ -56,7 +62,7 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
 
     int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0) {
-        LOG_ERR("Failed to send broadcast message (%d)", ret);
+        LOG_ERR("Failed to send broadcast message (%d)", errno);
     }
 
     return ret;
@@ -78,7 +84,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstP
     int flags = zsock_fcntl(sock, F_GETFL, 0);
     if (flags < 0) {
         LOG_ERR("Failed to get socket flags (%d)", flags);
-        return -1;
+        return flags;
     }
 
     if (!(flags & O_NONBLOCK)) {

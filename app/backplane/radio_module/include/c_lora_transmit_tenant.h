@@ -50,11 +50,6 @@ public:
      */
     void LandedRun() override;
 
-    /**
-     * See Parent Docs
-     */
-    void GroundRun() override;
-
 private:
     static constexpr uint8_t totalPortsListenedTo = 3;
 
