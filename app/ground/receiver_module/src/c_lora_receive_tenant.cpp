@@ -29,12 +29,17 @@ int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) 
     int16_t rssi = 0;
     int8_t snr = 0;
     const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, &rssi, &snr, K_SECONDS(5));
+    udp.TransmitAsynchronous(buffer, rxSize);
+}
+
+int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
+    LOG_INF("Waiting for LoRa data");
+    const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(3));
     if (size == -EAGAIN) {
         return size;
     }
 
     LOG_INF("RSSI: %d SNR: %d", rssi, snr);
-
     if (size < 0) {
         LOG_ERR("Failed to receive over LoRa (%d)", size);
         return size;
