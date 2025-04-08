@@ -28,6 +28,7 @@
         servo1 = &servo1;
         servo2 = &servo2;
         servo3 = &servo3;
+        rreset = &rreset;
     };
 
     pwmleds: pwmleds{
@@ -60,6 +61,10 @@
             // GOES FROM ON TO MORE ON
             gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
             label = "GPS LED";
+        };
+        rreset: rreset{
+            gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+            label ="Radio Reset";
         };
     };
     buzzer_pins: buzzer_pins{

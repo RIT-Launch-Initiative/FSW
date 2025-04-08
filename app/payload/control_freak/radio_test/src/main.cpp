@@ -1,4 +1,6 @@
 
+#include "f_core/radio/protocols/horus/horus.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,12 +8,19 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/lora.h>
 #include <zephyr/drivers/pwm.h>
+#include <zephyr/drivers/spi.h>
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/types.h>
 
-// evil but i want it
-// #include "../../zephyr/drivers/gnss/gnss_dump.h"
+// BS ALERT
+#include "sx1276/sx1276.h"
+#define FXOSC_HZ                       32000000
+#define RFM_FSTEP_HZ                   61.03515625
+#define RFM_MAX_FREQUENCY_DEVIATION_HZ 999879
+
+#define RADIORST_NODE DT_ALIAS(rreset)
+static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gpios);
 
 #define GPSRST_NODE DT_ALIAS(gpsreset)
 static const struct gpio_dt_spec gpsreset = GPIO_DT_SPEC_GET(GPSRST_NODE, gpios);
@@ -20,6 +29,8 @@ static const struct gpio_dt_spec gpsreset = GPIO_DT_SPEC_GET(GPSRST_NODE, gpios)
 static const struct gpio_dt_spec gpssafeboot = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gpios);
 
 #define GNSS_MODEM DEVICE_DT_GET(DT_ALIAS(gnss))
+
+#define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
 int resetGPS() {
     int ret;
@@ -67,17 +78,17 @@ int resetGPS() {
     return 0;
 }
 
-static struct gnss_data last_data = {};
+// General Data
+struct gnss_data last_data = {};
 #define MAX_SATS 20
 int current_sats = 0;
 int current_tracked_sats = 0;
-static struct gnss_satellite last_sats[MAX_SATS] = {};
-static uint64_t last_fix_uptime = 0;
+struct gnss_satellite last_sats[MAX_SATS] = {};
+uint64_t last_fix_uptime = 0;
+// Horus Data
+uint16_t horus_seq_number = 0;
 
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
-    uint64_t timepulse_ns;
-    k_ticks_t timepulse;
-
     last_data = *data;
 
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
@@ -96,138 +107,258 @@ static void gnss_satellites_cb(const struct device *dev, const struct gnss_satel
 }
 GNSS_SATELLITES_CALLBACK_DEFINE(GNSS_MODEM, gnss_satellites_cb);
 
-int main() {
-    resetGPS();
+int32_t set_pramble_len(uint16_t preamble_len) {
+    uint8_t msb = (preamble_len >> 8) & 0xff;
+    uint8_t lsb = (preamble_len >> 8) & 0xff;
+    SX1276Write(REG_PREAMBLEMSB, msb);
+    SX1276Write(REG_PREAMBLELSB, lsb);
+    return 0;
+}
+
+/**
+ * Calculate the values needed for Fdev registers from a frequency in Hertz
+ * @return -ERANGE if the frequency is out of range. 0 if its in range
+ */
+static int32_t frequency_dev_regs_from_fdev(uint32_t fdev, uint8_t *msb, uint8_t *lsb) {
+    if (fdev > 200000) {
+        return -ERANGE;
+    }
+    // Fdev = Fstep * Fdev[15,0]
+    // Fdev / Fstep = Fdev[15,0]
+    // Fstep = FX_OSC / 2^19
+    // (Fdev * 2^19) / FX_OSC = Fdev[15,0]
+    uint16_t val = (uint16_t) ((double) fdev / RFM_FSTEP_HZ);
+    *msb = (val >> 8) & 0xff;
+    *lsb = val & 0xff;
+    return 0;
+}
+
+static int32_t set_frequency_deviation_by_reg(uint8_t msb, uint8_t lsb) {
+    uint8_t data[2] = {msb, lsb};
+    SX1276WriteBuffer(REG_FDEVMSB, data, 2);
+    return 0;
+}
+static int32_t set_frequency_deviation(uint32_t freq_dev) {
+    uint8_t msb = 0;
+    uint8_t lsb = 0;
+    if (frequency_dev_regs_from_fdev(freq_dev, &msb, &lsb) < 0) {
+        return -ERANGE;
+    }
+
+    return set_frequency_deviation_by_reg(msb, lsb);
+}
+
+/**
+ * Sets the RF carrier frequency registers on the module.
+ * This does not immediately change the frequency that the module is transmitting at or receiving from.
+ * The in use RF Carrier frequency is only changed when:
+ * - Entering FSRX/FSTX modes
+ * - Restarting the receiver 
+ * Datasheet pg. 89
+ */
+int32_t set_frequency_by_reg(uint8_t msb, uint8_t mid, uint8_t lsb) {
+    uint8_t reg_frf[3] = {msb, mid, lsb};
+    SX1276WriteBuffer(REG_FRFMSB, reg_frf, 3);
+    return 0;
+}
+
+int32_t frf_reg_from_frequency(uint32_t freq, uint8_t *msb, uint8_t *mid, uint8_t *lsb) {
+
+    ////Frf = Fstep x Frf(23,0)
+    // Frf(23,0) = Frf / Fstep
+    const double fstep = 61.03515625;
+    uint32_t frf = freq / fstep;
+    *msb = (frf >> 16) & 0xff;
+    *mid = (frf >> 8) & 0xff;
+    *lsb = (frf) & 0xff;
 
     return 0;
 }
-#define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
-#pragma pack(push, 1)
-struct LoraPacket {
-    char callsign[6];
-    uint8_t current_sats;
-    uint8_t sats_tracked;
+/**
+ * Sets the RF carrier frequency.
+ * This does not immediately change the frequency that the module is transmitting at or receiving from.
+ * The in use RF Carrier frequency is only changed when:
+ * - Entering FSRX/FSTX modes
+ * - Restarting the receiver 
+ * Datasheet pg. 89
+ * @param dev the radio device
+ * @param freq the frequency to set to
+ * @return -ERANGE if the requested frequency is out of range for this model
+ * 0 if the frequency was succesfully set
+ * other sub 0 error codes from spi interaction errors.
+ */
+int32_t set_carrier_frequency(uint32_t freq) {
+    uint8_t msb = 0;
+    uint8_t mid = 0;
+    uint8_t lsb = 0;
+    int32_t res = frf_reg_from_frequency(freq, &msb, &mid, &lsb);
+    if (res < 0) {
+        return res;
+    }
+    res = set_frequency_by_reg(msb, mid, lsb);
+    if (res < 0) {
+        return res;
+    }
+    return res;
+}
 
-    int64_t latitude;
-    /** Longitudal position in nanodegrees (0 to +-180E9) */
-    int64_t longitude;
-    /** Bearing angle in millidegrees (0 to 360E3) */
-    uint32_t bearing;
-    /** Speed in millimeters per second */
-    uint32_t speed;
-    /** Altitude above MSL in millimeters */
-    int32_t altitude;
+#define DT_DRV_COMPAT semtech_sx1276
+
+struct sx127x_config {
+    struct spi_dt_spec bus;
+    struct gpio_dt_spec reset;
+#if DT_INST_NODE_HAS_PROP(0, antenna_enable_gpios)
+    struct gpio_dt_spec antenna_enable;
+#endif
+#if DT_INST_NODE_HAS_PROP(0, rfi_enable_gpios)
+    struct gpio_dt_spec rfi_enable;
+#endif
+#if DT_INST_NODE_HAS_PROP(0, rfo_enable_gpios)
+    struct gpio_dt_spec rfo_enable;
+#endif
+#if DT_INST_NODE_HAS_PROP(0, pa_boost_enable_gpios)
+    struct gpio_dt_spec pa_boost_enable;
+#endif
+#if DT_INST_NODE_HAS_PROP(0, tcxo_power_gpios)
+    struct gpio_dt_spec tcxo_power;
+#endif
 };
-#pragma pack(pop)
 
-static struct lora_modem_config mymodem_config = {
-    .frequency = 434000000,
-    .bandwidth = BW_125_KHZ,
-    .datarate = SF_10,
-    .coding_rate = CR_4_5,
-    .preamble_len = 8,
-    .tx_power = 20,
-};
+/**
+ * Perform a 'Manual Reset' of the module 
+ * (Datasheet pg.111 section 7.2.2)
+ * @param config the module config 
+ * @return any errors from configuring GPIO
+ */
+int32_t rfm9xw_software_reset() {
+    printk("Software resetting radio with %s pin %d\n", radioreset.port->name, (int) radioreset.pin);
 
-static void loracfg_help(const struct shell *shell) {
-    shell_print(shell, "Usage: cfg BW SF CR freq");
-    shell_print(shell, "BW:\n 1: 125 khz\n 2: 250 khz\n 5: 500 khz");
-    shell_print(shell, "SF:\n 6: SF6\n ...\n a: SF10\n b: SF11\n c: SF12");
-    shell_print(shell, "CR:\n 5: 4/5\n 6: 4/6\n 7: 4/7\n 8: 4/8");
-    shell_print(shell, "Freq: Just a number");
-}
-static int parse_freq(uint32_t *out, const struct shell *sh, const char *arg) {
-    char *eptr;
-    unsigned long val;
-
-    val = strtoul(arg, &eptr, 0);
-    if (*eptr != '\0') {
-        shell_error(sh, "Invalid frequency, '%s' is not an integer", arg);
-        return -EINVAL;
+    if (gpio_pin_configure_dt(&radioreset, GPIO_OUTPUT | GPIO_PULL_DOWN) < 0) {
+        printk("Failed to set pin to 0 to reset chip\n");
     }
 
-    if (val == ULONG_MAX) {
-        shell_error(sh, "Frequency %s out of range", arg);
-        return -EINVAL;
-    }
+    k_usleep(150); // >100us
 
-    *out = (uint32_t) val;
+    if (gpio_pin_configure_dt(&radioreset, GPIO_DISCONNECTED) < 0) {
+        printk("Failed to set pin to 0 to reset chip\n");
+    }
+    k_msleep(5);
+
     return 0;
 }
 
-static int cmd_loracfg(const struct shell *shell, size_t argc, char **argv) {
-    if (argc != 5) {
-        loracfg_help(shell);
-        return -1;
-    }
-    char bwc = argv[1][0];
-    char sfc = argv[2][0];
-    char crc = argv[3][0];
-    const char *freqStr = argv[4];
-    shell_print(shell, "bw: %c, sf: %c, cr: %c", bwc, sfc, crc);
-    if (bwc == '1') {
-        mymodem_config.bandwidth = BW_125_KHZ;
-    } else if (bwc == '2') {
-        mymodem_config.bandwidth = BW_250_KHZ;
-    } else if (bwc == '5') {
-        mymodem_config.bandwidth = BW_500_KHZ;
-    } else {
-        loracfg_help(shell);
-        return 0;
+void transmit_horus(uint8_t *buf, int len) {
+    printk("Transmitting horus packet len %d\n", len);
+    const uint32_t carrier = 434000000;
+    const uint32_t deviation = 900;
+
+    const uint32_t bitrate = 100;
+    const int usec_per_symbol = 1000000 / bitrate;
+
+    const uint32_t high = carrier + deviation;
+    const uint32_t step = deviation * 2 / 3;
+    const uint32_t symbols_fdev[4] = {3 * step, 2 * step, step, 0};
+
+    SX1276Write(REG_OPMODE,
+                RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_SLEEP); // Standby FSK
+
+    SX1276Write(REG_OPMODE,
+                RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
+    SX1276Write(REG_PLLHOP, RF_PLLHOP_FASTHOP_ON | 0x2d); // Fast hop on | default value
+
+    set_pramble_len(0);
+    set_carrier_frequency(high);
+    // start transmitting
+    set_frequency_deviation(symbols_fdev[0]);
+    SX1276Write(REG_OPMODE, RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_TRANSMITTER);
+
+    uint64_t startms = k_uptime_get();
+    struct k_timer bitrate_timer;
+    k_timer_init(&bitrate_timer, NULL, NULL);
+    k_timer_start(&bitrate_timer, K_USEC(usec_per_symbol), K_USEC(usec_per_symbol));
+    int preamble_len = 4;
+    // transmit preamble 0,1,2,3 (low, 2nd lowest, 2nfd highest, highest)
+    for (int i = 0; i < preamble_len; i++) {
+        for (int j = 0; j < 4; j++) {
+            k_timer_status_sync(&bitrate_timer);
+            set_frequency_deviation(symbols_fdev[j]);
+        }
     }
 
-    if (sfc == '6') {
-        mymodem_config.datarate = SF_6;
-    } else if (sfc == '7') {
-        mymodem_config.datarate = SF_7;
-    } else if (sfc == '8') {
-        mymodem_config.datarate = SF_8;
-    } else if (sfc == '9') {
-        mymodem_config.datarate = SF_9;
-    } else if (sfc == 'a') {
-        mymodem_config.datarate = SF_10;
-    } else if (sfc == 'b') {
-        mymodem_config.datarate = SF_11;
-    } else if (sfc == 'c') {
-        mymodem_config.datarate = SF_12;
-    } else {
-        loracfg_help(shell);
-        return 0;
+    for (int byte_index = 0; byte_index < len; byte_index++) {
+        const uint8_t byte = buf[byte_index];
+        // printf("%02x \n", byte);
+        const uint8_t syms[4] = {
+            (uint8_t) ((byte >> 6) & 0b11),
+            (uint8_t) ((byte >> 4) & 0b11),
+            (uint8_t) ((byte >> 2) & 0b11),
+            (uint8_t) ((byte >> 0) & 0b11),
+        };
+        for (int sym_index = 0; sym_index < 4; sym_index++) {
+            uint8_t sym = syms[sym_index];
+            uint32_t fdev = symbols_fdev[sym];
+            k_timer_status_sync(&bitrate_timer);
+            set_frequency_deviation(fdev);
+        }
     }
-    uint32_t freq = 0;
-    int ret = parse_freq(&freq, shell, freqStr);
-    if (ret != 0) {
-        shell_print(shell, "Invalid Freq");
-        return ret;
-    }
-    mymodem_config.frequency = freq;
-    return 0;
+    // Last symbol
+    k_timer_status_sync(&bitrate_timer);
+    uint64_t endms = k_uptime_get();
+    printf("Elapsed: %d ms\n", (int) (endms - startms));
+    // Then turn off
+    SX1276Write(REG_OPMODE,
+                RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
+    k_timer_stop(&bitrate_timer);
+
+    return;
 }
-
-static int cmd_loratx(const struct shell *shell, size_t argc, char **argv) {
-    shell_print(shell, "Sending LoRa");
-    const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
-    mymodem_config.tx = true;
-    int ret = lora_config(dev, &mymodem_config);
-    if (ret < 0) {
-        shell_print(shell, "Error configuring lora: %d", ret);
-        return ret;
-    }
-    // clang-format off
-    struct LoraPacket data = {
-        .callsign = {'K', 'C', '1', 'T', 'P', 'R'},
-        .current_sats = (uint8_t)current_sats,
-        .sats_tracked = (uint8_t)current_tracked_sats, 
-        .latitude = last_data.nav_data.latitude, 
-        .longitude = last_data.nav_data.longitude,
-        .bearing = last_data.nav_data.bearing, 
-        .speed = last_data.nav_data.bearing,
-        .altitude = last_data.nav_data.altitude
+void send_horus(struct k_timer_t *) {
+    float lat = 0;
+    float lon = 0;
+    uint16_t alt = last_data.nav_data.altitude;
+    struct horus_packet_v2 data{
+        .payload_id = 808,
+        .counter = horus_seq_number,
+        .hours = last_data.utc.hour,
+        .minutes = last_data.utc.minute,
+        .seconds = (uint8_t) (last_data.utc.millisecond / 1000),
+        .latitude = lat,
+        .longitude = lon,
+        .altitude = 150,
+        .speed = 0,
+        .sats = (uint8_t) current_sats,
+        .temp = 0,
+        .battery_voltage = 255,
+        .custom_data = {1, 2, 3, 4, 5, 6, 7, 8, 9},
+        .checksum = 0,
     };
-    // clang-format on
-    ret = lora_send(dev, (uint8_t *) &data, sizeof(data));
-    shell_print(shell, "Returned: %d (%d)", ret, sizeof(data));
+    memset((void *) &data, 0, sizeof(data));
+    data.payload_id = 808;
+    horus_seq_number++;
+    horus_packet_v2_encoded_buffer_t packet = {0};
+    horusv2_encode(&data, &packet);
+
+    printf("DECODED:\n");
+    for (int i = 0; i < sizeof(data); i++) {
+        printf("%02d: %02x\n ", i, ((uint8_t *) &data)[i]);
+    }
+    printf("ENCODED:\n");
+
+    for (int i = 0; i < sizeof(packet); i++) {
+        printf("%02d: %02x\n ", i, packet[i]);
+    }
+    printf("\n");
+    transmit_horus(&packet[0], sizeof(packet));
+}
+// extern "C" int golay23_init(void);
+static int cmd_horustx(const struct shell *shell, size_t argc, char **argv) {
+    shell_print(shell, "Reset RFM");
+    rfm9xw_software_reset();
+    shell_print(shell, "Init Golay");
+    // golay23_init();
+    shell_print(shell, "Send Horus");
+    send_horus(NULL);
     return 0;
 }
 
@@ -368,13 +499,27 @@ static int cmd_sat_info(const struct shell *shell, size_t argc, char **argv) {
     }
     return 0;
 }
+
+extern int cmd_loracfg(const struct shell *shell, size_t argc, char **argv);
+extern int cmd_loratx(const struct shell *shell, size_t argc, char **argv);
+extern void init_modem();
 // clang-format off
-SHELL_STATIC_SUBCMD_SET_CREATE(grim_subcmds, 
+SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds, 
         SHELL_CMD(info, NULL, "GNSS Info to shell", cmd_gnss_info),
         SHELL_CMD(sat, NULL, "Sat Info to shell", cmd_sat_info),
         SHELL_CMD(fixstat, NULL, "Fix info", cmd_fix_info),
-        SHELL_CMD(loratx, NULL, "Transmit lora packet (according to lora shell settings)", cmd_loratx),
+        SHELL_CMD(loratx, NULL, "Transmit lora packet (according to cfglora settings)", cmd_loratx),
+        SHELL_CMD(horustx, NULL, "Transmit horus packet (according to cfghorus settings)", cmd_horustx),
         SHELL_CMD(cfglora, NULL, "Configure lora (BW SF CR)", cmd_loracfg),
         SHELL_SUBCMD_SET_END);
 
-SHELL_CMD_REGISTER(freak, &grim_subcmds, "Grim Control Commands", NULL);
+SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
+
+int main() {
+    // golay23_init();
+    resetGPS();
+    // initial config 
+    init_modem();
+
+    return 0;
+}
