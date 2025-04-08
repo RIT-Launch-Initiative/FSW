@@ -1,12 +1,12 @@
 sample:
-  description: Radio Module
-  name: radio-module
+  description: Receiver Module
+  name: receiver-module
 common:
   build_only: true
   integration_platforms:
     - radio_module
 tests:
-  radio_module.default: {}
-  radio_module.debug:
+  ground.receiever_module.default: {}
+  ground.receiver_module.debug:
     extra_overlay_confs:
       - debug.conf

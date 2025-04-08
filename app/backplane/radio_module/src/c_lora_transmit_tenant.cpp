@@ -8,7 +8,6 @@
 LOG_MODULE_REGISTER(CLoraTransmitTenant);
 
 void CLoraTransmitTenant::Startup() {
-#ifndef RADIO_MODULE_RECEIVER
     bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {.port = 0, .size = 0});
     success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {.port = 0, .size = 0});
     success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {.port = 0, .size = 0});
@@ -21,7 +20,6 @@ void CLoraTransmitTenant::Startup() {
         LOG_ERR("Failed to insert all ports into hashmap");
         k_oops();
     }
-#endif
 }
 
 void CLoraTransmitTenant::PostStartup() {
@@ -29,12 +27,8 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-#ifdef CONFIG_RADIO_MODULE_RECEIVER
-    SetIsGroundModule(true);
-#else
     SetBoostDetected(NStateMachineGlobals::boostDetected);
     SetLandingDetected(NStateMachineGlobals::landingDetected);
-#endif
     Clock();
 }
 
@@ -73,21 +67,12 @@ void CLoraTransmitTenant::LandedRun() {
     }
 }
 
-
-void CLoraTransmitTenant::GroundRun() {
-    NTypes::RadioBroadcastData data{};
-    if (readTransmitQueue(data)) {
-        transmit(data);
-    }
-}
-
 void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
     if (data.size > (256 - 2)) {
         // This case should never occur. If it does, then developer is sending too much data
         LOG_ERR("Received data exceeds LoRa packet size from port %d", data.port);
-        k_oops();
         return;
     } else if (data.size == 0) {
         // This case should *rarely* occur.

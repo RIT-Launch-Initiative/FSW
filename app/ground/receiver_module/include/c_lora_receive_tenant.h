@@ -4,7 +4,6 @@
 
 #include <c_lora_transmit_tenant.h>
 
-#include <f_core/c_pad_flight_landing_state_machine.h>
 #include <f_core/os/c_tenant.h>
 #include <f_core/net/network/c_ipv4.h>
 #include <f_core/net/transport/c_udp_socket.h>
@@ -13,7 +12,7 @@
 
 void shutoffTimerExpirationFn(k_timer* timer);
 
-class CLoraReceiveTenant : public CTenant, public CPadFlightLandedStateMachine {
+class CLoraReceiveTenant : public CTenant {
 public:
     explicit CLoraReceiveTenant(const char* name, CLoraTransmitTenant& loraTransmitTenant, const char* ip, const uint16_t srcPort)
         : CTenant(name), loraTransmitTenant(loraTransmitTenant), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort)) {}
@@ -38,32 +37,10 @@ public:
      */
     void Run() override;
 
-    /**
-     * See Parent Docs
-     */
-    void PadRun() override;
-
-    /**
-     * See Parent Docs
-     */
-    void FlightRun() override;
-
-    /**
-     * See Parent Docs
-     */
-    void LandedRun() override;
-
 private:
     CLoraTransmitTenant& loraTransmitTenant;
-    CSoftTimer shutoffTimer{shutoffTimerExpirationFn, nullptr};
 
     CUdpSocket udp; 
-    CGpio gpios[4] = {
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
-    };
     static constexpr int portOffset = 2;
 
     int receive(uint8_t *buffer, const int size, int *port) const;
