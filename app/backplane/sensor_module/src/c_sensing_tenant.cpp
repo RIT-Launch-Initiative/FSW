@@ -13,7 +13,7 @@ LOG_MODULE_REGISTER(CSensingTenant);
 
 CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
                                CMessagePort<NTypes::SensorData>& dataToLog, CDetectionHandler& handler)
-    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), detection_handler(handler),
+    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
@@ -44,7 +44,7 @@ void CSensingTenant::Startup() {
 void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
-    if (!detection_handler.ContinueCollecting()) {
+    if (!detectionHandler.ContinueCollecting()) {
         return;
     }
     NTypes::SensorData data{};
@@ -85,7 +85,7 @@ void CSensingTenant::Run() {
 
     data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
-    detection_handler.HandleData(uptime, data, sensor_states);
+    detectionHandler.HandleData(uptime, data, sensor_states);
     // If we can't send immediately, drop the packet
     // we're gonna sleep then give it new data anywas
     dataToBroadcast.Send(data, K_NO_WAIT);

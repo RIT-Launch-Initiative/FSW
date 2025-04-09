@@ -15,21 +15,32 @@
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
+static constexpr char broadcastStr[] = "Hello, Launch!";
+static constexpr char secondBroadcastStr[] = "Hello, World!";
 
-K_MSGQ_DEFINE(broadcast_queue, sizeof(const char[32]), 10, 4);
+static constexpr size_t BROADCAST_STRLEN = sizeof(broadcastStr);
+static constexpr size_t SECOND_BROADCAST_STRLEN = sizeof(secondBroadcastStr);
+
+K_MSGQ_DEFINE(broadcastQueue, sizeof(const char[BROADCAST_STRLEN]), 10, 4);
+K_MSGQ_DEFINE(secondBroadcastQueue, sizeof(const char[SECOND_BROADCAST_STRLEN]), 10, 4);
 
 int main() {
     static constexpr char ipAddrStr[] = "10.0.0.0";
     static constexpr int udpPort = 10000;
-    static constexpr char broadcastStr[] = "Hello, Launch!";
-    static constexpr int broadcastStrLen = sizeof(broadcastStr);
+    static constexpr int secondBroadcasterSrcPort = 11000;
+    static constexpr int secondBroadcasterDstPort = 12001;
 
-    auto messagePort = CMsgqMessagePort<char[broadcastStrLen]>(broadcast_queue);
+    auto messagePort = CMsgqMessagePort<char[BROADCAST_STRLEN]>(broadcastQueue);
     CUdpBroadcastTenant broadcaster("Broadcast Tenant", ipAddrStr, udpPort, udpPort, messagePort);
 
+    auto secondMessagePort = CMsgqMessagePort<char[SECOND_BROADCAST_STRLEN]>(secondBroadcastQueue);
+    CUdpBroadcastTenant secondBroadcaster("Second Broadcast Tenant", ipAddrStr, secondBroadcasterSrcPort, secondBroadcasterDstPort, secondMessagePort);
+
     while (true) {
-        messagePort.Send(broadcastStr, K_FOREVER);
-        broadcaster.TransmitMessageAsynchronous();
+        messagePort.Send(broadcastStr, K_NO_WAIT);
+        secondMessagePort.Send(secondBroadcastStr, K_NO_WAIT);
+        broadcaster.Run();
+        secondBroadcaster.Run();
 
         LOG_INF("Transmitted");
         k_sleep(K_SECONDS(1));
