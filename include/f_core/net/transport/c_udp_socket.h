@@ -57,6 +57,11 @@ public:
      * @param srcAddrLen Optional source address length
      * @return Number of bytes received or negative error code
      */
+    int TransmitAsynchronous(const void *data, size_t len, uint16_t dstPort);
+
+    /**
+     * See parent docs
+     */
     int ReceiveAsynchronous(void *data, size_t len, sockaddr *srcAddr = nullptr, socklen_t *srcAddrLen = nullptr);
 
     /**

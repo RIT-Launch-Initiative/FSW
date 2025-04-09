@@ -73,6 +73,10 @@ int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr *srcAddr, so
 }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
+    return TransmitAsynchronous(data, len, dstPort);
+}
+
+int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstPort) {
     const sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
@@ -92,7 +96,6 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
     }
 
     z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
-
     int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
         LOG_ERR("Failed to send async message (%d)", errno);
