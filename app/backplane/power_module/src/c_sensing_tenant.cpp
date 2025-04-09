@@ -16,20 +16,19 @@ void CSensingTenant::PostStartup() {
 }
 
 void CSensingTenant::Run() {
-    // TODO: Zero out when we have simulated shunt
     NTypes::SensorData data{
         .RailBattery = {
-            .Voltage = 12.0f,
+            .Voltage = 0.0f,
             .Current = 0.0f,
             .Power = 0.0f
         },
         .Rail3v3 = {
-            .Voltage = 3.3f,
+            .Voltage = 0.0f,
             .Current = 0.0f,
             .Power = 0.0f
         },
         .Rail5v0 = {
-            .Voltage = 5.0f,
+            .Voltage = 0.0f,
             .Current = 0.0f,
             .Power = 0.0f
         }
@@ -43,8 +42,12 @@ void CSensingTenant::Run() {
 #endif
 
 #ifndef CONFIG_ARCH_POSIX
+    int i =0;
     for (auto sensor: sensors) {
-        sensor->UpdateSensorValue();
+        if (!sensor->UpdateSensorValue()) {
+            LOG_ERR("Failed to update sensor value for %d", i);
+        }
+        i++;
     }
 
     data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
@@ -55,9 +58,13 @@ void CSensingTenant::Run() {
     data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
     data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
 
-    data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
-    data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    data.RailBattery.Voltage = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+    data.RailBattery.Power = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_POWER);
+
+    LOG_INF("Rail 3.3V: %.2fV, %.2fA, %.2fW", data.Rail3v3.Voltage, data.Rail3v3.Current, data.Rail3v3.Power);
+    LOG_INF("Rail 5.0V: %.2fV, %.2fA, %.2fW", data.Rail5v0.Voltage, data.Rail5v0.Current, data.Rail5v0.Power);
+    LOG_INF("Rail Batt: %.2fV, %.2fA, %.2fW", data.RailBattery.Voltage, data.RailBattery.Current, data.RailBattery.Power);
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
