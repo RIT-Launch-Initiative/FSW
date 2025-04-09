@@ -21,12 +21,12 @@ void CLoraReceiveTenant::Run() {
     }
 
     udp.SetDstPort(port);
-    udp.TransmitAsynchronous(buffer, rxSize);
+    udp.TransmitAsynchronous(buffer + 2, rxSize - 2);
 }
 
 int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
-    LOG_INF("Waiting for LoRa data");
-    const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(3));
+    // LOG_INF("Waiting for LoRa data");
+    const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(5));
     if (size == -EAGAIN) {
         return size;
     }
