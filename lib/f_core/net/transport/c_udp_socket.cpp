@@ -22,7 +22,7 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
     }
 
 #if !defined(CONFIG_ARCH_POSIX) && !defined(CONFIG_NET_NATIVE_OFFLOADED_SOCKETS)
-    sockaddr_in addr = {
+    sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(srcPort),
         .sin_addr = INADDR_ANY // Bind to all interfaces TODO: Might not need ipv4 variable anymore
@@ -77,7 +77,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
 }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstPort) {
-    const sockaddr_in addr = {
+    const sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
