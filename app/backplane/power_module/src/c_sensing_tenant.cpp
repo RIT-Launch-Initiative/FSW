@@ -61,10 +61,6 @@ void CSensingTenant::Run() {
     data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
     data.RailBattery.Voltage = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
     data.RailBattery.Power = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_POWER);
-
-    LOG_INF("Rail 3.3V: %.2fV, %.2fA, %.2fW", data.Rail3v3.Voltage, data.Rail3v3.Current, data.Rail3v3.Power);
-    LOG_INF("Rail 5.0V: %.2fV, %.2fA, %.2fW", data.Rail5v0.Voltage, data.Rail5v0.Current, data.Rail5v0.Power);
-    LOG_INF("Rail Batt: %.2fV, %.2fA, %.2fW", data.RailBattery.Voltage, data.RailBattery.Current, data.RailBattery.Power);
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
