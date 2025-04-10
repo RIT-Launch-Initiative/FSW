@@ -12,8 +12,7 @@ void CSensingTenant::Startup() {
     timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
 }
 
-void CSensingTenant::PostStartup() {
-}
+void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
     NTypes::SensorData data{
@@ -38,12 +37,12 @@ void CSensingTenant::Run() {
     CShunt shuntBatt(*DEVICE_DT_GET(DT_ALIAS(shunt_batt)));
     CShunt shunt3v3(*DEVICE_DT_GET(DT_ALIAS(shunt_3v3)));
     CShunt shunt5v0(*DEVICE_DT_GET(DT_ALIAS(shunt_5v0)));
-    CSensorDevice *sensors[] = {&shuntBatt, &shunt3v3, &shunt5v0};
+    CSensorDevice* sensors[] = {&shuntBatt, &shunt3v3, &shunt5v0};
 #endif
 
 #ifndef CONFIG_ARCH_POSIX
-    int i =0;
-    for (auto sensor: sensors) {
+    int i = 0;
+    for (auto sensor : sensors) {
         if (!sensor->UpdateSensorValue()) {
             LOG_ERR("Failed to update sensor value for %d", i);
         }
@@ -70,7 +69,7 @@ void CSensingTenant::Run() {
     }
 }
 
-void CSensingTenant::Notify(void *ctx) {
+void CSensingTenant::Notify(void* ctx) {
     // TODO: Knock, knock! Race condition...
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::BOOST:
