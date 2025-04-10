@@ -43,7 +43,6 @@ void CLoraReceiveTenant::PadRun() {
         if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
             // Apply commands to pinsconst
             for (int i = 0; i < 4; i++)  {
-                LOG_INF("Set GPIO %d to %d", i, (buffer[2] >> i) & 1);
                 gpios[i].SetPin((buffer[2] >> i) & 1);
             }
 
@@ -92,6 +91,7 @@ void CLoraReceiveTenant::LandedRun() {
 }
 
 int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
+    LOG_INF("Waiting for LoRa data");
     const int size = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, nullptr, nullptr, K_SECONDS(3));
     if (size == -EAGAIN) {
         return size;
