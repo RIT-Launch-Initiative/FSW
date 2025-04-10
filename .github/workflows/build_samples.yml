@@ -27,6 +27,7 @@ env:
     app/samples/gpio_blinky
     app/samples/phase_detection
     app/samples/horus
+    app/samples/compression
   platforms: |
     nucleo_f446re
     radio_module
