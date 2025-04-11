@@ -19,7 +19,7 @@
 #define RFM_FSTEP_HZ                   61.03515625
 #define RFM_MAX_FREQUENCY_DEVIATION_HZ 999879
 
-#define RADIORST_NODE DT_ALIAS(rreset)
+#define RADIORST_NODE DT_ALIAS(radioreset)
 static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gpios);
 
 #define GPSRST_NODE DT_ALIAS(gpsreset)

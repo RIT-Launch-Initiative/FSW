@@ -5,7 +5,7 @@
 
 / {
     model = "Control Freak";
-    compatible = "st,stm32f446re-nucleo";
+    compatible = "launch,control_freak";
 
     chosen {
         zephyr,sram = &sram0;
@@ -16,11 +16,10 @@
 
     };
     aliases {
-        storage = &w25q128;
-        logfs = &lfs1;
         debug-serial = &uart4;
-        led0 = &led1;
+        led0 = &led1; // a little broken :(
         buzz = &buzzer;
+        
         gnss = &gnss;
         gpsreset = &gps_reset;
         gpssafeboot = &gps_timepulse;
@@ -28,14 +27,15 @@
         servo1 = &servo1;
         servo2 = &servo2;
         servo3 = &servo3;
-        rreset = &rreset;
+        radioreset = &radioreset;
     };
 
-    pwmleds: pwmleds{
+    servos: servos{
         status="okay";
         compatible = "pwm-leds";
         min-pulse = <PWM_USEC(100)>;
         max-pulse = <PWM_USEC(3000)>;
+
         servo1: servo1 {
             label = "Servo 1 PWM";
             // &gpioc 6 GPIO_ACTIVE_HIGH
@@ -61,7 +61,8 @@
             gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
             label = "GPS LED";
         };
-        rreset: rreset{
+
+        radioreset: radioreset{
             gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
             label ="Radio Reset";
         };
@@ -96,7 +97,7 @@
         };
         gps_timepulse: gps-timepulse{
             gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
-            label = "Reset pin on GPS";
+            label = "Timpepulse/Safeboot pin on GPS";
         };
         
     };
@@ -132,10 +133,10 @@
         };
     };
     soc{
-        // This is some BS
+        // This is some (necessary) BS
         // Should probably be in zephyr module but seemingly they forgot about it?
         // timer12 (TIM12) is a 16 bit 'General Purpose Timer' (Section 18 of STM32F446re reference manual RM0390)
-        // Memory mapped to 40001800 
+        // Memory mapped to 0x40001800 
         // Same type of timer as timers9 (TIM9) so copied definition from there
         // Took interrupt field from timers11 + 1 (seem to increment one by one)
         
@@ -167,7 +168,7 @@
 &timers3{
     st,prescaler = <1000>;
     status="okay";
-	pwm3: pwm3 {
+	pwm3: pwm {
         status = "okay";
         pinctrl-0 = <&tim3_ch1_pc6 &tim3_ch2_pc7>;
         pinctrl-names = "default";
@@ -175,16 +176,6 @@
     };
 };
 
-// &timers1 {
-    // st,prescaler = <1000>;
-    // status="okay";
-	// pwm1: pwm {
-        // status = "okay";
-        // pinctrl-0 = <&tim1_ch3n_pb15>;
-        // pinctrl-names = "default";
-// 
-    // };
-// };
 &timers12{
     st,prescaler = <1000>;
     status="okay";
@@ -265,10 +256,8 @@
 
     bmp390: bmp390@77 {
         status = "okay";
-        // status = "disabled";
         
         compatible = "bosch,bmp390";
-        // odr = "200";
         osr-press=<1>;
         osr-temp=<1>;
         reg = <0x77>;
