@@ -313,9 +313,13 @@ void transmit_horus2(uint8_t *buf, int len) {
     return;
 }
 
-void horus_work_handler(struct k_work *work) {
-    int64_t lat = (double) last_data.nav_data.latitude / 180e9;
-    int64_t lon = (double) last_data.nav_data.longitude / 180e9;
+bool is_transmitting = false;
+bool is_horus = true;
+K_TIMER_DEFINE(radio_timer, NULL, NULL);
+
+void make_and_transmit_horus() {
+    double lat = (double) last_data.nav_data.latitude / 180e9;
+    double lon = (double) last_data.nav_data.longitude / 180e9;
     uint16_t alt = last_data.nav_data.altitude;
     struct horus_packet_v2 data{
         .payload_id = 808,
@@ -323,8 +327,8 @@ void horus_work_handler(struct k_work *work) {
         .hours = last_data.utc.hour,
         .minutes = last_data.utc.minute,
         .seconds = (uint8_t) (last_data.utc.millisecond / 1000),
-        .latitude = lat,
-        .longitude = lon,
+        .latitude = (float) lat,
+        .longitude = (float) lon,
         .altitude = alt,
         .speed = last_data.nav_data.speed,
         .sats = (uint8_t) current_sats,
@@ -341,24 +345,16 @@ void horus_work_handler(struct k_work *work) {
     transmit_horus2(&packet[0], sizeof(packet));
 }
 
-K_WORK_DEFINE(horus_work, horus_work_handler);
-
-void send_horus(struct k_timer *) { k_work_submit(&horus_work); }
-
-bool is_horusing = false;
-K_TIMER_DEFINE(horus_timer, send_horus, NULL);
-
 static int cmd_horustx(const struct shell *shell, size_t argc, char **argv) {
-    if (is_horusing) {
-        shell_print(shell, "Stop Sending Horus");
-        k_timer_stop(&horus_timer);
-        is_horusing = false;
+    if (is_transmitting) {
+        shell_print(shell, "Stop Transmitting");
+        k_timer_stop(&radio_timer);
+        is_transmitting = false;
     } else {
-        // shell_print(shell, "Reset RFM");
-        // rfm9xw_software_reset();
         shell_print(shell, "Send Horus");
-        k_timer_start(&horus_timer, K_MSEC(5000), K_MSEC(5000));
-        is_horusing = true;
+        is_horus = true;
+        is_transmitting = true;
+        k_timer_start(&radio_timer, K_MSEC(5000), K_MSEC(5000));
     }
 
     return 0;
@@ -516,6 +512,20 @@ SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds,
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
+
+int radio_thread(){
+    while (true){
+        k_timer_status_sync(&radio_timer);
+        // wait till timesync
+        if (is_horus == true){
+            // horus
+        } else {
+            // lora
+        }
+    }
+    return 0;
+}
+
 
 int main() {
     // golay23_init();

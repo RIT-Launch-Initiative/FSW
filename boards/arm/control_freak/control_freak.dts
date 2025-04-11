@@ -49,8 +49,7 @@
         servo3: servo3 {
             label = "Servo 3 PWM";
             // &gpiob 15 GPIO_ACTIVE_HIGH
-            // pwms = <&pwm12 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
-            pwms = <&pwm1 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+            pwms = <&pwm12 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
         };
     };
 
@@ -132,43 +131,43 @@
             // anyway
         };
     };
-    // soc{
+    soc{
         // This is some BS
         // Should probably be in zephyr module but seemingly they forgot about it?
         // timer12 (TIM12) is a 16 bit 'General Purpose Timer' (Section 18 of STM32F446re reference manual RM0390)
         // Memory mapped to 40001800 
         // Same type of timer as timers9 (TIM9) so copied definition from there
         // Took interrupt field from timers11 + 1 (seem to increment one by one)
-        // 
-        // timers12: timers@40001800 {
-			// compatible = "st,stm32-timers";
-			// reg = <0x40001800 0x400>; // Datasheet: Page 69
-			// clocks = <&rcc STM32_CLOCK(APB1, 6U)>; // Reference Manual 173
-			// resets = <&rctl STM32_RESET(APB1, 6U)>;  // Reference Manual 173
-			// interrupts = <43 0>; // (See page 241 for matching timer 11 part)
-			// interrupt-names = "global";
-			// st,prescaler = <0>;
-			// status = "disabled";
-// 
-			// pwm {
-				// compatible = "st,stm32-pwm";
-				// status = "disabled";
-				// #pwm-cells = <3>;
-			// };
-// 
-			// counter {
-				// compatible = "st,stm32-counter";
-				// status = "disabled";
-			// };
-		// };
-    // };
+        
+        timers12: timers@40001800 {
+			compatible = "st,stm32-timers";
+			reg = <0x40001800 0x400>; // Datasheet: Page 69
+			clocks = <&rcc STM32_CLOCK(APB1, 6U)>; // Reference Manual 173
+			resets = <&rctl STM32_RESET(APB1, 6U)>;  // Reference Manual 173
+			interrupts = <43 0>; // (See page 241 for matching timer 11 part)
+			interrupt-names = "global";
+			st,prescaler = <0>;
+			status = "disabled";
+
+			pwm {
+				compatible = "st,stm32-pwm";
+				status = "disabled";
+				#pwm-cells = <3>;
+			};
+
+			counter {
+				compatible = "st,stm32-counter";
+				status = "disabled";
+			};
+		};
+    };
 
 };
 
 &timers3{
     st,prescaler = <1000>;
     status="okay";
-	pwm3: pwm {
+	pwm3: pwm3 {
         status = "okay";
         pinctrl-0 = <&tim3_ch1_pc6 &tim3_ch2_pc7>;
         pinctrl-names = "default";
@@ -176,25 +175,25 @@
     };
 };
 
-&timers1 {
-    st,prescaler = <1000>;
-    status="okay";
-	pwm1: pwm {
-        status = "okay";
-        pinctrl-0 = <&tim1_ch3n_pb15>;
-        pinctrl-names = "default";
-
-    };
-};
-// &timers12{
+// &timers1 {
     // st,prescaler = <1000>;
     // status="okay";
-	// pwm12: pwm {
+	// pwm1: pwm {
         // status = "okay";
-        // pinctrl-0 = <&tim12_ch2_pb15>;
+        // pinctrl-0 = <&tim1_ch3n_pb15>;
         // pinctrl-names = "default";
-	// };
+// 
+    // };
 // };
+&timers12{
+    st,prescaler = <1000>;
+    status="okay";
+	pwm12: pwm {
+        status = "okay";
+        pinctrl-0 = <&tim12_ch2_pb15>;
+        pinctrl-names = "default";
+	};
+};
 
 
 
