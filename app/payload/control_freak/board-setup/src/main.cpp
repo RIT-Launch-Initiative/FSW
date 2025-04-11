@@ -106,7 +106,7 @@ int main() {
 
     uint32_t pulse_width = min_pulse;
     int ret;
-    const pwm_dt_spec *servos[3] = {&servo3, &servo3, &servo3};
+    const pwm_dt_spec *servos[3] = {&servo1, &servo2, &servo3};
 
     printk("Servomotor control\n");
 

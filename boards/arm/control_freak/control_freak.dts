@@ -139,12 +139,13 @@
         // Memory mapped to 40001800 
         // Same type of timer as timers9 (TIM9) so copied definition from there
         // Took interrupt field from timers11 + 1 (seem to increment one by one)
+        // 
         // timers12: timers@40001800 {
 			// compatible = "st,stm32-timers";
-			// reg = <0x40001800 0x400>;
-			// clocks = <&rcc STM32_CLOCK(APB2, 16U)>;
-			// resets = <&rctl STM32_RESET(APB2, 16U)>;
-			// interrupts = <27 0>; // Is this real? timer1 has 27 as an interrupt (but also has 26 which timers11 has)
+			// reg = <0x40001800 0x400>; // Datasheet: Page 69
+			// clocks = <&rcc STM32_CLOCK(APB1, 6U)>; // Reference Manual 173
+			// resets = <&rctl STM32_RESET(APB1, 6U)>;  // Reference Manual 173
+			// interrupts = <43 0>; // (See page 241 for matching timer 11 part)
 			// interrupt-names = "global";
 			// st,prescaler = <0>;
 			// status = "disabled";

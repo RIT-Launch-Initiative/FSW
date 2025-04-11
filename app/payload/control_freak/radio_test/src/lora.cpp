@@ -4,6 +4,9 @@
 #include <zephyr/drivers/lora.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/types.h>
+// BS ALERT
+#include "sx1276/sx1276.h"
+
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
 #define MAX_SATS 20
@@ -34,7 +37,7 @@ struct LoraPacket {
 static struct lora_modem_config mymodem_config = {
     .frequency = 434000000,
     .bandwidth = BW_125_KHZ,
-    .datarate = SF_10,
+    .datarate = SF_12,
     .coding_rate = CR_4_5,
     .preamble_len = 8,
     .tx_power = 5,
@@ -132,6 +135,8 @@ void send_lora(struct k_timer_t *) {
         printk("Bad lora cfg: %d", ret);
         return;
     }
+    // SX1276Write(REG_LR_MODEMCONFIG1, 0b00000010);
+
     // clang-format off
     struct LoraPacket data = {
         .callsign = {'K', 'C', '1', 'T', 'P', 'R'},
@@ -149,7 +154,9 @@ void send_lora(struct k_timer_t *) {
 
 int cmd_loratx(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Sending LoRa");
-
-    send_lora(NULL);
+    while (true) {
+        send_lora(NULL);
+        k_msleep(2000);
+    }
     return 0;
 }

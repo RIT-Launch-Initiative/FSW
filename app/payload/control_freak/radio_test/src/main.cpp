@@ -251,14 +251,86 @@ int32_t rfm9xw_software_reset() {
 void transmit_horus(uint8_t *buf, int len) {
     printk("Transmitting horus packet len %d\n", len);
     const uint32_t carrier = 434000000;
-    const uint32_t deviation = 900;
+    const float step = 500;
 
     const uint32_t bitrate = 100;
     const int usec_per_symbol = 1000000 / bitrate;
 
+    // const uint32_t symbols[4] = {carrier - (step * 3) / 2, carrier - step / 2, carrier + step / 2,
+    //  carrier + (3 * step) / 2};
+    const uint32_t symbols[4] = {carrier, carrier + step, carrier + step * 2, carrier + step * 3};
+
+    // {0, step, 2 * step, 3 * step};
+    ; //{3 * step, 2 * step, step, 0};
+
+    SX1276Write(REG_OPMODE,
+                RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_SLEEP); // Standby FSK
+
+    SX1276Write(REG_OPMODE,
+                RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
+    SX1276Write(REG_PLLHOP, RF_PLLHOP_FASTHOP_ON | 0x2d); // Fast hop on | default value
+    // SX1276Write(REG_LR_PACONFIG, 0b11111111);             // Fast hop on | default value
+
+    set_pramble_len(0);
+    set_frequency_deviation(1);
+    set_carrier_frequency(symbols[3]);
+    // start transmitting
+    SX1276Write(REG_OPMODE, RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_TRANSMITTER);
+
+    uint64_t startms = k_uptime_get();
+    struct k_timer bitrate_timer;
+    k_timer_init(&bitrate_timer, NULL, NULL);
+    k_timer_start(&bitrate_timer, K_USEC(usec_per_symbol), K_USEC(usec_per_symbol));
+    int preamble_len = 32;
+    // transmit preamble 0, 1, 2, 3(low, 2nd lowest, 2nfd highest, highest)
+    for (int i = 0; i < preamble_len; i++) {
+        for (int j = 0; j < 4; j++) {
+            k_timer_status_sync(&bitrate_timer);
+            set_carrier_frequency(symbols[3 - j]);
+        }
+    }
+
+    printf("GOING TO DO STUFF\n");
+    for (int byte_index = 0; byte_index < len; byte_index++) {
+        const uint8_t byte = buf[byte_index];
+
+        const uint8_t syms[4] = {
+            (uint8_t) ((byte >> 6) & 0b11),
+            (uint8_t) ((byte >> 4) & 0b11),
+            (uint8_t) ((byte >> 2) & 0b11),
+            (uint8_t) ((byte >> 0) & 0b11),
+        };
+        for (int sym_index = 0; sym_index < 4; sym_index++) {
+            uint8_t sym = syms[sym_index];
+            uint32_t f = symbols[sym];
+            k_timer_status_sync(&bitrate_timer);
+            set_carrier_frequency(f);
+        }
+    }
+    // Last symbol
+    k_timer_status_sync(&bitrate_timer);
+    uint64_t endms = k_uptime_get();
+    printf("Elapsed: %d ms\n", (int) (endms - startms));
+    // Then turn off
+    SX1276Write(REG_OPMODE,
+                RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
+    k_timer_stop(&bitrate_timer);
+
+    return;
+}
+void transmit_horus2(uint8_t *buf, int len) {
+    printk("Transmitting horus packet len %d\n", len);
+    const uint32_t carrier = 434000000;
+    const float deviation = 405;
+
+    const uint32_t bitrate = 100;
+    const int usec_per_symbol = 10079; //1000000 / bitrate;
+
     const uint32_t high = carrier + deviation;
-    const uint32_t step = deviation * 2 / 3;
+    const uint32_t step = (uint32_t) ((float) deviation * 2.f / 3.f);
     const uint32_t symbols_fdev[4] = {3 * step, 2 * step, step, 0};
+    // {0, step, 2 * step, 3 * step};
+    ; //{3 * step, 2 * step, step, 0};
 
     SX1276Write(REG_OPMODE,
                 RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_SLEEP); // Standby FSK
@@ -270,19 +342,19 @@ void transmit_horus(uint8_t *buf, int len) {
     set_pramble_len(0);
     set_carrier_frequency(high);
     // start transmitting
-    set_frequency_deviation(symbols_fdev[0]);
+    set_frequency_deviation(symbols_fdev[3]);
     SX1276Write(REG_OPMODE, RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_TRANSMITTER);
 
     uint64_t startms = k_uptime_get();
     struct k_timer bitrate_timer;
     k_timer_init(&bitrate_timer, NULL, NULL);
     k_timer_start(&bitrate_timer, K_USEC(usec_per_symbol), K_USEC(usec_per_symbol));
-    int preamble_len = 4;
+    int preamble_len = 16;
     // transmit preamble 0,1,2,3 (low, 2nd lowest, 2nfd highest, highest)
     for (int i = 0; i < preamble_len; i++) {
         for (int j = 0; j < 4; j++) {
             k_timer_status_sync(&bitrate_timer);
-            set_frequency_deviation(symbols_fdev[j]);
+            set_frequency_deviation(symbols_fdev[3 - j]);
         }
     }
 
@@ -313,9 +385,10 @@ void transmit_horus(uint8_t *buf, int len) {
 
     return;
 }
+
 void send_horus(struct k_timer_t *) {
-    float lat = 0;
-    float lon = 0;
+    float lat = 43.123123123;
+    float lon = 72.125;
     uint16_t alt = last_data.nav_data.altitude;
     struct horus_packet_v2 data{
         .payload_id = 808,
@@ -326,17 +399,32 @@ void send_horus(struct k_timer_t *) {
         .latitude = lat,
         .longitude = lon,
         .altitude = 150,
-        .speed = 0,
+        .speed = 20,
         .sats = (uint8_t) current_sats,
-        .temp = 0,
+        .temp = 40,
         .battery_voltage = 255,
         .custom_data = {1, 2, 3, 4, 5, 6, 7, 8, 9},
         .checksum = 0,
     };
-    memset((void *) &data, 0, sizeof(data));
-    data.payload_id = 808;
+    // uint8_t *pacbytes = (uint8_t *) &data;
+    // char stuff[] = {0x28, 0x03, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    // 0x00, 0x00, 0x00, 0x1E, 0x9C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA9, 0x43};
+    //
+    // for (int i = 0; i < sizeof(data); i++) {
+    // pacbytes[i] = stuff[i];
+    // }
+    // memset((void *) &data, 0, sizeof(data));
+    // data.payload_id = 808;
+    // data.latitude = 43.0;
+    // data.longitude = -72.0;
+
     horus_seq_number++;
     horus_packet_v2_encoded_buffer_t packet = {0};
+    // {
+    // 0x24, 0x24, 0xE4, 0x6F, 0x1C, 0x2D, 0x2C, 0x5D, 0x83, 0xC9, 0x93, 0x16, 0xED, 0xC9, 0xC9, 0xD4, 0x7D,
+    // 0x0E, 0x3F, 0x38, 0x21, 0x90, 0xFB, 0x06, 0xFB, 0x85, 0xFA, 0x23, 0x20, 0x49, 0x81, 0xFB, 0xD5, 0x72,
+    // 0x1E, 0x51, 0x59, 0xD5, 0x46, 0x5E, 0xFE, 0xDA, 0x18, 0x5B, 0x98, 0xBB, 0x2A, 0x83, 0x5F, 0x2D, 0x79,
+    // 0x19, 0x02, 0x91, 0xA1, 0xB6, 0x32, 0x72, 0x4E, 0xE1, 0x11, 0x99, 0xCC, 0x72, 0xDD};
     horusv2_encode(&data, &packet);
 
     printf("DECODED:\n");
@@ -349,7 +437,10 @@ void send_horus(struct k_timer_t *) {
         printf("%02d: %02x\n ", i, packet[i]);
     }
     printf("\n");
-    transmit_horus(&packet[0], sizeof(packet));
+    while (true) {
+        transmit_horus2(&packet[0], sizeof(packet));
+        k_msleep(1000);
+    }
 }
 // extern "C" int golay23_init(void);
 static int cmd_horustx(const struct shell *shell, size_t argc, char **argv) {
