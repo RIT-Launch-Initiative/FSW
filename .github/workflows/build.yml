@@ -16,6 +16,7 @@ env:
     app/backplane/power_module
     app/backplane/radio_module
     app/backplane/sensor_module
+    app/payload/control_freak/flight-software
   platforms: |
     nucleo_f446re
     deployment_module
