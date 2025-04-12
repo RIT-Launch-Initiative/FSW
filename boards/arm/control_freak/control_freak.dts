@@ -121,7 +121,7 @@
             partition = <&external_storage_partition>;
             automount;
 
-            // the binding reccomends defaults for these
+            // the binding recommends defaults for these
             read-size = <16>;
             prog-size = <16>;
             cache-size = <16>; // may need to grow for optimization
