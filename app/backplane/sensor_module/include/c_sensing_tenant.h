@@ -30,7 +30,7 @@ class CSensingTenant : public CTenant {
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
     CMessagePort<NTypes::SensorData> &dataToLog;
 
-    CDetectionHandler &detection_handler;
+    CDetectionHandler &detectionHandler;
     // Sensor instances
     CAccelerometer imuAccelerometer;
     CGyroscope imuGyroscope;

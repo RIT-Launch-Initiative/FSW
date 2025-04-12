@@ -13,9 +13,12 @@ static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQu
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
 
+K_MSGQ_DEFINE(alertQueue, sizeof(const char *), 10, 4);
+static auto alertMsgQueue = CMsgqMessagePort<std::array<uint8_t, 7>>(alertQueue);
+
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),
-      sensorDataLogMessagePort(dataLogMsgQueue), flight_log{generateFlightLogPath()} {}
+      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{generateFlightLogPath()} {}
 
 std::string CSensorModule::generateFlightLogPath() {
     constexpr size_t MAX_FLIGHT_LOG_PATH_SIZE = 32;
@@ -40,7 +43,7 @@ std::string CSensorModule::generateFlightLogPath() {
 void CSensorModule::AddTenantsToTasks() {
     // Networking
     networkTask.AddTenant(broadcastTenant);
-    networkTask.AddTenant(tftpServerTenant);
+    networkTask.AddTenant(udpAlertTenant);
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);
