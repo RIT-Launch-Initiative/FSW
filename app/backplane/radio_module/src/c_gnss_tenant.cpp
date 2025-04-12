@@ -20,10 +20,12 @@ static void gnssCallback(const device *, const gnss_data *data) {
     gnssUpdated = 1;
     memcpy(&coordinates, &gnssLogData.gnssData.coordinates, sizeof(NGnssUtils::GnssCoordinates));
 
-    LOG_DBG("Latitude: %f, Longitude: %f, Altitude: %f",
+    LOG_INF("Latitude: %f, Longitude: %f, Altitude: %f",
         static_cast<double>(coordinates.latitude),
         static_cast<double>(coordinates.longitude),
         static_cast<double>(coordinates.altitude));
+
+    LOG_INF("Satellites: %d, Fix: %d", data->info.satellites_cnt, data->info.fix_status);
 
     // Set the rtc time
     rtc_time lastUpdated = {
@@ -58,15 +60,22 @@ void CGnssTenant::Run() {
     NTypes::GnssLoggingData logData{0};
 
     if (gnssUpdated) {
+        // Data Logging
         memcpy(&logData, &gnssLogData, sizeof(NTypes::GnssLoggingData));
         dataLoggingPort.Send(logData);
 
+        // LoRa
         if (transmitTimer.IsExpired()) {
             broadcastData.port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
             broadcastData.size = sizeof(NTypes::GnssBroadcastData);
             memcpy(broadcastData.data, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
             reinterpret_cast<NTypes::GnssBroadcastData*>(broadcastData.data)->updated = 1;
-            loraTransmitPort.Send(broadcastData);
+            if (loraTransmitPort.Send(broadcastData) < 0) {
+                // Unlikely edge case where there's no space in the message port,
+                // so we prioritize the GPS and clear everything else out to make room
+                loraTransmitPort.Clear();
+                loraTransmitPort.Send(broadcastData);
+            }
         }
 
         gnssUpdated = 0;
