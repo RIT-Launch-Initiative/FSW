@@ -247,7 +247,7 @@ int32_t rfm9xw_software_reset() {
 
     return 0;
 }
-void transmit_horus2(uint8_t *buf, int len) {
+void transmit_horus(uint8_t *buf, int len) {
     printk("Transmitting horus packet len %d\n", len);
     const uint32_t carrier = 434000000;
     const float deviation = 405;
@@ -318,8 +318,8 @@ bool is_horus = true;
 K_TIMER_DEFINE(radio_timer, NULL, NULL);
 
 void make_and_transmit_horus() {
-    double lat = (double) last_data.nav_data.latitude / 180e9;
-    double lon = (double) last_data.nav_data.longitude / 180e9;
+    double lat = (double) last_data.nav_data.latitude / 180e9f;
+    double lon = (double) last_data.nav_data.longitude / 180e9f;
     uint16_t alt = last_data.nav_data.altitude;
     struct horus_packet_v2 data{
         .payload_id = 808,
@@ -342,16 +342,18 @@ void make_and_transmit_horus() {
     horus_packet_v2_encoded_buffer_t packet = {0};
     horusv2_encode(&data, &packet);
 
-    transmit_horus2(&packet[0], sizeof(packet));
+    transmit_horus(&packet[0], sizeof(packet));
 }
 
 static int cmd_horustx(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
     if (is_transmitting) {
         shell_print(shell, "Stop Transmitting");
         k_timer_stop(&radio_timer);
         is_transmitting = false;
     } else {
-        shell_print(shell, "Send Horus");
+        shell_print(shell, "Sending Horus");
         is_horus = true;
         is_transmitting = true;
         k_timer_start(&radio_timer, K_MSEC(5000), K_MSEC(5000));
@@ -498,6 +500,7 @@ static int cmd_sat_info(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
+extern void make_and_send_lora();
 extern int cmd_loracfg(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_loratx(const struct shell *shell, size_t argc, char **argv);
 extern void init_modem();
@@ -515,12 +518,19 @@ SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL
 
 int radio_thread(){
     while (true){
-        k_timer_status_sync(&radio_timer);
+        // k_timer_status_sync(&radio_timer);
+        k_msleep(5000);
+        if (is_transmitting){
         // wait till timesync
         if (is_horus == true){
             // horus
+            printk("Horus\n");
+            make_and_transmit_horus();
         } else {
             // lora
+            printk("Lora\n");
+            make_and_send_lora();
+            }
         }
     }
     return 0;
@@ -533,6 +543,6 @@ int main() {
     // initial config 
     init_modem();
 
-
+    radio_thread();
     return 0;
 }

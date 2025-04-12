@@ -16,6 +16,10 @@ extern int current_tracked_sats;
 extern struct gnss_satellite last_sats[MAX_SATS];
 extern uint64_t last_fix_uptime;
 
+extern bool is_transmitting;
+extern bool is_horus;
+extern struct k_timer radio_timer;
+
 #pragma pack(push, 1)
 struct LoraPacket {
     char callsign[6];
@@ -41,6 +45,9 @@ static struct lora_modem_config mymodem_config = {
     .coding_rate = CR_4_5,
     .preamble_len = 8,
     .tx_power = 5,
+    .tx = true,
+    .iq_inverted = false,
+    .public_network = true,
 };
 
 void init_modem() {
@@ -127,7 +134,7 @@ int cmd_loracfg(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
-void send_lora(struct k_timer_t *) {
+void make_and_send_lora() {
     const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
     mymodem_config.tx = true;
     int ret = lora_config(dev, &mymodem_config);
@@ -135,7 +142,6 @@ void send_lora(struct k_timer_t *) {
         printk("Bad lora cfg: %d", ret);
         return;
     }
-    // SX1276Write(REG_LR_MODEMCONFIG1, 0b00000010);
 
     // clang-format off
     struct LoraPacket data = {
@@ -153,10 +159,17 @@ void send_lora(struct k_timer_t *) {
 }
 
 int cmd_loratx(const struct shell *shell, size_t argc, char **argv) {
-    shell_print(shell, "Sending LoRa");
-    while (true) {
-        send_lora(NULL);
-        k_msleep(2000);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    if (is_transmitting) {
+        shell_print(shell, "Stopping transmission");
+        is_transmitting = false;
+        k_timer_stop(&radio_timer);
+    } else {
+        shell_print(shell, "Starting Lora");
+        is_transmitting = true;
+        is_horus = false;
+        k_timer_start(&radio_timer, K_MSEC(5000), K_MSEC(5000));
     }
     return 0;
 }
