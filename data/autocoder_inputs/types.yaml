@@ -67,7 +67,7 @@ LoRaSignalData:
       type: float
   timestamp: false
 
-GnssCoordinateData:
+GnssCoordinates:
   description: GNSS coordinate data.
   fields:
     - name: Latitude
@@ -76,4 +76,17 @@ GnssCoordinateData:
       type: double
     - name: Altitude
       type: float
+  timestamp: false
+
+GnssInfo:
+  description: GNSS Info.
+  fields:
+    - name: SatelliteCount
+      type: uint16_t
+    - name: HorizontalDilution
+      type: uint32_t
+    - name: FixStatus
+      type: uint8_t
+    - name: FixQuality
+      type: uint8_t
   timestamp: false
