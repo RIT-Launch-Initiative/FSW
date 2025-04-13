@@ -7,8 +7,8 @@
 
 namespace NGnssUtils {
      struct __attribute__((packed)) GnssCoordinates {
-        float latitude;
-        float longitude;
+        double latitude;
+        double longitude;
         float altitude;
     };
 

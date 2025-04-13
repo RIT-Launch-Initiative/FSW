@@ -1,7 +1,6 @@
 #include "c_gnss_tenant.h"
 #include "c_radio_module.h"
 
-#include <f_core/utils/n_gnss_utils.h>
 #include <zephyr/drivers/rtc.h>
 
 #include <zephyr/logging/log.h>
@@ -9,22 +8,33 @@
 
 LOG_MODULE_REGISTER(CGnssTenant);
 
-static NTypes::GnssLoggingData gnssLogData{0};
-static NGnssUtils::GnssCoordinates coordinates{0};
+static NTypes::GnssData gnssLogData{0};
 static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
     static const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    gnssLogData.systemTime = k_uptime_get();
-    PopulateGnssStruct(data, &gnssLogData.gnssData);
+    gnssLogData.Coordinates.Latitude = static_cast<double>(data->nav_data.latitude) / 1000000000.0f;
+    gnssLogData.Coordinates.Longitude = static_cast<double>(data->nav_data.longitude) / 1000000000.0f;
+    gnssLogData.Coordinates.Altitude = static_cast<float>(data->nav_data.altitude) / 1000.0f;
+
+    gnssLogData.Info.FixQuality = data->info.fix_quality;
+    gnssLogData.Info.FixStatus = data->info.fix_status;
+    gnssLogData.Info.HorizontalDilution = data->info.hdop;
+    gnssLogData.Info.SatelliteCount = data->info.satellites_cnt;
+
+    gnssLogData.Time.Hour = data->utc.hour;
+    gnssLogData.Time.Minute = data->utc.minute;
+    gnssLogData.Time.Millisecond = data->utc.millisecond;
+    gnssLogData.Time.DayOfMonth = data->utc.month_day;
+    gnssLogData.Time.Month = data->utc.month;
+    gnssLogData.Time.YearOfCentury = data->utc.century_year;
 
     gnssUpdated = 1;
-    memcpy(&coordinates, &gnssLogData.gnssData.coordinates, sizeof(NGnssUtils::GnssCoordinates));
 
     LOG_DBG("Latitude: %f, Longitude: %f, Altitude: %f",
-        static_cast<double>(coordinates.latitude),
-        static_cast<double>(coordinates.longitude),
-        static_cast<double>(coordinates.altitude));
+        static_cast<double>(gnssLogData.Coordinates.Latitude),
+        static_cast<double>(gnssLogData.Coordinates.Longitude),
+        static_cast<double>(gnssLogData.Coordinates.Altitude));
 
     // Set the rtc time
     rtc_time lastUpdated = {
