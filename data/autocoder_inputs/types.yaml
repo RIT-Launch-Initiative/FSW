@@ -108,7 +108,28 @@ GnssTime:
       type: uint8_t
   timestamp: false
 
-LoRaBroadcastData:
+GnssData:
+  description: Consolidated GNSS data.
+  fields:
+    - name: Coordinates
+      type: GnssCoordinates
+    - name: Time
+      type: GnssTime
+    - name: Info
+      type: GnssInfo
+  timestamp: false
+
+GnssBroadcastPacket:
+  description: Helper GNSS packet to send to other radio devices.
+  fields:
+    - name: Coordinates
+      type: GnssCoordinates
+    - name: Info
+      type: GnssInfo
+  timestamp: false
+
+# TODO: Handle arrays LOL
+LoRaBroadcastData[256 - sizeof(uint16_t)]:
   description: Launch standardized LoRa packet.
   fields:
     - name: Port
@@ -116,4 +137,4 @@ LoRaBroadcastData:
     - name: Size
       type: uint8_t
     - name: Payload
-      type: uint8_t[256 - sizeof(uint16_t]
+      type: uint8_t

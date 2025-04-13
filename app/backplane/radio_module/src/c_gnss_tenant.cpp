@@ -5,6 +5,7 @@
 #include <zephyr/drivers/rtc.h>
 
 #include <zephyr/logging/log.h>
+#include <n_autocoder_types.h>
 
 LOG_MODULE_REGISTER(CGnssTenant);
 
