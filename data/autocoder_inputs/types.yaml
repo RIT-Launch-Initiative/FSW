@@ -107,3 +107,13 @@ GnssTime:
     - name: YearOfCentury
       type: uint8_t
   timestamp: false
+
+LoRaBroadcastData:
+  description: Launch standardized LoRa packet.
+  fields:
+    - name: Port
+      type: uint16_t
+    - name: Size
+      type: uint8_t
+    - name: Payload
+      type: uint8_t[256 - sizeof(uint16_t]
