@@ -90,3 +90,20 @@ GnssInfo:
     - name: FixQuality
       type: uint8_t
   timestamp: false
+
+GnssTime:
+  description: GNSS Time.
+  fields:
+    - name: Hour
+      type: uint8_t
+    - name: Minute
+      type: uint8_t
+    - name: Millisecond
+      type: uint16_t
+    - name: DayOfMonth
+      type: uint8_t
+    - name: Month
+      type: uint8_t
+    - name: YearOfCentury
+      type: uint8_t
+  timestamp: false
