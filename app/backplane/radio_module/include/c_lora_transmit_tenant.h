@@ -1,6 +1,8 @@
 #ifndef C_LORA_TRANSMIT_TENANT_H
 #define C_LORA_TRANSMIT_TENANT_H
 
+#include <array>
+
 #include "n_radio_module_types.h"
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
@@ -71,6 +73,8 @@ private:
     CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
     CHashMap<uint16_t, NTypes::RadioBroadcastData> portDataMap; // 254 bytes to leave room for port
     CHashMap<uint16_t, bool> padDataRequestedMap;
+    // Maintain a list of ports we had at startup, in case anyone tries to be funny and add a port
+    std::array<uint16_t, totalPortsListenedTo> listeningPortsList;
 };
 
 #endif //C_LORA_TRANSMIT_TENANT_H
