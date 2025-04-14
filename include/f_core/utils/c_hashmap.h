@@ -22,7 +22,10 @@ public:
         if (!isMainThreadCurrent()) {
             if (!map.contains(key) && size > maxSizeReachedAtStartup) {
                 printk("Attempted to insert more than the maximum size of the hashmap post-startup"); // LOG doesn't work well in templates
+// Only k_oops in debug mode. Unlikely to occur in an actual flight, and in the off-chance it does we shouldn't fatal the entire system over it
+#ifdef CONFIG_DEBUG
                 k_oops();
+#endif
 
                 return false;
             }
@@ -77,7 +80,7 @@ public:
     ValueType& operator[](const KeyType& key) {
         if (!map.contains(key)) {
             printk("Attempted to access a key that does not exist in the hashmap"); // LOG doesn't work well in templates
-            k_oops();
+            return nullptr;
         }
 
         return map[key];
