@@ -47,8 +47,8 @@ void CLoraReceiveTenant::PadRun() {
                 gpios[i].SetPin((buffer[2] >> i) & 1);
             }
 
-            // Pack status into RadioBroadcastData
-            NTypes::RadioBroadcastData pinStatus = {0};
+            // Pack status into LoRaBroadcastData
+            NTypes::LoRaBroadcastData pinStatus = {0};
 
             pinStatus.port = NNetworkDefs::RADIO_MODULE_COMMAND_RESPONSE_PORT;
             pinStatus.size = rxSize;

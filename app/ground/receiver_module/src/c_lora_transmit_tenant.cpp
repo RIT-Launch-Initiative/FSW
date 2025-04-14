@@ -15,12 +15,12 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-    NTypes::RadioBroadcastData data{};
+    NTypes::LoRaBroadcastData data{};
     if (readTransmitQueue(data)) {
         transmit(data);
     }
 }
-void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
+void CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
     if (data.size > (256 - 2)) {
@@ -40,7 +40,7 @@ void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const
     lora.TransmitSynchronous(txData.data(), data.size + 2);
 }
 
-bool CLoraTransmitTenant::readTransmitQueue(NTypes::RadioBroadcastData& data) const {
+bool CLoraTransmitTenant::readTransmitQueue(NTypes::LoRaBroadcastData& data) const {
     if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
         LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
         return false;

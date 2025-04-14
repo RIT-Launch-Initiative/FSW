@@ -2,9 +2,8 @@
 #include "c_radio_module.h"
 
 #include <zephyr/drivers/rtc.h>
-
+#include <zephyr/drivers/gnss.h>
 #include <zephyr/logging/log.h>
-#include <n_autocoder_types.h>
 
 LOG_MODULE_REGISTER(CGnssTenant);
 
@@ -65,11 +64,11 @@ void CGnssTenant::PostStartup() {
 }
 
 void CGnssTenant::Run() {
-    NTypes::RadioBroadcastData broadcastData{0};
-    NTypes::GnssLoggingData logData{0};
+    NTypes::LoRaBroadcastData broadcastData{0};
+    NTypes::GnssData logData{0};
 
     if (gnssUpdated) {
-        memcpy(&logData, &gnssData, sizeof(NTypes::GnssLoggingData));
+        memcpy(&logData, &gnssData, sizeof(NTypes::GnssData));
         dataLoggingPort.Send(logData);
 
         if (transmitTimer.IsExpired()) {

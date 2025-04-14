@@ -14,7 +14,7 @@ void CUdpListenerTenant::PostStartup() {
 }
 
 void CUdpListenerTenant::Run() {
-    NTypes::RadioBroadcastData radioBroadcastData{0};
+    NTypes::LoRaBroadcastData radioBroadcastData{0};
 
     // Note len argument is the size of the data buffer, not how much data to receive!
     // rcvResult will contain the actual amount of data received or -1 on error

@@ -33,13 +33,13 @@ void CLoraTransmitTenant::Run() {
 }
 
 void CLoraTransmitTenant::PadRun() {
-    NTypes::RadioBroadcastData rxData{};
+    NTypes::LoRaBroadcastData rxData{};
     readTransmitQueue(rxData);
     portDataMap.Set(rxData.port, rxData);
 
     for (const auto &[port, requested] : padDataRequestedMap) {
         if (requested) {
-            NTypes::RadioBroadcastData data = portDataMap.Get(port).value_or(NTypes::RadioBroadcastData{.port = 0, .size = 0});
+            NTypes::LoRaBroadcastData data = portDataMap.Get(port).value_or(NTypes::LoRaBroadcastData{.port = 0, .size = 0});
             if (port == 0) {
                 continue;
             }
@@ -52,7 +52,7 @@ void CLoraTransmitTenant::PadRun() {
 
 
 void CLoraTransmitTenant::FlightRun() {
-    NTypes::RadioBroadcastData data{};
+    NTypes::LoRaBroadcastData data{};
     if (readTransmitQueue(data)) {
         transmit(data);
     }
@@ -60,14 +60,14 @@ void CLoraTransmitTenant::FlightRun() {
 
 
 void CLoraTransmitTenant::LandedRun() {
-    NTypes::RadioBroadcastData data{};
+    NTypes::LoRaBroadcastData data{};
 
     if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
         transmit(data);
     }
 }
 
-void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
+void CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
     if (data.size > (256 - 2)) {
@@ -88,7 +88,7 @@ void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const
 }
 
 // TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead
-bool CLoraTransmitTenant::readTransmitQueue(NTypes::RadioBroadcastData& data) const {
+bool CLoraTransmitTenant::readTransmitQueue(NTypes::LoRaBroadcastData& data) const {
     if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
         LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
         return false;
