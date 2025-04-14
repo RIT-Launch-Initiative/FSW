@@ -36,11 +36,11 @@ void CLoraTransmitTenant::Run() {
 void CLoraTransmitTenant::PadRun() {
     NTypes::LoRaBroadcastData rxData{};
     readTransmitQueue(rxData);
-    portDataMap.Set(rxData.port, rxData);
+    portDataMap.Set(rxData.Port, rxData);
 
     for (const auto &[port, requested] : padDataRequestedMap) {
         if (requested) {
-            NTypes::LoRaBroadcastData data = portDataMap.Get(port).value_or(NTypes::LoRaBroadcastData{.port = 0, .size = 0});
+            NTypes::LoRaBroadcastData data = portDataMap.Get(port).value_or(NTypes::LoRaBroadcastData{.Port = 0, .Size = 0});
             if (port == 0) {
                 continue;
             }
@@ -63,7 +63,7 @@ void CLoraTransmitTenant::FlightRun() {
 void CLoraTransmitTenant::LandedRun() {
     NTypes::LoRaBroadcastData data{};
 
-    if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
+    if (readTransmitQueue(data) && data.Port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
         transmit(data);
     }
 }
@@ -71,21 +71,21 @@ void CLoraTransmitTenant::LandedRun() {
 void CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
-    if (data.size > (256 - 2)) {
+    if (data.Size > (256 - 2)) {
         // This case should never occur. If it does, then developer is sending too much data
-        LOG_ERR("Received data exceeds LoRa packet size from port %d", data.port);
+        LOG_ERR("Received data exceeds LoRa packet size from port %d", data.Port);
         return;
-    } else if (data.size == 0) {
+    } else if (data.Size == 0) {
         // This case should *rarely* occur.
-        LOG_WRN_ONCE("Received data is empty from port %d", data.port);
+        LOG_WRN_ONCE("Received data is empty from port %d", data.Port);
         return;
     }
 
-    memcpy(txData.begin(), &data.port, 2);             // Copy port number to first 2 bytes
-    memcpy(txData.begin() + 2, &data.data, data.size); // Copy payload to the rest of the buffer
+    memcpy(txData.begin(), &data.Port, 2);             // Copy port number to first 2 bytes
+    memcpy(txData.begin() + 2, &data.Payload, data.Size); // Copy payload to the rest of the buffer
 
-    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
-    lora.TransmitSynchronous(txData.data(), data.size + 2);
+    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.Size, data.Port);
+    lora.TransmitSynchronous(txData.data(), data.Size + 2);
 }
 
 // TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead

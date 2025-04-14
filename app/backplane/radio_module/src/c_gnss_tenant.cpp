@@ -31,9 +31,9 @@ static void gnssCallback(const device *, const gnss_data *data) {
     gnssUpdated = 1;
 
     LOG_DBG("Latitude: %f, Longitude: %f, Altitude: %f",
-        static_cast<double>(gnssLogData.Coordinates.Latitude),
-        static_cast<double>(gnssLogData.Coordinates.Longitude),
-        static_cast<double>(gnssLogData.Coordinates.Altitude));
+        static_cast<double>(gnssData.Coordinates.Latitude),
+        static_cast<double>(gnssData.Coordinates.Longitude),
+        static_cast<double>(gnssData.Coordinates.Altitude));
 
     // Set the rtc time
     rtc_time lastUpdated = {
@@ -75,7 +75,7 @@ void CGnssTenant::Run() {
             broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
             broadcastData.Size = sizeof(NTypes::GnssBroadcastPacket);
             // memcpy(broadcastData.data, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
-            reinterpret_cast<NTypes::GnssBroadcastData*>(broadcastData.Data)->updated = 1;
+            // reinterpret_cast<NTypes::GnssBroadcastData*>(broadcastData.Data)->updated = 1;
             loraTransmitPort.Send(broadcastData);
         }
 
