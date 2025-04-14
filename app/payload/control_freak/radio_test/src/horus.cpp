@@ -197,7 +197,7 @@ void transmit_horus(uint8_t *buf, int len) {
     SX1276Write(REG_OPMODE,
                 RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
     SX1276Write(REG_PLLHOP, RF_PLLHOP_FASTHOP_ON | 0x2d); // Fast hop on | default value
-    // SX1276Write(REG_PACONFIG, 0b11111111);
+    SX1276Write(REG_PACONFIG, 0b11111111);
     set_pramble_len(0);
     set_carrier_frequency(high);
 

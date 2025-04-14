@@ -1,3 +1,5 @@
+#include "f_core/radio/protocols/horus/horus.h"
+
 #include <stdlib.h>
 #include <zephyr/drivers/gnss.h>
 #include <zephyr/drivers/gpio.h>
@@ -133,6 +135,7 @@ int cmd_loracfg(const struct shell *shell, size_t argc, char **argv) {
     mymodem_config.frequency = freq;
     return 0;
 }
+uint16_t lora_seq_number = 0;
 
 void make_and_send_lora() {
     const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
@@ -143,17 +146,27 @@ void make_and_send_lora() {
         return;
     }
 
-    // clang-format off
-    struct LoraPacket data = {
-        .callsign = {'K', 'C', '1', 'T', 'P', 'R'},
-        .current_sats = (uint8_t)current_sats,
-        .sats_tracked = (uint8_t)current_tracked_sats, 
-        .latitude = last_data.nav_data.latitude, 
-        .longitude = last_data.nav_data.longitude,
-        .bearing = last_data.nav_data.bearing, 
-        .speed = last_data.nav_data.bearing,
-        .altitude = last_data.nav_data.altitude
+    double lat = (double) last_data.nav_data.latitude / 180e9f;
+    double lon = (double) last_data.nav_data.longitude / 180e9f;
+    uint16_t alt = last_data.nav_data.altitude;
+    struct horus_packet_v2 data{
+        .payload_id = 808,
+        .counter = lora_seq_number,
+        .hours = last_data.utc.hour,
+        .minutes = last_data.utc.minute,
+        .seconds = (uint8_t) (last_data.utc.millisecond / 1000),
+        .latitude = (float) lat,
+        .longitude = (float) lon,
+        .altitude = alt,
+        .speed = last_data.nav_data.speed,
+        .sats = (uint8_t) current_sats,
+        .temp = 40,
+        .battery_voltage = 255,
+        .custom_data = {1, 2, 3, 4, 5, 6, 7, 8, 9},
+        .checksum = 0,
     };
+    lora_seq_number++;
+
     // clang-format on
     ret = lora_send(dev, (uint8_t *) &data, sizeof(data));
 }

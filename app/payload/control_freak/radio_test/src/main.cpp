@@ -90,6 +90,8 @@ struct gnss_satellite last_sats[MAX_SATS] = {};
 uint64_t last_fix_uptime = 0;
 
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
+    ARG_UNUSED(dev);
+
     last_data = *data;
 
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
@@ -99,6 +101,8 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
 GNSS_DATA_CALLBACK_DEFINE(GNSS_MODEM, gnss_data_cb);
 
 static void gnss_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size) {
+    ARG_UNUSED(dev);
+
     unsigned int tracked_count = 0;
     current_sats = size;
     for (unsigned int i = 0; i != size; ++i) {
@@ -272,10 +276,17 @@ extern int cmd_servo_off(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_on(const struct shell *shell, size_t argc, char **argv);
 
 int cmd_pump_off(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(shell);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
     printk("Pump Off\n");
     return gpio_pin_set_dt(&pump_enable, 0);
 }
 int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(shell);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
     printk("Pump On\n");
     return gpio_pin_set_dt(&pump_enable, 1);
 }
@@ -288,15 +299,26 @@ SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds,
         SHELL_CMD(info, NULL, "GNSS Info to shell", cmd_gnss_info),
         SHELL_CMD(sat, NULL, "Sat Info to shell", cmd_sat_info),
         SHELL_CMD(fixstat, NULL, "Fix info", cmd_fix_info),
-        SHELL_CMD(loratx, NULL, "Transmit lora packet (according to cfglora settings)", cmd_loratx),
-        SHELL_CMD(horustx, NULL, "Transmit horus packet (according to cfghorus settings)", cmd_horustx),
-        SHELL_CMD(cfglora, NULL, "Configure lora (BW SF CR)", cmd_loracfg),
-        SHELL_CMD(servo, NULL, "Send Servo Command", cmd_servo),
-        SHELL_CMD(servoon, NULL, "Turn on servo power", cmd_servo_on),
-        SHELL_CMD(servooff, NULL, "Turn off servo power", cmd_servo_off),
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
+
+SHELL_STATIC_SUBCMD_SET_CREATE(servo_subcmds, 
+        SHELL_CMD(move, NULL, "move servo", cmd_servo),
+        SHELL_CMD(on, NULL, "Turn on servo power", cmd_servo_on),
+        SHELL_CMD(off, NULL, "Turn off servo power", cmd_servo_off),
+        SHELL_SUBCMD_SET_END);
+
+SHELL_CMD_REGISTER(servo, &servo_subcmds, "Servo Commands", NULL);
+
+SHELL_STATIC_SUBCMD_SET_CREATE(radio_subcmds, 
+        SHELL_CMD(loratx, NULL, "Transmit lora packet (according to cfglora settings)", cmd_loratx),
+        SHELL_CMD(horustx, NULL, "Transmit horus packet (according to cfghorus settings)", cmd_horustx),
+        SHELL_CMD(cfglora, NULL, "Configure lora (BW SF CR)", cmd_loracfg),
+        SHELL_SUBCMD_SET_END);
+
+SHELL_CMD_REGISTER(radio, &radio_subcmds, "Radio Commands", NULL);
+
 
 SHELL_STATIC_SUBCMD_SET_CREATE(pump_subcmds, 
         SHELL_CMD(on, NULL, "Pump on", cmd_pump_on),

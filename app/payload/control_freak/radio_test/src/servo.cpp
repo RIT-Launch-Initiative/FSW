@@ -12,7 +12,7 @@ static const uint32_t max_pulse = PWM_USEC(2200); //DT_PROP(DT_PARENT(DT_ALIAS(s
 
 // 1000 2000 100deg
 //  800 2200 145deg no jitter
-//  600 2400 145deg  no jitter
+//  600 2400 145deg no jitter
 
 #define SERVO_EN DT_NODELABEL(servo_enable)
 static const struct gpio_dt_spec servo_en = GPIO_DT_SPEC_GET(SERVO_EN, gpios);
@@ -53,8 +53,17 @@ int init_servo() {
     return 0;
 }
 
-int cmd_servo_on(const struct shell *shell, size_t argc, char **argv) { return init_servo(); }
+int cmd_servo_on(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(shell);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    return init_servo();
+}
 int cmd_servo_off(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(shell);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
     int ret = gpio_pin_set_dt(&servo_en, 0);
     if (ret < 0) {
         printk("couldnt set servo_en: %d\n", ret);
@@ -68,6 +77,9 @@ int cmd_servo_off(const struct shell *shell, size_t argc, char **argv) {
 }
 
 int cmd_servo(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(shell);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
     if (argc != 3) {
         shell_print(shell, "Wrong number of args");
         shell_print(shell, "Help: servo 1/2/3 o/c");
