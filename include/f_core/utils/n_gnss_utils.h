@@ -3,41 +3,33 @@
 
 #include <zephyr/drivers/gnss.h>
 
-
-
 namespace NGnssUtils {
-     struct __attribute__((packed)) GnssCoordinates {
-        double latitude;
-        double longitude;
-        float altitude;
-    };
+    static constexpr float zephyrCoordinateScale = 1e9f;
+    static constexpr float zephyrAltitudeScale = 1e3f;
 
-    struct __attribute__((packed)) GnssTime {
-        uint32_t time;
-        uint32_t date;
-    };
+    inline float ScaleLatitudeInt64ToFloat(int64_t latitude) {
+        return static_cast<float>(latitude) / zephyrCoordinateScale;
+    }
 
-    struct __attribute__((packed)) GnssInfo {
-        uint8_t satelliteId;
-        uint8_t elevation;
-        uint16_t azimuth;
-        uint8_t snr;
-    };
+    inline float ScaleLongitudeInt64ToFloat(int64_t longitude) {
+        return static_cast<float>(longitude) / zephyrCoordinateScale;
+    }
 
-    struct __attribute__((packed)) GnssData {
-        GnssCoordinates coordinates;
-        GnssTime time;
-        GnssInfo info;
-    };
+    inline float ScaleAltitudeInt64ToFloat(int64_t altitude) {
+        return static_cast<float>(altitude) / zephyrAltitudeScale;
+    }
 
-    void PopulateGnssNavigationData(const navigation_data* data, GnssCoordinates* coordinates);
+    inline float ScaleLatitudeInt64ToDouble(int64_t latitude) {
+        return static_cast<double>(latitude) / zephyrCoordinateScale;
+    }
 
-    void PopulateGnssInfoData(const gnss_info* data, GnssInfo* satellites);
+    inline float ScaleLongitudeInt64ToDouble(int64_t longitude) {
+        return static_cast<double>(longitude) / zephyrCoordinateScale;
+    }
 
-    void PopulateGnssStruct(const gnss_data* data, GnssData* gnssData);
-    
+    inline float ScaleAltitudeInt64ToDouble(int64_t altitude) {
+        return static_cast<double>(altitude) / zephyrAltitudeScale;
+    }
 };
-
-
 
 #endif // N_GNSS_UTILS_H

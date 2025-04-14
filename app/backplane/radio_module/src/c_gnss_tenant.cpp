@@ -1,6 +1,8 @@
 #include "c_gnss_tenant.h"
 #include "c_radio_module.h"
 
+#include <f_core/utils/n_gnss_utils.h>
+
 #include <zephyr/drivers/rtc.h>
 #include <zephyr/drivers/gnss.h>
 #include <zephyr/logging/log.h>
@@ -11,11 +13,10 @@ static NTypes::GnssData gnssData{0};
 static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
-    static constexpr float zephyrGnssScale = 1e9f;
     static const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    gnssData.Coordinates.Latitude = static_cast<float>(data->nav_data.latitude) / zephyrGnssScale;
-    gnssData.Coordinates.Longitude = static_cast<float>(data->nav_data.longitude) / zephyrGnssScale;
-    gnssData.Coordinates.Altitude = static_cast<float>(data->nav_data.altitude) / 1000.0f;
+    gnssData.Coordinates.Latitude = NGnssUtils::ScaleLatitudeInt64ToFloat(data->nav_data.latitude);
+    gnssData.Coordinates.Longitude = NGnssUtils::ScaleLongitudeInt64ToFloat(data->nav_data.longitude);
+    gnssData.Coordinates.Altitude = NGnssUtils::ScaleAltitudeInt64ToFloat(data->nav_data.altitude);
 
     gnssData.Info.FixQuality = data->info.fix_quality;
     gnssData.Info.FixStatus = data->info.fix_status;
