@@ -4,31 +4,23 @@
 #include <zephyr/drivers/gnss.h>
 
 namespace NGnssUtils {
-    static constexpr float zephyrCoordinateScale = 1e9f;
-    static constexpr float zephyrAltitudeScale = 1e3f;
+    static constexpr float nanodegreesToDegreesScale = 1e9f;
+    static constexpr float millimeterToMeterScale = 1e3f;
 
-    inline float ScaleLatitudeInt64ToFloat(int64_t latitude) {
-        return static_cast<float>(latitude) / zephyrCoordinateScale;
+    inline float NanodegreesToDegreesFloat(int64_t latitude) {
+        return static_cast<float>(latitude) / nanodegreesToDegreesScale;
     }
 
-    inline float ScaleLongitudeInt64ToFloat(int64_t longitude) {
-        return static_cast<float>(longitude) / zephyrCoordinateScale;
+    inline float MillimetersToMetersFloat(int64_t altitude) {
+        return static_cast<float>(altitude) / millimeterToMeterScale;
     }
 
-    inline float ScaleAltitudeInt64ToFloat(int64_t altitude) {
-        return static_cast<float>(altitude) / zephyrAltitudeScale;
+    inline double NanodegreesToDegreesDouble(int64_t latitude) {
+        return static_cast<double>(latitude) / nanodegreesToDegreesScale;
     }
 
-    inline float ScaleLatitudeInt64ToDouble(int64_t latitude) {
-        return static_cast<double>(latitude) / zephyrCoordinateScale;
-    }
-
-    inline float ScaleLongitudeInt64ToDouble(int64_t longitude) {
-        return static_cast<double>(longitude) / zephyrCoordinateScale;
-    }
-
-    inline float ScaleAltitudeInt64ToDouble(int64_t altitude) {
-        return static_cast<double>(altitude) / zephyrAltitudeScale;
+    inline float MillimetersToMetersDouble(int64_t altitude) {
+        return static_cast<double>(altitude) / millimeterToMeterScale;
     }
 };
 
