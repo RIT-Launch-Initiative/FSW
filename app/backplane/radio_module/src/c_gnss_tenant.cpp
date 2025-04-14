@@ -12,8 +12,8 @@ static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
     static const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    gnssData.Coordinates.Latitude = static_cast<double>(data->nav_data.latitude) / 1000000000.0f;
-    gnssData.Coordinates.Longitude = static_cast<double>(data->nav_data.longitude) / 1000000000.0f;
+    gnssData.Coordinates.Latitude = static_cast<double>(data->nav_data.latitude) / static_cast<double>(1000000000.0f);
+    gnssData.Coordinates.Longitude = static_cast<double>(data->nav_data.longitude) / static_cast<double>(1000000000.0f);
     gnssData.Coordinates.Altitude = static_cast<float>(data->nav_data.altitude) / 1000.0f;
 
     gnssData.Info.FixQuality = data->info.fix_quality;
@@ -72,10 +72,10 @@ void CGnssTenant::Run() {
         dataLoggingPort.Send(logData);
 
         if (transmitTimer.IsExpired()) {
-            broadcastData.port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
-            broadcastData.size = sizeof(NTypes::GnssBroadcastData);
-            memcpy(broadcastData.data, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
-            reinterpret_cast<NTypes::GnssBroadcastData*>(broadcastData.data)->updated = 1;
+            broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
+            broadcastData.Size = sizeof(NTypes::GnssBroadcastPacket);
+            // memcpy(broadcastData.data, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
+            reinterpret_cast<NTypes::GnssBroadcastData*>(broadcastData.Data)->updated = 1;
             loraTransmitPort.Send(broadcastData);
         }
 

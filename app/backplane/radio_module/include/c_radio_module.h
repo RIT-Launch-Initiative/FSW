@@ -19,6 +19,7 @@
 
 // Autocoder Includes
 #include <n_autocoder_network_defs.h>
+#include <n_autocoder_types.h>
 
 class CRadioModule : public CProjectConfiguration {
 public:

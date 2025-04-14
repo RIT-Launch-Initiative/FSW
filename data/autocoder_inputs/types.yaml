@@ -128,8 +128,7 @@ GnssBroadcastPacket:
       type: GnssInfo
   timestamp: true
 
-# TODO: Handle arrays LOL
-LoRaBroadcastData[256 - sizeof(uint16_t)]:
+LoRaBroadcastData:
   description: Launch standardized LoRa packet.
   fields:
     - name: Port
@@ -138,3 +137,4 @@ LoRaBroadcastData[256 - sizeof(uint16_t)]:
       type: uint8_t
     - name: Payload
       type: uint8_t
+      array_size: 256 - sizeof(uint16_t)
