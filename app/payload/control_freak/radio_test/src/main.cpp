@@ -1,4 +1,3 @@
-
 #include "f_core/radio/protocols/horus/horus.h"
 
 #include <errno.h>
@@ -26,7 +25,7 @@ static const struct gpio_dt_spec gpssafeboot = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gp
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
-int resetGPS() {
+int reset_gps() {
     int ret;
     if (!gpio_is_ready_dt(&gpsreset)) {
         printk("No GPS RST pin:(\n");
@@ -68,6 +67,13 @@ int resetGPS() {
     if (ret < 0) {
         printk("couldnt set gpsreset: %d", ret);
     }
+
+    ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_INPUT);
+    if (ret < 0) {
+        printk("Failed to conf gps timepulse pin back to input:(\n");
+        return 0;
+    }
+
     printk("GPS Reset Successfully\n");
     return 0;
 }
@@ -126,6 +132,9 @@ static const char *gnss_system_to_str(enum gnss_system system) {
     return "unknown";
 }
 static int cmd_fix_info(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
     if (last_fix_uptime == 0) {
         shell_print(shell, "Never got a fix");
         return 0;
@@ -212,6 +221,8 @@ int gnss_dump_info(char *str, uint16_t strsize, const struct gnss_info *info) {
 }
 
 static int cmd_gnss_info(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
     shell_print(shell, "gnss info:");
     static char dumpstr[256] = {0};
     const struct gnss_info *info = &last_data.info;
@@ -229,6 +240,9 @@ static int cmd_gnss_info(const struct shell *shell, size_t argc, char **argv) {
 }
 
 static int cmd_sat_info(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+
     shell_print(shell, "(tracked)(prn, snr) (elavation, azimuth) - system");
     if (current_sats == 0) {
         shell_print(shell, "No satelites");
@@ -241,13 +255,20 @@ static int cmd_sat_info(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
+// Radio transmission
 extern void make_and_transmit_horus();
 extern void make_and_send_lora();
 
+// Radio Commands
 extern int cmd_horustx(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_loracfg(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_loratx(const struct shell *shell, size_t argc, char **argv);
+
+extern int cmd_servo(const struct shell *shell, size_t argc, char **argv);
+
 extern void init_modem();
+extern int init_servo();
+
 // clang-format off
 SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds, 
         SHELL_CMD(info, NULL, "GNSS Info to shell", cmd_gnss_info),
@@ -256,14 +277,20 @@ SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds,
         SHELL_CMD(loratx, NULL, "Transmit lora packet (according to cfglora settings)", cmd_loratx),
         SHELL_CMD(horustx, NULL, "Transmit horus packet (according to cfghorus settings)", cmd_horustx),
         SHELL_CMD(cfglora, NULL, "Configure lora (BW SF CR)", cmd_loracfg),
+        SHELL_CMD(servo, NULL, "Send Servo Command", cmd_servo),
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
 
+
+void wait_for_timeslot(){
+    k_msleep(5000);
+}
+
 int radio_thread(){
     while (true){
-        // k_timer_status_sync(&radio_timer);
-        k_msleep(5000);
+        // Maybe make packet AOT and only transmit at timeslot
+        wait_for_timeslot();
         if (is_transmitting){
         // wait till timesync
         if (is_horus == true){
@@ -282,7 +309,8 @@ int radio_thread(){
 
 
 int main() {
-    resetGPS();
+    init_servo();
+    reset_gps();
     init_modem();
 
     radio_thread();

@@ -22,7 +22,7 @@ static const struct gpio_dt_spec gpsreset = GPIO_DT_SPEC_GET(GPSRST_NODE, gpios)
 #define GPSSAFE_NODE DT_ALIAS(gpssafeboot)
 static const struct gpio_dt_spec gpssafeboot = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gpios);
 
-int enableServoStuff() {
+int init_servo() {
     int ret;
     if (!gpio_is_ready_dt(&servo_en)) {
         printk("No servo enable :(\n");
@@ -55,7 +55,7 @@ int enableServoStuff() {
     return 0;
 }
 
-int resetGPS() {
+int reset_gps() {
     int ret;
     if (!gpio_is_ready_dt(&gpsreset)) {
         printk("No GPS RST :(\n");
@@ -97,12 +97,18 @@ int resetGPS() {
     if (ret < 0) {
         printk("couldnt set gpsreset: %d", ret);
     }
+
+    ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_INPUT);
+    if (ret < 0) {
+        printk("Failed to conf gps timepulse pin back to input:(\n");
+        return 0;
+    }
     printk("GPS Reset\n");
     return 0;
 }
 int main() {
-    resetGPS();
-    enableServoStuff();
+    reset_gps();
+    init_servo();
 
     uint32_t pulse_width = min_pulse;
     int ret;
@@ -119,7 +125,6 @@ int main() {
     //
     // return 0;
     while (1) {
-        // printk("Seeting to %d\n", pulse_width);
         for (int i = 0; i < 3; i++) {
             ret = pwm_set_pulse_dt(servos[i], pulse_width);
             if (ret < 0) {
