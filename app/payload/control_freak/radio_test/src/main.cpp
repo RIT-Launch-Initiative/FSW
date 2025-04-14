@@ -28,7 +28,8 @@ static const struct gpio_dt_spec gpssafeboot = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gp
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
-static struct gpio_callback timepulse_cb_data;
+
+\static struct gpio_callback timepulse_cb_data;
 int64_t last_timepulse_uptime = 0;
 
 void timepulse_ticked(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
