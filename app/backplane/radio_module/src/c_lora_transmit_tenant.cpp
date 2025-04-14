@@ -84,7 +84,10 @@ void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const
     memcpy(txData.begin() + 2, &data.data, data.size); // Copy payload to the rest of the buffer
 
     LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
-    lora.TransmitSynchronous(txData.data(), data.size + 2);
+    int ret = lora.TransmitSynchronous(txData.data(), data.size + 2);
+    if (ret < 0) {
+        LOG_ERR("Failed to transmit data over LoRa (%d)", ret);
+    }
 }
 
 // TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead

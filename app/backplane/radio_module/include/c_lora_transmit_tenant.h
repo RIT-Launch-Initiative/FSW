@@ -56,8 +56,9 @@ private:
     /**
      * Helper function for converting struct into a uint8_t buffer and transmitting over LoRa
      * @param[in] data Radio broadcast data structure
+     * @return 0 on success, negative on error
      */
-    void transmit(const NTypes::RadioBroadcastData& data) const;
+    int transmit(const NTypes::RadioBroadcastData& data) const;
 
     /**
      * Helper function for reading from the transmit queue
