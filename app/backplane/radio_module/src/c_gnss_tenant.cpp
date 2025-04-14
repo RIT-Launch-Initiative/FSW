@@ -11,9 +11,10 @@ static NTypes::GnssData gnssData{0};
 static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
+    static constexpr float zephyrGnssScale = 1e9f;
     static const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    gnssData.Coordinates.Latitude = static_cast<double>(data->nav_data.latitude) / static_cast<double>(1000000000.0f);
-    gnssData.Coordinates.Longitude = static_cast<double>(data->nav_data.longitude) / static_cast<double>(1000000000.0f);
+    gnssData.Coordinates.Latitude = static_cast<float>(data->nav_data.latitude) / zephyrGnssScale;
+    gnssData.Coordinates.Longitude = static_cast<float>(data->nav_data.longitude) / zephyrGnssScale;
     gnssData.Coordinates.Altitude = static_cast<float>(data->nav_data.altitude) / 1000.0f;
 
     gnssData.Info.FixQuality = data->info.fix_quality;
@@ -74,7 +75,9 @@ void CGnssTenant::Run() {
         if (transmitTimer.IsExpired()) {
             NTypes::GnssBroadcastPacket broadcastPacket {
                 .Coordinates = gnssData.Coordinates,
-                .Info = gnssData.Info
+                .SatelliteCount = gnssData.Info.SatelliteCount,
+                .FixStatus = gnssData.Info.FixStatus,
+                .FixQuality = gnssData.Info.FixQuality
             };
 
             broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;

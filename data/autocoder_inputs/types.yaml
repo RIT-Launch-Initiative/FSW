@@ -71,6 +71,28 @@ GnssCoordinates:
   description: GNSS coordinate data.
   fields:
     - name: Latitude
+      type: float
+    - name: Longitude
+      type: float
+    - name: Altitude
+      type: float
+  timestamp: false
+
+GnssCoordinatesFixedPoint:
+  description: GNSS coordinate data in fixed point representation.
+  fields:
+    - name: Latitude
+      type: float
+    - name: Longitude
+      type: float
+    - name: Altitude
+      type: float
+  timestamp: false
+
+GnssCoordinatesSubMillimeterPrecision:
+  description: Sub-millimeter precision GNSS coordinate data.
+  fields:
+    - name: Latitude
       type: double
     - name: Longitude
       type: double
@@ -123,8 +145,12 @@ GnssBroadcastPacket:
   fields:
     - name: Coordinates
       type: GnssCoordinates
-    - name: Info
-      type: GnssInfo
+    - name: SatelliteCount
+      type: uint16_t
+    - name: FixStatus
+      type: uint8_t
+    - name: FixQuality
+      type: uint8_t
 
 LoRaBroadcastData:
   description: Launch standardized LoRa packet.
