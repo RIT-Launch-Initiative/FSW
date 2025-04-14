@@ -271,8 +271,14 @@ extern int cmd_servo(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_off(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_on(const struct shell *shell, size_t argc, char **argv);
 
-int cmd_pump_off(const struct shell *shell, size_t argc, char **argv) { return gpio_pin_set_dt(&pump_enable, 0); }
-int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) { return gpio_pin_set_dt(&pump_enable, 1); }
+int cmd_pump_off(const struct shell *shell, size_t argc, char **argv) {
+    printk("Pump Off\n");
+    return gpio_pin_set_dt(&pump_enable, 0);
+}
+int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
+    printk("Pump On\n");
+    return gpio_pin_set_dt(&pump_enable, 1);
+}
 
 extern void init_modem();
 extern int init_servo();
@@ -293,8 +299,8 @@ SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds,
 SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(pump_subcmds, 
-        SHELL_CMD(on, NULL, "Pump on", cmd_servo_off),
-        SHELL_CMD(off, NULL, "Pump off", cmd_servo_off),
+        SHELL_CMD(on, NULL, "Pump on", cmd_pump_on),
+        SHELL_CMD(off, NULL, "Pump off", cmd_pump_off),
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(pump, &pump_subcmds, "Pump Commands", NULL);
@@ -332,6 +338,18 @@ int main() {
     init_servo();
     reset_gps();
     init_modem();
+
+    if (!gpio_is_ready_dt(&pump_enable)) {
+        printk("No pump pin :(\n");
+        return 0;
+    }
+
+    int ret = gpio_pin_configure_dt(&pump_enable, GPIO_OUTPUT_INACTIVE);
+    if (ret < 0) {
+        printk("Failed to conf pump pin:(\n");
+        return 0;
+    }
+
 
     radio_thread();
     return 0;

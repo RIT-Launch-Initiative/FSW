@@ -7,8 +7,12 @@ static const struct pwm_dt_spec servo1 = PWM_DT_SPEC_GET(DT_ALIAS(servo1));
 static const struct pwm_dt_spec servo2 = PWM_DT_SPEC_GET(DT_ALIAS(servo2));
 static const struct pwm_dt_spec servo3 = PWM_DT_SPEC_GET(DT_ALIAS(servo3));
 
-static const uint32_t min_pulse = PWM_USEC(1000); //DT_PROP(DT_PARENT(DT_A LIAS(servo1)), min_pulse);
-static const uint32_t max_pulse = PWM_USEC(2000); //DT_PROP(DT_PARENT(DT_ALIAS(servo1)), max_pulse);
+static const uint32_t min_pulse = PWM_USEC(800);  //DT_PROP(DT_PARENT(DT_A LIAS(servo1)), min_pulse);
+static const uint32_t max_pulse = PWM_USEC(2200); //DT_PROP(DT_PARENT(DT_ALIAS(servo1)), max_pulse);
+
+// 1000 2000 100deg
+//  800 2200 145deg no jitter
+//  600 2400 145deg  no jitter
 
 #define SERVO_EN DT_NODELABEL(servo_enable)
 static const struct gpio_dt_spec servo_en = GPIO_DT_SPEC_GET(SERVO_EN, gpios);
