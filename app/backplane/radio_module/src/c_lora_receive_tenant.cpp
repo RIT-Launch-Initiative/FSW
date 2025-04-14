@@ -67,8 +67,11 @@ void CLoraReceiveTenant::PadRun() {
             constexpr int bytesPerPort = 2;
             for (int i = 2; i < rxSize; i += bytesPerPort) {
                 uint16_t parsedPort = buffer[i] << 8 | buffer[i + 1];
-                loraTransmitTenant.padDataRequestedMap.Set(parsedPort, true);
-                LOG_INF("Requested data for port %d", port);
+                if (loraTransmitTenant.padDataRequestedMap.Set(parsedPort, true)) {
+                    LOG_INF("Requested data for port %d", parsedPort);
+                } else {
+                    LOG_ERR("No key for port %d", parsedPort);
+                }
             }
         } else {
             LOG_INF("Sending LoRa received data to UDP %d", port);

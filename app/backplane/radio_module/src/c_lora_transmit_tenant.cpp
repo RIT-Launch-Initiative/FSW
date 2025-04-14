@@ -46,7 +46,7 @@ void CLoraTransmitTenant::PadRun() {
     for (uint16_t port : listeningPortsList) {
         if (padDataRequestedMap.Get(port).value_or(false)) {
             NTypes::RadioBroadcastData data = portDataMap.Get(port).value_or(NTypes::RadioBroadcastData{.port = 0, .size = 0});
-            if (port == 0 || data.size == 0) {
+            if (port == 0) {
                 continue;
             }
 
