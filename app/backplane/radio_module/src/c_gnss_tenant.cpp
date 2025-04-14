@@ -69,7 +69,7 @@ void CGnssTenant::Run() {
     NTypes::GnssLoggingData logData{0};
 
     if (gnssUpdated) {
-        memcpy(&logData, &gnssLogData, sizeof(NTypes::GnssLoggingData));
+        memcpy(&logData, &gnssData, sizeof(NTypes::GnssLoggingData));
         dataLoggingPort.Send(logData);
 
         if (transmitTimer.IsExpired()) {
