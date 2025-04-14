@@ -1,7 +1,6 @@
 #ifndef C_RECEIVER_MODULE_H
 #define C_RECEIVER_MODULE_H
 
-#include "n_radio_module_types.h"
 #include "c_lora_receive_tenant.h"
 #include "c_lora_transmit_tenant.h"
 #include "c_udp_listener_tenant.h"

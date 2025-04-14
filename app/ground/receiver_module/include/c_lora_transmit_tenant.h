@@ -1,14 +1,13 @@
 #ifndef C_LORA_TRANSMIT_TENANT_H
 #define C_LORA_TRANSMIT_TENANT_H
 
-#include "n_radio_module_types.h"
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 
 #include <f_core/radio/c_lora.h>
-#include <f_core/c_pad_flight_landing_state_machine.h>
-#include <f_core/utils/c_observer.h>
 #include <f_core/utils/c_hashmap.h>
+
+#include <n_autocoder_types.h>
 
 class CLoraTransmitTenant : public CTenant {
 public:
