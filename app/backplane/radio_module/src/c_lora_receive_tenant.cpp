@@ -60,7 +60,9 @@ void CLoraReceiveTenant::PadRun() {
             pinStatus.data[0] |= gpios[3].GetPin() << 3;
 
             // Retransmit status so GS can verify
-            loraTransmitTenant.transmit(pinStatus);
+            if (loraTransmitTenant.transmit(pinStatus)) {
+                LOG_ERR("Failed to transmit pin status");
+            }
         } else if (port == NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT) { // Data Request
             constexpr int bytesPerPort = 2;
             for (int i = 2; i < rxSize; i += bytesPerPort) {

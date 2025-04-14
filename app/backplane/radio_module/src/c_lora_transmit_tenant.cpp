@@ -44,12 +44,7 @@ void CLoraTransmitTenant::PadRun() {
                 continue;
             }
 
-            int ret = transmit(data);
-            if (ret < 0) {
-                LOG_ERR("Failed to transmit data over LoRa (%d)", ret);
-                return;
-            }
-
+            (void) transmit(data);
             padDataRequestedMap.Set(port, false);
         }
     }
@@ -59,10 +54,7 @@ void CLoraTransmitTenant::PadRun() {
 void CLoraTransmitTenant::FlightRun() {
     NTypes::RadioBroadcastData data{};
     if (readTransmitQueue(data)) {
-        int ret = transmit(data);
-        if (ret < 0) {
-            LOG_ERR("Failed to transmit GNSS data over LoRa (%d)", ret);
-        }
+        (void) transmit(data);
     }
 }
 
@@ -71,10 +63,7 @@ void CLoraTransmitTenant::LandedRun() {
     NTypes::RadioBroadcastData data{};
 
     if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
-        int ret = transmit(data);
-        if (ret < 0) {
-            LOG_ERR("Failed to transmit GNSS data over LoRa (%d)", ret);
-        }
+        (void) transmit(data);
     }
 }
 
@@ -95,12 +84,7 @@ int CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const 
     memcpy(txData.begin() + 2, &data.data, data.size); // Copy payload to the rest of the buffer
 
     LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
-    int ret = lora.TransmitSynchronous(txData.data(), data.size + 2);
-    if (ret < 0) {
-        LOG_ERR("Failed to transmit data over LoRa (%d)", ret);
-    }
-
-    return ret;
+    return lora.TransmitSynchronous(txData.data(), data.size + 2);
 }
 
 // TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead
