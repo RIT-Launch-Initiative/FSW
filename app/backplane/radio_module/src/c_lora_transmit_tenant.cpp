@@ -44,7 +44,12 @@ void CLoraTransmitTenant::PadRun() {
                 continue;
             }
 
-            transmit(data);
+            int ret = transmit(data);
+            if (ret < 0) {
+                LOG_ERR("Failed to transmit data over LoRa (%d)", ret);
+                return;
+            }
+
             padDataRequestedMap.Set(port, false);
         }
     }
@@ -54,7 +59,10 @@ void CLoraTransmitTenant::PadRun() {
 void CLoraTransmitTenant::FlightRun() {
     NTypes::RadioBroadcastData data{};
     if (readTransmitQueue(data)) {
-        transmit(data);
+        int ret = transmit(data);
+        if (ret < 0) {
+            LOG_ERR("Failed to transmit GNSS data over LoRa (%d)", ret);
+        }
     }
 }
 
@@ -63,21 +71,24 @@ void CLoraTransmitTenant::LandedRun() {
     NTypes::RadioBroadcastData data{};
 
     if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
-        transmit(data);
+        int ret = transmit(data);
+        if (ret < 0) {
+            LOG_ERR("Failed to transmit GNSS data over LoRa (%d)", ret);
+        }
     }
 }
 
-void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
+int CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
     if (data.size > (256 - 2)) {
         // This case should never occur. If it does, then developer is sending too much data
         LOG_ERR("Received data exceeds LoRa packet size from port %d", data.port);
-        return;
+        return -EMSGSIZE;
     } else if (data.size == 0) {
         // This case should *rarely* occur.
         LOG_WRN_ONCE("Received data is empty from port %d", data.port);
-        return;
+        return -ENODATA;
     }
 
     memcpy(txData.begin(), &data.port, 2);             // Copy port number to first 2 bytes
@@ -88,6 +99,8 @@ void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const
     if (ret < 0) {
         LOG_ERR("Failed to transmit data over LoRa (%d)", ret);
     }
+
+    return ret;
 }
 
 // TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead
