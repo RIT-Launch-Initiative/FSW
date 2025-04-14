@@ -41,7 +41,7 @@ void CLoraReceiveTenant::PadRun() {
 
     if (rxSize > 2) {
         if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
-            // Apply commands to pinsconst
+            // Apply commands to pins
             for (int i = 0; i < 4; i++)  {
                 LOG_INF("Set GPIO %d to %d", i, (buffer[2] >> i) & 1);
                 gpios[i].SetPin((buffer[2] >> i) & 1);
@@ -65,6 +65,7 @@ void CLoraReceiveTenant::PadRun() {
             constexpr int bytesPerPort = 2;
             for (int i = 2; i < rxSize; i += bytesPerPort) {
                 loraTransmitTenant.padDataRequestedMap[buffer[i] << 8 | buffer[i + 1]] = true;
+                LOG_INF("Requested data for port %d", buffer[i] << 8 | buffer[i + 1]);
             }
         } else {
             LOG_INF("Sending LoRa received data to UDP %d", port);

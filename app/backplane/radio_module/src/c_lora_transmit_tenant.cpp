@@ -45,7 +45,7 @@ void CLoraTransmitTenant::PadRun() {
             }
 
             transmit(data);
-            padDataRequestedMap[port] = false;
+            padDataRequestedMap.Set(port, false);
         }
     }
 }

@@ -21,8 +21,8 @@ public:
     bool Insert(const KeyType& key, const ValueType& value) {
         if (!isMainThreadCurrent()) {
             if (!map.contains(key) && size > maxSizeReachedAtStartup) {
-                printk("Attempted to insert more than the maximum size of the hashmap post-startup"); // LOG doesn't work well in templates
-// Only k_oops in debug mode. Unlikely to occur in an actual flight, and in the off-chance it does we shouldn't fatal the entire system over it
+                printk("Attempted to insert more than the maximum size of the hashmap post-startup\n"); // LOG doesn't work well in templates
+// Only fatal in debug mode. Unlikely to occur in an actual flight, and in the off-chance it does we shouldn't fatal the entire system over it
 #ifdef CONFIG_DEBUG
                 k_oops();
 #endif
@@ -77,14 +77,10 @@ public:
         return map.end();
     }
 
-    ValueType& operator[](const KeyType& key) {
-        if (!map.contains(key)) {
-            printk("Attempted to access a key that does not exist in the hashmap"); // LOG doesn't work well in templates
-            return nullptr;
-        }
-
-        return map[key];
-    }
+    // Please don't add a [] operator. It can be unintentionally abused
+    // Can unintentionally assign new keys to the map, and handling a failing contains check
+    // gets tricky when you can't return optional. Learn from my mistakes :)
+    // - Aaron
 
 private:
     std::unordered_map<KeyType, ValueType> map;
