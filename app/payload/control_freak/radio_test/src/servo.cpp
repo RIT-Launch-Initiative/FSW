@@ -3,12 +3,42 @@
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 
+// flip
 static const struct pwm_dt_spec servo1 = PWM_DT_SPEC_GET(DT_ALIAS(servo1));
+// not flipped
 static const struct pwm_dt_spec servo2 = PWM_DT_SPEC_GET(DT_ALIAS(servo2));
 static const struct pwm_dt_spec servo3 = PWM_DT_SPEC_GET(DT_ALIAS(servo3));
+const pwm_dt_spec *servos[3] = {&servo1, &servo2, &servo3};
 
 static const uint32_t min_pulse = PWM_USEC(800);  //DT_PROP(DT_PARENT(DT_A LIAS(servo1)), min_pulse);
 static const uint32_t max_pulse = PWM_USEC(2200); //DT_PROP(DT_PARENT(DT_ALIAS(servo1)), max_pulse);
+
+// false when closed, true when open
+bool state1 = 0;
+bool state2 = 0;
+bool state3 = 0;
+bool *states[] = {&state1, &state2, &state3};
+
+// close open
+using PulseDefs = uint32_t[2];
+PulseDefs pulse1 = {PWM_USEC(2200), PWM_USEC(800)};
+PulseDefs pulse2 = {PWM_USEC(800), PWM_USEC(2200)};
+PulseDefs pulse3 = {PWM_USEC(800), PWM_USEC(2200)};
+
+PulseDefs *pulsedefs[] = {&pulse1, &pulse2, &pulse3};
+
+void change_servo(int idx, bool newstate) {
+    *states[idx] = newstate;
+    PulseDefs *ps = pulsedefs[idx];
+    uint32_t pulse = (*ps)[newstate];
+    auto servo = servos[idx];
+
+    int ret = pwm_set_pulse_dt(servo, pulse);
+    if (ret < 0) {
+        printk("Error %d: failed to set pulse width\n", ret);
+        return;
+    }
+}
 
 // 1000 2000 100deg
 //  800 2200 145deg no jitter
@@ -80,14 +110,12 @@ int cmd_servo(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
-    if (argc != 3) {
+    if (argc != 2 && argc != 3) {
         shell_print(shell, "Wrong number of args");
         shell_print(shell, "Help: servo 1/2/3 o/c");
         return -1;
     }
     char servoNumChar = argv[1][0];
-    char operationChar = argv[2][0];
-    shell_print(shell, "Servo Control %c %c", servoNumChar, operationChar);
 
     int servoNum = 0;
     if (servoNumChar == '1') {
@@ -100,27 +128,28 @@ int cmd_servo(const struct shell *shell, size_t argc, char **argv) {
         shell_print(shell, "Invalid servo number");
         return -1;
     }
-    bool do_open = true;
-    if (operationChar == 'o') {
-        do_open = true;
-    } else if (operationChar == 'c') {
-        do_open = false;
-    } else {
-        shell_print(shell, "Invalid operation");
-        return -1;
+    if (argc == 2) {
+        bool do_open = !(*states[servoNum]);
+        change_servo(servoNum, do_open);
+        shell_print(shell, "Parsed: #%d doOpen: %d", servoNum, (int) do_open);
+
+    } else if (argc == 3) {
+
+        char operationChar = argv[2][0];
+        shell_print(shell, "Servo Control %c %c", servoNumChar, operationChar);
+        bool do_open = true;
+
+        if (operationChar == 'o') {
+            do_open = true;
+        } else if (operationChar == 'c') {
+            do_open = false;
+        } else {
+            shell_print(shell, "Invalid operation");
+            return -1;
+        }
+        shell_print(shell, "Parsed: #%d doOpen: %d", servoNum, (int) do_open);
+        change_servo(servoNum, do_open);
     }
 
-    const pwm_dt_spec *servos[3] = {&servo1, &servo2, &servo3};
-    shell_print(shell, "Parsed: #%d doOpen: %d", servoNum, (int) do_open);
-
-    int32_t pulse_width = min_pulse;
-    if (do_open) {
-        pulse_width = max_pulse;
-    }
-    int ret = pwm_set_pulse_dt(servos[servoNum], pulse_width);
-    if (ret < 0) {
-        printk("Error %d: failed to set pulse width\n", ret);
-        return 0;
-    }
     return 0;
 }

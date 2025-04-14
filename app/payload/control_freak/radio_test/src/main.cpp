@@ -112,9 +112,54 @@ static void gnss_satellites_cb(const struct device *dev, const struct gnss_satel
 }
 GNSS_SATELLITES_CALLBACK_DEFINE(GNSS_MODEM, gnss_satellites_cb);
 
-bool is_transmitting = false;
-bool is_horus = true;
+uint16_t horus_seq_number = 0;
+
+horus_packet_v2 get_telemetry() {
+    int8_t temp = 30;
+    uint8_t volts = 0;
+    float lat = (float) (((double) last_data.nav_data.latitude) / 180e9);
+    float lon = (float) (((double) last_data.nav_data.longitude) / 180e9);
+    uint16_t alt = last_data.nav_data.altitude / 1000;                       // mm to m
+    uint8_t speed = (uint8_t) (((float) last_data.nav_data.speed) * 0.0036); // mm/sec to km/hr
+
+    horus_seq_number++;
+    horus_packet_v2 pac{
+        .payload_id = CONFIG_HORUS_PAYLOAD_ID,
+        .counter = horus_seq_number,
+        .hours = last_data.utc.hour,
+        .minutes = last_data.utc.minute,
+        .seconds = (uint8_t) (last_data.utc.millisecond / 1000),
+        .latitude = lat,
+        .longitude = lon,
+        .altitude = alt,
+        .speed = speed,
+        .sats = (uint8_t) last_data.info.satellites_cnt,
+        .temp = temp,
+        .battery_voltage = volts,
+        .custom_data = {last_data.info.fix_status, last_data.info.fix_quality},
+    };
+    return pac;
+}
+bool do_lora = false;
+bool do_horus = false;
 K_TIMER_DEFINE(radio_timer, NULL, NULL);
+
+const char noradio_prompt[] = "( )uart:~$";
+const char lora_prompt[] = "(L)uart:~$";
+const char horus_prompt[] = "(H)uart:~$";
+const char both_prompt[] = "(B)uart:~$";
+
+void set_prompt(const struct shell *shell) {
+    if (do_lora && do_horus) {
+        shell_prompt_change(shell, both_prompt);
+    } else if (do_lora) {
+        shell_prompt_change(shell, lora_prompt);
+    } else if (do_horus) {
+        shell_prompt_change(shell, horus_prompt);
+    } else {
+        shell_prompt_change(shell, noradio_prompt);
+    }
+}
 
 static const char *gnss_system_to_str(enum gnss_system system) {
     switch (system) {
@@ -338,18 +383,19 @@ void wait_for_timeslot(){
 int radio_thread(){
     while (true){
         // Maybe make packet AOT and only transmit at timeslot
-        wait_for_timeslot();
-        if (is_transmitting){
-        // wait till timesync
-        if (is_horus == true){
-            // horus
+        if (do_horus){
+            wait_for_timeslot();
             printk("Horus\n");
             make_and_transmit_horus();
-        } else {
+        }
+        if(do_lora) {
+            wait_for_timeslot();
             // lora
             printk("Lora\n");
             make_and_send_lora();
-            }
+        }
+        if (!do_lora && !do_horus){
+            k_msleep(500);
         }
     }
     return 0;

@@ -28,16 +28,11 @@ extern int current_tracked_sats;
 extern struct gnss_satellite last_sats[MAX_SATS];
 extern uint64_t last_fix_uptime;
 
-extern bool is_transmitting;
-extern bool is_horus;
+extern bool do_horus;
 extern struct k_timer radio_timer;
 
-const char noradio_prompt[] = "(X)uart:~$";
-const char horus_prompt[] = "(H)uart:~$";
-
-// Horus Data
-
-uint16_t horus_seq_number = 0;
+extern void set_prompt(const struct shell *shell);
+extern horus_packet_v2 get_telemetry();
 
 int32_t set_pramble_len(uint16_t preamble_len) {
     uint8_t msb = (preamble_len >> 8) & 0xff;
@@ -205,7 +200,6 @@ void transmit_horus(uint8_t *buf, int len) {
     set_frequency_deviation(symbols_fdev[3]);
     SX1276Write(REG_OPMODE, RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_TRANSMITTER);
 
-    uint64_t startms = k_uptime_get();
     struct k_timer bitrate_timer;
     k_timer_init(&bitrate_timer, NULL, NULL);
     k_timer_start(&bitrate_timer, K_USEC(usec_per_symbol), K_USEC(usec_per_symbol));
@@ -235,8 +229,6 @@ void transmit_horus(uint8_t *buf, int len) {
     }
     // Last symbol
     k_timer_status_sync(&bitrate_timer);
-    uint64_t endms = k_uptime_get();
-    printf("Elapsed: %d ms\n", (int) (endms - startms));
     // Then turn off
     SX1276Write(REG_OPMODE,
                 RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
@@ -246,27 +238,8 @@ void transmit_horus(uint8_t *buf, int len) {
 }
 
 void make_and_transmit_horus() {
-    double lat = (double) last_data.nav_data.latitude / 180e9f;
-    double lon = (double) last_data.nav_data.longitude / 180e9f;
-    uint16_t alt = last_data.nav_data.altitude;
-    struct horus_packet_v2 data{
-        .payload_id = 808,
-        .counter = horus_seq_number,
-        .hours = last_data.utc.hour,
-        .minutes = last_data.utc.minute,
-        .seconds = (uint8_t) (last_data.utc.millisecond / 1000),
-        .latitude = (float) lat,
-        .longitude = (float) lon,
-        .altitude = alt,
-        .speed = last_data.nav_data.speed,
-        .sats = (uint8_t) current_sats,
-        .temp = 40,
-        .battery_voltage = 255,
-        .custom_data = {1, 2, 3, 4, 5, 6, 7, 8, 9},
-        .checksum = 0,
-    };
+    struct horus_packet_v2 data = get_telemetry();
 
-    horus_seq_number++;
     horus_packet_v2_encoded_buffer_t packet = {0};
     horusv2_encode(&data, &packet);
 
@@ -276,16 +249,15 @@ void make_and_transmit_horus() {
 int cmd_horustx(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
-    if (is_transmitting) {
-        shell_prompt_change(shell, noradio_prompt);
-        shell_print(shell, "Stop Transmitting");
+    if (do_horus) {
+        shell_print(shell, "Stop Horus");
+        do_horus = false;
+        set_prompt(shell);
         k_timer_stop(&radio_timer);
-        is_transmitting = false;
     } else {
-        shell_prompt_change(shell, horus_prompt);
         shell_print(shell, "Sending Horus");
-        is_horus = true;
-        is_transmitting = true;
+        do_horus = true;
+        set_prompt(shell);
         k_timer_start(&radio_timer, K_MSEC(5000), K_MSEC(5000));
     }
 
