@@ -64,8 +64,9 @@ void CLoraReceiveTenant::PadRun() {
         } else if (port == NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT) { // Data Request
             constexpr int bytesPerPort = 2;
             for (int i = 2; i < rxSize; i += bytesPerPort) {
-                loraTransmitTenant.padDataRequestedMap[buffer[i] << 8 | buffer[i + 1]] = true;
-                LOG_INF("Requested data for port %d", buffer[i] << 8 | buffer[i + 1]);
+                uint16_t parsedPort = buffer[i] << 8 | buffer[i + 1];
+                loraTransmitTenant.padDataRequestedMap.Set(parsedPort, true);
+                LOG_INF("Requested data for port %d", port);
             }
         } else {
             LOG_INF("Sending LoRa received data to UDP %d", port);
