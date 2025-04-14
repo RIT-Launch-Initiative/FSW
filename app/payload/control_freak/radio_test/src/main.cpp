@@ -28,6 +28,16 @@ static const struct gpio_dt_spec gpssafeboot = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gp
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
+static struct gpio_callback timepulse_cb_data;
+int64_t last_timepulse_uptime = 0;
+
+void timepulse_ticked(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
+    ARG_UNUSED(dev);
+    ARG_UNUSED(cb);
+    ARG_UNUSED(pins);
+
+    last_timepulse_uptime = k_uptime_get();
+}
 int reset_gps() {
     int ret;
     if (!gpio_is_ready_dt(&gpsreset)) {
@@ -70,14 +80,27 @@ int reset_gps() {
     if (ret < 0) {
         printk("couldnt set gpsreset: %d", ret);
     }
-
     ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_INPUT);
+    printk("GPS Reset Successfully\n");
+    return 0;
+}
+
+int gps_timepulse() {
+    int ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_INPUT);
     if (ret < 0) {
         printk("Failed to conf gps timepulse pin back to input:(\n");
         return 0;
     }
 
-    printk("GPS Reset Successfully\n");
+    ret = gpio_pin_interrupt_configure_dt(&gpssafeboot, GPIO_INT_EDGE_TO_ACTIVE);
+    if (ret != 0) {
+        printk("Error %d: failed to configure interrupt on %s pin %d\n", ret, gpssafeboot.port->name, gpssafeboot.pin);
+        return 0;
+    }
+
+    gpio_init_callback(&timepulse_cb_data, timepulse_ticked, BIT(gpssafeboot.pin));
+    gpio_add_callback(gpssafeboot.port, &timepulse_cb_data);
+    printk("Set up timepulse at %s pin %d\n", gpssafeboot.port->name, gpssafeboot.pin);
     return 0;
 }
 
@@ -142,6 +165,8 @@ horus_packet_v2 get_telemetry() {
 }
 bool do_lora = false;
 bool do_horus = false;
+bool do_lorarx = false;
+
 K_TIMER_DEFINE(radio_timer, NULL, NULL);
 
 const char noradio_prompt[] = "( )uart:~$";
@@ -194,6 +219,8 @@ static int cmd_fix_info(const struct shell *shell, size_t argc, char **argv) {
     uint64_t now = k_uptime_get();
     int elapsed = (now - last_fix_uptime);
     shell_print(shell, "Got a fix %d ms ago", elapsed);
+    shell_print(shell, "Got a pulse at %lld", last_timepulse_uptime);
+
     return 0;
 }
 
@@ -315,6 +342,13 @@ extern void make_and_send_lora();
 extern int cmd_horustx(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_loracfg(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_loratx(const struct shell *shell, size_t argc, char **argv);
+int cmd_lorarx(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    do_lorarx = !do_lorarx;
+    shell_print(shell, "LoraRX: %d", (int) do_lorarx);
+    return 0;
+}
 
 extern int cmd_servo(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_off(const struct shell *shell, size_t argc, char **argv);
@@ -357,6 +391,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(servo_subcmds,
 SHELL_CMD_REGISTER(servo, &servo_subcmds, "Servo Commands", NULL);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(radio_subcmds, 
+        SHELL_CMD(rxlora, NULL, "Receive lora packets", cmd_lorarx),
         SHELL_CMD(loratx, NULL, "Transmit lora packet (according to cfglora settings)", cmd_loratx),
         SHELL_CMD(horustx, NULL, "Transmit horus packet (according to cfghorus settings)", cmd_horustx),
         SHELL_CMD(cfglora, NULL, "Configure lora (BW SF CR)", cmd_loracfg),
@@ -380,6 +415,8 @@ void wait_for_timeslot(){
     k_msleep(5000);
 }
 
+extern void lorarx();
+
 int radio_thread(){
     while (true){
         // Maybe make packet AOT and only transmit at timeslot
@@ -394,7 +431,10 @@ int radio_thread(){
             printk("Lora\n");
             make_and_send_lora();
         }
-        if (!do_lora && !do_horus){
+        if (do_lorarx){
+            lorarx();
+            k_msleep(500);
+        } else if (!do_lora && !do_horus){
             k_msleep(500);
         }
     }
@@ -405,6 +445,7 @@ int radio_thread(){
 int main() {
     init_servo();
     reset_gps();
+    gps_timepulse();
     init_modem();
 
     if (!gpio_is_ready_dt(&pump_enable)) {

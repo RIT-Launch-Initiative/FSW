@@ -38,11 +38,33 @@ static struct lora_modem_config mymodem_config = {
 
 void init_modem() {
     const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
-    mymodem_config.tx = true;
     int ret = lora_config(dev, &mymodem_config);
     if (ret < 0) {
         printk("Bad lora cfg: %d", ret);
     }
+}
+
+extern void lorarx() {
+    const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
+    mymodem_config.tx = false;
+    init_modem();
+    horus_packet_v2 packet = {0};
+    int16_t rssi;
+    int8_t snr;
+
+    int ret = lora_recv(dev, (unsigned char *) &packet, sizeof(packet), K_MSEC(5000), &rssi, &snr);
+    if (ret == -11) {
+        // timeout
+        return;
+    }
+    if (ret < 0) {
+        printk("LoRa recv failed: %i", ret);
+        return;
+    }
+    printk("Lat: %f\n", packet.latitude);
+    printk("Lon: %f\n", packet.longitude);
+    printk("Alt: %d\n", packet.altitude);
+    printk("RSSI: %" PRIi16 " dBm, SNR:%" PRIi8 " dBm\n", rssi, snr);
 }
 
 static void loracfg_help(const struct shell *shell) {
