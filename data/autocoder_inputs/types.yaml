@@ -126,7 +126,7 @@ GnssBroadcastPacket:
       type: GnssCoordinates
     - name: Info
       type: GnssInfo
-  timestamp: false
+  timestamp: true
 
 # TODO: Handle arrays LOL
 LoRaBroadcastData[256 - sizeof(uint16_t)]:

@@ -8,26 +8,26 @@
 
 LOG_MODULE_REGISTER(CGnssTenant);
 
-static NTypes::GnssData gnssLogData{0};
+static NTypes::GnssData gnssData{0};
 static uint8_t gnssUpdated = 0;
 
 static void gnssCallback(const device *, const gnss_data *data) {
     static const device *rtc = DEVICE_DT_GET(DT_ALIAS(rtc));
-    gnssLogData.Coordinates.Latitude = static_cast<double>(data->nav_data.latitude) / 1000000000.0f;
-    gnssLogData.Coordinates.Longitude = static_cast<double>(data->nav_data.longitude) / 1000000000.0f;
-    gnssLogData.Coordinates.Altitude = static_cast<float>(data->nav_data.altitude) / 1000.0f;
+    gnssData.Coordinates.Latitude = static_cast<double>(data->nav_data.latitude) / 1000000000.0f;
+    gnssData.Coordinates.Longitude = static_cast<double>(data->nav_data.longitude) / 1000000000.0f;
+    gnssData.Coordinates.Altitude = static_cast<float>(data->nav_data.altitude) / 1000.0f;
 
-    gnssLogData.Info.FixQuality = data->info.fix_quality;
-    gnssLogData.Info.FixStatus = data->info.fix_status;
-    gnssLogData.Info.HorizontalDilution = data->info.hdop;
-    gnssLogData.Info.SatelliteCount = data->info.satellites_cnt;
+    gnssData.Info.FixQuality = data->info.fix_quality;
+    gnssData.Info.FixStatus = data->info.fix_status;
+    gnssData.Info.HorizontalDilution = data->info.hdop;
+    gnssData.Info.SatelliteCount = data->info.satellites_cnt;
 
-    gnssLogData.Time.Hour = data->utc.hour;
-    gnssLogData.Time.Minute = data->utc.minute;
-    gnssLogData.Time.Millisecond = data->utc.millisecond;
-    gnssLogData.Time.DayOfMonth = data->utc.month_day;
-    gnssLogData.Time.Month = data->utc.month;
-    gnssLogData.Time.YearOfCentury = data->utc.century_year;
+    gnssData.Time.Hour = data->utc.hour;
+    gnssData.Time.Minute = data->utc.minute;
+    gnssData.Time.Millisecond = data->utc.millisecond;
+    gnssData.Time.DayOfMonth = data->utc.month_day;
+    gnssData.Time.Month = data->utc.month;
+    gnssData.Time.YearOfCentury = data->utc.century_year;
 
     gnssUpdated = 1;
 

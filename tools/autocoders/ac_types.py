@@ -22,8 +22,13 @@ def parse_yaml_types(file_paths):
     return types_list
 
 if __name__ == '__main__':
+
     template_path = __file__.split(os.path.basename(__file__))[0] + "templates/ac_types.h"
-    template = jinja2.Template(open(template_path).read())
+    jinja_env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(os.path.dirname(template_path)),
+        lstrip_blocks=True
+    )
+    template = jinja_env.get_template(os.path.basename(template_path))
 
     parser = argparse.ArgumentParser(description='Generate C++ struct types from a list of types.')
     parser.add_argument("-f", "--files", nargs='+', help="Files to generate types from")
