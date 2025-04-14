@@ -72,10 +72,14 @@ void CGnssTenant::Run() {
         dataLoggingPort.Send(logData);
 
         if (transmitTimer.IsExpired()) {
+            NTypes::GnssBroadcastPacket broadcastPacket {
+                .Coordinates = gnssData.Coordinates,
+                .Info = gnssData.Info
+            };
+
             broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
             broadcastData.Size = sizeof(NTypes::GnssBroadcastPacket);
-            // memcpy(broadcastData.data, &coordinates, sizeof(NGnssUtils::GnssCoordinates));
-            // reinterpret_cast<NTypes::GnssBroadcastData*>(broadcastData.Data)->updated = 1;
+            memcpy(broadcastData.Payload, &broadcastPacket, sizeof(NTypes::GnssBroadcastPacket));
             loraTransmitPort.Send(broadcastData);
         }
 
