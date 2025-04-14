@@ -49,6 +49,20 @@ int init_servo() {
     return 0;
 }
 
+int cmd_servo_on(const struct shell *shell, size_t argc, char **argv) { return init_servo(); }
+int cmd_servo_off(const struct shell *shell, size_t argc, char **argv) {
+    int ret = gpio_pin_set_dt(&servo_en, 0);
+    if (ret < 0) {
+        printk("couldnt set servo_en: %d\n", ret);
+    }
+
+    ret = gpio_pin_set_dt(&ldo5v_en, 0);
+    if (ret < 0) {
+        printk("couldnt set ldo5v_en: %d\n", ret);
+    }
+    return ret;
+}
+
 int cmd_servo(const struct shell *shell, size_t argc, char **argv) {
     if (argc != 3) {
         shell_print(shell, "Wrong number of args");
@@ -61,12 +75,11 @@ int cmd_servo(const struct shell *shell, size_t argc, char **argv) {
 
     int servoNum = 0;
     if (servoNumChar == '1') {
-        servoNumChar = 0;
+        servoNum = 0;
     } else if (servoNumChar == '2') {
-        servoNumChar = 1;
-
+        servoNum = 1;
     } else if (servoNumChar == '3') {
-        servoNumChar = 2;
+        servoNum = 2;
     } else {
         shell_print(shell, "Invalid servo number");
         return -1;
@@ -82,6 +95,7 @@ int cmd_servo(const struct shell *shell, size_t argc, char **argv) {
     }
 
     const pwm_dt_spec *servos[3] = {&servo1, &servo2, &servo3};
+    shell_print(shell, "Parsed: #%d doOpen: %d", servoNum, (int) do_open);
 
     int32_t pulse_width = min_pulse;
     if (do_open) {

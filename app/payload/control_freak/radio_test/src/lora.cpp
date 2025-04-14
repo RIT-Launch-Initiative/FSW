@@ -158,14 +158,19 @@ void make_and_send_lora() {
     ret = lora_send(dev, (uint8_t *) &data, sizeof(data));
 }
 
+const char noradio_prompt[] = "(X)uart:~$";
+const char lora_prompt[] = "(L)uart:~$";
+
 int cmd_loratx(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
     if (is_transmitting) {
+        shell_prompt_change(shell, noradio_prompt);
         shell_print(shell, "Stopping transmission");
         is_transmitting = false;
         k_timer_stop(&radio_timer);
     } else {
+        shell_prompt_change(shell, lora_prompt);
         shell_print(shell, "Starting Lora");
         is_transmitting = true;
         is_horus = false;

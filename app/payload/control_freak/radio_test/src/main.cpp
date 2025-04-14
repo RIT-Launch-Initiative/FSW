@@ -12,6 +12,9 @@
 #include <zephyr/shell/shell.h>
 #include <zephyr/types.h>
 
+#define PUMPEN_NODE DT_NODELABEL(pump_enable)
+static const struct gpio_dt_spec pump_enable = GPIO_DT_SPEC_GET(PUMPEN_NODE, gpios);
+
 #define RADIORST_NODE DT_ALIAS(radioreset)
 static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gpios);
 
@@ -265,6 +268,11 @@ extern int cmd_loracfg(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_loratx(const struct shell *shell, size_t argc, char **argv);
 
 extern int cmd_servo(const struct shell *shell, size_t argc, char **argv);
+extern int cmd_servo_off(const struct shell *shell, size_t argc, char **argv);
+extern int cmd_servo_on(const struct shell *shell, size_t argc, char **argv);
+
+int cmd_pump_off(const struct shell *shell, size_t argc, char **argv) { return gpio_pin_set_dt(&pump_enable, 0); }
+int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) { return gpio_pin_set_dt(&pump_enable, 1); }
 
 extern void init_modem();
 extern int init_servo();
@@ -278,12 +286,24 @@ SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds,
         SHELL_CMD(horustx, NULL, "Transmit horus packet (according to cfghorus settings)", cmd_horustx),
         SHELL_CMD(cfglora, NULL, "Configure lora (BW SF CR)", cmd_loracfg),
         SHELL_CMD(servo, NULL, "Send Servo Command", cmd_servo),
+        SHELL_CMD(servoon, NULL, "Turn on servo power", cmd_servo_on),
+        SHELL_CMD(servooff, NULL, "Turn off servo power", cmd_servo_off),
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
 
+SHELL_STATIC_SUBCMD_SET_CREATE(pump_subcmds, 
+        SHELL_CMD(on, NULL, "Pump on", cmd_servo_off),
+        SHELL_CMD(off, NULL, "Pump off", cmd_servo_off),
+        SHELL_SUBCMD_SET_END);
+
+SHELL_CMD_REGISTER(pump, &pump_subcmds, "Pump Commands", NULL);
+
 
 void wait_for_timeslot(){
+    // Next avail timeslot start
+    // now
+    // k_sleep(next time - now);
     k_msleep(5000);
 }
 

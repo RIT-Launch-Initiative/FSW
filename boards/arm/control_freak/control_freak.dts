@@ -38,13 +38,13 @@
 
 		servo1: servo1 {
 			label = "Servo 1 PWM";
-			// &gpioc 6 GPIO_ACTIVE_HIGH
-			pwms = <&pwm3 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+			// &gpioc 7 GPIO_ACTIVE_HIGH
+			pwms = <&pwm3 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
 		};
 		servo2: servo2 {
 			label = "Servo 2 PWM";
-			// &gpioc 7 GPIO_ACTIVE_HIGH
-			pwms = <&pwm3 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+			// &gpioc 6 GPIO_ACTIVE_HIGH
+			pwms = <&pwm3 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
 		};
 		servo3: servo3 {
 			label = "Servo 3 PWM";
