@@ -117,7 +117,6 @@ GnssData:
       type: GnssTime
     - name: Info
       type: GnssInfo
-  timestamp: false
 
 GnssBroadcastPacket:
   description: Helper GNSS packet to send to other radio devices.
@@ -126,7 +125,6 @@ GnssBroadcastPacket:
       type: GnssCoordinates
     - name: Info
       type: GnssInfo
-  timestamp: true
 
 LoRaBroadcastData:
   description: Launch standardized LoRa packet.
