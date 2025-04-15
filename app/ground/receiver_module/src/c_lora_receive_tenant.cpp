@@ -25,15 +25,19 @@ void CLoraReceiveTenant::Run() {
     udp.TransmitAsynchronous(buffer + portOffset, rxSize - portOffset);
 }
 
-int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) const {
-    NTypes::LoRaReceiveStatistics stats{0};
+int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) {
+    int16_t rssi = 0;
+    int8_t snr = 0;
 
-    const int rxSize = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize,
-                                                                  &stats.ReceivedSignalStrengthIndicator,
-                                                                  &stats.SignalToNoiseRatio, K_SECONDS(5));
+    const int rxSize = loraTransmitTenant.lora.ReceiveSynchronous(buffer, buffSize, &rssi, &snr, K_SECONDS(5));
     if (rxSize == -EAGAIN) {
         return rxSize;
     }
+
+    const NTypes::LoRaReceiveStatistics stats{
+        .ReceivedSignalStrengthIndicator = rssi,
+        .SignalToNoiseRatio = snr,
+    };
 
     LOG_INF("RSSI: %d SNR: %d", stats.ReceivedSignalStrengthIndicator, stats.SignalToNoiseRatio);
     udp.TransmitAsynchronous(&stats, sizeof(stats), NNetworkDefs::RADIO_MODULE_LORA_RX_STATS_PORT);
