@@ -7,20 +7,20 @@ namespace NGnssUtils {
     static constexpr float nanodegreesToDegreesScale = 1e9f;
     static constexpr float millimeterToMeterScale = 1e3f;
 
-    inline float NanodegreesToDegreesFloat(int64_t latitude) {
+    inline float NanodegreesToDegreesFloat(const int64_t latitude) {
         return static_cast<float>(latitude) / nanodegreesToDegreesScale;
     }
 
-    inline float MillimetersToMetersFloat(int64_t altitude) {
+    inline float MillimetersToMetersFloat(const int64_t altitude) {
         return static_cast<float>(altitude) / millimeterToMeterScale;
     }
 
-    inline double NanodegreesToDegreesDouble(int64_t latitude) {
-        return static_cast<double>(latitude) / nanodegreesToDegreesScale;
+    inline double NanodegreesToDegreesDouble(const int64_t latitude) {
+        return static_cast<double>(latitude) / static_cast<double>(nanodegreesToDegreesScale);
     }
 
-    inline float MillimetersToMetersDouble(int64_t altitude) {
-        return static_cast<double>(altitude) / millimeterToMeterScale;
+    inline double MillimetersToMetersDouble(const int64_t altitude) {
+        return static_cast<double>(altitude) / static_cast<double>(millimeterToMeterScale);
     }
 };
 
