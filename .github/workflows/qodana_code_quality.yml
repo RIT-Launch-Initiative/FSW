@@ -6,7 +6,6 @@ on:
     branches: # Specify your branches here
       - main # The 'main' branch
       - 'releases/*' # The release branches
-
 jobs:
   qodana:
     runs-on: ubuntu-latest
@@ -21,9 +20,6 @@ jobs:
           fetch-depth: 0  # a full history is required for pull request analysis
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2024.3
-        with:
-          pr-mode: false
-            args: --linter,jetbrains/qodana-clang:2024.3-eap
         env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_2084850971 }}
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
