@@ -82,7 +82,24 @@ int init_servo() {
     printk("Servos on\n");
     return 0;
 }
+int cmd_servo_freak(const struct shell *shell, size_t argc, char **argv) {
+    for (int i = 0; i < 10; i++) {
+        change_servo(0, false);
+        k_msleep(1000);
+        change_servo(1, false);
+        k_msleep(1000);
+        change_servo(2, false);
+        k_msleep(1000);
 
+        change_servo(0, true);
+        k_msleep(1000);
+        change_servo(1, true);
+        k_msleep(1000);
+        change_servo(2, true);
+        k_msleep(1000);
+    }
+    return 0;
+}
 int cmd_servo_on(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
     ARG_UNUSED(argc);

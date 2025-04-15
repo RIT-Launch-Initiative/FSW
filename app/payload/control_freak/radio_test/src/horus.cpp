@@ -29,8 +29,6 @@ extern struct gnss_satellite last_sats[MAX_SATS];
 extern uint64_t last_fix_uptime;
 
 extern bool do_horus;
-extern struct k_timer radio_timer;
-
 extern void set_prompt(const struct shell *shell);
 extern horus_packet_v2 get_telemetry();
 
@@ -175,7 +173,6 @@ int32_t rfm9xw_software_reset() {
     return 0;
 }
 void transmit_horus(uint8_t *buf, int len) {
-    printk("Transmitting horus packet len %d\n", len);
     const uint32_t carrier = 434000000;
     const float deviation = 405;
 
@@ -253,12 +250,10 @@ int cmd_horustx(const struct shell *shell, size_t argc, char **argv) {
         shell_print(shell, "Stop Horus");
         do_horus = false;
         set_prompt(shell);
-        k_timer_stop(&radio_timer);
     } else {
         shell_print(shell, "Sending Horus");
         do_horus = true;
         set_prompt(shell);
-        k_timer_start(&radio_timer, K_MSEC(5000), K_MSEC(5000));
     }
 
     return 0;

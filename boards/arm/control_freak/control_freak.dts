@@ -28,6 +28,8 @@
 		servo2 = &servo2;
 		servo3 = &servo3;
 		radioreset = &radioreset;
+
+		imu = &lsm6dsl;
 	};
 
 	servos: servos{

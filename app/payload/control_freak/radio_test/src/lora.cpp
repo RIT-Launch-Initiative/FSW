@@ -9,6 +9,9 @@
 // BS ALERT
 #include "sx1276/sx1276.h"
 
+#define IMU_NODE DT_ALIAS(imu)
+const struct device *imu_dev = DEVICE_DT_GET(IMU_NODE);
+
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
 #define MAX_SATS 20
@@ -19,7 +22,6 @@ extern struct gnss_satellite last_sats[MAX_SATS];
 extern uint64_t last_fix_uptime;
 
 extern bool do_lora;
-extern struct k_timer radio_timer;
 
 extern void set_prompt(const struct shell *shell);
 extern horus_packet_v2 get_telemetry();
@@ -44,7 +46,7 @@ void init_modem() {
     }
 }
 
-extern void lorarx() {
+extern void lorarx(struct fs_file_t *fil) {
     const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
     mymodem_config.tx = false;
     init_modem();
@@ -53,20 +55,21 @@ extern void lorarx() {
     int8_t snr;
 
     int ret = lora_recv(dev, (unsigned char *) &packet, sizeof(packet), K_MSEC(5000), &rssi, &snr);
-    if (ret == -11) {
-        // timeout
-        return;
-    }
-    if (ret < 0) {
+    if (ret < 0 && ret != -11) {
         printk("LoRa recv failed: %i", ret);
         return;
     }
-    printk("Lat: %f\n", packet.latitude);
-    printk("Lon: %f\n", packet.longitude);
-    printk("Alt: %d\n", packet.altitude);
-    printk("RSSI: %" PRIi16 " dBm, SNR:%" PRIi8 " dBm\n", rssi, snr);
+    horus_packet_v2 me = get_telemetry();
+    // Us
+    static char write_buf[100] = {0};
+    snprintf(write_buf, sizeof(write_buf), "%d:%d:%d, %f, %f, %d, %f, %f, %d, %d, %d\n", me.hours, me.minutes,
+             me.seconds, me.latitude, me.longitude, me.altitude, packet.latitude, packet.longitude, packet.altitude,
+             (int) rssi, (int) snr);
+    printk("%s", write_buf);
+    if (fil == nullptr) {
+        return;
+    }
 }
-
 static void loracfg_help(const struct shell *shell) {
     shell_print(shell, "Usage: cfg BW SF CR freq");
     shell_print(shell, "BW:\n 1: 125 khz\n 2: 250 khz\n 5: 500 khz");
@@ -164,12 +167,10 @@ int cmd_loratx(const struct shell *shell, size_t argc, char **argv) {
         shell_print(shell, "Stopping lora");
         do_lora = false;
         set_prompt(shell);
-        k_timer_stop(&radio_timer);
     } else {
         shell_print(shell, "Starting Lora");
         do_lora = true;
         set_prompt(shell);
-        k_timer_start(&radio_timer, K_MSEC(5000), K_MSEC(5000));
     }
     return 0;
 }

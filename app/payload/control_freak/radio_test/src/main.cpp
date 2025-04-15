@@ -7,6 +7,7 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/lora.h>
 #include <zephyr/drivers/pwm.h>
+#include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/spi.h>
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
@@ -28,8 +29,7 @@ static const struct gpio_dt_spec gpssafeboot = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gp
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
-
-\static struct gpio_callback timepulse_cb_data;
+static struct gpio_callback timepulse_cb_data;
 int64_t last_timepulse_uptime = 0;
 
 void timepulse_ticked(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
@@ -141,8 +141,8 @@ uint16_t horus_seq_number = 0;
 horus_packet_v2 get_telemetry() {
     int8_t temp = 30;
     uint8_t volts = 0;
-    float lat = (float) (((double) last_data.nav_data.latitude) / 180e9);
-    float lon = (float) (((double) last_data.nav_data.longitude) / 180e9);
+    float lat = (float) (((double) last_data.nav_data.latitude) / 1e9);
+    float lon = (float) (((double) last_data.nav_data.longitude) / 1e9);
     uint16_t alt = last_data.nav_data.altitude / 1000;                       // mm to m
     uint8_t speed = (uint8_t) (((float) last_data.nav_data.speed) * 0.0036); // mm/sec to km/hr
 
@@ -167,8 +167,6 @@ horus_packet_v2 get_telemetry() {
 bool do_lora = false;
 bool do_horus = false;
 bool do_lorarx = false;
-
-K_TIMER_DEFINE(radio_timer, NULL, NULL);
 
 const char noradio_prompt[] = "( )uart:~$";
 const char lora_prompt[] = "(L)uart:~$";
@@ -354,6 +352,7 @@ int cmd_lorarx(const struct shell *shell, size_t argc, char **argv) {
 extern int cmd_servo(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_off(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_on(const struct shell *shell, size_t argc, char **argv);
+extern int cmd_servo_freak(const struct shell *shell, size_t argc, char **argv);
 
 int cmd_pump_off(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
@@ -370,6 +369,15 @@ int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
     printk("Pump On\n");
     return gpio_pin_set_dt(&pump_enable, 1);
 }
+int cmd_orient(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(shell);
+    ARG_UNUSED(argv);
+    ARG_UNUSED(argc);
+    // int ret = sensor_sample_fetch(imu_dev);
+    // struct sensor_value xyz[3] = {0};
+    // sensor_channel_get()
+    return 0;
+}
 
 extern void init_modem();
 extern int init_servo();
@@ -379,6 +387,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds,
         SHELL_CMD(info, NULL, "GNSS Info to shell", cmd_gnss_info),
         SHELL_CMD(sat, NULL, "Sat Info to shell", cmd_sat_info),
         SHELL_CMD(fixstat, NULL, "Fix info", cmd_fix_info),
+        SHELL_CMD(orient, NULL, "Orientation info", cmd_orient),
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
@@ -387,6 +396,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(servo_subcmds,
         SHELL_CMD(move, NULL, "move servo", cmd_servo),
         SHELL_CMD(on, NULL, "Turn on servo power", cmd_servo_on),
         SHELL_CMD(off, NULL, "Turn off servo power", cmd_servo_off),
+        SHELL_CMD(freak, NULL, "Freak servos", cmd_servo_freak),
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(servo, &servo_subcmds, "Servo Commands", NULL);
@@ -416,7 +426,7 @@ void wait_for_timeslot(){
     k_msleep(5000);
 }
 
-extern void lorarx();
+extern void lorarx(struct fs_file_t *fil);
 
 int radio_thread(){
     while (true){
@@ -433,7 +443,7 @@ int radio_thread(){
             make_and_send_lora();
         }
         if (do_lorarx){
-            lorarx();
+            lorarx(nullptr);
             k_msleep(500);
         } else if (!do_lora && !do_horus){
             k_msleep(500);
