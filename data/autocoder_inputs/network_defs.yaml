@@ -20,10 +20,12 @@ modules:
         port_number: 1
       command_response:
         port_number: 2
-      data_request:
-        port_number: 999
       gnss_data:
         port_number: 5
+      lora_rx_stats:
+        port_number: 6
+      data_request:
+        port_number: 999
 
   sensor:
     id: 3

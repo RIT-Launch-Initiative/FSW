@@ -36,7 +36,7 @@ int CLoraReceiveTenant::receive(uint8_t* buffer, const int buffSize, int* port) 
     }
 
     LOG_INF("RSSI: %d SNR: %d", stats.ReceivedSignalStrengthIndicator, stats.SignalToNoiseRatio);
-    udp.TransmitAsynchronous(&stats, sizeof(stats), NNetworkDefs::);
+    udp.TransmitAsynchronous(&stats, sizeof(stats), NNetworkDefs::RADIO_MODULE_LORA_RX_STATS_PORT);
 
     if (rxSize < 0) {
         LOG_ERR("Failed to receive over LoRa (%d)", rxSize);
