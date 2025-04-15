@@ -1,6 +1,7 @@
 #include "f_core/radio/protocols/horus/horus.h"
 
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <zephyr/drivers/gnss.h>
@@ -12,6 +13,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/types.h>
+
+#define IMU_NODE DT_ALIAS(imu)
+const struct device *imu_dev = DEVICE_DT_GET(IMU_NODE);
 
 #define PUMPEN_NODE DT_NODELABEL(pump_enable)
 static const struct gpio_dt_spec pump_enable = GPIO_DT_SPEC_GET(PUMPEN_NODE, gpios);
@@ -369,13 +373,74 @@ int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
     printk("Pump On\n");
     return gpio_pin_set_dt(&pump_enable, 1);
 }
+
+struct vec3 {
+    float x;
+    float y;
+    float z;
+};
+
+float dot(vec3 a, vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+
+const vec3 UPRIGHT_FACE = {0, -1, 0};
+const vec3 FACE2 = {0, 1, 0};
+const vec3 FACE3 = {-1, 0, 0};
+const vec3 FACE1 = {1, 0, 0};
+
+int find_orientation(const struct shell *shell) {
+    int ret = sensor_sample_fetch(imu_dev);
+    if (ret < 0) {
+        shell_print(shell, "Failed to fetch imu: %d\n", ret);
+        return ret;
+    }
+    struct sensor_value xyz[3] = {0};
+    ret = sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_XYZ, &xyz[0]);
+    if (ret < 0) {
+        shell_print(shell, "Failed to get imu: %d\n", ret);
+        return ret;
+    }
+    vec3 me = {sensor_value_to_float(&xyz[0]), sensor_value_to_float(&xyz[1]), sensor_value_to_float(&xyz[2])};
+    shell_print(shell, "[%f, %f, %f]", me.x, me.y, me.z);
+    float norm = sqrt(me.x * me.x + me.y * me.y + me.z * me.z);
+    me.x /= norm;
+    me.y /= norm;
+    me.z /= norm;
+
+    float upright_sim = dot(me, UPRIGHT_FACE);
+    float face1_sim = dot(me, FACE1);
+    float face2_sim = dot(me, FACE2);
+    float face3_sim = dot(me, FACE3);
+
+    float current_winner = upright_sim;
+    int to_actuate = 0;
+    if (face1_sim > current_winner) {
+        current_winner = face1_sim;
+        to_actuate = 1;
+    }
+    if (face2_sim > current_winner) {
+        current_winner = face2_sim;
+        to_actuate = 2;
+    }
+    if (face3_sim > current_winner) {
+        current_winner = face3_sim;
+        to_actuate = 3;
+    }
+
+    return to_actuate;
+}
+
 int cmd_orient(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
     ARG_UNUSED(argv);
     ARG_UNUSED(argc);
-    // int ret = sensor_sample_fetch(imu_dev);
-    // struct sensor_value xyz[3] = {0};
-    // sensor_channel_get()
+    int to_actuate = find_orientation(shell);
+    if (to_actuate == 0) {
+        shell_print(shell, "Already upright");
+    } else {
+        shell_print(shell, "To actuate: %d", to_actuate);
+        to_actuate--;
+        // look up servo
+    }
     return 0;
 }
 
@@ -454,6 +519,12 @@ int radio_thread(){
 
 
 int main() {
+    struct sensor_value sampling = {0};
+     sensor_value_from_float(&sampling, 208);
+    int ret = sensor_attr_set(imu_dev, SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);
+    if (ret < 0){
+        printk("Couldnt set sampling\n");
+    }
     init_servo();
     reset_gps();
     gps_timepulse();
@@ -464,7 +535,7 @@ int main() {
         return 0;
     }
 
-    int ret = gpio_pin_configure_dt(&pump_enable, GPIO_OUTPUT_INACTIVE);
+    ret = gpio_pin_configure_dt(&pump_enable, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
         printk("Failed to conf pump pin:(\n");
         return 0;

@@ -11,7 +11,7 @@ static const struct pwm_dt_spec servo3 = PWM_DT_SPEC_GET(DT_ALIAS(servo3));
 const pwm_dt_spec *servos[3] = {&servo1, &servo2, &servo3};
 
 static const uint32_t min_pulse = PWM_USEC(800);  //DT_PROP(DT_PARENT(DT_A LIAS(servo1)), min_pulse);
-static const uint32_t max_pulse = PWM_USEC(2200); //DT_PROP(DT_PARENT(DT_ALIAS(servo1)), max_pulse);
+static const uint32_t max_pulse = PWM_USEC(1700); //DT_PROP(DT_PARENT(DT_ALIAS(servo1)), max_pulse);
 
 // false when closed, true when open
 bool state1 = 0;
@@ -22,8 +22,8 @@ bool *states[] = {&state1, &state2, &state3};
 // close open
 using PulseDefs = uint32_t[2];
 PulseDefs pulse1 = {PWM_USEC(2200), PWM_USEC(800)};
-PulseDefs pulse2 = {PWM_USEC(800), PWM_USEC(2200)};
-PulseDefs pulse3 = {PWM_USEC(800), PWM_USEC(2200)};
+PulseDefs pulse2 = {min_pulse, max_pulse};
+PulseDefs pulse3 = {min_pulse, max_pulse};
 
 PulseDefs *pulsedefs[] = {&pulse1, &pulse2, &pulse3};
 

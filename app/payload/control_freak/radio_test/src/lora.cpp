@@ -9,9 +9,6 @@
 // BS ALERT
 #include "sx1276/sx1276.h"
 
-#define IMU_NODE DT_ALIAS(imu)
-const struct device *imu_dev = DEVICE_DT_GET(IMU_NODE);
-
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
 #define MAX_SATS 20
