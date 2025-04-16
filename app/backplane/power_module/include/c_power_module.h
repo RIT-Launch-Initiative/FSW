@@ -61,9 +61,12 @@ private:
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
 
+
     // Tasks
+    static constexpr int ina219SampleTimeMillis = 69; // 68.1 ms based on our devicetree configuration, and we don't need to sample that quickly
+
     CTask networkTask{"Networking Task", 15, 3072, 0};
-    CTask sensingTask{"Sensing Task", 15, 1024, 0};
+    CTask sensingTask{"Sensing Task", 15, 1024, ina219SampleTimeMillis};
     CTask dataLoggingTask{"Data Logging Task", 15, 1500, 0};
 };
 
