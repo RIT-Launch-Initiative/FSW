@@ -1,0 +1,10 @@
+sample:
+  description:
+  name: control_freak
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+    - control_freak
+tests:
+  control_freak.flight.default: {}

@@ -41,7 +41,7 @@ void CLoraReceiveTenant::PadRun() {
 
     if (rxSize > 2) {
         if (port == NNetworkDefs::RADIO_MODULE_COMMAND_PORT) { // Command
-            // Apply commands to pinsconst
+            // Apply commands to pins
             for (int i = 0; i < 4; i++)  {
                 LOG_INF("Set GPIO %d to %d", i, (buffer[2] >> i) & 1);
                 gpios[i].SetPin((buffer[2] >> i) & 1);
@@ -60,11 +60,18 @@ void CLoraReceiveTenant::PadRun() {
             pinStatus.Payload[0] |= gpios[3].GetPin() << 3;
 
             // Retransmit status so GS can verify
-            loraTransmitTenant.transmit(pinStatus);
+            if (loraTransmitTenant.transmit(pinStatus)) {
+                LOG_ERR("Failed to transmit pin status");
+            }
         } else if (port == NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT) { // Data Request
             constexpr int bytesPerPort = 2;
             for (int i = 2; i < rxSize; i += bytesPerPort) {
-                loraTransmitTenant.padDataRequestedMap[buffer[i] << 8 | buffer[i + 1]] = true;
+                uint16_t parsedPort = buffer[i] << 8 | buffer[i + 1];
+                if (loraTransmitTenant.padDataRequestedMap.Set(parsedPort, true)) {
+                    LOG_INF("Requested data for port %d", parsedPort);
+                } else {
+                    LOG_ERR("No key for port %d", parsedPort);
+                }
             }
         } else {
             LOG_INF("Sending LoRa received data to UDP %d", port);

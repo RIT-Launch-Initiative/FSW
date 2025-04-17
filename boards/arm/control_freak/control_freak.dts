@@ -1,0 +1,407 @@
+/dts-v1/;
+#include <st/f4/stm32f446Xe.dtsi>
+#include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "Control Freak";
+	compatible = "launch,control_freak";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+
+		zephyr,console = &usart1;
+		zephyr,shell-uart = &usart1;
+
+	};
+	aliases {
+		debug-serial = &uart4;
+		led0 = &led1; // a little broken :(
+		buzz = &buzzer;
+		
+		gnss = &gnss;
+		gpsreset = &gps_reset;
+		gpssafeboot = &gps_timepulse;
+		lora0 = &lora;
+		servo1 = &servo1;
+		servo2 = &servo2;
+		servo3 = &servo3;
+		radioreset = &radioreset;
+	};
+
+	servos: servos{
+		status="okay";
+		compatible = "pwm-leds";
+		min-pulse = <PWM_USEC(100)>;
+		max-pulse = <PWM_USEC(3000)>;
+
+		servo1: servo1 {
+			label = "Servo 1 PWM";
+			// &gpioc 6 GPIO_ACTIVE_HIGH
+			pwms = <&pwm3 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+		};
+		servo2: servo2 {
+			label = "Servo 2 PWM";
+			// &gpioc 7 GPIO_ACTIVE_HIGH
+			pwms = <&pwm3 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+		};
+		servo3: servo3 {
+			label = "Servo 3 PWM";
+			// &gpiob 15 GPIO_ACTIVE_HIGH
+			pwms = <&pwm12 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+		};
+	};
+
+	leds: leds {
+		compatible = "gpio-leds";
+		led1: led1{
+			// DOESNT WORK, TRANSISTOR ON BACKWARDS
+			// GOES FROM ON TO MORE ON
+			gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+			label = "GPS LED";
+		};
+
+		radioreset: radioreset{
+			gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+			label ="Radio Reset";
+		};
+	};
+	buzzer_pins: buzzer_pins{
+		compatible = "gpio-leds";
+		buzzer: buzzer{
+			gpios = <&gpioa 2 GPIO_ACTIVE_HIGH>;
+			label = "buzzer pin";
+		};
+	};
+
+	enables: enables{
+		compatible = "gpio-leds";
+		// Servo power only, enable ldo5v for control
+		servo_enable: servo-enable{
+			gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for the servo";
+		};
+		// Buzzer power, Servo signal power
+		ldo5v_enable: ldo5v-enable{
+			gpios = <&gpioh 1 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for 5v ldo";
+		};
+		pump_enable: pump-enable{
+			gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for pumps";
+		};
+
+		gps_reset: gps-reset{
+			gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
+			label = "Reset pin on GPS";
+		};
+		gps_timepulse: gps-timepulse{
+			gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
+			label = "Timpepulse/Safeboot pin on GPS";
+		};
+		
+	};
+	cam_enables: cam_enables{
+		compatible = "gpio-leds";
+		cam1_enable: cam1-enable{
+			gpios = <&gpioc 14 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for Camera 1";
+		};
+		cam2_enable: cam2-enable{
+			gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for Camera 2";
+		};
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&external_storage_partition>;
+			automount;
+
+			// the binding recommends defaults for these
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <16>; // may need to grow for optimization
+			lookahead-size = <16>;
+			block-cycles = <(90 * 1000)>;
+			// the datasheet gives 100K P-E cycles
+			// NOTE: this seems to default to 512 for the mounted filesystem
+			// anyway
+		};
+	};
+	soc{
+		// This is some (necessary) BS
+		// Should probably be in zephyr module but seemingly they forgot about it?
+		// timer12 (TIM12) is a 16 bit 'General Purpose Timer' (Section 18 of STM32F446re reference manual RM0390)
+		// Memory mapped to 0x40001800 
+		// Same type of timer as timers9 (TIM9) so copied definition from there
+		// Took interrupt field from timers11 + 1 (seem to increment one by one)
+		
+		timers12: timers@40001800 {
+			compatible = "st,stm32-timers";
+			reg = <0x40001800 0x400>; // Datasheet: Page 69
+			clocks = <&rcc STM32_CLOCK(APB1, 6U)>; // Reference Manual 173
+			resets = <&rctl STM32_RESET(APB1, 6U)>;  // Reference Manual 173
+			interrupts = <43 0>; // (See page 241 for matching timer 11 part)
+			interrupt-names = "global";
+			st,prescaler = <0>;
+			status = "disabled";
+
+			pwm {
+				compatible = "st,stm32-pwm";
+				status = "disabled";
+				#pwm-cells = <3>;
+			};
+
+			counter {
+				compatible = "st,stm32-counter";
+				status = "disabled";
+			};
+		};
+	};
+};
+
+&timers3 {
+	st,prescaler = <1000>;
+	status="okay";
+	pwm3: pwm {
+		status = "okay";
+		pinctrl-0 = <&tim3_ch1_pc6 &tim3_ch2_pc7>;
+		pinctrl-names = "default";
+	};
+};
+
+&timers12 {
+	st,prescaler = <1000>;
+	status="okay";
+	pwm12: pwm {
+		status = "okay";
+		pinctrl-0 = <&tim12_ch2_pb15>;
+		pinctrl-names = "default";
+	};
+};
+
+
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	clock-frequency = <DT_FREQ_M(16)>;
+	status = "okay";
+};
+
+
+&pll {
+	div-m = <16>; // must be set to 16 to match clk_hsi 16mz
+	mul-n = <180>;
+	div-p = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
+
+// SystemCoreClock = ((INPUT_CLOCK (HSE_OR_HSI_IN_HZ) / PLL_M) * PLL_N) / PLL_P
+// https: //stm32f4-discovery.net/2015/01/properly-set-clock-speed-stm32f4xx-devices/
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(45)>; // (16MHz / 16) * 180 / 2
+	ahb-prescaler = <2>;
+	apb1-prescaler = <2>;
+	apb2-prescaler = <1>;
+};
+
+// USB uart
+&usart1 {
+	pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+
+};
+// Debug uart
+&uart4 {
+	status = "okay";
+	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+};
+
+// GPS
+&uart5 {
+	status = "okay";
+	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+
+	pinctrl-names = "default";
+	current-speed = <9600>;
+
+	gnss: gnss {
+		//  MAX-M10M-00B
+		compatible = "gnss-nmea-generic";
+		status="okay";
+	};
+};
+
+&i2c1 {
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+
+	bmp390: bmp390@77 {
+		status = "okay";
+		
+		compatible = "bosch,bmp390";
+		osr-press=<1>;
+		osr-temp=<1>;
+		reg = <0x77>;
+	};
+
+	lsm6dsl: lsm6dsl@6b {
+		status = "okay";
+		compatible = "st,lsm6dsl";
+		reg = <0x6b>;
+		irq-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>, <&gpiob 8 GPIO_ACTIVE_LOW>;
+
+	};
+	ina260_servo: ina260-servo@40 {
+		// Servo Power - expect 7.4 V
+		status = "okay";
+		compatible = "ti,ina260";
+		reg = <0x40>;
+		average = "AVG_1";
+		v-conv-time = "CONV_TIME_1100US";
+		i-conv-time = "CONV_TIME_1100US";
+
+	};
+	ina260_pump: ina260-pump@41 {
+		// Pump Power - expect 5 V
+		// {test/ask deanathan for expected current draw at different parts of inflation }
+		status = "okay";
+		compatible = "ti,ina260";
+		reg = <0x41>;
+		average = "AVG_1";
+		v-conv-time = "CONV_TIME_1100US";
+		i-conv-time = "CONV_TIME_1100US";
+
+	};
+};
+
+&dma2 {
+	status = "okay";
+};
+
+&spi2 {
+	pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
+	cs-gpios = <&gpioc 3 GPIO_ACTIVE_LOW>;
+	pinctrl-names = "default";
+	status = "okay";
+
+
+	dmas = <&dma2 5 3 0x28440 0x03>,
+		   <&dma2 2 3 0x28480 0x03>;
+	dma-names = "tx", "rx";
+
+
+	pinctrl-names = "default";
+	status = "okay";
+
+	w25q128: w25q128jv@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+
+		spi-max-frequency = <(10 * 1000 * 1000)>;
+		size = <DT_SIZE_M(128)>;
+		jedec-id = [ef 40 18];
+
+		has-dpd;
+		t-enter-dpd = <(3 * 1000)>;
+		t-exit-dpd = <(3 * 1000)>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			external_storage_partition: partition@0 {
+				label = "w25q-storage";
+				reg = <0 DT_SIZE_M(16)>;
+			};
+		};
+	};
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
+	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
+	pinctrl-names = "default";
+	status = "okay";
+	lora: lora@0{
+		reg = <0>;
+		spi-max-frequency = <(10 * 1000 * 1000)>;
+		compatible = "semtech,sx1276";
+
+		reset-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+		dio-gpios =   <&gpioc 5  GPIO_ACTIVE_HIGH>,
+					  <&gpiob 0  GPIO_ACTIVE_HIGH>,
+					  <&gpiob 1  GPIO_ACTIVE_HIGH>,
+					  <&gpiob 12 GPIO_ACTIVE_HIGH>,
+					  <&gpiob 13 GPIO_ACTIVE_HIGH>,
+					  <&gpiob 14 GPIO_ACTIVE_HIGH>;
+		power-amplifier-output = "pa-boost";
+		tcxo-power-startup-delay-ms = <100>;
+	};
+};
+
+
+&rtc {
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
+			 <&rcc STM32_SRC_LSI RTC_SEL(2)>;
+	status = "okay";
+};
+
+&backup_sram {
+	status = "okay";
+};
+
+&flash0 {
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 DT_SIZE_K(64)>;
+			read-only;
+		};
+
+		/*
+		 * The flash starting at 0x00010000 and ending at
+		 * 0x0001ffff (sectors 16-31) is reserved for use
+		 * by the application.
+		 */
+		storage_partition: partition@10000 {
+			label = "storage";
+			reg = <0x00010000 DT_SIZE_K(64)>;
+		};
+
+		slot0_partition: partition@20000 {
+			label = "image-0";
+			reg = <0x00020000 DT_SIZE_K(128)>;
+		};
+		slot1_partition: partition@40000 {
+			label = "image-1";
+			reg = <0x00040000 DT_SIZE_K(128)>;
+		};
+		scratch_partition: partition@60000 {
+			label = "image-scratch";
+			reg = <0x00060000 DT_SIZE_K(128)>;
+		};
+	};
+};

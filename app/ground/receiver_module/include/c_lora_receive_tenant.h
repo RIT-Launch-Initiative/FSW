@@ -41,7 +41,7 @@ private:
     CUdpSocket udp; 
     static constexpr int portOffset = 2;
 
-    int receive(uint8_t *buffer, const int size, int *port) const;
+    int receive(uint8_t *buffer, const int size, int *port);
 };
 
 #endif //C_LORA_RECEIVE_TENANT_H

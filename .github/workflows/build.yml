@@ -18,6 +18,7 @@ env:
     app/backplane/sensor_module
     app/ground/receiver_module
     app/ground/tftp_server
+    app/payload/control_freak/flight-software
   platforms: |
     nucleo_f446re
     deployment_module
