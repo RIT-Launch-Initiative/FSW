@@ -59,7 +59,7 @@ private:
      * @param[in] data Radio broadcast data structure
      * @return 0 on success, negative on error
      */
-    int transmit(const NTypes::RadioBroadcastData& data) const;
+    int transmit(const NTypes::LoRaBroadcastData& data) const;
 
     /**
      * Helper function for reading from the transmit queue
