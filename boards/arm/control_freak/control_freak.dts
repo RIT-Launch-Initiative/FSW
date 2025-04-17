@@ -30,6 +30,9 @@
 		radioreset = &radioreset;
 
 		imu = &lsm6dsl;
+
+		inaservo = &ina260_servo;
+		inapump = &ina260_pump;
 	};
 
 	servos: servos{
@@ -271,7 +274,7 @@
 
 	};
 	ina260_servo: ina260-servo@40 {
-		// Servo Power - expect 7.4 V
+		// Servo Power - expect >=7.4 V
 		status = "okay";
 		compatible = "ti,ina260";
 		reg = <0x40>;

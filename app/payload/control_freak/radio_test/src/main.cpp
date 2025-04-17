@@ -1,4 +1,5 @@
 #include "f_core/radio/protocols/horus/horus.h"
+#include "orient.h"
 
 #include <errno.h>
 #include <math.h>
@@ -353,7 +354,8 @@ int cmd_lorarx(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
-extern int cmd_servo(const struct shell *shell, size_t argc, char **argv);
+extern int cmd_servo_sweep(const struct shell *shell, size_t argc, char **argv);
+extern int cmd_servo_move(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_off(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_on(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_freak(const struct shell *shell, size_t argc, char **argv);
@@ -374,20 +376,10 @@ int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
     return gpio_pin_set_dt(&pump_enable, 1);
 }
 
-struct vec3 {
-    float x;
-    float y;
-    float z;
-};
-
-float dot(vec3 a, vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-
-const vec3 UPRIGHT_FACE = {0, -1, 0};
-const vec3 FACE2 = {0, 1, 0};
-const vec3 FACE3 = {-1, 0, 0};
-const vec3 FACE1 = {1, 0, 0};
-
-int find_orientation(const struct shell *shell) {
+int cmd_orient(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(shell);
+    ARG_UNUSED(argv);
+    ARG_UNUSED(argc);
     int ret = sensor_sample_fetch(imu_dev);
     if (ret < 0) {
         shell_print(shell, "Failed to fetch imu: %d\n", ret);
@@ -406,39 +398,13 @@ int find_orientation(const struct shell *shell) {
     me.y /= norm;
     me.z /= norm;
 
-    float upright_sim = dot(me, UPRIGHT_FACE);
-    float face1_sim = dot(me, FACE1);
-    float face2_sim = dot(me, FACE2);
-    float face3_sim = dot(me, FACE3);
-
-    float current_winner = upright_sim;
-    int to_actuate = 0;
-    if (face1_sim > current_winner) {
-        current_winner = face1_sim;
-        to_actuate = 1;
-    }
-    if (face2_sim > current_winner) {
-        current_winner = face2_sim;
-        to_actuate = 2;
-    }
-    if (face3_sim > current_winner) {
-        current_winner = face3_sim;
-        to_actuate = 3;
-    }
-
-    return to_actuate;
-}
-
-int cmd_orient(const struct shell *shell, size_t argc, char **argv) {
-    ARG_UNUSED(shell);
-    ARG_UNUSED(argv);
-    ARG_UNUSED(argc);
-    int to_actuate = find_orientation(shell);
-    if (to_actuate == 0) {
+    PayloadFace to_actuate = find_orientation(me);
+    if (to_actuate == PayloadFace::Upright) {
         shell_print(shell, "Already upright");
+    } else if (to_actuate == PayloadFace::OnItsHead || to_actuate == PayloadFace::StandingUp) {
+        shell_print(shell, "We're boned");
     } else {
         shell_print(shell, "To actuate: %d", to_actuate);
-        to_actuate--;
         // look up servo
     }
     return 0;
@@ -457,24 +423,24 @@ SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds,
 
 SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
 
+SHELL_STATIC_SUBCMD_SET_CREATE(radio_subcmds, 
+        SHELL_CMD(rxlora, NULL, "Receive lora packets", cmd_lorarx),
+        SHELL_CMD(loratx, NULL, "Enable LoRa transmission", cmd_loratx),
+        SHELL_CMD(horustx, NULL, "Enable Horus transmission", cmd_horustx),
+        SHELL_CMD(cfglora, NULL, "Configure lora (BW SF CR FREQ)", cmd_loracfg),
+        SHELL_SUBCMD_SET_END);
+
+SHELL_CMD_REGISTER(radio, &radio_subcmds, "Radio Commands", NULL);
+
 SHELL_STATIC_SUBCMD_SET_CREATE(servo_subcmds, 
-        SHELL_CMD(move, NULL, "move servo", cmd_servo),
+        SHELL_CMD(sweep, NULL, "sweep servo", cmd_servo_sweep),
+        SHELL_CMD(move, NULL, "move servo", cmd_servo_move),
         SHELL_CMD(on, NULL, "Turn on servo power", cmd_servo_on),
         SHELL_CMD(off, NULL, "Turn off servo power", cmd_servo_off),
         SHELL_CMD(freak, NULL, "Freak servos", cmd_servo_freak),
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(servo, &servo_subcmds, "Servo Commands", NULL);
-
-SHELL_STATIC_SUBCMD_SET_CREATE(radio_subcmds, 
-        SHELL_CMD(rxlora, NULL, "Receive lora packets", cmd_lorarx),
-        SHELL_CMD(loratx, NULL, "Transmit lora packet (according to cfglora settings)", cmd_loratx),
-        SHELL_CMD(horustx, NULL, "Transmit horus packet (according to cfghorus settings)", cmd_horustx),
-        SHELL_CMD(cfglora, NULL, "Configure lora (BW SF CR)", cmd_loracfg),
-        SHELL_SUBCMD_SET_END);
-
-SHELL_CMD_REGISTER(radio, &radio_subcmds, "Radio Commands", NULL);
-
 
 SHELL_STATIC_SUBCMD_SET_CREATE(pump_subcmds, 
         SHELL_CMD(on, NULL, "Pump on", cmd_pump_on),
