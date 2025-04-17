@@ -58,15 +58,6 @@ TemperatureData:
       type: float
   timestamp: false
 
-LoRaSignalData:
-  description: LoRa signal data.
-  fields:
-    - name: RSSI
-      type: float
-    - name: SNR
-      type: float
-  timestamp: false
-
 GnssCoordinateData:
   description: GNSS coordinate data.
   fields:
@@ -77,3 +68,11 @@ GnssCoordinateData:
     - name: Altitude
       type: float
   timestamp: false
+
+LoRaReceiveStatistics:
+  description: Lora receive statistics
+  fields:
+    - name: ReceivedSignalStrengthIndicator
+      type: int16_t
+    - name: SignalToNoiseRatio
+      type: int8_t
