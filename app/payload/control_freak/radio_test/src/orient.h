@@ -11,6 +11,7 @@ struct Servo {
     uint32_t closed_pulselen;
     ServoState &state;
 
+    int disconnect() const;
     int open() const;
     int close() const;
     int set_pulse(uint32_t ticks) const;
@@ -43,6 +44,7 @@ struct FaceAndId {
 };
 
 PayloadFace find_orientation(const vec3 &me);
+int find_vector(vec3 &me);
 
 // clang-format off
 inline constexpr std::array<FaceAndId, PayloadFace::NumFaces> payload_faces = {

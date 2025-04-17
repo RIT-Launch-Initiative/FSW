@@ -16,7 +16,7 @@
 #include <zephyr/types.h>
 
 #define IMU_NODE DT_ALIAS(imu)
-const struct device *imu_dev = DEVICE_DT_GET(IMU_NODE);
+static const struct device *imu_dev = DEVICE_DT_GET(IMU_NODE);
 
 #define PUMPEN_NODE DT_NODELABEL(pump_enable)
 static const struct gpio_dt_spec pump_enable = GPIO_DT_SPEC_GET(PUMPEN_NODE, gpios);
@@ -136,7 +136,7 @@ static void gnss_satellites_cb(const struct device *dev, const struct gnss_satel
     current_sats = size;
     for (unsigned int i = 0; i != size; ++i) {
         tracked_count += satellites[i].is_tracked;
-        last_sats[i] = satellites[0];
+        last_sats[i] = satellites[i];
     }
 }
 GNSS_SATELLITES_CALLBACK_DEFINE(GNSS_MODEM, gnss_satellites_cb);
@@ -381,23 +381,8 @@ int cmd_orient(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
     ARG_UNUSED(argv);
     ARG_UNUSED(argc);
-    int ret = sensor_sample_fetch(imu_dev);
-    if (ret < 0) {
-        shell_print(shell, "Failed to fetch imu: %d\n", ret);
-        return ret;
-    }
-    struct sensor_value xyz[3] = {0};
-    ret = sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_XYZ, &xyz[0]);
-    if (ret < 0) {
-        shell_print(shell, "Failed to get imu: %d\n", ret);
-        return ret;
-    }
-    vec3 me = {sensor_value_to_float(&xyz[0]), sensor_value_to_float(&xyz[1]), sensor_value_to_float(&xyz[2])};
-    shell_print(shell, "[%f, %f, %f]", me.x, me.y, me.z);
-    float norm = sqrt(me.x * me.x + me.y * me.y + me.z * me.z);
-    me.x /= norm;
-    me.y /= norm;
-    me.z /= norm;
+    vec3 me = {0, 0, 0};
+    int ret = find_vector(me);
 
     PayloadFace to_actuate = find_orientation(me);
     if (to_actuate == PayloadFace::Upright) {
@@ -414,7 +399,29 @@ int cmd_orient(const struct shell *shell, size_t argc, char **argv) {
 extern void init_modem();
 extern int init_servo();
 
+#define SERVO_EN DT_NODELABEL(servo_enable)
+static const struct gpio_dt_spec servo_en = GPIO_DT_SPEC_GET(SERVO_EN, gpios);
+
+#define LDO5V_EN DT_NODELABEL(ldo5v_enable)
+static const struct gpio_dt_spec ldo5v_en = GPIO_DT_SPEC_GET(LDO5V_EN, gpios);
+
+#define BUZZ_EN DT_NODELABEL(buzzer)
+static const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZ_EN, gpios);
+
+int cmd_buzzer_toggle(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(shell);
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    gpio_pin_set_dt(&ldo5v_en, 1);
+    gpio_pin_toggle_dt(&buzzer);
+    return 0;
+}
 // clang-format off
+SHELL_STATIC_SUBCMD_SET_CREATE(buzzer_subcmds, 
+        SHELL_CMD(buzz, NULL, "Turn on buzzer", cmd_buzzer_toggle),
+        SHELL_SUBCMD_SET_END);
+SHELL_CMD_REGISTER(buzzer, &buzzer_subcmds, "Control Freak Control Commands", NULL);
+
 SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds, 
         SHELL_CMD(info, NULL, "GNSS Info to shell", cmd_gnss_info),
         SHELL_CMD(sat, NULL, "Sat Info to shell", cmd_sat_info),
@@ -494,7 +501,7 @@ int main() {
         printk("Couldnt set sampling\n");
     }
     init_servo();
-    reset_gps();
+    // reset_gps();
     gps_timepulse();
     init_modem();
 

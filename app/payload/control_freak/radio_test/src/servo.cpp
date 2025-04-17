@@ -6,6 +6,12 @@
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 
+#define SERVO_EN DT_NODELABEL(servo_enable)
+static const struct gpio_dt_spec servo_en = GPIO_DT_SPEC_GET(SERVO_EN, gpios);
+
+#define LDO5V_EN DT_NODELABEL(ldo5v_enable)
+static const struct gpio_dt_spec ldo5v_en = GPIO_DT_SPEC_GET(LDO5V_EN, gpios);
+
 static constexpr uint32_t min_pulse = PWM_USEC(800);  //DT_PROP(DT_PARENT(DT_A LIAS(servo1)), min_pulse);
 static constexpr uint32_t max_pulse = PWM_USEC(1700); //DT_PROP(DT_PARENT(DT_ALIAS(servo1)), max_pulse);
 
@@ -38,17 +44,23 @@ static constexpr Servo Servo3{
 
 const Servo *servos[] = {&Servo1, &Servo2, &Servo3};
 
-void change_servo(const Servo &servo, bool newstate) {
+void change_servo(const Servo &servo, bool newstate, bool stop_after = true) {
     int ret = 0;
     if (newstate) {
         servo.open();
+        k_msleep(500);
     } else {
         servo.close();
+        k_msleep(500);
     }
 
     if (ret < 0) {
         printk("Error %d: failed to set pulse width\n", ret);
         return;
+    }
+
+    if (stop_after) {
+        servo.disconnect();
     }
 }
 
@@ -111,12 +123,6 @@ void sweep_servo(const Servo &servo, bool newstate) {
         printk("Error %d: failed to set pulse width\n", ret);
     }
 }
-
-#define SERVO_EN DT_NODELABEL(servo_enable)
-static const struct gpio_dt_spec servo_en = GPIO_DT_SPEC_GET(SERVO_EN, gpios);
-
-#define LDO5V_EN DT_NODELABEL(ldo5v_enable)
-static const struct gpio_dt_spec ldo5v_en = GPIO_DT_SPEC_GET(LDO5V_EN, gpios);
 
 int init_servo() {
     int ret;
@@ -259,17 +265,45 @@ int cmd_servo_sweep(const struct shell *shell, size_t argc, char **argv) {
 }
 
 int cmd_servo_try_righting(const struct shell *shell, size_t argc, char **argv) {
-    if (argc != 2) {
-        shell_print(shell, "Wrong number of arguments.");
+    if (argc != 3) {
+        shell_print(shell, "Wrong number of arguments: roll [ms delay before starting] [# of attempts]");
         return -1;
     }
+
     int ret = 0;
-    int attempts = shell_strtol(argv[1], 10, &ret);
+    int initDelay = shell_strtol(argv[1], 10, &ret);
+    if (ret != 0) {
+        shell_error(shell, "Failed to parse delay ms");
+    }
+
+    int attempts = shell_strtol(argv[2], 10, &ret);
     if (ret != 0) {
         shell_error(shell, "Failed to parse # of attempts: %d", ret);
         return ret;
     }
+    shell_print(shell, "Waiting %d ms before starting", initDelay);
     shell_print(shell, "Giving %d attempts to flip", attempts);
+    k_msleep(initDelay);
+
+    for (int i = 0; i < attempts; i++) {
+        int ret = 0;
+        vec3 my_dir = {0};
+        find_vector(my_dir);
+        PayloadFace facing = find_orientation(my_dir);
+        printk("Facing: %s\n", string_face(facing));
+        if (facing == PayloadFace::Upright) {
+            printk("All good smile :+1:\n");
+            break;
+        } else if (facing == PayloadFace::OnItsHead || facing == PayloadFace::StandingUp) {
+            printk("We're boned, will try again in a second tho\n");
+        } else {
+            int servoIdx = (int) facing;
+            change_servo(*servos[servoIdx], true);
+            k_msleep(1000);
+            change_servo(*servos[servoIdx], false);
+        }
+        k_msleep(1000);
+    }
 
     return 0;
 }
