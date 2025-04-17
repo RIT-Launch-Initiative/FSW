@@ -20,6 +20,12 @@ void CLoraTransmitTenant::Startup() {
         LOG_ERR("Failed to insert all ports into hashmap");
         k_oops();
     }
+
+    int index = 0;
+    for (const auto &[port, _] : padDataRequestedMap) {
+        listeningPortsList[index] = port;
+        index++;
+    }
 }
 
 void CLoraTransmitTenant::PostStartup() {
@@ -37,24 +43,23 @@ void CLoraTransmitTenant::PadRun() {
     readTransmitQueue(rxData);
     portDataMap.Set(rxData.port, rxData);
 
-    for (const auto &[port, requested] : padDataRequestedMap) {
-        if (requested) {
+    for (uint16_t port : listeningPortsList) {
+        if (padDataRequestedMap.Get(port).value_or(false)) {
             NTypes::RadioBroadcastData data = portDataMap.Get(port).value_or(NTypes::RadioBroadcastData{.port = 0, .size = 0});
             if (port == 0) {
                 continue;
             }
 
-            transmit(data);
-            padDataRequestedMap[port] = false;
+            (void) transmit(data);
+            padDataRequestedMap.Set(port, false);
         }
     }
 }
 
-
 void CLoraTransmitTenant::FlightRun() {
     NTypes::RadioBroadcastData data{};
     if (readTransmitQueue(data)) {
-        transmit(data);
+        (void) transmit(data);
     }
 }
 
@@ -63,28 +68,28 @@ void CLoraTransmitTenant::LandedRun() {
     NTypes::RadioBroadcastData data{};
 
     if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
-        transmit(data);
+        (void) transmit(data);
     }
 }
 
-void CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
+int CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
     if (data.size > (256 - 2)) {
         // This case should never occur. If it does, then developer is sending too much data
         LOG_ERR("Received data exceeds LoRa packet size from port %d", data.port);
-        return;
+        return -EMSGSIZE;
     } else if (data.size == 0) {
         // This case should *rarely* occur.
         LOG_WRN_ONCE("Received data is empty from port %d", data.port);
-        return;
+        return -ENODATA;
     }
 
     memcpy(txData.begin(), &data.port, 2);             // Copy port number to first 2 bytes
     memcpy(txData.begin() + 2, &data.data, data.size); // Copy payload to the rest of the buffer
 
     LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
-    lora.TransmitSynchronous(txData.data(), data.size + 2);
+    return lora.TransmitSynchronous(txData.data(), data.size + 2);
 }
 
 // TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead
