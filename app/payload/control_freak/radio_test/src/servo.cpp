@@ -13,10 +13,9 @@ static constexpr uint32_t max_pulse = PWM_USEC(1700); //DT_PROP(DT_PARENT(DT_ALI
 const struct device *ina = DEVICE_DT_GET(INA_NODE);
 
 // false when closed, true when open
-
-bool state1 = 0;
-bool state2 = 0;
-bool state3 = 0;
+ServoState state1{};
+ServoState state2{};
+ServoState state3{};
 
 static constexpr Servo Servo1{
     .pwm = PWM_DT_SPEC_GET(DT_ALIAS(servo1)),
@@ -40,13 +39,13 @@ static constexpr Servo Servo3{
 const Servo *servos[] = {&Servo1, &Servo2, &Servo3};
 
 void change_servo(const Servo &servo, bool newstate) {
-    servo.state = newstate;
-    uint32_t pulse = servo.closed_pulselen;
-    if (servo.state) {
-        pulse = servo.open_pulselen;
-    };
+    int ret = 0;
+    if (newstate) {
+        servo.open();
+    } else {
+        servo.close();
+    }
 
-    int ret = pwm_set_pulse_dt(&servo.pwm, pulse);
     if (ret < 0) {
         printk("Error %d: failed to set pulse width\n", ret);
         return;
@@ -58,20 +57,22 @@ struct Power {
     float voltage;
     float power;
 };
+
+constexpr int servo_steps = 120;
 Power current_log[120] = {};
+
 void sweep_servo(const Servo &servo, bool newstate) {
-    servo.state = newstate;
+
     uint32_t start = servo.closed_pulselen;
     uint32_t end = servo.open_pulselen;
-    if (servo.state) {
+    if (servo.state.last_ticks == servo.open_pulselen) {
         start = servo.open_pulselen;
         end = servo.closed_pulselen;
     };
 
-    int steps = 120;
     int delta = end - start;
     printf("%d to %d\n", start, end);
-    for (int i = 0; i < steps; i++) {
+    for (int i = 0; i < servo_steps; i++) {
         struct sensor_value current;
         sensor_sample_fetch(ina);
         sensor_channel_get(ina, SENSOR_CHAN_CURRENT, &current);
@@ -88,7 +89,7 @@ void sweep_servo(const Servo &servo, bool newstate) {
         c = sensor_value_to_float(&current);
         current_log[i].power = c;
 
-        int pulse = start + delta * i / steps;
+        int pulse = start + delta * i / servo_steps;
 
         int ret = pwm_set_pulse_dt(&servo.pwm, pulse);
         if (ret < 0) {
@@ -97,7 +98,7 @@ void sweep_servo(const Servo &servo, bool newstate) {
         k_msleep(20);
     }
     printf("Current, Voltage, Power\n");
-    for (int i = 0; i < steps; i++) {
+    for (int i = 0; i < servo_steps; i++) {
         printf("%.4f, %.4f, %.4f\n", current_log[i].current, current_log[i].voltage, current_log[i].power);
     }
     int ret = pwm_set_pulse_dt(&servo.pwm, end);
@@ -213,8 +214,11 @@ int parse_servo_args(const struct shell *shell, size_t argc, char **argv, int *c
         return -1;
     }
     if (argc == 2) {
-        *state = !(servos[*servoNum]->state);
-        change_servo(*servos[*servoNum], *state);
+        if ((*servos[*servoNum]).was_fully_open()) {
+            *state = false;
+        } else {
+            *state = true;
+        }
 
     } else if (argc == 3) {
 
@@ -250,6 +254,22 @@ int cmd_servo_sweep(const struct shell *shell, size_t argc, char **argv) {
     parse_servo_args(shell, argc, argv, &servoNum, &do_open);
     shell_print(shell, "Parsed: #%d doOpen: %d", servoNum, (int) do_open);
     sweep_servo(*(servos[servoNum]), do_open);
+
+    return 0;
+}
+
+int cmd_servo_try_righting(const struct shell *shell, size_t argc, char **argv) {
+    if (argc != 2) {
+        shell_print(shell, "Wrong number of arguments.");
+        return -1;
+    }
+    int ret = 0;
+    int attempts = shell_strtol(argv[1], 10, &ret);
+    if (ret != 0) {
+        shell_error(shell, "Failed to parse # of attempts: %d", ret);
+        return ret;
+    }
+    shell_print(shell, "Giving %d attempts to flip", attempts);
 
     return 0;
 }

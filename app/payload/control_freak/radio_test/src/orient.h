@@ -2,11 +2,22 @@
 #include <cstdint>
 #include <zephyr/drivers/pwm.h>
 
+struct ServoState {
+    uint32_t last_ticks;
+};
 struct Servo {
     struct pwm_dt_spec pwm;
     uint32_t open_pulselen;
     uint32_t closed_pulselen;
-    bool &state;
+    ServoState &state;
+
+    int open() const;
+    int close() const;
+    int set_pulse(uint32_t ticks) const;
+
+    bool was_fully_open() const;
+    bool was_fully_closed() const;
+
 };
 
 struct vec3 {

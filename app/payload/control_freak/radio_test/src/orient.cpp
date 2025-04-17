@@ -3,6 +3,16 @@
 #include <algorithm>
 #include <zephyr/drivers/sensor.h>
 
+int Servo::open() const { return set_pulse(open_pulselen); }
+int Servo::close() const { return set_pulse(closed_pulselen); }
+int Servo::set_pulse(uint32_t pulse) const {
+    state.last_ticks = pulse;
+    return pwm_set_pulse_dt(&pwm, pulse);
+}
+
+bool Servo::was_fully_open() const { return state.last_ticks == open_pulselen; }
+bool Servo::was_fully_closed() const { return state.last_ticks == closed_pulselen; }
+
 float dot(const vec3 &a, const vec3 &b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 
 const char *string_face(PayloadFace p) {

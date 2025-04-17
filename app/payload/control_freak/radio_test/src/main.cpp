@@ -359,6 +359,7 @@ extern int cmd_servo_move(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_off(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_on(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_freak(const struct shell *shell, size_t argc, char **argv);
+extern int cmd_servo_try_righting(const struct shell *shell, size_t argc, char **argv);
 
 int cmd_pump_off(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
@@ -419,6 +420,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds,
         SHELL_CMD(sat, NULL, "Sat Info to shell", cmd_sat_info),
         SHELL_CMD(fixstat, NULL, "Fix info", cmd_fix_info),
         SHELL_CMD(orient, NULL, "Orientation info", cmd_orient),
+        SHELL_CMD(roll, NULL, "Attempt to flip: [# of attempts]", cmd_servo_try_righting),
         SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(freak, &freak_subcmds, "Control Freak Control Commands", NULL);
