@@ -1,9 +1,8 @@
 #ifndef C_LORA_TRANSMIT_TENANT_H
 #define C_LORA_TRANSMIT_TENANT_H
 
+#include <n_autocoder_types.h>
 #include <array>
-
-#include "n_radio_module_types.h"
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 
@@ -17,7 +16,7 @@ public:
     friend class CLoraReceiveTenant;
 
     explicit CLoraTransmitTenant(const char* name, CLora& lora,
-                                 CMessagePort<NTypes::RadioBroadcastData>* loraTransmitPort)
+                                 CMessagePort<NTypes::LoRaBroadcastData>* loraTransmitPort)
         : CTenant(name), lora(lora), loraTransmitPort(*loraTransmitPort) {}
 
     ~CLoraTransmitTenant() override = default;
@@ -60,18 +59,18 @@ private:
      * @param[in] data Radio broadcast data structure
      * @return 0 on success, negative on error
      */
-    int transmit(const NTypes::RadioBroadcastData& data) const;
+    int transmit(const NTypes::LoRaBroadcastData& data) const;
 
     /**
      * Helper function for reading from the transmit queue
      * @param[out] data Data received from queue to transmit over LoRa
      * @return True if new data needs to be transmitted, false otherwise
      */
-    bool readTransmitQueue(NTypes::RadioBroadcastData& data) const;
+    bool readTransmitQueue(NTypes::LoRaBroadcastData& data) const;
 
     CLora& lora;
-    CMessagePort<NTypes::RadioBroadcastData>& loraTransmitPort;
-    CHashMap<uint16_t, NTypes::RadioBroadcastData> portDataMap; // 254 bytes to leave room for port
+    CMessagePort<NTypes::LoRaBroadcastData>& loraTransmitPort;
+    CHashMap<uint16_t, NTypes::LoRaBroadcastData> portDataMap; // 254 bytes to leave room for port
     CHashMap<uint16_t, bool> padDataRequestedMap;
     // Maintain a list of ports we had at startup, in case anyone tries to be funny and add a port
     std::array<uint16_t, totalPortsListenedTo> listeningPortsList;

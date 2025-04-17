@@ -1,7 +1,6 @@
 #ifndef C_RADIO_MODULE_H
 #define C_RADIO_MODULE_H
 
-#include "n_radio_module_types.h"
 #include "c_gnss_tenant.h"
 #include "c_udp_listener_tenant.h"
 #include "c_lora_transmit_tenant.h"
@@ -20,6 +19,7 @@
 
 // Autocoder Includes
 #include <n_autocoder_network_defs.h>
+#include <n_autocoder_types.h>
 
 class CRadioModule : public CProjectConfiguration {
 public:
@@ -59,9 +59,9 @@ private:
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     // Message Ports
-    CMessagePort<NTypes::RadioBroadcastData>& loraBroadcastMessagePort;
-    CMessagePort<NTypes::RadioBroadcastData>& udpBroadcastMessagePort;
-    CMessagePort<NTypes::GnssLoggingData>& gnssDataLogMessagePort;
+    CMessagePort<NTypes::LoRaBroadcastData>& loraBroadcastMessagePort;
+    CMessagePort<NTypes::LoRaBroadcastData>& udpBroadcastMessagePort;
+    CMessagePort<NTypes::GnssData>& gnssDataLogMessagePort;
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort, &gnssDataLogMessagePort};
@@ -75,7 +75,7 @@ private:
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
-    CDataLoggerTenant<NTypes::GnssLoggingData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
+    CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort};
     CStateMachineUpdater stateMachineUpdater;
 
     // Tasks

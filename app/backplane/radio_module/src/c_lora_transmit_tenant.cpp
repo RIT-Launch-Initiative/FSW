@@ -1,16 +1,16 @@
 #include "c_lora_transmit_tenant.h"
-#include "c_radio_module.h"
 
 #include <array>
 #include <n_autocoder_network_defs.h>
+#include <n_autocoder_types.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CLoraTransmitTenant);
 
 void CLoraTransmitTenant::Startup() {
-    bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {.port = 0, .size = 0});
-    success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {.port = 0, .size = 0});
-    success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {.port = 0, .size = 0});
+    bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {.Port = 0, .Size = 0});
+    success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {.Port = 0, .Size = 0});
+    success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {.Port = 0, .Size = 0});
 
     success &= padDataRequestedMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, false);
     success &= padDataRequestedMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, false);
@@ -39,13 +39,13 @@ void CLoraTransmitTenant::Run() {
 }
 
 void CLoraTransmitTenant::PadRun() {
-    NTypes::RadioBroadcastData rxData{};
+    NTypes::LoRaBroadcastData rxData{};
     readTransmitQueue(rxData);
-    portDataMap.Set(rxData.port, rxData);
+    portDataMap.Set(rxData.Port, rxData);
 
     for (uint16_t port : listeningPortsList) {
         if (padDataRequestedMap.Get(port).value_or(false)) {
-            NTypes::RadioBroadcastData data = portDataMap.Get(port).value_or(NTypes::RadioBroadcastData{.port = 0, .size = 0});
+            NTypes::LoRaBroadcastData data = portDataMap.Get(port).value_or(NTypes::LoRaBroadcastData{.Port = 0, .Size = 0});
             if (port == 0) {
                 continue;
             }
@@ -57,7 +57,7 @@ void CLoraTransmitTenant::PadRun() {
 }
 
 void CLoraTransmitTenant::FlightRun() {
-    NTypes::RadioBroadcastData data{};
+    NTypes::LoRaBroadcastData data{};
     if (readTransmitQueue(data)) {
         (void) transmit(data);
     }
@@ -65,35 +65,35 @@ void CLoraTransmitTenant::FlightRun() {
 
 
 void CLoraTransmitTenant::LandedRun() {
-    NTypes::RadioBroadcastData data{};
+    NTypes::LoRaBroadcastData data{};
 
-    if (readTransmitQueue(data) && data.port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
+    if (readTransmitQueue(data) && data.Port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
         (void) transmit(data);
     }
 }
 
-int CLoraTransmitTenant::transmit(const NTypes::RadioBroadcastData& data) const {
+int CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
     std::array<uint8_t, 256> txData{};
 
-    if (data.size > (256 - 2)) {
+    if (data.Size > (256 - 2)) {
         // This case should never occur. If it does, then developer is sending too much data
-        LOG_ERR("Received data exceeds LoRa packet size from port %d", data.port);
+        LOG_ERR("Received data exceeds LoRa packet size from port %d", data.Port);
         return -EMSGSIZE;
-    } else if (data.size == 0) {
+    } else if (data.Size == 0) {
         // This case should *rarely* occur.
-        LOG_WRN_ONCE("Received data is empty from port %d", data.port);
+        LOG_WRN_ONCE("Received data is empty from port %d", data.Port);
         return -ENODATA;
     }
 
-    memcpy(txData.begin(), &data.port, 2);             // Copy port number to first 2 bytes
-    memcpy(txData.begin() + 2, &data.data, data.size); // Copy payload to the rest of the buffer
+    memcpy(txData.begin(), &data.Port, 2);             // Copy port number to first 2 bytes
+    memcpy(txData.begin() + 2, &data.Payload, data.Size); // Copy payload to the rest of the buffer
 
-    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.size, data.port);
-    return lora.TransmitSynchronous(txData.data(), data.size + 2);
+    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.Size, data.Port);
+    return lora.TransmitSynchronous(txData.data(), data.Size + 2);
 }
 
 // TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead
-bool CLoraTransmitTenant::readTransmitQueue(NTypes::RadioBroadcastData& data) const {
+bool CLoraTransmitTenant::readTransmitQueue(NTypes::LoRaBroadcastData& data) const {
     if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
         LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
         return false;

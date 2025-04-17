@@ -8,23 +8,18 @@
 
 #include <stdint.h>
 
-namespace NTypes { 
-    {% for t in types %}
+namespace NTypes { {% for t in types %}
     // {{ t[1].description }}
-    
     typedef struct __attribute__((packed)) {
         {%- for field in t[1].fields %}
-        {{ field.type }} {{ field.name }}; {% endfor %}
+        {{ field.type }} {{ field.name }}{% if field.array_size is defined %}[{{ field.array_size }}]{% endif %};{% endfor %}
     } {{ t[0] }};
-    
     {% if t[1].timestamp %}
     typedef struct __attribute__((packed)) {
         uint32_t timestamp;
         {{ t[0] }} data;
     } Timestamped{{ t[0] }};
-    
-    {% endif %}
-    {% endfor -%}
+{% endif %}{% endfor -%}
 }
 
 #endif // _AUTOCODER_TYPES_H_

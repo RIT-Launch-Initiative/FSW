@@ -58,8 +58,30 @@ TemperatureData:
       type: float
   timestamp: false
 
-GnssCoordinateData:
+GnssCoordinates:
   description: GNSS coordinate data.
+  fields:
+    - name: Latitude
+      type: float
+    - name: Longitude
+      type: float
+    - name: Altitude
+      type: float
+  timestamp: false
+
+GnssCoordinatesFixedPoint:
+  description: GNSS coordinate data in fixed point representation.
+  fields:
+    - name: Latitude
+      type: float
+    - name: Longitude
+      type: float
+    - name: Altitude
+      type: float
+  timestamp: false
+
+GnssCoordinatesSubMillimeterPrecision:
+  description: Sub-millimeter precision GNSS coordinate data.
   fields:
     - name: Latitude
       type: double
@@ -68,6 +90,69 @@ GnssCoordinateData:
     - name: Altitude
       type: float
   timestamp: false
+
+GnssInfo:
+  description: GNSS Info.
+  fields:
+    - name: SatelliteCount
+      type: uint16_t
+    - name: HorizontalDilution
+      type: uint32_t
+    - name: FixStatus
+      type: uint8_t
+    - name: FixQuality
+      type: uint8_t
+  timestamp: false
+
+GnssTime:
+  description: GNSS Time.
+  fields:
+    - name: Hour
+      type: uint8_t
+    - name: Minute
+      type: uint8_t
+    - name: Millisecond
+      type: uint16_t
+    - name: DayOfMonth
+      type: uint8_t
+    - name: Month
+      type: uint8_t
+    - name: YearOfCentury
+      type: uint8_t
+  timestamp: false
+
+GnssData:
+  description: Consolidated GNSS data.
+  fields:
+    - name: Coordinates
+      type: GnssCoordinates
+    - name: Time
+      type: GnssTime
+    - name: Info
+      type: GnssInfo
+
+GnssBroadcastPacket:
+  description: Helper GNSS packet to send to other radio devices.
+  fields:
+    - name: Coordinates
+      type: GnssCoordinates
+    - name: SatelliteCount
+      type: uint16_t
+    - name: FixStatus
+      type: uint8_t
+    - name: FixQuality
+      type: uint8_t
+
+LoRaBroadcastData:
+  description: Launch standardized LoRa packet.
+  fields:
+    - name: Port
+      type: uint16_t
+    - name: Size
+      type: uint8_t
+    - name: Payload
+      type: uint8_t
+      array_size: 256 - sizeof(uint16_t)
 
 LoRaReceiveStatistics:
   description: Lora receive statistics
