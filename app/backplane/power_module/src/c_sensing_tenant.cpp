@@ -56,17 +56,17 @@ void CSensingTenant::Run() {
     static constexpr float extra3VCalibrationFactor = 1.13f;
     data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) / extra3VCalibrationFactor;
     data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail3v3.Power = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.Rail3v3.Power = data.Rail3v3.Current * data.Rail3v3.Voltage;
 
     static constexpr float extra5VCalibration = 0.98f;
     data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extra5VCalibration;
     data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.Rail5v0.Power = data.Rail5v0.Current * data.Rail5v0.Voltage;
 
     static constexpr float extraBattCalibrationDivisor = 1.04f;
     data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT) / extraBattCalibrationDivisor;
     data.RailBattery.Voltage = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.RailBattery.Power = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.RailBattery.Power = data.RailBattery.Current * data.RailBattery.Voltage;
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
