@@ -49,9 +49,10 @@ void CSensingTenant::Run() {
         i++;
     }
 
-    static constexpr float extra3VCalibrationDivisor = 1.128f;
-    static constexpr float starting3VCurrentOffset = 0.20867f; // Power Module is a black box. Factor it out. We could not have LEDs on for example.
-    // data.Rail3v3.Current = (shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) - starting3VCurrentOffset) / extra3VCalibrationDivisor;
+    // NOTE: The below calibration values were determined based on using a load tester
+    // Zephyr does not support inputting floats into the LSB microamp offset, so we must do it manually
+
+    // Power Module is a black box. Factor it out. We could not have LEDs on for example.
     static constexpr float extra3VCalibrationFactor = 1.13f;
     data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) / extra3VCalibrationFactor;
     data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
@@ -62,7 +63,8 @@ void CSensingTenant::Run() {
     data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
     data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
 
-    data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    static constexpr float extraBattCalibrationDivisor = 1.04f;
+    data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT) / extraBattCalibrationDivisor;
     data.RailBattery.Voltage = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
     data.RailBattery.Power = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_POWER);
 #endif
