@@ -61,7 +61,7 @@ private:
         .frequency = 915000000,
         .bandwidth = BW_125_KHZ,
         .datarate = SF_12,
-        .coding_rate = CR_4_5,
+        .coding_rate = CR_4_8,
         .preamble_len = 8,
         .tx_power = 20,
         .tx = false,

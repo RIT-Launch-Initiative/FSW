@@ -62,7 +62,19 @@ void CGnssTenant::Startup() {
 }
 
 void CGnssTenant::PostStartup() {
+    NTypes::GnssBroadcastPacket gnssBroadcastPayload {
+        .Coordinates = gnssData.Coordinates,
+        .SatelliteCount = gnssData.Info.SatelliteCount,
+        .FixStatus = gnssData.Info.FixStatus,
+        .FixQuality = gnssData.Info.FixQuality
+    };
 
+    NTypes::LoRaBroadcastData loraBroadcastPacket {
+        .Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT,
+        .Size = sizeof(NTypes::GnssBroadcastPacket)
+    };
+    memcpy(loraBroadcastPacket.Payload, &gnssBroadcastPayload, sizeof(NTypes::GnssBroadcastPacket));
+    loraTransmitPort.Send(loraBroadcastPacket);
 }
 
 void CGnssTenant::Run() {
