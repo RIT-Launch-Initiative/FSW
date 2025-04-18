@@ -122,11 +122,11 @@
         compatible = "ti,ina219";
         reg = <0x44>;
         brng = <0>; // Set to 0 since we don't expect >16V
-        pg = <0>; // 5.0 mV drop
+        pg = <0>; // 0 mV drop
         sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
         badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
         shunt-milliohm = <5>;
-        lsb-microamp = <5>;
+        lsb-microamp = <33>;
     };
 
     ina2: ina219_5v0@41 {

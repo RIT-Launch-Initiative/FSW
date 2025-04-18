@@ -49,7 +49,11 @@ void CSensingTenant::Run() {
         i++;
     }
 
-    data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    static constexpr float extra3VCalibrationDivisor = 1.128f;
+    static constexpr float starting3VCurrentOffset = 0.20867f; // Power Module is a black box. Factor it out. We could not have LEDs on for example.
+    // data.Rail3v3.Current = (shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) - starting3VCurrentOffset) / extra3VCalibrationDivisor;
+    static constexpr float extra3VCalibrationFactor = 1.13f;
+    data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) / extra3VCalibrationFactor;
     data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
     data.Rail3v3.Power = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_POWER);
 
