@@ -28,7 +28,7 @@
         };
 
         wiznet_led: wiznet_led {
-            gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
+            gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
         };
 
 	};
