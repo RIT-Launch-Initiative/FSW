@@ -51,8 +51,6 @@ void CSensingTenant::Run() {
 
     // NOTE: The below calibration values were determined based on using a load tester
     // Zephyr does not support inputting floats into the LSB microamp offset, so we must do it manually
-
-    // Power Module is a black box. Factor it out. We could not have LEDs on for example.
     static constexpr float extra3VCalibrationDivisor = 1.13f;
     data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) / extra3VCalibrationDivisor;
     data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
