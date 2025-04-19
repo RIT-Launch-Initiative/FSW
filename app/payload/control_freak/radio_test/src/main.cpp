@@ -501,7 +501,7 @@ int main() {
         printk("Couldnt set sampling\n");
     }
     init_servo();
-    // reset_gps();
+    reset_gps();
     gps_timepulse();
     init_modem();
 
