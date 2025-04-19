@@ -28,6 +28,8 @@ private:
     CMessagePort<NTypes::SensorData> &dataToLog;
     CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
     CSoftTimer timer{nullptr, nullptr};
+
+    void sendDownlinkData(const NTypes::SensorData &data);
 };
 
 

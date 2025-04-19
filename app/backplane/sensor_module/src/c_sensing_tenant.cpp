@@ -85,15 +85,19 @@ void CSensingTenant::Run() {
 
     data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
-    detectionHandler.HandleData(uptime, data, sensor_states);
     // If we can't send immediately, drop the packet
     // we're gonna sleep then give it new data anywas
     dataToBroadcast.Send(data, K_NO_WAIT);
-    dataToLog.Send(data, K_NO_WAIT);
+    sendDownlinkData(data);
+
+    detectionHandler.HandleData(uptime, data, sensor_states);
+    if (detectionHandler.FlightOccurring()) {
+        dataToLog.Send(data, K_NO_WAIT);
+    }
 }
 
 void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
-    NTypes::LoRaBroadcastSensorData dataToBroadcast{
+    NTypes::LoRaBroadcastSensorData downlinkData{
         .Barometer = {
             .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
             .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
@@ -110,6 +114,6 @@ void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
         },
     };
 
-    dataToDownlink.Send(dataToBroadcast, K_NO_WAIT);
+    dataToDownlink.Send(downlinkData, K_NO_WAIT);
 
 }
