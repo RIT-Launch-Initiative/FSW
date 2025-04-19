@@ -13,7 +13,12 @@ static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQu
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
 
-CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), sensorDataLogMessagePort(dataLogMsgQueue) {}
+K_MSGQ_DEFINE(downlinkQueue, sizeof(NTypes::LoRaBroadcastSensorData), 10, 4);
+static auto downlinkMessageQueue = CMsgqMessagePort<NTypes::LoRaBroadcastSensorData>(downlinkQueue);
+
+CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),
+                               sensorDataLogMessagePort(dataLogMsgQueue),
+                               sensorDataDownlinkMessagePort(downlinkMessageQueue) {}
 
 void CPowerModule::AddTenantsToTasks() {
     // Networking
