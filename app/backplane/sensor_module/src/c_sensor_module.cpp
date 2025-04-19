@@ -10,6 +10,9 @@ LOG_MODULE_REGISTER(sensor_module);
 K_MSGQ_DEFINE(broadcastQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQueue);
 
+K_MSGQ_DEFINE(downlinkQueue, sizeof(NTypes::LoRaBroadcastSensorData), 10, 4);
+static auto downlinkMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastSensorData>(downlinkQueue);
+
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
 
@@ -17,7 +20,7 @@ K_MSGQ_DEFINE(alertQueue, sizeof(const char *), 10, 4);
 static auto alertMsgQueue = CMsgqMessagePort<std::array<uint8_t, 7>>(alertQueue);
 
 CSensorModule::CSensorModule()
-    : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),
+    : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), downlinkMessagePort(downlinkMsgQueue),
       sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{generateFlightLogPath()} {}
 
 std::string CSensorModule::generateFlightLogPath() {

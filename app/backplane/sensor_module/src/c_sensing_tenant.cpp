@@ -11,7 +11,7 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
+CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
                                CMessagePort<NTypes::SensorData>& dataToLog, CDetectionHandler& handler)
     : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
@@ -90,4 +90,10 @@ void CSensingTenant::Run() {
     // we're gonna sleep then give it new data anywas
     dataToBroadcast.Send(data, K_NO_WAIT);
     dataToLog.Send(data, K_NO_WAIT);
+}
+
+void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
+    NTypes::LoRaBroadcastSensorData dataToBroadcast{
+    };
+
 }

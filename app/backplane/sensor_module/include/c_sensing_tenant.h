@@ -18,7 +18,7 @@ class CSensorDevice;
 
 class CSensingTenant : public CTenant {
   public:
-    explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast,
+    explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData> &downlinkDataToBroadcast,
                             CMessagePort<NTypes::SensorData> &dataToLog, CDetectionHandler &handler);
     ~CSensingTenant() override = default;
 
@@ -41,6 +41,8 @@ class CSensingTenant : public CTenant {
     CMagnetometer magnetometer;
 
     std::array<CSensorDevice *, 7> sensors;
+
+    void sendDownlinkData(const NTypes::SensorData &data);
 };
 
 #endif // C_SENSING_TENANT_H
