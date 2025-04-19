@@ -24,6 +24,6 @@ LoRaBroadcastSensorData:
       type: FixedPointBarometerData
     - name: Acceleration
       type: FixedPointAccelerometerData
-    - name: ImuGyroscope
-      type: GyroscopeData
+    - name: Gyroscope
+      type: FixedPointGyroscopeData
   timestamp: false

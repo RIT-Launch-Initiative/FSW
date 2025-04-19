@@ -29,6 +29,7 @@ class CSensingTenant : public CTenant {
   private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
     CMessagePort<NTypes::SensorData> &dataToLog;
+    CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
 
     CDetectionHandler &detectionHandler;
     // Sensor instances
