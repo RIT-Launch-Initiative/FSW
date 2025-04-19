@@ -16,3 +16,14 @@ SensorData:
     - name: Temperature
       type: TemperatureData
   timestamp: true
+
+LoRaBroadcastSensorData:
+  description: Sensor Module LoRa Broadcast Sensor Data
+  fields:
+    - name: Barometer
+      type: FixedPointBarometerData
+    - name: Acceleration
+      type: FixedPointAccelerometerData
+    - name: Gyroscope
+      type: FixedPointGyroscopeData
+  timestamp: false

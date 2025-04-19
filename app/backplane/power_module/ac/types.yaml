@@ -8,3 +8,12 @@ SensorData:
     - name: Rail5v0
       type: ShuntData
   timestamp: true
+
+LoRaBroadcastSensorData:
+  description: Power Module Grouped Shunt Sensor Data to be sent over LoRa.
+  fields:
+    - name: RailBattery
+      type: FixedPointShuntData
+    - name: Rail3v3
+      type: FixedPointShuntData
+  timestamp: false

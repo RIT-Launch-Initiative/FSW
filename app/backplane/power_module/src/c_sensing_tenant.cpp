@@ -63,6 +63,7 @@ void CSensingTenant::Run() {
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
+    sendDownlinkData(data);
 
     if (timer.IsExpired()) {
         dataToLog.Send(data, K_MSEC(5));
@@ -85,4 +86,21 @@ void CSensingTenant::Notify(void* ctx) {
         default:
             return;
     }
+}
+
+void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
+    NTypes::LoRaBroadcastSensorData downlinkData{
+        .RailBattery = {
+            .Voltage = static_cast<int16_t>(data.RailBattery.Voltage),
+            .Current = static_cast<int16_t>(data.RailBattery.Current),
+            .Power = static_cast<int16_t>(data.RailBattery.Power)
+        },
+        .Rail3v3 = {
+            .Voltage = static_cast<int16_t>(data.Rail3v3.Voltage),
+            .Current = static_cast<int16_t>(data.Rail3v3.Current),
+            .Power = static_cast<int16_t>(data.Rail3v3.Power)
+        }
+    };
+
+    dataToDownlink.Send(downlinkData, K_MSEC(5));
 }

@@ -72,6 +72,10 @@ class CDetectionHandler {
      */
     void HandleGround(const uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
 
+    bool FlightOccurring() {
+        return controller.HasEventOccured(Events::Boost) && !controller.HasEventOccured(Events::GroundHit);
+    }
+
     /**
      * Whether or not the phase detector needs more data. True before ground hit, false after
      * @return true if the detection system wants more data, false if we're all finished

@@ -58,6 +58,66 @@ TemperatureData:
       type: float
   timestamp: false
 
+FixedPointAccelerometerData:
+  description: Accelerometer telemetry data (fixed point).
+  fields:
+    - name: X
+      type: int16_t
+    - name: Y
+      type: int16_t
+    - name: Z
+      type: int16_t
+  timestamp: false
+
+FixedPointBarometerData:
+  description: Barometer telemetry data (fixed point).
+  fields:
+    - name: Pressure
+      type: int16_t
+    - name: Temperature
+      type: int16_t
+  timestamp: false
+
+FixedPointGyroscopeData:
+  description: Gyroscope telemetry data (fixed point).
+  fields:
+    - name: X
+      type: int16_t
+    - name: Y
+      type: int16_t
+    - name: Z
+      type: int16_t
+  timestamp: false
+
+FixedPointMagnetometerData:
+  description: Magnetometer telemetry data (fixed point).
+  fields:
+    - name: X
+      type: int16_t
+    - name: Y
+      type: int16_t
+    - name: Z
+      type: int16_t
+  timestamp: false
+
+FixedPointShuntData:
+  description: Shunt telemetry data (fixed point).
+  fields:
+    - name: Voltage
+      type: int16_t
+    - name: Current
+      type: int16_t
+    - name: Power
+      type: int16_t
+  timestamp: false
+
+FixedPointTemperatureData:
+  description: Single temperature reading (fixed point).
+  fields:
+    - name: Temperature
+      type: uint8_t # Highly unlikely chance of being in sub-zero temperatures
+  timestamp: false
+
 GnssCoordinates:
   description: GNSS coordinate data.
   fields:

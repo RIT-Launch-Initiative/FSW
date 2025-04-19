@@ -9,6 +9,8 @@ modules:
     port_offsets:
       ina_data:
         port_number: 15
+      downlink_data:
+        port_number: 20
       adc_data:
         port_number: 50
 
@@ -31,6 +33,8 @@ modules:
     id: 3
     base_port: 13000
     port_offsets:
+      downlink_data:
+        port_number: 20
       telemetry:
         port_number: 100
 

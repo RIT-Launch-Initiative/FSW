@@ -10,8 +10,8 @@
 
 class CSensingTenant : public CTenant, public CObserver {
 public:
-    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::SensorData> &dataToLog)
-        : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog) {}
+    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::SensorData> &dataToLog, CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
+        : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(dataToDownlink) {}
 
     ~CSensingTenant() override = default;
 
@@ -26,7 +26,10 @@ public:
 private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
     CMessagePort<NTypes::SensorData> &dataToLog;
+    CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
     CSoftTimer timer{nullptr, nullptr};
+
+    void sendDownlinkData(const NTypes::SensorData &data);
 };
 
 
