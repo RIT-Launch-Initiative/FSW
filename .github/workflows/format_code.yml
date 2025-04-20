@@ -1,0 +1,130 @@
+name: Code Quality
+
+on:
+  workflow_run:
+    workflows: ["Build Projects"]
+    branches: [main]
+    types:
+      - completed
+  pull_request:
+    branches: ['*']
+
+jobs:
+  format-and-lint:
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'workflow_run' && 
+      github.event.workflow_run.conclusion == 'success' && 
+      github.event.workflow_run.head_branch == 'main') || 
+      github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format clang-tidy
+          pip install autopep8
+
+      - name: Check Formatting
+        id: check-format
+        run: |
+          ./scripts/format_code.sh --check || echo "FORMATTING_NEEDED=true" >> $GITHUB_ENV
+
+      - name: Check Naming Conventions
+        id: check-naming
+        run: |
+          ./scripts/check_naming.py || echo "NAMING_ISSUES=true" >> $GITHUB_ENV
+
+      - name: Lint Code
+        id: lint-code
+        run: |
+          ./scripts/lint_code.sh || echo "LINT_ISSUES=true" >> $GITHUB_ENV
+
+      - name: Auto-format Code (PR)
+        if: github.event_name == 'pull_request' && (env.FORMATTING_NEEDED == 'true')
+        run: |
+          ./scripts/format_code.sh
+          
+          # Commit and push the changes
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Auto-format code according to style guidelines" || echo "No changes to commit"
+          git push
+          
+          # Add an informational comment to the PR
+          echo "Code has been auto-formatted according to project style guidelines." >> $GITHUB_STEP_SUMMARY
+
+      - name: Auto-fix Lint Issues (PR)
+        if: github.event_name == 'pull_request' && (env.LINT_ISSUES == 'true')
+        run: |
+          ./scripts/lint_code.sh --fix
+          
+          # Commit and push the changes
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Auto-fix linting issues" || echo "No changes to commit"
+          git push
+          
+          # Add an informational comment to the PR
+          echo "Automatically fixed linting issues where possible." >> $GITHUB_STEP_SUMMARY
+
+      - name: Auto-format Code (main branch)
+        if: github.event_name == 'workflow_run' && (env.FORMATTING_NEEDED == 'true' || env.LINT_ISSUES == 'true')
+        run: |
+          ./scripts/format_code.sh
+          ./scripts/lint_code.sh --fix
+          
+          # Create a new branch for the formatting
+          BRANCH_NAME="auto-format-$(date +%Y%m%d%H%M%S)"
+          git checkout -b $BRANCH_NAME
+          
+          # Commit and push the changes
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Auto-format code and fix linting issues" || echo "No changes to commit"
+          git push origin $BRANCH_NAME
+          
+          # Create a PR from the new branch to main
+          gh pr create --title "Auto-format and lint code" \
+                       --body "This PR contains automatic formatting and linting fixes to adhere to project style guidelines." \
+                       --base main \
+                       --head $BRANCH_NAME
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Report Status
+        if: always()
+        run: |
+          if [[ "${{ env.FORMATTING_NEEDED }}" == "true" ]]; then
+            echo "Some files needed formatting. Changes have been automatically applied." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "All files are properly formatted!" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ env.NAMING_ISSUES }}" == "true" ]]; then
+            echo "Some files have naming convention issues. These need to be fixed manually." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "All files follow the naming conventions!" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ env.LINT_ISSUES }}" == "true" ]]; then
+            echo "Some files had linting issues. Automatic fixes have been applied where possible." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "All files pass linting checks!" >> $GITHUB_STEP_SUMMARY
+          fi
