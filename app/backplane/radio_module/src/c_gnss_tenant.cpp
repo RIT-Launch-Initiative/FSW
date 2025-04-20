@@ -62,11 +62,10 @@ void CGnssTenant::Startup() {
 }
 
 void CGnssTenant::PostStartup() {
-
+    sendGnssToLora();
 }
 
 void CGnssTenant::Run() {
-    NTypes::LoRaBroadcastData broadcastData{0};
     NTypes::GnssData logData{0};
 
     if (gnssUpdated) {
@@ -74,19 +73,26 @@ void CGnssTenant::Run() {
         dataLoggingPort.Send(logData);
 
         if (transmitTimer.IsExpired()) {
-            NTypes::GnssBroadcastPacket broadcastPacket {
-                .Coordinates = gnssData.Coordinates,
-                .SatelliteCount = gnssData.Info.SatelliteCount,
-                .FixStatus = gnssData.Info.FixStatus,
-                .FixQuality = gnssData.Info.FixQuality
-            };
-
-            broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
-            broadcastData.Size = sizeof(NTypes::GnssBroadcastPacket);
-            memcpy(broadcastData.Payload, &broadcastPacket, sizeof(NTypes::GnssBroadcastPacket));
-            loraTransmitPort.Send(broadcastData);
+            sendGnssToLora();
         }
 
         gnssUpdated = 0;
     }
 }
+
+void CGnssTenant::sendGnssToLora() const {
+    NTypes::LoRaBroadcastData broadcastData{0};
+    NTypes::GnssBroadcastPacket broadcastPacket {
+        .Coordinates = gnssData.Coordinates,
+        .SatelliteCount = gnssData.Info.SatelliteCount,
+        .FixStatus = gnssData.Info.FixStatus,
+        .FixQuality = gnssData.Info.FixQuality
+    };
+
+    broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
+    broadcastData.Size = sizeof(NTypes::GnssBroadcastPacket);
+    memcpy(broadcastData.Payload, &broadcastPacket, sizeof(NTypes::GnssBroadcastPacket));
+
+    loraTransmitPort.Send(broadcastData);
+}
+
