@@ -27,6 +27,8 @@ private:
     CSoftTimer transmitTimer{};
     CMessagePort<NTypes::LoRaBroadcastData>& loraTransmitPort;
     CMessagePort<NTypes::GnssData>& dataLoggingPort;
+
+    void sendGnssToLora() const;
 };
 
 #endif //C_SENSING_TENANT_H

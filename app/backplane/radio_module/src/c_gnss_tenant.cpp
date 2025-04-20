@@ -62,19 +62,7 @@ void CGnssTenant::Startup() {
 }
 
 void CGnssTenant::PostStartup() {
-    NTypes::GnssBroadcastPacket gnssBroadcastPayload {
-        .Coordinates = gnssData.Coordinates,
-        .SatelliteCount = gnssData.Info.SatelliteCount,
-        .FixStatus = gnssData.Info.FixStatus,
-        .FixQuality = gnssData.Info.FixQuality
-    };
-
-    NTypes::LoRaBroadcastData loraBroadcastPacket {
-        .Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT,
-        .Size = sizeof(NTypes::GnssBroadcastPacket)
-    };
-    memcpy(loraBroadcastPacket.Payload, &gnssBroadcastPayload, sizeof(NTypes::GnssBroadcastPacket));
-    loraTransmitPort.Send(loraBroadcastPacket);
+    sendGnssToLora();
 }
 
 void CGnssTenant::Run() {
@@ -86,19 +74,26 @@ void CGnssTenant::Run() {
         dataLoggingPort.Send(logData);
 
         if (transmitTimer.IsExpired()) {
-            NTypes::GnssBroadcastPacket broadcastPacket {
-                .Coordinates = gnssData.Coordinates,
-                .SatelliteCount = gnssData.Info.SatelliteCount,
-                .FixStatus = gnssData.Info.FixStatus,
-                .FixQuality = gnssData.Info.FixQuality
-            };
-
-            broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
-            broadcastData.Size = sizeof(NTypes::GnssBroadcastPacket);
-            memcpy(broadcastData.Payload, &broadcastPacket, sizeof(NTypes::GnssBroadcastPacket));
-            loraTransmitPort.Send(broadcastData);
+            sendGnssToLora();
         }
 
         gnssUpdated = 0;
     }
 }
+
+void CGnssTenant::sendGnssToLora() const {
+    NTypes::LoRaBroadcastData broadcastData{0};
+    NTypes::GnssBroadcastPacket broadcastPacket {
+        .Coordinates = gnssData.Coordinates,
+        .SatelliteCount = gnssData.Info.SatelliteCount,
+        .FixStatus = gnssData.Info.FixStatus,
+        .FixQuality = gnssData.Info.FixQuality
+    };
+
+    broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
+    broadcastData.Size = sizeof(NTypes::GnssBroadcastPacket);
+    memcpy(broadcastData.Payload, &broadcastPacket, sizeof(NTypes::GnssBroadcastPacket));
+
+    loraTransmitPort.Send(broadcastData);
+}
+
