@@ -66,7 +66,6 @@ void CGnssTenant::PostStartup() {
 }
 
 void CGnssTenant::Run() {
-    NTypes::LoRaBroadcastData broadcastData{0};
     NTypes::GnssData logData{0};
 
     if (gnssUpdated) {
