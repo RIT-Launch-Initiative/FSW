@@ -5,5 +5,7 @@ common:
   build_only: true
   platform_allow:
     - native_sim
+  modules:
+    - lz4
 tests:
   samples.compression.default: {}
