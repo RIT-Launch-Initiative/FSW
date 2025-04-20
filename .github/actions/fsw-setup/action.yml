@@ -39,3 +39,4 @@ runs:
       with:
         app-path: FSW
         toolchains: arm-zephyr-eabi
+        manifest-file-name: west.yml
