@@ -1,6 +1,9 @@
 # Launch Flight Software
 Current source code for Launch's custom flight hardware utilizing Zephyr RTOS. This includes but is not limited to the Backplane (modules), GRIM and POTATO.  
 
+## Coding Standards
+This project follows specific coding standards for consistency. See the [.codingstandards.md](.codingstandards.md) file for detailed information.
+
 ## Ways to Compile FSW Applications
 There are 3 different ways to compile a project:
 - Run make <name of project> from the root of the repository. 
