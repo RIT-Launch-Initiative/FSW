@@ -49,17 +49,23 @@ void CSensingTenant::Run() {
         i++;
     }
 
-    data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    // NOTE: The below calibration values were determined based on using a load tester
+    // Zephyr does not support inputting floats into the LSB microamp offset, so we must do it manually
+    static constexpr float extra3VCalibrationMultiplier = 0.885f;
+    data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extra3VCalibrationMultiplier;
     data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail3v3.Power = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.Rail3v3.Power = data.Rail3v3.Current * data.Rail3v3.Voltage;
 
-    data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    static constexpr float extra5VCalibrationMultiplier = 0.980f;
+    data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extra5VCalibrationMultiplier;
+
     data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail5v0.Power = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.Rail5v0.Power = data.Rail5v0.Current * data.Rail5v0.Voltage;
 
-    data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT);
+    static constexpr float extraBattCalibrationMultiplier = 0.962f;
+    data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extraBattCalibrationMultiplier;
     data.RailBattery.Voltage = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.RailBattery.Power = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_POWER);
+    data.RailBattery.Power = data.RailBattery.Current * data.RailBattery.Voltage;
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
