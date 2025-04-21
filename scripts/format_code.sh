@@ -17,22 +17,35 @@ find_source_files() {
         -not -path "*/modules/*" \
         -not -path "*/twister-out/*" \
         -not -path "*/zephyr/*" \
+        -not -path "*/docs/*" \
         \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" -o -name "*.c" \)
 }
+
+# Check if clang-format is installed
+if ! command -v clang-format &> /dev/null; then
+    echo "Error: clang-format is not installed. Please install it first."
+    exit 1
+fi
 
 # Format files or check if they are formatted correctly
 if [ "$1" == "--check" ]; then
     echo "Checking code formatting..."
     NEED_FORMAT=0
     
-    for file in $(find_source_files); do
+    while IFS= read -r file || [[ -n "$file" ]]; do
+        # Skip files that don't exist or aren't regular files
+        if [ ! -f "$file" ]; then
+            continue
+        fi
+        
+        # Check if this file should be formatted
         if ! clang-format --style=file -output-replacements-xml "$file" | grep -q "<replacement "; then
             echo "✓ $file"
         else
             echo "✗ $file needs formatting"
             NEED_FORMAT=1
         fi
-    done
+    done < <(find_source_files)
     
     if [ $NEED_FORMAT -eq 1 ]; then
         echo "Some files need formatting. Run './scripts/format_code.sh' to format them."
@@ -43,9 +56,20 @@ if [ "$1" == "--check" ]; then
     fi
 else
     echo "Formatting code..."
-    for file in $(find_source_files); do
+    # Don't fail immediately on errors
+    set +e
+    
+    while IFS= read -r file || [[ -n "$file" ]]; do
+        # Skip files that don't exist or aren't regular files
+        if [ ! -f "$file" ]; then
+            continue
+        fi
+        
         echo "Formatting $file"
-        clang-format --style=file -i "$file"
-    done
+        clang-format --style=file -i "$file" || echo "Warning: Failed to format $file"
+    done < <(find_source_files)
+    
+    # Restore error handling
+    set -e
     echo "Done!"
 fi

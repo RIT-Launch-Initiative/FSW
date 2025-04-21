@@ -38,45 +38,53 @@ fi
 # Create a temporary clang-tidy config file
 CLANG_TIDY_CONFIG=".clang-tidy"
 cat > "$ROOT_DIR/$CLANG_TIDY_CONFIG" << EOF
+---
 Checks: '-*,readability-*,modernize-*,cppcoreguidelines-*,performance-*,-modernize-use-trailing-return-type,-readability-qualified-auto,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers'
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
 FormatStyle: file
 CheckOptions:
-  - key: readability-identifier-naming.ClassCase
-    value: CamelCase
-  - key: readability-identifier-naming.ClassPrefix
-    value: C
-  - key: readability-identifier-naming.NamespaceCase
-    value: CamelCase
-  - key: readability-identifier-naming.NamespacePrefix
-    value: N
-  - key: readability-identifier-naming.PrivateMemberPrefix
-    value: 
-  - key: readability-identifier-naming.PrivateMemberCase
-    value: camelCase
-  - key: readability-identifier-naming.PublicMethodCase
-    value: CamelCase
-  - key: readability-identifier-naming.PrivateMethodCase
-    value: camelCase
-  - key: readability-identifier-naming.ParameterCase
-    value: camelCase
-  - key: readability-identifier-naming.VariableCase
-    value: camelCase
-  - key: readability-identifier-naming.ConstantCase
-    value: UPPER_CASE
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.ClassPrefix: C
+  readability-identifier-naming.NamespaceCase: CamelCase
+  readability-identifier-naming.NamespacePrefix: N
+  readability-identifier-naming.PrivateMemberCase: camelCase
+  readability-identifier-naming.PublicMethodCase: CamelCase
+  readability-identifier-naming.PrivateMethodCase: camelCase
+  readability-identifier-naming.ParameterCase: camelCase
+  readability-identifier-naming.VariableCase: camelCase
+  readability-identifier-naming.ConstantCase: UPPER_CASE
+...
 EOF
 
 # Run clang-tidy on all files
 echo "Linting files..."
 ERRORS=0
 
+# Don't fail immediately on linting errors - treat as warnings
+set +e
+
 for file in $(find_source_files); do
     echo "Checking $file"
-    if ! clang-tidy $FIX_FLAG "$file" -- -std=c++17 -I"$ROOT_DIR/include" 2>&1; then
-        ERRORS=1
+    
+    # Check file extension to determine if it's C or C++
+    if [[ "$file" == *.c ]]; then
+        # C file
+        clang-tidy $FIX_FLAG "$file" -- -std=c11 -I"$ROOT_DIR/include" -I"$ROOT_DIR/zephyr/include" 2>&1 || {
+            echo "Warning: Linting issues in $file (C file)"
+            ERRORS=1
+        }
+    else
+        # C++ file
+        clang-tidy $FIX_FLAG "$file" -- -std=c++17 -I"$ROOT_DIR/include" -I"$ROOT_DIR/zephyr/include" 2>&1 || {
+            echo "Warning: Linting issues in $file (C++ file)"
+            ERRORS=1
+        }
     fi
 done
+
+# Restore error handling
+set -e
 
 # Clean up config
 rm -f "$ROOT_DIR/$CLANG_TIDY_CONFIG"

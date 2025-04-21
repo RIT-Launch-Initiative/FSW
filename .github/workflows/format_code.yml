@@ -40,18 +40,30 @@ jobs:
 
       - name: Check Formatting
         id: check-format
+        continue-on-error: true
         run: |
-          ./scripts/format_code.sh --check || echo "FORMATTING_NEEDED=true" >> $GITHUB_ENV
+          ./scripts/format_code.sh --check
+          if [ $? -ne 0 ]; then
+            echo "FORMATTING_NEEDED=true" >> $GITHUB_ENV
+          fi
 
       - name: Check Naming Conventions
         id: check-naming
+        continue-on-error: true
         run: |
-          ./scripts/check_naming.py || echo "NAMING_ISSUES=true" >> $GITHUB_ENV
+          ./scripts/check_naming.py
+          if [ $? -ne 0 ]; then
+            echo "NAMING_ISSUES=true" >> $GITHUB_ENV
+          fi
 
       - name: Lint Code
         id: lint-code
+        continue-on-error: true
         run: |
-          ./scripts/lint_code.sh || echo "LINT_ISSUES=true" >> $GITHUB_ENV
+          ./scripts/lint_code.sh
+          if [ $? -ne 0 ]; then
+            echo "LINT_ISSUES=true" >> $GITHUB_ENV
+          fi
 
       - name: Auto-format Code (PR)
         if: github.event_name == 'pull_request' && (env.FORMATTING_NEEDED == 'true')

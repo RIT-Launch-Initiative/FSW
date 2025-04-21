@@ -4,6 +4,26 @@ Current source code for Launch's custom flight hardware utilizing Zephyr RTOS. T
 ## Coding Standards
 This project follows specific coding standards for consistency. See the [.codingstandards.md](.codingstandards.md) file for detailed information.
 
+The standards include:
+- 4-space indentation
+- CamelCase naming with class prefix 'C'
+- Namespace prefix 'N'
+- Public functions use capitalized CamelCase, private functions use lowercase camelCase
+- Pointers are left-aligned with the type
+- Braces on the same line
+- Spaces between control flow keywords and parentheses
+
+### Code Quality Tools
+
+The repository includes several tools to help maintain code quality:
+
+- **Format Code**: Run `./scripts/format_code.sh` to automatically format all source files according to the project's coding standards.
+- **Check Naming Conventions**: Run `./scripts/check_naming.py` to verify that classes, namespaces, and functions follow the naming conventions.
+- **Lint Code**: Run `./scripts/lint_code.sh` to perform static analysis on the codebase.
+- **All-in-One**: Run `./scripts/code_quality.sh` to run all checks at once. Use `./scripts/code_quality.sh --fix` to automatically fix issues where possible.
+
+These tools are automatically run as part of the CI pipeline after successful builds. Any formatting issues are automatically fixed and committed.
+
 ## Ways to Compile FSW Applications
 There are 3 different ways to compile a project:
 - Run make <name of project> from the root of the repository. 

@@ -14,36 +14,45 @@ PRIVATE_FUNC_PATTERN = re.compile(r'private:.*?(\w+)\s*\([^)]*\)', re.DOTALL)
 
 def check_file(file_path):
     """Check a single file for naming convention violations."""
-    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-        content = f.read()
-    
-    issues = []
-    
-    # class names
-    for match in CLASS_PATTERN.finditer(content):
-        class_name = match.group(1)
-        if not class_name.startswith('C') or not class_name[1:2].isupper():
-            issues.append(f"Class '{class_name}' should be prefixed with 'C' and use CamelCase")
-    
-    # namespace names
-    for match in NAMESPACE_PATTERN.finditer(content):
-        namespace_name = match.group(1)
-        if not namespace_name.startswith('N') or not namespace_name[1:2].isupper():
-            issues.append(f"Namespace '{namespace_name}' should be prefixed with 'N' and use CamelCase")
-    
-    # pub function names
-    for match in PUBLIC_FUNC_PATTERN.finditer(content):
-        func_name = match.group(1)
-        if not func_name[0].isupper() and func_name != "operator":
-            issues.append(f"Public function '{func_name}' should use capitalized CamelCase")
-    
-    # priv function names
-    for match in PRIVATE_FUNC_PATTERN.finditer(content):
-        func_name = match.group(1)
-        if func_name[0].isupper() and func_name != "operator":
-            issues.append(f"Private function '{func_name}' should use lowercase camelCase")
-    
-    return issues
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+        
+        issues = []
+        
+        # Skip checking if the file is a generated file or test file
+        file_str = str(file_path)
+        if "CMakeCXXCompilerId.cpp" in file_str or "/test/" in file_str:
+            return issues
+        
+        # class names
+        for match in CLASS_PATTERN.finditer(content):
+            class_name = match.group(1)
+            if not class_name.startswith('C') or not class_name[1:2].isupper():
+                issues.append(f"Class '{class_name}' should be prefixed with 'C' and use CamelCase")
+        
+        # namespace names
+        for match in NAMESPACE_PATTERN.finditer(content):
+            namespace_name = match.group(1)
+            if not namespace_name.startswith('N') or not namespace_name[1:2].isupper():
+                issues.append(f"Namespace '{namespace_name}' should be prefixed with 'N' and use CamelCase")
+        
+        # pub function names
+        for match in PUBLIC_FUNC_PATTERN.finditer(content):
+            func_name = match.group(1)
+            if not func_name[0].isupper() and func_name != "operator":
+                issues.append(f"Public function '{func_name}' should use capitalized CamelCase")
+        
+        # priv function names
+        for match in PRIVATE_FUNC_PATTERN.finditer(content):
+            func_name = match.group(1)
+            if func_name[0].isupper() and func_name != "operator":
+                issues.append(f"Private function '{func_name}' should use lowercase camelCase")
+        
+        return issues
+    except Exception as e:
+        print(f"Warning: Could not check {file_path}: {e}")
+        return []
 
 def find_source_files(root_dir):
     """Find all source files in the project."""
@@ -59,8 +68,12 @@ def find_source_files(root_dir):
             not "/cmake-build" in file_str and 
             not "/modules/" in file_str and 
             not "/twister-out/" in file_str and 
-            not "/zephyr/" in file_str):
-            filtered_files.append(file)
+            not "/zephyr/" in file_str and
+            not "/docs/" in file_str and
+            not "CMakeFiles" in file_str):
+            # Check if file exists and is readable
+            if file.exists() and file.is_file() and os.access(file, os.R_OK):
+                filtered_files.append(file)
     
     return filtered_files
 
@@ -68,11 +81,10 @@ def main():
     parser = argparse.ArgumentParser(description='Check naming conventions in C++ code.')
     parser.add_argument('--root', default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         help='Root directory to scan')
-#   TODO
-#     parser.add_argument('--fix', action='store_true', help='Automatically fix naming issues (not implemented yet)')
+    parser.add_argument('--fix', action='store_true', help='Automatically fix naming issues (not implemented yet)')
     args = parser.parse_args()
     
-    if args.fix:
+    if hasattr(args, 'fix') and args.fix:
         print("Auto-fixing is not implemented yet.")
         return 1
     
