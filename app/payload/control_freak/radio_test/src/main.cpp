@@ -34,17 +34,24 @@ static const struct gpio_dt_spec gpstimepulse = GPIO_DT_SPEC_GET(GPSSAFE_NODE, g
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
+int64_t last_timepulse_delta_cyc = 0;
+int64_t last_timepulse_uptime_cyc = 0;
+
+static void work_handler(struct k_work *work) {
+    // printk("Got Pulse, %lld\n", k_cyc_to_us_near64(last_timepulse_delta_cyc));
+}
+K_WORK_DEFINE(work, work_handler);
 static struct gpio_callback timepulse_cb_data;
-int64_t last_timepulse_delta = 0;
-int64_t last_timepulse_uptime = 0;
 
 void timepulse_ticked(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
     ARG_UNUSED(dev);
     ARG_UNUSED(cb);
     ARG_UNUSED(pins);
+    int64_t cycles = k_cycle_get_64();
     int64_t ticks = k_uptime_ticks();
-    last_timepulse_delta = ticks - last_timepulse_uptime;
-    last_timepulse_uptime = ticks;
+    last_timepulse_delta_cyc = cycles - last_timepulse_uptime_cyc;
+    last_timepulse_uptime_cyc = cycles;
+    k_work_submit(&work);
 }
 int reset_gps() {
     int ret;
@@ -119,9 +126,6 @@ int reset_gps() {
 //     0xa0, 0x86, 0x01, 0x00, // val: 100000
 //     0x0d, 0xbb,             // checksum
 // };
-
-#define GPS_UART DT_PARENT(GNSS_MODEM)
-int enable_pulse_on_no_lock() { return 0; }
 
 int gps_timepulse_cb() {
     int ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_INPUT);
@@ -260,9 +264,12 @@ static int cmd_fix_info(const struct shell *shell, size_t argc, char **argv) {
     } else {
         shell_print(shell, "Never got a gps fix");
     }
-    int64_t last_tp_uptime_ms = k_ticks_to_ms_near64(last_timepulse_uptime);
+    shell_print(shell, "Cyc of pulse: %lld delta %lld us", last_timepulse_uptime_cyc,
+                k_cyc_to_us_near64(last_timepulse_delta_cyc));
+    // k_cycle_get_64()
+    int64_t last_tp_uptime_ms = k_cyc_to_ms_near64(last_timepulse_uptime_cyc);
     shell_print(shell, "Got a pulse at %lld ms uptime (%d ms ago)", last_tp_uptime_ms, (int) (now - last_tp_uptime_ms));
-    int64_t sec_len = k_ticks_to_ns_near64(last_timepulse_delta);
+    int64_t sec_len = k_cyc_to_ns_near64(last_timepulse_delta_cyc);
     shell_print(shell, "Second Length %lld ns", sec_len);
 
     return 0;
@@ -542,7 +549,6 @@ int main() {
     }
     init_servo();
     // reset_gps();
-    enable_pulse_on_no_lock();
     gps_timepulse_cb();
     init_modem();
 

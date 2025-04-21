@@ -239,7 +239,6 @@
 // GPS
 &uart5 {
 	status = "okay";
-	// status = "disabled";
 	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
 
 	pinctrl-names = "default";
@@ -249,8 +248,6 @@
 		//  MAX-M10M-00B
 		compatible = "gnss-nmea-generic";
 		status="okay";
-		// status = "disabled";
-
 	};
 };
 
@@ -347,7 +344,7 @@
 	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
 	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
 	pinctrl-names = "default";
-	status = "disabled";
+	status = "okay";
 	lora: lora@0{
 		reg = <0>;
 		spi-max-frequency = <(10 * 1000 * 1000)>;
@@ -357,7 +354,14 @@
 		dio-gpios =   <&gpioc 5  GPIO_ACTIVE_HIGH>,
 					  <&gpiob 0  GPIO_ACTIVE_HIGH>,
 					  <&gpiob 1  GPIO_ACTIVE_HIGH>,
-					  <&gpiob 12 GPIO_ACTIVE_HIGH>,
+					  // DIO4 is pb12. But, STM32 EXTI interrupt controller
+					  // can't handle two gpio of the same number on different
+					  // banks (RM0390 sec. 10.2.5). We need pa12 more as it 
+					  // carries the GPS timepulse info which is more important
+					  // set this to ph4 since theres nothing on it and the 
+					  // driver expects something here. Does not seem to 
+					  // affect the driver negatively
+					  <&gpioh 4 GPIO_ACTIVE_HIGH>, 
 					  <&gpiob 13 GPIO_ACTIVE_HIGH>,
 					  <&gpiob 14 GPIO_ACTIVE_HIGH>;
 		power-amplifier-output = "pa-boost";
