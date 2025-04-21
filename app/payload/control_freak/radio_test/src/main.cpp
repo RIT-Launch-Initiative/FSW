@@ -28,21 +28,23 @@ static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gp
 static const struct gpio_dt_spec gpsreset = GPIO_DT_SPEC_GET(GPSRST_NODE, gpios);
 
 #define GPSSAFE_NODE DT_ALIAS(gpssafeboot)
-static const struct gpio_dt_spec gpssafeboot = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gpios);
+static const struct gpio_dt_spec gpstimepulse = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gpios);
 
 #define GNSS_MODEM DEVICE_DT_GET(DT_ALIAS(gnss))
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
 static struct gpio_callback timepulse_cb_data;
+int64_t last_timepulse_delta = 0;
 int64_t last_timepulse_uptime = 0;
 
 void timepulse_ticked(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
     ARG_UNUSED(dev);
     ARG_UNUSED(cb);
     ARG_UNUSED(pins);
-
-    last_timepulse_uptime = k_uptime_get();
+    int64_t ticks = k_uptime_ticks();
+    last_timepulse_delta = ticks - last_timepulse_uptime;
+    last_timepulse_uptime = ticks;
 }
 int reset_gps() {
     int ret;
@@ -50,7 +52,7 @@ int reset_gps() {
         printk("No GPS RST pin:(\n");
         return 0;
     }
-    if (!gpio_is_ready_dt(&gpssafeboot)) {
+    if (!gpio_is_ready_dt(&gpstimepulse)) {
         printk("No GPS safeboot pin :(\n");
         return 0;
     }
@@ -62,13 +64,13 @@ int reset_gps() {
     }
 
     // Safeboot active low (send downwards before reset to enter safeboot)
-    ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_OUTPUT_ACTIVE);
+    ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
         printk("Failed to conf gps safe pin:(\n");
         return 0;
     }
     // Don't enter safeboot: pin to logic 0
-    ret = gpio_pin_set_dt(&gpssafeboot, 0);
+    ret = gpio_pin_set_dt(&gpstimepulse, 0);
     if (ret < 0) {
         printk("couldnt set gpssafeboot pin: %d", ret);
     }
@@ -86,27 +88,58 @@ int reset_gps() {
     if (ret < 0) {
         printk("couldnt set gpsreset: %d", ret);
     }
-    ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_INPUT);
+    ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_INPUT);
     printk("GPS Reset Successfully\n");
     return 0;
 }
 
-int gps_timepulse() {
-    int ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_INPUT);
+/**
+ * `0xb5, 0x62, 0x06, 0x8a, 
+ * 4+[0..n], version (0), layers(0b00000FBR), reserved(0), reserved(0), keyid0, keyid1, keyid2, keyid3, val0, val1, val2, val3`
+* 
+* key=`0x40050004`
+* val in units of 1e-6s U4  = 100000
+* little endian nums
+*/
+
+// recorded from pygpsclient
+// 00000000  b5 62 06 8a 0c 00 00 01  00 00 04 00 05 40 a0 86  |.b...........@..|
+// 00000010  01 00 0d bb                                       |....|
+// 00000014
+
+// uint8_t enable_pulse_on_no_lock_msg[] = {
+//     0xb5, 0x62,             // header
+//     0x06,                   // class
+//     0x8a,                   //id
+//     0xc,  0x0,              // length
+//     0x0,                    // version
+//     0x1,                    // ram
+//     0x0,  0x0,              // reserved2
+//     0x04, 0x00, 0x05, 0x40, // key: CFG-TP-LEN_TP1
+//     0xa0, 0x86, 0x01, 0x00, // val: 100000
+//     0x0d, 0xbb,             // checksum
+// };
+
+#define GPS_UART DT_PARENT(GNSS_MODEM)
+int enable_pulse_on_no_lock() { return 0; }
+
+int gps_timepulse_cb() {
+    int ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_INPUT);
     if (ret < 0) {
         printk("Failed to conf gps timepulse pin back to input:(\n");
         return 0;
     }
 
-    ret = gpio_pin_interrupt_configure_dt(&gpssafeboot, GPIO_INT_EDGE_TO_ACTIVE);
+    ret = gpio_pin_interrupt_configure_dt(&gpstimepulse, GPIO_INT_EDGE_TO_ACTIVE);
     if (ret != 0) {
-        printk("Error %d: failed to configure interrupt on %s pin %d\n", ret, gpssafeboot.port->name, gpssafeboot.pin);
+        printk("Error %d: failed to configure interrupt on %s pin %d\n", ret, gpstimepulse.port->name,
+               gpstimepulse.pin);
         return 0;
     }
 
-    gpio_init_callback(&timepulse_cb_data, timepulse_ticked, BIT(gpssafeboot.pin));
-    gpio_add_callback(gpssafeboot.port, &timepulse_cb_data);
-    printk("Set up timepulse at %s pin %d\n", gpssafeboot.port->name, gpssafeboot.pin);
+    gpio_init_callback(&timepulse_cb_data, timepulse_ticked, BIT(gpstimepulse.pin));
+    ret = gpio_add_callback(gpstimepulse.port, &timepulse_cb_data);
+    printk("Set up timepulse at %s pin %d: err %d\n", gpstimepulse.port->name, gpstimepulse.pin, ret);
     return 0;
 }
 
@@ -216,14 +249,21 @@ static int cmd_fix_info(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
 
-    if (last_fix_uptime == 0) {
-        shell_print(shell, "Never got a fix");
-        return 0;
-    }
+    // if (last_fix_uptime == 0) {
+    // shell_print(shell, "Never got a fix");
+    // return 0;
+    // }
     uint64_t now = k_uptime_get();
     int elapsed = (now - last_fix_uptime);
-    shell_print(shell, "Got a fix %d ms ago", elapsed);
-    shell_print(shell, "Got a pulse at %lld", last_timepulse_uptime);
+    if (last_fix_uptime != 0) {
+        shell_print(shell, "Got a fix %d ms ago", elapsed);
+    } else {
+        shell_print(shell, "Never got a gps fix");
+    }
+    int64_t last_tp_uptime_ms = k_ticks_to_ms_near64(last_timepulse_uptime);
+    shell_print(shell, "Got a pulse at %lld ms uptime (%d ms ago)", last_tp_uptime_ms, (int) (now - last_tp_uptime_ms));
+    int64_t sec_len = k_ticks_to_ns_near64(last_timepulse_delta);
+    shell_print(shell, "Second Length %lld ns", sec_len);
 
     return 0;
 }
@@ -501,8 +541,9 @@ int main() {
         printk("Couldnt set sampling\n");
     }
     init_servo();
-    reset_gps();
-    gps_timepulse();
+    // reset_gps();
+    enable_pulse_on_no_lock();
+    gps_timepulse_cb();
     init_modem();
 
     if (!gpio_is_ready_dt(&pump_enable)) {

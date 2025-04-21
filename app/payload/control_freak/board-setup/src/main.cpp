@@ -20,7 +20,7 @@ static const struct gpio_dt_spec ldo5v_en = GPIO_DT_SPEC_GET(LDO5V_EN, gpios);
 static const struct gpio_dt_spec gpsreset = GPIO_DT_SPEC_GET(GPSRST_NODE, gpios);
 
 #define GPSSAFE_NODE DT_ALIAS(gpssafeboot)
-static const struct gpio_dt_spec gpssafeboot = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gpios);
+static const struct gpio_dt_spec gpstimepulse = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gpios);
 
 int init_servo() {
     int ret;
@@ -61,7 +61,7 @@ int reset_gps() {
         printk("No GPS RST :(\n");
         return 0;
     }
-    if (!gpio_is_ready_dt(&gpssafeboot)) {
+    if (!gpio_is_ready_dt(&gpstimepulse)) {
         printk("No GPS safe :(\n");
         return 0;
     }
@@ -73,15 +73,15 @@ int reset_gps() {
     }
 
     // Safeboot active low (send downwards before reset to enter safeboot)
-    ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_OUTPUT_ACTIVE);
+    ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
         printk("Failed to conf gps safe :(\n");
         return 0;
     }
     // Don't enter safeboot: pin to logic 0
-    ret = gpio_pin_set_dt(&gpssafeboot, 0);
+    ret = gpio_pin_set_dt(&gpstimepulse, 0);
     if (ret < 0) {
-        printk("couldnt set gpssafeboot: %d", ret);
+        printk("couldnt set gpstimepulse: %d", ret);
     }
 
     k_msleep(1);
@@ -98,7 +98,7 @@ int reset_gps() {
         printk("couldnt set gpsreset: %d", ret);
     }
 
-    ret = gpio_pin_configure_dt(&gpssafeboot, GPIO_INPUT);
+    ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_INPUT);
     if (ret < 0) {
         printk("Failed to conf gps timepulse pin back to input:(\n");
         return 0;
