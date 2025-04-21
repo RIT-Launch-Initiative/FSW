@@ -211,7 +211,7 @@
 };
 
 // SystemCoreClock = ((INPUT_CLOCK (HSE_OR_HSI_IN_HZ) / PLL_M) * PLL_N) / PLL_P
-// https: //stm32f4-discovery.net/2015/01/properly-set-clock-speed-stm32f4xx-devices/
+// https://stm32f4-discovery.net/2015/01/properly-set-clock-speed-stm32f4xx-devices/
 &rcc {
 	clocks = <&pll>;
 	clock-frequency = <DT_FREQ_M(45)>; // (16MHz / 16) * 180 / 2
