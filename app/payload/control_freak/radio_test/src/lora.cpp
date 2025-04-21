@@ -44,28 +44,28 @@ void init_modem() {
 }
 
 extern void lorarx(struct fs_file_t *fil) {
-    // const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
-    // mymodem_config.tx = false;
-    // init_modem();
-    // horus_packet_v2 packet = {0};
-    // int16_t rssi;
-    // int8_t snr;
+    const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
+    mymodem_config.tx = false;
+    init_modem();
+    horus_packet_v2 packet = {0};
+    int16_t rssi;
+    int8_t snr;
 
-    // int ret = lora_recv(dev, (unsigned char *) &packet, sizeof(packet), K_MSEC(5000), &rssi, &snr);
-    // if (ret < 0 && ret != -11) {
-    //     printk("LoRa recv failed: %i", ret);
-    //     return;
-    // }
-    // horus_packet_v2 me = get_telemetry();
-    // // Us
-    // static char write_buf[100] = {0};
-    // snprintf(write_buf, sizeof(write_buf), "%d:%d:%d, %f, %f, %d, %f, %f, %d, %d, %d\n", me.hours, me.minutes,
-    //          me.seconds, me.latitude, me.longitude, me.altitude, packet.latitude, packet.longitude, packet.altitude,
-    //          (int) rssi, (int) snr);
-    // printk("%s", write_buf);
-    // if (fil == nullptr) {
-    //     return;
-    // }
+    int ret = lora_recv(dev, (unsigned char *) &packet, sizeof(packet), K_MSEC(5000), &rssi, &snr);
+    if (ret < 0 && ret != -11) {
+        printk("LoRa recv failed: %i", ret);
+        return;
+    }
+    horus_packet_v2 me = get_telemetry();
+    // Us
+    static char write_buf[100] = {0};
+    snprintf(write_buf, sizeof(write_buf), "%d:%d:%d, %f, %f, %d, %f, %f, %d, %d, %d\n", me.hours, me.minutes,
+             me.seconds, me.latitude, me.longitude, me.altitude, packet.latitude, packet.longitude, packet.altitude,
+             (int) rssi, (int) snr);
+    printk("%s", write_buf);
+    if (fil == nullptr) {
+        return;
+    }
 }
 static void loracfg_help(const struct shell *shell) {
     shell_print(shell, "Usage: cfg BW SF CR freq");
@@ -144,17 +144,16 @@ int cmd_loracfg(const struct shell *shell, size_t argc, char **argv) {
 uint16_t lora_seq_number = 0;
 
 void make_and_send_lora() {
-    // const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
-    // mymodem_config.tx = true;
-    // int ret = lora_config(dev, &mymodem_config);
-    // if (ret < 0) {
-    // printk("Bad lora cfg: %d", ret);
-    // return;
-    // }
-    // struct horus_packet_v2 data = get_telemetry();
-    //
-    // clang-format on
-    // ret = lora_send(dev, (uint8_t *) &data, sizeof(data));
+    const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
+    mymodem_config.tx = true;
+    int ret = lora_config(dev, &mymodem_config);
+    if (ret < 0) {
+        printk("Bad lora cfg: %d", ret);
+        return;
+    }
+    struct horus_packet_v2 data = get_telemetry();
+
+    ret = lora_send(dev, (uint8_t *) &data, sizeof(data));
 }
 
 int cmd_loratx(const struct shell *shell, size_t argc, char **argv) {

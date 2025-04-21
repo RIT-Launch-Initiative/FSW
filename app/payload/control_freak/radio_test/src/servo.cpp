@@ -73,7 +73,7 @@ struct Power {
 constexpr int servo_steps = 120;
 Power current_log[120] = {};
 
-void sweep_servo(const Servo &servo, bool newstate) {
+void sweep_servo(const Servo &servo) {
 
     uint32_t start = servo.closed_pulselen;
     uint32_t end = servo.open_pulselen;
@@ -259,7 +259,7 @@ int cmd_servo_sweep(const struct shell *shell, size_t argc, char **argv) {
     bool do_open = false;
     parse_servo_args(shell, argc, argv, &servoNum, &do_open);
     shell_print(shell, "Parsed: #%d doOpen: %d", servoNum, (int) do_open);
-    sweep_servo(*(servos[servoNum]), do_open);
+    sweep_servo(*(servos[servoNum]));
 
     return 0;
 }
@@ -286,7 +286,6 @@ int cmd_servo_try_righting(const struct shell *shell, size_t argc, char **argv) 
     k_msleep(initDelay);
 
     for (int i = 0; i < attempts; i++) {
-        int ret = 0;
         vec3 my_dir = {0};
         find_vector(my_dir);
         PayloadFace facing = find_orientation(my_dir);

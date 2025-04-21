@@ -246,7 +246,7 @@
 
 	gnss: gnss {
 		//  MAX-M10M-00B
-		compatible = "gnss-nmea-generic";
+		compatible = "u-blox,m10";
 		status="okay";
 	};
 };

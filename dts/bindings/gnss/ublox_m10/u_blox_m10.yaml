@@ -1,0 +1,18 @@
+# Copyright 2025 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Ublox M10s GNSS receiver
+
+  &uart0 {
+          current-speed = <9600>;
+          ...
+          gnss: gnss-nmea-generic {
+                  compatible = "gnss-nmea-generic";
+          };
+  };
+
+compatible: "u-blox,m10"
+
+include:
+  - uart-device.yaml
