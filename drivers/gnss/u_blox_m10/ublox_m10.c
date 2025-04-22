@@ -168,12 +168,12 @@ static int ublox_m10_resume(const struct device *dev) {
     if (ret == 0) {
         ret = modem_chat_run_script(&data->chat, cfg->init_chat_script);
     }
-    // if (cfg->reset_on_boot) {
-    ret = reset_gps(dev);
-    if (ret < 0) {
-        return ret;
+    if (cfg->reset_on_boot) {
+        ret = reset_gps(dev);
+        if (ret < 0) {
+            return ret;
+        }
     }
-    // }
     ret = ublox_m10_attach_tp_callback(dev);
     if (ret < 0) {
         LOG_ERR("Failed to attach tp callback: %d", ret);
