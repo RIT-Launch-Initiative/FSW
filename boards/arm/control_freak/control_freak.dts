@@ -21,8 +21,8 @@
 		buzz = &buzzer;
 		
 		gnss = &gnss;
-		gpsreset = &gps_reset;
-		gpssafeboot = &gps_timepulse;
+		// gpsreset = &gps_reset;
+		// gpssafeboot = &gps_timepulse;
 		lora0 = &lora;
 		servo1 = &servo1;
 		servo2 = &servo2;
@@ -97,14 +97,14 @@
 			label = "Enable pin for pumps";
 		};
 
-		gps_reset: gps-reset{
-			gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
-			label = "Reset pin on GPS";
-		};
-		gps_timepulse: gps-timepulse{
-			gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
-			label = "Timpepulse/Safeboot pin on GPS";
-		};
+		// gps_reset: gps-reset{
+			// gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
+			// label = "Reset pin on GPS";
+		// };
+		// gps_timepulse: gps-timepulse{
+			// gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
+			// label = "Timpepulse/Safeboot pin on GPS";
+		// };
 		
 	};
 	cam_enables: cam_enables{
@@ -248,6 +248,9 @@
 		//  MAX-M10M-00B
 		compatible = "u-blox,m10";
 		status="okay";
+		reset-gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
+		timepulse-gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
+		// reset-on-boot;
 	};
 };
 

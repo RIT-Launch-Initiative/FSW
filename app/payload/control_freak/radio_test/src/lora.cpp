@@ -35,18 +35,18 @@ static struct lora_modem_config mymodem_config = {
     .public_network = true,
 };
 
-void init_modem() {
-    // const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
-    // int ret = lora_config(dev, &mymodem_config);
-    // if (ret < 0) {
-    // printk("Bad lora cfg: %d", ret);
-    // }
+void init_lora_modem() {
+    const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
+    int ret = lora_config(dev, &mymodem_config);
+    if (ret < 0) {
+        printk("Bad lora cfg: %d", ret);
+    }
 }
 
 extern void lorarx(struct fs_file_t *fil) {
     const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
     mymodem_config.tx = false;
-    init_modem();
+    init_lora_modem();
     horus_packet_v2 packet = {0};
     int16_t rssi;
     int8_t snr;

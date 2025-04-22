@@ -3,16 +3,29 @@
 
 description: |
   Ublox M10s GNSS receiver
-
   &uart0 {
-          current-speed = <9600>;
-          ...
-          gnss: gnss-nmea-generic {
-                  compatible = "gnss-nmea-generic";
-          };
+    current-speed = <9600>;
+    ...
+    gnss: gnss-nmea-generic {
+      compatible = "gnss-nmea-generic";
+    };
   };
 
 compatible: "u-blox,m10"
 
 include:
   - uart-device.yaml
+
+properties:
+  reset-on-boot:
+    type: boolean
+    description: whether or not to reset chip on boot
+  reset-gpios:
+    type: phandle-array
+    required: true
+    description: Reset Pin
+
+  timepulse-gpios:
+    type: phandle-array
+    required: true
+    description: Timepulse/Safeboot pin
