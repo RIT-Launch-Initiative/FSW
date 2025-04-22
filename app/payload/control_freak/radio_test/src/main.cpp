@@ -1,5 +1,6 @@
 #include "f_core/radio/protocols/horus/horus.h"
 #include "orient.h"
+#include "ublox_m10.h"
 
 #include <errno.h>
 #include <math.h>
@@ -30,122 +31,9 @@ static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gp
 // #define GPSSAFE_NODE DT_ALIAS(gpssafeboot)
 // static const struct gpio_dt_spec gpstimepulse = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gpios);
 
-#define GNSS_MODEM DEVICE_DT_GET(DT_ALIAS(gnss))
+#define GNSS_NODE DT_ALIAS(gnss)
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
-
-int64_t last_timepulse_delta_cyc = 0;
-int64_t last_timepulse_uptime_cyc = 0;
-
-// static void work_handler(struct k_work *work) {
-// printk("Got Pulse, %lld\n", k_cyc_to_us_near64(last_timepulse_delta_cyc));
-// }
-// K_WORK_DEFINE(work, work_handler);
-static struct gpio_callback timepulse_cb_data;
-
-void timepulse_ticked(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
-    ARG_UNUSED(dev);
-    ARG_UNUSED(cb);
-    ARG_UNUSED(pins);
-    int64_t cycles = k_cycle_get_64();
-    int64_t ticks = k_uptime_ticks();
-    last_timepulse_delta_cyc = cycles - last_timepulse_uptime_cyc;
-    last_timepulse_uptime_cyc = cycles;
-    // k_work_submit(&work);
-}
-int reset_gps() {
-    // int ret;
-    // if (!gpio_is_ready_dt(&gpsreset)) {
-    //     printk("No GPS RST pin:(\n");
-    //     return 0;
-    // }
-    // if (!gpio_is_ready_dt(&gpstimepulse)) {
-    //     printk("No GPS safeboot pin :(\n");
-    //     return 0;
-    // }
-
-    // ret = gpio_pin_configure_dt(&gpsreset, GPIO_OUTPUT_ACTIVE);
-    // if (ret < 0) {
-    //     printk("Failed to conf gps reset pin:(\n");
-    //     return 0;
-    // }
-
-    // // Safeboot active low (send downwards before reset to enter safeboot)
-    // ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_OUTPUT_ACTIVE);
-    // if (ret < 0) {
-    //     printk("Failed to conf gps safe pin:(\n");
-    //     return 0;
-    // }
-    // // Don't enter safeboot: pin to logic 0
-    // ret = gpio_pin_set_dt(&gpstimepulse, 0);
-    // if (ret < 0) {
-    //     printk("couldnt set gpssafeboot pin: %d", ret);
-    // }
-
-    // k_msleep(1);
-
-    // // Gps Reset Routine
-
-    // ret = gpio_pin_set_dt(&gpsreset, 1);
-    // if (ret < 0) {
-    //     printk("couldnt set gpsreset: %d", ret);
-    // }
-    // k_msleep(2);
-    // ret = gpio_pin_set_dt(&gpsreset, 0);
-    // if (ret < 0) {
-    //     printk("couldnt set gpsreset: %d", ret);
-    // }
-    // ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_INPUT);
-    // printk("GPS Reset Successfully\n");
-    return 0;
-}
-
-/**
- * `0xb5, 0x62, 0x06, 0x8a, 
- * 4+[0..n], version (0), layers(0b00000FBR), reserved(0), reserved(0), keyid0, keyid1, keyid2, keyid3, val0, val1, val2, val3`
-* 
-* key=`0x40050004`
-* val in units of 1e-6s U4  = 100000
-* little endian nums
-*/
-
-// recorded from pygpsclient
-// 00000000  b5 62 06 8a 0c 00 00 01  00 00 04 00 05 40 a0 86  |.b...........@..|
-// 00000010  01 00 0d bb                                       |....|
-// 00000014
-
-// uint8_t enable_pulse_on_no_lock_msg[] = {
-//     0xb5, 0x62,             // header
-//     0x06,                   // class
-//     0x8a,                   //id
-//     0xc,  0x0,              // length
-//     0x0,                    // version
-//     0x1,                    // ram
-//     0x0,  0x0,              // reserved2
-//     0x04, 0x00, 0x05, 0x40, // key: CFG-TP-LEN_TP1
-//     0xa0, 0x86, 0x01, 0x00, // val: 100000
-//     0x0d, 0xbb,             // checksum
-// };
-
-// int gps_timepulse_cb() {
-//     int ret = gpio_pin_configure_dt(&gpstimepulse, GPIO_INPUT);
-//     if (ret < 0) {
-//         printk("Failed to conf gps timepulse pin back to input:(\n");
-//         return 0;
-//     }
-
-//     ret = gpio_pin_interrupt_configure_dt(&gpstimepulse, GPIO_INT_EDGE_TO_ACTIVE);
-//     if (ret != 0) {
-//         printk("Error %d: failed to configure interrupt on %s pin %d\n", ret, gpstimepulse.port->name,
-//                gpstimepulse.pin);
-//         return 0;
-//     }
-
-//     gpio_init_callback(&timepulse_cb_data, timepulse_ticked, BIT(gpstimepulse.pin));
-//     ret = gpio_add_callback(gpstimepulse.port, &timepulse_cb_data);
-//     printk("Set up timepulse at %s pin %d: err %d\n", gpstimepulse.port->name, gpstimepulse.pin, ret);
-//     return 0;
-// }
 
 // General Data
 struct gnss_data last_data = {};
@@ -164,7 +52,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
         last_fix_uptime = k_uptime_get();
     }
 }
-// GNSS_DATA_CALLBACK_DEFINE(GNSS_MODEM, gnss_data_cb);
+GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(GNSS_NODE), gnss_data_cb);
 
 static void gnss_satellites_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size) {
     ARG_UNUSED(dev);
@@ -176,7 +64,7 @@ static void gnss_satellites_cb(const struct device *dev, const struct gnss_satel
         last_sats[i] = satellites[i];
     }
 }
-// GNSS_SATELLITES_CALLBACK_DEFINE(GNSS_MODEM, gnss_satellites_cb);
+GNSS_SATELLITES_CALLBACK_DEFINE(DEVICE_DT_GET(GNSS_NODE), gnss_satellites_cb);
 
 uint16_t horus_seq_number = 0;
 
@@ -252,11 +140,10 @@ static const char *gnss_system_to_str(enum gnss_system system) {
 static int cmd_fix_info(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
+    const struct device *gnss_dev = DEVICE_DT_GET(GNSS_NODE);
 
-    // if (last_fix_uptime == 0) {
-    // shell_print(shell, "Never got a fix");
-    // return 0;
-    // }
+    struct ublox_m10_data *data = (struct ublox_m10_data *) gnss_dev->data;
+
     uint64_t now = k_uptime_get();
     int elapsed = (now - last_fix_uptime);
     if (last_fix_uptime != 0) {
@@ -264,12 +151,12 @@ static int cmd_fix_info(const struct shell *shell, size_t argc, char **argv) {
     } else {
         shell_print(shell, "Never got a gps fix");
     }
-    shell_print(shell, "Cyc of pulse: %lld delta %lld us", last_timepulse_uptime_cyc,
-                k_cyc_to_us_near64(last_timepulse_delta_cyc));
+    shell_print(shell, "Cyc of pulse: %lld delta %lld us", data->last_tick_cyc,
+                k_cyc_to_us_near64(data->last_tick_delta_cyc));
     // k_cycle_get_64()
-    int64_t last_tp_uptime_ms = k_cyc_to_ms_near64(last_timepulse_uptime_cyc);
+    int64_t last_tp_uptime_ms = k_cyc_to_ms_near64(data->last_tick_cyc);
     shell_print(shell, "Got a pulse at %lld ms uptime (%d ms ago)", last_tp_uptime_ms, (int) (now - last_tp_uptime_ms));
-    int64_t sec_len = k_cyc_to_ns_near64(last_timepulse_delta_cyc);
+    int64_t sec_len = k_cyc_to_ns_near64(data->last_tick_delta_cyc);
     shell_print(shell, "Second Length %lld ns", sec_len);
 
     return 0;

@@ -3,10 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// evil and bad includes
-#include "../drivers/gnss/gnss_nmea0183.h"
-#include "../drivers/gnss/gnss_nmea0183_match.h"
-#include "../drivers/gnss/gnss_parse.h"
+#include "ublox_m10.h"
 
 #include <string.h>
 #include <zephyr/drivers/gnss.h>
@@ -22,11 +19,6 @@ LOG_MODULE_REGISTER(ublox_m10, CONFIG_GNSS_LOG_LEVEL);
 
 #define DT_DRV_COMPAT u_blox_m10
 
-#define UART_RX_BUF_SZ   (256 + IS_ENABLED(CONFIG_GNSS_SATELLITES) * 512)
-#define UART_TX_BUF_SZ   64
-#define CHAT_RECV_BUF_SZ 256
-#define CHAT_ARGV_SZ     32
-
 uint8_t enable_pulse_on_no_lock_msg[] = {
     0xb5, 0x62,             // header
     0x06,                   // class
@@ -38,37 +30,6 @@ uint8_t enable_pulse_on_no_lock_msg[] = {
     0x04, 0x00, 0x05, 0x40, // key: CFG-TP-LEN_TP1
     0xa0, 0x86, 0x01, 0x00, // val: 100000
     0x0d, 0xbb,             // checksum
-};
-
-struct ublox_m10_config {
-    const struct device *uart;
-    const struct modem_chat_script *const init_chat_script;
-    struct gpio_dt_spec reset_gpio;
-    struct gpio_dt_spec timepulse_gpio;
-    bool reset_on_boot;
-};
-
-struct ublox_m10_data {
-    struct gpio_callback timepulse_cb_data;
-    struct k_work work;
-    int64_t last_tick_cyc;
-    int64_t last_tick_delta_cyc;
-
-    struct gnss_nmea0183_match_data match_data;
-#if CONFIG_GNSS_SATELLITES
-    struct gnss_satellite satellites[CONFIG_U_BLOX_M10_SATELLITES_COUNT];
-#endif
-
-    /* UART backend */
-    struct modem_pipe *uart_pipe;
-    struct modem_backend_uart uart_backend;
-    uint8_t uart_backend_receive_buf[UART_RX_BUF_SZ];
-    uint8_t uart_backend_transmit_buf[UART_TX_BUF_SZ];
-
-    /* Modem chat */
-    struct modem_chat chat;
-    uint8_t chat_receive_buf[CHAT_RECV_BUF_SZ];
-    uint8_t *chat_argv[CHAT_ARGV_SZ];
 };
 
 void gntxt_cb(struct modem_chat *chat, char **argv, uint16_t argc, void *user_data) {
@@ -207,9 +168,14 @@ int ublox_m10_get_enabled_systems(const struct device *dev, gnss_systems_t *syst
 int ublox_m10_set_enabled_systems(const struct device *dev, gnss_systems_t systems) { return -ENOTSUP; }
 
 int ublox_m10_get_latest_timepulse(const struct device *dev, k_ticks_t *timestamp) {
-    // struct ublox_m10_data *data = dev->data;
+    struct ublox_m10_data *data = dev->data;
+    if (data->last_tick_cyc == 0) {
+        LOG_WRN("No timepulse tick yet");
+        return -EAGAIN;
+    }
 
-    return -EAGAIN;
+    *timestamp = k_cyc_to_ticks_near64(data->last_tick_cyc);
+    return 0;
 }
 
 static DEVICE_API(gnss, gnss_api) = {
@@ -217,6 +183,7 @@ static DEVICE_API(gnss, gnss_api) = {
     .get_enabled_systems = ublox_m10_get_enabled_systems,
     .get_supported_systems = ublox_m10_get_enabled_systems,
     .get_latest_timepulse = ublox_m10_get_latest_timepulse,
+
 };
 
 static int ublox_m10_init_nmea0183_match(const struct device *dev) {
@@ -272,7 +239,7 @@ static int ublox_m10_init_chat(const struct device *dev) {
 
 static void ublox_m10_timepulse_work_handler(struct k_work *work) {
     struct ublox_m10_data *data = CONTAINER_OF(work, struct ublox_m10_data, work);
-    LOG_INF("1 sec =  %lld ns", k_cyc_to_ns_near64(data->last_tick_delta_cyc));
+    LOG_INF("1 sec = %lld ns", k_cyc_to_ns_near64(data->last_tick_delta_cyc));
 }
 
 static inline void ublox_m10_handle_irq(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
