@@ -23,5 +23,6 @@ manifest:
           - hal_st
           - segger
           - percepio
+          - lz4
       clone-depth: 1
 
