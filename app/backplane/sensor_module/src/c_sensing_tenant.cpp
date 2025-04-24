@@ -108,9 +108,9 @@ void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
             .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
         },
         .Gyroscope = {
-            .X = static_cast<int16_t>(data.ImuGyroscope.X),
-            .Y = static_cast<int16_t>(data.ImuGyroscope.Y),
-            .Z = static_cast<int16_t>(data.ImuGyroscope.Z),
+            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
+            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
+            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
         },
     };
 

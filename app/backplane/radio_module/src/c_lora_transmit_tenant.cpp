@@ -81,7 +81,7 @@ int CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
         return -EMSGSIZE;
     } else if (data.Size == 0) {
         // This case should *rarely* occur.
-        LOG_WRN_ONCE("Received data is empty from port %d", data.Port);
+        LOG_WRN("Received data is empty from port %d", data.Port);
         return -ENODATA;
     }
 
