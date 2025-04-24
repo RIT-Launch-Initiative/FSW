@@ -6,11 +6,11 @@
 
 // Boost
 // IMU
-static constexpr double imuBoostThresholdMPerS2 = 5 * 9.8; // m/s^2
+static constexpr float imuBoostThresholdMPerS2 = 5 * 9.8;  // m/s^2
 static constexpr uint32_t imuBoostTimeThreshold = 250;     // ms
 
 // Barometer - sustained velocity of 100 m/s over 1 second
-static constexpr double baromBoostThresholdMPerS = 100;   // m/s
+static constexpr float baromBoostThresholdMPerS = 100;    // m/s
 static constexpr uint32_t baromBoostTimeThreshold = 1000; // ms
 
 enum Events {
