@@ -88,7 +88,6 @@ int reset_gps(const struct device *dev) {
     if (ret < 0) {
         return ret;
     }
-    // k_msleep(1500);
     LOG_INF("GPS Reset Successfully");
     return 0;
 }
@@ -134,6 +133,8 @@ static int ublox_m10_resume(const struct device *dev) {
         if (ret < 0) {
             return ret;
         }
+        // Time until it accepts param changes. Could maybe also wait for ($GNTXT,,01,01,02,ANTSTATUS=OK,25,)
+        k_msleep(150);
     }
     ret = ublox_m10_attach_tp_callback(dev);
     if (ret < 0) {
@@ -141,7 +142,6 @@ static int ublox_m10_resume(const struct device *dev) {
         return ret;
     }
 
-    k_msleep(150); // Time until it accepts param changes. Could maybe also wait for ($GNTXT,,01,01,02,ANTSTATUS=OK,25,)
     ret = modem_pipe_transmit(data->uart_pipe, enable_pulse_on_no_lock_msg, sizeof(enable_pulse_on_no_lock_msg));
     if (ret < 0) {
         LOG_ERR("Couldn't write tp config: %d", ret);
