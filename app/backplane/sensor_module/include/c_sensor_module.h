@@ -5,8 +5,6 @@
 #include "flight.hpp"
 
 // F-Core Includes
-#include "../build-flight-release/zephyr/include/generated/FSW/n_autocoder_types.h"
-
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/n_alerts.h>
