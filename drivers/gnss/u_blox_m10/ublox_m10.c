@@ -169,12 +169,12 @@ int ublox_m10_set_enabled_systems(const struct device *dev, gnss_systems_t syste
 
 int ublox_m10_get_latest_timepulse(const struct device *dev, k_ticks_t *timestamp) {
     struct ublox_m10_data *data = dev->data;
-    if (data->last_tick_cyc == 0) {
+    if (data->last_tick == 0) {
         LOG_WRN("No timepulse tick yet");
         return -EAGAIN;
     }
 
-    *timestamp = k_cyc_to_ticks_near64(data->last_tick_cyc);
+    *timestamp = data->last_tick;
     return 0;
 }
 
@@ -237,18 +237,12 @@ static int ublox_m10_init_chat(const struct device *dev) {
     return modem_chat_init(&data->chat, &chat_config);
 }
 
-static void ublox_m10_timepulse_work_handler(struct k_work *work) {
-    struct ublox_m10_data *data = CONTAINER_OF(work, struct ublox_m10_data, work);
-    LOG_INF("1 sec = %lld ns", k_cyc_to_ns_near64(data->last_tick_delta_cyc));
-}
-
 static inline void ublox_m10_handle_irq(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
     struct ublox_m10_data *data = CONTAINER_OF(cb, struct ublox_m10_data, timepulse_cb_data);
-    int64_t cyc = k_cycle_get_64();
-    data->last_tick_delta_cyc = cyc - data->last_tick_cyc;
-    data->last_tick_cyc = cyc;
 
-    k_work_submit(&data->work);
+    int64_t cyc = k_uptime_ticks();
+    data->last_tick_delta = cyc - data->last_tick;
+    data->last_tick = cyc;
 }
 
 static int ublox_m10_init_gpios(const struct device *dev) {
@@ -268,7 +262,6 @@ static int ublox_m10_init(const struct device *dev) {
     const struct ublox_m10_config *cfg = dev->config;
     struct ublox_m10_data *data = dev->data;
 
-    k_work_init(&data->work, ublox_m10_timepulse_work_handler);
     gpio_init_callback(&data->timepulse_cb_data, ublox_m10_handle_irq, BIT(cfg->timepulse_gpio.pin));
 
     int ret;

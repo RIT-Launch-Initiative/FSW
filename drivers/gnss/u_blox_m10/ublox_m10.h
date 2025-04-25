@@ -25,9 +25,8 @@ struct ublox_m10_config {
 
 struct ublox_m10_data {
     struct gpio_callback timepulse_cb_data;
-    struct k_work work;
-    int64_t last_tick_cyc;
-    int64_t last_tick_delta_cyc;
+    int64_t last_tick;
+    k_ticks_t last_tick_delta;
 
     struct gnss_nmea0183_match_data match_data;
 #if CONFIG_GNSS_SATELLITES

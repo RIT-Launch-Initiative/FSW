@@ -151,12 +151,12 @@ static int cmd_fix_info(const struct shell *shell, size_t argc, char **argv) {
     } else {
         shell_print(shell, "Never got a gps fix");
     }
-    shell_print(shell, "Cyc of pulse: %lld delta %lld us", data->last_tick_cyc,
-                k_cyc_to_us_near64(data->last_tick_delta_cyc));
-    // k_cycle_get_64()
-    int64_t last_tp_uptime_ms = k_cyc_to_ms_near64(data->last_tick_cyc);
+    shell_print(shell, "Cyc of pulse: %lld delta %lld us", data->last_tick,
+                k_ticks_to_us_near64(data->last_tick_delta));
+
+    int64_t last_tp_uptime_ms = k_ticks_to_ms_near64(data->last_tick);
     shell_print(shell, "Got a pulse at %lld ms uptime (%d ms ago)", last_tp_uptime_ms, (int) (now - last_tp_uptime_ms));
-    int64_t sec_len = k_cyc_to_ns_near64(data->last_tick_delta_cyc);
+    int64_t sec_len = k_ticks_to_ns_near64(data->last_tick_delta);
     shell_print(shell, "Second Length %lld ns", sec_len);
 
     return 0;
