@@ -25,15 +25,12 @@ static const struct gpio_dt_spec pump_enable = GPIO_DT_SPEC_GET(PUMPEN_NODE, gpi
 #define RADIORST_NODE DT_ALIAS(radioreset)
 static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gpios);
 
-// #define GPSRST_NODE DT_ALIAS(gpsreset)
-// static const struct gpio_dt_spec gpsreset = GPIO_DT_SPEC_GET(GPSRST_NODE, gpios);
-
-// #define GPSSAFE_NODE DT_ALIAS(gpssafeboot)
-// static const struct gpio_dt_spec gpstimepulse = GPIO_DT_SPEC_GET(GPSSAFE_NODE, gpios);
-
 #define GNSS_NODE DT_ALIAS(gnss)
 
 #define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
+
+const uint32_t time_sync_period = 15;                 // transmit every `time_sync_period` seconds
+const uint32_t time_sync_seconds_from_hour_start = 0; // transmit this many seconds off the start of the hour
 
 // General Data
 struct gnss_data last_data = {};
@@ -41,7 +38,51 @@ struct gnss_data last_data = {};
 int current_sats = 0;
 int current_tracked_sats = 0;
 struct gnss_satellite last_sats[MAX_SATS] = {};
-uint64_t last_fix_uptime = 0;
+k_ticks_t last_fix_uptime_ticks = 0;
+
+uint32_t millis_till_next_timeslot() {
+    k_ticks_t timepulse_uptime = 0;
+    gnss_get_latest_timepulse(DEVICE_DT_GET(GNSS_NODE), &timepulse_uptime);
+
+    if (timepulse_uptime == 0 || last_data.info.fix_status == GNSS_FIX_STATUS_NO_FIX || last_fix_uptime_ticks == 0) {
+        printf("No valid time data, delaying by a made up number (%d seconds)\n", time_sync_period);
+        return time_sync_period * 1000;
+    }
+
+    // Assume timepulse was for the last NMEA time sentence, correct later if
+    // not
+    uint32_t seconds_from_hour_start_of_last_timepulse = last_data.utc.minute * 60 + last_data.utc.millisecond / 1000;
+    if (last_fix_uptime_ticks < timepulse_uptime) {
+        // A time pulse has come in after that NMEA sentence
+        // Add 1 second to compensate
+        seconds_from_hour_start_of_last_timepulse++;
+    }
+    int32_t seconds_from_time_sync_start =
+        seconds_from_hour_start_of_last_timepulse - time_sync_seconds_from_hour_start;
+
+    if (seconds_from_time_sync_start < 0) {
+        // if before time slice time, pretend we're going from the previous hour
+        seconds_from_time_sync_start += 60 * 60;
+    }
+
+    uint32_t periods_so_far = seconds_from_time_sync_start / time_sync_period;
+
+    uint32_t offset_into_this_period = seconds_from_time_sync_start - (time_sync_period * periods_so_far);
+
+    uint32_t seconds_from_timepulse_to_next_slot = time_sync_period - offset_into_this_period;
+
+    int64_t now_ms = k_uptime_get();
+    int64_t tp_ms = k_ticks_to_ms_near64(timepulse_uptime);
+
+    int64_t uptime_ms_of_next_slot = tp_ms + seconds_from_timepulse_to_next_slot * 1000;
+    int32_t ms_left = uptime_ms_of_next_slot - now_ms;
+    if (ms_left < 0 || ms_left > (int) (time_sync_period * 1000)) {
+        printf("ERROR calculating time sync: %d wanted < %d\n", ms_left, (int) (time_sync_period * 1000));
+        return time_sync_period * 1000;
+    }
+
+    return ms_left;
+}
 
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
     ARG_UNUSED(dev);
@@ -49,7 +90,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
     last_data = *data;
     printf("GNSS DATA\n");
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
-        last_fix_uptime = k_uptime_get();
+        last_fix_uptime_ticks = k_uptime_ticks();
     }
 }
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(GNSS_NODE), gnss_data_cb);
@@ -145,8 +186,8 @@ static int cmd_fix_info(const struct shell *shell, size_t argc, char **argv) {
     struct ublox_m10_data *data = (struct ublox_m10_data *) gnss_dev->data;
 
     uint64_t now = k_uptime_get();
-    int elapsed = (now - last_fix_uptime);
-    if (last_fix_uptime != 0) {
+    int elapsed = (now - last_fix_uptime_ticks);
+    if (last_fix_uptime_ticks != 0) {
         shell_print(shell, "Got a fix %d ms ago", elapsed);
     } else {
         shell_print(shell, "Never got a gps fix");
@@ -394,10 +435,9 @@ SHELL_CMD_REGISTER(pump, &pump_subcmds, "Pump Commands", NULL);
 
 
 void wait_for_timeslot(){
-    // Next avail timeslot start
-    // now
-    // k_sleep(next time - now);
-    k_msleep(5000);
+
+    uint32_t towait = millis_till_next_timeslot();
+    k_msleep(towait);
 }
 
 extern void lorarx(struct fs_file_t *fil);
