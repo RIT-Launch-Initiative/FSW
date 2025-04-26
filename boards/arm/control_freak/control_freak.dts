@@ -238,7 +238,7 @@
 
 // GPS
 &uart5 {
-	status = "okay";
+	status = "disabled";
 	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
 
 	pinctrl-names = "default";
@@ -247,7 +247,7 @@
 	gnss: gnss {
 		//  MAX-M10M-00B
 		compatible = "u-blox,m10";
-		status="okay";
+		status="disabled";
 		reset-gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
 		timepulse-gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
 		// reset-on-boot;
@@ -281,7 +281,7 @@
 		status = "okay";
 		compatible = "ti,ina260";
 		reg = <0x40>;
-		average = "AVG_1";
+		average = "AVG_4";
 		v-conv-time = "CONV_TIME_1100US";
 		i-conv-time = "CONV_TIME_1100US";
 
@@ -292,7 +292,7 @@
 		status = "okay";
 		compatible = "ti,ina260";
 		reg = <0x41>;
-		average = "AVG_1";
+		average = "AVG_4";
 		v-conv-time = "CONV_TIME_1100US";
 		i-conv-time = "CONV_TIME_1100US";
 
