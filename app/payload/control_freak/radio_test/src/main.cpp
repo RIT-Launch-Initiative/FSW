@@ -48,7 +48,7 @@ uint32_t millis_till_next_timeslot() {
         printf("No valid time data, delaying by a made up number (%d seconds)\n", time_sync_period);
         return time_sync_period * 1000;
     }
-
+    printf("Valid Time data, can calculate\n");
     // Assume timepulse was for the last NMEA time sentence, correct later if
     // not
     uint32_t seconds_from_hour_start_of_last_timepulse = last_data.utc.minute * 60 + last_data.utc.millisecond / 1000;
