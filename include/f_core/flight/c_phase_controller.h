@@ -115,7 +115,7 @@ class CPhaseController {
     /**
      * Logs a message like "Boost confirmed" or "Noseover confirmed but already happened. Not Dispatching"
      * @param event the event that was confirmed
-     * @param currentState the state of that even as gotten from HasEventOccured(event) *before* this confirmation. 
+     * @param currentState the state of that even as gotten from HasEventOccurred(event) *before* this confirmation. 
      * @return 0 if successfully written to the flight log. Otherwise, the filesystem error from writing.
      */
     int LogEventConfirmed(EventID event, bool currentState) {
@@ -166,7 +166,7 @@ class CPhaseController {
      * Checks the state of the event after the decision function NOT the per-source event states
      * @return true if the requested event has occured
      */
-    bool HasEventOccured(EventID event) { return eventStates[event]; }
+    bool HasEventOccurred(EventID event) { return eventStates[event]; }
 
     /**
      * Wait for an event to occur (or timeout first)

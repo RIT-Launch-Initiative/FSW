@@ -1,11 +1,15 @@
 #include "f_core/os/c_datalogger.h"
+#include "flight.h"
 
 #include <zephyr/kernel.h>
+
+static FreakFlightController controller{sourceNames, eventNames, timerEvents, decisionFuncs, NULL};
 
 struct Packet {
     uint8_t a;
     uint8_t b;
 };
+
 CDataLogger<Packet> expand_logger{"/lfs/expand.bin"};
 CDataLogger<Packet> fill_logger{"/lfs/fill.bin", LogMode::FixedSize, 10};
 CDataLogger<Packet> wrap_logger{"/lfs/wrap.bin", LogMode::Circular, 10};
