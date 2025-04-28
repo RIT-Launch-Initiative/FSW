@@ -58,7 +58,7 @@ public:
 private:
     const device* lora_dev;
     lora_modem_config config = {
-        .frequency = 915000000,
+        .frequency = 906900000,
         .bandwidth = BW_125_KHZ,
         .datarate = SF_12,
         .coding_rate = CR_4_8,

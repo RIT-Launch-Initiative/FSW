@@ -45,8 +45,10 @@ public:
 
 private:
     const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID)).c_str();
-    const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
+    const char* sntpServerAddr = "10.2.1.1";
+    // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
     static constexpr int telemetryBroadcastPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
+    static constexpr int downlinkBroadcastPort = NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT;
 
     // Devices
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
@@ -54,11 +56,21 @@ private:
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
+    CMessagePort<NTypes::LoRaBroadcastSensorData>& sensorDataDownlinkMessagePort;
 
     // Tenants
-    CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort};
-    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
-    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    CSensingTenant sensingTenant{
+        "Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort, sensorDataDownlinkMessagePort
+    };
+    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{
+        "Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort
+    };
+    CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkBroadcastTenant{
+        "Broadcast Tenant", ipAddrStr, downlinkBroadcastPort, downlinkBroadcastPort, sensorDataDownlinkMessagePort
+    };
+    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{
+        "Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort
+    };
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
 
 
@@ -69,7 +81,6 @@ private:
     CTask sensingTask{"Sensing Task", 15, 1024, ina219SampleTimeMillis};
     CTask dataLoggingTask{"Data Logging Task", 15, 1500, 0};
 };
-
 
 
 #endif //C_SENSOR_MODULE_H

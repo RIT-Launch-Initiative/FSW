@@ -8,13 +8,13 @@
 LOG_MODULE_REGISTER(CLoraTransmitTenant);
 
 void CLoraTransmitTenant::Startup() {
-    bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, {.Port = 0, .Size = 0});
+    bool success = portDataMap.Insert(NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT, {.Port = 0, .Size = 0});
     success &= portDataMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, {.Port = 0, .Size = 0});
-    success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, {.Port = 0, .Size = 0});
+    success &= portDataMap.Insert(NNetworkDefs::SENSOR_MODULE_DOWNLINK_DATA_PORT, {.Port = 0, .Size = 0});
 
-    success &= padDataRequestedMap.Insert(NNetworkDefs::POWER_MODULE_INA_DATA_PORT, false);
+    success &= padDataRequestedMap.Insert(NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT, false);
     success &= padDataRequestedMap.Insert(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT, false);
-    success &= padDataRequestedMap.Insert(NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT, false);
+    success &= padDataRequestedMap.Insert(NNetworkDefs::SENSOR_MODULE_DOWNLINK_DATA_PORT, false);
 
     if (!success) {
         LOG_ERR("Failed to insert all ports into hashmap");
@@ -81,7 +81,7 @@ int CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
         return -EMSGSIZE;
     } else if (data.Size == 0) {
         // This case should *rarely* occur.
-        LOG_WRN_ONCE("Received data is empty from port %d", data.Port);
+        LOG_WRN("Received data is empty from port %d", data.Port);
         return -ENODATA;
     }
 

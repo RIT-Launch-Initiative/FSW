@@ -11,9 +11,9 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
+CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
                                CMessagePort<NTypes::SensorData>& dataToLog, CDetectionHandler& handler)
-    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), detectionHandler(handler),
+    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
@@ -85,9 +85,35 @@ void CSensingTenant::Run() {
 
     data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
-    detectionHandler.HandleData(uptime, data, sensor_states);
     // If we can't send immediately, drop the packet
     // we're gonna sleep then give it new data anywas
     dataToBroadcast.Send(data, K_NO_WAIT);
-    dataToLog.Send(data, K_NO_WAIT);
+    sendDownlinkData(data);
+
+    detectionHandler.HandleData(uptime, data, sensor_states);
+    if (detectionHandler.FlightOccurring()) {
+        dataToLog.Send(data, K_NO_WAIT);
+    }
+}
+
+void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
+    NTypes::LoRaBroadcastSensorData downlinkData{
+        .Barometer = {
+            .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
+            .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
+        },
+        .Acceleration = {
+            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.X)),
+            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Y)),
+            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
+        },
+        .Gyroscope = {
+            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
+            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
+            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
+        },
+    };
+
+    dataToDownlink.Send(downlinkData, K_NO_WAIT);
+
 }
