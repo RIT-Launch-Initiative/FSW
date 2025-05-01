@@ -19,7 +19,7 @@
 		debug-serial = &uart4;
 		led0 = &led1; // a little broken :(
 		buzz = &buzzer;
-		
+		ldo5v = &ldo5v_enable;
 		gnss = &gnss;
 		gpsreset = &gps_reset;
 		gpssafeboot = &gps_timepulse;
@@ -302,9 +302,9 @@
 	status = "okay";
 
 
-	dmas = <&dma2 5 3 0x28440 0x03>,
-		   <&dma2 2 3 0x28480 0x03>;
-	dma-names = "tx", "rx";
+	// dmas = <&dma2 5 3 0x28440 0x03>,
+		//    <&dma2 2 3 0x28480 0x03>;
+	// dma-names = "tx", "rx";
 
 
 	pinctrl-names = "default";
@@ -326,10 +326,14 @@
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
+ 			super_fast_partition: fastpartition@0 {
+				label = "superfast-storage";
+				reg = <0 DT_SIZE_K(100)>;
+			};
 
-			external_storage_partition: partition@0 {
+			external_storage_partition: partition@100000 {
 				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(16)>;
+				reg = <0x100000 DT_SIZE_K(16284)>;
 			};
 		};
 	};
