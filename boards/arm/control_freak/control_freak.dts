@@ -301,10 +301,26 @@
 	pinctrl-names = "default";
 	status = "okay";
 
+	// dma identifier
+	// dma stream
+	// dma channel
+	// config flags
+	// ? called features in devicetree generated, is avalid value for fifo thresshoold and that interpretation matches the order of the included stm32_dma.h file 
+	// dma v2 doesnt mention it in docs but doesnt compile w/out it
+	// dma v1 calls it features and is fifo thresshold
 
-	// dmas = <&dma1 4 3 0x28440 0x03>,
-		//    <&dma1 3 3 0x28480 0x03>;
-	// dma-names = "tx", "rx";
+// FIFO threshold and burst configuration  Caution is required when choosing the FIFO threshold (bits FTH[1:0] of the DMA_SxFCR register) and the size of the memory burst (MBURST[1:0] of the DMA_SxCR register): The content pointed by the FIFO threshold must exactly match an integer number of memory burst transfers. If this is not in the case, a FIFO error (flag FEIFx of the DMA_HISR or DMA_LISR register) is generated when the stream is enabled, then the stream is automatically disabled. The allowed and forbidden configurations are described in the table below. The forbidden configurations are highlighted in gray in the table.  In all cases, the burst size multiplied by the data size must not
+
+// From Grim (known working)
+//164928 - 0x28440
+//164992 - 0x28480
+// value of 8 is marked as reserved in stm32 dma zephyr driver page but 
+// was like this last year. inserting STM32_DMA_OFFSET_FIXED_4 gets it equiv to last year
+// https://docs.zephyrproject.org/latest/build/dts/api/bindings/dma/st%2Cstm32-dma-v2.html
+	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x3>,
+		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x3>;
+	dma-names = "tx", "rx";
+
 
 
 	pinctrl-names = "default";
@@ -314,7 +330,7 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
-		spi-max-frequency = <(10 * 1000 * 1000)>;
+		spi-max-frequency = <(15 * 1000 * 1000)>;
 		size = <DT_SIZE_M(128)>;
 		jedec-id = [ef 40 18];
 

@@ -58,6 +58,7 @@ int gfs_submit_slab(struct SuperFastPacket *slab, k_timeout_t timeout) {
 
 int storage_thread_entry(void *v_fc, void *, void *) {
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
+    (void) fc;
     LOG_INF("Ready for storaging");
     while (true) {
         SuperFastPacket *chunk_ptr = NULL;
