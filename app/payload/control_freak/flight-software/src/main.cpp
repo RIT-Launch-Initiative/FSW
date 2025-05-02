@@ -89,8 +89,10 @@ K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry,
 
 K_TIMER_DEFINE(thingytimer, NULL, NULL);
 int main() {
+    buzzer_tell(BuzzCommand::BatteryWarning);
+    k_msleep(12000);
+
     buzzer_tell(BuzzCommand::Silent);
-    // buzzer_tell(BuzzCommand::Silent);
     printk("Finished!\n");
     k_timer_start(&thingytimer, K_USEC(100), K_USEC(100));
     int64_t up = k_uptime_get();

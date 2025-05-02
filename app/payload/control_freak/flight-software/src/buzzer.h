@@ -2,7 +2,10 @@
 #define FREAK_BUZZER_H
 enum BuzzCommand {
     Silent,
-    LowBattery,
+    AllGood,
+    SensorTroubles,
+    BatteryWarning,
+    BatteryBad,
     DataLocked,
 
 };
