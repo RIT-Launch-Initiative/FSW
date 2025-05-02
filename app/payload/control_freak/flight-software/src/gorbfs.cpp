@@ -78,9 +78,18 @@ int storage_thread_entry(void *v_fc, void *, void *) {
             LOG_WRN("Tried to write out of bounds");
             return -1;
         }
+        constexpr size_t sector_size = 4096;
+        if ((addr % sector_size) == 0) {
+            // ret = flash_erase(flash_dev, addr, sector_size);
+            // if (ret != 0) {
+            // LOG_WRN("Failed to flash erase: %d", ret);
+            // } else {
+            // LOG_INF("Successfull flash erase\n");
+            // }
+        }
         ret = flash_write(flash_dev, addr, (void *) chunk_ptr, BLOCK_SIZE);
         if (ret != 0) {
-            LOG_WRN("Failed to flash write: %d", ret);
+            LOG_WRN("Failed to flash write at %d: %d", addr, ret);
         }
         block_index++;
         if (block_index > num_blocks) {

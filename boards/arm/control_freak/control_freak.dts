@@ -317,9 +317,9 @@
 // value of 8 is marked as reserved in stm32 dma zephyr driver page but 
 // was like this last year. inserting STM32_DMA_OFFSET_FIXED_4 gets it equiv to last year
 // https://docs.zephyrproject.org/latest/build/dts/api/bindings/dma/st%2Cstm32-dma-v2.html
-	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x3>,
-		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x3>;
-	dma-names = "tx", "rx";
+	// dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+		//    <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+	// dma-names = "tx", "rx";
 
 
 
@@ -330,7 +330,7 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
-		spi-max-frequency = <(15 * 1000 * 1000)>;
+		spi-max-frequency = <(10 * 1000 * 1000)>;
 		size = <DT_SIZE_M(128)>;
 		jedec-id = [ef 40 18];
 

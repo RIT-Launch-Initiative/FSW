@@ -88,41 +88,36 @@ K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry,
                 CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
 
 K_TIMER_DEFINE(thingytimer, NULL, NULL);
-CDataLogger<SuperSlowPacket> cd{"/lfs/b.bin"};
 int main() {
     buzzer_tell(BuzzCommand::Silent);
-    for (int i = 0; i < 10; i++) {
-        cd.write({.timestamp = i, .clock_skew = 0.99});
-    }
-    cd.close();
     // buzzer_tell(BuzzCommand::Silent);
     printk("Finished!\n");
     k_timer_start(&thingytimer, K_USEC(100), K_USEC(100));
     int64_t up = k_uptime_get();
-    int count = 100;
-    for (int i = 0; i < count; i++) {
-        k_timer_status_sync(&thingytimer);
-        SuperFastPacket *slab_ptr = NULL;
-        int ret = gfs_alloc_slab(&slab_ptr, K_FOREVER);
-        if (ret != 0) {
-            LOG_WRN("Non zero exit when allocing slab: %d", ret);
-            continue;
-        }
-        // LOG_INF("tP = %p", slab_ptr);
-        // LOG_INF("tI = %d", i);
-        slab_ptr->timestamp = 0xff; //(uint64_t) i;
-        slab_ptr->temp = 100.0;
-        slab_ptr->pressure = 2.4;
-        for (int j = 0; j < 10; j++) {
-            slab_ptr->adat[j] = {0, 0, 0};
-            slab_ptr->gdat[j] = {0, 0, 0};
-        }
-
-        ret = gfs_submit_slab(slab_ptr, K_FOREVER);
-        if (ret != 0) {
-            LOG_WRN("Non zero exit when subitting slab: %d", ret);
-        }
-    }
+    int count = 10000;
+    // for (int i = 0; i < count; i++) {
+    // k_timer_status_sync(&thingytimer);
+    // SuperFastPacket *slab_ptr = NULL;
+    // int ret = gfs_alloc_slab(&slab_ptr, K_FOREVER);
+    // if (ret != 0) {
+    // LOG_WRN("Non zero exit when allocing slab: %d", ret);
+    // continue;
+    // }
+    // LOG_INF("tP = %p", slab_ptr);
+    // LOG_INF("tI = %d", i);
+    // slab_ptr->timestamp = 0xdeadbeef11111111; //(uint64_t) i;
+    // slab_ptr->temp = 100.0;
+    // slab_ptr->pressure = 2.4;
+    // for (int j = 0; j < 10; j++) {
+    // slab_ptr->adat[j] = {1, 2, 3};
+    // slab_ptr->gdat[j] = {1, 2, 3};
+    // }
+    //
+    // ret = gfs_submit_slab(slab_ptr, K_FOREVER);
+    // if (ret != 0) {
+    // LOG_WRN("Non zero exit when subitting slab: %d", ret);
+    // }
+    // }
     int64_t elapsed = k_uptime_get() - up;
     LOG_INF("Finished %d in %lld ms", count, elapsed);
     for (int i = 0; i < 10; i++) {
@@ -131,7 +126,7 @@ int main() {
         if (ret < 0) {
             LOG_WRN("Fasiled to read block: %d", ret);
         }
-        LOG_INF("AT I = %d, ts = %lld", i, pac.timestamp);
+        LOG_INF("AT I = %d, ts = %lld, temp = %.2f", i, pac.timestamp, pac.pressure);
     }
 
     while (true) {

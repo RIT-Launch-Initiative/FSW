@@ -63,7 +63,7 @@
 	flash0: flash@0 {
 		status = "okay";
 		compatible = "soc-nv-flash";
-		erase-block-size = <256>;
+		erase-block-size = <4096>;
 		write-block-size = <1>;
 		reg = <0x00000000 DT_SIZE_M(129)>; // builtin stuff + external flash simulation
 
