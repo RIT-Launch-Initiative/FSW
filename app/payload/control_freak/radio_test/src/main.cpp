@@ -3,6 +3,7 @@
 #include "ublox_m10.h"
 
 #include <errno.h>
+#include <f_core/utils/linear_fit.hpp>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +19,9 @@
 
 #define IMU_NODE DT_ALIAS(imu)
 static const struct device *imu_dev = DEVICE_DT_GET(IMU_NODE);
+
+#define INA_NODE DT_ALIAS(inapump)
+static const struct device *ina_dev = DEVICE_DT_GET(INA_NODE);
 
 #define PUMPEN_NODE DT_NODELABEL(pump_enable)
 static const struct gpio_dt_spec pump_enable = GPIO_DT_SPEC_GET(PUMPEN_NODE, gpios);
@@ -336,12 +340,18 @@ extern int cmd_servo_on(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_freak(const struct shell *shell, size_t argc, char **argv);
 extern int cmd_servo_try_righting(const struct shell *shell, size_t argc, char **argv);
 
+bool pump_status = false;
+
+int pumpset(bool s) {
+    pump_status = s;
+    return gpio_pin_set_dt(&pump_enable, (int) s);
+}
 int cmd_pump_off(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
     printk("Pump Off\n");
-    return gpio_pin_set_dt(&pump_enable, 0);
+    return pumpset(false);
 }
 int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
@@ -349,7 +359,7 @@ int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argv);
 
     printk("Pump On\n");
-    return gpio_pin_set_dt(&pump_enable, 1);
+    return pumpset(true);
 }
 
 int cmd_orient(const struct shell *shell, size_t argc, char **argv) {
@@ -465,11 +475,27 @@ int radio_thread(){
     }
     return 0;
 }
+using FIRFilter = CMovingAverage<float, 4>;
 
+void measure(float &volts, float&current){
+        sensor_sample_fetch(ina_dev);
+        struct sensor_value v, c, p;
+        sensor_channel_get(ina_dev, SENSOR_CHAN_VOLTAGE, &v);
+        sensor_channel_get(ina_dev, SENSOR_CHAN_CURRENT, &c);
+        sensor_channel_get(ina_dev, SENSOR_CHAN_POWER, &p);
 
+        volts =  sensor_value_to_float(&v);
+        current =  sensor_value_to_float(&c);
+        if (fabs(current - 81.918747) < 2){
+            current = 0;
+        }
+        // float power = sensor_value_to_float(&p);
+}
+
+K_TIMER_DEFINE(power_timer, NULL, NULL);
 int main() {
     struct sensor_value sampling = {0};
-     sensor_value_from_float(&sampling, 208);
+    sensor_value_from_float(&sampling, 208);
     int ret = sensor_attr_set(imu_dev, SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);
     if (ret < 0){
         printk("Couldnt set sampling\n");
@@ -489,8 +515,66 @@ int main() {
         printk("Failed to conf pump pin:(\n");
         return 0;
     }
+    k_timer_start(&power_timer, K_MSEC(100), K_MSEC(100));
 
+    int64_t last_pump_on_time = 0;
+    int64_t last_pump_off_time = 0;
 
-    radio_thread();
+    const int64_t pump_cooldown_ms = 60000;
+    const int64_t pump_maxon_ms = 10000; 
+    const float off_threshhold = 0.46;
+    FIRFilter filt{0};
+    auto should_pump_be_on = [&](int64_t now, bool on, float volts, float current){
+        int32_t time_since_off = now - last_pump_off_time;
+        int32_t time_since_on = now - last_pump_on_time;
+        filt.Feed(current);
+        printk("%d, %d, %f\n", time_since_off, time_since_on, (double)filt.Avg());
+        // Shutdown for pumps (duty cycle)
+        if (on && (time_since_off  > pump_maxon_ms)){
+            // reset filter
+            printk("Duty cycle shutdown\n");
+            return false;
+        }
+        if (filt.Avg() > off_threshhold){
+            printk("Current draw shutdown\n");
+            return false;
+        }
+        // Starting the pumps back up
+        if (!on && (time_since_on > pump_cooldown_ms)){
+            filt.Fill(0);
+            printk("Starting now\n");
+            return true;
+        }
+        printk("Not Commanded otherwise\n");
+        return on;
+    };
+    int64_t deadtime = 0;
+    bool state = false;
+    while(true){
+        k_timer_status_sync(&power_timer);
+        float volts = 0;
+        float current = 0;
+        measure(volts, current);
+        int64_t now = k_uptime_get();
+        // inputs print
+        printk("%lld, %d, %f, %f, " ,now, (int)pump_status, volts, current);
+        state = should_pump_be_on(now, state, volts, current);
+        if (state){
+            last_pump_on_time = now;
+        } else {
+            last_pump_off_time = now;
+        }
+        pumpset(state);
+        if (volts < 7.2){
+            printk("Battery Died at %lld\n", now);
+            deadtime = now;
+            break;
+        }
+    }
+    while(true){
+        printk("Battery Died at %lld\n", deadtime);
+        k_msleep(2000);
+    }
+    // radio_thread();
     return 0;
 }
