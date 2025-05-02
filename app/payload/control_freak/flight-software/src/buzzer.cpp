@@ -14,7 +14,7 @@ K_MSGQ_DEFINE(buzzer_msgq, sizeof(BuzzCommand), 4, 1);
 void buzzer_entry_point(void *, void *, void *);
 void buzzer_tell(BuzzCommand cond) { k_msgq_put(&buzzer_msgq, &cond, K_MSEC(10)); }
 
-K_THREAD_DEFINE(buzzerT, BUZZER_THREAD_STACK_SIZE, buzzer_entry_point, NULL, NULL, NULL, 10, 0, 0);
+// K_THREAD_DEFINE(buzzerT, BUZZER_THREAD_STACK_SIZE, buzzer_entry_point, NULL, NULL, NULL, 10, 0, 0);
 
 /*
  * Each bit corresponds to 1/8th of a second. a 1 means the buzzer is going
