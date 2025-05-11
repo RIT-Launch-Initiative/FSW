@@ -154,10 +154,10 @@ class CPhaseController {
                     }
                 }
             }
-            LogSourceEvent(event, source);
-            LogEventConfirmed(event, last_state);
+            // LogSourceEvent(event, source);
+            // LogEventConfirmed(event, last_state);
         } else {
-            LogSourceEvent(event, source);
+            // LogSourceEvent(event, source);
         }
     }
 

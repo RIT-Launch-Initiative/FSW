@@ -2,6 +2,7 @@
 #define C_SENSOR_MODULE_H
 
 #include "c_sensing_tenant.h"
+// #include "c_flight_log_tenant.h"
 #include "flight.hpp"
 
 // F-Core Includes
@@ -62,6 +63,7 @@ class CSensorModule : public CProjectConfiguration {
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkMessagePort;
     CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
+    // CMessagePort<NTypes::SensorData>& flightLogInputMessagePort;
     CMessagePort<std::array<uint8_t, 7>>& alertMessagePort;
 
     CFlightLog flight_log;
@@ -75,6 +77,7 @@ class CSensorModule : public CProjectConfiguration {
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
     CUdpBroadcastTenant<std::array<uint8_t, 7>> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    // CFlightLogTenant flightLogTenant{"Flight Log Tenant", flightLogInputMessagePort};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 3072, 5};

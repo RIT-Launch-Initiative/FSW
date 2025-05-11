@@ -91,11 +91,11 @@ void CSensingTenant::Run() {
     dataToBroadcast.Send(data, K_NO_WAIT);
     sendDownlinkData(data);
 
-    // detectionHandler.HandleData(uptime, data, sensor_states);
-    // if (detectionHandler.FlightOccurring()) {
-    //     LOG_INF("Logging data");
-    //     dataToLog.Send(data, K_NO_WAIT);
-    // }
+    detectionHandler.HandleData(uptime, data, sensor_states);
+    if (detectionHandler.FlightOccurring()) {
+        LOG_INF("Logging data");
+        dataToLog.Send(data, K_NO_WAIT);
+    }
 }
 
 void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {

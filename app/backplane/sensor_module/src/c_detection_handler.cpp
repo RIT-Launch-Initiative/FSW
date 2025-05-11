@@ -1,6 +1,10 @@
 #include "c_detection_handler.h"
 
+#include "zephyr/logging/log.h"
+
 #include <math.h>
+
+LOG_MODULE_REGISTER(CDetectionHandler);
 
 double asl_from_pressure(double P_sta_kpa) {
     // Constants from https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
@@ -122,10 +126,12 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
     secondaryImuBoostSquaredDetector.Feed(timestamp, secondary_mag_squared_m_s2);
 
     if (primaryImuBoostSquaredDetector.Passed() && sensor_states.primaryAccOk) {
+        LOG_INF("Boost1");
         controller.SubmitEvent(Sources::HighGImu, Events::Boost);
         alertMessagePort.Send(boostNotification);
     }
     if (secondaryImuBoostSquaredDetector.Passed() && sensor_states.secondaryAccOk) {
+        LOG_INF("Boost2");
         controller.SubmitEvent(Sources::LowGImu, Events::Boost);
         alertMessagePort.Send(boostNotification);
     }
