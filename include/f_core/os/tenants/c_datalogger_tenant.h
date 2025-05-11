@@ -26,22 +26,22 @@ public:
 
     void Run() override {
         if (T message{}; messagePort.Receive(message, K_FOREVER) == 0) {
-            dataLogger.write(message);
+            dataLogger.Write(message);
             syncCounter++;
 
             if (syncTimer.IsRunning() && syncTimer.IsExpired()) {
-                dataLogger.sync();
+                dataLogger.Sync();
             }
 
             if (syncCounter >= syncOnCount) {
-                dataLogger.sync();
+                dataLogger.Sync();
                 syncCounter = 0;
             }
         }
     }
 
     void Cleanup() override {
-        dataLogger.close();
+        dataLogger.Close();
     }
 
 private:
