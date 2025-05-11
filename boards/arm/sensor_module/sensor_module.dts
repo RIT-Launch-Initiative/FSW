@@ -122,7 +122,7 @@
 	w5500: w5500@0 {
 		compatible = "wiznet,w5500";
 		reg = <0x0>;
-		spi-max-frequency = <10000000>;
+		spi-max-frequency = <DT_FREQ_M(42)>;
 		int-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
 		reset-gpios = <&gpioa 3 GPIO_ACTIVE_LOW>;
 		zephyr,random-mac-address;
@@ -140,7 +140,7 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
-		spi-max-frequency = <(10 * 1000 * 1000)>;
+		spi-max-frequency = <DT_FREQ_M(42)>;
 		size = <DT_SIZE_M(512)>;
 		jedec-id = [ef 40 20];
 
