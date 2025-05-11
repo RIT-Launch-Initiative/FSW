@@ -70,6 +70,11 @@ class CDataLogger {
      */
     int Close() { return internal.close(); }
 
+    /**
+     * Sync the file to flash/disk.
+     *
+     * @return <0 a negative errno code on error.
+     */
     int Sync() { return internal.sync(); }
 
   private:
