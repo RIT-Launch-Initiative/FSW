@@ -14,6 +14,7 @@ class datalogger {
     datalogger(const char *filename, LogMode mode, std::size_t num_packets);
     int write(const void *data, std::size_t size);
     int close();
+    int sync();
 
     const char *filename;
     fs_file_t file;
@@ -57,7 +58,7 @@ class CDataLogger {
      * Write a packet to the file
      * @param packet the data to write to the file
      */
-    int write(const PacketType &packet) {
+    int Write(const PacketType &packet) {
         return internal.write(reinterpret_cast<const void *>(&packet), sizeof(PacketType));
     }
     /**
@@ -67,7 +68,9 @@ class CDataLogger {
      * @retval -ENOTSUP when not implemented by underlying file system driver;
      * @retval <0 a negative errno code on error.
      */
-    int close() { return internal.close(); }
+    int Close() { return internal.close(); }
+
+    int Sync() { return internal.sync(); }
 
   private:
     detail::datalogger internal;
