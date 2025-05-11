@@ -7,12 +7,13 @@
 #include <zephyr/logging/log.h>
 
 
-
 template <typename T>
 class CDataLoggerTenant : public CTenant {
 public:
-    CDataLoggerTenant(const char *name, const char *filename, LogMode mode, std::size_t numPackets, CMessagePort<T> &messagePort, k_timeout_t syncTimeout = K_FOREVER, int syncOnCount = 0)
-        : CTenant(name), messagePort(messagePort), dataLogger(filename, mode, numPackets), filename(filename), syncTimeout(syncTimeout), syncOnCount(syncOnCount) {}
+    CDataLoggerTenant(const char* name, const char* filename, LogMode mode, std::size_t numPackets,
+                      CMessagePort<T>& messagePort, k_timeout_t syncTimeout = K_FOREVER, int syncOnCount = 0)
+        : CTenant(name), messagePort(messagePort), dataLogger(filename, mode, numPackets), filename(filename),
+          syncTimeout(syncTimeout), syncOnCount(syncOnCount) {}
 
     ~CDataLoggerTenant() override {
         Cleanup();
@@ -20,6 +21,7 @@ public:
 
     void Startup() override {
         if (syncTimeout.ticks != K_FOREVER.ticks) {
+            syncTimer.SetUserData(&dataLogger);
             syncTimer.StartTimer(syncTimeout);
         }
     }
@@ -29,13 +31,12 @@ public:
             dataLogger.Write(message);
             syncCounter++;
 
-            if (syncTimer.IsRunning() && syncTimer.IsExpired()) {
-                dataLogger.Sync();
-            }
-
-            if (syncCounter >= syncOnCount) {
+            if ((syncTimer.IsRunning() && syncTimer.IsExpired()) || (syncOnCount > 0 && syncCounter >= syncOnCount)) {
                 dataLogger.Sync();
                 syncCounter = 0;
+                if (syncTimer.IsRunning()) {
+                    syncTimer.StartTimer(syncTimeout);
+                }
             }
         }
     }
@@ -45,12 +46,18 @@ public:
     }
 
 private:
-    CMessagePort<T> &messagePort;
+    CMessagePort<T>& messagePort;
     CDataLogger<T> dataLogger;
-    const char *filename;
+    const char* filename;
 
     // FS Sync after every X time
-    CSoftTimer syncTimer;
+    CSoftTimer syncTimer{
+        [](k_timer* timer) {
+            auto* logger = static_cast<CDataLogger<T>*>(k_timer_user_data_get(timer));
+            logger->Sync();
+        },
+
+        nullptr};
     k_timeout_t syncTimeout = K_FOREVER;
 
     // FS Sync on every N messages
