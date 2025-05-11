@@ -157,11 +157,19 @@
     };
 };
 
+&dma2 {
+	status = "okay";
+};
+
 &spi2 {
     pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
     cs-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
     pinctrl-names = "default";
     status = "okay";
+
+    dmas = <&dma2 5 3 0x28440 0x03>,
+	       <&dma2 2 3 0x28480 0x03>;
+	dma-names = "tx", "rx";
 
     w25q128: w25q128jv@0 {
         compatible = "jedec,spi-nor";

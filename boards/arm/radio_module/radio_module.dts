@@ -165,6 +165,10 @@
     };
 };
 
+&dma2 {
+	status = "okay";
+};
+
 &spi2 {
     pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pb14 &spi2_mosi_pb15>;
     cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW
@@ -172,6 +176,10 @@
                >;
     pinctrl-names = "default";
     status = "okay";
+
+    dmas = <&dma2 5 3 0x28440 0x03>,
+	   <&dma2 2 3 0x28480 0x03>;
+	dma-names = "tx", "rx";
 
     lora0: lora0@0 {
         compatible = "semtech,sx1276";

@@ -111,6 +111,10 @@
 	status = "okay";
 };
 
+&dma2 {
+	status = "okay";
+};
+
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5
 				 &spi1_miso_pa6 &spi1_mosi_pa7>;
@@ -118,6 +122,11 @@
 
 	pinctrl-names = "default";
 	status = "okay";
+
+	dmas = <&dma2 5 3 0x28440 0x03>,
+	   <&dma2 2 3 0x28480 0x03>;
+	dma-names = "tx", "rx";
+
 
 	w5500: w5500@0 {
 		compatible = "wiznet,w5500";
