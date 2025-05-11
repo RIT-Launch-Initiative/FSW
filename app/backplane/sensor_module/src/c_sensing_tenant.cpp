@@ -41,7 +41,8 @@ void CSensingTenant::Startup() {
 #endif
 }
 
-void CSensingTenant::PostStartup() {}
+void CSensingTenant::PostStartup() {
+}
 
 void CSensingTenant::Run() {
     if (!detectionHandler.ContinueCollecting()) {

@@ -53,7 +53,7 @@ void CSensorModule::AddTenantsToTasks() {
     sensingTask.AddTenant(sensingTenant);
 
     // Data Logging
-    dataLogTask.AddTenant(dataLoggerTenant);
+    // dataLogTask.AddTenant(dataLoggerTenant);
 }
 
 void CSensorModule::AddTasksToRtos() {
