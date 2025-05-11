@@ -151,10 +151,14 @@
     w5500: w5500@0 {
         compatible = "wiznet,w5500";
         reg = <0x0>;
-        spi-max-frequency = <10000000>;
+		spi-max-frequency = <DT_FREQ_M(42)>;
         int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
         reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
     };
+};
+
+&dma2 {
+	status = "okay";
 };
 
 &spi2 {
@@ -163,13 +167,18 @@
     pinctrl-names = "default";
     status = "okay";
 
+    dmas = <&dma2 5 3 0x28440 0x03>,
+       <&dma2 2 3 0x28480 0x03>;
+    dma-names = "tx", "rx";
+
     w25q128: w25q128jv@0 {
         compatible = "jedec,spi-nor";
         reg = <0>;
 
-        spi-max-frequency = <(10 * 1000 * 1000)>;
+		spi-max-frequency = <DT_FREQ_M(42)>;
         size = <DT_SIZE_M(128)>;
         jedec-id = [ef 40 18];
+
 
         has-dpd;
         t-enter-dpd = <(3 * 1000)>;
