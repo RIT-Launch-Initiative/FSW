@@ -32,6 +32,17 @@ public:
     }
 
     /**
+     * Start the timer with the given expiration time
+     * @param timeout Zephyr timeout object
+     */
+    void StartTimer(k_timeout_t timeout) {
+        // Duration (second arg) is the initial expiration time
+        // Period (third arg) is the time set after each expiration
+        k_timer_start(&timer, timeout, timeout);
+        running = true;
+    }
+
+    /**
     * Start the timer with the given expiration time
     * @param millis Time in milliseconds until the timer expires
     * @param initialExpirationMillis Time in milliseconds to wait before the first expiration
