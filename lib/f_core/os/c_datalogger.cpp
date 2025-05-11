@@ -16,9 +16,16 @@ datalogger::datalogger(const char *filename, LogMode mode, std::size_t num_packe
 }
 int datalogger::write(const void *data, std::size_t size) {
     if (mode == LogMode::Growing) {
+        LOG_INF("Writing %d bytes to %s", size, filename);
         int err = fs_write(&file, data, size);
         if (err < 0) {
-            LOG_ERR("Error writing to file: %d", err);
+            LOG_ERR("Error writing to file %s: %d", filename, err);
+        } else {
+            LOG_DBG("Successfully wrote %d bytes to %s", err, filename);
+
+            if (count++ % 100) {
+                fs_sync(&file);
+            }
         }
 
         return err;

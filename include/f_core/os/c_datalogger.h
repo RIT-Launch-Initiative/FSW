@@ -19,6 +19,7 @@ class datalogger {
     fs_file_t file;
     LogMode mode;
     std::size_t num_packets;
+    int count = 0;
 };
 } // namespace detail
 

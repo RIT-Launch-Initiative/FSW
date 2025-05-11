@@ -18,7 +18,11 @@ public:
 
     void Run() override {
         if (T message{}; messagePort.Receive(message, K_FOREVER) == 0) {
-            dataLogger.write(message);
+            printk("DataLogger tenant received message for %s\n", filename);
+            int res = dataLogger.write(message);
+            if (res < 0) {
+                printk("Failed to write to datalog file %s: %d\n", filename, res);
+            }
         }
     }
 

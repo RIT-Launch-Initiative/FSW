@@ -21,7 +21,8 @@ static auto alertMsgQueue = CMsgqMessagePort<std::array<uint8_t, 7>>(alertQueue)
 
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), downlinkMessagePort(downlinkMsgQueue),
-      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{generateFlightLogPath()} {}
+      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{generateFlightLogPath()},
+      dataLogPath{generateDataLogPath()} {}
 
 std::string CSensorModule::generateFlightLogPath() {
     constexpr size_t MAX_FLIGHT_LOG_PATH_SIZE = 32;
@@ -41,6 +42,27 @@ std::string CSensorModule::generateFlightLogPath() {
         // otherwise, keep counting up
     }
     std::string copystr{flightLogPath};
+    return copystr;
+}
+
+std::string CSensorModule::generateDataLogPath() {
+    constexpr size_t MAX_DATA_LOG_PATH_SIZE = 32;
+    char dataLogPath[MAX_DATA_LOG_PATH_SIZE] = {0};
+    for (size_t i = 0; i < 100; i++) {
+        snprintf(dataLogPath, MAX_DATA_LOG_PATH_SIZE, "/lfs/sensor_data%02d.bin", i);
+        struct fs_dirent ent;
+        int ret = fs_stat(dataLogPath, &ent);
+        if (ret == -ENOENT) {
+            // This path works
+            LOG_INF("Using %s for sensor data log", dataLogPath);
+            break;
+        } else if (ret != 0) {
+            LOG_WRN("Error reading filesystem for sensor data log. (error %d) Using name %s", ret, dataLogPath);
+            break;
+        }
+        // otherwise, keep counting up
+    }
+    std::string copystr{dataLogPath};
     return copystr;
 }
 void CSensorModule::AddTenantsToTasks() {

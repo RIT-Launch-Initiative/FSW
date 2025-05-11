@@ -48,6 +48,7 @@ class CSensorModule : public CProjectConfiguration {
 
   private:
     static std::string generateFlightLogPath();
+    static std::string generateDataLogPath();
 
     std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID);
     const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
@@ -67,6 +68,7 @@ class CSensorModule : public CProjectConfiguration {
     CMessagePort<std::array<uint8_t, 7>>& alertMessagePort;
 
     CFlightLog flight_log;
+    std::string dataLogPath;
     SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, &flight_log};
     CDetectionHandler detectionHandler{controller, alertMessagePort};
 
@@ -76,7 +78,7 @@ class CSensorModule : public CProjectConfiguration {
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(), telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
     CUdpBroadcastTenant<std::array<uint8_t, 7>> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
-    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", dataLogPath.c_str(), LogMode::Growing, 0, sensorDataLogMessagePort};
     // CFlightLogTenant flightLogTenant{"Flight Log Tenant", flightLogInputMessagePort};
 
     // Tasks
