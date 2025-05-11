@@ -22,7 +22,7 @@ public:
     void Startup() override {
         if (syncTimeout.ticks != K_FOREVER.ticks) {
             syncTimer.SetUserData(&dataLogger);
-            syncTimer.StartTimer(syncTimeout);
+            syncTimer.StartTimer(syncTimeout, K_NO_WAIT);
         }
     }
 
@@ -30,8 +30,8 @@ public:
         if (T message{}; messagePort.Receive(message, K_FOREVER) == 0) {
             dataLogger.Write(message);
             syncCounter++;
-
-            if ((syncTimer.IsRunning() && syncTimer.IsExpired()) || (syncOnCount > 0 && syncCounter >= syncOnCount)) {
+            if ((syncTimer.IsRunning() && syncTimer.IsExpired()) ||
+                (syncOnCount > 0 && syncCounter >= syncOnCount)) {
                 dataLogger.Sync();
                 syncCounter = 0;
                 if (syncTimer.IsRunning()) {
@@ -51,13 +51,7 @@ private:
     const char* filename;
 
     // FS Sync after every X time
-    CSoftTimer syncTimer{
-        [](k_timer* timer) {
-            auto* logger = static_cast<CDataLogger<T>*>(k_timer_user_data_get(timer));
-            logger->Sync();
-        },
-
-        nullptr};
+    CSoftTimer syncTimer{nullptr, nullptr};
     k_timeout_t syncTimeout = K_FOREVER;
 
     // FS Sync on every N messages

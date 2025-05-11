@@ -44,6 +44,18 @@ public:
 
     /**
     * Start the timer with the given expiration time
+    * @param timeout Zephyr timeout object
+    * @param initialExpiration Zephyr timeout object for the initial expiration time
+    */
+    void StartTimer(k_timeout_t timeout, k_timeout_t initialExpiration) {
+        // Duration (second arg) is the initial expiration time
+        // Period (third arg) is the time set after each expiration
+        k_timer_start(&timer, timeout, initialExpiration);
+        running = true;
+    }
+
+    /**
+    * Start the timer with the given expiration time
     * @param millis Time in milliseconds until the timer expires
     * @param initialExpirationMillis Time in milliseconds to wait before the first expiration
     */
@@ -113,7 +125,7 @@ public:
      * Get the user data for the timer
      * @return User data
      */
-    void *GetUserData() const {
+    void* GetUserData() const {
         return k_timer_user_data_get(&timer);
     }
 
@@ -129,7 +141,6 @@ private:
     k_timer timer;
     bool running = false;
 };
-
 
 
 #endif //C_SOFT_TIMER_H
