@@ -62,6 +62,13 @@ void CSensingTenant::Run() {
 #ifndef CONFIG_ARCH_POSIX
     magnetometer.UpdateSensorValue();
 #endif
+    uint32_t tmpTimestamp = 0;
+    if (int ret = rtc.GetUnixTime(tmpTimestamp); ret < 0) {
+        LOG_ERR("Failed to get time from RTC");
+    } else {
+        timestampedData.timestamp = tmpTimestamp;
+    }
+
     data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
     data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);

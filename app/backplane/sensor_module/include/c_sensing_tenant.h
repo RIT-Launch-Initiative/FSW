@@ -2,6 +2,7 @@
 #define C_SENSING_TENANT_H
 
 #include "c_detection_handler.h"
+#include "f_core/device/c_rtc.h"
 
 #include <array>
 #include <f_core/device/sensor/c_accelerometer.h>
@@ -42,6 +43,9 @@ class CSensingTenant : public CTenant {
     CMagnetometer magnetometer;
 
     std::array<CSensorDevice *, 7> sensors;
+
+
+    CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     void sendDownlinkData(const NTypes::SensorData &data);
 };
