@@ -53,7 +53,7 @@ void CSensingTenant::Run() {
         }
         i++;
     }
-    
+
     uint32_t tmpTimestamp = 0;
     int ret = rtc.GetUnixTime(tmpTimestamp);
     if (ret < 0) {

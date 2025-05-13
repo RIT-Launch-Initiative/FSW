@@ -19,7 +19,7 @@ class CSensorDevice;
 class CSensingTenant : public CTenant {
   public:
     explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData> &downlinkDataToBroadcast,
-                            CMessagePort<NTypes::SensorData> &dataToLog, CDetectionHandler &handler);
+                            CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CDetectionHandler &handler);
     ~CSensingTenant() override = default;
 
     void Startup() override;
@@ -28,7 +28,7 @@ class CSensingTenant : public CTenant {
 
   private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
-    CMessagePort<NTypes::SensorData> &dataToLog;
+    CMessagePort<NTypes::TimestampedSensorData> &dataToLog;
     CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
 
     CDetectionHandler &detectionHandler;

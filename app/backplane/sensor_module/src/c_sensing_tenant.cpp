@@ -12,7 +12,7 @@
 LOG_MODULE_REGISTER(CSensingTenant);
 
 CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
-                               CMessagePort<NTypes::SensorData>& dataToLog, CDetectionHandler& handler)
+                               CMessagePort<NTypes::TimestampedSensorData>& dataToLog, CDetectionHandler& handler)
     : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
@@ -47,7 +47,8 @@ void CSensingTenant::Run() {
     if (!detectionHandler.ContinueCollecting()) {
         return;
     }
-    NTypes::SensorData data{};
+    NTypes::TimestampedSensorData timestampedData{0};
+    NTypes::SensorData &data = timestampedData.data;
 
     uint64_t uptime = k_uptime_get();
 
@@ -92,7 +93,7 @@ void CSensingTenant::Run() {
 
     detectionHandler.HandleData(uptime, data, sensor_states);
     if (detectionHandler.FlightOccurring()) {
-        dataToLog.Send(data, K_NO_WAIT);
+        dataToLog.Send(timestampedData, K_NO_WAIT);
     }
 }
 
