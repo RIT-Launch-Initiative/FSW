@@ -15,23 +15,28 @@ void CSensingTenant::Startup() {
 void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
-    NTypes::SensorData data{
-        .RailBattery = {
-            .Voltage = 0.0f,
-            .Current = 0.0f,
-            .Power = 0.0f
-        },
-        .Rail3v3 = {
-            .Voltage = 0.0f,
-            .Current = 0.0f,
-            .Power = 0.0f
-        },
-        .Rail5v0 = {
-            .Voltage = 0.0f,
-            .Current = 0.0f,
-            .Power = 0.0f
+    NTypes::TimestampedSensorData timestampedData{
+        .timestamp = 0,
+        .data = {
+            .RailBattery = {
+                .Voltage = 0.0f,
+                .Current = 0.0f,
+                .Power = 0.0f
+            },
+            .Rail3v3 = {
+                .Voltage = 0.0f,
+                .Current = 0.0f,
+                .Power = 0.0f
+            },
+            .Rail5v0 = {
+                .Voltage = 0.0f,
+                .Current = 0.0f,
+                .Power = 0.0f
+            }
         }
     };
+
+    NTypes::SensorData &data = timestampedData.data;
 
 #ifndef CONFIG_ARCH_POSIX
     CShunt shuntBatt(*DEVICE_DT_GET(DT_ALIAS(shunt_batt)));
@@ -47,6 +52,14 @@ void CSensingTenant::Run() {
             LOG_ERR("Failed to update sensor value for %d", i);
         }
         i++;
+    }
+    
+    uint32_t tmpTimestamp = 0;
+    int ret = rtc.GetUnixTime(tmpTimestamp);
+    if (ret < 0) {
+        LOG_ERR("Failed to get time from RTC");
+    } else {
+        timestampedData.timestamp = tmpTimestamp;
     }
 
     // NOTE: The below calibration values were determined based on using a load tester
@@ -72,7 +85,7 @@ void CSensingTenant::Run() {
     sendDownlinkData(data);
 
     if (timer.IsExpired()) {
-        dataToLog.Send(data, K_MSEC(5));
+        dataToLog.Send(timestampedData, K_MSEC(5));
     }
 }
 

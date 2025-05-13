@@ -1,6 +1,8 @@
 #ifndef C_SENSING_TENANT_H
 #define C_SENSING_TENANT_H
 
+#include "f_core/device/c_rtc.h"
+
 #include <n_autocoder_types.h>
 
 #include <f_core/messaging/c_message_port.h>
@@ -10,7 +12,7 @@
 
 class CSensingTenant : public CTenant, public CObserver {
 public:
-    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::SensorData> &dataToLog, CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
+    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
         : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(dataToDownlink) {}
 
     ~CSensingTenant() override = default;
@@ -25,9 +27,10 @@ public:
 
 private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
-    CMessagePort<NTypes::SensorData> &dataToLog;
+    CMessagePort<NTypes::TimestampedSensorData> &dataToLog;
     CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
     CSoftTimer timer{nullptr, nullptr};
+    CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     void sendDownlinkData(const NTypes::SensorData &data);
 };
