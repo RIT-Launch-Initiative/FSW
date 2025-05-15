@@ -111,6 +111,10 @@
 	status = "okay";
 };
 
+&dma2 {
+	status = "okay";
+};
+
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5
 				 &spi1_miso_pa6 &spi1_mosi_pa7>;
@@ -119,10 +123,27 @@
 	pinctrl-names = "default";
 	status = "okay";
 
+	// dma identifier
+	// dma stream
+	// dma channel
+	// config flags
+    dmas = <&dma2 5 3
+            (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 |
+            STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS)
+            0x3
+           >,
+	   <&dma2 2 3
+            (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 |
+            STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS)
+            0x3
+       >;
+	dma-names = "tx", "rx";
+
+
 	w5500: w5500@0 {
 		compatible = "wiznet,w5500";
 		reg = <0x0>;
-		spi-max-frequency = <10000000>;
+		spi-max-frequency = <DT_FREQ_M(80)>;
 		int-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
 		reset-gpios = <&gpioa 3 GPIO_ACTIVE_LOW>;
 		zephyr,random-mac-address;
@@ -140,7 +161,7 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
-		spi-max-frequency = <(10 * 1000 * 1000)>;
+		spi-max-frequency = <DT_FREQ_M(104)>;
 		size = <DT_SIZE_M(512)>;
 		jedec-id = [ef 40 20];
 
