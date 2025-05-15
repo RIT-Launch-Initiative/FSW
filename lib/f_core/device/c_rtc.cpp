@@ -69,6 +69,14 @@ int CRtc::GetTime(tm& time) {
     return GetTime(reinterpret_cast<rtc_time&>(time));
 }
 
+int CRtc::GetMillisTime(uint32_t& millis) {
+    if (int ret = GetMillisTime(reinterpret_cast<uint64_t&>(millis)); ret < 0) {
+        return ret;
+    }
+
+    return 0;
+}
+
 int CRtc::GetMillisTime(uint64_t& millis) {
     rtc_time rtcTime{};
     if (int ret = GetTime(rtcTime); ret < 0) {

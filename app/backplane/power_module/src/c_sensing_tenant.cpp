@@ -55,7 +55,7 @@ void CSensingTenant::Run() {
     }
 
     uint32_t tmpTimestamp = 0;
-    if (int ret = rtc.GetUnixTime(tmpTimestamp); ret < 0) {
+    if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
         LOG_ERR("Failed to get time from RTC");
     } else {
         timestampedData.timestamp = tmpTimestamp;
