@@ -46,8 +46,16 @@ int datalogger::write(const void *data, std::size_t size) {
     LOG_ERR("Invalid LogMode: %d", (int) mode);
     return -EINVAL;
 }
+
 int datalogger::close() {
     LOG_DBG("Closing %s", filename);
     return fs_close(&file);
 }
+
+int datalogger::sync() {
+    LOG_DBG("Syncing %s", filename);
+    return fs_sync(&file);
+}
+
+
 } // namespace detail
