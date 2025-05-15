@@ -54,6 +54,7 @@ void CSensingTenant::Run() {
         i++;
     }
 
+    // Note that compilers don't accept references to packed struct fields
     uint32_t tmpTimestamp = 0;
     if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
         LOG_ERR("Failed to get time from RTC");
