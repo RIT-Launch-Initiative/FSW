@@ -9,9 +9,56 @@ LOG_MODULE_REGISTER(CRtc);
 
 CRtc::CRtc(const device& dev) : rtc(dev) {}
 
+static bool IsLeapYear(int year) {
+    // full year (i.e. 2025), not year-1900
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+static int DaysInMonth(const int year, const int month) {
+    static const int daysInMonth[] = {
+        31, 28, 31, 30, 31, 30,
+        31, 31, 30, 31, 30, 31
+    };
+    if (month == 1 && IsLeapYear(year)) {
+        return 29;
+    }
+    return daysInMonth[month];
+}
+
+static uint64_t ComputeUnixMillis(const rtc_time& rtcTime) {
+    int year = rtcTime.tm_year + 1900;
+    int month = rtcTime.tm_mon;
+    int day = rtcTime.tm_mday;
+
+    uint64_t days = 0; // Count total days since epoch
+
+    // Years
+    for (int y = 1970; y < year; ++y) {
+        days += IsLeapYear(y) ? 366 : 365;
+    }
+
+    // Months
+    for (int m = 0; m < month; ++m) {
+        days += DaysInMonth(year, m);
+    }
+
+    // Days (tm_mday is 1-based)
+    days += day - 1;
+
+    // Convert to seconds
+    uint64_t seconds = days * 86400ull
+                     + rtcTime.tm_hour * 3600ull
+                     + rtcTime.tm_min * 60ull
+                     + rtcTime.tm_sec;
+
+    // Convert to milliseconds
+    return seconds * 1000ull + rtcTime.tm_nsec / 1000000;
+}
+
+
+
 int CRtc::GetTime(rtc_time& time) {
-    int ret = rtc_get_time(&rtc, &time);
-    if (ret < 0) {
+    if (int ret = rtc_get_time(&rtc, &time); ret < 0) {
         LOG_ERR("Failed to get RTC time: %d", ret);
         return ret;
     }
@@ -20,6 +67,16 @@ int CRtc::GetTime(rtc_time& time) {
 
 int CRtc::GetTime(tm& time) {
     return GetTime(reinterpret_cast<rtc_time&>(time));
+}
+
+int CRtc::GetMillisTime(uint64_t& millis) {
+    rtc_time rtcTime{};
+    if (int ret = GetTime(rtcTime); ret < 0) {
+        return ret;
+    }
+
+    millis = ComputeUnixMillis(rtcTime);
+    return 0;
 }
 
 int CRtc::GetUnixTime(time_t& unixTimestamp) {

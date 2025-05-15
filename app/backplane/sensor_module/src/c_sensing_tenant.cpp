@@ -47,7 +47,10 @@ void CSensingTenant::Run() {
     if (!detectionHandler.ContinueCollecting()) {
         return;
     }
-    NTypes::TimestampedSensorData timestampedData{0};
+    NTypes::TimestampedSensorData timestampedData{
+        .timestamp = 0,
+        .data = {0}
+    };
     NTypes::SensorData &data = timestampedData.data;
 
     uint64_t uptime = k_uptime_get();
