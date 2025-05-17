@@ -83,6 +83,10 @@
 	};
 };
 
+&rtc {
+	status = "okay";
+	compatible = "zephyr,fake-rtc";
+};
 
 &flashcontroller0 {
 	status = "okay";
