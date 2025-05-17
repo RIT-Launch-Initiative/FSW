@@ -85,7 +85,7 @@
 
 &rtc {
 	status = "okay";
-	compatible = "zephyr,fake-rtc";
+	compatible = "zephyr,rtc-emul";
 };
 
 &flashcontroller0 {
