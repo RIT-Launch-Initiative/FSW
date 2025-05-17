@@ -8,13 +8,14 @@
 #include <f_core/messaging/c_message_port.h>
 
 class CDetectionHandler {
-  public:
+public:
     struct SensorWorkings {
         bool primaryAccOk;
         bool secondaryAccOk;
         bool primaryBarometerOk;
         bool secondaryBarometerOk;
     };
+
     static constexpr std::size_t BAROM_VELOCITY_FINDER_WINDOW_SIZE = 10; // @100hz, 0.1 second window.
     using VelocityFinder = CRollingSum<LinearFitSample<double>, BAROM_VELOCITY_FINDER_WINDOW_SIZE>;
 
@@ -24,9 +25,10 @@ class CDetectionHandler {
 
     using BaromNoseoverDetector = CDebouncer<ThresholdDirection::Under, double>;
     using BaromGroundDetector = CDebouncer<ThresholdDirection::Under, double>;
-    CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<std::array<uint8_t, 7>>& alertMessagePort);
+    CDetectionHandler(SensorModulePhaseController& controller,
+                      CMessagePort<std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE>>& alertMessagePort);
 
-    SensorModulePhaseController &controller;
+    SensorModulePhaseController& controller;
     AccBoostDetector primaryImuBoostSquaredDetector;
     AccBoostDetector secondaryImuBoostSquaredDetector;
 
@@ -48,7 +50,7 @@ class CDetectionHandler {
      * @param data sensor data from Sensing Tenant
      * @param workings a description of which sensors were read correctly
      */
-    void HandleData(const uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
+    void HandleData(const uint64_t uptime, const NTypes::SensorData& data, const SensorWorkings& workings);
 
     /**
      * Process sensor information before boost has been detected
@@ -56,21 +58,21 @@ class CDetectionHandler {
      * @param data sensor data from Sensing Tenant
      * @param workings a description of which sensors were read correctly
      */
-    void HandleBoost(const uint64_t uptime, const NTypes::SensorData &data, const SensorWorkings &workings);
+    void HandleBoost(const uint64_t uptime, const NTypes::SensorData& data, const SensorWorkings& workings);
     /**
      * Process sensor information before the noseover has been reached
      * @param t_plus_ms milliseconds since boost
      * @param data sensor data from Sensing Tenant
      * @param workings a description of which sensors were read correctly
      */
-    void HandleNoseover(const uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
+    void HandleNoseover(const uint32_t t_plus_ms, const NTypes::SensorData& data, const SensorWorkings& workings);
     /**
      * Process sensor information before the ground has been hit
      * @param t_plus_ms milliseconds since boost
      * @param data sensor data from Sensing Tenant
      * @param workings a description of which sensors were read correctly
      */
-    void HandleGround(const uint32_t t_plus_ms, const NTypes::SensorData &data, const SensorWorkings &workings);
+    void HandleGround(const uint32_t t_plus_ms, const NTypes::SensorData& data, const SensorWorkings& workings);
 
     bool FlightOccurring() {
         return controller.HasEventOccurred(Events::Boost) && !controller.HasEventOccurred(Events::GroundHit);
@@ -83,9 +85,12 @@ class CDetectionHandler {
     bool ContinueCollecting();
 
 private:
-    CMessagePort<std::array<uint8_t, 7>>& alertMessagePort;
+    static constexpr std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE> boostNotification = {
+        'L', 'A', 'U', 'N', 'C', 'H', 'b'};
+    static constexpr std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE> noseoverNotification = {
+        'L', 'A', 'U', 'N', 'C', 'H', 'n'};
+    static constexpr std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE> landedNotification = {
+        'L', 'A', 'U', 'N', 'C', 'H', 'l'};
 
-    static constexpr std::array<uint8_t, 7> boostNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'b'};
-    static constexpr std::array<uint8_t, 7> noseoverNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'n'};
-    static constexpr std::array<uint8_t, 7> landedNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'l'};
+    CMessagePort<std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE>>& alertMessagePort;
 };
