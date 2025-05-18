@@ -27,9 +27,9 @@ static constexpr size_t PARTITION_ADDR = DT_REG_ADDR(SUPERFAST_PARTITION_NODE_ID
 static constexpr size_t PARTITION_SIZE = DT_REG_SIZE(SUPERFAST_PARTITION_NODE_ID);
 BUILD_ASSERT(PARTITION_ADDR % ERASE_SIZE == 0, "Need to be able to do aligned erases");
 
-#define BLOCK_SIZE 256
-BUILD_ASSERT(sizeof(struct SuperFastPacket) == BLOCK_SIZE, "pls do that");
-BUILD_ASSERT((PARTITION_SIZE % BLOCK_SIZE) == 0, "pls do that");
+#define PAGE_SIZE 256
+BUILD_ASSERT(sizeof(struct SuperFastPacket) == PAGE_SIZE, "pls do that");
+BUILD_ASSERT((PARTITION_SIZE % PAGE_SIZE) == 0, "pls do that");
 
 #define SUPER_FAST_PACKET_COUNT 8
 K_MEM_SLAB_DEFINE_STATIC(superfastslab, sizeof(struct SuperFastPacket), SUPER_FAST_PACKET_COUNT,
@@ -37,8 +37,8 @@ K_MEM_SLAB_DEFINE_STATIC(superfastslab, sizeof(struct SuperFastPacket), SUPER_FA
 
 K_MSGQ_DEFINE(superfastmsgq, sizeof(void *), SUPER_FAST_PACKET_COUNT, alignof(void *));
 
-static int block_index = 0;
-static constexpr int num_blocks = 100;
+static int page_index = 0;
+static constexpr int num_pages = PARTITION_SIZE / PAGE_SIZE;
 
 K_MUTEX_DEFINE(mut);
 
@@ -60,7 +60,11 @@ int gfs_submit_slab(struct SuperFastPacket *slab, k_timeout_t timeout) {
 int storage_thread_entry(void *v_fc, void *, void *) {
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
     (void) fc;
-    LOG_INF("Ready for storaging");
+    if (is_boostdata_locked()) {
+        LOG_WRN("Refusing to start storage thread bc data is locked");
+    }
+    LOG_INF("Ready for storaging: Page Size: %d, Partition Size: %d, Num Pages: %d", PAGE_SIZE, PARTITION_SIZE,
+            num_pages);
 
     size_t next_addr = PARTITION_ADDR;
     constexpr size_t sector_size = 4096;
@@ -84,24 +88,24 @@ int storage_thread_entry(void *v_fc, void *, void *) {
             LOG_WRN("Received NULL from msgq");
             continue;
         }
-        // LOG_INF("tP = %p", chunk_ptr);
 
-        uint32_t addr = PARTITION_ADDR + block_index * BLOCK_SIZE;
+        uint32_t addr = PARTITION_ADDR + page_index * PAGE_SIZE;
         if (addr >= PARTITION_ADDR + PARTITION_SIZE) {
-            LOG_WRN("Tried to write out of bounds");
+            LOG_WRN("Tried to write out of bounds: End: %d, addr: %d, ind: %d", (PARTITION_ADDR + PARTITION_SIZE), addr,
+                    page_index);
             return -1;
         }
-        ret = flash_write(flash_dev, addr, (void *) chunk_ptr, BLOCK_SIZE);
+        ret = flash_write(flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
         if (ret != 0) {
             LOG_WRN("Failed to flash write at %d: %d", addr, ret);
         }
-        block_index++;
-        if (block_index > num_blocks) {
-            block_index %= num_blocks;
+        page_index++;
+        if (page_index >= num_pages) {
+            page_index %= num_pages;
         }
         k_mem_slab_free(&superfastslab, (void *) chunk_ptr);
 
-        size_t next_addr = PARTITION_ADDR + block_index * BLOCK_SIZE;
+        size_t next_addr = PARTITION_ADDR + page_index * PAGE_SIZE;
         if ((next_addr % sector_size) == 0) {
             int ret = flash_erase(flash_dev, next_addr, sector_size);
             if (ret != 0) {
@@ -114,7 +118,9 @@ int storage_thread_entry(void *v_fc, void *, void *) {
     return 0;
 }
 
+int gfs_total_blocks() { return PARTITION_SIZE / PAGE_SIZE; }
+
 int gfs_read_block(int idx, struct SuperFastPacket *pac) {
-    uint32_t addr = PARTITION_ADDR + idx * BLOCK_SIZE;
+    uint32_t addr = PARTITION_ADDR + idx * PAGE_SIZE;
     return flash_read(flash_dev, addr, (uint8_t *) pac, 256);
 }

@@ -13,7 +13,7 @@ struct gyro_data {
     float gz; // rad/s
 };
 struct SuperFastPacket {
-    uint64_t timestamp;
+    int64_t timestamp;
     float temp;
     float pressure;
     struct gyro_data gdat[10];

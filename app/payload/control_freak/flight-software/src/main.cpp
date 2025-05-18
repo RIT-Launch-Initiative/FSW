@@ -99,7 +99,7 @@ int main() {
     int64_t up = k_uptime_get();
     int count = 1000;
     for (int i = 0; i < count; i++) {
-        k_timer_status_sync(&thingytimer);
+        // k_timer_status_sync(&thingytimer);
         SuperFastPacket *slab_ptr = NULL;
         int ret = gfs_alloc_slab(&slab_ptr, K_FOREVER);
         if (ret != 0) {
@@ -110,7 +110,7 @@ int main() {
             LOG_INF("I = %d", i);
         }
         // LOG_INF("GOt slab %p", slab_ptr);
-        slab_ptr->timestamp = (uint64_t) i * 10;
+        slab_ptr->timestamp = (int64_t) (i * 10);
         slab_ptr->temp = 100.0;
         slab_ptr->pressure = 2.4;
         for (int j = 0; j < 10; j++) {
@@ -127,13 +127,14 @@ int main() {
     float persec = count / (elapsed / 1000.f);
     LOG_INF("Finished %d in %lld ms: %.2f per", count, elapsed, (double) persec);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < gfs_total_blocks(); i++) {
         SuperFastPacket pac = {0};
         int ret = gfs_read_block(i, &pac);
         if (ret < 0) {
             LOG_WRN("Fasiled to read block: %d", ret);
         }
         LOG_INF("AT I = %d, ts = %lld, temp = %.2f", i, pac.timestamp, (double) pac.pressure);
+        k_msleep(10);
     }
 
     while (true) {
