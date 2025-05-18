@@ -127,16 +127,6 @@ int main() {
     float persec = count / (elapsed / 1000.f);
     LOG_INF("Finished %d in %lld ms: %.2f per", count, elapsed, (double) persec);
 
-    for (int i = 0; i < gfs_total_blocks(); i++) {
-        SuperFastPacket pac = {0};
-        int ret = gfs_read_block(i, &pac);
-        if (ret < 0) {
-            LOG_WRN("Fasiled to read block: %d", ret);
-        }
-        LOG_INF("AT I = %d, ts = %lld, temp = %.2f", i, pac.timestamp, (double) pac.pressure);
-        k_msleep(10);
-    }
-
     while (true) {
         printk("Finished!2\n");
         k_msleep(5000);

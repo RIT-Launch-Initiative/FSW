@@ -233,7 +233,7 @@
 
 // GPS
 &uart5 {
-	status = "disabled";
+	status = "okay";
 	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
 
 	pinctrl-names = "default";
