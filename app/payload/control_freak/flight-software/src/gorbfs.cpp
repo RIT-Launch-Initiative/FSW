@@ -21,16 +21,17 @@ const struct device *flash_dev = DEVICE_DT_GET_ONE(zephyr_sim_flash);
 const struct device *flash_dev = DEVICE_DT_GET(FLASH_DEV);
 #endif
 
+#define ERASE_SIZE 4096
 BUILD_ASSERT(DT_FIXED_PARTITION_EXISTS(SUPERFAST_PARTITION_NODE_ID), "I need that partition to work man");
-
 static constexpr size_t PARTITION_ADDR = DT_REG_ADDR(SUPERFAST_PARTITION_NODE_ID);
 static constexpr size_t PARTITION_SIZE = DT_REG_SIZE(SUPERFAST_PARTITION_NODE_ID);
+BUILD_ASSERT(PARTITION_ADDR % ERASE_SIZE == 0, "Need to be able to do aligned erases");
 
 #define BLOCK_SIZE 256
 BUILD_ASSERT(sizeof(struct SuperFastPacket) == BLOCK_SIZE, "pls do that");
 BUILD_ASSERT((PARTITION_SIZE % BLOCK_SIZE) == 0, "pls do that");
 
-#define SUPER_FAST_PACKET_COUNT 5
+#define SUPER_FAST_PACKET_COUNT 8
 K_MEM_SLAB_DEFINE_STATIC(superfastslab, sizeof(struct SuperFastPacket), SUPER_FAST_PACKET_COUNT,
                          alignof(struct SuperFastPacket));
 
@@ -60,6 +61,18 @@ int storage_thread_entry(void *v_fc, void *, void *) {
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
     (void) fc;
     LOG_INF("Ready for storaging");
+
+    size_t next_addr = PARTITION_ADDR;
+    constexpr size_t sector_size = 4096;
+    if ((next_addr % sector_size) == 0) {
+        int ret = flash_erase(flash_dev, next_addr, sector_size);
+        if (ret != 0) {
+            LOG_WRN("Failed to flash erase: %d", ret);
+        } else {
+            // LOG_INF("Successfull flash erase\n");
+        }
+    }
+
     while (true) {
         SuperFastPacket *chunk_ptr = NULL;
         int ret = k_msgq_get(&superfastmsgq, &chunk_ptr, K_FOREVER);
@@ -78,15 +91,6 @@ int storage_thread_entry(void *v_fc, void *, void *) {
             LOG_WRN("Tried to write out of bounds");
             return -1;
         }
-        constexpr size_t sector_size = 4096;
-        if ((addr % sector_size) == 0) {
-            // ret = flash_erase(flash_dev, addr, sector_size);
-            // if (ret != 0) {
-            // LOG_WRN("Failed to flash erase: %d", ret);
-            // } else {
-            // LOG_INF("Successfull flash erase\n");
-            // }
-        }
         ret = flash_write(flash_dev, addr, (void *) chunk_ptr, BLOCK_SIZE);
         if (ret != 0) {
             LOG_WRN("Failed to flash write at %d: %d", addr, ret);
@@ -96,6 +100,16 @@ int storage_thread_entry(void *v_fc, void *, void *) {
             block_index %= num_blocks;
         }
         k_mem_slab_free(&superfastslab, (void *) chunk_ptr);
+
+        size_t next_addr = PARTITION_ADDR + block_index * BLOCK_SIZE;
+        if ((next_addr % sector_size) == 0) {
+            int ret = flash_erase(flash_dev, next_addr, sector_size);
+            if (ret != 0) {
+                LOG_WRN("Failed to flash erase: %d", ret);
+            } else {
+                // LOG_INF("Successfull flash erase\n");
+            }
+        }
     }
     return 0;
 }
