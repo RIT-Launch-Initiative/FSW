@@ -28,6 +28,9 @@
 		servo2 = &servo2;
 		servo3 = &servo3;
 		radioreset = &radioreset;
+
+		imu = &lsm6dsl;
+		barom = &bmp390;
 	};
 
 	servos: servos{
@@ -250,7 +253,7 @@
 	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
 	pinctrl-names = "default";
 	status = "okay";
-	clock-frequency = <I2C_BITRATE_STANDARD>;
+	clock-frequency = <I2C_BITRATE_FAST>;
 
 	bmp390: bmp390@77 {
 		status = "okay";
@@ -329,7 +332,7 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
-		spi-max-frequency = <(10 * 1000 * 1000)>;
+		spi-max-frequency = <(50 * 1000 * 1000)>;
 		size = <DT_SIZE_M(128)>;
 		jedec-id = [ef 40 18];
 
