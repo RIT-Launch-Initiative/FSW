@@ -343,12 +343,12 @@
 			#size-cells = <1>;
  			super_fast_partition: fastpartition@0 {
 				label = "superfast-storage";
-				reg = <0 DT_SIZE_K(100)>;
+				reg = <0 DT_SIZE_K(128)>;
 			};
 
 			external_storage_partition: partition@100000 {
 				label = "w25q-storage";
-				reg = <0x100000 DT_SIZE_K(16284)>;
+				reg = <0x100000 DT_SIZE_K(16256)>;
 			};
 		};
 	};

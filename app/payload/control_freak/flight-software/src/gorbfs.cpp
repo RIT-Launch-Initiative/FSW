@@ -8,7 +8,7 @@
 #include <zephyr/drivers/flash.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(storage, CONFIG_APP_FREAK_LOG_LEVEL);
+LOG_MODULE_REGISTER(gorbfs, CONFIG_APP_FREAK_LOG_LEVEL);
 
 bool is_boostdata_locked() { return false; }
 
@@ -21,11 +21,11 @@ const struct device *flash_dev = DEVICE_DT_GET_ONE(zephyr_sim_flash);
 const struct device *flash_dev = DEVICE_DT_GET(FLASH_DEV);
 #endif
 
-#define ERASE_SIZE 4096
+#define SECTOR_SIZE 4096
 BUILD_ASSERT(DT_FIXED_PARTITION_EXISTS(SUPERFAST_PARTITION_NODE_ID), "I need that partition to work man");
 static constexpr size_t PARTITION_ADDR = DT_REG_ADDR(SUPERFAST_PARTITION_NODE_ID);
 static constexpr size_t PARTITION_SIZE = DT_REG_SIZE(SUPERFAST_PARTITION_NODE_ID);
-BUILD_ASSERT(PARTITION_ADDR % ERASE_SIZE == 0, "Need to be able to do aligned erases");
+BUILD_ASSERT(PARTITION_ADDR % SECTOR_SIZE == 0, "Need to be able to do aligned erases");
 
 #define PAGE_SIZE 256
 BUILD_ASSERT(sizeof(struct SuperFastPacket) == PAGE_SIZE, "pls do that");
@@ -40,7 +40,7 @@ K_MSGQ_DEFINE(superfastmsgq, sizeof(void *), SUPER_FAST_PACKET_COUNT, alignof(vo
 static int page_index = 0;
 static constexpr int num_pages = PARTITION_SIZE / PAGE_SIZE;
 
-K_MUTEX_DEFINE(mut);
+constexpr uint32_t gen_addr(uint32_t page_index) { return PARTITION_ADDR + page_index * PAGE_SIZE; }
 
 int gfs_alloc_slab(struct SuperFastPacket **slab, k_timeout_t timeout) {
     if (is_boostdata_locked()) {
@@ -57,29 +57,37 @@ int gfs_submit_slab(struct SuperFastPacket *slab, k_timeout_t timeout) {
     return ret;
 }
 
+int safe_erase(uint32_t page_index) {
+    if (is_boostdata_locked()) {
+        LOG_WRN_ONCE("Not erasing sector bc locked");
+        return -ENOTSUP;
+    }
+    return flash_erase(flash_dev, gen_addr(page_index), SECTOR_SIZE);
+}
+
+int safe_erase_if_sector(uint32_t page_index) {
+    if (gen_addr(page_index) % SECTOR_SIZE == 0) {
+        return safe_erase(page_index);
+    }
+    return 0;
+}
+
 int storage_thread_entry(void *v_fc, void *, void *) {
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
     (void) fc;
     if (is_boostdata_locked()) {
         LOG_WRN("Refusing to start storage thread bc data is locked");
+        return -ENOTSUP;
     }
     LOG_INF("Ready for storaging: Page Size: %d, Partition Size: %d, Num Pages: %d", PAGE_SIZE, PARTITION_SIZE,
             num_pages);
 
-    size_t next_addr = PARTITION_ADDR;
-    constexpr size_t sector_size = 4096;
-    if ((next_addr % sector_size) == 0) {
-        int ret = flash_erase(flash_dev, next_addr, sector_size);
-        if (ret != 0) {
-            LOG_WRN("Failed to flash erase: %d", ret);
-        } else {
-            // LOG_INF("Successfull flash erase\n");
-        }
-    }
-
     while (true) {
+        int ret = safe_erase_if_sector(page_index);
+        size_t addr = gen_addr(page_index);
+
         SuperFastPacket *chunk_ptr = NULL;
-        int ret = k_msgq_get(&superfastmsgq, &chunk_ptr, K_FOREVER);
+        ret = k_msgq_get(&superfastmsgq, &chunk_ptr, K_FOREVER);
         if (ret != 0) {
             LOG_WRN("Wait on super fast msgq completed with error %d", ret);
             continue;
@@ -89,7 +97,6 @@ int storage_thread_entry(void *v_fc, void *, void *) {
             continue;
         }
 
-        uint32_t addr = PARTITION_ADDR + page_index * PAGE_SIZE;
         if (addr >= PARTITION_ADDR + PARTITION_SIZE) {
             LOG_WRN("Tried to write out of bounds: End: %d, addr: %d, ind: %d", (PARTITION_ADDR + PARTITION_SIZE), addr,
                     page_index);
@@ -104,16 +111,6 @@ int storage_thread_entry(void *v_fc, void *, void *) {
             page_index %= num_pages;
         }
         k_mem_slab_free(&superfastslab, (void *) chunk_ptr);
-
-        size_t next_addr = PARTITION_ADDR + page_index * PAGE_SIZE;
-        if ((next_addr % sector_size) == 0) {
-            int ret = flash_erase(flash_dev, next_addr, sector_size);
-            if (ret != 0) {
-                LOG_WRN("Failed to flash erase: %d", ret);
-            } else {
-                // LOG_INF("Successfull flash erase\n");
-            }
-        }
     }
     return 0;
 }
