@@ -13,7 +13,9 @@ double asl_from_pressure(double P_sta_kpa) {
 
     return (1 - pow(P_sta_mbar / sea_level_pressure_mbar, standard_atmosphere_exponent)) * standard_atmosphere_factor;
 }
-CDetectionHandler::CDetectionHandler(SensorModulePhaseController &controller, CMessagePort<std::array<uint8_t, 7>>& alertMessagePort)
+
+CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller,
+                                     CMessagePort<NAlerts::AlertPacket>& alertMessagePort)
     : controller(controller),
       primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
       secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},
