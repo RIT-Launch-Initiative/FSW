@@ -26,7 +26,7 @@ public:
     using BaromNoseoverDetector = CDebouncer<ThresholdDirection::Under, double>;
     using BaromGroundDetector = CDebouncer<ThresholdDirection::Under, double>;
     CDetectionHandler(SensorModulePhaseController& controller,
-                      CMessagePort<std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE>>& alertMessagePort);
+                      CMessagePort<NAlerts::AlertPacket>& alertMessagePort);
 
     SensorModulePhaseController& controller;
     AccBoostDetector primaryImuBoostSquaredDetector;
@@ -85,12 +85,12 @@ public:
     bool ContinueCollecting();
 
 private:
-    static constexpr std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE> boostNotification = {
+    static constexpr NAlerts::AlertPacket boostNotification = {
         'L', 'A', 'U', 'N', 'C', 'H', 'b'};
-    static constexpr std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE> noseoverNotification = {
+    static constexpr NAlerts::AlertPacket noseoverNotification = {
         'L', 'A', 'U', 'N', 'C', 'H', 'n'};
-    static constexpr std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE> landedNotification = {
+    static constexpr NAlerts::AlertPacket landedNotification = {
         'L', 'A', 'U', 'N', 'C', 'H', 'l'};
 
-    CMessagePort<std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE>>& alertMessagePort;
+    CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 };

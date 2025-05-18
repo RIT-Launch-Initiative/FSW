@@ -15,7 +15,7 @@ double asl_from_pressure(double P_sta_kpa) {
 }
 
 CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller,
-                                     CMessagePort<std::array<uint8_t, NAlerts::ALERT_PACKET_SIZE>>& alertMessagePort)
+                                     CMessagePort<NAlerts::AlertPacket>& alertMessagePort)
     : controller(controller),
       primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
       secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},

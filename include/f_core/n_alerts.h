@@ -19,5 +19,7 @@ namespace NAlerts {
     static constexpr std::array<uint8_t, 6> MAGIC_BYTE_SIGNATURE = {'L', 'A', 'U', 'N', 'C', 'H'};
     static constexpr size_t MAGIC_BYTE_SIGNATURE_SIZE = sizeof(MAGIC_BYTE_SIGNATURE);
     static constexpr size_t ALERT_PACKET_SIZE = MAGIC_BYTE_SIGNATURE_SIZE + sizeof(AlertType);
+
+    typedef std::array<uint8_t, ALERT_PACKET_SIZE> AlertPacket;
 }
 #endif //N_ALERTS_H
