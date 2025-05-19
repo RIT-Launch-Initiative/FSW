@@ -105,7 +105,7 @@ int main() {
     int64_t total_start = k_cycle_get_64();
     while (DONT_STOP) {
         now = k_cycle_get_64();
-        k_timer_status_sync(&imutimer);
+        // k_timer_status_sync(&imutimer);
         cyc_syncing += k_cycle_get_64() - now;
 
         if (frame == 0) {
