@@ -10,7 +10,10 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(gorbfs, CONFIG_APP_FREAK_LOG_LEVEL);
 
-bool is_boostdata_locked() { return false; }
+bool boostdata_locked = false;
+void unlock_boostdata() { boostdata_locked = false; }
+void lock_boostdata() { boostdata_locked = true; }
+bool is_boostdata_locked() { return boostdata_locked; }
 
 #define SUPERFAST_PARTITION_NODE_ID DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage)
 

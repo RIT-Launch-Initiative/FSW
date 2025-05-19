@@ -10,6 +10,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
 #include <zephyr/shell/shell.h>
+#include <zephyr/sys/reboot.h>
 LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
@@ -26,46 +27,8 @@ static const struct device *imu_dev = DEVICE_DT_GET(IMU_NODE);
 static const struct device *barom_dev = DEVICE_DT_GET(BAROM_NODE);
 
 K_TIMER_DEFINE(imutimer, NULL, NULL);
-K_TIMER_DEFINE(thingytimer, NULL, NULL);
 
 bool DONT_STOP = true;
-
-int cmd_stop(const struct shell *shell, size_t argc, char **argv) {
-    DONT_STOP = false;
-    shell_print(shell, "Stopping");
-    return 0;
-}
-
-int cmd_readall(const struct shell *shell, size_t argc, char **argv) {
-    SuperFastPacket pac;
-    shell_fprintf_normal(shell, "ts, temp, press, ax, ay, az, gx, gy, gz\n");
-    // log_flush();
-
-    for (int i = 0; i < gfs_total_blocks(); i++) {
-        int ret = gfs_read_block(i, &pac);
-        if (ret != 0) {
-            LOG_WRN("Couldnt read page # %d: %d", i, ret);
-        }
-        for (int j = 0; j < 10; j++) {
-            if (j == 0) {
-                shell_fprintf_normal(shell, "%lld, %f, %f,", pac.timestamp, (double) pac.temp, (double) pac.pressure);
-            } else {
-                shell_fprintf_normal(shell, "NaN, NaN, NaN,");
-            }
-            shell_fprintf_normal(shell, "%f, %f, %f, %f, %f, %f\n", (double) pac.adat[j].ax, (double) pac.adat[j].ay,
-                                 (double) pac.adat[j].az, (double) pac.gdat[j].gx, (double) pac.gdat[j].gy,
-                                 (double) pac.gdat[j].gz);
-        }
-        // log_flush();
-        k_msleep(100);
-    }
-    return 0;
-}
-
-SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
-                               SHELL_CMD(dump, NULL, "Dump Gorb partition", cmd_readall), SHELL_SUBCMD_SET_END);
-
-SHELL_CMD_REGISTER(test, &test_subcmds, "Test Commands", NULL);
 
 int overcounter = 0;
 
@@ -219,3 +182,47 @@ int main() {
            total_elapsed);
     return 0;
 }
+
+int cmd_unlock(const struct shell *shell, size_t argc, char **argv) {
+    shell_print(shell, "Unlocking boost data");
+    unlock_boostdata();
+    shell_print(shell, "Success, rebooting....\n\n\n");
+    sys_reboot(SYS_REBOOT_COLD);
+}
+
+int cmd_stop(const struct shell *shell, size_t argc, char **argv) {
+    DONT_STOP = false;
+    shell_print(shell, "Stopping");
+    return 0;
+}
+
+int cmd_readall(const struct shell *shell, size_t argc, char **argv) {
+    SuperFastPacket pac;
+    shell_fprintf_normal(shell, "ts, temp, press, ax, ay, az, gx, gy, gz\n");
+
+    for (int i = 0; i < gfs_total_blocks(); i++) {
+        int ret = gfs_read_block(i, &pac);
+        if (ret != 0) {
+            LOG_WRN("Couldnt read page # %d: %d", i, ret);
+        }
+        for (int j = 0; j < 10; j++) {
+            if (j == 0) {
+                shell_fprintf_normal(shell, "%lld, %f, %f,", pac.timestamp, (double) pac.temp, (double) pac.pressure);
+            } else {
+                shell_fprintf_normal(shell, "NaN, NaN, NaN,");
+            }
+            shell_fprintf_normal(shell, "%f, %f, %f, %f, %f, %f\n", (double) pac.adat[j].ax, (double) pac.adat[j].ay,
+                                 (double) pac.adat[j].az, (double) pac.gdat[j].gx, (double) pac.gdat[j].gy,
+                                 (double) pac.gdat[j].gz);
+        }
+        k_msleep(10);
+    }
+    return 0;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
+                               SHELL_CMD(dumpgorb, NULL, "Dump Gorb partition", cmd_readall),
+                               SHELL_CMD(unlocl, NULL, "Unlock flight data partition", cmd_unlock),
+                               SHELL_SUBCMD_SET_END);
+
+SHELL_CMD_REGISTER(test, &test_subcmds, "Test Commands", NULL);
