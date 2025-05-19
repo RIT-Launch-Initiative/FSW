@@ -259,6 +259,7 @@
 		status = "okay";
 		
 		compatible = "bosch,bmp390";
+		// typ 146 hz, min 125hz
 		osr-press=<1>;
 		osr-temp=<1>;
 		reg = <0x77>;
@@ -296,6 +297,9 @@
 
 &dma1 {
 	status = "okay";
+};
+&dma2 {
+	status="okay";
 };
 
 &spi2 {

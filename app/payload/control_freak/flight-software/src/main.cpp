@@ -1,3 +1,4 @@
+#include "boost.h"
 #include "buzzer.h"
 #include "data.h"
 #include "f_core/os/c_datalogger.h"
@@ -68,6 +69,21 @@ SHELL_CMD_REGISTER(test, &test_subcmds, "Test Commands", NULL);
 
 int overcounter = 0;
 
+class CycleCounter {
+  public:
+    CycleCounter(int64_t &toAdd) : toAdd(toAdd) { start_cyc = k_cycle_get_64(); }
+    ~CycleCounter() { toAdd += k_cycle_get_64() - start_cyc; }
+
+    CycleCounter(CycleCounter &&) = delete;
+    CycleCounter(const CycleCounter &) = delete;
+    CycleCounter &operator=(CycleCounter &&) = delete;
+    CycleCounter &operator=(const CycleCounter &) = delete;
+
+  private:
+    int64_t &toAdd;
+    int64_t start_cyc;
+};
+
 int main() {
     buzzer_tell(BuzzCommand::Silent);
 
@@ -101,87 +117,81 @@ int main() {
     int64_t cyc_slabs = 0;
     int64_t cyc_syncing = 0;
     int64_t cyc_calc_boost = 0;
-    int64_t now = k_cycle_get_64();
     int64_t total_start = k_cycle_get_64();
     while (DONT_STOP) {
-        now = k_cycle_get_64();
-        // k_timer_status_sync(&imutimer);
-        cyc_syncing += k_cycle_get_64() - now;
+        {
+            CycleCounter _(cyc_syncing);
+            // k_timer_status_sync(&imutimer);
+        }
 
         if (frame == 0) {
-            now = k_cycle_get_64();
-            int ret = gfs_alloc_slab(&packet, K_FOREVER);
-            cyc_slabs += k_cycle_get_64() - now;
-
+            int ret = 0;
+            {
+                CycleCounter _(cyc_slabs);
+                ret = gfs_alloc_slab(&packet, K_FOREVER);
+            }
             int64_t us = k_ticks_to_us_near64(k_uptime_ticks());
             packet->timestamp = us;
 
-            now = k_cycle_get_64();
+            {
+                CycleCounter _(cyc_read_barom);
+                // read barometer
+                ret = sensor_sample_fetch(barom_dev);
+                if (ret != 0) {
+                    LOG_WRN("Couldnt read barometer: %d", ret);
+                }
+                struct sensor_value val;
+                ret = sensor_channel_get(barom_dev, SENSOR_CHAN_PRESS, &val);
+                if (ret != 0) {
+                    LOG_WRN("Couldnt get pres from barometer: %d", ret);
+                }
+                packet->pressure = sensor_value_to_float(&val);
 
-            // read barometer
-            ret = sensor_sample_fetch(barom_dev);
-            if (ret != 0) {
-                LOG_WRN("Couldnt read barometer: %d", ret);
+                ret = sensor_channel_get(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
+                if (ret != 0) {
+                    LOG_WRN("Couldnt get temp from barometer: %d", ret);
+                }
+                packet->temp = sensor_value_to_float(&val);
             }
-            struct sensor_value val;
-            ret = sensor_channel_get(barom_dev, SENSOR_CHAN_PRESS, &val);
-            if (ret != 0) {
-                LOG_WRN("Couldnt get pres from barometer: %d", ret);
-            }
-            packet->pressure = sensor_value_to_float(&val);
-
-            ret = sensor_channel_get(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
-            if (ret != 0) {
-                LOG_WRN("Couldnt get temp from barometer: %d", ret);
-            }
-            packet->temp = sensor_value_to_float(&val);
-            cyc_read_barom += k_cycle_get_64() - now;
         }
         // read imu
-        now = k_cycle_get_64();
+        {
+            CycleCounter _(cyc_read_imu);
+            sensor_sample_fetch(imu_dev);
+            struct sensor_value vals[3];
+            ret = sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_XYZ, vals);
+            if (ret != 0) {
+                LOG_WRN("Couldnt get axyz");
+            }
+            packet->adat[frame].ax = sensor_value_to_float(&vals[0]);
+            packet->adat[frame].ay = sensor_value_to_float(&vals[1]);
+            packet->adat[frame].az = sensor_value_to_float(&vals[2]);
 
-        sensor_sample_fetch(imu_dev);
-        struct sensor_value vals[3];
-        ret = sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_XYZ, vals);
-        if (ret != 0) {
-            LOG_WRN("Couldnt get axyz");
+            ret = sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, vals);
+            if (ret != 0) {
+                LOG_WRN("Couldnt get gxyz");
+            }
+            packet->gdat[frame].gx = sensor_value_to_float(&vals[0]);
+            packet->gdat[frame].gy = sensor_value_to_float(&vals[1]);
+            packet->gdat[frame].gz = sensor_value_to_float(&vals[2]);
         }
-        packet->adat[frame].ax = sensor_value_to_float(&vals[0]);
-        packet->adat[frame].ay = sensor_value_to_float(&vals[1]);
-        packet->adat[frame].az = sensor_value_to_float(&vals[2]);
 
-        ret = sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, vals);
-        if (ret != 0) {
-            LOG_WRN("Couldnt get gxyz");
-        }
-        packet->gdat[frame].gx = sensor_value_to_float(&vals[0]);
-        packet->gdat[frame].gy = sensor_value_to_float(&vals[1]);
-        packet->gdat[frame].gz = sensor_value_to_float(&vals[2]);
-        cyc_read_imu += k_cycle_get_64() - now;
-
-        now = k_cycle_get_64();
-        float magsqr = packet->adat[frame].ax * packet->adat[frame].ax +
-                       packet->adat[frame].ay * packet->adat[frame].ay +
-                       packet->adat[frame].az * packet->adat[frame].az;
-        if (magsqr > imuBoostThresholdMPerS2 * imuBoostThresholdMPerS2) {
-            overcounter++;
-            if (overcounter > 250) {
+        {
+            CycleCounter _(cyc_calc_boost);
+            bool is_boosted = feed_boost_acc(k_uptime_get(), &packet->adat[frame].ax);
+            if (is_boosted) {
                 break;
             }
-        } else {
-            overcounter = 0;
         }
-        cyc_calc_boost += k_cycle_get_64() - now;
-
         frame++;
         if (frame == perPacket) {
 
             // send packet
             packets_sent++;
-            now = k_cycle_get_64();
-
-            ret = gfs_submit_slab(packet, K_FOREVER);
-            cyc_slabs += k_cycle_get_64() - now;
+            {
+                CycleCounter _(cyc_slabs);
+                ret = gfs_submit_slab(packet, K_FOREVER);
+            }
 
             if (ret != 0) {
                 LOG_WRN("Couldnt submit slab: %d", ret);
