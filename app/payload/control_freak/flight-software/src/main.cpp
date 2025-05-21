@@ -1,5 +1,6 @@
 #include "boost.h"
 #include "buzzer.h"
+#include "cycle_counter.hpp"
 #include "data.h"
 #include "f_core/os/c_datalogger.h"
 #include "flight.h"
@@ -29,23 +30,6 @@ static const struct device *barom_dev = DEVICE_DT_GET(BAROM_NODE);
 K_TIMER_DEFINE(imutimer, NULL, NULL);
 
 bool DONT_STOP = true;
-
-int overcounter = 0;
-
-class CycleCounter {
-  public:
-    CycleCounter(int64_t &toAdd) : toAdd(toAdd) { start_cyc = k_cycle_get_64(); }
-    ~CycleCounter() { toAdd += k_cycle_get_64() - start_cyc; }
-
-    CycleCounter(CycleCounter &&) = delete;
-    CycleCounter(const CycleCounter &) = delete;
-    CycleCounter &operator=(CycleCounter &&) = delete;
-    CycleCounter &operator=(const CycleCounter &) = delete;
-
-  private:
-    int64_t &toAdd;
-    int64_t start_cyc;
-};
 
 int main() {
     buzzer_tell(BuzzCommand::Silent);
@@ -84,7 +68,7 @@ int main() {
     while (DONT_STOP) {
         {
             CycleCounter _(cyc_syncing);
-            // k_timer_status_sync(&imutimer);
+            k_timer_status_sync(&imutimer);
         }
 
         if (frame == 0) {
@@ -170,6 +154,7 @@ int main() {
             LOG_WRN("Couldnt submit final slab: %d", ret);
         }
     }
+    lock_boostdata();
     int64_t total_elapsed = k_cycle_get_64() - total_start;
 
     int64_t end = k_uptime_get();

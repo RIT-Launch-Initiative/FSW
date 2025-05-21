@@ -1,3 +1,4 @@
+#include "cycle_counter.hpp"
 #include "data.h"
 #include "flight.h"
 
@@ -10,9 +11,20 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(gorbfs, CONFIG_APP_FREAK_LOG_LEVEL);
 
+int64_t cyc_waiting = 0;
+int64_t cyc_erasing = 0;
+int64_t cyc_writing = 0;
+int64_t cyc_slabbing;
+
 bool boostdata_locked = false;
 void unlock_boostdata() { boostdata_locked = false; }
-void lock_boostdata() { boostdata_locked = true; }
+void lock_boostdata() {
+    boostdata_locked = true;
+
+    k_msleep(1000);
+    printk("waiting,erasing,writing,slabbing\n");
+    printk("%lld,%lld,%lld,%lld\n", cyc_waiting, cyc_erasing, cyc_writing, cyc_slabbing);
+}
 bool is_boostdata_locked() { return boostdata_locked; }
 
 #define SUPERFAST_PARTITION_NODE_ID DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage)
@@ -86,11 +98,18 @@ int storage_thread_entry(void *v_fc, void *, void *) {
             num_pages);
 
     while (true) {
-        int ret = safe_erase_if_sector(page_index);
+        int ret = 0;
+        {
+            CycleCounter _(cyc_erasing);
+            ret = safe_erase_if_sector(page_index);
+        }
         size_t addr = gen_addr(page_index);
 
         SuperFastPacket *chunk_ptr = NULL;
-        ret = k_msgq_get(&superfastmsgq, &chunk_ptr, K_FOREVER);
+        {
+            CycleCounter _(cyc_waiting);
+            ret = k_msgq_get(&superfastmsgq, &chunk_ptr, K_FOREVER);
+        }
         if (ret != 0) {
             LOG_WRN("Wait on super fast msgq completed with error %d", ret);
             continue;
@@ -105,7 +124,10 @@ int storage_thread_entry(void *v_fc, void *, void *) {
                     page_index);
             return -1;
         }
-        ret = flash_write(flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
+        {
+            CycleCounter _(cyc_writing);
+            ret = flash_write(flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
+        }
         if (ret != 0) {
             LOG_WRN("Failed to flash write at %d: %d", addr, ret);
         }
@@ -113,7 +135,10 @@ int storage_thread_entry(void *v_fc, void *, void *) {
         if (page_index >= num_pages) {
             page_index %= num_pages;
         }
-        k_mem_slab_free(&superfastslab, (void *) chunk_ptr);
+        {
+            CycleCounter _(cyc_slabbing);
+            k_mem_slab_free(&superfastslab, (void *) chunk_ptr);
+        }
     }
     return 0;
 }
