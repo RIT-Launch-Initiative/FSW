@@ -18,8 +18,16 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 static FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, NULL};
 
-K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry, (void *) &freak_controller, NULL, NULL,
-                CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
+bool boostdata_locked = false;
+void unlock_boostdata() { boostdata_locked = false; }
+void lock_boostdata() {
+    boostdata_locked = true;
+
+    k_msleep(1000);
+    printk("waiting,erasing,writing,slabbing\n");
+    // printk("%lld,%lld,%lld,%lld\n", cyc_waiting, cyc_erasing, cyc_writing, cyc_slabbing);
+}
+bool is_boostdata_locked() { return boostdata_locked; }
 
 #define IMU_NODE DT_ALIAS(imu)
 static const struct device *imu_dev = DEVICE_DT_GET(IMU_NODE);
@@ -31,17 +39,27 @@ K_TIMER_DEFINE(imutimer, NULL, NULL);
 
 bool DONT_STOP = true;
 
+static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
+
+K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry, (void *) &freak_controller,
+                (void *) superfast_storage, NULL, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
+
 int main() {
+    int ret = 0;
+
     buzzer_tell(BuzzCommand::Silent);
 
     if (!device_is_ready(imu_dev) || !device_is_ready(barom_dev)) {
         LOG_ERR("Devices not ready");
         return -1;
     }
+    if (!device_is_ready(superfast_storage)) {
+        LOG_ERR("Storage not ready");
+    }
 
     struct sensor_value sampling = {0};
     sensor_value_from_float(&sampling, 1666);
-    int ret = sensor_attr_set(imu_dev, SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);
+    ret = sensor_attr_set(imu_dev, SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);
     if (ret < 0) {
         LOG_ERR("Couldnt set sampling\n");
     }
@@ -72,10 +90,9 @@ int main() {
         }
 
         if (frame == 0) {
-            int ret = 0;
             {
                 CycleCounter _(cyc_slabs);
-                ret = gfs_alloc_slab(&packet, K_FOREVER);
+                ret = gfs_alloc_slab(superfast_storage, (void **) &packet, K_FOREVER);
             }
             int64_t us = k_ticks_to_us_near64(k_uptime_ticks());
             packet->timestamp = us;
@@ -137,7 +154,7 @@ int main() {
             packets_sent++;
             {
                 CycleCounter _(cyc_slabs);
-                ret = gfs_submit_slab(packet, K_FOREVER);
+                ret = gfs_submit_slab(superfast_storage, packet, K_FOREVER);
             }
 
             if (ret != 0) {
@@ -149,7 +166,7 @@ int main() {
     if (frame != 0) {
         // send half packet
         packets_sent++;
-        ret = gfs_submit_slab(packet, K_FOREVER);
+        ret = gfs_submit_slab(superfast_storage, packet, K_FOREVER);
         if (ret != 0) {
             LOG_WRN("Couldnt submit final slab: %d", ret);
         }
@@ -182,26 +199,26 @@ int cmd_stop(const struct shell *shell, size_t argc, char **argv) {
 }
 
 int cmd_readall(const struct shell *shell, size_t argc, char **argv) {
-    SuperFastPacket pac;
-    shell_fprintf_normal(shell, "ts, temp, press, ax, ay, az, gx, gy, gz\n");
-
-    for (int i = 0; i < gfs_total_blocks(); i++) {
-        int ret = gfs_read_block(i, &pac);
-        if (ret != 0) {
-            LOG_WRN("Couldnt read page # %d: %d", i, ret);
-        }
-        for (int j = 0; j < 10; j++) {
-            if (j == 0) {
-                shell_fprintf_normal(shell, "%lld, %f, %f,", pac.timestamp, (double) pac.temp, (double) pac.pressure);
-            } else {
-                shell_fprintf_normal(shell, "NaN, NaN, NaN,");
-            }
-            shell_fprintf_normal(shell, "%f, %f, %f, %f, %f, %f\n", (double) pac.adat[j].ax, (double) pac.adat[j].ay,
-                                 (double) pac.adat[j].az, (double) pac.gdat[j].gx, (double) pac.gdat[j].gy,
-                                 (double) pac.gdat[j].gz);
-        }
-        k_msleep(10);
-    }
+    // SuperFastPacket pac;
+    // shell_fprintf_normal(shell, "ts, temp, press, ax, ay, az, gx, gy, gz\n");
+    //
+    // for (int i = 0; i < gfs_total_blocks(); i++) {
+    // int ret = gfs_read_block(i, &pac);
+    // if (ret != 0) {
+    // LOG_WRN("Couldnt read page # %d: %d", i, ret);
+    // }
+    // for (int j = 0; j < 10; j++) {
+    // if (j == 0) {
+    // shell_fprintf_normal(shell, "%lld, %f, %f,", pac.timestamp, (double) pac.temp, (double) pac.pressure);
+    // } else {
+    // shell_fprintf_normal(shell, "NaN, NaN, NaN,");
+    // }
+    // shell_fprintf_normal(shell, "%f, %f, %f, %f, %f, %f\n", (double) pac.adat[j].ax, (double) pac.adat[j].ay,
+    //  (double) pac.adat[j].az, (double) pac.gdat[j].gx, (double) pac.gdat[j].gy,
+    //  (double) pac.gdat[j].gz);
+    // }
+    // k_msleep(10);
+    // }
     return 0;
 }
 

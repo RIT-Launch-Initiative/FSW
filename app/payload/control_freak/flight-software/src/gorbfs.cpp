@@ -16,99 +16,123 @@ int64_t cyc_erasing = 0;
 int64_t cyc_writing = 0;
 int64_t cyc_slabbing;
 
-bool boostdata_locked = false;
-void unlock_boostdata() { boostdata_locked = false; }
-void lock_boostdata() {
-    boostdata_locked = true;
+struct gorbfs_partition_config {
+    const struct device *flash_dev;
+    uint32_t partition_addr;
+    uint32_t partition_size;
+    size_t num_pages;
+    bool wrap;
+};
 
-    k_msleep(1000);
-    printk("waiting,erasing,writing,slabbing\n");
-    printk("%lld,%lld,%lld,%lld\n", cyc_waiting, cyc_erasing, cyc_writing, cyc_slabbing);
-}
-bool is_boostdata_locked() { return boostdata_locked; }
-
-#define SUPERFAST_PARTITION_NODE_ID DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage)
+struct gorbfs_partition_data {
+    size_t page_index;
+    struct k_msgq *msgq;
+    struct k_mem_slab *slab;
+};
 
 #ifdef CONFIG_BOARD_NATIVE_SIM
-const struct device *flash_dev = DEVICE_DT_GET_ONE(zephyr_sim_flash);
+#define GORBFS_GET_FLASH_DEV(partition_name) DEVICE_DT_GET_ONE(zephyr_sim_flash)
 #else
-#define FLASH_DEV                   DT_GPARENT(SUPERFAST_PARTITION_NODE_ID)
-const struct device *flash_dev = DEVICE_DT_GET(FLASH_DEV);
+#define GORBFS_GET_FLASH_DEV(partition_name) DEVICE_DT_GET(DT_GPARENT(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)))
 #endif
 
+#define PAGE_SIZE   256
 #define SECTOR_SIZE 4096
-BUILD_ASSERT(DT_FIXED_PARTITION_EXISTS(SUPERFAST_PARTITION_NODE_ID), "I need that partition to work man");
-static constexpr size_t PARTITION_ADDR = DT_REG_ADDR(SUPERFAST_PARTITION_NODE_ID);
-static constexpr size_t PARTITION_SIZE = DT_REG_SIZE(SUPERFAST_PARTITION_NODE_ID);
-BUILD_ASSERT(PARTITION_ADDR % SECTOR_SIZE == 0, "Need to be able to do aligned erases");
 
-#define PAGE_SIZE 256
-BUILD_ASSERT(sizeof(struct SuperFastPacket) == PAGE_SIZE, "pls do that");
-BUILD_ASSERT((PARTITION_SIZE % PAGE_SIZE) == 0, "pls do that");
+// Must be > FLASH_INIT_PRIORITY
+#define GORBFS_INIT_PRIORITY 60
 
-#define SUPER_FAST_PACKET_COUNT 8
-K_MEM_SLAB_DEFINE_STATIC(superfastslab, sizeof(struct SuperFastPacket), SUPER_FAST_PACKET_COUNT,
-                         alignof(struct SuperFastPacket));
+BUILD_ASSERT(GORBFS_INIT_PRIORITY > CONFIG_FLASH_INIT_PRIORITY, "Gorbfs depends on flash");
 
-K_MSGQ_DEFINE(superfastmsgq, sizeof(void *), SUPER_FAST_PACKET_COUNT, alignof(void *));
+static int gorbfs_init(const struct device *dev) {
+    // const struct gorbfs_partition_config *config = (const struct gorbfs_partition_config *) dev->config;
+    // struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
 
-static int page_index = 0;
-static constexpr int num_pages = PARTITION_SIZE / PAGE_SIZE;
+    return 0;
+}
 
-constexpr uint32_t gen_addr(uint32_t page_index) { return PARTITION_ADDR + page_index * PAGE_SIZE; }
+#define GORBFS_PARTITION_DEFINE(partition_name, msg_type, buf_size)                                                           \
+    BUILD_ASSERT(DT_FIXED_PARTITION_EXISTS(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)),                          \
+                 "Missing Partition for gorbfs");                                                                      \
+    BUILD_ASSERT(sizeof(msg_type) == PAGE_SIZE, "Message size must be = page size (256)");                             \
+    BUILD_ASSERT(DT_REG_SIZE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)) % PAGE_SIZE == 0,                       \
+                 "Need partition size to be multiple of msg size (256)");                                              \
+    BUILD_ASSERT(DT_REG_ADDR(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)) % SECTOR_SIZE == 0,                     \
+                 "Need partition addr mod sector_size = 0 to be able to do aligned erases");                           \
+                                                                                                                       \
+    K_MEM_SLAB_DEFINE_STATIC(partition_name##_slab, sizeof(msg_type), buf_size, alignof(msg_type));                    \
+                                                                                                                       \
+    K_MSGQ_DEFINE(partition_name##_msgq, sizeof(void *), buf_size, alignof(void *));                                   \
+                                                                                                                       \
+    const struct gorbfs_partition_config gorbfs_partition_config_##partition_name{                                     \
+        .flash_dev = GORBFS_GET_FLASH_DEV(partition_name),                                                             \
+        .partition_addr = DT_REG_ADDR(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)),                               \
+        .partition_size = DT_REG_SIZE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)),                               \
+        .num_pages = DT_REG_SIZE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)) / PAGE_SIZE,                        \
+        .wrap = DT_PROP_OR(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name), wrap, false),                                    \
+    };                                                                                                                 \
+    struct gorbfs_partition_data gorbfs_partition_data_##partition_name{                                               \
+        .page_index = 0,                                                                                               \
+        .msgq = &partition_name##_msgq,                                                                                \
+        .slab = &partition_name##_slab,                                                                                \
+    };                                                                                                                 \
+    DEVICE_DT_DEFINE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name), gorbfs_init, NULL,                              \
+                     &gorbfs_partition_data_##partition_name, &gorbfs_partition_config_##partition_name, POST_KERNEL,  \
+                     GORBFS_INIT_PRIORITY, NULL);
 
-int gfs_alloc_slab(struct SuperFastPacket **slab, k_timeout_t timeout) {
-    if (is_boostdata_locked()) {
-        return -ENOMEM;
-    }
-    int ret = k_mem_slab_alloc(&superfastslab, (void **) slab, timeout);
+GORBFS_PARTITION_DEFINE(superfast_storage, struct SuperFastPacket, 8);
+
+
+
+constexpr uint32_t gen_addr(const gorbfs_partition_config *cfg, uint32_t page_index) {
+    return cfg->partition_addr + page_index * PAGE_SIZE;
+}
+
+int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeout) {
+    struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
+    int ret = k_mem_slab_alloc(data->slab, slab_ptr, timeout);
     return ret;
 }
-int gfs_submit_slab(struct SuperFastPacket *slab, k_timeout_t timeout) {
-    if (is_boostdata_locked()) {
-        return -EACCES;
-    }
-    int ret = k_msgq_put(&superfastmsgq, (void *) &slab, timeout);
+int gfs_submit_slab(const struct device *dev, void *slab, k_timeout_t timeout) {
+    struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
+
+    int ret = k_msgq_put(data->msgq, &slab, timeout);
     return ret;
 }
 
-int safe_erase(uint32_t page_index) {
-    if (is_boostdata_locked()) {
-        LOG_WRN_ONCE("Not erasing sector bc locked");
-        return -ENOTSUP;
-    }
-    return flash_erase(flash_dev, gen_addr(page_index), SECTOR_SIZE);
-}
-
-int safe_erase_if_sector(uint32_t page_index) {
-    if (gen_addr(page_index) % SECTOR_SIZE == 0) {
-        return safe_erase(page_index);
+int erase_on_sector(const struct gorbfs_partition_config *cfg, uint32_t page_index) {
+    if (gen_addr(cfg, page_index) % SECTOR_SIZE == 0) {
+        return flash_erase(cfg->flash_dev, gen_addr(cfg, page_index), SECTOR_SIZE);
     }
     return 0;
 }
 
-int storage_thread_entry(void *v_fc, void *, void *) {
+int storage_thread_entry(void *v_fc, void *v_dev, void *) {
+    const   struct device *dev = (const struct device *)v_dev;
+    const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) dev->config;
+    struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
+
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
     (void) fc;
     if (is_boostdata_locked()) {
         LOG_WRN("Refusing to start storage thread bc data is locked");
         return -ENOTSUP;
     }
-    LOG_INF("Ready for storaging: Page Size: %d, Partition Size: %d, Num Pages: %d", PAGE_SIZE, PARTITION_SIZE,
-            num_pages);
+    LOG_INF("Ready for storaging: Page Size: %d, Partition Size: %d, Num Pages: %d", PAGE_SIZE, cfg->partition_size,
+            cfg->num_pages);
 
     while (true) {
         int ret = 0;
+        size_t addr = gen_addr(cfg, data->page_index);
         {
             CycleCounter _(cyc_erasing);
-            ret = safe_erase_if_sector(page_index);
+            ret = erase_on_sector(cfg, data->page_index);
         }
-        size_t addr = gen_addr(page_index);
 
         SuperFastPacket *chunk_ptr = NULL;
         {
             CycleCounter _(cyc_waiting);
-            ret = k_msgq_get(&superfastmsgq, &chunk_ptr, K_FOREVER);
+            ret = k_msgq_get(data->msgq, &chunk_ptr, K_FOREVER);
         }
         if (ret != 0) {
             LOG_WRN("Wait on super fast msgq completed with error %d", ret);
@@ -119,33 +143,42 @@ int storage_thread_entry(void *v_fc, void *, void *) {
             continue;
         }
 
-        if (addr >= PARTITION_ADDR + PARTITION_SIZE) {
-            LOG_WRN("Tried to write out of bounds: End: %d, addr: %d, ind: %d", (PARTITION_ADDR + PARTITION_SIZE), addr,
-                    page_index);
+        if (addr >= cfg->partition_addr + cfg->partition_size) {
+            LOG_WRN("Tried to write out of bounds: End: %d, addr: %d, ind: %d",
+                    (cfg->partition_addr + cfg->partition_size), addr, data->page_index);
             return -1;
         }
         {
             CycleCounter _(cyc_writing);
-            ret = flash_write(flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
+            ret = flash_write(cfg->flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
         }
         if (ret != 0) {
             LOG_WRN("Failed to flash write at %d: %d", addr, ret);
         }
-        page_index++;
-        if (page_index >= num_pages) {
-            page_index %= num_pages;
+        data->page_index++;
+        if (data->page_index >= cfg->num_pages) {
+            data->page_index %= cfg->num_pages;
         }
         {
             CycleCounter _(cyc_slabbing);
-            k_mem_slab_free(&superfastslab, (void *) chunk_ptr);
+            k_mem_slab_free(data->slab, (void *) chunk_ptr);
         }
     }
     return 0;
 }
 
-int gfs_total_blocks() { return PARTITION_SIZE / PAGE_SIZE; }
+int gfs_total_blocks(device *dev) {
+    const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) dev->config;
+    // struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
 
-int gfs_read_block(int idx, struct SuperFastPacket *pac) {
-    uint32_t addr = PARTITION_ADDR + idx * PAGE_SIZE;
-    return flash_read(flash_dev, addr, (uint8_t *) pac, 256);
+    return cfg->partition_size / PAGE_SIZE;
 }
+
+int gfs_read_block(device *dev, int idx, struct SuperFastPacket *pac) {
+    const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) dev->config;
+    // struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
+
+    uint32_t addr = cfg->partition_addr + idx * PAGE_SIZE;
+    return flash_read(cfg->flash_dev, addr, (uint8_t *) pac, PAGE_SIZE);
+}
+
