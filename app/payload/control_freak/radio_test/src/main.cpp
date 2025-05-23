@@ -520,9 +520,9 @@ int main() {
     int64_t last_pump_on_time = 0;
     int64_t last_pump_off_time = 0;
 
-    const int64_t pump_cooldown_ms = 60000;
+    const int64_t pump_cooldown_ms = 20000;
     const int64_t pump_maxon_ms = 10000; 
-    const float off_threshhold = 0.46;
+    const float off_threshhold = 0.51;
     FIRFilter filt{0};
     auto should_pump_be_on = [&](int64_t now, bool on, float volts, float current){
         int32_t time_since_off = now - last_pump_off_time;
@@ -541,7 +541,7 @@ int main() {
         }
         // Starting the pumps back up
         if (!on && (time_since_on > pump_cooldown_ms)){
-            filt.Fill(0);
+            // filt.Fill(0);
             printk("Starting now\n");
             return true;
         }
