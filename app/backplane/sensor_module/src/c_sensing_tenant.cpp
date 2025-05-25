@@ -9,6 +9,7 @@
 #include <f_core/device/sensor/c_temperature_sensor.h>
 #include <zephyr/logging/log.h>
 #include "f_core/os/c_mutex.h"
+#include "f_core/os/c_lock_guard.h"
 
 LOG_MODULE_REGISTER(CSensingTenant);
 

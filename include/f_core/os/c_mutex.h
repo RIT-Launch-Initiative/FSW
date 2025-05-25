@@ -26,9 +26,6 @@ public:
 
 private:
     k_mutex mutexHandle;
-
-
-
 };
 
 #endif //C_MUTEX_H
