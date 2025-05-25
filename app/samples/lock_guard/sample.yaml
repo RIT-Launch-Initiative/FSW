@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: lock-guard
+common:
+  build_only: true
+  platform_allow:
+    - native_sim
+tests:
+  samples.tenants_and_taks.default: {}
