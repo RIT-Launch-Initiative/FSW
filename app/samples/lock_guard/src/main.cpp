@@ -8,13 +8,11 @@
 #include <f_core/os/c_task.h>
 #include <f_core/os/c_tenant.h>
 
-
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
 
 static constexpr int maxCount = 10000;
-static int finishedTasks = 0;
 
 class CIncrementor : public CTenant {
 public:
@@ -22,13 +20,7 @@ public:
     }
 
     void Run() override {
-        if (counter < maxCount) {
-            counter++;
-            LOG_INF("Increasing to %d", counter);
-        } else if (!finished) {
-            finishedTasks++;
-            finished = true;
-        }
+        counter++;
     }
 
 private:
@@ -50,6 +42,7 @@ int main() {
     taskOne.AddTenant(incrementerOne);
     taskTwo.AddTenant(incrementerTwo);
     taskThree.AddTenant(incrementerThree);
+
     NRtos::AddTask(taskOne);
     NRtos::AddTask(taskTwo);
     NRtos::AddTask(taskThree);
