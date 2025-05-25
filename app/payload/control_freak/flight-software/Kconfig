@@ -9,6 +9,7 @@ config STORAGE_THREAD_PRIORITY
     default 10
 
 
+
 module = APP_FREAK
 module-str = APP_FREAK
 source "subsys/logging/Kconfig.template.log_config"

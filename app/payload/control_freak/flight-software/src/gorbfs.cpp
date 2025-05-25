@@ -51,7 +51,7 @@ static int gorbfs_init(const struct device *dev) {
     return 0;
 }
 
-#define GORBFS_PARTITION_DEFINE(partition_name, msg_type, buf_size)                                                           \
+#define GORBFS_PARTITION_DEFINE(partition_name, msg_type, buf_size)                                                    \
     BUILD_ASSERT(DT_FIXED_PARTITION_EXISTS(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)),                          \
                  "Missing Partition for gorbfs");                                                                      \
     BUILD_ASSERT(sizeof(msg_type) == PAGE_SIZE, "Message size must be = page size (256)");                             \
@@ -69,7 +69,7 @@ static int gorbfs_init(const struct device *dev) {
         .partition_addr = DT_REG_ADDR(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)),                               \
         .partition_size = DT_REG_SIZE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)),                               \
         .num_pages = DT_REG_SIZE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)) / PAGE_SIZE,                        \
-        .wrap = DT_PROP_OR(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name), wrap, false),                                    \
+        .wrap = DT_PROP_OR(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name), wrap, false),                             \
     };                                                                                                                 \
     struct gorbfs_partition_data gorbfs_partition_data_##partition_name{                                               \
         .page_index = 0,                                                                                               \
@@ -80,7 +80,9 @@ static int gorbfs_init(const struct device *dev) {
                      &gorbfs_partition_data_##partition_name, &gorbfs_partition_config_##partition_name, POST_KERNEL,  \
                      GORBFS_INIT_PRIORITY, NULL);
 
+
 GORBFS_PARTITION_DEFINE(superfast_storage, struct SuperFastPacket, 8);
+// GORBFS_PARTITION_DEFINE(superslow_storage, struct SuperFastPacket, 8);
 
 
 
@@ -95,7 +97,6 @@ int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeou
 }
 int gfs_submit_slab(const struct device *dev, void *slab, k_timeout_t timeout) {
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
-
     int ret = k_msgq_put(data->msgq, &slab, timeout);
     return ret;
 }
@@ -108,7 +109,7 @@ int erase_on_sector(const struct gorbfs_partition_config *cfg, uint32_t page_ind
 }
 
 int storage_thread_entry(void *v_fc, void *v_dev, void *) {
-    const   struct device *dev = (const struct device *)v_dev;
+    const struct device *dev = *(const struct device **) v_dev;
     const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) dev->config;
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
 
@@ -181,4 +182,3 @@ int gfs_read_block(device *dev, int idx, struct SuperFastPacket *pac) {
     uint32_t addr = cfg->partition_addr + idx * PAGE_SIZE;
     return flash_read(cfg->flash_dev, addr, (uint8_t *) pac, PAGE_SIZE);
 }
-
