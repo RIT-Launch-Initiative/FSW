@@ -13,8 +13,8 @@ static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQu
 K_MSGQ_DEFINE(downlinkQueue, sizeof(NTypes::LoRaBroadcastSensorData), 10, 4);
 static auto downlinkMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastSensorData>(downlinkQueue);
 
-K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::SensorData), 10, 4);
-static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::SensorData>(dataLogQueue);
+K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::TimestampedSensorData), 10, 4);
+static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::TimestampedSensorData>(dataLogQueue);
 
 K_MSGQ_DEFINE(alertQueue, sizeof(NAlerts::AlertPacket), 10, 4);
 static auto alertMsgQueue = CMsgqMessagePort<NAlerts::AlertPacket>(alertQueue);

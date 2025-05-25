@@ -59,7 +59,7 @@ class CSensorModule : public CProjectConfiguration {
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkMessagePort;
-    CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
+    CMessagePort<NTypes::TimestampedSensorData>& sensorDataLogMessagePort;
     CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 
     CFlightLog flight_log;
@@ -73,6 +73,7 @@ class CSensorModule : public CProjectConfiguration {
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
     CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
     CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 0};
+    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 0};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 3072, 5};
