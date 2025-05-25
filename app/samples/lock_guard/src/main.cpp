@@ -24,12 +24,10 @@ public:
     void Run() override {
         if (counter < maxCount) {
             counter++;
-
-            if (!finished) {
-                finishedTasks++;
-                finished = false;
-            }
-
+            LOG_INF("Increasing to %d", counter);
+        } else if (!finished) {
+            finishedTasks++;
+            finished = true;
         }
     }
 
@@ -44,10 +42,14 @@ int main() {
     static CIncrementor incrementerOne("One", counter);
     static CIncrementor incrementerTwo("Two", counter);
     static CIncrementor incrementerThree("Three", counter);
+
     static CTask taskOne("One", 15, 512, 0);
     static CTask taskTwo("Two", 15, 512, 0);
     static CTask taskThree("Three", 15, 512, 0);
 
+    taskOne.AddTenant(incrementerOne);
+    taskTwo.AddTenant(incrementerTwo);
+    taskThree.AddTenant(incrementerThree);
     NRtos::AddTask(taskOne);
     NRtos::AddTask(taskTwo);
     NRtos::AddTask(taskThree);
