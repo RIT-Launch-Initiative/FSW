@@ -28,7 +28,7 @@ static const char* event_to_str(enum or_event_t e);
 
 static void or_event_thread_handler(void);
 
-K_THREAD_DEFINE(or_event_thread, 1024, or_event_thread_handler, NULL, NULL, NULL, 0, 0,
+K_THREAD_DEFINE(or_event_thread, 2048, or_event_thread_handler, NULL, NULL, NULL, 0, 0,
                 CONFIG_OPENROCKET_MS_BEFORE_LAUNCH);
 #endif
 
