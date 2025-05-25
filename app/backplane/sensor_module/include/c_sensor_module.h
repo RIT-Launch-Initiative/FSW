@@ -60,7 +60,7 @@ class CSensorModule : public CProjectConfiguration {
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkMessagePort;
     CMessagePort<NTypes::TimestampedSensorData>& sensorDataLogMessagePort;
-    CMessagePort<std::array<uint8_t, 7>>& alertMessagePort;
+    CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 
     CFlightLog flight_log;
     SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, &flight_log};
@@ -71,8 +71,9 @@ class CSensorModule : public CProjectConfiguration {
                              detectionHandler};
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(), telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
-    CUdpBroadcastTenant<std::array<uint8_t, 7>> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
-    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort};
+    CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
+    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 0};
+    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 0};
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 3072, 5};

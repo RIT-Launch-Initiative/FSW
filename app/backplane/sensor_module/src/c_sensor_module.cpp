@@ -16,8 +16,8 @@ static auto downlinkMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastSensorData>
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::TimestampedSensorData), 10, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::TimestampedSensorData>(dataLogQueue);
 
-K_MSGQ_DEFINE(alertQueue, sizeof(const char *), 10, 4);
-static auto alertMsgQueue = CMsgqMessagePort<std::array<uint8_t, 7>>(alertQueue);
+K_MSGQ_DEFINE(alertQueue, sizeof(NAlerts::AlertPacket), 10, 4);
+static auto alertMsgQueue = CMsgqMessagePort<NAlerts::AlertPacket>(alertQueue);
 
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), downlinkMessagePort(downlinkMsgQueue),
