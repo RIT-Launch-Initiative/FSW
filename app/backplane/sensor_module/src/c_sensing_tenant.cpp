@@ -12,7 +12,7 @@
 LOG_MODULE_REGISTER(CSensingTenant);
 
 CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
-                               CMessagePort<NTypes::SensorData>& dataToLog, CDetectionHandler& handler)
+                               CMessagePort<NTypes::TimestampedSensorData>& dataToLog, CDetectionHandler& handler)
     : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
@@ -47,7 +47,11 @@ void CSensingTenant::Run() {
     if (!detectionHandler.ContinueCollecting()) {
         return;
     }
-    NTypes::SensorData data{};
+    NTypes::TimestampedSensorData timestampedData{
+        .timestamp = 0,
+        .data = {0}
+    };
+    NTypes::SensorData &data = timestampedData.data;
 
     uint64_t uptime = k_uptime_get();
 
@@ -61,6 +65,15 @@ void CSensingTenant::Run() {
 #ifndef CONFIG_ARCH_POSIX
     magnetometer.UpdateSensorValue();
 #endif
+
+    // Note that compilers don't accept references to packed struct fields
+    uint32_t tmpTimestamp = 0;
+    if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
+        LOG_ERR("Failed to get time from RTC");
+    } else {
+        timestampedData.timestamp = tmpTimestamp;
+    }
+
     data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
     data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
@@ -92,7 +105,7 @@ void CSensingTenant::Run() {
 
     detectionHandler.HandleData(uptime, data, sensor_states);
     if (detectionHandler.FlightOccurring()) {
-        dataToLog.Send(data, K_NO_WAIT);
+        dataToLog.Send(timestampedData, K_NO_WAIT);
     }
 }
 
