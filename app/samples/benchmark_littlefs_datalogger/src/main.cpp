@@ -258,7 +258,6 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
         LOG_ERR("Failed to get file stats: %d", ret);
     }
     LOG_INF("Benchmark %s completed!\n\n", testName);
-    k_msleep(30000); // Sleep so I can copy paste the output into a text file
 }
 
 static void runDataloggerBenchmarks() {
