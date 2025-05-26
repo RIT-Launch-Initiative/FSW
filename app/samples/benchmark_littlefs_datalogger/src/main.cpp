@@ -42,9 +42,6 @@ struct LargePacket {
     float sensorData[32];
 };
 
-// Benchmark configuration
-constexpr size_t numIterations = 1000;
-
 // Utility functions
 void printSize(const char *label, size_t size) {
     if (size < 1024) {
@@ -168,7 +165,7 @@ void benchmarkRawFilesystem(const char *testName, const char *filePath, LogMode 
 }
 
 template <typename T>
-void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0, int syncFrequency = 0) {
+void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0, size_t numIterations = 1000, size_t syncFrequency = 0) {
     LOG_INF("=== %s ===", testName);
 
     CDataLogger<T> logger(filePath, mode, maxPackets);
@@ -245,13 +242,15 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     uint64_t totalSyncTimeNs = timing_cycles_to_ns(totalSyncCycles);
 
     LOG_INF("Wrote %zu / %zu packets successfully", totalWrites, numIterations);
-    LOG_INF("Synced %zu / %zu times", totalSyncs, numIterations / syncFrequency);
+    if (syncFrequency > 0) {
+        LOG_INF("Synchronized %zu / %zu times successfully", totalSyncs, numIterations / syncFrequency);
+    }
 
     LOG_INF("Total write time: %llu ns (%llu cycles)", totalWriteTimeNs, totalWriteCycles);
     LOG_INF("Total sync time: %llu ns (%llu cycles)", totalSyncTimeNs, totalSyncCycles);
 
-    LOG_INF("Average write time: %.2f ns", totalWrites > 0 ? (double)totalWriteTimeNs / totalWrites : 0.0);
-    LOG_INF("Average sync time: %.2f ns", totalSyncs > 0 ? (double)totalSyncTimeNs / totalSyncs : 0.0);
+    // LOG_INF("Average write time: %.2f ns", totalWrites > 0 ? (double)totalWriteTimeNs / totalWrites : 0.0);
+    // LOG_INF("Average sync time: %.2f ns", totalSyncs > 0 ? (double)totalSyncTimeNs / totalSyncs : 0.0);
 
     fs_dirent st;
     int ret = fs_stat(filePath, &st);
@@ -264,7 +263,7 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
 }
 
 static void runDataloggerBenchmarks() {
-    benchmarkDataloggerMode<SmallPacket>("Small Packet (Growing Mode)", "/lfs/small_growing.bin", LogMode::Growing);
+    benchmarkDataloggerMode<SmallPacket>("Small Packet (Growing Mode)", "/lfs/small_growing.bin", LogMode::Growing, 1000, 100);
 
     // benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
     //
