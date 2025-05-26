@@ -168,46 +168,91 @@ void benchmarkRawFilesystem(const char *testName, const char *filePath, LogMode 
 }
 
 template <typename T>
-void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0) {
+void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0, int syncFrequency = 0) {
     LOG_INF("=== %s ===", testName);
 
     CDataLogger<T> logger(filePath, mode, maxPackets);
 
-    uint64_t totalCycles = 0;
-    uint64_t totalTimeNs = 0;
+    uint64_t totalWriteCycles = 0;
+    uint64_t totalSyncCycles = 0;
 
-    for (size_t i = 0; i < numIterations; ++i) {
-        T packet = {0};
-        packet.timestamp = k_uptime_get_32();
-        memset(&packet, 0x69, sizeof(T));
+    uint64_t totalWrites = 0;
+    uint64_t totalSyncs = 0;
 
-        timing_start();
+    uint64_t totalWriteFailures = 0;
+    uint64_t totalSyncFailures = 0;
 
-        timing_t start = timing_counter_get();
-        int ret = logger.Write(packet);
-        timing_t end = timing_counter_get();
 
-        timing_stop();
+    for (size_t i = 0; i < numIterations; i++) {
+        T packet;
 
-        if (ret < 0) {
-            LOG_ERR("\tFailed to write packet %zu: %d", i, ret);
-            continue;
+
+        // Fill packet
+        {
+            packet.timestamp = k_uptime_get_32();
+            for (size_t j = 0; j < sizeof(packet) / sizeof(float); ++j) {
+                reinterpret_cast<float *>(&packet)[j] = static_cast<float>(j + i);
+            }
         }
 
-        uint64_t elapsedCycles = timing_cycles_get(&start, &end);
-        uint64_t elapsedNs = timing_cycles_to_ns(elapsedCycles);
+        timing_t start = 0;
+        timing_t end = 0;
 
-        totalCycles += elapsedCycles;
-        totalTimeNs += elapsedNs;
+        // Time a write
+        {
+            timing_start();
+            start = timing_counter_get();
+            int ret = logger.Write(packet);
+            end = timing_counter_get();
+            timing_stop();
 
-        if (i % (numIterations / 10) == 0) {
-            LOG_INF("\tWrote packet %zu in %llu ns", i, elapsedNs);
+            if (ret < 0) {
+                LOG_ERR("Failed to write packet %zu: %d", i, ret);
+                totalWriteFailures++;
+                continue;
+            }
+
+            totalWriteCycles += timing_cycles_get(&start, &end);
+            totalWrites++;
+        }
+
+        // Time a sync if necessary
+        if (syncFrequency > 0 && (i + 1) % syncFrequency == 0) {
+            timing_start();
+            start = timing_counter_get();
+            int ret = logger.Sync();
+            end = timing_counter_get();
+            timing_stop();
+
+            if (ret < 0) {
+                LOG_ERR("Failed to sync after %zu packets: %d", i + 1, ret);
+                totalSyncFailures++;
+                continue;
+            } else {
+                totalSyncCycles += timing_cycles_get(&start, &end);
+                totalSyncs++;
+            }
+        }
+
+
+        if (syncFrequency > 0 && (i + 1) % syncFrequency == 0) {
+            logger.Sync();
+            LOG_INF("Synchronized after %zu packets", i + 1);
         }
     }
 
-    logger.Sync();
+    uint64_t totalWriteTimeNs = timing_cycles_to_ns(totalWriteCycles);
+    uint64_t totalSyncTimeNs = timing_cycles_to_ns(totalSyncCycles);
 
-    LOG_INF("Wrote %zu packets in %u ms (%u cycles)", numIterations, totalTimeNs / 1000000, totalCycles);
+    LOG_INF("Wrote %zu / %zu packets successfully", totalWrites, numIterations);
+    LOG_INF("Synced %zu / %zu times", totalSyncs, numIterations / syncFrequency);
+
+    LOG_INF("Total write time: %llu ns (%llu cycles)", totalWriteTimeNs, totalWriteCycles);
+    LOG_INF("Total sync time: %llu ns (%llu cycles)", totalSyncTimeNs, totalSyncCycles);
+
+    LOG_INF("Average write time: %.2f ns", totalWrites > 0 ? (double)totalWriteTimeNs / totalWrites : 0.0);
+    LOG_INF("Average sync time: %.2f ns", totalSyncs > 0 ? (double)totalSyncTimeNs / totalSyncs : 0.0);
+
     fs_dirent st;
     int ret = fs_stat(filePath, &st);
     if (ret == 0) {
