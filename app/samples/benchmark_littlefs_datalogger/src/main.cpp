@@ -165,8 +165,8 @@ void benchmarkRawFilesystem(const char *testName, const char *filePath, LogMode 
 }
 
 template <typename T>
-void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0, size_t numIterations = 1000, size_t syncFrequency = 0) {
-    LOG_INF("=== %s ===", testName);
+void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 1000, size_t syncFrequency = 10) {
+    LOG_INF("\n\n=== %s ===", testName);
 
     CDataLogger<T> logger(filePath, mode, maxPackets);
 
@@ -180,7 +180,7 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     uint64_t totalSyncFailures = 0;
 
 
-    for (size_t i = 0; i < numIterations; i++) {
+    for (size_t i = 0; i < maxPackets; i++) {
         T packet;
 
 
@@ -241,9 +241,9 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     uint64_t totalWriteTimeNs = timing_cycles_to_ns(totalWriteCycles);
     uint64_t totalSyncTimeNs = timing_cycles_to_ns(totalSyncCycles);
 
-    LOG_INF("Wrote %zu / %zu packets successfully", totalWrites, numIterations);
+    LOG_INF("Wrote %zu packets successfully", totalWrites);
     if (syncFrequency > 0) {
-        LOG_INF("Synchronized %zu / %zu times successfully", totalSyncs, numIterations / syncFrequency);
+        LOG_INF("Synchronized %zu times successfully", totalSyncs);
     }
 
     LOG_INF("Total write time: %llu ns (%llu cycles)", totalWriteTimeNs, totalWriteCycles);
@@ -277,14 +277,11 @@ static void runDataloggerBenchmarks() {
 }
 
 int main() {
-    LOG_INF("LittleFS and CDataLogger Benchmark Starting...");
-    LOG_INF("Iterations: %u", numIterations);
-
-    k_msleep(100);
     printFilesystemStats("/lfs");
 
     runDataloggerBenchmarks();
 
+    LOG_INF("\n\n=== Final Filesystem Stats ===");
     printFilesystemStats("/lfs");
     LOG_INF("Benchmark completed!");
 
