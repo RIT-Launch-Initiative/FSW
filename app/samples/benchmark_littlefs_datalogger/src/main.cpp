@@ -72,33 +72,6 @@ void printFilesystemStats(const char *mountPoint) {
     }
 }
 
-// Datalogger benchmark
-template <typename T>
-void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0) {
-    LOG_INF("=== %s ===", testName);
-
-
-    fs_dirent st;
-    int ret = fs_stat(filePath, &st);
-    if (ret == 0) {
-        printSize("Final File Size", st.size);
-    }
-}
-
-static void runDataloggerBenchmarks() {
-    benchmarkDataloggerMode<SmallPacket>("Small Packet (Growing Mode)", "/lfs/small_growing.bin", LogMode::Growing);
-
-    benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
-
-    benchmarkDataloggerMode<LargePacket>("Large Packet (Growing Mode)", "/lfs/large_growing.bin", LogMode::Growing);
-
-    benchmarkDataloggerMode<MediumPacket>("Medium Packet (Circular Mode)", "/lfs/medium_circular.bin",
-                                          LogMode::Circular, 500);
-
-    benchmarkDataloggerMode<MediumPacket>("Medium Packet (FixedSize Mode)", "/lfs/medium_fixed.bin", LogMode::FixedSize,
-                                          500);
-}
-
 static uint64_t fileCreationLoop(const char *files[], size_t numFiles) {
     size_t filesCreated = 0;
 
@@ -108,7 +81,6 @@ static uint64_t fileCreationLoop(const char *files[], size_t numFiles) {
     uint64_t totalTimeNs = 0;
 
     LOG_INF("\tFile Creation:");
-
 
     for (size_t i = 0; i < numFiles; ++i) {
         fs_file_t file;
@@ -139,6 +111,37 @@ static uint64_t fileCreationLoop(const char *files[], size_t numFiles) {
     return totalTimeNs / 1000000;
 }
 
+template <typename T>
+void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0) {
+    LOG_INF("=== %s ===", testName);
+
+    const char *files[] = {
+        "/lfs/1", "/lfs/2", "/lfs/3", "/lfs/4", "/lfs/5",
+    };
+
+    uint64_t totalCreationTime = fileCreationLoop(files, sizeof(files) / sizeof(files[0]));
+    LOG_INF("Total file creation time: %llu ms", totalCreationTime);
+
+    fs_dirent st;
+    int ret = fs_stat(filePath, &st);
+    if (ret == 0) {
+        printSize("Final File Size", st.size);
+    }
+}
+
+static void runDataloggerBenchmarks() {
+    benchmarkDataloggerMode<SmallPacket>("Small Packet (Growing Mode)", "/lfs/small_growing.bin", LogMode::Growing);
+
+    benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
+
+    benchmarkDataloggerMode<LargePacket>("Large Packet (Growing Mode)", "/lfs/large_growing.bin", LogMode::Growing);
+
+    benchmarkDataloggerMode<MediumPacket>("Medium Packet (Circular Mode)", "/lfs/medium_circular.bin",
+                                          LogMode::Circular, 500);
+
+    benchmarkDataloggerMode<MediumPacket>("Medium Packet (FixedSize Mode)", "/lfs/medium_fixed.bin", LogMode::FixedSize,
+                                          500);
+}
 
 int main() {
     LOG_INF("LittleFS and CDataLogger Benchmark Starting...");
