@@ -42,9 +42,9 @@
             partition = <&external_storage_partition>;
             automount;
 
-            read-size = <128>;
-            prog-size = <128>;
-            cache-size = <256>;
+            read-size = <256>;
+            prog-size = <256>;
+            cache-size = <512>;
             lookahead-size = <128>;
             block-cycles = <(90 * 1000)>;
         };
