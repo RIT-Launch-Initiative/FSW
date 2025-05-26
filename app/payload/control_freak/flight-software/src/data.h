@@ -46,16 +46,6 @@ struct SuperFastPacket {
 
 typedef uint64_t packed_data;
 
-// sizeof(gps_inf) = 8 + 2 + 2 = 12
-// battery voltage = 1 byte
-// current draw = 1 byte
-// 8 byte uptime us
-// 22 bytes
-
-// 10 bytes left
-
-typedef uint8_t gps_loc[3];
-
 struct SlowInf {
     int64_t timestamp;
     packed_data gps_info;
@@ -67,24 +57,11 @@ struct SlowInf {
 
     int16_t battery_voltage;
     uint16_t instantaneous_current;
-    // 2 left
-    // CRC16?, Time Skew Estimate (eh can be calced w/ 2 packets)
-    // Flipping status? (stuck, on 4th try)
 
     uint8_t temp_c;
-    uint8_t padding; // flip status (over currented, all good)
+    uint8_t flip_status; // flip status (over currented, all good)
 };
 
 typedef struct SlowInf SuperSlowPacket[8];
-// 8/page
-// once a second
-// 8s/page
-// 1 kb = 4 pages
-// 32s per kb
-
-void lock_boostdata();
-void unlock_boostdata();
-
-bool is_boostdata_locked();
 
 #endif

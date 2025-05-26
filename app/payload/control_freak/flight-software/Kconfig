@@ -1,11 +1,11 @@
 source "Kconfig.zephyr"
 
 config STORAGE_THREAD_STACK_SIZE
-    int "Stack size for storage size"
+    int "Stack size for storage thread"
     default 1024
 
 config STORAGE_THREAD_PRIORITY
-    int "Stack size for storage size"
+    int "Thread priority for storage thread"
     default 10
 
 
