@@ -45,13 +45,13 @@ constexpr size_t NUM_ITERATIONS = 1000;
 constexpr size_t TIMING_WARMUP = 10;
 
 // Utility functions
-void printSize(size_t size) {
+void printSize(const char *str, size_t size) {
     if (size < 1024) {
-        LOG_PRINTK("%zu B", size);
+        LOG_INF("%s: %zu B", str, size);
     } else if (size < 1024 * 1024) {
-        LOG_PRINTK("%.2f KiB", ((double) size) / 1024);
+        LOG_INF("%s: %.2f KiB", str, ((double) size) / 1024);
     } else {
-        LOG_PRINTK("%.2f MiB", ((double) size) / (1024 * 1024));
+        LOG_INF("%s: %.2f MiB", str, ((double) size) / (1024 * 1024));
     }
 }
 
@@ -63,12 +63,8 @@ void printFilesystemStats(const char* mount_point) {
         LOG_INF("  Block size: %lu bytes", fs_stat.f_bsize);
         LOG_INF("  Total blocks: %lu", fs_stat.f_blocks);
         LOG_INF("  Free blocks: %lu", fs_stat.f_bfree);
-        LOG_INF("  Total space: ");
-        printSize(fs_stat.f_blocks * fs_stat.f_bsize);
-        LOG_PRINTK("\n");
-        LOG_INF("  Free space: ");
-        printSize(fs_stat.f_bfree * fs_stat.f_bsize);
-        LOG_PRINTK("\n");
+        printSize("Total Space", fs_stat.f_blocks * fs_stat.f_bsize);
+        printSize("Free Space", fs_stat.f_bfree * fs_stat.f_bsize);
     } else {
         LOG_ERR("Failed to get filesystem stats: %d", ret);
     }
@@ -145,9 +141,7 @@ void benchmarkDataloggerMode(const char* test_name, const char* filename,
     LOG_INF("Total write time: %u ms", totalMs);
     LOG_INF("Average write time: %.3f ms", avg_writeMs);
     LOG_INF("Sync time: %u ms", syncMs);
-    LOG_INF("Total data written: ");
-    printSize(total_bytes);
-    LOG_PRINTK("\n");
+    printSize("Total Data Written", total_bytes);
     LOG_INF("Write throughput: %.2f MiB/s", throughputMbps);
     LOG_INF("Write rate: %.0f packets/sec", (double)NUM_ITERATIONS * 1000.0 / totalMs);
 
@@ -166,22 +160,18 @@ void benchmarkDataloggerMode(const char* test_name, const char* filename,
 #endif
     
     // Check file stats
-    struct fs_dirent stat_dst;
+    fs_dirent stat_dst;
     int ret = fs_stat(filename, &stat_dst);
     if (ret == 0) {
-        LOG_INF("Final file size: ");
-        printSize(stat_dst.size);
-        LOG_PRINTK("\n");
+        printSize("Final File Size", stat_dst.size);
     }
-    
-    LOG_INF("");
 }
 
 void benchmarkRawFilesystem() {
     LOG_INF("=== Raw Filesystem Benchmark ===");
     
     const char* test_file = "/lfs/raw_test.bin";
-    struct fs_file_t file;
+    fs_file_t file;
     uint8_t buffer[1024];
     memset(buffer, 0xAA, sizeof(buffer));
     
