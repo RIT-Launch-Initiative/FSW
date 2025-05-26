@@ -69,101 +69,6 @@ void printFilesystemStats(const char *mountPoint) {
     }
 }
 
-static uint64_t fileCreationLoop(const char *files[], size_t numFiles) {
-    size_t filesCreated = 0;
-
-    timing_t start = 0;
-    timing_t end = 0;
-    uint64_t totalCycles = 0;
-    uint64_t totalTimeNs = 0;
-
-    LOG_INF("\tFile Creation:");
-
-    for (size_t i = 0; i < numFiles; ++i) {
-        fs_file_t file;
-
-        timing_start();
-        start = timing_counter_get();
-        int ret = fs_open(&file, files[i], FS_O_CREATE | FS_O_RDWR);
-        end = timing_counter_get();
-        timing_stop();
-
-        if (ret < 0) {
-            LOG_ERR("\t\tFailed to create file %s: %d", files[i], ret);
-            continue;
-        }
-
-        uint64_t elapsedCycles = timing_cycles_get(&start, &end);
-        uint64_t elapsedNs = timing_cycles_to_ns(elapsedCycles);
-        totalCycles += elapsedCycles;
-        totalTimeNs += elapsedNs;
-        filesCreated++;
-        LOG_INF("\t\tCreated file %s in %llu ns", files[i], elapsedNs);
-
-        fs_close(&file);
-    }
-
-    LOG_INF("Created %zu files in %llu ms (%llu cycles)", filesCreated, totalTimeNs / 1000000, totalCycles);
-
-    return totalTimeNs / 1000000;
-}
-
-static uint64_t fileDeletionLoop(const char *files[], size_t numFiles) {
-    size_t filesDeleted = 0;
-
-    timing_t start = 0;
-    timing_t end = 0;
-    uint64_t totalCycles = 0;
-    uint64_t totalTimeNs = 0;
-
-    LOG_INF("\tFile Deletion:");
-
-    for (size_t i = 0; i < numFiles; ++i) {
-        timing_start();
-        start = timing_counter_get();
-        int ret = fs_unlink(files[i]);
-        end = timing_counter_get();
-        timing_stop();
-
-        if (ret < 0) {
-            LOG_ERR("\t\tFailed to delete file %s: %d", files[i], ret);
-            continue;
-        }
-
-        uint64_t elapsedCycles = timing_cycles_get(&start, &end);
-        uint64_t elapsedNs = timing_cycles_to_ns(elapsedCycles);
-        totalCycles += elapsedCycles;
-        totalTimeNs += elapsedNs;
-        filesDeleted++;
-        LOG_INF("\t\tDeleted file %s in %llu ns", files[i], elapsedNs);
-    }
-
-    LOG_INF("Deleted %zu files in %llu ms (%llu cycles)", filesDeleted, totalTimeNs / 1000000, totalCycles);
-
-    return totalTimeNs / 1000000;
-}
-
-
-void benchmarkRawFilesystem(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0) {
-    LOG_INF("=== %s ===", testName);
-
-    const char *files[] = {
-        "/lfs/1", "/lfs/2", "/lfs/3", "/lfs/4", "/lfs/5",
-    };
-
-    uint64_t totalCreationTime = fileCreationLoop(files, sizeof(files) / sizeof(files[0]));
-    LOG_INF("Total file creation time: %llu ms", totalCreationTime);
-
-    uint64_t totalDeletionTime = fileDeletionLoop(files, sizeof(files) / sizeof(files[0]));
-    LOG_INF("Total file deletion time: %llu ms", totalDeletionTime);
-
-    fs_dirent st;
-    int ret = fs_stat(filePath, &st);
-    if (ret == 0) {
-        printSize("Final File Size", st.size);
-    }
-}
-
 template <typename T>
 void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 1000, size_t syncFrequency = 10) {
     LOG_INF("\n\n=== %s ===", testName);
@@ -269,7 +174,7 @@ static void runDataloggerBenchmarks() {
 
     benchmarkDataloggerMode<MediumPacket>("Medium Packet (Circular Mode)", "/lfs/medium_circular.bin",
                                            LogMode::Circular, 500);
-                                          
+
     //benchmarkDataloggerMode<MediumPacket>("Medium Packet (FixedSize Mode)", "/lfs/medium_fixed.bin", LogMode::FixedSize,
      //                                      500);
 }

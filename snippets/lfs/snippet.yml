@@ -1,3 +1,3 @@
 name: lfs
 append:
-  EXTRA_CONF_FILE: lfs_optimized.conf
+  EXTRA_CONF_FILE: lfs.conf
