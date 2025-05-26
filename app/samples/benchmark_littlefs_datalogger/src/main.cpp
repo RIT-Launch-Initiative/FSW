@@ -209,8 +209,10 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
                 continue;
             }
 
-            totalWriteCycles += timing_cycles_get(&start, &end);
+            uint64_t elapsedCycles = timing_cycles_get(&start, &end);
+            totalWriteCycles += elapsedCycles;
             totalWrites++;
+            LOG_INF("\tWrote packet %zu in %llu ns (%llu cycles)", i, timing_cycles_to_ns(elapsedCycles), elapsedCycles);
         }
 
         // Time a sync if necessary
@@ -226,22 +228,18 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
                 totalSyncFailures++;
                 continue;
             } else {
-                totalSyncCycles += timing_cycles_get(&start, &end);
+                uint64_t elapsedCycles = timing_cycles_get(&start, &end);
+                totalSyncCycles += elapsedCycles;
                 totalSyncs++;
+                LOG_INF("\tSynchronized after %zu packets in %llu ns (%llu cycles)", i + 1, timing_cycles_to_ns(elapsedCycles), elapsedCycles);
             }
-        }
-
-
-        if (syncFrequency > 0 && (i + 1) % syncFrequency == 0) {
-            logger.Sync();
-            LOG_INF("Synchronized after %zu packets", i + 1);
         }
     }
 
     uint64_t totalWriteTimeNs = timing_cycles_to_ns(totalWriteCycles);
     uint64_t totalSyncTimeNs = timing_cycles_to_ns(totalSyncCycles);
 
-    LOG_INF("Wrote %llu packets successfully", totalWrites);
+    LOG_INF("Wrote %llu packets of size %zu successfully", totalWrites, sizeof(T));
     if (syncFrequency > 0) {
         LOG_INF("Synchronized %llu times successfully", totalSyncs);
     }
@@ -259,26 +257,27 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     } else {
         LOG_ERR("Failed to get file stats: %d", ret);
     }
-    LOG_INF("Benchmark %s completed!", testName);
+    LOG_INF("Benchmark %s completed!\n\n", testName);
+    k_msleep(30000); // Sleep so I can copy paste the output into a text file
 }
 
 static void runDataloggerBenchmarks() {
     benchmarkDataloggerMode<SmallPacket>("Small Packet (Growing Mode)", "/lfs/small_growing.bin", LogMode::Growing, 1000, 100);
 
-    // benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
-    //
-    // benchmarkDataloggerMode<LargePacket>("Large Packet (Growing Mode)", "/lfs/large_growing.bin", LogMode::Growing);
-    //
-    // benchmarkDataloggerMode<MediumPacket>("Medium Packet (Circular Mode)", "/lfs/medium_circular.bin",
-    //                                       LogMode::Circular, 500);
-    //
-    // benchmarkDataloggerMode<MediumPacket>("Medium Packet (FixedSize Mode)", "/lfs/medium_fixed.bin", LogMode::FixedSize,
-    //                                       500);
+    benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
+
+    benchmarkDataloggerMode<LargePacket>("Large Packet (Growing Mode)", "/lfs/large_growing.bin", LogMode::Growing);
+
+    benchmarkDataloggerMode<MediumPacket>("Medium Packet (Circular Mode)", "/lfs/medium_circular.bin",
+                                           LogMode::Circular, 500);
+
+    benchmarkDataloggerMode<MediumPacket>("Medium Packet (FixedSize Mode)", "/lfs/medium_fixed.bin", LogMode::FixedSize,
+                                           500);
 }
 
 int main() {
     printFilesystemStats("/lfs");
-    
+
     timing_init();
     runDataloggerBenchmarks();
 
