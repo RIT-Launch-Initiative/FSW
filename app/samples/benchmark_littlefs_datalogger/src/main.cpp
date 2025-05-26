@@ -103,7 +103,7 @@ static uint64_t fileCreationLoop(const char *files[], size_t numFiles) {
         fs_close(&file);
     }
 
-    LOG_INF("Created %zu files in %u ms (%u cycles)", filesCreated, totalTimeNs / 1000000, totalCycles);
+    LOG_INF("Created %zu files in %llu ms (%llu cycles)", filesCreated, totalTimeNs / 1000000, totalCycles);
 
     return totalTimeNs / 1000000;
 }
@@ -138,7 +138,7 @@ static uint64_t fileDeletionLoop(const char *files[], size_t numFiles) {
         LOG_INF("\t\tDeleted file %s in %llu ns", files[i], elapsedNs);
     }
 
-    LOG_INF("Deleted %zu files in %u ms (%u cycles)", filesDeleted, totalTimeNs / 1000000, totalCycles);
+    LOG_INF("Deleted %zu files in %llu ms (%llu cycles)", filesDeleted, totalTimeNs / 1000000, totalCycles);
 
     return totalTimeNs / 1000000;
 }
@@ -241,9 +241,9 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     uint64_t totalWriteTimeNs = timing_cycles_to_ns(totalWriteCycles);
     uint64_t totalSyncTimeNs = timing_cycles_to_ns(totalSyncCycles);
 
-    LOG_INF("Wrote %zu packets successfully", totalWrites);
+    LOG_INF("Wrote %llu packets successfully", totalWrites);
     if (syncFrequency > 0) {
-        LOG_INF("Synchronized %zu times successfully", totalSyncs);
+        LOG_INF("Synchronized %llu times successfully", totalSyncs);
     }
 
     LOG_INF("Total write time: %llu ns (%llu cycles)", totalWriteTimeNs, totalWriteCycles);
