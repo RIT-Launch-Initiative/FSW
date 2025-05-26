@@ -62,33 +62,24 @@ int cmd_unlock(const struct shell *shell, size_t argc, char **argv) {
 
 int cmd_stop(const struct shell *shell, size_t argc, char **argv);
 
-int cmd_readall(const struct shell *shell, size_t argc, char **argv) {
-    // SuperFastPacket pac;
-    // shell_fprintf_normal(shell, "ts, temp, press, ax, ay, az, gx, gy, gz\n");
-    //
-    // for (int i = 0; i < gfs_total_blocks(); i++) {
-    // int ret = gfs_read_block(i, &pac);
-    // if (ret != 0) {
-    // LOG_WRN("Couldnt read page # %d: %d", i, ret);
-    // }
-    // for (int j = 0; j < 10; j++) {
-    // if (j == 0) {
-    // shell_fprintf_normal(shell, "%lld, %f, %f,", pac.timestamp, (double) pac.temp, (double) pac.pressure);
-    // } else {
-    // shell_fprintf_normal(shell, "NaN, NaN, NaN,");
-    // }
-    // shell_fprintf_normal(shell, "%f, %f, %f, %f, %f, %f\n", (double) pac.adat[j].ax, (double) pac.adat[j].ay,
-    //  (double) pac.adat[j].az, (double) pac.gdat[j].gx, (double) pac.gdat[j].gy,
-    //  (double) pac.gdat[j].gz);
-    // }
-    // k_msleep(10);
-    // }
+int cmd_boost(const struct shell *shell, size_t argc, char **argv) {
+    shell_print(shell, "Boost");
+    freak_controller.SubmitEvent(Sources::LSM6DSL, Events::Boost);
+    return 0;
+}
+
+int cmd_readfast(const struct shell *shell, size_t argc, char **argv) {
+    static uint8_t buf[256] = {0};
+    for (int i = 0; i < gfs_total_blocks(superfast_storage); i++) {
+        gfs_read_block(superfast_storage, i, buf);
+        shell_hexdump(shell, buf, 256);
+    }
     return 0;
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
-                               SHELL_CMD(dumpgorb, NULL, "Dump Gorb partition", cmd_readall),
+                               SHELL_CMD(dumpgorb, NULL, "Dump Gorb partition", cmd_readfast),
                                SHELL_CMD(unlocl, NULL, "Unlock flight data partition", cmd_unlock),
-                               SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(boost, NULL, "fake boost detect", cmd_boost), SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(test, &test_subcmds, "Test Commands", NULL);

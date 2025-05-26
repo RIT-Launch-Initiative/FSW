@@ -28,16 +28,18 @@ int flight_sensing(const struct device *imu_dev, const struct device *barom_dev,
     k_timer_start(&imutimer, K_USEC(100), K_USEC(100));
     int packets_sent = 0;
 
-    bool has_boosted = false;
+    bool has_swapped = false;
 
     int64_t total_start = k_cycle_get_64();
 
     int ret = 0;
 
     while (DONT_STOP && !freak_controller->HasEventOccurred(Events::GroundHit)) {
-        if (freak_controller->HasEventOccurred(Events::Coast)) {
-            // storage target = non-looping
+        if (!has_swapped && freak_controller->HasEventOccurred(Events::Coast)) {
+            LOG_INF("Swapping");
+            has_swapped = true;
             // timer set to lower value as necessary
+            gfs_signal_end_of_circle(superfast_storage);
         }
         k_timer_status_sync(&imutimer);
 
