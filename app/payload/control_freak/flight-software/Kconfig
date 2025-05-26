@@ -2,13 +2,11 @@ source "Kconfig.zephyr"
 
 config STORAGE_THREAD_STACK_SIZE
     int "Stack size for storage thread"
-    default 1024
+    default 512
 
 config STORAGE_THREAD_PRIORITY
     int "Thread priority for storage thread"
     default 10
-
-
 
 module = APP_FREAK
 module-str = APP_FREAK

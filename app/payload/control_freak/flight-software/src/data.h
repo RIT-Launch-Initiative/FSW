@@ -2,6 +2,7 @@
 #define FREAK_GORBFS_H
 #include <stdbool.h>
 #include <stdint.h>
+
 struct acc_data {
     float ax; // m/s^2
     float ay; // m/s^2
