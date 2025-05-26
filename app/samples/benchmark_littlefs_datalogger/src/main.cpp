@@ -117,7 +117,7 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
             uint64_t elapsedCycles = timing_cycles_get(&start, &end);
             totalWriteCycles += elapsedCycles;
             totalWrites++;
-            LOG_INF("\tWrote packet %zu in %llu ns (%llu cycles)", i, timing_cycles_to_ns(elapsedCycles), elapsedCycles);
+            //LOG_INF("\tWrote packet %zu in %llu ns (%llu cycles)", i, timing_cycles_to_ns(elapsedCycles), elapsedCycles);
         }
 
         // Time a sync if necessary
@@ -154,6 +154,7 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
 
     LOG_INF("Average write time: %.2f ns", totalWrites > 0 ? (double)totalWriteTimeNs / totalWrites : 0.0);
     LOG_INF("Average sync time: %.2f ns", totalSyncs > 0 ? (double)totalSyncTimeNs / totalSyncs : 0.0);
+    LOG_INF("Throughput: %.2f bytes/s", totalWrites > 0 ? (double)(totalWrites * sizeof(T)) / (totalWriteTimeNs / 1e9) : 0.0);
 
     fs_dirent st;
     int ret = fs_stat(filePath, &st);
