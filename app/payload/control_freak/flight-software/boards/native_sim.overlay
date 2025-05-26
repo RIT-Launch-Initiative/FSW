@@ -88,13 +88,18 @@
 				label = "image-scratch";
 				reg = <0x000de000 0x0001e000>;
 			};
- 			super_fast_partition: partition@fc000 {
+			
+			
+			super_fast_partition: fastpartition@fc000 {
+				// loop(5s * 100 page/s) + (400s * 10 page/s)
+				// 4500 pages = 1125 KB
 				label = "superfast-storage";
-				reg = <0x000fc000 DT_SIZE_K(100)>;
+				reg = <0xfc000 DT_SIZE_K(1128)>;
 			};
-			external_storage_partition: partition@1fc000 {
-				label = "storage";
-				reg = <0x001fc000 DT_SIZE_K(16284)>;
+
+			external_storage_partition: partition@216000 {
+				label = "w25q-storage";
+				reg = <0x216000 DT_SIZE_K(15256)>;
 			};
 		};
 	};

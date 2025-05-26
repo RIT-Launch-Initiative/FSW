@@ -20,6 +20,7 @@
 		led0 = &led1; // a little broken :(
 		buzz = &buzzer;
 		ldo5v = &ldo5v_enable;
+		ldo5v = &ldo5v_enable;
 		gnss = &gnss;
 		gpsreset = &gps_reset;
 		gpssafeboot = &gps_timepulse;
@@ -28,6 +29,9 @@
 		servo2 = &servo2;
 		servo3 = &servo3;
 		radioreset = &radioreset;
+
+		imu = &lsm6dsl;
+		barom = &bmp390;
 
 		imu = &lsm6dsl;
 		barom = &bmp390;
@@ -296,7 +300,11 @@
 };
 
 &dma1 {
+&dma1 {
 	status = "okay";
+};
+&dma2 {
+	status="okay";
 };
 &dma2 {
 	status="okay";
@@ -336,7 +344,7 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
-		spi-max-frequency = <(50 * 1000 * 1000)>;
+		spi-max-frequency = <(DT_FREQ_M(50))>;
 		size = <DT_SIZE_M(128)>;
 		jedec-id = [ef 40 18];
 
@@ -354,9 +362,17 @@
 				label = "superfast-storage";
 				reg = <0 DT_SIZE_K(1128)>;
 			};
+ 			super_fast_partition: fastpartition@0 {
+				// loop(5s * 100 page/s) + (400s * 10 page/s)
+				// 4500 pages = 1125 KB
+				label = "superfast-storage";
+				reg = <0 DT_SIZE_K(1128)>;
+			};
 
 			external_storage_partition: partition@11a000 {
+			external_storage_partition: partition@11a000 {
 				label = "w25q-storage";
+				reg = <0x11a000 DT_SIZE_K(15256)>;
 				reg = <0x11a000 DT_SIZE_K(15256)>;
 			};
 		};
@@ -396,6 +412,8 @@
 	status = "okay";
 };
 
+
+// fake and untrue, call me when we use mcuboot
 
 // fake and untrue, call me when we use mcuboot
 &flash0 {

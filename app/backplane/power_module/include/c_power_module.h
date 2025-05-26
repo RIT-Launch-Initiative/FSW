@@ -55,7 +55,7 @@ private:
 
     // Message Ports
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
-    CMessagePort<NTypes::SensorData>& sensorDataLogMessagePort;
+    CMessagePort<NTypes::TimestampedSensorData>& sensorDataLogMessagePort;
     CMessagePort<NTypes::LoRaBroadcastSensorData>& sensorDataDownlinkMessagePort;
 
     // Tenants
@@ -68,8 +68,9 @@ private:
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkBroadcastTenant{
         "Broadcast Tenant", ipAddrStr, downlinkBroadcastPort, downlinkBroadcastPort, sensorDataDownlinkMessagePort
     };
-    CDataLoggerTenant<NTypes::SensorData> dataLoggerTenant{
-        "Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort
+
+    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{
+        "Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(60), 5
     };
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
 

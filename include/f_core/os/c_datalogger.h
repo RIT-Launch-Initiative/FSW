@@ -14,6 +14,7 @@ class datalogger {
     datalogger(const char *filename, LogMode mode, std::size_t num_packets);
     int write(const void *data, std::size_t size);
     int close();
+    int sync();
 
     const char *filename;
     fs_file_t file;
@@ -53,13 +54,15 @@ class CDataLogger {
      * @param the number of packets to log (only used if mode is Circular or FixedSize)
      */
     CDataLogger(const char *filename, LogMode mode, std::size_t num_packets) : internal(filename, mode, num_packets) {}
-    /**
+
+   /**
      * Write a packet to the file
      * @param packet the data to write to the file
      */
-    int write(const PacketType &packet) {
+    int Write(const PacketType &packet) {
         return internal.write(reinterpret_cast<const void *>(&packet), sizeof(PacketType));
     }
+
     /**
      * Close the file and flush to disk.
      * Make sure to do this or some of your data may not be sent to the disk before power is cut/the chip is turned off
@@ -67,7 +70,14 @@ class CDataLogger {
      * @retval -ENOTSUP when not implemented by underlying file system driver;
      * @retval <0 a negative errno code on error.
      */
-    int close() { return internal.close(); }
+    int Close() { return internal.close(); }
+
+    /**
+     * Sync the file to flash/disk.
+     *
+     * @return <0 a negative errno code on error.
+     */
+    int Sync() { return internal.sync(); }
 
   private:
     detail::datalogger internal;

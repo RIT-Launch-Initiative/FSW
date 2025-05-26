@@ -2,6 +2,7 @@
 #define C_SENSING_TENANT_H
 
 #include "c_detection_handler.h"
+#include "f_core/device/c_rtc.h"
 
 #include <array>
 #include <f_core/device/sensor/c_accelerometer.h>
@@ -19,7 +20,7 @@ class CSensorDevice;
 class CSensingTenant : public CTenant {
   public:
     explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData> &downlinkDataToBroadcast,
-                            CMessagePort<NTypes::SensorData> &dataToLog, CDetectionHandler &handler);
+                            CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CDetectionHandler &handler);
     ~CSensingTenant() override = default;
 
     void Startup() override;
@@ -28,7 +29,7 @@ class CSensingTenant : public CTenant {
 
   private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
-    CMessagePort<NTypes::SensorData> &dataToLog;
+    CMessagePort<NTypes::TimestampedSensorData> &dataToLog;
     CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
 
     CDetectionHandler &detectionHandler;
@@ -42,6 +43,9 @@ class CSensingTenant : public CTenant {
     CMagnetometer magnetometer;
 
     std::array<CSensorDevice *, 7> sensors;
+
+
+    CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     void sendDownlinkData(const NTypes::SensorData &data);
 };

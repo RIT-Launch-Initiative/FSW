@@ -14,6 +14,15 @@
 #include <zephyr/shell/shell.h>
 #include <zephyr/sys/reboot.h>
 LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
+#include "gorbfs.h"
+
+#include <zephyr/drivers/gnss.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
+#include <zephyr/shell/shell.h>
+#include <zephyr/sys/reboot.h>
+LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
 
