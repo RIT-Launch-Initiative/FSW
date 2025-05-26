@@ -249,8 +249,8 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     LOG_INF("Total write time: %llu ns (%llu cycles)", totalWriteTimeNs, totalWriteCycles);
     LOG_INF("Total sync time: %llu ns (%llu cycles)", totalSyncTimeNs, totalSyncCycles);
 
-    // LOG_INF("Average write time: %.2f ns", totalWrites > 0 ? (double)totalWriteTimeNs / totalWrites : 0.0);
-    // LOG_INF("Average sync time: %.2f ns", totalSyncs > 0 ? (double)totalSyncTimeNs / totalSyncs : 0.0);
+    LOG_INF("Average write time: %.2f ns", totalWrites > 0 ? (double)totalWriteTimeNs / totalWrites : 0.0);
+    LOG_INF("Average sync time: %.2f ns", totalSyncs > 0 ? (double)totalSyncTimeNs / totalSyncs : 0.0);
 
     fs_dirent st;
     int ret = fs_stat(filePath, &st);
@@ -278,7 +278,8 @@ static void runDataloggerBenchmarks() {
 
 int main() {
     printFilesystemStats("/lfs");
-
+    
+    timing_init();
     runDataloggerBenchmarks();
 
     LOG_INF("\n\n=== Final Filesystem Stats ===");
