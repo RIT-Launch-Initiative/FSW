@@ -111,8 +111,43 @@ static uint64_t fileCreationLoop(const char *files[], size_t numFiles) {
     return totalTimeNs / 1000000;
 }
 
-template <typename T>
-void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0) {
+static uint64_t fileDeletionLoop(const char *files[], size_t numFiles) {
+    size_t filesDeleted = 0;
+
+    timing_t start = 0;
+    timing_t end = 0;
+    uint64_t totalCycles = 0;
+    uint64_t totalTimeNs = 0;
+
+    LOG_INF("\tFile Deletion:");
+
+    for (size_t i = 0; i < numFiles; ++i) {
+        timing_start();
+        start = timing_counter_get();
+        int ret = fs_unlink(files[i]);
+        end = timing_counter_get();
+        timing_stop();
+
+        if (ret < 0) {
+            LOG_ERR("\t\tFailed to delete file %s: %d", files[i], ret);
+            continue;
+        }
+
+        uint64_t elapsedCycles = timing_cycles_get(&start, &end);
+        uint64_t elapsedNs = timing_cycles_to_ns(elapsedCycles);
+        totalCycles += elapsedCycles;
+        totalTimeNs += elapsedNs;
+        filesDeleted++;
+        LOG_INF("\t\tDeleted file %s in %llu ns", files[i], elapsedNs);
+    }
+
+    LOG_INF("Deleted %zu files in %u ms (%u cycles)", filesDeleted, totalTimeNs / 1000000, totalCycles);
+
+    return totalTimeNs / 1000000;
+}
+
+
+void benchmarkRawFilesystem(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0) {
     LOG_INF("=== %s ===", testName);
 
     const char *files[] = {
@@ -122,6 +157,9 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     uint64_t totalCreationTime = fileCreationLoop(files, sizeof(files) / sizeof(files[0]));
     LOG_INF("Total file creation time: %llu ms", totalCreationTime);
 
+    uint64_t totalDeletionTime = fileDeletionLoop(files, sizeof(files) / sizeof(files[0]));
+    LOG_INF("Total file deletion time: %llu ms", totalDeletionTime);
+
     fs_dirent st;
     int ret = fs_stat(filePath, &st);
     if (ret == 0) {
@@ -129,18 +167,69 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     }
 }
 
+template <typename T>
+void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 0) {
+    LOG_INF("=== %s ===", testName);
+
+    CDataLogger<T> logger(filePath, mode, maxPackets);
+
+    uint64_t totalCycles = 0;
+    uint64_t totalTimeNs = 0;
+
+    for (size_t i = 0; i < numIterations; ++i) {
+        T packet = {0};
+        packet.timestamp = k_uptime_get_32();
+        memset(&packet, 0x69, sizeof(T));
+
+        timing_start();
+
+        timing_t start = timing_counter_get();
+        int ret = logger.Write(packet);
+        timing_t end = timing_counter_get();
+
+        timing_stop();
+
+        if (ret < 0) {
+            LOG_ERR("\tFailed to write packet %zu: %d", i, ret);
+            continue;
+        }
+
+        uint64_t elapsedCycles = timing_cycles_get(&start, &end);
+        uint64_t elapsedNs = timing_cycles_to_ns(elapsedCycles);
+
+        totalCycles += elapsedCycles;
+        totalTimeNs += elapsedNs;
+
+        if (i % (numIterations / 10) == 0) {
+            LOG_INF("\tWrote packet %zu in %llu ns", i, elapsedNs);
+        }
+    }
+
+    logger.Sync();
+
+    LOG_INF("Wrote %zu packets in %u ms (%u cycles)", numIterations, totalTimeNs / 1000000, totalCycles);
+    fs_dirent st;
+    int ret = fs_stat(filePath, &st);
+    if (ret == 0) {
+        printSize("Final File Size", st.size);
+    } else {
+        LOG_ERR("Failed to get file stats: %d", ret);
+    }
+    LOG_INF("Benchmark %s completed!", testName);
+}
+
 static void runDataloggerBenchmarks() {
     benchmarkDataloggerMode<SmallPacket>("Small Packet (Growing Mode)", "/lfs/small_growing.bin", LogMode::Growing);
 
-    benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
-
-    benchmarkDataloggerMode<LargePacket>("Large Packet (Growing Mode)", "/lfs/large_growing.bin", LogMode::Growing);
-
-    benchmarkDataloggerMode<MediumPacket>("Medium Packet (Circular Mode)", "/lfs/medium_circular.bin",
-                                          LogMode::Circular, 500);
-
-    benchmarkDataloggerMode<MediumPacket>("Medium Packet (FixedSize Mode)", "/lfs/medium_fixed.bin", LogMode::FixedSize,
-                                          500);
+    // benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
+    //
+    // benchmarkDataloggerMode<LargePacket>("Large Packet (Growing Mode)", "/lfs/large_growing.bin", LogMode::Growing);
+    //
+    // benchmarkDataloggerMode<MediumPacket>("Medium Packet (Circular Mode)", "/lfs/medium_circular.bin",
+    //                                       LogMode::Circular, 500);
+    //
+    // benchmarkDataloggerMode<MediumPacket>("Medium Packet (FixedSize Mode)", "/lfs/medium_fixed.bin", LogMode::FixedSize,
+    //                                       500);
 }
 
 int main() {
