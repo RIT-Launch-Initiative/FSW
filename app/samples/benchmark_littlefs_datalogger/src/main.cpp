@@ -144,6 +144,7 @@ void benchmarkDataloggerMode(const char* test_name, const char* filename,
     printSize("Total Data Written", total_bytes);
     LOG_INF("Write throughput: %.2f MiB/s", throughputMbps);
     LOG_INF("Write rate: %.0f packets/sec", (double)NUM_ITERATIONS * 1000.0 / totalMs);
+    LOG_INF("\n\n");
 
 #ifdef CONFIG_TIMING_FUNCTIONS
     uint64_t total_ns = timing_cycles_to_ns(total_cycles);
@@ -338,26 +339,26 @@ int main() {
                                           "/lfs/small_growing.bin", LogMode::Growing);
     
     
-    // benchmarkDataloggerMode<MediumPacket>("CDataLogger Medium Packet (Growing Mode)",
-    //                                        "/lfs/medium_growing.bin", LogMode::Growing);
-    //
-    // benchmarkDataloggerMode<LargePacket>("CDataLogger Large Packet (Growing Mode)",
-    //                                       "/lfs/large_growing.bin", LogMode::Growing);
-    //
-    // // Benchmark different modes
-    // benchmarkDataloggerMode<MediumPacket>("CDataLogger Medium Packet (Circular Mode)",
-    //                                        "/lfs/medium_circular.bin", LogMode::Circular, 500);
-    //
-    // benchmarkDataloggerMode<MediumPacket>("CDataLogger Medium Packet (FixedSize Mode)",
-    //                                        "/lfs/medium_fixed.bin", LogMode::FixedSize, 500);
-    //
-    // // Raw filesystem benchmarks
+    benchmarkDataloggerMode<MediumPacket>("CDataLogger Medium Packet (Growing Mode)",
+                                           "/lfs/medium_growing.bin", LogMode::Growing);
+
+    benchmarkDataloggerMode<LargePacket>("CDataLogger Large Packet (Growing Mode)",
+                                          "/lfs/large_growing.bin", LogMode::Growing);
+
+    // Benchmark different modes
+    benchmarkDataloggerMode<MediumPacket>("CDataLogger Medium Packet (Circular Mode)",
+                                           "/lfs/medium_circular.bin", LogMode::Circular, 500);
+
+    benchmarkDataloggerMode<MediumPacket>("CDataLogger Medium Packet (FixedSize Mode)",
+                                           "/lfs/medium_fixed.bin", LogMode::FixedSize, 500);
+
+    // Raw filesystem benchmarks
     // benchmarkRawFilesystem();
     // benchmarkFileOperations();
-    //
-    // // Final filesystem stats
-    // printFilesystemStats("/lfs");
-    //
-    // LOG_INF("Benchmark completed!");
+
+    // Final filesystem stats
+    printFilesystemStats("/lfs");
+
+    LOG_INF("Benchmark completed!");
     return 0;
 }
