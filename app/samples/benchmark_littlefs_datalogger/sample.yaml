@@ -1,0 +1,17 @@
+sample:
+  name: Filesystem Benchmarking
+  description: Benchmark LittleFS
+common:
+  tags:
+    - samples
+    - filesystem
+    - littlefs
+    - datalogger
+    - benchmark
+    - performance
+  filter: dt_chosen_enabled("zephyr,flash")
+  depends_on: littlefs
+tests:
+  sample.benchmark_littlefs_datalogger:
+    depends_on: flash
+    extra_args: SNIPPET="lfs"

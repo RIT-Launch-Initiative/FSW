@@ -15,7 +15,7 @@
         zephyr,shell-uart = &uart4;
 		zephyr,uart-pipe = &uart4;
 
-		storage = &w25q128;
+		storage = &w25q512;
 		logfs = &lfs1;
 
 		rtc = &rtc;
@@ -60,10 +60,10 @@
 			partition = <&external_storage_partition>;
 			automount;
 
-			read-size = <16>;
-			prog-size = <16>;
-			cache-size = <64>;
-			lookahead-size = <32>;
+			read-size = <256>;
+			prog-size = <256>;
+			cache-size = <512>;
+			lookahead-size = <128>;
 			block-cycles = <(90 * 1000)>;
 		};
 	};
@@ -157,7 +157,7 @@
 	pinctrl-names = "default";
 	status = "okay";
 
-	w25q128: w25q128jv@0 {
+	w25q512: w25q512jv@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
