@@ -18,6 +18,7 @@ def parse_yaml_types(file_paths):
             except yaml.YAMLError as exc:
                 print(f"Error parsing YAML file: {file_path}")
                 print(exc)
+                exit(1)
 
     return types_list
 

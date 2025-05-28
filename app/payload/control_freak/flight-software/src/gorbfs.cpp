@@ -85,7 +85,7 @@ static int gorbfs_init(const struct device *dev) { return 0; }
                      &gorbfs_partition_data_##partition_name, &gorbfs_partition_config_##partition_name, POST_KERNEL,  \
                      GORBFS_INIT_PRIORITY, NULL);
 
-GORBFS_PARTITION_DEFINE(superfast_storage, struct SuperFastPacket, 8, 500);
+GORBFS_PARTITION_DEFINE(superfast_storage, NTypes::SuperFastPacket, 8, 500);
 // GORBFS_PARTITION_DEFINE(superslow_storage, struct SuperSlowPacket, 8, 7);
 
 // helper to create an address from an index
