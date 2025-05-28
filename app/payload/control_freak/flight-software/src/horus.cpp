@@ -1,5 +1,7 @@
 #include "f_core/radio/protocols/horus/horus.h"
 
+#include "sx1276/sx1276.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +13,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/types.h>
+
 #define FXOSC_HZ                       32000000
 #define RFM_FSTEP_HZ                   61.03515625
 #define RFM_MAX_FREQUENCY_DEVIATION_HZ 999879
@@ -20,6 +23,7 @@
 
 #define RADIORST_NODE DT_ALIAS(radioreset)
 static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gpios);
+#define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
 
 #define MAX_SATS 20
 extern struct gnss_data last_data;
@@ -28,7 +32,6 @@ extern int current_tracked_sats;
 extern struct gnss_satellite last_sats[MAX_SATS];
 extern uint64_t last_fix_uptime;
 
-extern bool do_horus;
 extern void set_prompt(const struct shell *shell);
 extern horus_packet_v2 get_telemetry();
 
@@ -257,29 +260,33 @@ void make_and_transmit_horus() {
 
     transmit_horus(&packet[0], sizeof(packet));
 }
+static struct lora_modem_config mymodem_config = {
+    .frequency = 434000000,
+    .bandwidth = BW_125_KHZ,
+    .datarate = SF_12,
+    .coding_rate = CR_4_5,
+    .preamble_len = 8,
+    .tx_power = 20,
+    .tx = true,
+    .iq_inverted = false,
+    .public_network = true,
+};
 
-int cmd_horustx(const struct shell *shell, size_t argc, char **argv) {
-    ARG_UNUSED(argc);
-    ARG_UNUSED(argv);
-    if (do_horus) {
-        shell_print(shell, "Stop Horus");
-        do_horus = false;
-        set_prompt(shell);
-    } else {
-        shell_print(shell, "Sending Horus");
-        do_horus = true;
-        set_prompt(shell);
+void init_lora_modem() {
+    const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
+    int ret = lora_config(dev, &mymodem_config);
+    if (ret < 0) {
+        printk("Bad lora cfg: %d", ret);
     }
-
-    return 0;
 }
 void wait_for_timeslot() { k_msleep(2000); }
 
 int radio_thread(void *, void *, void *) {
+    init_lora_modem();
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         // if (do_horus) {
-        wait_for_timeslot();
+        // wait_for_timeslot();
         printk("Horus\n");
         make_and_transmit_horus();
         // }

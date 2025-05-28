@@ -375,7 +375,7 @@
 	status = "okay";
 	lora: lora@0{
 		reg = <0>;
-		spi-max-frequency = <(10 * 1000 * 1000)>;
+		spi-max-frequency = <(DT_FREQ_M(50))>;
 		compatible = "semtech,sx1276";
 
 		reset-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
