@@ -13,8 +13,8 @@ LOG_MODULE_REGISTER(sensing);
 K_TIMER_DEFINE(imutimer, NULL, NULL);
 int set_sampling(const struct device *imu_dev);
 
-int read_barom(const struct device *imu_dev, SuperFastPacket *pac);
-int read_imu(const struct device *imu_dev, SuperFastPacket *packet, int frame);
+int read_barom(const struct device *imu_dev, NTypes::SuperFastPacket *pac);
+int read_imu(const struct device *imu_dev, NTypes::SuperFastPacket *packet, int frame);
 
 static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 
@@ -27,7 +27,7 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
     int64_t start = k_uptime_get();
 
     int fast_index = 0;
-    SuperFastPacket *packet = NULL;
+    NTypes::SuperFastPacket *packet = NULL;
 
     k_timer_start(&imutimer, K_MSEC(1), K_MSEC(1));
     int packets_sent = 0;
@@ -52,19 +52,24 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
             k_timer_stop(&imutimer);
             k_timer_start(&imutimer, K_MSEC(10), K_MSEC(10));
             gfs_signal_end_of_circle(superfast_storage);
+            int64_t end = k_uptime_get();
+            int64_t elapsed = end - start;
+            float perSec = packets_sent / (elapsed / 1000.0f);
+
+            LOG_INF("Its half over: %d packets in %lld ms. %f per second", packets_sent, elapsed, (double) perSec);
         }
         k_timer_status_sync(&imutimer);
 
         if (fast_index == 0) {
             ret = gfs_alloc_slab(superfast_storage, (void **) &packet, K_FOREVER);
             int64_t us = k_ticks_to_us_near64(k_uptime_ticks());
-            packet->timestamp = us;
+            packet->Timestamp = us;
 
             read_barom(barom_dev, packet);
         }
         read_imu(imu_dev, packet, fast_index % IMU_SAMPLES_PER_PACKET);
 
-        bool is_imu_boosted = feed_boost_acc(k_uptime_get(), &packet->adat[fast_index].ax);
+        bool is_imu_boosted = feed_boost_acc(k_uptime_get(), &packet->AccelData[fast_index].X);
         if (is_imu_boosted && !already_imu_boosted) {
             freak_controller->SubmitEvent(Sources::LSM6DSL, Events::Boost);
             already_imu_boosted = true;
@@ -102,7 +107,7 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
     return 0;
 }
 
-int read_imu(const struct device *imu_dev, SuperFastPacket *packet, int frame) {
+int read_imu(const struct device *imu_dev, NTypes::SuperFastPacket *packet, int frame) {
     int ret = sensor_sample_fetch(imu_dev);
     if (ret != 0) {
         LOG_WRN("Couldnt fetch IMU");
@@ -114,22 +119,22 @@ int read_imu(const struct device *imu_dev, SuperFastPacket *packet, int frame) {
         LOG_WRN("Couldnt get axyz");
         return ret;
     }
-    packet->adat[frame].ax = sensor_value_to_float(&vals[0]);
-    packet->adat[frame].ay = sensor_value_to_float(&vals[1]);
-    packet->adat[frame].az = sensor_value_to_float(&vals[2]);
+    packet->AccelData[frame].X = sensor_value_to_float(&vals[0]);
+    packet->AccelData[frame].Y = sensor_value_to_float(&vals[1]);
+    packet->AccelData[frame].Z = sensor_value_to_float(&vals[2]);
 
     ret = sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, vals);
     if (ret != 0) {
         LOG_WRN("Couldnt get gxyz");
         return ret;
     }
-    packet->gdat[frame].gx = sensor_value_to_float(&vals[0]);
-    packet->gdat[frame].gy = sensor_value_to_float(&vals[1]);
-    packet->gdat[frame].gz = sensor_value_to_float(&vals[2]);
+    packet->GyroData[frame].X = sensor_value_to_float(&vals[0]);
+    packet->GyroData[frame].Y = sensor_value_to_float(&vals[1]);
+    packet->GyroData[frame].Z = sensor_value_to_float(&vals[2]);
     return 0;
 }
 
-int read_barom(const struct device *barom_dev, SuperFastPacket *packet) {
+int read_barom(const struct device *barom_dev, NTypes::SuperFastPacket *packet) {
     int ret = sensor_sample_fetch(barom_dev);
     if (ret != 0) {
         LOG_WRN("Couldnt read barometer: %d", ret);
@@ -140,13 +145,13 @@ int read_barom(const struct device *barom_dev, SuperFastPacket *packet) {
     if (ret != 0) {
         LOG_WRN("Couldnt get pres from barometer: %d", ret);
     }
-    packet->pressure = sensor_value_to_float(&val);
+    packet->BaromData.Pressure = sensor_value_to_float(&val);
 
     ret = sensor_channel_get(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, &val);
     if (ret != 0) {
         LOG_WRN("Couldnt get temp from barometer: %d", ret);
     }
-    packet->temp = sensor_value_to_float(&val);
+    packet->BaromData.Temperature = sensor_value_to_float(&val);
     return 0;
 }
 

@@ -8,7 +8,7 @@ SuperFastPacket:
     - name: GyroData
       type: AccelerometerData
       array_size: 10
-    - name: AccelSize
+    - name: AccelData
       type: AccelerometerData
       array_size: 10
 SlowInfo:

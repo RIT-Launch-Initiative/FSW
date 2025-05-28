@@ -172,8 +172,14 @@ int storage_thread_entry(void *v_fc, void *v_dev, void *) {
         }
         k_mem_slab_free(data->slab, (void *) chunk_ptr);
     }
-    flight_log.Write("Yeah man im done wild huh");
-    flight_log.Close();
+    int ret = flight_log.Write("Yeah man im done wild huh");
+    if (ret != 0) {
+        LOG_WRN("Couldnt write flight log: %d", ret);
+    }
+    ret = flight_log.Close();
+    if (ret != 0) {
+        LOG_WRN("Couldnt write flight log: %d", ret);
+    }
     return 0;
 }
 
