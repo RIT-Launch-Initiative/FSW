@@ -14,15 +14,6 @@
 #include <zephyr/shell/shell.h>
 #include <zephyr/sys/reboot.h>
 LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
-#include "gorbfs.h"
-
-#include <zephyr/drivers/gnss.h>
-#include <zephyr/drivers/sensor.h>
-#include <zephyr/logging/log.h>
-#include <zephyr/logging/log_ctrl.h>
-#include <zephyr/shell/shell.h>
-#include <zephyr/sys/reboot.h>
-LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
 
@@ -58,7 +49,14 @@ int main() {
         LOG_ERR("Storage not ready");
     }
 
-    ret = flight_sensing(imu_dev, barom_dev, &freak_controller);
+    // disable servos
+    // enable lora
+    // GPS configure
+
+    //Ground, Boost, Coast, Flight
+    ret = boost_and_flight_sensing(imu_dev, barom_dev, &freak_controller);
+    LOG_INF("On the ground now");
+
     return 0;
 }
 

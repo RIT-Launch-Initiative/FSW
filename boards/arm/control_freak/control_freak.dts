@@ -300,11 +300,7 @@
 };
 
 &dma1 {
-&dma1 {
 	status = "okay";
-};
-&dma2 {
-	status="okay";
 };
 &dma2 {
 	status="okay";
@@ -332,9 +328,9 @@
 // value of 8 is marked as reserved in stm32 dma zephyr driver page but 
 // was like this last year. inserting STM32_DMA_OFFSET_FIXED_4 gets it equiv to last year
 // https://docs.zephyrproject.org/latest/build/dts/api/bindings/dma/st%2Cstm32-dma-v2.html
-	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
-		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
-	dma-names = "tx", "rx";
+	// dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+		//    <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+	// dma-names = "tx", "rx";
 
 
 	pinctrl-names = "default";
@@ -358,18 +354,11 @@
 			#size-cells = <1>;
  			super_fast_partition: fastpartition@0 {
 				// loop(5s * 100 page/s) + (400s * 10 page/s)
-				// 4500 pages = 1125 KB
-				label = "superfast-storage";
-				reg = <0 DT_SIZE_K(1128)>;
-			};
- 			super_fast_partition: fastpartition@0 {
-				// loop(5s * 100 page/s) + (400s * 10 page/s)
-				// 4500 pages = 1125 KB
+				// 4500 pages = 1125 KB + round to sector size (4kb)
 				label = "superfast-storage";
 				reg = <0 DT_SIZE_K(1128)>;
 			};
 
-			external_storage_partition: partition@11a000 {
 			external_storage_partition: partition@11a000 {
 				label = "w25q-storage";
 				reg = <0x11a000 DT_SIZE_K(15256)>;

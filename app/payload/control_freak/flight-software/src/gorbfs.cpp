@@ -92,6 +92,7 @@ GORBFS_PARTITION_DEFINE(superfast_storage, struct SuperFastPacket, 8, 500);
 constexpr uint32_t gen_addr(const gorbfs_partition_config *cfg, uint32_t page_index) {
     return cfg->partition_addr + page_index * PAGE_SIZE;
 }
+static CFlightLog flight_log{"/lfs/flight.log"};
 
 int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeout) {
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
@@ -134,6 +135,7 @@ int storage_thread_entry(void *v_fc, void *v_dev, void *) {
             data->start_index = cutoff_index;
             LOG_INF("Setting start index to %d (was at %d with circ size %d)", cutoff_index, data->page_index,
                     cfg->circle_size_pages);
+            flight_log.Write("yeah man im swapping its crazy");
         }
 
         size_t addr = gen_addr(cfg, data->page_index);
@@ -170,6 +172,8 @@ int storage_thread_entry(void *v_fc, void *v_dev, void *) {
         }
         k_mem_slab_free(data->slab, (void *) chunk_ptr);
     }
+    flight_log.Write("Yeah man im done wild huh");
+    flight_log.Close();
     return 0;
 }
 

@@ -40,7 +40,7 @@ enum Sources {
 inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
     "LSM6DSL",
     "BMP390",
-    "BoostTimer"
+    "BoostTimer",
     "GroundHitTimer",
 };
 
@@ -59,7 +59,7 @@ inline std::array<FreakFlightController::TimerEvent, numTimerEvents> timerEvents
     FreakFlightController::TimerEvent{
         .start = Events::Boost,
         .event = Events::GroundHit,
-        .time = K_SECONDS(400),
+        .time = K_SECONDS(20),
         .source = Sources::GroundHitTimer,
     },
 };
