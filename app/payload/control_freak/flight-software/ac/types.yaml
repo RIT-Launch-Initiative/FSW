@@ -1,14 +1,14 @@
 SuperFastPacket:
   description: Preboost, Boost, and Coast datapacket
   fields:
-    - name: timestamp
+    - name: Timestamp
       type: int64_t
-    - name: barom
+    - name: BaromData
       type: BarometerData
-    - name: gyro_data
+    - name: GyroData
       type: AccelerometerData
       array_size: 10
-    - name: accel_data
+    - name: AccelSize
       type: AccelerometerData
       array_size: 10
 SlowInfo:
@@ -23,24 +23,24 @@ SlowInfo:
 
     4 bits satelites (max 16 in sight at once http://csno-tarc.cn/en/gps/number)
     27 bits millis since start of day
-    1 bit for fun'
+    1 bit for fun
   fields:
-    - name: timestamp
+    - name: Timestamp
       type: int64_t
-    - name: packed_data
+    - name: PackedData
       type: uint64_t
-    - name: lat_frac
+    - name: LatFrac
       type: int16_t
-    - name: long_frac
+    - name: LongFrac
       type: int16_t
-    - name: orientation
+    - name: Orientation
       type: int16_t
       array_size: 3
-    - name: battery_voltage
+    - name: Battery_voltage
       type: int16_t
-    - name: current
+    - name: Current
       type: uint16_t
-    - name: temp_c
+    - name: TempC
       type: uint8_t
-    - name: flip_status
+    - name: FlipStatus
       type: uint8_t
