@@ -34,6 +34,10 @@ static const struct device *barom_dev = DEVICE_DT_GET(BAROM_NODE);
 
 static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 
+int radio_thread(void *, void *, void *);
+K_THREAD_DEFINE(radio, CONFIG_STORAGE_THREAD_STACK_SIZE, radio_thread, (void *) &freak_controller,
+                (void *) &superfast_storage, NULL, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
+
 K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry, (void *) &freak_controller,
                 (void *) &superfast_storage, NULL, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
 

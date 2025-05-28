@@ -14,3 +14,6 @@ target_sources(app PRIVATE ${app_sources})
 AutocodeTypes(${CMAKE_SOURCE_DIR}/ac/types.yaml)
 AutocodeNetworkDefinitions()
 add_dependencies(app ac_types)
+
+set(LORAMAC_SRC $ENV{ZEPHYR_BASE}/../modules/lib/loramac-node/src)
+target_include_directories(app PRIVATE ${LORAMAC_SRC}/radio/ ${LORAMAC_SRC}/system/ ${LORAMAC_SRC}/boards/)
