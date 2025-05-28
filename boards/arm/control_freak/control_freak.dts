@@ -20,7 +20,6 @@
 		led0 = &led1; // a little broken :(
 		buzz = &buzzer;
 		ldo5v = &ldo5v_enable;
-		ldo5v = &ldo5v_enable;
 		gnss = &gnss;
 		gpsreset = &gps_reset;
 		gpssafeboot = &gps_timepulse;
@@ -29,9 +28,6 @@
 		servo2 = &servo2;
 		servo3 = &servo3;
 		radioreset = &radioreset;
-
-		imu = &lsm6dsl;
-		barom = &bmp390;
 
 		imu = &lsm6dsl;
 		barom = &bmp390;
