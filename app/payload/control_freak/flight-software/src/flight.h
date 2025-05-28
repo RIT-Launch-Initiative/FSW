@@ -15,6 +15,7 @@ static constexpr uint32_t baromBoostTimeThreshold = 1000; // millis
 
 enum Events {
     PadReady,
+    Unlocked,
     Boost,
     Coast,
     GroundHit,
@@ -23,6 +24,7 @@ enum Events {
 
 inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
     "PadReady",
+    "Unlocked",
     "Boost",
     "Coast",
     "GroundHit",

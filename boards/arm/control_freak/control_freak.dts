@@ -19,7 +19,7 @@
 		debug-serial = &uart4;
 		led0 = &led1; // a little broken :(
 		buzz = &buzzer;
-		
+		ldo5v = &ldo5v_enable;
 		gnss = &gnss;
 		gpsreset = &gps_reset;
 		gpssafeboot = &gps_timepulse;
@@ -28,6 +28,9 @@
 		servo2 = &servo2;
 		servo3 = &servo3;
 		radioreset = &radioreset;
+
+		imu = &lsm6dsl;
+		barom = &bmp390;
 	};
 
 	servos: servos{
@@ -225,7 +228,7 @@
 };
 // Debug uart
 &uart4 {
-	status = "okay";
+	status = "disabled";
 	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
 	pinctrl-names = "default";
 	current-speed = <115200>;
@@ -250,12 +253,13 @@
 	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
 	pinctrl-names = "default";
 	status = "okay";
-	clock-frequency = <I2C_BITRATE_STANDARD>;
+	clock-frequency = <I2C_BITRATE_FAST>;
 
 	bmp390: bmp390@77 {
 		status = "okay";
 		
 		compatible = "bosch,bmp390";
+		// typ 146 hz, min 125hz
 		osr-press=<1>;
 		osr-temp=<1>;
 		reg = <0x77>;
@@ -291,8 +295,11 @@
 	};
 };
 
-&dma2 {
+&dma1 {
 	status = "okay";
+};
+&dma2 {
+	status="okay";
 };
 
 &spi2 {
@@ -301,9 +308,24 @@
 	pinctrl-names = "default";
 	status = "okay";
 
+	// dma identifier
+	// dma stream
+	// dma channel
+	// config flags
+	// ? called features in devicetree generated, is avalid value for fifo thresshoold and that interpretation matches the order of the included stm32_dma.h file 
+	// dma v2 doesnt mention it in docs but doesnt compile w/out it
+	// dma v1 calls it features and is fifo thresshold
 
-	dmas = <&dma2 5 3 0x28440 0x03>,
-		   <&dma2 2 3 0x28480 0x03>;
+// FIFO threshold and burst configuration  Caution is required when choosing the FIFO threshold (bits FTH[1:0] of the DMA_SxFCR register) and the size of the memory burst (MBURST[1:0] of the DMA_SxCR register): The content pointed by the FIFO threshold must exactly match an integer number of memory burst transfers. If this is not in the case, a FIFO error (flag FEIFx of the DMA_HISR or DMA_LISR register) is generated when the stream is enabled, then the stream is automatically disabled. The allowed and forbidden configurations are described in the table below. The forbidden configurations are highlighted in gray in the table.  In all cases, the burst size multiplied by the data size must not
+
+// From Grim (known working)
+//164928 - 0x28440
+//164992 - 0x28480
+// value of 8 is marked as reserved in stm32 dma zephyr driver page but 
+// was like this last year. inserting STM32_DMA_OFFSET_FIXED_4 gets it equiv to last year
+// https://docs.zephyrproject.org/latest/build/dts/api/bindings/dma/st%2Cstm32-dma-v2.html
+	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
 	dma-names = "tx", "rx";
 
 
@@ -314,7 +336,7 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
-		spi-max-frequency = <DT_FREQ_M(104)>;
+		spi-max-frequency = <(DT_FREQ_M(50))>;
 		size = <DT_SIZE_M(128)>;
 		jedec-id = [ef 40 18];
 
@@ -326,10 +348,16 @@
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
+ 			super_fast_partition: fastpartition@0 {
+				// loop(5s * 100 page/s) + (400s * 10 page/s)
+				// 4500 pages = 1125 KB
+				label = "superfast-storage";
+				reg = <0 DT_SIZE_K(1128)>;
+			};
 
-			external_storage_partition: partition@0 {
+			external_storage_partition: partition@11a000 {
 				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(16)>;
+				reg = <0x11a000 DT_SIZE_K(15256)>;
 			};
 		};
 	};
@@ -368,6 +396,8 @@
 	status = "okay";
 };
 
+
+// fake and untrue, call me when we use mcuboot
 &flash0 {
 
 	partitions {

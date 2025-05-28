@@ -9,7 +9,13 @@
 #include <stdint.h>
 
 namespace NTypes { {% for t in types %}
+    {% if '\n' in t[1].description %}
+    /*{% filter indent(width=4) %}
+{{t[1].description}}
+*/{% endfilter %}
+    {% else %}
     // {{ t[1].description }}
+    {% endif %}
     typedef struct __attribute__((packed)) {
         {%- for field in t[1].fields %}
         {{ field.type }} {{ field.name }}{% if field.array_size is defined %}[{{ field.array_size }}]{% endif %};{% endfor %}
