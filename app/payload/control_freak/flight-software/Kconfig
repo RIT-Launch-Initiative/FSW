@@ -8,7 +8,9 @@ config STORAGE_THREAD_PRIORITY
     int "Stack size for storage size"
     default 10
 
-
+config HORUS_PAYLOAD_ID
+    int "Payload ID number as given by horusdemodlib"
+    default 808
 
 module = APP_FREAK
 module-str = APP_FREAK

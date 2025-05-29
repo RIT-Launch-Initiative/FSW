@@ -1,7 +1,7 @@
 #include "f_core/radio/protocols/horus/horus.h"
 
+#include "gps.h"
 #include "sx1276/sx1276.h"
-#include "ublox_m10.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -12,8 +12,10 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/drivers/spi.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/types.h>
+LOG_MODULE_REGISTER(radio);
 
 #define FXOSC_HZ                       32000000
 #define RFM_FSTEP_HZ                   61.03515625
@@ -24,15 +26,6 @@
 
 #define RADIORST_NODE DT_ALIAS(radioreset)
 static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gpios);
-
-#define GPS_NODE DT_ALIAS(gnss)
-const struct device *gps_dev = DEVICE_DT_GET(GPS_NODE);
-
-#define MAX_SATS 20
-extern struct gnss_data last_data;
-extern int current_sats;
-extern int current_tracked_sats;
-extern struct gnss_satellite last_sats[MAX_SATS];
 
 extern horus_packet_v2 get_telemetry();
 
@@ -139,16 +132,16 @@ static int32_t set_carrier_frequency(uint32_t freq) {
  * @return any errors from configuring GPIO
  */
 static int32_t rfm9xw_software_reset() {
-    printk("Software resetting radio with %s pin %d\n", radioreset.port->name, (int) radioreset.pin);
+    LOG_INF("Software resetting radio with %s pin %d\n", radioreset.port->name, (int) radioreset.pin);
 
     if (gpio_pin_configure_dt(&radioreset, GPIO_OUTPUT | GPIO_PULL_DOWN) < 0) {
-        printk("Failed to set pin to 0 to reset chip\n");
+        LOG_WRN("Failed to set pin to 0 to reset chip\n");
     }
 
     k_usleep(150); // >100us
 
     if (gpio_pin_configure_dt(&radioreset, GPIO_DISCONNECTED) < 0) {
-        printk("Failed to set pin to 0 to reset chip\n");
+        LOG_WRN("Failed to set pin to 0 to reset chip\n");
     }
     k_msleep(5);
 
@@ -223,11 +216,13 @@ horus_packet_v2 get_telemetry() {
 
     pac.payload_id = 808;
     pac.counter = packet_count;
+
+    int ret = fill_packet(&pac);
+    if (ret != 0) {
+        LOG_WRN("Failed to fill packet with GPS data");
+    }
+
     pac.temp = 26;
-    pac.altitude = 400;
-    pac.sats = 4;
-    pac.latitude = -43;
-    pac.longitude = 72;
     return pac;
 }
 
@@ -246,10 +241,7 @@ int radio_thread(void *, void *, void *) {
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         wait_for_timeslot();
-        k_ticks_t last_tick_delta = ublox_10_last_tick_delta(gps_dev);
-        int64_t last_tick_uptime = ublox_10_last_tick_uptime(gps_dev);
-        uint32_t delta_us = k_ticks_to_us_near32(last_tick_delta);
-        printk("Horus: %lld - %d\n", last_tick_uptime, delta_us);
+        LOG_INF("Transmitting Horus");
         make_and_transmit_horus();
     }
     return 0;
