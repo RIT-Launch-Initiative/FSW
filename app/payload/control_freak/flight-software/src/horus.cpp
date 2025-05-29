@@ -1,6 +1,7 @@
 #include "f_core/radio/protocols/horus/horus.h"
 
 #include "sx1276/sx1276.h"
+#include "ublox_m10.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -23,19 +24,19 @@
 
 #define RADIORST_NODE DT_ALIAS(radioreset)
 static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gpios);
-#define DEFAULT_RADIO_NODE DT_ALIAS(lora0)
+
+#define GPS_NODE DT_ALIAS(gnss)
+const struct device *gps_dev = DEVICE_DT_GET(GPS_NODE);
 
 #define MAX_SATS 20
 extern struct gnss_data last_data;
 extern int current_sats;
 extern int current_tracked_sats;
 extern struct gnss_satellite last_sats[MAX_SATS];
-extern uint64_t last_fix_uptime;
 
-extern void set_prompt(const struct shell *shell);
 extern horus_packet_v2 get_telemetry();
 
-int32_t set_pramble_len(uint16_t preamble_len) {
+static int32_t set_pramble_len(uint16_t preamble_len) {
     uint8_t msb = (preamble_len >> 8) & 0xff;
     uint8_t lsb = (preamble_len >> 8) & 0xff;
     SX1276Write(REG_PREAMBLEMSB, msb);
@@ -84,13 +85,13 @@ static int32_t set_frequency_deviation(uint32_t freq_dev) {
  * - Restarting the receiver 
  * Datasheet pg. 89
  */
-int32_t set_frequency_by_reg(uint8_t msb, uint8_t mid, uint8_t lsb) {
+static int32_t set_frequency_by_reg(uint8_t msb, uint8_t mid, uint8_t lsb) {
     uint8_t reg_frf[3] = {msb, mid, lsb};
     SX1276WriteBuffer(REG_FRFMSB, reg_frf, 3);
     return 0;
 }
 
-int32_t frf_reg_from_frequency(uint32_t freq, uint8_t *msb, uint8_t *mid, uint8_t *lsb) {
+static int32_t frf_reg_from_frequency(uint32_t freq, uint8_t *msb, uint8_t *mid, uint8_t *lsb) {
 
     ////Frf = Fstep x Frf(23,0)
     // Frf(23,0) = Frf / Fstep
@@ -116,7 +117,7 @@ int32_t frf_reg_from_frequency(uint32_t freq, uint8_t *msb, uint8_t *mid, uint8_
  * 0 if the frequency was succesfully set
  * other sub 0 error codes from spi interaction errors.
  */
-int32_t set_carrier_frequency(uint32_t freq) {
+static int32_t set_carrier_frequency(uint32_t freq) {
     uint8_t msb = 0;
     uint8_t mid = 0;
     uint8_t lsb = 0;
@@ -131,35 +132,13 @@ int32_t set_carrier_frequency(uint32_t freq) {
     return res;
 }
 
-#define DT_DRV_COMPAT semtech_sx1276
-
-struct sx127x_config {
-    struct spi_dt_spec bus;
-    struct gpio_dt_spec reset;
-#if DT_INST_NODE_HAS_PROP(0, antenna_enable_gpios)
-    struct gpio_dt_spec antenna_enable;
-#endif
-#if DT_INST_NODE_HAS_PROP(0, rfi_enable_gpios)
-    struct gpio_dt_spec rfi_enable;
-#endif
-#if DT_INST_NODE_HAS_PROP(0, rfo_enable_gpios)
-    struct gpio_dt_spec rfo_enable;
-#endif
-#if DT_INST_NODE_HAS_PROP(0, pa_boost_enable_gpios)
-    struct gpio_dt_spec pa_boost_enable;
-#endif
-#if DT_INST_NODE_HAS_PROP(0, tcxo_power_gpios)
-    struct gpio_dt_spec tcxo_power;
-#endif
-};
-
 /**
  * Perform a 'Manual Reset' of the module 
  * (Datasheet pg.111 section 7.2.2)
  * @param config the module config 
  * @return any errors from configuring GPIO
  */
-int32_t rfm9xw_software_reset() {
+static int32_t rfm9xw_software_reset() {
     printk("Software resetting radio with %s pin %d\n", radioreset.port->name, (int) radioreset.pin);
 
     if (gpio_pin_configure_dt(&radioreset, GPIO_OUTPUT | GPIO_PULL_DOWN) < 0) {
@@ -175,7 +154,7 @@ int32_t rfm9xw_software_reset() {
 
     return 0;
 }
-void transmit_horus(uint8_t *buf, int len) {
+static void transmit_horus(uint8_t *buf, int len) {
     const uint32_t carrier = 434000000;
     const float deviation = 405;
 
@@ -260,48 +239,18 @@ void make_and_transmit_horus() {
 
     transmit_horus(&packet[0], sizeof(packet));
 }
-static struct lora_modem_config mymodem_config = {
-    .frequency = 434000000,
-    .bandwidth = BW_125_KHZ,
-    .datarate = SF_12,
-    .coding_rate = CR_4_5,
-    .preamble_len = 8,
-    .tx_power = 20,
-    .tx = true,
-    .iq_inverted = false,
-    .public_network = true,
-};
 
-void init_lora_modem() {
-    const struct device *dev = DEVICE_DT_GET(DEFAULT_RADIO_NODE);
-    int ret = lora_config(dev, &mymodem_config);
-    if (ret < 0) {
-        printk("Bad lora cfg: %d", ret);
-    }
-}
 void wait_for_timeslot() { k_msleep(2000); }
 
 int radio_thread(void *, void *, void *) {
-    init_lora_modem();
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
-        // if (do_horus) {
-        // wait_for_timeslot();
-        printk("Horus\n");
+        wait_for_timeslot();
+        k_ticks_t last_tick_delta = ublox_10_last_tick_delta(gps_dev);
+        int64_t last_tick_uptime = ublox_10_last_tick_uptime(gps_dev);
+        uint32_t delta_us = k_ticks_to_us_near32(last_tick_delta);
+        printk("Horus: %lld - %d\n", last_tick_uptime, delta_us);
         make_and_transmit_horus();
-        // }
-        // if (do_lora) {
-        // wait_for_timeslot();
-        // lora
-        // printk("Lora\n");
-        // make_and_send_lora();
-        // }
-        // if (do_lorarx) {
-        // lorarx(nullptr);
-        // k_msleep(500);
-        // } else if (!do_lora && !do_horus) {
-        // k_msleep(500);
-        // }
     }
     return 0;
 }

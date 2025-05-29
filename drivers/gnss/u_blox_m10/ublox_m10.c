@@ -294,6 +294,15 @@ static int ublox_m10_init(const struct device *dev) {
     return 0;
 }
 
+k_ticks_t ublox_10_last_tick_delta(const struct device *dev) {
+    struct ublox_m10_data *data = dev->data;
+    return data->last_tick_delta;
+}
+int64_t ublox_10_last_tick_uptime(const struct device *dev) {
+    struct ublox_m10_data *data = dev->data;
+    return data->last_tick;
+}
+
 #if CONFIG_PM_DEVICE
 static int ublox_m10_pm_action(const struct device *dev, enum pm_device_action action) {
     switch (action) {

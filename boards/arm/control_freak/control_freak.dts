@@ -21,8 +21,10 @@
 		buzz = &buzzer;
 		ldo5v = &ldo5v_enable;
 		gnss = &gnss;
+		
 		gpsreset = &gps_reset;
 		gpssafeboot = &gps_timepulse;
+
 		lora0 = &lora;
 		servo1 = &servo1;
 		servo2 = &servo2;
@@ -242,10 +244,14 @@
 	pinctrl-names = "default";
 	current-speed = <9600>;
 
+
 	gnss: gnss {
 		//  MAX-M10M-00B
-		compatible = "gnss-nmea-generic";
+		compatible = "u-blox,m10";
 		status="okay";
+		reset-gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
+		timepulse-gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
+		// reset-on-boot;
 	};
 };
 

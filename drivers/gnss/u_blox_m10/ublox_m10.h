@@ -1,5 +1,10 @@
 #ifndef GNSS_UBLOX_M10_H
 #define GNSS_UBLOX_M10_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // evil and bad includes
 #include "../drivers/gnss/gnss_nmea0183.h"
 #include "../drivers/gnss/gnss_nmea0183_match.h"
@@ -14,6 +19,9 @@
 #define UBLOX_M10_UART_TX_BUF_SZ   64
 #define UBLOX_M10_CHAT_RECV_BUF_SZ 256
 #define UBLOX_M10_CHAT_ARGV_SZ     32
+
+k_ticks_t ublox_10_last_tick_delta(const struct device *gps_dev);
+int64_t ublox_10_last_tick_uptime(const struct device *gps_dev);
 
 struct ublox_m10_config {
     const struct device *uart;
@@ -44,4 +52,7 @@ struct ublox_m10_data {
     uint8_t chat_receive_buf[UBLOX_M10_CHAT_RECV_BUF_SZ];
     uint8_t *chat_argv[UBLOX_M10_CHAT_ARGV_SZ];
 };
+#ifdef __cplusplus
+}
+#endif
 #endif
