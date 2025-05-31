@@ -1,6 +1,9 @@
 #include "gps.h"
 
+#include "data.h"
 #include "f_core/utils/n_gnss_utils.h"
+#include "flight.h"
+#include "gorbfs.h"
 #include "ublox_m10.h"
 
 #include <math.h>
@@ -17,13 +20,16 @@ K_MUTEX_DEFINE(gps_mutex);
 
 #define MAX_SATS 20
 struct gnss_data last_data;
-int current_sats;
-int current_tracked_sats;
 struct gnss_satellite last_sats[MAX_SATS];
-int64_t last_fix_uptime_ticks = 0;
-float last_valid_skew_factor = 1.0; // 10090
 
-uint32_t millis_since_start_of_day(gnss_time &time) {
+int64_t last_fix_uptime_ticks = 0;
+float last_valid_skew_factor = 1.0090; // 10090
+
+extern FreakFlightController freak_controller;
+
+static const struct device *superslow_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
+
+uint32_t millis_since_start_of_day(const gnss_time &time) {
     static constexpr uint32_t millis_per_minute = 60 * 1000;
     static constexpr uint32_t millis_per_hour = 60 * millis_per_minute;
     return time.hour * millis_per_hour + time.minute * millis_per_minute + time.millisecond;
@@ -39,7 +45,7 @@ uint32_t millis_since_start_of_day(gnss_time &time) {
 // 4 bits satelites (max 16 in sight at once http://csno-tarc.cn/en/gps/number)
 // 27 bits millis since start of day
 // 1 bit for fun
-int get_packed_gps(uint64_t &packed_data, uint16_t &lat_frac, uint16_t &long_frac) {
+int encode_packed_gps(NTypes::SlowInfo &output) {
     if (k_mutex_lock(&gps_mutex, K_MSEC(20)) != 0) {
         return -1;
     }
@@ -52,16 +58,14 @@ int get_packed_gps(uint64_t &packed_data, uint16_t &lat_frac, uint16_t &long_fra
     gnss_fix_status stat = last_data.info.fix_status;
     uint8_t sats = last_data.info.satellites_cnt;
 
-    k_mutex_unlock(&gps_mutex);
-
     lat = fabs(lat);
     lat -= floorf(lat);
 
     lon = fabs(lon);
     lon -= floorf(lon);
 
-    lat_frac = lat * UINT16_MAX;
-    long_frac = lon * UINT16_MAX;
+    output.LatFrac = lat * UINT16_MAX;
+    output.LongFrac = lon * UINT16_MAX;
 
     uint16_t alt_feet = alt_mm * 0.00328084f;
     alt_feet &= BIT_MASK(14);
@@ -69,15 +73,15 @@ int get_packed_gps(uint64_t &packed_data, uint16_t &lat_frac, uint16_t &long_fra
     uint16_t speed = speed_mm_p_s / 1000;
     speed &= BIT_MASK(10);
 
-    uint8_t stat_bits = stat_bits & BIT_MASK(2);
+    uint8_t stat_bits = stat & BIT_MASK(2);
     uint8_t qual_bits = qual & BIT_MASK(3);
 
     uint32_t highside = (alt_feet << 18) | (speed << 8) | (stat_bits << 3) | qual_bits;
 
     uint32_t lowside = ((sats & BIT_MASK(4)) << 28) | ((millis & BIT_MASK(28)) << 1);
 
-    packed_data = (((uint64_t) highside) << 32) | lowside;
-    return 0;
+    output.PackedData = (((uint64_t) highside) << 32) | lowside;
+    return k_mutex_unlock(&gps_mutex);
 }
 
 uint32_t micros_till_timeslot_opens() {
@@ -105,7 +109,7 @@ int fill_packet(struct horus_packet_v2 *packet) {
     packet->minutes = last_data.utc.minute;
     packet->seconds = last_data.utc.millisecond / 1000;
 
-    packet->sats = current_tracked_sats;
+    packet->sats = last_data.info.satellites_cnt;
 
     k_mutex_unlock(&gps_mutex);
 
@@ -122,11 +126,12 @@ int fill_packet(struct horus_packet_v2 *packet) {
 
 static void gnss_data_cb(const struct device *dev, const struct gnss_data *data) {
     ARG_UNUSED(dev);
-    if (k_mutex_lock(&gps_mutex, K_MSEC(20)) != 0) {
+    int ret = k_mutex_lock(&gps_mutex, K_MSEC(20));
+    if (ret != 0) {
+        LOG_WRN("Failed to lock gps mutex: %d", ret);
         return;
     }
     last_data = *data;
-    printk("GNSS DATA\n");
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
         last_fix_uptime_ticks = k_uptime_ticks();
     }

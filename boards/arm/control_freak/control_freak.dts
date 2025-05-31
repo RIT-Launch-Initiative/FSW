@@ -248,6 +248,7 @@
 	gnss: gnss {
 		//  MAX-M10M-00B
 		compatible = "u-blox,m10";
+		label = "UBLOXM10";
 		status="okay";
 		reset-gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
 		timepulse-gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
@@ -355,16 +356,29 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
  			super_fast_partition: fastpartition@0 {
-				// loop(5s * 100 page/s) + (400s * 10 page/s)
-				// 4500 pages = 1125 KB + round to sector size (4kb)
+				// loop size = 5s
+				// rest size = 400s
+				// total 405s
+				// 1000 acc samp/s = 100 pack/s = 100 page/s
+				// 405s * 100 page/s = 40500 pages
+				// 40500 pages = 10125 KB sector round to 10128 KB
 				label = "superfast-storage";
-				reg = <0 DT_SIZE_K(1128)>;
+				reg = <0 DT_SIZE_K(10128)>;
+			};
+			super_slow_partition: slowpartition@9e4000{
+				label = "superslow-storage";
+				// 1 day (24 hrs) = 86400s
+				// 1 page / 8 seconds
+				// 86400s * 1 page/ 8 s = 10800 pages
+				// 2700 KB
+				reg = <0x9e4000 DT_SIZE_K(2700)>;
 			};
 
 			external_storage_partition: partition@11a000 {
+				// the rest for littlefs
+				// 16384 - 2700 - 10128
 				label = "w25q-storage";
-				reg = <0x11a000 DT_SIZE_K(15256)>;
-				reg = <0x11a000 DT_SIZE_K(15256)>;
+				reg = <0xc87000 DT_SIZE_K(3556)>;
 			};
 		};
 	};

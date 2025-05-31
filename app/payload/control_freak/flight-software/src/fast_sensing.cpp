@@ -29,7 +29,7 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
     int fast_index = 0;
     NTypes::SuperFastPacket *packet = NULL;
 
-    k_timer_start(&imutimer, K_MSEC(1), K_MSEC(1));
+    k_timer_start(&imutimer, K_USEC(900), K_USEC(900));
     int packets_sent = 0;
 
     bool has_swapped = false;
@@ -49,8 +49,6 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
         if (!has_swapped && freak_controller->HasEventOccurred(Events::Coast)) {
             LOG_INF("Swapping");
             has_swapped = true;
-            k_timer_stop(&imutimer);
-            k_timer_start(&imutimer, K_MSEC(10), K_MSEC(10));
             gfs_signal_end_of_circle(superfast_storage);
             int64_t end = k_uptime_get();
             int64_t elapsed = end - start;
@@ -62,6 +60,10 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
 
         if (fast_index == 0) {
             ret = gfs_alloc_slab(superfast_storage, (void **) &packet, K_FOREVER);
+            if (ret != 0) {
+                LOG_WRN("Couldn alloc fast buffer");
+                continue;
+            }
             int64_t us = k_ticks_to_us_near64(k_uptime_ticks());
             packet->Timestamp = us;
 

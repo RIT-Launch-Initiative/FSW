@@ -8,9 +8,25 @@ config STORAGE_THREAD_PRIORITY
     int "Stack size for storage size"
     default 10
 
+config SLOWDATA_THREAD_STACK_SIZE
+    int "Stack size for storage size"
+    default 512
+
+config SLOWDATA_THREAD_PRIORITY
+    int "Stack size for storage size"
+    default 10
+
 config HORUS_PAYLOAD_ID
     int "Payload ID number as given by horusdemodlib"
     default 808
+
+config HORUS_TIMESLOT_SECONDS
+    int "Number of seconds between the start of transmissions (30 -> transmit every thirty seconds)"
+    default 10
+
+config HORUS_TIMESLOT_OFFSET_SECONDS
+    int "Number of seconds off the start of the 0th hour to start transmitting (5 -> start at 12:00:05 and transmit every HORUS_TIMESLOT_SECONDS)"
+    default 5
 
 module = APP_FREAK
 module-str = APP_FREAK

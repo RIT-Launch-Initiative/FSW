@@ -147,12 +147,21 @@ static int32_t rfm9xw_software_reset() {
 
     return 0;
 }
+
+int calc_us_per_fsk_symbol() {
+    float skew = get_skew_smart();
+    static constexpr uint32_t bitrate = 100; // symbols per second
+    static constexpr uint32_t useconds_per_second = 1000 * 1000;
+    static constexpr uint32_t useconds_per_symbol = useconds_per_second / bitrate;
+    uint32_t useconds_skew_adjusted = useconds_per_symbol * skew;
+    return useconds_skew_adjusted;
+}
+
 static void transmit_horus(uint8_t *buf, int len) {
     const uint32_t carrier = 434000000;
     const float deviation = 405;
 
-    const uint32_t bitrate = 100;
-    const int usec_per_symbol = 10079; //1000000 / bitrate;
+    int us_per_symbol = calc_us_per_fsk_symbol();
 
     const uint32_t high = carrier + deviation;
     const uint32_t step = (uint32_t) ((float) deviation * 2.f / 3.f);
@@ -174,7 +183,8 @@ static void transmit_horus(uint8_t *buf, int len) {
 
     struct k_timer bitrate_timer;
     k_timer_init(&bitrate_timer, NULL, NULL);
-    k_timer_start(&bitrate_timer, K_USEC(usec_per_symbol), K_USEC(usec_per_symbol));
+
+    k_timer_start(&bitrate_timer, K_USEC(us_per_symbol), K_USEC(us_per_symbol));
     int preamble_len = 16;
     // transmit preamble 0,1,2,3 (low, 2nd lowest, 2nfd highest, highest)
     for (int i = 0; i < preamble_len; i++) {
@@ -219,7 +229,7 @@ horus_packet_v2 get_telemetry() {
 
     int ret = fill_packet(&pac);
     if (ret != 0) {
-        LOG_WRN("Failed to fill packet with GPS data");
+        LOG_WRN("Failed to fill packet with GPS data: %d", ret);
     }
 
     pac.temp = 26;
@@ -241,7 +251,7 @@ int radio_thread(void *, void *, void *) {
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         wait_for_timeslot();
-        LOG_INF("Transmitting Horus");
+        // LOG_INF("Transmitting Horus");
         make_and_transmit_horus();
     }
     return 0;

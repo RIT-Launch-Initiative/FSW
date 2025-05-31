@@ -8,5 +8,6 @@
 #define IMU_SAMPLES_PER_PACKET                                                                                         \
     (sizeof(((NTypes::SuperFastPacket*) 0)->GyroData) / sizeof(((NTypes::SuperFastPacket*) 0)->GyroData[0]))
 
-using SuperSlowPacket = NTypes::SlowInfo[8];
+#define SLOW_DATA_PER_PACKET 8
+using SuperSlowPacket = NTypes::SlowInfo[SLOW_DATA_PER_PACKET];
 #endif

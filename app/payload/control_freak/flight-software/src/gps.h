@@ -1,12 +1,14 @@
 #ifndef FLIGHT_GPS_H
 #define FLIGHT_GPS_H
+#include "data.h"
 #include "f_core/radio/protocols/horus/horus.h"
 
 #include <stdint.h>
 
 // Retrieve GPS part of packed data for slow packet, non-gps bits are left as 0
-int get_packed_gps(uint64_t &packed_data, int16_t &lat_frac, int16_t &long_frac);
+int encode_packed_gps(NTypes::SlowInfo &output);
 
+// Fill a horus packet with GPS data, doesn't modify non-gps fields
 int fill_packet(struct horus_packet_v2 *packet);
 
 uint32_t micros_till_timeslot_opens();

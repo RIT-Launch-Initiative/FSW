@@ -86,7 +86,7 @@ static int gorbfs_init(const struct device *dev) { return 0; }
                      GORBFS_INIT_PRIORITY, NULL);
 
 GORBFS_PARTITION_DEFINE(superfast_storage, NTypes::SuperFastPacket, 8, 500);
-// GORBFS_PARTITION_DEFINE(superslow_storage, struct SuperSlowPacket, 8, 7);
+GORBFS_PARTITION_DEFINE(superslow_storage, SuperSlowPacket, 2, 6);
 
 // helper to create an address from an index
 constexpr uint32_t gen_addr(const gorbfs_partition_config *cfg, uint32_t page_index) {
@@ -105,74 +105,132 @@ int gfs_submit_slab(const struct device *dev, void *slab, k_timeout_t timeout) {
     return ret;
 }
 
-int erase_on_sector(const struct gorbfs_partition_config *cfg, uint32_t page_index) {
-    if (gen_addr(cfg, page_index) % SECTOR_SIZE == 0) {
-        return flash_erase(cfg->flash_dev, gen_addr(cfg, page_index), SECTOR_SIZE);
+int erase_if_on_sector(const struct device *gfs_dev) {
+    const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) gfs_dev->config;
+    struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) gfs_dev->data;
+
+    if (gen_addr(cfg, data->page_index) % SECTOR_SIZE == 0) {
+        return flash_erase(cfg->flash_dev, gen_addr(cfg, data->page_index), SECTOR_SIZE);
     }
     return 0;
 }
 
-int storage_thread_entry(void *v_fc, void *v_dev, void *) {
-    const struct device *dev = *(const struct device **) v_dev;
-    const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) dev->config;
-    struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
+int set_cutoff_if_needed(const struct device *gfs_dev) {
+    const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) gfs_dev->config;
+    struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) gfs_dev->data;
+
+    uint32_t cutoff_index = data->start_index;
+    if (cutoff_index == SET_START_INDEX) {
+        if (data->page_index >= cfg->circle_size_pages) {
+            cutoff_index = data->page_index - cfg->circle_size_pages;
+        } else {
+            cutoff_index = data->page_index + cfg->num_pages - cfg->circle_size_pages;
+        }
+        data->start_index = cutoff_index;
+        LOG_INF("Setting start index to %d (was at %d with circ size %d)", cutoff_index, data->page_index,
+                cfg->circle_size_pages);
+        int start = k_uptime_get();
+        flight_log.Write("yeah man im swapping its crazy");
+        int end = k_uptime_get() - start;
+        LOG_INF("Wrote in %d", end);
+    }
+    return 0;
+}
+
+int handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
+    const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) gfs_dev->config;
+    struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) gfs_dev->data;
+
+    if (chunk_ptr == NULL) {
+        LOG_WRN("Received NULL from msgq");
+        return -ENODATA;
+    }
+    int ret = 0;
+
+    // If the end of the circle has been marked, set it
+    set_cutoff_if_needed(gfs_dev);
+
+    size_t addr = gen_addr(cfg, data->page_index);
+
+    if (data->page_index == data->start_index) {
+        LOG_WRN_ONCE("Discarding page because flash is saturated");
+        k_mem_slab_free(data->slab, (void *) chunk_ptr);
+        return -ENOSPC;
+    }
+
+    if (addr >= cfg->partition_addr + cfg->partition_size) {
+        LOG_WRN("Tried to write out of bounds: End: %d, addr: %d, ind: %d", (cfg->partition_addr + cfg->partition_size),
+                addr, data->page_index);
+        k_mem_slab_free(data->slab, (void *) chunk_ptr);
+        return -EOVERFLOW;
+    }
+    ret = flash_write(cfg->flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
+    if (ret != 0) {
+        LOG_WRN("Failed to flash write at %d: %d", addr, ret);
+    }
+    data->page_index++;
+    if (data->page_index >= cfg->num_pages) {
+        data->page_index %= cfg->num_pages;
+    }
+    k_mem_slab_free(data->slab, (void *) chunk_ptr);
+
+    // Erase if next block will go to new sector
+    return erase_if_on_sector(gfs_dev);
+}
+
+int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
+    const struct device *fast_dev = *(const struct device **) v_fdev;
+    const gorbfs_partition_config *fast_cfg = (struct gorbfs_partition_config *) fast_dev->config;
+    struct gorbfs_partition_data *fast_data = (struct gorbfs_partition_data *) fast_dev->data;
+
+    const struct device *slow_dev = *(const struct device **) v_sdev;
+    const gorbfs_partition_config *slow_cfg = (struct gorbfs_partition_config *) slow_dev->config;
+    struct gorbfs_partition_data *slow_data = (struct gorbfs_partition_data *) slow_dev->data;
 
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
     (void) fc;
-    LOG_INF("Ready for storaging: Page Size: %d, Partition Size: %d, Num Pages: %d", PAGE_SIZE, cfg->partition_size,
-            cfg->num_pages);
+    // IF LOCKED RETURN
+
+    LOG_INF("Partition %s ready for storage: Page Size: %d, Partition Size: %d, Num Pages: %d", fast_dev->name,
+            PAGE_SIZE, fast_cfg->partition_size, fast_cfg->num_pages);
+    LOG_INF("Partition %s ready for storage: Page Size: %d, Partition Size: %d, Num Pages: %d", slow_dev->name,
+            PAGE_SIZE, slow_cfg->partition_size, slow_cfg->num_pages);
+
+    int ret = erase_if_on_sector(fast_dev);
+    if (ret != 0) {
+        LOG_WRN("Failed initial erase of fast partition");
+    }
+    ret = erase_if_on_sector(slow_dev);
+    if (ret != 0) {
+        LOG_WRN("Failed initial erase of slow partition");
+    }
+
+    k_poll_event events[2];
+    k_poll_event_init(&events[0], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, fast_data->msgq);
+    k_poll_event_init(&events[1], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, slow_data->msgq);
 
     while (true) {
         int ret = 0;
-        // a lil unthread safe sorry gang
-        uint32_t cutoff_index = data->start_index;
-        if (cutoff_index == SET_START_INDEX) {
-            if (data->page_index >= cfg->circle_size_pages) {
-                cutoff_index = data->page_index - cfg->circle_size_pages;
-            } else {
-                cutoff_index = data->page_index + cfg->num_pages - cfg->circle_size_pages;
-            }
-            data->start_index = cutoff_index;
-            LOG_INF("Setting start index to %d (was at %d with circ size %d)", cutoff_index, data->page_index,
-                    cfg->circle_size_pages);
-            flight_log.Write("yeah man im swapping its crazy");
-        }
 
-        size_t addr = gen_addr(cfg, data->page_index);
-        ret = erase_on_sector(cfg, data->page_index);
-
-        void *chunk_ptr = NULL;
-        ret = k_msgq_get(data->msgq, &chunk_ptr, K_FOREVER);
+        ret = k_poll(events, ARRAY_SIZE(events), K_FOREVER);
         if (ret != 0) {
-            LOG_WRN("Wait on super fast msgq completed with error %d", ret);
-            continue;
-        }
-        if (chunk_ptr == NULL) {
-            LOG_WRN("Received NULL from msgq");
-            continue;
-        }
-        if (data->page_index == data->start_index) {
-            LOG_WRN_ONCE("Discarding page because flash is saturated");
-            k_mem_slab_free(data->slab, (void *) chunk_ptr);
+            LOG_WRN("Error from k poll: %d", ret);
             continue;
         }
 
-        if (addr >= cfg->partition_addr + cfg->partition_size) {
-            LOG_WRN("Tried to write out of bounds: End: %d, addr: %d, ind: %d",
-                    (cfg->partition_addr + cfg->partition_size), addr, data->page_index);
-            return -1;
+        if (events[0].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
+            void *chunk_ptr = NULL;
+            ret = k_msgq_get(fast_data->msgq, &chunk_ptr, K_FOREVER);
+            handle_new_block(fast_dev, chunk_ptr);
+            events[0].state = K_POLL_STATE_NOT_READY;
+        } else if (events[1].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
+            void *chunk_ptr = NULL;
+            ret = k_msgq_get(slow_data->msgq, &chunk_ptr, K_FOREVER);
+            handle_new_block(slow_dev, chunk_ptr);
+            events[1].state = K_POLL_STATE_NOT_READY;
         }
-        ret = flash_write(cfg->flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
-        if (ret != 0) {
-            LOG_WRN("Failed to flash write at %d: %d", addr, ret);
-        }
-        data->page_index++;
-        if (data->page_index >= cfg->num_pages) {
-            data->page_index %= cfg->num_pages;
-        }
-        k_mem_slab_free(data->slab, (void *) chunk_ptr);
     }
-    int ret = flight_log.Write("Yeah man im done wild huh");
+    ret = flight_log.Write("Yeah man im done wild huh");
     if (ret != 0) {
         LOG_WRN("Couldnt write flight log: %d", ret);
     }
@@ -199,6 +257,10 @@ int gfs_read_block(const struct device *dev, int idx, uint8_t *pac) {
 
 int gfs_signal_end_of_circle(const struct device *dev) {
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
+    if (data->start_index != UNSET_START_INDEX) {
+        LOG_WRN_ONCE("Attempting to set start index that was already set, ignoring");
+        return -ENOTSUP;
+    }
     data->start_index = SET_START_INDEX;
     return 0;
 }
