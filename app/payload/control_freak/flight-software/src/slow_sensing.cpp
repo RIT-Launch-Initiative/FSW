@@ -23,8 +23,26 @@ uint8_t voltage = 79;
 uint8_t current = 81;
 
 uint8_t status = 0xf0;
-
 } // namespace LockedData
+
+int submit_slowdata(const NTypes::AccelerometerData &normed, const float &tempC, const float &current,
+                    const float &voltage) {
+    if (k_mutex_lock(&i2c_data_mutex, K_NO_WAIT)) {
+        LOG_WRN("Couldn't submit to slow data");
+        return -1;
+    }
+    LockedData::orientation[0] = normed.X * 127;
+    LockedData::orientation[1] = normed.Y * 127;
+    LockedData::orientation[2] = normed.Z * 127;
+    LockedData::degC = tempC;
+
+    static constexpr float voltage_base = 6.75; // 6.75 to 9.25
+    static constexpr float voltage_scale = 100; // 2.5 volt range to 250 volt range
+    LockedData::voltage = (voltage - voltage_base) * voltage_scale;
+    LockedData::current = current;
+
+    return k_mutex_unlock(&i2c_data_mutex);
+}
 
 K_TIMER_DEFINE(slow_timer, NULL, NULL);
 

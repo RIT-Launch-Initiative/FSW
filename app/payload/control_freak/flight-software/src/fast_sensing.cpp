@@ -3,7 +3,9 @@
 #include "boost.h"
 #include "data.h"
 #include "gorbfs.h"
+#include "slow_sensing.h"
 
+#include <cmath>
 #include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
@@ -11,6 +13,8 @@
 LOG_MODULE_REGISTER(sensing);
 
 K_TIMER_DEFINE(imutimer, NULL, NULL);
+K_TIMER_DEFINE(slowdata_timer, NULL, NULL);
+
 int set_sampling(const struct device *imu_dev);
 
 int read_barom(const struct device *imu_dev, NTypes::SuperFastPacket *pac);
@@ -19,6 +23,11 @@ int read_imu(const struct device *imu_dev, NTypes::SuperFastPacket *packet, int 
 static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 
 bool DONT_STOP = true;
+
+NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc) {
+    float magn = sqrtf(acc.X * acc.X + acc.Y * acc.Y + acc.Z * acc.Z);
+    return {acc.X / magn, acc.Y / magn, acc.Z / magn};
+}
 
 int boost_and_flight_sensing(const struct device *imu_dev, const struct device *barom_dev,
                              FreakFlightController *freak_controller) {
@@ -30,6 +39,7 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
     NTypes::SuperFastPacket *packet = NULL;
 
     k_timer_start(&imutimer, K_USEC(900), K_USEC(900));
+    k_timer_start(&slowdata_timer, K_SECONDS(1), K_SECONDS(1));
     int packets_sent = 0;
 
     bool has_swapped = false;
@@ -79,6 +89,21 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
         if (is_imu_boosted && !already_imu_boosted) {
             freak_controller->SubmitEvent(Sources::LSM6DSL, Events::Boost);
             already_imu_boosted = true;
+        }
+
+        if (fast_index == 0) {
+            if (k_timer_status_get(&slowdata_timer) > 0) {
+                // slow readings timer expired
+                NTypes::AccelerometerData normed = normalize(packet->AccelData[0]);
+                float temp = packet->BaromData.Temperature;
+                // read ina
+                ret = submit_slowdata(normed, temp, 0, 8.1);
+                if (ret != 0) {
+                    LOG_WRN("Couldn submit slowdata: %d", ret);
+                } else {
+                    LOG_INF("Submitted slowdaata");
+                }
+            }
         }
 
         fast_index++;

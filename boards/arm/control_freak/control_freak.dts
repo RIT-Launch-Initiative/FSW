@@ -374,7 +374,7 @@
 				reg = <0x9e4000 DT_SIZE_K(2700)>;
 			};
 
-			external_storage_partition: partition@11a000 {
+			external_storage_partition: partition@c87000 {
 				// the rest for littlefs
 				// 16384 - 2700 - 10128
 				label = "w25q-storage";

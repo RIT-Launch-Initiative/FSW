@@ -25,10 +25,6 @@ struct gnss_satellite last_sats[MAX_SATS];
 int64_t last_fix_uptime_ticks = 0;
 float last_valid_skew_factor = 1.0090; // 10090
 
-extern FreakFlightController freak_controller;
-
-static const struct device *superslow_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
-
 uint32_t millis_since_start_of_day(const gnss_time &time) {
     static constexpr uint32_t millis_per_minute = 60 * 1000;
     static constexpr uint32_t millis_per_hour = 60 * millis_per_minute;
