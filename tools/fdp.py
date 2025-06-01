@@ -16,6 +16,8 @@ TYPE_SIZES = {
     "int16_t": "h",
     "uint32_t": "I",
     "int32_t": "i",
+    "uint64_t": "Q",
+    "int64_t": "q"
 }
 
 def load_yaml_files(paths: List[str]) -> Dict[str, Any]:
@@ -42,7 +44,7 @@ def get_struct_format(typename: str, schema: Dict[str, Any]) -> str:
 
     for field in type_def["fields"]:
         if "array_size" in field:
-            count = eval(str(field["array_size"]))
+            count = int(field["array_size"])
             fmt += TYPE_SIZES[field["type"]] * count
         else:
             fmt += get_struct_format(field["type"], schema)
@@ -66,7 +68,7 @@ def unpack_fields(data: bytes, typename: str, schema: Dict[str, Any], offset=0) 
     for field in type_def["fields"]:
         field_type = field["type"]
         if "array_size" in field:
-            count = eval(str(field["array_size"]))
+            count = int(field["array_size"])
             fmt = TYPE_SIZES[field_type] * count
             size = struct.calcsize(fmt)
             values = struct.unpack_from(fmt, data, index)
