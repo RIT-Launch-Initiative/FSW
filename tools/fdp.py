@@ -44,8 +44,10 @@ def get_struct_format(typename: str, schema: Dict[str, Any]) -> str:
 
     for field in type_def["fields"]:
         if "array_size" in field:
+            # TODO: Note that this does not handle expressions in array_size (i.e. "array_size": "2 * 3" or "array_size": "256 - sizeof(uint16_t)").
             count = int(field["array_size"])
-            fmt += TYPE_SIZES[field["type"]] * count
+            elem_fmt = get_struct_format(field["type"], schema)
+            fmt += elem_fmt * count
         else:
             fmt += get_struct_format(field["type"], schema)
     return fmt
