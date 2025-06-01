@@ -53,7 +53,10 @@ K_THREAD_DEFINE(buzzer, 512, buzzer_entry_point, NULL, NULL, NULL, CONFIG_SLOWDA
 
 int main() {
     int ret = 0;
-
+    if (is_boostdata_locked()) {
+        buzzer_tell(BuzzCommand::DataLocked);
+        return -1;
+    }
     ret = five_volt_rail_init();
     if (ret != 0) {
         LOG_ERR("Failed to init 5v rail control");
@@ -86,7 +89,8 @@ int main() {
         LOG_ERR("Error initializing servo hardware");
         buzzer_tell(BuzzCommand::SensorTroubles);
     }
-    buzzer_tell(BuzzCommand::AllGood);
+    // buzzer_tell(BuzzCommand::AllGood);
+    buzzer_tell(BuzzCommand::Silent);
 
     //Ground, Boost, Coast, Flight
     ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, &freak_controller);
@@ -102,14 +106,22 @@ int cmd_unlock(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Unlocking boost data");
     unlock_boostdata();
     shell_print(shell, "Success, rebooting....\n\n\n");
+    k_msleep(100);
     sys_reboot(SYS_REBOOT_COLD);
 }
 
 int cmd_stop(const struct shell *shell, size_t argc, char **argv);
 
+int cmd_shutup(const struct shell *shell, size_t argc, char **argv) {
+    shell_print(shell, "Acknowledging that you dont care that data is locked");
+    buzzer_tell(BuzzCommand::AllGood);
+    return 0;
+}
+
+extern bool overriding_boost;
 int cmd_boost(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Boost");
-    freak_controller.SubmitEvent(Sources::LSM6DSL, Events::Boost);
+    overriding_boost = true;
     return 0;
 }
 int cmd_inflated(const struct shell *shell, size_t argc, char **argv) {
@@ -171,6 +183,16 @@ int cmd_read(const struct device *dev, const struct shell *shell, size_t argc, c
     static uint8_t buf[256] = {0};
     for (int i = 0; i < blocks; i++) {
         gfs_read_block(dev, i, buf);
+        bool is_end = true;
+        for (int i = 0; i < 8; i++) {
+            if (buf[i] != 0xff) {
+                is_end = false;
+            }
+        }
+        if (is_end) {
+            shell_print(shell, "Reached erased page partway through (page %d)", i);
+            break;
+        }
         hexdump(shell, buf, 256); // TODO investigate b64 slowdown time
     }
     shell_print(shell, "************ gorb end %s ************", dev->name);
@@ -219,11 +241,12 @@ int cmd_readslow(const struct shell *shell, size_t argc, char **argv) {
 SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
                                SHELL_CMD(unlocl, NULL, "Unlock flight data partition", cmd_unlock),
                                SHELL_CMD(boost, NULL, "fake boost detect", cmd_boost),
+                               SHELL_CMD(shut, NULL, "stop yapping", cmd_shutup),
                                SHELL_CMD(inflated, NULL, "fake inflated", cmd_inflated), SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(test, &test_subcmds, "Test Commands", NULL);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(gorb_subcmds, SHELL_CMD(dumpfast, NULL, "Dump fast partition", cmd_readfast),
-                               SHELL_CMD(dumpfast, NULL, "Dump slow partition", cmd_readslow), SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(dumpslow, NULL, "Dump slow partition", cmd_readslow), SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(gorb, &gorb_subcmds, "Gorbfs Commands", NULL);

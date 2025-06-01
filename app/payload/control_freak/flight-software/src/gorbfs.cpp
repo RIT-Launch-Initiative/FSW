@@ -177,8 +177,11 @@ int handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     // Erase if next block will go to new sector
     return erase_if_on_sector(gfs_dev);
 }
-
 int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
+    if (is_boostdata_locked()) {
+        return -1;
+    }
+
     const struct device *fast_dev = *(const struct device **) v_fdev;
     const gorbfs_partition_config *fast_cfg = (struct gorbfs_partition_config *) fast_dev->config;
     struct gorbfs_partition_data *fast_data = (struct gorbfs_partition_data *) fast_dev->data;

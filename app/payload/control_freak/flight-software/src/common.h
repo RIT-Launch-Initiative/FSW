@@ -29,4 +29,8 @@ int set_lsm_sampling(const struct device *imu_dev, int odr);
 
 NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc);
 
+void unlock_boostdata();
+void lock_boostdata();
+bool is_boostdata_locked();
+
 #endif

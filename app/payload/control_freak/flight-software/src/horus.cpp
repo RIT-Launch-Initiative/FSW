@@ -248,7 +248,9 @@ void make_and_transmit_horus() {
 void wait_for_timeslot() { k_msleep(2000); }
 
 int radio_thread(void *, void *, void *) {
-    k_msleep(300000);
+    if (is_boostdata_locked()) {
+        return -1;
+    }
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         wait_for_timeslot();

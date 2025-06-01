@@ -47,6 +47,9 @@ int submit_slowdata(const NTypes::AccelerometerData &normed, const float &tempC,
 K_TIMER_DEFINE(slow_timer, NULL, NULL);
 
 int slow_sensing_thread(void *v_fc, void *, void *) {
+    if (is_boostdata_locked()) {
+        return -1;
+    }
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
 
     // IF LOCKED, RETURN
@@ -76,6 +79,9 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
                 // current.Orientation = orientation;
                 current.TempC = LockedData::degC;
                 current.Current = LockedData::current;
+                current.Orientation[0] = LockedData::orientation[0];
+                current.Orientation[1] = LockedData::orientation[1];
+                current.Orientation[2] = LockedData::orientation[2];
                 current.Battery_voltage = LockedData::voltage;
                 current.FlipStatus = LockedData::flip_state;
                 k_mutex_unlock(&i2c_data_mutex);

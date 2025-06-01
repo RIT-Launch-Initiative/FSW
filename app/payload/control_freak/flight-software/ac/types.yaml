@@ -34,8 +34,14 @@ SlowInfo:
     - name: LongFrac
       type: int16_t
     - name: Orientation
-      type: int16_t
+      type: int8_t
       array_size: 3
+    - name: Other1
+      type: uint8_t
+    - name: Other2
+      type: uint8_t
+    - name: Other3
+      type: uint8_t
     - name: Battery_voltage
       type: int16_t
     - name: Current

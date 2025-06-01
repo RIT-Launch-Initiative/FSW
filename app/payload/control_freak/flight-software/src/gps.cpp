@@ -45,7 +45,11 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
     if (k_mutex_lock(&gps_mutex, K_MSEC(20)) != 0) {
         return -1;
     }
-    output.Timestamp = last_fix_uptime_ticks;
+    if (last_data.info.fix_status == GNSS_FIX_STATUS_NO_FIX) {
+        output.Timestamp = k_uptime_ticks();
+    } else {
+        output.Timestamp = last_fix_uptime_ticks;
+    }
     float lat = last_data.nav_data.latitude;
     float lon = last_data.nav_data.longitude;
     int32_t alt_mm = last_data.nav_data.altitude;     // mm asl
@@ -131,6 +135,15 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
     last_data = *data;
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
         last_fix_uptime_ticks = k_uptime_ticks();
+        LOG_INF("Got GPS");
+        LOG_INF("Quality: %d, Status: %d, Sats: %d", data->info.fix_quality, data->info.fix_status,
+                data->info.satellites_cnt);
+
+        LOG_INF("Lat: %lld, Long: %lld", data->nav_data.latitude, data->nav_data.longitude);
+        LOG_INF("%d/%d/%d %02d:%02d:%d", data->utc.month, data->utc.month_day, data->utc.century_year, data->utc.hour,
+                data->utc.minute, data->utc.millisecond);
+    } else {
+        LOG_WRN("No Fix");
     }
     k_mutex_unlock(&gps_mutex);
 }

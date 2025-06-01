@@ -300,6 +300,9 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     }
     LOG_INF("Low Power");
     set_lsm_sampling(imu_dev, 1);
+
+    // pump_until_full();
+
     while (true) {
         k_msleep(1000);
     }

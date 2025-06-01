@@ -72,16 +72,17 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
         }
         read_imu(imu_dev, packet, fast_index % IMU_SAMPLES_PER_PACKET);
 
+        if (!already_imu_boosted) {
 // You just gotta trust me its aligned sorry dude
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-        bool is_imu_boosted = feed_boost_acc(k_uptime_get(), &packet->AccelData[fast_index].X);
+            bool is_imu_boosted = feed_boost_acc(k_uptime_get(), &packet->AccelData[fast_index].X);
 #pragma GCC diagnostic pop
-        if (is_imu_boosted && !already_imu_boosted) {
-            freak_controller->SubmitEvent(Sources::LSM6DSL, Events::Boost);
-            already_imu_boosted = true;
+            if (is_imu_boosted) {
+                freak_controller->SubmitEvent(Sources::LSM6DSL, Events::Boost);
+                already_imu_boosted = true;
+            }
         }
-
         if (fast_index == 0) {
             if (k_timer_status_get(&slowdata_timer) > 0) {
                 // slow readings timer expired
