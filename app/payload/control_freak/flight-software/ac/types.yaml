@@ -36,7 +36,7 @@ SlowInfo:
     - name: Orientation
       type: int16_t
       array_size: 3
-    - name: Battery_voltage
+    - name: BatteryVoltage
       type: int16_t
     - name: Current
       type: uint16_t

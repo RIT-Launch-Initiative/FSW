@@ -175,7 +175,6 @@ int storage_thread_entry(void *v_fc, void *v_dev, void *) {
 
 int gfs_total_blocks(const struct device *dev) {
     const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) dev->config;
-    // struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
 
     return cfg->partition_size / PAGE_SIZE;
 }
