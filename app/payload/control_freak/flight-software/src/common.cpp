@@ -12,7 +12,7 @@ int read_ina(const struct device *ina_dev, float &voltage, float &current) {
     }
     sensor_channel_get(ina_dev, SENSOR_CHAN_CURRENT, &value);
     current = sensor_value_to_float(&value);
-    if (voltage > 78) {
+    if (current > 78) {
         // man the EEs gotta be missing something
         current = 0;
     }

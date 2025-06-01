@@ -2,6 +2,8 @@
 
 #include "5v_ctrl.h"
 #include "common.h"
+#include "f_core/utils/linear_fit.hpp"
+#include "pump.h"
 #include "slow_sensing.h"
 
 #include <algorithm>
@@ -140,6 +142,10 @@ int init_flip_hw() {
     rail_item_disable(FiveVoltItem::Pump);
     rail_item_disable(FiveVoltItem::Servos);
 
+    state1.last_ticks = Servo1.closed_pulselen;
+    state2.last_ticks = Servo2.closed_pulselen;
+    state3.last_ticks = Servo3.closed_pulselen;
+
     return 0;
 }
 
@@ -183,24 +189,39 @@ struct Shunt {
 constexpr int servo_steps = 120;
 Shunt current_log[120] = {};
 
-int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, float &current_before,
-                  float &voltage_before) {
+CMovingAverage<float, 5> filter{0};
 
-    uint32_t start = servo.closed_pulselen;
+int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open,
+                  float &current_before, float &voltage_before) {
+    int msec = 20;
+    if (strat == SweepStrategy::Fast) {
+        msec = 5;
+    }
+    uint32_t start = servo.state.last_ticks;
     uint32_t end = servo.open_pulselen;
-    if (servo.state.last_ticks == servo.open_pulselen) {
-        start = servo.open_pulselen;
+    if (!open) {
         end = servo.closed_pulselen;
     };
+
+    filter.Fill(0);
+    static constexpr float servo_current_cutoff = 2.4;
 
     int delta = end - start;
     LOG_INF("Moving %d to %d", start, end);
     for (int i = 0; i < servo_steps; i++) {
         float current = 0;
         float voltage = 0;
-        int ret = read_ina(ina_dev, current, voltage);
+        int ret = read_ina(ina_dev, voltage, current);
+
+        filter.Feed(current);
+        if (filter.Avg() > servo_current_cutoff) {
+            LOG_WRN("Over currented");
+            servo.disconnect();
+            break;
+        }
+
         current_log[i].current = current;
-        current_log[i].voltage = voltage;
+        current_log[i].voltage = filter.Avg();
 
         int pulse = start + delta * i / servo_steps;
 
@@ -208,18 +229,17 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
         if (ret < 0) {
             printk("Error %d: failed to set pulse width\n", ret);
         }
-        k_msleep(20);
+        k_msleep(msec);
     }
+    k_msleep(100); // Wait to settle
+
     // LOG_INF("Current, Voltage\n");
     // for (int i = 0; i < servo_steps; i++) {
-    // LOG_INF("%.4f, %.4f\n", (double) current_log[i].current, (double) current_log[i].voltage);
+    // LOG_INF("%.4f %.4f", (double) current_log[i].current, (double) current_log[i].voltage);
+    // k_msleep(1);
     // }
-    int ret = servo.set_pulse(end);
-    if (ret < 0) {
-        LOG_WRN("Error %d: failed to set pulse width\n", ret);
-    }
-    k_msleep(100);
-    ret = servo.disconnect();
+
+    int ret = servo.disconnect();
     if (ret < 0) {
         LOG_WRN("Error %d: failed to disable servo\n", ret);
         return ret;
@@ -269,21 +289,21 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
         float current_before = 0;
         float voltage_before = 0;
         float tempC = 0;
-        if (face == PayloadFace::Face1) {
-            ret = flip_one_side(ina_dev, Servo1, Slow, current_before, voltage_before);
-        } else if (face == PayloadFace::Face1) {
-            ret = flip_one_side(ina_dev, Servo2, Slow, current_before, voltage_before);
-        } else if (face == PayloadFace::Face1) {
-            ret = flip_one_side(ina_dev, Servo3, Slow, current_before, voltage_before);
-        }
+
+        int index = face;
+        ret = flip_one_side(ina_dev, *servos[index], Fast, true, current_before, voltage_before);
         if (ret != 0) {
             LOG_WRN("Error sweeping servo: %d", ret);
         }
+        // Return
+        flip_one_side(ina_dev, *servos[index], Slow, false, current_before, voltage_before);
+
         FlipState fs = FLIP_STATE(face, attempts_on_this_face);
         ret = submit_slowdata(vec, tempC, current_before, voltage_before, fs);
         if (ret < 0) {
             LOG_WRN("Failed to send slowdata");
         }
+
         LOG_INF("Iteration %d complete", i);
     }
     rail_item_disable(FiveVoltItem::Servos);
@@ -301,11 +321,8 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     LOG_INF("Low Power");
     set_lsm_sampling(imu_dev, 1);
 
-    // pump_until_full();
-
-    while (true) {
-        k_msleep(1000);
-    }
+    static constexpr int initial_inflation_attempts = 20;
+    attempt_inflation_iteration(ina_pump);
 
     return -ENOTSUP;
 }

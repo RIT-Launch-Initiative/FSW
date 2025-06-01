@@ -1,2 +1,6 @@
 #include <zephyr/device.h>
-int attempt_inflation_iteration(const struct device *ina_pump, size_t duty_on);
+
+#define PUMP_STOP_DUTY_CYCLE 0
+#define PUMP_STOP_CURRENT    1
+
+int attempt_inflation_iteration(const struct device *ina_pump);
