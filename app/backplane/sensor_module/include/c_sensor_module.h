@@ -63,7 +63,7 @@ class CSensorModule : public CProjectConfiguration {
     CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 
     CFlightLog flight_log;
-    SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, &flight_log};
+    SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, NULL};
     CDetectionHandler detectionHandler{controller, alertMessagePort};
 
     // Tenants
