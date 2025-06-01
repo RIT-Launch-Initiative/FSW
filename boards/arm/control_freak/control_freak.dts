@@ -29,10 +29,17 @@
 		servo1 = &servo1;
 		servo2 = &servo2;
 		servo3 = &servo3;
+		
 		radioreset = &radioreset;
 
 		imu = &lsm6dsl;
 		barom = &bmp390;
+
+		inapump = &ina260_pump;
+		inaservo = &ina260_servo;
+
+		antennacam = &cam1_enable;
+		groundcam = &cam2_enable;
 	};
 
 	servos: servos{
@@ -261,6 +268,9 @@
 	pinctrl-names = "default";
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
+
+	scl-gpios = <&gpiob 6 GPIO_ACTIVE_HIGH>;
+	sda-gpios = <&gpiob 7 GPIO_ACTIVE_HIGH>;
 
 	bmp390: bmp390@77 {
 		status = "okay";

@@ -1,5 +1,7 @@
 #include "buzzer.h"
 
+#include "5v_ctrl.h"
+
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
@@ -23,7 +25,6 @@ void buzzer_tell(BuzzCommand cond) { k_msgq_put(&buzzer_msgq, &cond, K_MSEC(10))
 */
 
 #define BEEPCODE_LENGTH 32
-#define SILENCE_LENGTH  0
 
 const uint32_t beepcodes[] = {
     [Silent] = 0b00000000000000000000000000000000,         [AllGood] = 0b11111111111111111111111100000000,
@@ -32,12 +33,6 @@ const uint32_t beepcodes[] = {
 };
 
 void buzzer_entry_point(void *, void *, void *) {
-#define BUZZER_NODE DT_ALIAS(buzz)
-#define LDO_NODE    DT_ALIAS(ldo5v)
-    const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(BUZZER_NODE, gpios);
-    const struct gpio_dt_spec ldo = GPIO_DT_SPEC_GET(LDO_NODE, gpios);
-    gpio_pin_configure_dt(&ldo, GPIO_OUTPUT_ACTIVE);
-    gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_INACTIVE);
     uint32_t frame = 0;
     BuzzCommand current_cond = BuzzCommand::Silent;
     uint32_t current_code = beepcodes[current_cond];
@@ -51,16 +46,12 @@ void buzzer_entry_point(void *, void *, void *) {
             frame = 0;
         }
         // Set buzzer according to beepcode
-        if (frame < BEEPCODE_LENGTH) {
-            int buzzer_state = (current_code >> frame) & 0b1;
-            gpio_pin_set_dt(&buzzer, buzzer_state);
-        } else {
-            gpio_pin_set_dt(&buzzer, 0);
-        }
+        int buzzer_state = (current_code >> frame) & 0b1;
+        rail_item_set(FiveVoltItem::Buzzer, buzzer_state);
 
         // Progress time and wrap around when needed
         frame++;
-        if (frame >= BEEPCODE_LENGTH + SILENCE_LENGTH) {
+        if (frame >= BEEPCODE_LENGTH) {
             frame = 0;
         }
         k_msleep(125);

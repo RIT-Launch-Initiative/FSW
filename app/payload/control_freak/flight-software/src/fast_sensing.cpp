@@ -1,7 +1,7 @@
 #include "fast_sensing.h"
 
 #include "boost.h"
-#include "data.h"
+#include "common.h"
 #include "gorbfs.h"
 #include "slow_sensing.h"
 
@@ -15,22 +15,15 @@ LOG_MODULE_REGISTER(sensing);
 K_TIMER_DEFINE(imutimer, NULL, NULL);
 K_TIMER_DEFINE(slowdata_timer, NULL, NULL);
 
-int set_sampling(const struct device *imu_dev);
+static int set_sampling(const struct device *imu_dev);
 
 int read_barom(const struct device *imu_dev, NTypes::SuperFastPacket *pac);
 int read_imu(const struct device *imu_dev, NTypes::SuperFastPacket *packet, int frame);
 
-static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
-
 bool DONT_STOP = true;
 
-NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc) {
-    float magn = sqrtf(acc.X * acc.X + acc.Y * acc.Y + acc.Z * acc.Z);
-    return {acc.X / magn, acc.Y / magn, acc.Z / magn};
-}
-
-int boost_and_flight_sensing(const struct device *imu_dev, const struct device *barom_dev,
-                             FreakFlightController *freak_controller) {
+int boost_and_flight_sensing(const struct device *superfast_storage, const struct device *imu_dev,
+                             const struct device *barom_dev, FreakFlightController *freak_controller) {
     set_sampling(imu_dev);
 
     int64_t start = k_uptime_get();
@@ -45,8 +38,6 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
     bool has_swapped = false;
 
     bool already_imu_boosted = false;
-
-    int64_t total_start = k_cycle_get_64();
 
     int ret = 0;
 
@@ -97,11 +88,9 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
                 NTypes::AccelerometerData normed = normalize(packet->AccelData[0]);
                 float temp = packet->BaromData.Temperature;
                 // read ina
-                ret = submit_slowdata(normed, temp, 0, 8.1);
+                ret = submit_slowdata(normed, temp, 0, 8.1, FLIP_STATE_NOT_TRYING);
                 if (ret != 0) {
                     LOG_WRN("Couldn submit slowdata: %d", ret);
-                } else {
-                    LOG_INF("Submitted slowdaata");
                 }
             }
         }
@@ -127,7 +116,6 @@ int boost_and_flight_sensing(const struct device *imu_dev, const struct device *
             LOG_WRN("Couldnt submit final slab: %d", ret);
         }
     }
-    int64_t total_elapsed = k_cycle_get_64() - total_start;
 
     int64_t end = k_uptime_get();
     int64_t elapsed = end - start;
@@ -186,7 +174,7 @@ int read_barom(const struct device *barom_dev, NTypes::SuperFastPacket *packet) 
     return 0;
 }
 
-int set_sampling(const struct device *imu_dev) {
+static int set_sampling(const struct device *imu_dev) {
     struct sensor_value sampling = {0};
     sensor_value_from_float(&sampling, 1666);
     int ret = sensor_attr_set(imu_dev, SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);

@@ -1,4 +1,4 @@
-#include "data.h"
+#include "common.h"
 #include "flight.h"
 #include "gorbfs.h"
 #include "gps.h"
@@ -22,11 +22,11 @@ uint8_t degC = 33;
 uint8_t voltage = 79;
 uint8_t current = 81;
 
-uint8_t status = 0xf0;
+uint8_t flip_state = 0xf0;
 } // namespace LockedData
 
 int submit_slowdata(const NTypes::AccelerometerData &normed, const float &tempC, const float &current,
-                    const float &voltage) {
+                    const float &voltage, FlipState fs) {
     if (k_mutex_lock(&i2c_data_mutex, K_NO_WAIT)) {
         LOG_WRN("Couldn't submit to slow data");
         return -1;
@@ -68,8 +68,7 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
         for (int packet_index = 0; packet_index < SLOW_DATA_PER_PACKET; packet_index++) {
             k_timer_status_sync(&slow_timer);
             NTypes::SlowInfo &current = (*slow_packet_buffer)[packet_index];
-            current.Timestamp = k_uptime_get();
-            ret = encode_packed_gps(current);
+            ret = encode_packed_gps_and_time(current);
             if (ret != 0) {
                 LOG_WRN("Invalid GPS for this slow packet: %d", ret);
             }
@@ -78,7 +77,7 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
                 current.TempC = LockedData::degC;
                 current.Current = LockedData::current;
                 current.Battery_voltage = LockedData::voltage;
-                current.FlipStatus = LockedData::status;
+                current.FlipStatus = LockedData::flip_state;
                 k_mutex_unlock(&i2c_data_mutex);
             } else {
                 LOG_WRN("Invalid i2c data for this slow packet");

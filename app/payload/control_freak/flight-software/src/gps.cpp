@@ -1,6 +1,6 @@
 #include "gps.h"
 
-#include "data.h"
+#include "common.h"
 #include "f_core/utils/n_gnss_utils.h"
 #include "flight.h"
 #include "gorbfs.h"
@@ -41,10 +41,11 @@ uint32_t millis_since_start_of_day(const gnss_time &time) {
 // 4 bits satelites (max 16 in sight at once http://csno-tarc.cn/en/gps/number)
 // 27 bits millis since start of day
 // 1 bit for fun
-int encode_packed_gps(NTypes::SlowInfo &output) {
+int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
     if (k_mutex_lock(&gps_mutex, K_MSEC(20)) != 0) {
         return -1;
     }
+    output.Timestamp = last_fix_uptime_ticks;
     float lat = last_data.nav_data.latitude;
     float lon = last_data.nav_data.longitude;
     int32_t alt_mm = last_data.nav_data.altitude;     // mm asl
