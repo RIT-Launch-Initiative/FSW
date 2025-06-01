@@ -25,15 +25,15 @@ int five_volt_rail_init() {
     };
     for (auto [gpio, name] : pairs) {
         if (!gpio_is_ready_dt(gpio)) {
-            LOG_WRN("No %s pin :(\n", name);
+            LOG_WRN("No %s pin :(", name);
         }
         int ret = gpio_pin_configure_dt(gpio, GPIO_OUTPUT_INACTIVE);
         if (ret < 0) {
-            LOG_WRN("Failed to conf %s pin:(\n", name);
+            LOG_WRN("Failed to conf %s pin:(", name);
             return ret;
         }
     }
-    LOG_INF("5V Rail all good\n");
+    LOG_INF("5V Rail all good");
     return 0;
 }
 
