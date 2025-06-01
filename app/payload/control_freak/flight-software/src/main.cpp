@@ -49,8 +49,16 @@ K_THREAD_DEFINE(slow_sensing, CONFIG_SLOWDATA_THREAD_STACK_SIZE, slow_sensing_th
 K_THREAD_DEFINE(cameras, 512, camera_thread_entry, (void *) &freak_controller, NULL, NULL,
                 CONFIG_SLOWDATA_THREAD_PRIORITY, 0, 0);
 
+K_THREAD_DEFINE(buzzer, 512, buzzer_entry_point, NULL, NULL, NULL, CONFIG_SLOWDATA_THREAD_PRIORITY, 0, 0);
+
 int main() {
     int ret = 0;
+
+    ret = five_volt_rail_init();
+    if (ret != 0) {
+        LOG_ERR("Failed to init 5v rail control");
+        buzzer_tell(BuzzCommand::SensorTroubles);
+    }
 
     const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
     const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
@@ -58,33 +66,34 @@ int main() {
     const struct device *ina_servo = DEVICE_DT_GET(DT_ALIAS(inaservo));
     const struct device *ina_pump = DEVICE_DT_GET(DT_ALIAS(inapump));
 
-    buzzer_tell(BuzzCommand::Silent);
-
     if (!device_is_ready(imu_dev) || !device_is_ready(barom_dev)) {
         LOG_ERR("Sensor devices not ready");
+        buzzer_tell(BuzzCommand::SensorTroubles);
         return -1;
     }
     if (!device_is_ready(ina_servo) || !device_is_ready(ina_pump)) {
         LOG_ERR("Sensor devices not ready");
+        buzzer_tell(BuzzCommand::SensorTroubles);
         return -1;
     }
     if (!device_is_ready(superfast_storage)) {
         LOG_ERR("Storage not ready");
+        buzzer_tell(BuzzCommand::SensorTroubles);
     }
 
     ret = init_flip_hw();
     if (ret != 0) {
         LOG_ERR("Error initializing servo hardware");
+        buzzer_tell(BuzzCommand::SensorTroubles);
     }
-    ret = five_volt_rail_init();
-    if (ret != 0) {
-        LOG_ERR("Failed to init 5v rail control");
-    }
+    buzzer_tell(BuzzCommand::AllGood);
 
     //Ground, Boost, Coast, Flight
     ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, &freak_controller);
     LOG_INF("On the ground now");
+
     do_flipping_and_pumping(imu_dev, barom_dev, ina_servo, ina_pump);
+    LOG_WRN("you really shouldnt be here");
 
     return 0;
 }

@@ -3,6 +3,8 @@
 #include <initializer_list>
 #include <tuple>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(rail5v);
 
 static const struct gpio_dt_spec ldo_en = GPIO_DT_SPEC_GET(DT_ALIAS(ldo5v), gpios);
 
@@ -23,31 +25,41 @@ int five_volt_rail_init() {
     };
     for (auto [gpio, name] : pairs) {
         if (!gpio_is_ready_dt(gpio)) {
-            printk("No %s pin :(\n", name);
+            LOG_WRN("No %s pin :(\n", name);
         }
         int ret = gpio_pin_configure_dt(gpio, GPIO_OUTPUT_INACTIVE);
         if (ret < 0) {
-            printk("Failed to conf %s pin:(\n", name);
+            LOG_WRN("Failed to conf %s pin:(\n", name);
             return ret;
         }
     }
-    printk("5V Rail all good\n");
+    LOG_INF("5V Rail all good\n");
     return 0;
 }
 
 static bool state[(int) FiveVoltItem::NumItems] = {false};
 
-static int set_accordingly() { return gpio_pin_set_dt(&ldo_en, (state[0] || state[1] || state[2])); }
-
-// enable a zone (if everything else is off, turn the rail on)
-// NOTE: this does not turn on the buzzer/pump, just enables power to it
+static int set_ldo_accordingly() { return gpio_pin_set_dt(&ldo_en, (state[0] || state[1] || state[2])); }
+static int set_item(FiveVoltItem item, bool set) {
+    if (item >= FiveVoltItem::NumItems) {
+        LOG_WRN("Invalid 5v rail item");
+        return -ENODEV;
+    }
+    state[(int) item] = set;
+    if (item == FiveVoltItem::Buzzer) {
+        return gpio_pin_set_dt(&buzzer, set);
+    } else if (item == FiveVoltItem::Servos) {
+        return gpio_pin_set_dt(&servo_en, set);
+    } else {
+        return gpio_pin_set_dt(&pump_enable, set);
+    }
+    return 0;
+}
 int rail_item_enable(FiveVoltItem item) { return rail_item_set(item, true); }
 
-// disable a zone (if everything else is off, turn the rail off)
-// NOTE: this does not turn off the buzzer/pump, just disables power to it
 int rail_item_disable(FiveVoltItem item) { return rail_item_set(item, false); }
 
 int rail_item_set(FiveVoltItem item, bool set) {
-    state[(int) item] = set;
-    return set_accordingly();
+    set_item(item, set);
+    return set_ldo_accordingly();
 }

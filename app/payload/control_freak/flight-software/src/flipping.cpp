@@ -9,7 +9,6 @@
 #include <cmath>
 #include <cstdint>
 #include <zephyr/device.h>
-#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
@@ -299,6 +298,8 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     if (ret != FLIPPED_AND_RIGHTED) {
         LOG_INF("Bad news, we'll worry about this later");
     }
+    LOG_INF("Low Power");
+    set_lsm_sampling(imu_dev, 1);
     while (true) {
         k_msleep(1000);
     }
