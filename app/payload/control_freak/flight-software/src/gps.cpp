@@ -84,13 +84,55 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
     output.PackedData = (((uint64_t) highside) << 32) | lowside;
     return k_mutex_unlock(&gps_mutex);
 }
-
-uint32_t micros_till_timeslot_opens() {
+extern int64_t asdf_ticks;
+uint32_t millis_till_timeslot_opens() {
+    if (last_data.info.fix_status == GNSS_FIX_STATUS_NO_FIX) {
+        return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
+    }
     k_ticks_t last_tick_delta = ublox_10_last_tick_delta(gps_dev);
-    int64_t last_tick_uptime = ublox_10_last_tick_uptime(gps_dev);
-    uint32_t delta_us = k_ticks_to_us_near32(last_tick_delta);
+    int64_t last_tick_uptime_ticks = ublox_10_last_tick_uptime(gps_dev);
+    LOG_INF("uptiem ticks:%lld, %lld", asdf_ticks, last_tick_uptime_ticks);
+    last_tick_uptime_ticks = asdf_ticks;
+    // Assume timepulse was for the last NMEA time sentence, correct later if
+    // not
+    uint32_t seconds_from_hour_start_of_last_timepulse = last_data.utc.minute * 60 + last_data.utc.millisecond / 1000;
+    if (last_fix_uptime_ticks < last_tick_uptime_ticks) {
+        // A time pulse has come in after that NMEA sentence
+        // Add 1 second to compensate
+        seconds_from_hour_start_of_last_timepulse++;
+    }
+    LOG_INF("TP since top of hour: %d", seconds_from_hour_start_of_last_timepulse);
 
-    return 1000 * 1000;
+    int32_t seconds_from_time_sync_start =
+        seconds_from_hour_start_of_last_timepulse - CONFIG_HORUS_TIMESLOT_OFFSET_SECONDS;
+
+    if (seconds_from_time_sync_start < 0) {
+        // if before time slice time, pretend we're going from the previous hour
+        seconds_from_time_sync_start += 60 * 60;
+    }
+    LOG_INF("seconds from time sync start: %d", seconds_from_time_sync_start);
+
+    uint32_t periods_so_far = seconds_from_time_sync_start / CONFIG_HORUS_TIMESLOT_SECONDS;
+    LOG_INF("%d periods so far", periods_so_far);
+    uint32_t offset_into_this_period = seconds_from_time_sync_start - (CONFIG_HORUS_TIMESLOT_SECONDS * periods_so_far);
+    LOG_INF("offset into this period %d", offset_into_this_period);
+
+    uint32_t seconds_from_timepulse_to_next_slot = CONFIG_HORUS_TIMESLOT_SECONDS - offset_into_this_period;
+    LOG_INF("Seconds from timepulse to next slot: %d", seconds_from_timepulse_to_next_slot);
+    int64_t now_ms = k_uptime_get();
+    int64_t tp_ms = k_ticks_to_ms_near64(last_tick_uptime_ticks);
+    LOG_INF("Last tick at %lld  ms", tp_ms);
+
+    int64_t uptime_ms_of_next_slot = tp_ms + seconds_from_timepulse_to_next_slot * 1000;
+    LOG_INF("ms of next slot %lld  ms, now %lld", uptime_ms_of_next_slot, now_ms);
+
+    int32_t ms_left = uptime_ms_of_next_slot - now_ms;
+    if (ms_left < 0 || ms_left > (int) (CONFIG_HORUS_TIMESLOT_SECONDS * 1000)) {
+        printf("ERROR calculating time sync: %d wanted < %d\n", ms_left, (int) (CONFIG_HORUS_TIMESLOT_SECONDS * 1000));
+        return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
+    }
+
+    return ms_left;
 }
 
 float get_skew_smart() { return last_valid_skew_factor; }
@@ -135,13 +177,13 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
     last_data = *data;
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
         last_fix_uptime_ticks = k_uptime_ticks();
-        LOG_INF("Got GPS");
-        LOG_INF("Quality: %d, Status: %d, Sats: %d", data->info.fix_quality, data->info.fix_status,
-                data->info.satellites_cnt);
-
-        LOG_INF("Lat: %lld, Long: %lld", data->nav_data.latitude, data->nav_data.longitude);
-        LOG_INF("%d/%d/%d %02d:%02d:%d", data->utc.month, data->utc.month_day, data->utc.century_year, data->utc.hour,
-                data->utc.minute, data->utc.millisecond);
+        // LOG_INF("Got GPS");
+        // LOG_INF("Quality: %d, Status: %d, Sats: %d", data->info.fix_quality, data->info.fix_status,
+        // data->info.satellites_cnt);
+        //
+        // LOG_INF("Lat: %lld, Long: %lld", data->nav_data.latitude, data->nav_data.longitude);
+        // LOG_INF("%d/%d/%d %02d:%02d:%d", data->utc.month, data->utc.month_day, data->utc.century_year, data->utc.hour,
+        // data->utc.minute, data->utc.millisecond);
     } else {
         LOG_WRN("No Fix");
     }

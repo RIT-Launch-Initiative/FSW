@@ -245,7 +245,10 @@ void make_and_transmit_horus() {
     transmit_horus(&packet[0], sizeof(packet));
 }
 
-void wait_for_timeslot() { k_msleep(2000); }
+void wait_for_timeslot() {
+    uint32_t ms = millis_till_timeslot_opens();
+    k_msleep(ms);
+}
 
 int radio_thread(void *, void *, void *) {
     if (is_boostdata_locked()) {

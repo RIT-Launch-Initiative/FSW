@@ -237,12 +237,19 @@ static int ublox_m10_init_chat(const struct device *dev) {
     return modem_chat_init(&data->chat, &chat_config);
 }
 
+int64_t asdf_ticks = 0;
+
 static inline void ublox_m10_handle_irq(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
     struct ublox_m10_data *data = CONTAINER_OF(cb, struct ublox_m10_data, timepulse_cb_data);
 
-    int64_t cyc = k_uptime_ticks();
-    data->last_tick_delta = cyc - data->last_tick;
-    data->last_tick = cyc;
+    int64_t ticks = k_uptime_ticks();
+    if (data->last_tick != 0) {
+        data->last_tick_delta = ticks - data->last_tick;
+    }
+    data->last_tick = ticks;
+    asdf_ticks = ticks;
+
+    ticks += 2;
 }
 
 static int ublox_m10_init_gpios(const struct device *dev) {
@@ -327,7 +334,7 @@ MODEM_CHAT_SCRIPT_EMPTY_DEFINE(ublox_m10_init_chat_script);
         .reset_on_boot = DT_INST_PROP_OR(inst, reset_on_boot, false),                                                  \
     };                                                                                                                 \
                                                                                                                        \
-    static struct ublox_m10_data ublox_m10_data_##inst = {};                                                           \
+    static struct ublox_m10_data ublox_m10_data_##inst = {.last_tick = 0, .last_tick_delta = 0};                       \
                                                                                                                        \
     PM_DEVICE_DT_INST_DEFINE(inst, ublox_m10_pm_action);                                                               \
                                                                                                                        \
