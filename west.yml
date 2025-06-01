@@ -18,6 +18,7 @@ manifest:
           - cmsis
           - hal_st
           - hal_stm32
+          - hal_nxp
           - littlefs
           - loramac-node
           - hal_st
