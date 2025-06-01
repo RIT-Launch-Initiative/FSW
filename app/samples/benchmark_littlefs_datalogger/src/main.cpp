@@ -91,10 +91,10 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
 
         // Fill packet
         {
-            packet.timestamp = k_uptime_get_32();
             for (size_t j = 0; j < sizeof(packet) / sizeof(float); ++j) {
                 reinterpret_cast<float *>(&packet)[j] = static_cast<float>(j + i);
             }
+            packet.timestamp = k_uptime_get_32();
         }
 
         timing_t start = 0;
@@ -172,12 +172,6 @@ static void runDataloggerBenchmarks() {
     benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
 
     benchmarkDataloggerMode<LargePacket>("Large Packet (Growing Mode)", "/lfs/large_growing.bin", LogMode::Growing);
-
-    //benchmarkDataloggerMode<MediumPacket>("Medium Packet (Circular Mode)", "/lfs/medium_circular.bin",
-    //                                       LogMode::Circular, 500);
-
-    //benchmarkDataloggerMode<MediumPacket>("Medium Packet (FixedSize Mode)", "/lfs/medium_fixed.bin", LogMode::FixedSize,
-     //                                      500);
 }
 
 int main() {
