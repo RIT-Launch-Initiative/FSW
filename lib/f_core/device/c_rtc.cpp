@@ -7,7 +7,13 @@
 
 LOG_MODULE_REGISTER(CRtc);
 
-CRtc::CRtc(const device& dev) : rtc(dev) {}
+CRtc::CRtc(const device& dev) : rtc(dev) {
+    rtc_time rtcTime{0};
+    if (GetTime(rtcTime) == -ENODATA) {
+        LOG_INF("RTC not initialized, setting to default time");
+        SetTime(rtcTime);
+    }
+}
 
 static bool IsLeapYear(int year) {
     // full year (i.e. 2025), not year-1900
