@@ -75,7 +75,7 @@ class CPhaseController {
      * @param eventNames an array of human readable names for events indexed by 
      * @param timerEvents an array of desciptions of all timer triggered events. See TimerEvent
      * @param deciders an array of decision functions for deciding if an event has really occured based on the state of the sources
-     * @param flightLogFileName a file name 
+     * @param noti_func a function to be called when events happen or sources report - used to implement logging. Can be null. Should not block for very long
      * The lifetime of all these paramters should exceed the lifetime of an instance of CPhaseController
      */
     CPhaseController(const std::array<const char *, num_sources> &sourceNames,
