@@ -9,6 +9,9 @@ LOG_MODULE_REGISTER(CRtc);
 
 CRtc::CRtc(const device& dev) : rtc(dev) {
     rtc_time rtcTime{0};
+#ifdef CONFIG_RTC_STM32
+    rtcTime.tm_year = 100;
+#endif
     if (GetTime(rtcTime) == -ENODATA) {
         LOG_INF("RTC not initialized, setting to default time");
         SetTime(rtcTime);
