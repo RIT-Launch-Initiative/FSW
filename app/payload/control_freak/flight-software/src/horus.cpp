@@ -257,6 +257,7 @@ int radio_thread(void *, void *, void *) {
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         wait_for_timeslot();
+        LOG_ERR("TIME");
         // LOG_INF("Transmitting Horus");
         make_and_transmit_horus();
     }

@@ -85,53 +85,60 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
     return k_mutex_unlock(&gps_mutex);
 }
 extern int64_t asdf_ticks;
+
+int64_t uptime_of_next_slot(int minutes, int seconds, int64_t tp_ms, bool fix_before_pulse) {
+    int seconds_since_hour = minutes * 60 + seconds;
+    if (fix_before_pulse) {
+        LOG_WRN("fix before pulse");
+        seconds_since_hour++;
+    }
+    LOG_INF("%02d:%02d", minutes, seconds);
+    LOG_INF("Seconds since hour, %d", seconds_since_hour);
+    int seconds_since_start = seconds_since_hour - CONFIG_HORUS_TIMESLOT_OFFSET_SECONDS;
+    int offset_secs = seconds_since_start % CONFIG_HORUS_TIMESLOT_SECONDS;
+    seconds += 10 - offset_secs;
+    if (seconds >= 60) {
+        seconds -= 60;
+        minutes++;
+    }
+    int tick_to_slot = (10 - offset_secs);
+    LOG_INF("slot %02d:%02d", minutes, seconds);
+    LOG_INF("%d sec between tick and slot", tick_to_slot);
+    LOG_INF("tick %lld sec ago", (k_uptime_get() - tp_ms) / 1000);
+    return tp_ms + (tick_to_slot) * 1000;
+}
+
 uint32_t millis_till_timeslot_opens() {
+    if (k_mutex_lock(&gps_mutex, K_MSEC(20)) != 0) {
+        LOG_WRN("Couldnt lock mutex");
+        return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
+    }
     if (last_data.info.fix_status == GNSS_FIX_STATUS_NO_FIX) {
+        LOG_WRN("No fix, just delay");
+        k_mutex_unlock(&gps_mutex);
         return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
     }
     int64_t last_tick_uptime_ticks = ublox_10_last_tick_uptime(gps_dev);
-    LOG_INF("uptiem ticks:%lld, %lld", asdf_ticks, last_tick_uptime_ticks);
     last_tick_uptime_ticks = asdf_ticks;
-    // Assume timepulse was for the last NMEA time sentence, correct later if
-    // not
-    uint32_t seconds_from_hour_start_of_last_timepulse = last_data.utc.minute * 60 + last_data.utc.millisecond / 1000;
-    if (last_fix_uptime_ticks < last_tick_uptime_ticks) {
-        // A time pulse has come in after that NMEA sentence
-        // Add 1 second to compensate
-        seconds_from_hour_start_of_last_timepulse++;
-    }
-    LOG_INF("TP since top of hour: %d", seconds_from_hour_start_of_last_timepulse);
 
-    int32_t seconds_from_time_sync_start =
-        seconds_from_hour_start_of_last_timepulse - CONFIG_HORUS_TIMESLOT_OFFSET_SECONDS;
-
-    if (seconds_from_time_sync_start < 0) {
-        // if before time slice time, pretend we're going from the previous hour
-        seconds_from_time_sync_start += 60 * 60;
-    }
-    LOG_INF("seconds from time sync start: %d", seconds_from_time_sync_start);
-
-    uint32_t periods_so_far = seconds_from_time_sync_start / CONFIG_HORUS_TIMESLOT_SECONDS;
-    LOG_INF("%d periods so far", periods_so_far);
-    uint32_t offset_into_this_period = seconds_from_time_sync_start - (CONFIG_HORUS_TIMESLOT_SECONDS * periods_so_far);
-    LOG_INF("offset into this period %d", offset_into_this_period);
-
-    uint32_t seconds_from_timepulse_to_next_slot = CONFIG_HORUS_TIMESLOT_SECONDS - offset_into_this_period;
-    LOG_INF("Seconds from timepulse to next slot: %d", seconds_from_timepulse_to_next_slot);
-    int64_t now_ms = k_uptime_get();
+    bool fix_b4_pulse = last_fix_uptime_ticks < last_tick_uptime_ticks;
+    int minutes = last_data.utc.minute;
+    int secs = last_data.utc.millisecond / 1000;
     int64_t tp_ms = k_ticks_to_ms_near64(last_tick_uptime_ticks);
-    LOG_INF("Last tick at %lld  ms", tp_ms);
+    k_mutex_unlock(&gps_mutex);
 
-    int64_t uptime_ms_of_next_slot = tp_ms + seconds_from_timepulse_to_next_slot * 1000;
-    LOG_INF("ms of next slot %lld  ms, now %lld", uptime_ms_of_next_slot, now_ms);
-
-    int32_t ms_left = uptime_ms_of_next_slot - now_ms;
-    if (ms_left < 0 || ms_left > (int) (CONFIG_HORUS_TIMESLOT_SECONDS * 1000)) {
-        printf("ERROR calculating time sync: %d wanted < %d\n", ms_left, (int) (CONFIG_HORUS_TIMESLOT_SECONDS * 1000));
-        return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
+    int64_t ms_of_next_slot = uptime_of_next_slot(minutes, secs, tp_ms, fix_b4_pulse);
+    LOG_INF("uptime of next slot %lld", ms_of_next_slot);
+    int to_delay = ms_of_next_slot - k_uptime_get();
+    if (to_delay < 0) {
+        LOG_WRN("Bad delay: %d", to_delay);
+        return to_delay + CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
     }
-
-    return ms_left;
+    if (to_delay < 0) {
+        LOG_WRN("<0 to delay, delaying 1000");
+        return 1000;
+    }
+    return to_delay;
 }
 
 float get_skew_smart() { return last_valid_skew_factor; }

@@ -186,6 +186,8 @@ K_MSGQ_DEFINE(datalock_q, sizeof(bool), 1, alignof(bool));
 void handle_unlock_msg(DataLockMsg msg);
 int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
     if (is_data_locked()) {
+        LOG_INF("Waiting for lock/unlock msg");
+
         while (true) {
             DataLockMsg msg;
             int ret = k_msgq_get(&datalock_q, &msg, K_FOREVER);
@@ -297,12 +299,12 @@ void lock_data_fs() {
     }
 }
 void handle_unlock_msg(DataLockMsg toset) {
-    LOG_INF("Waiting for lock/unlock msg");
     int ret = k_msgq_get(&datalock_q, &toset, K_FOREVER);
     if (ret != 0) {
         LOG_WRN("Failed to read from datalock queue, try again");
         return;
     }
+    LOG_INF("handling");
     if (toset == DataLockMsg::Unlock) {
         LOG_INF("Unlocking");
         unlock_data_fs();
