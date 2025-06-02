@@ -21,16 +21,25 @@
 		buzz = &buzzer;
 		ldo5v = &ldo5v_enable;
 		gnss = &gnss;
+		
 		gpsreset = &gps_reset;
 		gpssafeboot = &gps_timepulse;
+
 		lora0 = &lora;
 		servo1 = &servo1;
 		servo2 = &servo2;
 		servo3 = &servo3;
+		
 		radioreset = &radioreset;
 
 		imu = &lsm6dsl;
 		barom = &bmp390;
+
+		inapump = &ina260_pump;
+		inaservo = &ina260_servo;
+
+		groundcam = &cam1_enable;
+		antennacam = &cam2_enable;
 	};
 
 	servos: servos{
@@ -42,12 +51,12 @@
 		servo1: servo1 {
 			label = "Servo 1 PWM";
 			// &gpioc 6 GPIO_ACTIVE_HIGH
-			pwms = <&pwm3 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+			pwms = <&pwm3 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
 		};
 		servo2: servo2 {
 			label = "Servo 2 PWM";
 			// &gpioc 7 GPIO_ACTIVE_HIGH
-			pwms = <&pwm3 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+			pwms = <&pwm3 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
 		};
 		servo3: servo3 {
 			label = "Servo 3 PWM";
@@ -242,10 +251,15 @@
 	pinctrl-names = "default";
 	current-speed = <9600>;
 
+
 	gnss: gnss {
 		//  MAX-M10M-00B
-		compatible = "gnss-nmea-generic";
+		compatible = "u-blox,m10";
+		label = "UBLOXM10";
 		status="okay";
+		reset-gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
+		timepulse-gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
+		// reset-on-boot;
 	};
 };
 
@@ -254,6 +268,9 @@
 	pinctrl-names = "default";
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
+
+	scl-gpios = <&gpiob 6 GPIO_ACTIVE_HIGH>;
+	sda-gpios = <&gpiob 7 GPIO_ACTIVE_HIGH>;
 
 	bmp390: bmp390@77 {
 		status = "okay";
@@ -349,15 +366,29 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
  			super_fast_partition: fastpartition@0 {
-				// loop(5s * 100 page/s) + (400s * 10 page/s)
-				// 4500 pages = 1125 KB
+				// loop size = 5s
+				// rest size = 400s
+				// total 405s
+				// 1000 acc samp/s = 100 pack/s = 100 page/s
+				// 405s * 100 page/s = 40500 pages
+				// 40500 pages = 10125 KB sector round to 10128 KB
 				label = "superfast-storage";
-				reg = <0 DT_SIZE_K(1128)>;
+				reg = <0 DT_SIZE_K(10128)>;
+			};
+			super_slow_partition: slowpartition@9e4000{
+				label = "superslow-storage";
+				// 1 day (24 hrs) = 86400s
+				// 1 page / 8 seconds
+				// 86400s * 1 page/ 8 s = 10800 pages
+				// 2700 KB
+				reg = <0x9e4000 DT_SIZE_K(2700)>;
 			};
 
-			external_storage_partition: partition@11a000 {
+			external_storage_partition: partition@c87000 {
+				// the rest for littlefs
+				// 16384 - 2700 - 10128
 				label = "w25q-storage";
-				reg = <0x11a000 DT_SIZE_K(15256)>;
+				reg = <0xc87000 DT_SIZE_K(3556)>;
 			};
 		};
 	};
@@ -370,7 +401,7 @@
 	status = "okay";
 	lora: lora@0{
 		reg = <0>;
-		spi-max-frequency = <(10 * 1000 * 1000)>;
+		spi-max-frequency = <(DT_FREQ_M(50))>;
 		compatible = "semtech,sx1276";
 
 		reset-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
@@ -396,6 +427,8 @@
 	status = "okay";
 };
 
+
+// fake and untrue, call me when we use mcuboot
 
 // fake and untrue, call me when we use mcuboot
 &flash0 {
