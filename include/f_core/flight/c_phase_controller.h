@@ -4,7 +4,6 @@
 #include <array>
 #include <cstdint>
 #include <cstdio>
-#include <f_core/os/flight_log.hpp>
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 
@@ -25,6 +24,23 @@ class CPhaseController {
     static_assert(num_events <= 32, "Current implementation is limited to 32 events");
     static_assert(std::is_enum_v<EventID>, "EventIDs must be enums");
     static_assert(std::is_enum_v<SourceID>, "SourceID must be enums");
+
+    enum EventType {
+        SourceReported,
+        EventOccured,
+    };
+    struct EventNotification {
+        k_ticks_t uptimeTicks;
+        EventType type;
+        SourceID source; // Only valid if type == SourceReported
+        EventID event;
+        bool hasAlreadyOccured; // Only Valid if type == EventOccured
+    };
+    /**
+     * Notification called when an event occurs or a source reports an event
+     * @param notification information about the event
+     */
+    using NotificationFunction = void (*)(EventNotification notification);
 
     /**
      * Description of a timer-triggered event
@@ -59,15 +75,14 @@ class CPhaseController {
      * @param eventNames an array of human readable names for events indexed by 
      * @param timerEvents an array of desciptions of all timer triggered events. See TimerEvent
      * @param deciders an array of decision functions for deciding if an event has really occured based on the state of the sources
-     * @param flightLogFileName a file name 
+     * @param notification_func a function to be called when events happen or sources report - used to implement logging. Can be null. Should not block for very long
      * The lifetime of all these paramters should exceed the lifetime of an instance of CPhaseController
      */
     CPhaseController(const std::array<const char *, num_sources> &sourceNames,
                      const std::array<const char *, num_events> &eventNames,
                      const std::array<TimerEvent, num_timers> &timerEvents,
-                     const std::array<DecisionFunc, num_events> &deciders, CFlightLog *flight_log)
-        : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), flight_log(flight_log) {
-
+                     const std::array<DecisionFunc, num_events> &deciders, NotificationFunction notification_func)
+        : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), notification_func(notification_func) {
         for (std::size_t i = 0; i < num_timers; i++) {
             timerUserdata[i] = InternalTimerEvent{.controller = this, .event = timerEvents[i]};
             k_timer_init(&timers[i], timer_expiry_cb, NULL);
@@ -76,9 +91,6 @@ class CPhaseController {
 
         k_event_init(&osEvents);
         k_event_clear(&osEvents, 0xFFFFFFFF);
-        if (flight_log != nullptr) {
-            flight_log->Write("CPhaseController initialized");
-        }
     }
     // Delete copy constructor. Zephyr timers, events require constant memory addresses to work
     CPhaseController(const CPhaseController &) = delete;
@@ -91,42 +103,25 @@ class CPhaseController {
     }
 
     /**
-     * Gets the flight log that this controller is reporting to
-     * @return pointer to the active flight log. null if no flight log was passed in
-     */
-    CFlightLog *GetFlightLog() { return flight_log; }
-
-    /**
      * Log a message like "1234ms: Boost from IMU1"
      * @param event the event that occured 'Boost'
      * @param source the source that triggered this event 'IMU1'
-     * @return 0 if successfully written to the flight log. Otherwise, the filesystem error from writing.
      */
-    int LogSourceEvent(EventID event, SourceID source) {
-        if (flight_log != nullptr) {
-            constexpr size_t buf_size = 64;
-            char string_buf[buf_size] = {0};
-            int num_wrote = snprintf(string_buf, buf_size, "%-10s from %s", eventNames[event], sourceNames[source]);
-            return flight_log->Write(string_buf, num_wrote);
+    void LogSourceEvent(EventID event, SourceID source) {
+        if (notification_func != nullptr) {
+            notification_func(EventNotification{k_uptime_ticks(), SourceReported, source, event, false});
         }
-        return 0;
     }
 
     /**
      * Logs a message like "Boost confirmed" or "Noseover confirmed but already happened. Not Dispatching"
      * @param event the event that was confirmed
      * @param currentState the state of that even as gotten from HasEventOccurred(event) *before* this confirmation. 
-     * @return 0 if successfully written to the flight log. Otherwise, the filesystem error from writing.
      */
-    int LogEventConfirmed(EventID event, bool currentState) {
-        if (flight_log != nullptr) {
-            constexpr size_t buf_size = 64;
-            char string_buf[buf_size] = {0};
-            int num_wrote = snprintf(string_buf, buf_size, "%-10s confirmed%s", eventNames[event],
-                                     currentState ? " but already happened. Not dispatching" : "");
-            return flight_log->Write(string_buf, num_wrote);
+    void LogEventConfirmed(EventID event, bool currentState) {
+        if (notification_func != nullptr) {
+            notification_func(EventNotification{k_uptime_ticks(), EventOccured, (SourceID) 0, event, currentState});
         }
-        return 0;
     }
 
     /**
@@ -189,39 +184,39 @@ class CPhaseController {
         TimerEvent event;             //< information about the event
     };
 
-    /**
+/**
      * Callback function for timer events. 
      * 'this' is stored in the InternalTimerEvent data
      * @param timer the timer containing that is calling this callback. Contains user data
      */
-    constexpr static auto timer_expiry_cb = [](struct k_timer *timer) {
-        void *data = k_timer_user_data_get(timer);
-        InternalTimerEvent event_info = *static_cast<InternalTimerEvent *>(data);
-        event_info.controller->SubmitEvent(event_info.event.source, event_info.event.event);
-    };
+constexpr static auto timer_expiry_cb = [](struct k_timer *timer) {
+    void *data = k_timer_user_data_get(timer);
+    InternalTimerEvent event_info = *static_cast<InternalTimerEvent *>(data);
+    event_info.controller->SubmitEvent(event_info.event.source, event_info.event.event);
+};
 
-    // Current State of the system
+// Current State of the system
 
-    /// state of events per source
-    std::array<SourceStates, num_events> sourceStates = {false};
-    /// the state of events that have been agreed to have happened based on deciders and per-source states
-    std::array<bool, num_events> eventStates = {false};
+/// state of events per source
+std::array<SourceStates, num_events> sourceStates = {false};
+/// the state of events that have been agreed to have happened based on deciders and per-source states
+std::array<bool, num_events> eventStates = {false};
 
-    // Timer handling
-    std::array<struct k_timer, num_timers> timers = {0};
-    std::array<InternalTimerEvent, num_timers> timerUserdata = {0};
+// Timer handling
+std::array<struct k_timer, num_timers> timers = {0};
+std::array<InternalTimerEvent, num_timers> timerUserdata = {0};
 
-    // OS events for handling synchronization
-    k_event osEvents;
+// OS events for handling synchronization
+k_event osEvents;
 
-    // consts for logging and deciding. These will not change after construction
-    const std::array<const char *, num_sources> &sourceNames;
-    const std::array<const char *, num_events> &eventNames;
+// consts for logging and deciding. These will not change after construction
+const std::array<const char *, num_sources> &sourceNames;
+const std::array<const char *, num_events> &eventNames;
 
-    const std::array<DecisionFunc, num_events> &deciders;
+const std::array<DecisionFunc, num_events> &deciders;
 
-    // Flight Log or nullptr if no logging is requested.
-    CFlightLog *flight_log;
+// function to call on event or null
+NotificationFunction notification_func;
 };
 
 #endif
