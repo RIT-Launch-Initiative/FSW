@@ -24,15 +24,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, NULL};
 
-// Dummy implementation, will use actual flash at some point
-
-bool boostdata_locked = false;
-void unlock_boostdata() { boostdata_locked = false; }
-void lock_boostdata() { boostdata_locked = true; }
-bool is_boostdata_locked() { return boostdata_locked; }
-
-// SYS_INIT(init_boostdata_locked)
-
 static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 static const struct device *superslow_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superslow_storage));
 
@@ -53,7 +44,7 @@ K_THREAD_DEFINE(buzzer, 512, buzzer_entry_point, NULL, NULL, NULL, CONFIG_SLOWDA
 
 int main() {
     int ret = 0;
-    if (is_boostdata_locked()) {
+    if (is_data_locked()) {
         buzzer_tell(BuzzCommand::DataLocked);
         return -1;
     }
@@ -104,7 +95,7 @@ int main() {
 
 int cmd_unlock(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Unlocking boost data");
-    unlock_boostdata();
+    // unlock_boostdata();
     shell_print(shell, "Success, rebooting....\n\n\n");
     k_msleep(100);
     sys_reboot(SYS_REBOOT_COLD);

@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/fs/fs.h>
 
 int read_ina(const struct device *ina_dev, float &voltage, float &current) {
 
@@ -42,3 +43,30 @@ NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc) {
     float magn = sqrtf(acc.X * acc.X + acc.Y * acc.Y + acc.Z * acc.Z);
     return {acc.X / magn, acc.Y / magn, acc.Z / magn};
 }
+
+static bool boostdata_locked = true;
+static struct fs_file_t allowfile;
+
+bool is_data_locked() { return boostdata_locked; }
+
+// Needed for sys init (seemingly)
+extern "C" {
+int init_boostdata_locked() {
+    printk("Checking boostdata lock\n");
+    fs_file_t_init(&allowfile);
+    fs_dirent ent = {};
+    int ret = fs_stat(ALLOWFILE_PATH, &ent);
+    if (ret != 0) {
+        printk("No allowfile found, locked!\n");
+        boostdata_locked = true;
+        return -1;
+    } else {
+        printk("Allowfile found, flash unlocked\n");
+        boostdata_locked = false;
+        return 0;
+    }
+}
+}
+#define DATA_LOCK_PRIORITY 99
+static_assert(DATA_LOCK_PRIORITY > CONFIG_FILE_SYSTEM_INIT_PRIORITY, "Relies on FS");
+SYS_INIT(init_boostdata_locked, POST_KERNEL, DATA_LOCK_PRIORITY);

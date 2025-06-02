@@ -55,6 +55,7 @@ static int set_item(FiveVoltItem item, bool set) {
     }
     return 0;
 }
+// CONFIG_PM who?
 int rail_item_enable(FiveVoltItem item) { return rail_item_set(item, true); }
 
 int rail_item_disable(FiveVoltItem item) { return rail_item_set(item, false); }

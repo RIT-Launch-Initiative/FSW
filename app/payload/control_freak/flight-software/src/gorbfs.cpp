@@ -1,4 +1,5 @@
 #include "common.h"
+#include "f_core/os/flight_log.hpp"
 #include "flight.h"
 
 #include <stdalign.h>
@@ -8,6 +9,7 @@
 #include <zephyr/drivers/flash.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+
 LOG_MODULE_REGISTER(gorbfs, CONFIG_APP_FREAK_LOG_LEVEL);
 
 struct gorbfs_partition_config {
@@ -85,6 +87,9 @@ static int gorbfs_init(const struct device *dev) { return 0; }
                      &gorbfs_partition_data_##partition_name, &gorbfs_partition_config_##partition_name, POST_KERNEL,  \
                      GORBFS_INIT_PRIORITY, NULL);
 
+// Flash Targets
+static CFlightLog flight_log{"/lfs/flight.log"};
+
 GORBFS_PARTITION_DEFINE(superfast_storage, NTypes::SuperFastPacket, 8, 500);
 GORBFS_PARTITION_DEFINE(superslow_storage, SuperSlowPacket, 2, 6);
 
@@ -92,7 +97,6 @@ GORBFS_PARTITION_DEFINE(superslow_storage, SuperSlowPacket, 2, 6);
 constexpr uint32_t gen_addr(const gorbfs_partition_config *cfg, uint32_t page_index) {
     return cfg->partition_addr + page_index * PAGE_SIZE;
 }
-static CFlightLog flight_log{"/lfs/flight.log"};
 
 int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeout) {
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
@@ -177,8 +181,11 @@ int handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     // Erase if next block will go to new sector
     return erase_if_on_sector(gfs_dev);
 }
+
+void wait_for_data_unlock_msg();
 int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
-    if (is_boostdata_locked()) {
+    if (is_data_locked()) {
+        wait_for_data_unlock_msg();
         return -1;
     }
 
@@ -244,9 +251,14 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
     return 0;
 }
 
+void wait_for_data_unlock_msg() {
+    while (true) {
+        k_msgq_get()
+    }
+}
+
 int gfs_total_blocks(const struct device *dev) {
     const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) dev->config;
-    // struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
 
     return cfg->partition_size / PAGE_SIZE;
 }

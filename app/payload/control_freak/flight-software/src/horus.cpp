@@ -251,7 +251,7 @@ void wait_for_timeslot() {
 }
 
 int radio_thread(void *, void *, void *) {
-    if (is_boostdata_locked()) {
+    if (is_data_locked()) {
         return -1;
     }
     while (true) {

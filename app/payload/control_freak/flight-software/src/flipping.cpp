@@ -1,7 +1,6 @@
 #include "flipping.h"
 
 #include "5v_ctrl.h"
-#include "common.h"
 #include "f_core/utils/linear_fit.hpp"
 #include "pump.h"
 #include "slow_sensing.h"
@@ -17,43 +16,13 @@
 
 LOG_MODULE_REGISTER(flipping);
 
-struct ServoState {
-    uint32_t last_ticks;
-};
-struct Servo {
-    struct pwm_dt_spec pwm;
-    uint32_t open_pulselen;
-    uint32_t closed_pulselen;
-    ServoState &state;
-
-    int disconnect() const { return pwm_set_pulse_dt(&pwm, 0); }
-    int open() const { return set_pulse(open_pulselen); }
-    int close() const { return set_pulse(closed_pulselen); }
-    int set_pulse(uint32_t pulse) const {
-        state.last_ticks = pulse;
-        return pwm_set_pulse_dt(&pwm, pulse);
-    }
-
-    bool was_fully_open() const { return state.last_ticks == open_pulselen; }
-    bool was_fully_closed() const { return state.last_ticks == closed_pulselen; }
-};
-
-enum PayloadFace : uint8_t {
-    Face1 = 0,
-    Face2 = 1,
-    Face3 = 2,
-    Upright = 3,
-    StandingUp = 4,
-    OnItsHead = 5,
-    NumFaces = 6,
-    UnknownFace = 7,
-};
-
-const char *string_face(PayloadFace p);
-struct FaceAndId {
-    PayloadFace id;
-    NTypes::AccelerometerData direction;
-};
+int Servo::disconnect() const { return pwm_set_pulse_dt(&pwm, 0); }
+int Servo::open() const { return set_pulse(open_pulselen); }
+int Servo::close() const { return set_pulse(closed_pulselen); }
+int Servo::set_pulse(uint32_t pulse) const {
+    state.last_ticks = pulse;
+    return pwm_set_pulse_dt(&pwm, pulse);
+}
 
 float dot(const NTypes::AccelerometerData &a, const NTypes::AccelerometerData &b) {
     return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
@@ -90,6 +59,11 @@ inline constexpr std::array<FaceAndId, PayloadFace::NumFaces> payload_faces = {
 };
 // clang-format on
 
+/**
+ * Sort and get the orientation that the payload is facing
+ * @param me normalized vector representing your orientation (gravity vector)
+ * @param face_index index from most similar to least similar if most similar isnt working, maybe try second most similar
+ */
 PayloadFace find_orientation(const NTypes::AccelerometerData &me, size_t face_index = 0) {
     struct FaceAndSimilarity {
         PayloadFace id;
@@ -112,7 +86,7 @@ PayloadFace find_orientation(const NTypes::AccelerometerData &me, size_t face_in
 static constexpr uint32_t min_pulse = PWM_USEC(800);  //DT_PROP(DT_PARENT(DT_A LIAS(servo1)), min_pulse);
 static constexpr uint32_t max_pulse = PWM_USEC(1700); //DT_PROP(DT_PARENT(DT_ALIAS(servo1)), max_pulse);
 
-// false when closed, true when open
+// States of the servos, initted in init_hw
 ServoState state1{};
 ServoState state2{};
 ServoState state3{};
@@ -181,14 +155,18 @@ enum SweepStrategy {
     Fast,
 };
 
+static constexpr float servo_current_cutoff = 2.4;
+constexpr int servo_steps = 120;
+
+// #define CURRENT_LOG
+#ifdef CURRENT_LOG
 struct Shunt {
     float current;
     float voltage;
 };
 
-constexpr int servo_steps = 120;
 Shunt current_log[120] = {};
-
+#endif
 CMovingAverage<float, 5> filter{0};
 
 int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open,
@@ -204,7 +182,6 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
     };
 
     filter.Fill(0);
-    static constexpr float servo_current_cutoff = 2.4;
 
     int delta = end - start;
     LOG_INF("Moving %d to %d", start, end);
@@ -219,10 +196,10 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
             servo.disconnect();
             break;
         }
-
+#ifdef CURRENT_LOG
         current_log[i].current = current;
         current_log[i].voltage = filter.Avg();
-
+#endif
         int pulse = start + delta * i / servo_steps;
 
         ret = servo.set_pulse(pulse);
@@ -233,12 +210,13 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
     }
     k_msleep(100); // Wait to settle
 
-    // LOG_INF("Current, Voltage\n");
-    // for (int i = 0; i < servo_steps; i++) {
-    // LOG_INF("%.4f %.4f", (double) current_log[i].current, (double) current_log[i].voltage);
-    // k_msleep(1);
-    // }
-
+#ifdef CURRENT_LOG
+    LOG_INF("Current, Voltage\n");
+    for (int i = 0; i < servo_steps; i++) {
+        LOG_INF("%.4f %.4f", (double) current_log[i].current, (double) current_log[i].voltage);
+        k_msleep(1);
+    }
+#endif
     int ret = servo.disconnect();
     if (ret < 0) {
         LOG_WRN("Error %d: failed to disable servo\n", ret);

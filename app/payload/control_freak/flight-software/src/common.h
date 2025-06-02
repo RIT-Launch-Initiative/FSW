@@ -29,8 +29,13 @@ int set_lsm_sampling(const struct device *imu_dev, int odr);
 
 NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc);
 
+// If the file exists, you're good to write
+// If the file doesn't exist, consider the flash locked
+#define ALLOWFILE_PATH "/lfs/good_to_write"
+bool is_data_locked();
+
+// implemented by flash thread
 void unlock_boostdata();
 void lock_boostdata();
-bool is_boostdata_locked();
 
 #endif
