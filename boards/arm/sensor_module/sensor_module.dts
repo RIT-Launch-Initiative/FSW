@@ -80,14 +80,14 @@
 	status = "okay";
 };
 
-//&pll {
-//    div-m = <8>;
-//    mul-n = <384>;
-//    div-p = <2>;
-//    div-q = <2>;
-//    clocks = <&clk_hsi>;
-//    status = "okay";
-//};
+&pll {
+    div-m = <16>;
+    mul-n = <344>;
+    div-p = <8>;
+    div-q = <7>;
+    clocks = <&clk_hsi>;
+    status = "okay";
+};
 
 &rcc {
 	clocks = <&clk_hsi>;
