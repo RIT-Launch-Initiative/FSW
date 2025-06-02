@@ -30,17 +30,17 @@ class CPhaseController {
         EventOccured,
     };
     struct EventNotification {
-        k_ticks_t uptime_ticks;
+        k_ticks_t uptimeTicks;
         EventType type;
         SourceID source; // Only valid if type == SourceReported
         EventID event;
-        bool has_already_occured; // Only Valid if type == EventOccured
+        bool hasAlreadyOccured; // Only Valid if type == EventOccured
     };
     /**
      * Notification called when an event occurs or a source reports an event
-     * @param type the type of event
+     * @param notification information about the event
      */
-    using NotificationFunction = void (*)(EventNotification noti);
+    using NotificationFunction = void (*)(EventNotification notification);
 
     /**
      * Description of a timer-triggered event

@@ -221,12 +221,12 @@ struct k_thread barom_thread_data;
 CFlightLog fl{"/lfs/flight_log.txt"};
 
 void event_handler(Controller::EventNotification event) {
-    int64_t ms = k_ticks_to_ms_near32(event.uptime_ticks);
+    int64_t ms = k_ticks_to_ms_near32(event.uptimeTicks);
     static constexpr size_t buf_size = 64;
     char buf[buf_size] = {0};
     if (event.type == Controller::EventType::EventOccured) {
         snprintf(buf, buf_size, "%s occured %s.", eventNames[event.event],
-                 event.has_already_occured ? "(but already occured)" : "");
+                 event.hasAlreadyOccured ? "(but already occured)" : "");
         LOG_INF("%s", buf);
         fl.Write(ms, buf);
     } else {
