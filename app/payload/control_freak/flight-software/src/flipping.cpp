@@ -244,7 +244,6 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
             LOG_WRN("Couldnt read IMU, trying again: %d", ret);
             continue;
         }
-
         PayloadFace face = find_orientation(vec);
         LOG_INF("Am on face %s", string_face(face));
         if (face == last_face) {
@@ -277,7 +276,8 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
         flip_one_side(ina_dev, *servos[index], Slow, false, current_before, voltage_before);
 
         FlipState fs = FLIP_STATE(face, attempts_on_this_face);
-        ret = submit_slowdata(vec, tempC, current_before, voltage_before, fs);
+        small_orientation snorm = minify_orientation(vec);
+        ret = submit_slowdata(snorm, tempC, current_before, voltage_before, fs);
         if (ret < 0) {
             LOG_WRN("Failed to send slowdata");
         }

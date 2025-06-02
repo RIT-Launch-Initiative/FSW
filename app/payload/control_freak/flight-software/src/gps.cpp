@@ -143,7 +143,7 @@ uint32_t millis_till_timeslot_opens() {
 
 float get_skew_smart() { return last_valid_skew_factor; }
 
-int fill_packet(struct horus_packet_v2 *packet) {
+int fill_horus_packet_with_gps(struct horus_packet_v2 *packet) {
     static constexpr float mm_per_sec_to_km_per_hour = 0.0036;
 
     if (k_mutex_lock(&gps_mutex, K_MSEC(20)) != 0) {

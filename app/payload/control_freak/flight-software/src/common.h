@@ -43,4 +43,19 @@ bool is_data_locked();
 void unlock_boostdata();
 void lock_boostdata();
 
+// implemented by horus
+struct small_orientation {
+    int8_t x;
+    int8_t y;
+    int8_t z;
+};
+
+/**
+ * @param normalized orientation vector
+ * will be very bad if not orientated
+ */
+small_orientation minify_orientation(const NTypes::AccelerometerData &normed);
+
+int submit_horus_data(const float &tempC, const float &batteryVoltage, const small_orientation &orientation);
+
 #endif

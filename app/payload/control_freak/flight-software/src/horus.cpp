@@ -220,6 +220,24 @@ static void transmit_horus(uint8_t *buf, int len) {
 }
 
 int packet_count = 0;
+K_MUTEX_DEFINE(horus_mutex);
+uint8_t horus_temp_c = 0;
+uint8_t horus_battery_v_2 = 0;
+small_orientation horus_snorm = {0};
+
+int submit_horus_data(const float &tempC, const float &batteryVoltage, const small_orientation &snorm) {
+    int ret = k_mutex_lock(&horus_mutex, K_MSEC(20));
+    if (ret != 0) {
+        LOG_WRN("Couldnt lock mut to send horus data");
+        return ret;
+    }
+    horus_temp_c = (uint8_t) tempC;
+    // horus battery is 0-5V 0 -255LSB
+    horus_battery_v_2 = (uint8_t) ((batteryVoltage / 10.0) * 255);
+    horus_snorm = snorm;
+    return k_mutex_unlock(&horus_mutex);
+}
+
 horus_packet_v2 get_telemetry() {
     horus_packet_v2 pac{};
     packet_count++;
@@ -227,12 +245,19 @@ horus_packet_v2 get_telemetry() {
     pac.payload_id = 808;
     pac.counter = packet_count;
 
-    int ret = fill_packet(&pac);
+    int ret = fill_horus_packet_with_gps(&pac);
     if (ret != 0) {
         LOG_WRN("Failed to fill packet with GPS data: %d", ret);
     }
 
-    pac.temp = 26;
+    ret = k_mutex_lock(&horus_mutex, K_MSEC(20));
+    if (ret != 0) {
+        LOG_WRN("Couldnt lock mut for horus");
+        return pac;
+    }
+    pac.battery_voltage = horus_battery_v_2;
+    pac.temp = horus_temp_c;
+    k_mutex_unlock(&horus_mutex);
     return pac;
 }
 

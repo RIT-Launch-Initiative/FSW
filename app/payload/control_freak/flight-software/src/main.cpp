@@ -84,7 +84,7 @@ int main() {
     buzzer_tell(BuzzCommand::Silent);
 
     //Ground, Boost, Coast, Flight
-    ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, &freak_controller);
+    ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, ina_servo, &freak_controller);
     LOG_INF("On the ground now");
 
     do_flipping_and_pumping(imu_dev, barom_dev, ina_servo, ina_pump);

@@ -17,7 +17,7 @@ void mark_storage_loop_end_if_not_yet(FreakFlightController *freak_controller, b
 
 K_MUTEX_DEFINE(i2c_data_mutex);
 namespace LockedData {
-int8_t orientation[3] = {0};
+small_orientation orientation = {0};
 uint8_t degC = 33;
 uint8_t voltage = 79;
 uint8_t current = 81;
@@ -25,15 +25,13 @@ uint8_t current = 81;
 uint8_t flip_state = 0xf0;
 } // namespace LockedData
 
-int submit_slowdata(const NTypes::AccelerometerData &normed, const float &tempC, const float &current,
-                    const float &voltage, FlipState fs) {
+int submit_slowdata(const small_orientation &normed, const float &tempC, const float &current, const float &voltage,
+                    FlipState fs) {
     if (k_mutex_lock(&i2c_data_mutex, K_NO_WAIT)) {
         LOG_WRN("Couldn't submit to slow data");
         return -1;
     }
-    LockedData::orientation[0] = normed.X * 127;
-    LockedData::orientation[1] = normed.Y * 127;
-    LockedData::orientation[2] = normed.Z * 127;
+    LockedData::orientation = normed;
     LockedData::degC = tempC;
 
     static constexpr float voltage_base = 6.75; // 6.75 to 9.25
@@ -79,9 +77,9 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
                 // current.Orientation = orientation;
                 current.TempC = LockedData::degC;
                 current.Current = LockedData::current;
-                current.Orientation[0] = LockedData::orientation[0];
-                current.Orientation[1] = LockedData::orientation[1];
-                current.Orientation[2] = LockedData::orientation[2];
+                current.Orientation[0] = LockedData::orientation.x;
+                current.Orientation[1] = LockedData::orientation.y;
+                current.Orientation[2] = LockedData::orientation.z;
                 current.Battery_voltage = LockedData::voltage;
                 current.FlipStatus = LockedData::flip_state;
                 k_mutex_unlock(&i2c_data_mutex);

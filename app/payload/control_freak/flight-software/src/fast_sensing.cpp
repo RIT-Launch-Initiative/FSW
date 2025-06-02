@@ -23,7 +23,8 @@ int read_imu(const struct device *imu_dev, NTypes::SuperFastPacket *packet, int 
 bool DONT_STOP = true;
 
 int boost_and_flight_sensing(const struct device *superfast_storage, const struct device *imu_dev,
-                             const struct device *barom_dev, FreakFlightController *freak_controller) {
+                             const struct device *barom_dev, const struct device *ina_servo,
+                             FreakFlightController *freak_controller) {
     set_sampling(imu_dev);
 
     int64_t start = k_uptime_get();
@@ -87,9 +88,20 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
             if (k_timer_status_get(&slowdata_timer) > 0) {
                 // slow readings timer expired
                 NTypes::AccelerometerData normed = normalize(packet->AccelData[0]);
+                small_orientation snormed = minify_orientation(normed);
                 float temp = packet->BaromData.Temperature;
-                // read ina
-                ret = submit_slowdata(normed, temp, 0, 8.1, FLIP_STATE_NOT_TRYING);
+                float current = 0;
+                float volts = 0;
+                ret = read_ina(ina_servo, volts, current);
+                if (ret != 0) {
+                    LOG_WRN("Couldnt read ina: %d", ret);
+                }
+                ret = submit_slowdata(snormed, temp, current, volts, FLIP_STATE_NOT_TRYING);
+                if (ret != 0) {
+                    LOG_WRN("Couldn submit slowdata: %d", ret);
+                }
+                LOG_INF("%f volts", (double) volts);
+                ret = submit_horus_data(temp, volts, snormed);
                 if (ret != 0) {
                     LOG_WRN("Couldn submit slowdata: %d", ret);
                 }

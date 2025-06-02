@@ -70,3 +70,11 @@ int init_boostdata_locked() {
 #define DATA_LOCK_PRIORITY 99
 static_assert(DATA_LOCK_PRIORITY > CONFIG_FILE_SYSTEM_INIT_PRIORITY, "Relies on FS");
 SYS_INIT(init_boostdata_locked, POST_KERNEL, DATA_LOCK_PRIORITY);
+
+small_orientation minify_orientation(const NTypes::AccelerometerData &normed) {
+    small_orientation orientation = {0};
+    orientation.x = normed.X * 127;
+    orientation.y = normed.Y * 127;
+    orientation.z = normed.Z * 127;
+    return orientation;
+}
