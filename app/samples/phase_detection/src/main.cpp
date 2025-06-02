@@ -193,15 +193,10 @@ void barom_thread_f(void *vp_controller, void *, void *) {
             noseover_debouncer.Feed(time_ms, velocity_ft_s);
             if (controller.HasEventOccurred(Events::Boost) && noseover_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Noseover);
-                if (controller.GetFlightLog() != nullptr) {
-                    char print_buf[256] = {0};
-                    int len = snprintf(print_buf, 256,
-                                       "Noseover occured at barometeric altitude of %.2f ft agl (%.2f ft asl)",
-                                       feet_agl, feet);
-                    controller.GetFlightLog()->Write(print_buf, len);
-                }
+                LOG_INF("Noseover occured at barometeric altitude of %.2f ft agl (%.2f ft asl)", feet_agl, feet);
             }
         }
+
         if (!controller.HasEventOccurred(Events::MainChute)) {
             mainheight_debouncer.Feed(time_ms, feet_agl);
             if (controller.HasEventOccurred(Events::Noseover) && mainheight_debouncer.Passed()) {
@@ -215,12 +210,7 @@ void barom_thread_f(void *vp_controller, void *, void *) {
             }
         }
     }
-    if (controller.GetFlightLog() != nullptr) {
-        char print_buf[256] = {0};
-        int len = snprintf(print_buf, 256, "Maximum barometric altitude of %.2f ft agl", max_feet_agl);
-
-        controller.GetFlightLog()->Write(print_buf, len);
-    }
+    LOG_INF("Maximum barometric altitude of %.2f ft agl", max_feet_agl);
 }
 
 K_THREAD_STACK_DEFINE(imu_thread_stack_area, 1024);
@@ -228,10 +218,26 @@ struct k_thread imu_thread_data;
 
 K_THREAD_STACK_DEFINE(barom_thread_stack_area, 1024);
 struct k_thread barom_thread_data;
+CFlightLog fl{"/lfs/flight_log.txt"};
+
+void event_handler(Controller::EventNotification event) {
+    int64_t ms = k_ticks_to_ms_near32(event.uptimeTicks);
+    static constexpr size_t buf_size = 64;
+    char buf[buf_size] = {0};
+    if (event.type == Controller::EventType::EventOccured) {
+        snprintf(buf, buf_size, "%s occured %s.", eventNames[event.event],
+                 event.hasAlreadyOccured ? "(but already occured)" : "");
+        LOG_INF("%s", buf);
+        fl.Write(ms, buf);
+    } else {
+        snprintf(buf, buf_size, "%s submitted by %s.", eventNames[event.event], sourceNames[event.source]);
+        LOG_INF("%s", buf);
+        fl.Write(ms, buf);
+    }
+}
 
 int main() {
-    CFlightLog fl{"/lfs/flight_log.txt"};
-    Controller controller{sourceNames, eventNames, timer_events, deciders, &fl};
+    Controller controller{sourceNames, eventNames, timer_events, deciders, event_handler};
 
     k_thread_create(&barom_thread_data, barom_thread_stack_area, K_THREAD_STACK_SIZEOF(barom_thread_stack_area),
                     barom_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);

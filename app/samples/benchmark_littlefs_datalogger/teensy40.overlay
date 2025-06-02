@@ -1,0 +1,23 @@
+/ {
+	chosen {
+		storage = &w25q16jvuxim;
+		logfs = &lfs1;
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&external_storage_partition>;
+			automount;
+
+			read-size = <256>;
+			prog-size = <256>;
+			cache-size = <512>;
+			lookahead-size = <128>;
+			block-cycles = <1000>;
+		};
+	};
+}
