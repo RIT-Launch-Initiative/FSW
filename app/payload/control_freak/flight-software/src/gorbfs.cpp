@@ -182,10 +182,19 @@ int handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     return erase_if_on_sector(gfs_dev);
 }
 
-void wait_for_data_unlock_msg();
+K_MSGQ_DEFINE(datalock_q, sizeof(bool), 1, alignof(bool));
+void handle_unlock_msg(DataLockMsg msg);
 int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
     if (is_data_locked()) {
-        wait_for_data_unlock_msg();
+        while (true) {
+            DataLockMsg msg;
+            int ret = k_msgq_get(&datalock_q, &msg, K_FOREVER);
+            if (ret != 0) {
+                continue;
+            }
+            handle_unlock_msg(msg);
+        }
+
         return -1;
     }
 
@@ -215,9 +224,10 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
         LOG_WRN("Failed initial erase of slow partition");
     }
 
-    k_poll_event events[2];
-    k_poll_event_init(&events[0], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, fast_data->msgq);
-    k_poll_event_init(&events[1], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, slow_data->msgq);
+    k_poll_event events[3];
+    k_poll_event_init(&events[0], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &datalock_q);
+    k_poll_event_init(&events[1], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, fast_data->msgq);
+    k_poll_event_init(&events[2], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, slow_data->msgq);
 
     while (true) {
         int ret = 0;
@@ -229,15 +239,20 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
         }
 
         if (events[0].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
-            void *chunk_ptr = NULL;
-            ret = k_msgq_get(fast_data->msgq, &chunk_ptr, K_FOREVER);
-            handle_new_block(fast_dev, chunk_ptr);
+            DataLockMsg msg;
+            ret = k_msgq_get(fast_data->msgq, &msg, K_FOREVER);
+            handle_unlock_msg(msg);
             events[0].state = K_POLL_STATE_NOT_READY;
         } else if (events[1].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
             void *chunk_ptr = NULL;
+            ret = k_msgq_get(fast_data->msgq, &chunk_ptr, K_FOREVER);
+            handle_new_block(fast_dev, chunk_ptr);
+            events[1].state = K_POLL_STATE_NOT_READY;
+        } else if (events[2].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
+            void *chunk_ptr = NULL;
             ret = k_msgq_get(slow_data->msgq, &chunk_ptr, K_FOREVER);
             handle_new_block(slow_dev, chunk_ptr);
-            events[1].state = K_POLL_STATE_NOT_READY;
+            events[2].state = K_POLL_STATE_NOT_READY;
         }
     }
     ret = flight_log.Write("Yeah man im done wild huh");
@@ -251,9 +266,49 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
     return 0;
 }
 
-void wait_for_data_unlock_msg() {
-    while (true) {
-        k_msgq_get()
+void unlock_boostdata() {
+    LOG_INF("Send unlock msg");
+    DataLockMsg msg = DataLockMsg::Unlock;
+    k_msgq_put(&datalock_q, (void *) &msg, K_FOREVER);
+}
+void lock_boostdata() {
+    LOG_INF("Send lock msg");
+    DataLockMsg msg = DataLockMsg::Lock;
+    k_msgq_put(&datalock_q, (void *) &msg, K_MSEC(2));
+}
+
+static fs_file_t allowfile;
+void unlock_data_fs() {
+    fs_file_t_init(&allowfile);
+    int ret = fs_open(&allowfile, ALLOWFILE_PATH, FS_O_CREATE);
+    if (ret != 0) {
+        LOG_ERR("Couldnt create allowfile, data stays locked");
+        return;
+    }
+    ret = fs_close(&allowfile);
+    if (ret != 0) {
+        LOG_ERR("Couldnt save allowfile, data (maybe) stays locked");
+    }
+}
+void lock_data_fs() {
+    int ret = fs_unlink(ALLOWFILE_PATH);
+    if (ret != 0) {
+        LOG_ERR("Failed to delete lockfile, data stays unlocked");
+    }
+}
+void handle_unlock_msg(DataLockMsg toset) {
+    LOG_INF("Waiting for lock/unlock msg");
+    int ret = k_msgq_get(&datalock_q, &toset, K_FOREVER);
+    if (ret != 0) {
+        LOG_WRN("Failed to read from datalock queue, try again");
+        return;
+    }
+    if (toset == DataLockMsg::Unlock) {
+        LOG_INF("Unlocking");
+        unlock_data_fs();
+    } else if (toset == DataLockMsg::Lock) {
+        LOG_INF("Locking");
+        lock_data_fs();
     }
 }
 

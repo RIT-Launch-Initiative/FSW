@@ -7,6 +7,11 @@
 #include <stdint.h>
 #include <zephyr/device.h>
 
+enum DataLockMsg {
+    Lock,
+    Unlock,
+};
+
 typedef uint8_t FlipState;
 #define FLIP_STATE_NOT_TRYING 0xff
 

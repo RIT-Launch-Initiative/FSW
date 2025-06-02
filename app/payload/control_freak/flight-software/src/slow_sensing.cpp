@@ -47,7 +47,7 @@ int submit_slowdata(const NTypes::AccelerometerData &normed, const float &tempC,
 K_TIMER_DEFINE(slow_timer, NULL, NULL);
 
 int slow_sensing_thread(void *v_fc, void *, void *) {
-    if (is_boostdata_locked()) {
+    if (is_data_locked()) {
         return -1;
     }
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);

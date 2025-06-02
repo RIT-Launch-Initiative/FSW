@@ -95,10 +95,14 @@ int main() {
 
 int cmd_unlock(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Unlocking boost data");
-    // unlock_boostdata();
-    shell_print(shell, "Success, rebooting....\n\n\n");
-    k_msleep(100);
-    sys_reboot(SYS_REBOOT_COLD);
+    unlock_boostdata();
+    return 0;
+}
+
+int cmd_lock(const struct shell *shell, size_t argc, char **argv) {
+    shell_print(shell, "Locking boost data");
+    lock_boostdata();
+    return 0;
 }
 
 int cmd_stop(const struct shell *shell, size_t argc, char **argv);
@@ -174,16 +178,16 @@ int cmd_read(const struct device *dev, const struct shell *shell, size_t argc, c
     static uint8_t buf[256] = {0};
     for (int i = 0; i < blocks; i++) {
         gfs_read_block(dev, i, buf);
-        bool is_end = true;
-        for (int i = 0; i < 8; i++) {
-            if (buf[i] != 0xff) {
-                is_end = false;
-            }
-        }
-        if (is_end) {
-            shell_print(shell, "Reached erased page partway through (page %d)", i);
-            break;
-        }
+        // bool is_end = true;
+        // for (int i = 0; i < 8; i++) {
+        // if (buf[i] != 0xff) {
+        // is_end = false;
+        // }
+        // }
+        // if (is_end) {
+        // shell_print(shell, "Reached erased page partway through (page %d)", i);
+        // break;
+        // }
         hexdump(shell, buf, 256); // TODO investigate b64 slowdown time
     }
     shell_print(shell, "************ gorb end %s ************", dev->name);
@@ -230,7 +234,8 @@ int cmd_readslow(const struct shell *shell, size_t argc, char **argv) {
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
-                               SHELL_CMD(unlocl, NULL, "Unlock flight data partition", cmd_unlock),
+                               SHELL_CMD(unlock, NULL, "Unlock flight data partition", cmd_unlock),
+                               SHELL_CMD(lock, NULL, "Lock flight data partition", cmd_lock),
                                SHELL_CMD(boost, NULL, "fake boost detect", cmd_boost),
                                SHELL_CMD(shut, NULL, "stop yapping", cmd_shutup),
                                SHELL_CMD(inflated, NULL, "fake inflated", cmd_inflated), SHELL_SUBCMD_SET_END);
