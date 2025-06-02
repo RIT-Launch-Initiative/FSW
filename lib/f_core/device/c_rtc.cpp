@@ -68,7 +68,7 @@ static uint64_t ComputeUnixMillis(const rtc_time& rtcTime) {
 
 int CRtc::GetTime(rtc_time& time) {
     if (int ret = rtc_get_time(&rtc, &time); ret < 0) {
-        LOG_ERR("Failed to get RTC time: %d", ret);
+        // LOG_ERR("Failed to get RTC time: %d", ret);
         return ret;
     }
     return 0;

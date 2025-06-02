@@ -69,7 +69,8 @@ void CSensingTenant::Run() {
     // Note that compilers don't accept references to packed struct fields
     uint32_t tmpTimestamp = 0;
     if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
-        LOG_ERR("Failed to get time from RTC");
+        // LOG_ERR("Failed to get time from RTC");
+        timestampedData.timestamp = k_uptime_get();
     } else {
         timestampedData.timestamp = tmpTimestamp;
     }
@@ -105,7 +106,11 @@ void CSensingTenant::Run() {
 
     detectionHandler.HandleData(uptime, data, sensor_states);
     if (detectionHandler.FlightOccurring()) {
-        dataToLog.Send(timestampedData, K_NO_WAIT);
+        int ret = dataToLog.Send(timestampedData, K_NO_WAIT);
+        LOG_WRN_ONCE("Beginning logging");
+        if (ret < 0) {
+            LOG_ERR("Failed to log sensor data: %d", ret);
+        }
     }
 }
 
