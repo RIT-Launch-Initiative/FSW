@@ -54,7 +54,7 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
             int64_t end = k_uptime_get();
             int64_t elapsed = end - start;
             float perSec = packets_sent / (elapsed / 1000.0f);
-
+            lock_boostdata();
             LOG_INF("Its half over: %d packets in %lld ms. %f per second", packets_sent, elapsed, (double) perSec);
         }
         k_timer_status_sync(&imutimer);

@@ -89,7 +89,6 @@ uint32_t millis_till_timeslot_opens() {
     if (last_data.info.fix_status == GNSS_FIX_STATUS_NO_FIX) {
         return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
     }
-    k_ticks_t last_tick_delta = ublox_10_last_tick_delta(gps_dev);
     int64_t last_tick_uptime_ticks = ublox_10_last_tick_uptime(gps_dev);
     LOG_INF("uptiem ticks:%lld, %lld", asdf_ticks, last_tick_uptime_ticks);
     last_tick_uptime_ticks = asdf_ticks;
