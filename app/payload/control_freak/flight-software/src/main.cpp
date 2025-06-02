@@ -1,29 +1,32 @@
+#include "data.h"
 #include "f_core/os/c_datalogger.h"
 #include "flight.h"
+#include "gorbfs.h"
+
+#include <zephyr/drivers/gnss.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
+#include <zephyr/shell/shell.h>
+#include <zephyr/sys/reboot.h>
+LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
 
-static FreakFlightController controller{sourceNames, eventNames, timerEvents, decisionFuncs, NULL};
+static FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, NULL};
 
-struct Packet {
-    uint8_t a;
-    uint8_t b;
-};
+static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 
-CDataLogger<Packet> expand_logger{"/lfs/expand.bin"};
-CDataLogger<Packet> fill_logger{"/lfs/fill.bin", LogMode::FixedSize, 10};
-CDataLogger<Packet> wrap_logger{"/lfs/wrap.bin", LogMode::Circular, 10};
+
+
+K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry, (void *) &freak_controller,
+                (void *) &superfast_storage, NULL, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
 
 int main() {
-    for (uint8_t i = 0; i < 100; i++) {
-        expand_logger.Write({i, (uint8_t) (100 - i)});
-        fill_logger.Write({i, (uint8_t) (100 - i)});
-        wrap_logger.Write({i, (uint8_t) (100 - i)});
-        k_msleep(10);
+    
+    if (!device_is_ready(superfast_storage)) {
+        LOG_ERR("Storage not ready");
     }
-    expand_logger.Close();
-    fill_logger.Close();
-    wrap_logger.Close();
-    printk("Finished!\n");
+
     return 0;
 }
