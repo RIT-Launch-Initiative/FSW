@@ -4,7 +4,6 @@ sample:
 common:
   build_only: true
   platform_allow:
-    - native_sim
     - control_freak
 tests:
   control_freak.flight.default: {}
