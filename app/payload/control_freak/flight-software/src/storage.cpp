@@ -7,9 +7,6 @@
 LOG_MODULE_REGISTER(storage);
 
 // Flash Targets
-static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
-static const struct device *superslow_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superslow_storage));
-
 static CFlightLog flight_log{"/lfs/flight.log"};
 
 K_MSGQ_DEFINE(datalock_q, sizeof(bool), 1, alignof(bool));

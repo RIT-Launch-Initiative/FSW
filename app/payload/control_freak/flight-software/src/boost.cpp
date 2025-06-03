@@ -15,7 +15,8 @@ bool overriding_boost = false;
 bool feed_boost_acc(k_ticks_t ts_ticks, const NTypes::AccelerometerData &xyz) {
     float mag_sqrd = xyz.X * xyz.X + xyz.Y * xyz.Y + xyz.Z * xyz.Z;
     acc_buf.Feed(mag_sqrd);
-    if (acc_buf.Avg() > imuBoostThresholdMPerS2 * imuBoostThresholdMPerS2) {
+    // imuBoostThresholdMPerS2 * imuBoostThresholdMPerS2
+    if (acc_buf.Avg() > (9.8 * 9.8 * 2)) {
         printk("Boosted fr\n");
         buzzer_tell(BuzzCommand::AllGood);
         return true;

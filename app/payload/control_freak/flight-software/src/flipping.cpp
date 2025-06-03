@@ -291,8 +291,9 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
 int do_flipping_and_pumping(const struct device *imu_dev, const struct device *barom_dev,
                             const struct device *ina_servo, const struct device *ina_pump) {
 
+    FlightState flight_state = FlightState::InitialRoll;
     // Initial flipping
-    int ret = try_flipping(imu_dev, ina_servo, 10, FlightState::InitialRoll);
+    int ret = try_flipping(imu_dev, ina_servo, 10, flight_state);
     if (ret != FLIPPED_AND_RIGHTED) {
         LOG_INF("Bad news, we'll worry about this later");
     }
@@ -300,7 +301,11 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     set_lsm_sampling(imu_dev, 1);
 
     static constexpr int initial_inflation_attempts = 20;
-    attempt_inflation_iteration(ina_pump);
+    for (int i = 0; i < initial_inflation_attempts; i++) {
+        attempt_inflation_iteration(ina_pump);
+        k_msleep(PUMP_DUTY_OFF_MS);
+    }
+    flight_state = FlightState::Continuous;
 
     return -ENOTSUP;
 }

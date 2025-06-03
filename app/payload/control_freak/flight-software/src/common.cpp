@@ -52,16 +52,16 @@ bool is_data_locked() { return boostdata_locked; }
 // Needed for sys init (seemingly)
 extern "C" {
 int init_boostdata_locked() {
-    printk("Checking boostdata lock\n");
+    printk("\nChecking boostdata lock\n");
     fs_file_t_init(&allowfile);
     fs_dirent ent = {};
     int ret = fs_stat(ALLOWFILE_PATH, &ent);
     if (ret != 0) {
-        printk("No allowfile found, locked!\n");
+        printk("No allowfile found, locked!\n\n");
         boostdata_locked = true;
         return -1;
     } else {
-        printk("Allowfile found, flash unlocked\n");
+        printk("Allowfile found, flash unlocked\n\n");
         boostdata_locked = false;
         return 0;
     }

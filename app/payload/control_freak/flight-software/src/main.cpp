@@ -80,8 +80,8 @@ int main() {
         LOG_ERR("Error initializing servo hardware");
         buzzer_tell(BuzzCommand::SensorTroubles);
     }
-    // buzzer_tell(BuzzCommand::AllGood);
-    buzzer_tell(BuzzCommand::Silent);
+    buzzer_tell(BuzzCommand::AllGood);
+    // buzzer_tell(BuzzCommand::Silent);
 
     //Ground, Boost, Coast, Flight
     ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, ina_servo, &freak_controller);
