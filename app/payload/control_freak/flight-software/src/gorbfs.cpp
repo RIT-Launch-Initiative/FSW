@@ -184,20 +184,10 @@ int handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
 
 K_MSGQ_DEFINE(datalock_q, sizeof(bool), 1, alignof(bool));
 void handle_datalock_msg(DataLockMsg msg);
+void lock_loop_forever();
 int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
     if (is_data_locked()) {
-        LOG_INF("Waiting for lock/unlock msg");
-
-        while (true) {
-            DataLockMsg msg;
-            int ret = k_msgq_get(&datalock_q, &msg, K_FOREVER);
-            if (ret != 0) {
-                continue;
-            }
-            handle_datalock_msg(msg);
-        }
-
-        return -1;
+        lock_loop_forever();
     }
 
     const struct device *fast_dev = *(const struct device **) v_fdev;
@@ -210,7 +200,6 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
 
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
     (void) fc;
-    // IF LOCKED RETURN
 
     LOG_INF("Partition %s ready for storage: Page Size: %d, Partition Size: %d, Num Pages: %d", fast_dev->name,
             PAGE_SIZE, fast_cfg->partition_size, fast_cfg->num_pages);
@@ -317,6 +306,18 @@ void handle_datalock_msg(DataLockMsg toset) {
         lock_data_fs();
     } else {
         LOG_ERR("Unknown boost message");
+    }
+}
+void lock_loop_forever() {
+    LOG_INF("Waiting for lock/unlock msg");
+
+    while (true) {
+        DataLockMsg msg;
+        int ret = k_msgq_get(&datalock_q, &msg, K_FOREVER);
+        if (ret != 0) {
+            continue;
+        }
+        handle_datalock_msg(msg);
     }
 }
 

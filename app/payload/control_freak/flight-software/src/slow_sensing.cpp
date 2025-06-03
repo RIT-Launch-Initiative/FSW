@@ -89,7 +89,6 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
             } else {
                 LOG_WRN("Invalid i2c data for this slow packet");
             }
-            // LOG_INF("SLow Packet %d/8", packet_index);
         }
         ret = gfs_submit_slab(superslow_storage, slow_packet_buffer, K_FOREVER);
     }
