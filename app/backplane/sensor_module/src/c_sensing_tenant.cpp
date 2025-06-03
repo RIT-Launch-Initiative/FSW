@@ -101,7 +101,11 @@ void CSensingTenant::Run() {
 
     // If we can't send immediately, drop the packet
     // we're gonna sleep then give it new data anywas
-    dataToBroadcast.Send(data, K_NO_WAIT);
+    if (dataToBroadcast.Send(data, K_NO_WAIT)) {
+        LOG_ERR("Failed to send sensor data to broadcast port");
+    } else {
+        LOG_DBG("Sensor data sent to broadcast port");
+    }
     sendDownlinkData(data);
 
     detectionHandler.HandleData(uptime, data, sensor_states);
