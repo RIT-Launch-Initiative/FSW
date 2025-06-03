@@ -10,6 +10,7 @@
 #include "flipping.h"
 #include "gorbfs.h"
 #include "slow_sensing.h"
+#include "storage.h"
 
 #include <zephyr/drivers/gnss.h>
 #include <zephyr/drivers/sensor.h>
@@ -23,7 +24,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 #include <zephyr/kernel.h>
 
 FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, NULL};
-
 static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 static const struct device *superslow_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superslow_storage));
 

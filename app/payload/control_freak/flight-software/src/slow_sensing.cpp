@@ -60,7 +60,7 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
     k_timer_start(&slow_timer, K_SECONDS(1), K_SECONDS(1));
     while (true) {
         mark_storage_loop_end_if_not_yet(fc, has_marked_circle);
-        // LOG_INF("Allocing slab");
+
         int ret = gfs_alloc_slab(superslow_storage, (void **) &slow_packet_buffer, K_MSEC(20));
         if (ret != 0) {
             LOG_WRN("Bad alloc of superslow buffer, will try again soon");

@@ -1,3 +1,4 @@
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -8,8 +9,6 @@
 // Brain dead fast time series file storage
 // follows ideas from zephyr i2s subsystem using k_mem_slab to minimize copies
 
-// entry point for storage thread (will in the future be setup to handle more data)
-int storage_thread_entry(void *, void *, void *);
 /**
  * Get a buffer to write into
  * This should *always* be submitted back to the storage system with gfs_submit_slab
@@ -48,3 +47,44 @@ int gfs_signal_end_of_circle(const struct device *dev);
  * @return 0 on success, negative error code on flash read failure
  */
 int gfs_read_block(const struct device *dev, int idx, uint8_t *pac);
+
+/**
+ * Actual flash actioner
+ * call on you flash thread if your flash driver isnt thread safe o_O
+ */
+int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr);
+
+/**
+ * Erase the block if the block needs to be erase
+ * exposed for initial init
+ * not done at init time in case you need to check something before you erase a sector
+ */
+int gfs_erase_if_on_sector(const struct device *gfs_dev);
+
+struct gorbfs_partition_config {
+    // flash to write to
+    const struct device *flash_dev;
+    // start of partition
+    uint32_t partition_addr;
+    // size of partition
+    uint32_t partition_size;
+    // size of partition in pages
+    size_t num_pages;
+    // length back in time to save
+    // if i have circle_size = 20, when i signal end of circle, save 20 pages back
+    uint32_t circle_size_pages;
+};
+
+struct gorbfs_partition_data {
+    // current index into flash that we're writing at
+    size_t page_index;
+    // msgq used as a way to pass slabs in a thread safe way
+    struct k_msgq *msgq;
+    // underlying slab used to hold data
+    struct k_mem_slab *slab;
+    // page index that the data to keep starts or UNSET_START_INDEX while operating in circle mode
+    uint32_t start_index;
+};
+
+#define PAGE_SIZE   256
+#define SECTOR_SIZE 4096

@@ -1,3 +1,5 @@
+#include "gorbfs.h"
+
 #include "common.h"
 #include "f_core/os/flight_log.hpp"
 #include "flight.h"
@@ -12,39 +14,11 @@
 
 LOG_MODULE_REGISTER(gorbfs, CONFIG_APP_FREAK_LOG_LEVEL);
 
-struct gorbfs_partition_config {
-    // flash to write to
-    const struct device *flash_dev;
-    // start of partition
-    uint32_t partition_addr;
-    // size of partition
-    uint32_t partition_size;
-    // size of partition in pages
-    size_t num_pages;
-    // length back in time to save
-    // if i have circle_size = 20, when i signal end of circle, save 20 pages back
-    uint32_t circle_size_pages;
-};
-
-struct gorbfs_partition_data {
-    // current index into flash that we're writing at
-    size_t page_index;
-    // msgq used as a way to pass slabs in a thread safe way
-    struct k_msgq *msgq;
-    // underlying slab used to hold data
-    struct k_mem_slab *slab;
-    // page index that the data to keep starts or UNSET_START_INDEX while operating in circle mode
-    uint32_t start_index;
-};
-
 #ifdef CONFIG_BOARD_NATIVE_SIM
 #define GORBFS_GET_FLASH_DEV(partition_name) DEVICE_DT_GET_ONE(zephyr_sim_flash)
 #else
 #define GORBFS_GET_FLASH_DEV(partition_name) DEVICE_DT_GET(DT_GPARENT(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)))
 #endif
-
-#define PAGE_SIZE   256
-#define SECTOR_SIZE 4096
 
 #define GORBFS_INIT_PRIORITY 60
 BUILD_ASSERT(GORBFS_INIT_PRIORITY > CONFIG_FLASH_INIT_PRIORITY, "Gorbfs depends on flash");
@@ -87,9 +61,6 @@ static int gorbfs_init(const struct device *dev) { return 0; }
                      &gorbfs_partition_data_##partition_name, &gorbfs_partition_config_##partition_name, POST_KERNEL,  \
                      GORBFS_INIT_PRIORITY, NULL);
 
-// Flash Targets
-static CFlightLog flight_log{"/lfs/flight.log"};
-
 GORBFS_PARTITION_DEFINE(superfast_storage, NTypes::SuperFastPacket, 8, 500);
 GORBFS_PARTITION_DEFINE(superslow_storage, SuperSlowPacket, 2, 6);
 
@@ -109,7 +80,7 @@ int gfs_submit_slab(const struct device *dev, void *slab, k_timeout_t timeout) {
     return ret;
 }
 
-int erase_if_on_sector(const struct device *gfs_dev) {
+int gfs_erase_if_on_sector(const struct device *gfs_dev) {
     const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) gfs_dev->config;
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) gfs_dev->data;
 
@@ -134,14 +105,13 @@ int set_cutoff_if_needed(const struct device *gfs_dev) {
         LOG_INF("Setting start index to %d (was at %d with circ size %d)", cutoff_index, data->page_index,
                 cfg->circle_size_pages);
         int start = k_uptime_get();
-        flight_log.Write("yeah man im swapping its crazy");
         int end = k_uptime_get() - start;
         LOG_INF("Wrote in %d", end);
     }
     return 0;
 }
 
-int handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
+int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     const gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) gfs_dev->config;
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) gfs_dev->data;
 
@@ -179,146 +149,7 @@ int handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     k_mem_slab_free(data->slab, (void *) chunk_ptr);
 
     // Erase if next block will go to new sector
-    return erase_if_on_sector(gfs_dev);
-}
-
-K_MSGQ_DEFINE(datalock_q, sizeof(bool), 1, alignof(bool));
-void handle_datalock_msg(DataLockMsg msg);
-void lock_loop_forever();
-int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
-    if (is_data_locked()) {
-        lock_loop_forever();
-    }
-
-    const struct device *fast_dev = *(const struct device **) v_fdev;
-    const gorbfs_partition_config *fast_cfg = (struct gorbfs_partition_config *) fast_dev->config;
-    struct gorbfs_partition_data *fast_data = (struct gorbfs_partition_data *) fast_dev->data;
-
-    const struct device *slow_dev = *(const struct device **) v_sdev;
-    const gorbfs_partition_config *slow_cfg = (struct gorbfs_partition_config *) slow_dev->config;
-    struct gorbfs_partition_data *slow_data = (struct gorbfs_partition_data *) slow_dev->data;
-
-    FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
-    (void) fc;
-
-    LOG_INF("Partition %s ready for storage: Page Size: %d, Partition Size: %d, Num Pages: %d", fast_dev->name,
-            PAGE_SIZE, fast_cfg->partition_size, fast_cfg->num_pages);
-    LOG_INF("Partition %s ready for storage: Page Size: %d, Partition Size: %d, Num Pages: %d", slow_dev->name,
-            PAGE_SIZE, slow_cfg->partition_size, slow_cfg->num_pages);
-
-    int ret = erase_if_on_sector(fast_dev);
-    if (ret != 0) {
-        LOG_WRN("Failed initial erase of fast partition");
-    }
-    ret = erase_if_on_sector(slow_dev);
-    if (ret != 0) {
-        LOG_WRN("Failed initial erase of slow partition");
-    }
-
-    k_poll_event events[3];
-    k_poll_event_init(&events[0], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &datalock_q);
-    k_poll_event_init(&events[1], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, fast_data->msgq);
-    k_poll_event_init(&events[2], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, slow_data->msgq);
-
-    while (true) {
-        int ret = 0;
-
-        ret = k_poll(events, ARRAY_SIZE(events), K_FOREVER);
-        if (ret != 0) {
-            LOG_WRN("Error from k poll: %d", ret);
-            continue;
-        }
-
-        if (events[0].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
-            DataLockMsg msg;
-            ret = k_msgq_get(&datalock_q, &msg, K_FOREVER);
-            if (!is_data_locked()) {
-                handle_datalock_msg(msg);
-            } else {
-                LOG_INF("Ignoring, already locked");
-            }
-            events[0].state = K_POLL_STATE_NOT_READY;
-        } else if (events[1].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
-            void *chunk_ptr = NULL;
-            ret = k_msgq_get(fast_data->msgq, &chunk_ptr, K_FOREVER);
-            handle_new_block(fast_dev, chunk_ptr);
-            events[1].state = K_POLL_STATE_NOT_READY;
-        } else if (events[2].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
-            void *chunk_ptr = NULL;
-            ret = k_msgq_get(slow_data->msgq, &chunk_ptr, K_FOREVER);
-            handle_new_block(slow_dev, chunk_ptr);
-            events[2].state = K_POLL_STATE_NOT_READY;
-        }
-    }
-    ret = flight_log.Write("Yeah man im done wild huh");
-    if (ret != 0) {
-        LOG_WRN("Couldnt write flight log: %d", ret);
-    }
-    ret = flight_log.Close();
-    if (ret != 0) {
-        LOG_WRN("Couldnt write flight log: %d", ret);
-    }
-    return 0;
-}
-
-void unlock_boostdata() {
-    LOG_INF("Send unlock msg");
-    DataLockMsg msg = DataLockMsg::Unlock;
-    k_msgq_put(&datalock_q, (void *) &msg, K_FOREVER);
-}
-void lock_boostdata() {
-    LOG_INF("Send lock msg");
-    DataLockMsg msg = DataLockMsg::Lock;
-    k_msgq_put(&datalock_q, (void *) &msg, K_MSEC(2));
-}
-
-static fs_file_t allowfile;
-bool boostdata_locked = true;
-
-void unlock_data_fs() {
-    fs_file_t_init(&allowfile);
-    int ret = fs_open(&allowfile, ALLOWFILE_PATH, FS_O_CREATE);
-    if (ret != 0) {
-        LOG_ERR("Couldnt create allowfile, data stays locked");
-        return;
-    }
-    ret = fs_close(&allowfile);
-    if (ret != 0) {
-        LOG_ERR("Couldnt save allowfile, data (maybe) stays locked");
-    }
-    LOG_INF("Unlocked data successfully");
-    boostdata_locked = false;
-}
-void lock_data_fs() {
-    int ret = fs_unlink(ALLOWFILE_PATH);
-    if (ret != 0) {
-        LOG_ERR("Failed to delete lockfile, data stays unlocked");
-        return;
-    }
-    LOG_INF("Locked data successfully");
-    boostdata_locked = true;
-}
-void handle_datalock_msg(DataLockMsg toset) {
-    LOG_INF("handling: %d", (int) toset);
-    if (toset == DataLockMsg::Unlock) {
-        unlock_data_fs();
-    } else if (toset == DataLockMsg::Lock) {
-        lock_data_fs();
-    } else {
-        LOG_ERR("Unknown boost message");
-    }
-}
-void lock_loop_forever() {
-    LOG_INF("Waiting for lock/unlock msg");
-
-    while (true) {
-        DataLockMsg msg;
-        int ret = k_msgq_get(&datalock_q, &msg, K_FOREVER);
-        if (ret != 0) {
-            continue;
-        }
-        handle_datalock_msg(msg);
-    }
+    return gfs_erase_if_on_sector(gfs_dev);
 }
 
 int gfs_total_blocks(const struct device *dev) {

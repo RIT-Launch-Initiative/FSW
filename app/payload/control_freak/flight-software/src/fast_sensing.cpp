@@ -32,7 +32,7 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
     int fast_index = 0;
     NTypes::SuperFastPacket *packet = NULL;
 
-    k_timer_start(&imutimer, K_USEC(950), K_USEC(950));
+    k_timer_start(&imutimer, K_USEC(920), K_USEC(920));
     k_timer_start(&slowdata_timer, K_SECONDS(1), K_SECONDS(1));
     int packets_sent = 0;
 
