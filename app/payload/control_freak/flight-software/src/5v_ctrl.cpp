@@ -29,7 +29,7 @@ int five_volt_rail_init() {
         }
         int ret = gpio_pin_configure_dt(gpio, GPIO_OUTPUT_INACTIVE);
         if (ret < 0) {
-            LOG_WRN("Failed to conf %s pin:(", name);
+            LOG_WRN("Failed to conf %s pin :(", name);
             return ret;
         }
     }
