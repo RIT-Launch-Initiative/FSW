@@ -22,17 +22,20 @@ uint8_t degC = 33;
 uint8_t voltage = 79;
 uint8_t current = 81;
 
+uint8_t flight_state = (uint8_t) FlightState::NotSet;
 uint8_t flip_state = 0xf0;
 } // namespace LockedData
 
 int submit_slowdata(const small_orientation &normed, const float &tempC, const float &current, const float &voltage,
-                    FlipState fs) {
+                    FlipState fs, FlightState flight_state) {
     if (k_mutex_lock(&i2c_data_mutex, K_NO_WAIT)) {
         LOG_WRN("Couldn't submit to slow data");
         return -1;
     }
     LockedData::orientation = normed;
     LockedData::degC = tempC;
+    LockedData::flip_state = fs;
+    LockedData::flight_state = (uint8_t) flight_state;
 
     static constexpr float voltage_base = 6.75; // 6.75 to 9.25
     static constexpr float voltage_scale = 100; // 2.5 volt range to 250 volt range

@@ -225,7 +225,7 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
     return 0;
 }
 
-int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int attempts) {
+int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int attempts, FlightState flight_state) {
     rail_item_enable(FiveVoltItem::Servos);
     int ret = set_lsm_sampling(imu_dev, 12); // dont need all that speed here
     if (ret < 0) {
@@ -277,7 +277,7 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
 
         FlipState fs = FLIP_STATE(face, attempts_on_this_face);
         small_orientation snorm = minify_orientation(vec);
-        ret = submit_slowdata(snorm, tempC, current_before, voltage_before, fs);
+        ret = submit_slowdata(snorm, tempC, current_before, voltage_before, fs, flight_state);
         if (ret < 0) {
             LOG_WRN("Failed to send slowdata");
         }
@@ -292,7 +292,7 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
                             const struct device *ina_servo, const struct device *ina_pump) {
 
     // Initial flipping
-    int ret = try_flipping(imu_dev, ina_servo, 10);
+    int ret = try_flipping(imu_dev, ina_servo, 10, FlightState::InitialRoll);
     if (ret != FLIPPED_AND_RIGHTED) {
         LOG_INF("Bad news, we'll worry about this later");
     }

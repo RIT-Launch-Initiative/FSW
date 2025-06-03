@@ -183,7 +183,7 @@ int handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
 }
 
 K_MSGQ_DEFINE(datalock_q, sizeof(bool), 1, alignof(bool));
-void handle_unlock_msg(DataLockMsg msg);
+void handle_datalock_msg(DataLockMsg msg);
 int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
     if (is_data_locked()) {
         LOG_INF("Waiting for lock/unlock msg");
@@ -194,7 +194,7 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
             if (ret != 0) {
                 continue;
             }
-            handle_unlock_msg(msg);
+            handle_datalock_msg(msg);
         }
 
         return -1;
@@ -242,8 +242,12 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
 
         if (events[0].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
             DataLockMsg msg;
-            ret = k_msgq_get(fast_data->msgq, &msg, K_FOREVER);
-            handle_unlock_msg(msg);
+            ret = k_msgq_get(&datalock_q, &msg, K_FOREVER);
+            if (!is_data_locked()) {
+                handle_datalock_msg(msg);
+            } else {
+                LOG_INF("Ignoring, already locked");
+            }
             events[0].state = K_POLL_STATE_NOT_READY;
         } else if (events[1].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
             void *chunk_ptr = NULL;
@@ -280,6 +284,8 @@ void lock_boostdata() {
 }
 
 static fs_file_t allowfile;
+bool boostdata_locked = true;
+
 void unlock_data_fs() {
     fs_file_t_init(&allowfile);
     int ret = fs_open(&allowfile, ALLOWFILE_PATH, FS_O_CREATE);
@@ -291,26 +297,26 @@ void unlock_data_fs() {
     if (ret != 0) {
         LOG_ERR("Couldnt save allowfile, data (maybe) stays locked");
     }
+    LOG_INF("Unlocked data successfully");
+    boostdata_locked = false;
 }
 void lock_data_fs() {
     int ret = fs_unlink(ALLOWFILE_PATH);
     if (ret != 0) {
         LOG_ERR("Failed to delete lockfile, data stays unlocked");
-    }
-}
-void handle_unlock_msg(DataLockMsg toset) {
-    int ret = k_msgq_get(&datalock_q, &toset, K_FOREVER);
-    if (ret != 0) {
-        LOG_WRN("Failed to read from datalock queue, try again");
         return;
     }
-    LOG_INF("handling");
+    LOG_INF("Locked data successfully");
+    boostdata_locked = true;
+}
+void handle_datalock_msg(DataLockMsg toset) {
+    LOG_INF("handling: %d", (int) toset);
     if (toset == DataLockMsg::Unlock) {
-        LOG_INF("Unlocking");
         unlock_data_fs();
     } else if (toset == DataLockMsg::Lock) {
-        LOG_INF("Locking");
         lock_data_fs();
+    } else {
+        LOG_ERR("Unknown boost message");
     }
 }
 

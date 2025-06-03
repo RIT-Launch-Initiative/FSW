@@ -44,7 +44,7 @@ NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc) {
     return {acc.X / magn, acc.Y / magn, acc.Z / magn};
 }
 
-static bool boostdata_locked = true;
+extern bool boostdata_locked;
 static struct fs_file_t allowfile;
 
 bool is_data_locked() { return boostdata_locked; }

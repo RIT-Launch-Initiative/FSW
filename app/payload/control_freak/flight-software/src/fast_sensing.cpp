@@ -32,12 +32,11 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
     int fast_index = 0;
     NTypes::SuperFastPacket *packet = NULL;
 
-    k_timer_start(&imutimer, K_USEC(900), K_USEC(900));
+    k_timer_start(&imutimer, K_USEC(950), K_USEC(950));
     k_timer_start(&slowdata_timer, K_SECONDS(1), K_SECONDS(1));
     int packets_sent = 0;
 
-    bool has_swapped = false;
-
+    FlightState flight_state = FlightState::NotSet;
     bool already_imu_boosted = false;
 
     int ret = 0;
@@ -46,11 +45,16 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
     freak_controller->SubmitEvent(Sources::BMP390, Events::PadReady);
 
     freak_controller->WaitUntilEvent(Events::PadReady);
+    flight_state = FlightState::OnPad;
 
     while (DONT_STOP && !freak_controller->HasEventOccurred(Events::GroundHit)) {
-        if (!has_swapped && freak_controller->HasEventOccurred(Events::Coast)) {
+        if (flight_state == FlightState::OnPad && freak_controller->HasEventOccurred(Events::Boost)) {
+            LOG_INF("Fast thread boost");
+            flight_state = FlightState::Boost;
+        } else if (flight_state == FlightState::Boost && freak_controller->HasEventOccurred(Events::Coast)) {
             LOG_INF("Swapping");
-            has_swapped = true;
+            flight_state = FlightState::Flight;
+
             gfs_signal_end_of_circle(superfast_storage);
             int64_t end = k_uptime_get();
             int64_t elapsed = end - start;
@@ -96,11 +100,11 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
                 if (ret != 0) {
                     LOG_WRN("Couldnt read ina: %d", ret);
                 }
-                ret = submit_slowdata(snormed, temp, current, volts, FLIP_STATE_NOT_TRYING);
+                ret = submit_slowdata(snormed, temp, current, volts, FLIP_STATE_NOT_TRYING, flight_state);
                 if (ret != 0) {
                     LOG_WRN("Couldn submit slowdata: %d", ret);
                 }
-                LOG_INF("%f volts", (double) volts);
+
                 ret = submit_horus_data(temp, volts, snormed);
                 if (ret != 0) {
                     LOG_WRN("Couldn submit slowdata: %d", ret);

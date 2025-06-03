@@ -7,6 +7,17 @@
 #include <stdint.h>
 #include <zephyr/device.h>
 
+enum class FlightState : uint8_t {
+    NotSet = 0,
+    OnPad = 1,
+    Boost = 2,
+    Flight = 3,
+    InitialRoll = 4,
+    InitialPump = 5,
+    Continuous = 6,
+
+};
+
 enum DataLockMsg {
     Lock,
     Unlock,
