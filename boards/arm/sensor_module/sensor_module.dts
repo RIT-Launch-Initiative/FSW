@@ -111,6 +111,10 @@
 	status = "okay";
 };
 
+&dma1 {
+	status = "okay";
+};
+
 &dma2 {
 	status = "okay";
 };
@@ -122,23 +126,6 @@
 
 	pinctrl-names = "default";
 	status = "okay";
-
-	// dma identifier
-	// dma stream
-	// dma channel
-	// config flags
-    dmas = <&dma2 5 3
-            (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 |
-            STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS)
-            0x3
-           >,
-	   <&dma2 2 3
-            (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 |
-            STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS)
-            0x3
-       >;
-	dma-names = "tx", "rx";
-
 
 	w5500: w5500@0 {
 		compatible = "wiznet,w5500";
@@ -156,6 +143,16 @@
 
 	pinctrl-names = "default";
 	status = "okay";
+
+	// dma identifier
+	// dma stream
+	// dma channel
+	// config flags
+	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+	dma-names = "tx", "rx";
+
+
 
 	w25q512: w25q512jv@0 {
 		compatible = "jedec,spi-nor";
