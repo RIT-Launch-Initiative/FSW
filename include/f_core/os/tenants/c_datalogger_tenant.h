@@ -1,6 +1,8 @@
 #ifndef C_DATALOGGER_TENANT_H
 #define C_DATALOGGER_TENANT_H
 
+#include "f_core/os/n_rtos.h"
+
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
 #include <f_core/os/c_datalogger.h>
@@ -28,7 +30,8 @@ public:
     }
 
     void Run() override {
-        if (T message{}; messagePort.Receive(message, K_FOREVER) == 0) {
+        T message{};
+        while (messagePort.Receive(message, K_NO_WAIT) == 0) {
             dataLogger.Write(message);
             syncCounter++;
             if ((syncTimer.IsRunning() && syncTimer.IsExpired()) ||
@@ -40,6 +43,8 @@ public:
                 }
             }
         }
+
+        NRtos::SuspendCurrentTask();
     }
 
     void Cleanup() override {
