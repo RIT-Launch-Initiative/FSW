@@ -28,30 +28,33 @@ void StartRtos();
 void StopRtos();
 
 /**
- * Resume a task's execution
+ * Resume a task's execution based on task ID
  * @param taskId The ID of the task to resume
  */
 void ResumeTask(k_tid_t taskId);
 
 /**
- * Resume a task's execution
- * @param taskName THe name of the task to resume
+ * Resume a task's execution based on task name
+ * @param taskName The name of the task to resume
  */
 void ResumeTask(std::string taskName);
 
-
 /**
- * Suspend a task from executing
+ * Suspend a task from executing based on task ID
  * @param taskId The ID of the task to suspend
  */
 void SuspendTask(k_tid_t taskId);
 
 /**
+ * Suspend a task from execution based on task name
+ * @param taskName The name of the task to resume
+ */
+void SuspendTask(std::string taskName);
+
+/**
  * Suspend the currently executing task
  */
 void SuspendCurrentTask();
-
-
 };
 
 

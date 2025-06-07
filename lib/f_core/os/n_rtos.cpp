@@ -55,6 +55,15 @@ void NRtos::SuspendTask(k_tid_t taskId) {
     k_thread_suspend(taskId);
 }
 
+void NRtos::SuspendTask(std::string taskName) {
+    if (taskNameIdMap.Contains(taskName)) {
+        k_thread_suspend(taskNameIdMap.Get(taskName).value());
+    } else {
+        LOG_WRN("Cannot suspend %s, because task was not found in map!", taskName.c_str());
+    }
+}
+
+
 void NRtos::SuspendCurrentTask() {
     k_tid_t taskId = k_current_get();
     SuspendTask(taskId);
