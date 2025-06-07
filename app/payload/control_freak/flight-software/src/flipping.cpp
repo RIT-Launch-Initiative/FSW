@@ -268,7 +268,11 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
         float tempC = 0;
 
         int index = face;
-        ret = flip_one_side(ina_dev, *servos[index], Fast, true, current_before, voltage_before);
+        SweepStrategy strategy = SweepStrategy::Slow;
+        if (attempts_on_this_face > 3) {
+            strategy = SweepStrategy::Fast;
+        }
+        ret = flip_one_side(ina_dev, *servos[index], strategy, true, current_before, voltage_before);
         if (ret != 0) {
             LOG_WRN("Error sweeping servo: %d", ret);
         }
@@ -291,6 +295,9 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
 int measure_and_send_data(const struct device *imu_dev, const struct device *ina_servo,
                           const FlightState &flight_state) {
     NTypes::AccelerometerData vec = {0};
+    NTypes::GyroscopeData _gyro = {0};
+
+    read_imu(imu_dev, vec, _gyro);
     NTypes::AccelerometerData normed = normalize(vec);
     small_orientation snormed = minify_orientation(normed);
     float temp = 32.0;
@@ -316,26 +323,27 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
                             const struct device *ina_servo, const struct device *ina_pump) {
 
     // Initial flipping
-    int ret = try_flipping(imu_dev, ina_servo, 10, FlightState::InitialRoll);
+    static constexpr int initial_flipping_attempts = 10;
+    int ret = try_flipping(imu_dev, ina_servo, initial_flipping_attempts, FlightState::InitialRoll);
     if (ret != FLIPPED_AND_RIGHTED) {
         LOG_INF("Bad news, we'll worry about this later");
     }
     LOG_INF("Low Power");
     set_lsm_sampling(imu_dev, 1);
 
-    // TODO submit slow data and horus data here
     static constexpr int initial_inflation_attempts = 20;
-    for (int i = 0; i < initial_inflation_attempts; i++) {
-        measure_and_send_data(imu_dev, ina_servo, FlightState::InitialPump);
-        attempt_inflation_iteration(ina_pump);
-
-        k_msleep(PUMP_DUTY_OFF_MS);
-    }
-    // well, that maybe worked
+    int attempt_number = 0;
+    FlightState flight_state = FlightState::InitialPump;
     while (true) {
-        measure_and_send_data(imu_dev, ina_servo, FlightState::InitialPump);
+        if (attempt_number > initial_inflation_attempts) {
+            flight_state = FlightState::Continuous;
+            LOG_INF("Initial pump over, switch to continous");
+        }
+
+        measure_and_send_data(imu_dev, ina_servo, flight_state);
 
         attempt_inflation_iteration(ina_pump);
+        attempt_number++;
         k_msleep(PUMP_DUTY_OFF_MS);
     }
 

@@ -37,6 +37,34 @@ static int32_t set_pramble_len(uint16_t preamble_len) {
     return 0;
 }
 
+static int32_t set_power_config(uint8_t output_power, uint8_t max_power, bool plus20_en) {
+    // RegOCP over current protection
+    // MaxPower: 3bits = 10.8+0.6*MaxPower
+    // default 0x4, max 0b111=0x7
+    if (max_power > 7) {
+        LOG_WRN("Unsupported max power %d setting default 0x4", (int) max_power);
+        max_power = 0x04;
+    }
+    // Pout = 2+OutputPower if PA BOOST Pin
+    // Pout = Pmax - (15 - OutputPower) if RFO Pin
+    if (output_power > 15) {
+        LOG_WRN("Unsupported max power %d. Setting default 0xf", (int) output_power);
+        output_power = 0xf;
+    }
+    // wired to use PA_BOOST
+    uint8_t regpacfg = 0b1000000 | (max_power << 4) | output_power;
+    SX1276Write(REG_PACONFIG, regpacfg);
+
+    uint8_t pa_dac_val = 0;
+    if (plus20_en) {
+        pa_dac_val = 0x17;
+    } else {
+        pa_dac_val = 0x14;
+    }
+    SX1276Write(REG_PADAC, pa_dac_val);
+    return 0;
+}
+
 /**
  * Calculate the values needed for Fdev registers from a frequency in Hertz
  * @return -ERANGE if the frequency is out of range. 0 if its in range
@@ -288,6 +316,7 @@ int radio_thread(void *, void *, void *) {
     if (is_data_locked()) {
         return -1;
     }
+    // set_power_config(15, 4, true);
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         wait_for_timeslot();

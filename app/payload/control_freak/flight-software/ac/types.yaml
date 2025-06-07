@@ -36,7 +36,7 @@ SlowInfo:
     - name: Orientation
       type: int8_t
       array_size: 3
-    - name: Other1
+    - name: FlightState
       type: uint8_t
     - name: Other2
       type: uint8_t

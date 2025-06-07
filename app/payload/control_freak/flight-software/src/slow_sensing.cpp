@@ -77,7 +77,6 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
                 LOG_WRN("Invalid GPS for this slow packet: %d", ret);
             }
             if (k_mutex_lock(&i2c_data_mutex, K_MSEC(2)) == 0) {
-                // current.Orientation = orientation;
                 current.TempC = LockedData::degC;
                 current.Current = LockedData::current;
                 current.Orientation[0] = LockedData::orientation.x;
@@ -85,6 +84,7 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
                 current.Orientation[2] = LockedData::orientation.z;
                 current.Battery_voltage = LockedData::voltage;
                 current.FlipStatus = LockedData::flip_state;
+                current.FlightState = LockedData::flight_state;
                 k_mutex_unlock(&i2c_data_mutex);
             } else {
                 LOG_WRN("Invalid i2c data for this slow packet");
