@@ -44,8 +44,9 @@ class CSensingTenant : public CTenant {
 
     std::array<CSensorDevice *, 7> sensors;
 
-
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
+
+    k_tid_t taskIdToResume = nullptr;
 
     void sendDownlinkData(const NTypes::SensorData &data);
 };
