@@ -300,12 +300,17 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     LOG_INF("Low Power");
     set_lsm_sampling(imu_dev, 1);
 
+    // TODO submit slow data and horus data here
     static constexpr int initial_inflation_attempts = 20;
     for (int i = 0; i < initial_inflation_attempts; i++) {
         attempt_inflation_iteration(ina_pump);
         k_msleep(PUMP_DUTY_OFF_MS);
     }
     flight_state = FlightState::Continuous;
+    while (true) {
+        attempt_inflation_iteration(ina_pump);
+        k_msleep(PUMP_DUTY_OFF_MS);
+    }
 
     return -ENOTSUP;
 }

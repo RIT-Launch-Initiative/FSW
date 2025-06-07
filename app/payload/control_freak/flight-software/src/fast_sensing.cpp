@@ -105,7 +105,7 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
                     LOG_WRN("Couldn submit slowdata: %d", ret);
                 }
 
-                ret = submit_horus_data(temp, volts, snormed);
+                ret = submit_horus_data(temp, volts, snormed, flight_state);
                 if (ret != 0) {
                     LOG_WRN("Couldn submit slowdata: %d", ret);
                 }

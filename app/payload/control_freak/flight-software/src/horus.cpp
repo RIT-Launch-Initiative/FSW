@@ -224,8 +224,10 @@ K_MUTEX_DEFINE(horus_mutex);
 uint8_t horus_temp_c = 0;
 uint8_t horus_battery_v_2 = 0;
 small_orientation horus_snorm = {0};
+FlightState horus_state = FlightState::NotSet;
 
-int submit_horus_data(const float &tempC, const float &batteryVoltage, const small_orientation &snorm) {
+int submit_horus_data(const float &tempC, const float &batteryVoltage, const small_orientation &snorm,
+                      const FlightState &fs) {
     int ret = k_mutex_lock(&horus_mutex, K_MSEC(20));
     if (ret != 0) {
         LOG_WRN("Couldnt lock mut to send horus data");
@@ -233,8 +235,9 @@ int submit_horus_data(const float &tempC, const float &batteryVoltage, const sma
     }
     horus_temp_c = (uint8_t) tempC;
     // horus battery is 0-5V 0 -255LSB
-    horus_battery_v_2 = (uint8_t) ((batteryVoltage / 10.0) * 255);
+    horus_battery_v_2 = (uint8_t) ((batteryVoltage / 10.0f) * 255);
     horus_snorm = snorm;
+    horus_state = fs;
     return k_mutex_unlock(&horus_mutex);
 }
 
@@ -257,6 +260,12 @@ horus_packet_v2 get_telemetry() {
     }
     pac.battery_voltage = horus_battery_v_2;
     pac.temp = horus_temp_c;
+    pac.custom_data[0] = horus_snorm.x;
+    pac.custom_data[1] = horus_snorm.y;
+    pac.custom_data[2] = horus_snorm.z;
+
+    pac.custom_data[7] = (uint8_t) horus_state;
+
     k_mutex_unlock(&horus_mutex);
     return pac;
 }
