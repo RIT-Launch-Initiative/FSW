@@ -33,3 +33,16 @@ void NRtos::StopRtos() {
     LOG_RAW("RTOS Stopped!\n");
     LOG_RAW("\n");
 }
+
+void NRtos::ResumeTask(k_tid_t taskId) {
+    k_thread_resume(taskId);
+}
+
+void NRtos::SuspendTask(k_tid_t taskId) {
+    k_thread_suspend(taskId);
+}
+
+void NRtos::SuspendCurrentTask() {
+    k_tid_t taskId = k_current_get();
+    SuspendTask(taskId);
+}

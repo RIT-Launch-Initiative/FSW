@@ -32,6 +32,11 @@ void StopRtos();
 void SuspendTask(k_tid_t taskId);
 
 /**
+ * Suspend the currently executing task
+ */
+void SuspendCurrentTask();
+
+/**
  * Resume a task's execution
  * @param taskId The ID of the task to resume
  */
