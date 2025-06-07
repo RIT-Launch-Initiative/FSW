@@ -106,9 +106,7 @@ void CSensingTenant::Run() {
     detectionHandler.HandleData(uptime, data, sensor_states);
     if (detectionHandler.FlightOccurring()) {
         if (dataToLog.Send(timestampedData, K_NO_WAIT) != 0) {
-            if (taskIdToResume != nullptr) {
-                NRtos::ResumeTask(taskIdToResume);
-            }
+            NRtos::ResumeTask("Data Logging Task");
         }
     }
 }
