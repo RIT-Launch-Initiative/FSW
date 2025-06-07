@@ -15,15 +15,15 @@ std::vector<CTask*> tasks;
 CHashMap<std::string, k_tid_t> taskNameIdMap;
 
 void NRtos::AddTask(CTask& task) {
-    k_tid_t taskId = task.GetTaskId();
     tasks.push_back(&task);
-    taskNameIdMap.Insert(std::string(k_thread_name_get(taskId)), taskId);
 }
 
 void NRtos::StartRtos() {
     for (CTask* task : tasks) {
         LOG_INF("Starting task %s", task->GetName());
         task->Initialize();
+        k_tid_t taskId = task->GetTaskId();
+        taskNameIdMap.Insert(std::string(k_thread_name_get(taskId)), taskId);
     }
 
     LOG_INF("RTOS Started!");
