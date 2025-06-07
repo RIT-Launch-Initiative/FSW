@@ -48,6 +48,16 @@ public:
     void Run();
 
     /**
+     * @brief Suspend the task from executing
+     */
+    void Suspend();
+
+    /**
+     * @brief Resume task execution
+     */
+    void Resume();
+
+    /**
      * Get the Zephyr thread associated with the task
      * @return Zephyr thread
      */
