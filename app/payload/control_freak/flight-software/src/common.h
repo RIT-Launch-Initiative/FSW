@@ -41,6 +41,9 @@ using SuperSlowPacket = NTypes::SlowInfo[SLOW_DATA_PER_PACKET];
  */
 int read_ina(const struct device *ina_dev, float &voltage, float &current);
 
+int read_imu(const struct device *imu_dev, NTypes::AccelerometerData &acc, NTypes::GyroscopeData &gyro);
+int read_barom(const struct device *barom_dev, float &temp, float &press);
+
 int set_lsm_sampling(const struct device *imu_dev, int odr);
 
 NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc);

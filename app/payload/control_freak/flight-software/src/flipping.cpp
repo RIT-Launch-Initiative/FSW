@@ -288,12 +288,35 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
     return FLIPPED_BUT_NOT_RIGHTED;
 }
 
+int measure_and_send_data(const struct device *imu_dev, const struct device *ina_servo,
+                          const FlightState &flight_state) {
+    NTypes::AccelerometerData vec = {0};
+    NTypes::AccelerometerData normed = normalize(vec);
+    small_orientation snormed = minify_orientation(normed);
+    float temp = 32.0;
+    float current = 0;
+    float volts = 0;
+    int ret = read_ina(ina_servo, volts, current);
+    if (ret != 0) {
+        LOG_WRN("Couldnt read ina: %d", ret);
+    }
+    ret = submit_slowdata(snormed, temp, current, volts, FLIP_STATE_NOT_TRYING, flight_state);
+    if (ret != 0) {
+        LOG_WRN("Couldn submit slowdata: %d", ret);
+    }
+
+    ret = submit_horus_data(temp, volts, snormed, flight_state);
+    if (ret != 0) {
+        LOG_WRN("Couldn submit horus: %d", ret);
+    }
+    return 0;
+}
+
 int do_flipping_and_pumping(const struct device *imu_dev, const struct device *barom_dev,
                             const struct device *ina_servo, const struct device *ina_pump) {
 
-    FlightState flight_state = FlightState::InitialRoll;
     // Initial flipping
-    int ret = try_flipping(imu_dev, ina_servo, 10, flight_state);
+    int ret = try_flipping(imu_dev, ina_servo, 10, FlightState::InitialRoll);
     if (ret != FLIPPED_AND_RIGHTED) {
         LOG_INF("Bad news, we'll worry about this later");
     }
@@ -303,11 +326,15 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     // TODO submit slow data and horus data here
     static constexpr int initial_inflation_attempts = 20;
     for (int i = 0; i < initial_inflation_attempts; i++) {
+        measure_and_send_data(imu_dev, ina_servo, FlightState::InitialPump);
         attempt_inflation_iteration(ina_pump);
+
         k_msleep(PUMP_DUTY_OFF_MS);
     }
-    flight_state = FlightState::Continuous;
+    // well, that maybe worked
     while (true) {
+        measure_and_send_data(imu_dev, ina_servo, FlightState::InitialPump);
+
         attempt_inflation_iteration(ina_pump);
         k_msleep(PUMP_DUTY_OFF_MS);
     }

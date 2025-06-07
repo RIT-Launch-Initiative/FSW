@@ -6,7 +6,7 @@ SuperFastPacket:
     - name: BaromData
       type: BarometerData
     - name: GyroData
-      type: AccelerometerData
+      type: GyroscopeData
       array_size: 10
     - name: AccelData
       type: AccelerometerData
