@@ -14,8 +14,7 @@ LOG_MODULE_REGISTER(NRtos);
 std::vector<CTask*> tasks;
 CHashMap<std::string, k_tid_t> taskNameIdMap;
 
-void NRtos::AddTask(CTask &task)
- {
+void NRtos::AddTask(CTask& task) {
     k_tid_t taskId = task.GetTaskId();
     tasks.push_back(&task);
     taskNameIdMap.Insert(std::string(k_thread_name_get(taskId)), taskId);
@@ -42,6 +41,14 @@ void NRtos::StopRtos() {
 
 void NRtos::ResumeTask(k_tid_t taskId) {
     k_thread_resume(taskId);
+}
+
+void NRtos::ResumeTask(std::string taskName) {
+    if (taskNameIdMap.Contains(taskName)) {
+        k_thread_resume(taskNameIdMap.Get(taskName).value());
+    } else {
+        LOG_WRN("Cannot resume %s, because task was not found in map!", taskName.c_str());
+    }
 }
 
 void NRtos::SuspendTask(k_tid_t taskId) {
