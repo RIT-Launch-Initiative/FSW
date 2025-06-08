@@ -81,20 +81,21 @@
 };
 
 &pll {
-    div-m = <16>;
-    mul-n = <344>;
-    div-p = <8>;
-    div-q = <7>;
-    clocks = <&clk_hsi>;
-    status = "okay";
+	div-m = <8>;
+	mul-n = <90>;
+	div-p = <2>;
+	div-q = <2>;
+	div-r = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
 };
 
 &rcc {
-	clocks = <&clk_hsi>;
-	clock-frequency = <DT_FREQ_M(16)>;
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(90)>;
 	ahb-prescaler = <1>;
 	apb1-prescaler = <2>;
-	apb2-prescaler = <1>;
+	apb2-prescaler = <2>;
 };
 
 &uart4 {
@@ -151,8 +152,6 @@
 	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
 		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
 	dma-names = "tx", "rx";
-
-
 
 	w25q512: w25q512jv@0 {
 		compatible = "jedec,spi-nor";

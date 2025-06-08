@@ -115,6 +115,7 @@ void CSensingTenant::Run() {
         if (ret < 0) {
             LOG_ERR("Failed to log sensor data: %d", ret);
             NRtos::ResumeTask("Data Logging Task");
+            k_msleep(500);
         }
     }
 }
