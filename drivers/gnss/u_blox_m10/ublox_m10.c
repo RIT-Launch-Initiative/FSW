@@ -238,7 +238,7 @@ static int ublox_m10_init_chat(const struct device *dev) {
 
 static inline void ublox_m10_handle_irq(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
     struct ublox_m10_data *data = CONTAINER_OF(cb, struct ublox_m10_data, timepulse_cb_data);
-    LOG_INF("Data: %p", data);
+
     int64_t ticks = k_uptime_ticks();
     if (data->last_tick != 0) {
         data->last_tick_delta = ticks - data->last_tick;

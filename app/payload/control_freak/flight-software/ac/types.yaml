@@ -30,9 +30,9 @@ SlowInfo:
     - name: PackedData
       type: uint64_t
     - name: LatFrac
-      type: int16_t
+      type: uint16_t
     - name: LongFrac
-      type: int16_t
+      type: uint16_t
     - name: Orientation
       type: int8_t
       array_size: 3

@@ -61,7 +61,7 @@ int rail_item_enable(FiveVoltItem item) { return rail_item_set(item, true); }
 int rail_item_disable(FiveVoltItem item) { return rail_item_set(item, false); }
 
 int rail_item_set(FiveVoltItem item, bool set) {
-#if 1
+#if 0
 #warning "Buzzer is fake"
     if (item == FiveVoltItem::Buzzer) {
         set_item(item, false);

@@ -79,10 +79,10 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
             if (k_mutex_lock(&i2c_data_mutex, K_MSEC(2)) == 0) {
                 current.TempC = LockedData::degC;
                 current.Current = LockedData::current;
+                current.Battery_voltage = LockedData::voltage;
                 current.Orientation[0] = LockedData::orientation.x;
                 current.Orientation[1] = LockedData::orientation.y;
                 current.Orientation[2] = LockedData::orientation.z;
-                current.Battery_voltage = LockedData::voltage;
                 current.FlipStatus = LockedData::flip_state;
                 current.FlightState = LockedData::flight_state;
                 k_mutex_unlock(&i2c_data_mutex);
@@ -90,6 +90,8 @@ int slow_sensing_thread(void *v_fc, void *, void *) {
                 LOG_WRN("Invalid i2c data for this slow packet");
             }
         }
+        LOG_INF("l %d %d", (*slow_packet_buffer)[0].LatFrac, (*slow_packet_buffer)[0].LongFrac);
+
         ret = gfs_submit_slab(superslow_storage, slow_packet_buffer, K_FOREVER);
     }
 }

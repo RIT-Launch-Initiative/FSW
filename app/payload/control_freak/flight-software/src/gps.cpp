@@ -52,8 +52,9 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
     } else {
         output.Timestamp = last_fix_uptime_ticks;
     }
-    float lat = last_data.nav_data.latitude;
-    float lon = last_data.nav_data.longitude;
+
+    float lat = NGnssUtils::NanodegreesToDegreesFloat(last_data.nav_data.latitude);
+    float lon = NGnssUtils::NanodegreesToDegreesFloat(last_data.nav_data.longitude);
     int32_t alt_mm = last_data.nav_data.altitude;     // mm asl
     uint32_t speed_mm_p_s = last_data.nav_data.speed; // mm / s
     uint32_t millis = millis_since_start_of_day(last_data.utc);
@@ -66,9 +67,11 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
 
     lon = fabs(lon);
     lon -= floorf(lon);
+    LOG_INF("Lat: %f, Lon: %f", (double) lat, (double) lon);
 
     output.LatFrac = lat * UINT16_MAX;
     output.LongFrac = lon * UINT16_MAX;
+    LOG_INF("Lat: %u, Lon: %u", output.LatFrac, output.LongFrac);
 
     uint16_t alt_feet = alt_mm * 0.00328084f;
     alt_feet &= BIT_MASK(14);
@@ -169,17 +172,17 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
         last_valid_skew_factor = skew;
     }
 
-    LOG_INF("Last Second: %lld", last_second);
+    // LOG_INF("Last Second: %lld", last_second);
     last_data = *data;
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
         last_fix_uptime_ticks = k_uptime_ticks();
-        LOG_INF("Got GPS");
-        LOG_INF("Quality: %d, Status: %d, Sats: %d", data->info.fix_quality, data->info.fix_status,
-                data->info.satellites_cnt);
-
-        LOG_INF("Lat: %lld, Long: %lld", data->nav_data.latitude, data->nav_data.longitude);
-        LOG_INF("%d/%d/%d %02d:%02d:%d", data->utc.month, data->utc.month_day, data->utc.century_year, data->utc.hour,
-                data->utc.minute, data->utc.millisecond);
+        // LOG_INF("Got GPS");
+        // LOG_INF("Quality: %d, Status: %d, Sats: %d", data->info.fix_quality, data->info.fix_status,
+        // data->info.satellites_cnt);
+        //
+        // LOG_INF("Lat: %lld, Long: %lld", data->nav_data.latitude, data->nav_data.longitude);
+        // LOG_INF("%d/%d/%d %02d:%02d:%d", data->utc.month, data->utc.month_day, data->utc.century_year, data->utc.hour,
+        // data->utc.minute, data->utc.millisecond);
     } else {
         LOG_WRN("No Fix");
     }
