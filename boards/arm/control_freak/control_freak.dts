@@ -385,11 +385,17 @@
 				reg = <0x9e4000 DT_SIZE_K(2700)>;
 			};
 
-			external_storage_partition: partition@c87000 {
+			super_yev_partition: yevpartition@c87000{
+				// 100 KB yev partition
+				label = "superyev-storage";
+				reg = <0xc87000 DT_SIZE_K(100)>;
+			};
+
+			external_storage_partition: partition@ca0000 {
 				// the rest for littlefs
 				// 16384 - 2700 - 10128
 				label = "w25q-storage";
-				reg = <0xc87000 DT_SIZE_K(3556)>;
+				reg = <0xca0000 DT_SIZE_K(3456)>;
 			};
 		};
 	};

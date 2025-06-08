@@ -23,6 +23,18 @@ enum DataLockMsg {
     Unlock,
 };
 
+struct YevData {
+    uint32_t ms;
+    float altitude;
+    float velocity;
+    float acceleration;
+};
+
+#define GNC_PACKETS_PRE_BLOCK 16
+struct YevPacket {
+    YevData data[GNC_PACKETS_PRE_BLOCK];
+};
+
 typedef uint8_t FlipState;
 #define FLIP_STATE_NOT_TRYING 0xff
 

@@ -29,13 +29,20 @@ void handler(FreakFlightController::EventNotification noti) { k_msgq_put(&flight
 FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, handler};
 static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 static const struct device *superslow_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superslow_storage));
+static const struct device *superyev_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superyev_storage));
+
+Partitions parts{
+    .superfast_dev = superfast_storage,
+    .superslow_dev = superslow_storage,
+    .superyev_dev = superyev_storage,
+};
 
 int radio_thread(void *, void *, void *);
 K_THREAD_DEFINE(radio, 4096, radio_thread, (void *) &freak_controller, (void *) &superfast_storage, NULL,
                 CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
 
 K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry, (void *) &freak_controller,
-                (void *) &superfast_storage, (void *) &superslow_storage, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
+                (void *) &parts, NULL, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
 
 K_THREAD_DEFINE(slow_sensing, CONFIG_SLOWDATA_THREAD_STACK_SIZE, slow_sensing_thread, (void *) &freak_controller, NULL,
                 NULL, CONFIG_SLOWDATA_THREAD_PRIORITY, 0, 0);

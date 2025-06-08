@@ -63,6 +63,7 @@ static int gorbfs_init(const struct device *dev) { return 0; }
 
 GORBFS_PARTITION_DEFINE(superfast_storage, NTypes::SuperFastPacket, 8, 500);
 GORBFS_PARTITION_DEFINE(superslow_storage, SuperSlowPacket, 2, 6);
+GORBFS_PARTITION_DEFINE(superyev_storage, YevPacket, 4, 32);
 
 // helper to create an address from an index
 constexpr uint32_t gen_addr(const gorbfs_partition_config *cfg, uint32_t page_index) {
