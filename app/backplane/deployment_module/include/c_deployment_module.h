@@ -39,14 +39,14 @@ class CDeploymentModule : public CProjectConfiguration {
     // Devices
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
-    std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::DEPLOYMENT_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID);
+    std::string ipAddrStr = "10.4.1.1";
     const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
 
     // Tenants
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 1024, 0};
+    CTask networkTask{"Networking Task", 15, 2048, 0};
 
     // Observers
     CPyroControlObserver pyroControlObserver;
