@@ -110,7 +110,7 @@
 		};
 
 		gpio_3: gpios_3 {
-			gpios = <&gpioa 6 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			gpios = <&gpioc 6 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "CONNECTOR GPIO 3";
 		};
 	};
