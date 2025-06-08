@@ -86,26 +86,13 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
 }
 extern int64_t asdf_ticks;
 
-int64_t uptime_of_next_slot(int minutes, int seconds, int64_t tp_ms, bool fix_before_pulse) {
-    int seconds_since_hour = minutes * 60 + seconds;
-    if (fix_before_pulse) {
-        LOG_WRN("fix before pulse");
-        seconds_since_hour++;
-    }
+int64_t uptime_of_next_slot(int minutes, int seconds, int64_t tp_ms, bool fix_before_pulse, float skew) {
+    int seconds_since_start_of_slot = seconds - CONFIG_HORUS_TIMESLOT_OFFSET_SECONDS;
+    int sec_to_slot = 60 - seconds_since_start_of_slot;
+    float ms_to_slot = 1000.f * sec_to_slot * skew;
     LOG_INF("%02d:%02d", minutes, seconds);
-    LOG_INF("Seconds since hour, %d", seconds_since_hour);
-    int seconds_since_start = seconds_since_hour - CONFIG_HORUS_TIMESLOT_OFFSET_SECONDS;
-    int offset_secs = seconds_since_start % CONFIG_HORUS_TIMESLOT_SECONDS;
-    seconds += 10 - offset_secs;
-    if (seconds >= 60) {
-        seconds -= 60;
-        minutes++;
-    }
-    int tick_to_slot = (10 - offset_secs);
-    LOG_INF("slot %02d:%02d", minutes, seconds);
-    LOG_INF("%d sec between tick and slot", tick_to_slot);
-    LOG_INF("tick %lld sec ago", (k_uptime_get() - tp_ms) / 1000);
-    return tp_ms + (tick_to_slot) * 1000;
+    LOG_INF("Seconds until timesloot: %d", sec_to_slot);
+    return tp_ms + ms_to_slot;
 }
 
 uint32_t millis_till_timeslot_opens() {
@@ -120,23 +107,19 @@ uint32_t millis_till_timeslot_opens() {
     }
     int64_t last_tick_uptime_ticks = ublox_10_last_tick_uptime(gps_dev);
     last_tick_uptime_ticks = asdf_ticks;
-
+    float skew = last_valid_skew_factor;
     bool fix_b4_pulse = last_fix_uptime_ticks < last_tick_uptime_ticks;
     int minutes = last_data.utc.minute;
     int secs = last_data.utc.millisecond / 1000;
     int64_t tp_ms = k_ticks_to_ms_near64(last_tick_uptime_ticks);
     k_mutex_unlock(&gps_mutex);
 
-    int64_t ms_of_next_slot = uptime_of_next_slot(minutes, secs, tp_ms, fix_b4_pulse);
+    int64_t ms_of_next_slot = uptime_of_next_slot(minutes, secs, tp_ms, fix_b4_pulse, skew);
     LOG_INF("uptime of next slot %lld", ms_of_next_slot);
     int to_delay = ms_of_next_slot - k_uptime_get();
     if (to_delay < 0) {
-        LOG_WRN("Bad delay: %d", to_delay);
-        return to_delay + CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
-    }
-    if (to_delay < 0) {
-        LOG_WRN("<0 to delay, delaying 1000");
-        return 1000;
+        LOG_WRN("<0 to delay, delaying 30000");
+        return 30000;
     }
     return to_delay;
 }

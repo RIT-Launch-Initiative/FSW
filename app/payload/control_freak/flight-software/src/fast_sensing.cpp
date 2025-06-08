@@ -99,6 +99,7 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
                 NTypes::AccelerometerData normed = normalize(packet->AccelData[0]);
                 small_orientation snormed = minify_orientation(normed);
                 float temp = packet->BaromData.Temperature;
+                float press = packet->BaromData.Pressure;
                 float current = 0;
                 float volts = 0;
                 ret = read_ina(ina_servo, volts, current);
@@ -110,7 +111,7 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
                     LOG_WRN("Couldn submit slowdata: %d", ret);
                 }
 
-                ret = submit_horus_data(temp, volts, snormed, flight_state);
+                ret = submit_horus_data(temp, press, volts, snormed, flight_state);
                 if (ret != 0) {
                     LOG_WRN("Couldn submit slowdata: %d", ret);
                 }

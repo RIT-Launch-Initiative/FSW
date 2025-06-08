@@ -93,6 +93,18 @@ int main() {
     return 0;
 }
 
+int cmd_pumpon(const struct shell *shell, size_t argc, char **argv) {
+    shell_print(shell, "pump on");
+    rail_item_enable(FiveVoltItem::Pump);
+    return 0;
+}
+
+int cmd_pumpoff(const struct shell *shell, size_t argc, char **argv) {
+    shell_print(shell, "pump off");
+    rail_item_disable(FiveVoltItem::Pump);
+    return 0;
+}
+
 int cmd_unlock(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Unlocking boost data");
     unlock_boostdata();
@@ -236,6 +248,8 @@ int cmd_readslow(const struct shell *shell, size_t argc, char **argv) {
 SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
                                SHELL_CMD(unlock, NULL, "Unlock flight data partition", cmd_unlock),
                                SHELL_CMD(lock, NULL, "Lock flight data partition", cmd_lock),
+                               SHELL_CMD(pumpon, NULL, "pump on", cmd_pumpon),
+                               SHELL_CMD(pumpoff, NULL, "pump off", cmd_pumpoff),
                                SHELL_CMD(boost, NULL, "fake boost detect", cmd_boost),
                                SHELL_CMD(shut, NULL, "stop yapping", cmd_shutup),
                                SHELL_CMD(inflated, NULL, "fake inflated", cmd_inflated), SHELL_SUBCMD_SET_END);

@@ -14,23 +14,23 @@ int64_t last_pump_on_time = 0;
 int64_t last_pump_off_time = 0;
 
 const float off_threshhold = 0.51;
+FIRFilter current_filt{0};
 
 bool should_pump_be_on(int64_t now, float volts, float current) {
-    FIRFilter filt{0};
-int32_t time_since_off = now - last_pump_off_time;
-filt.Feed(current);
-printk("%d, %f\n", time_since_off, (double) filt.Avg());
+    int32_t time_since_off = now - last_pump_off_time;
+    current_filt.Feed(current);
+    printk("%d, %f\n", time_since_off, (double) current_filt.Avg());
 
-// Shutdown for pumps (duty cycle)
-if (time_since_off > PUMP_DUTY_ON_MS) {
-    LOG_INF("Duty cycle shutdown");
-    return false;
-}
-    if (filt.Avg() > off_threshhold) {
+    // Shutdown for pumps (duty cycle)
+    if (time_since_off > PUMP_DUTY_ON_MS) {
+        LOG_INF("Duty cycle shutdown");
+        return false;
+    }
+    if (current_filt.Avg() > off_threshhold) {
         LOG_INF("Current draw shutdown");
         return false;
     }
-    LOG_INF("Not Commanded otherwise");
+    // LOG_INF("Not Commanded otherwise");
     return true;
 };
 
@@ -41,6 +41,8 @@ int attempt_inflation_iteration(const struct device *ina_pump) {
 
     k_timer_start(&power_timer, K_MSEC(100), K_MSEC(100));
 
+    current_filt.Fill(0);
+    LOG_INF("Start Pump");
     int64_t now = k_uptime_get();
     last_pump_off_time = now;
     rail_item_set(FiveVoltItem::Pump, true);
@@ -51,7 +53,7 @@ int attempt_inflation_iteration(const struct device *ina_pump) {
 
         read_ina(ina_pump, volts, current);
         // inputs print
-        printk("%lld, %f, %f, ", now, (double) volts, (double) current);
+        // printk("%lld, %f, %f, ", now, (double) volts, (double) current);
         if (!should_pump_be_on(now, volts, current)) {
             break;
         }

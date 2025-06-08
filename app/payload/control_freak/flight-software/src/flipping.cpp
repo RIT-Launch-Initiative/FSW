@@ -292,7 +292,7 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
     return FLIPPED_BUT_NOT_RIGHTED;
 }
 
-int measure_and_send_data(const struct device *imu_dev, const struct device *ina_servo,
+int measure_and_send_data(const struct device *imu_dev, const struct device *bmp_dev, const struct device *ina_servo,
                           const FlightState &flight_state) {
     NTypes::AccelerometerData vec = {0};
     NTypes::GyroscopeData _gyro = {0};
@@ -300,7 +300,10 @@ int measure_and_send_data(const struct device *imu_dev, const struct device *ina
     read_imu(imu_dev, vec, _gyro);
     NTypes::AccelerometerData normed = normalize(vec);
     small_orientation snormed = minify_orientation(normed);
-    float temp = 32.0;
+    float temp = 1.0;
+    float press = 2;
+    read_barom(bmp_dev, temp, press);
+
     float current = 0;
     float volts = 0;
     int ret = read_ina(ina_servo, volts, current);
@@ -312,7 +315,7 @@ int measure_and_send_data(const struct device *imu_dev, const struct device *ina
         LOG_WRN("Couldn submit slowdata: %d", ret);
     }
 
-    ret = submit_horus_data(temp, volts, snormed, flight_state);
+    ret = submit_horus_data(temp, press, volts, snormed, flight_state);
     if (ret != 0) {
         LOG_WRN("Couldn submit horus: %d", ret);
     }
@@ -340,7 +343,7 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
             LOG_INF("Initial pump over, switch to continous");
         }
 
-        measure_and_send_data(imu_dev, ina_servo, flight_state);
+        measure_and_send_data(imu_dev, barom_dev, ina_servo, flight_state);
 
         attempt_inflation_iteration(ina_pump);
         attempt_number++;

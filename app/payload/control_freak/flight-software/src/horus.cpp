@@ -53,16 +53,78 @@ static int32_t set_power_config(uint8_t output_power, uint8_t max_power, bool pl
     }
     // wired to use PA_BOOST
     uint8_t regpacfg = 0b1000000 | (max_power << 4) | output_power;
+    LOG_INF("PACFGG: %02x", regpacfg);
     SX1276Write(REG_PACONFIG, regpacfg);
 
     uint8_t pa_dac_val = 0;
     if (plus20_en) {
-        pa_dac_val = 0x17;
+        pa_dac_val = 0x47;
     } else {
-        pa_dac_val = 0x14;
+        pa_dac_val = 0x44;
     }
+    LOG_INF("PADAC: %02x", pa_dac_val);
     SX1276Write(REG_PADAC, pa_dac_val);
     return 0;
+}
+static uint8_t SX1276GetPaSelect(int8_t power) {
+    if (power > 14) {
+        return RF_PACONFIG_PASELECT_PABOOST;
+    } else {
+        return RF_PACONFIG_PASELECT_RFO;
+    }
+}
+
+void SX1276SetRfTxPower(int8_t power) {
+    uint8_t paConfig = 0;
+    uint8_t paDac = 0;
+
+    paConfig = SX1276Read(REG_PACONFIG);
+    paDac = SX1276Read(REG_PADAC);
+    LOG_INF("CFG Before: %02x", paConfig);
+    LOG_INF("DAC Before: %02x", paDac);
+
+    paConfig = (paConfig & RF_PACONFIG_PASELECT_MASK) | SX1276GetPaSelect(power);
+
+    if ((paConfig & RF_PACONFIG_PASELECT_PABOOST) == RF_PACONFIG_PASELECT_PABOOST) {
+        if (power > 17) {
+            paDac = (paDac & RF_PADAC_20DBM_MASK) | RF_PADAC_20DBM_ON;
+        } else {
+            paDac = (paDac & RF_PADAC_20DBM_MASK) | RF_PADAC_20DBM_OFF;
+        }
+        if ((paDac & RF_PADAC_20DBM_ON) == RF_PADAC_20DBM_ON) {
+            if (power < 5) {
+                power = 5;
+            }
+            if (power > 20) {
+                power = 20;
+            }
+            paConfig = (paConfig & RF_PACONFIG_OUTPUTPOWER_MASK) | (uint8_t) ((uint16_t) (power - 5) & 0x0F);
+        } else {
+            if (power < 2) {
+                power = 2;
+            }
+            if (power > 17) {
+                power = 17;
+            }
+            paConfig = (paConfig & RF_PACONFIG_OUTPUTPOWER_MASK) | (uint8_t) ((uint16_t) (power - 2) & 0x0F);
+        }
+    } else {
+        if (power > 0) {
+            if (power > 15) {
+                power = 15;
+            }
+            paConfig = (paConfig & RF_PACONFIG_MAX_POWER_MASK & RF_PACONFIG_OUTPUTPOWER_MASK) | (7 << 4) | (power);
+        } else {
+            if (power < -4) {
+                power = -4;
+            }
+            paConfig = (paConfig & RF_PACONFIG_MAX_POWER_MASK & RF_PACONFIG_OUTPUTPOWER_MASK) | (0 << 4) | (power + 4);
+        }
+    }
+    LOG_INF("CFG After: %02x", paConfig);
+    LOG_INF("DAC After: %02x", paDac);
+    SX1276Write(REG_PACONFIG, paConfig);
+    SX1276Write(REG_PADAC, paDac);
 }
 
 /**
@@ -201,9 +263,9 @@ static void transmit_horus(uint8_t *buf, int len) {
     SX1276Write(REG_OPMODE,
                 RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
     SX1276Write(REG_PLLHOP, RF_PLLHOP_FASTHOP_ON | 0x2d); // Fast hop on | default value
-    SX1276Write(REG_PACONFIG, 0b11111111);
-    // set_power_config(15, 7, true);
-    SX1276Write(REG_OCP, 0b00100000 + 31);
+
+    SX1276SetRfTxPower(20);
+    SX1276Write(REG_OCP, 0b00100000 + 24);
 
     set_pramble_len(0);
     set_carrier_frequency(high);
@@ -253,20 +315,24 @@ static void transmit_horus(uint8_t *buf, int len) {
 int packet_count = 0;
 K_MUTEX_DEFINE(horus_mutex);
 uint8_t horus_temp_c = 0;
+uint16_t horus_press = 0;
 uint8_t horus_battery_v_2 = 0;
 small_orientation horus_snorm = {0};
 FlightState horus_state = FlightState::NotSet;
 
-int submit_horus_data(const float &tempC, const float &batteryVoltage, const small_orientation &snorm,
-                      const FlightState &fs) {
+int submit_horus_data(const float &tempC, const float &press, const float &batteryVoltage,
+                      const small_orientation &snorm, const FlightState &fs) {
     int ret = k_mutex_lock(&horus_mutex, K_MSEC(20));
     if (ret != 0) {
         LOG_WRN("Couldnt lock mut to send horus data");
         return ret;
     }
-    horus_temp_c = (uint8_t) tempC;
+    horus_temp_c = tempC;
+    uint16_t press16 = press * 100;
+    horus_press = press16;
     // horus battery is 0-5V 0 -255LSB
     horus_battery_v_2 = (uint8_t) ((batteryVoltage / 10.0f) * 255);
+
     horus_snorm = snorm;
     horus_state = fs;
     return k_mutex_unlock(&horus_mutex);
@@ -292,9 +358,12 @@ horus_packet_v2 get_telemetry() {
     }
     pac.battery_voltage = horus_battery_v_2;
     pac.temp = horus_temp_c;
+
     pac.custom_data[0] = horus_snorm.x;
     pac.custom_data[1] = horus_snorm.y;
     pac.custom_data[2] = horus_snorm.z;
+    pac.custom_data[4] = horus_press & 0xff;
+    pac.custom_data[5] = (horus_press >> 8) & 0xff;
 
     pac.custom_data[7] = (uint8_t) horus_state;
 
@@ -327,6 +396,7 @@ int radio_thread(void *, void *, void *) {
         LOG_ERR("TIME");
         // LOG_INF("Transmitting Horus");
         make_and_transmit_horus();
+        k_msleep(5000); // chill
     }
     return 0;
 }
