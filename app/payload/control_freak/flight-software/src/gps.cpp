@@ -164,7 +164,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
         return;
     }
     k_ticks_t last_second = ublox_10_last_tick_delta(gps_dev);
-    float skew = (float) last_second / (10000);
+    float skew = (float) last_second / (float) (10000);
     if (is_skew_reasonable(skew)) {
         last_valid_skew_factor = skew;
     }

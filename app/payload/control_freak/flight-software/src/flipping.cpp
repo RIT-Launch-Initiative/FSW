@@ -153,6 +153,7 @@ int get_normed_orientation(const struct device *imu_dev, NTypes::AccelerometerDa
 enum SweepStrategy {
     Slow,
     Fast,
+    Faster,
 };
 
 static constexpr float servo_current_cutoff = 2.4;
@@ -174,6 +175,8 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
     int msec = 20;
     if (strat == SweepStrategy::Fast) {
         msec = 5;
+    } else if (strat == SweepStrategy::Faster) {
+        msec = 2;
     }
     uint32_t start = servo.state.last_ticks;
     uint32_t end = servo.open_pulselen;
@@ -269,7 +272,9 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
 
         int index = face;
         SweepStrategy strategy = SweepStrategy::Slow;
-        if (attempts_on_this_face > 3) {
+        if (attempts_on_this_face > 8) {
+            strategy = SweepStrategy::Faster;
+        } else if (attempts_on_this_face > 3) {
             strategy = SweepStrategy::Fast;
         }
         ret = flip_one_side(ina_dev, *servos[index], strategy, true, current_before, voltage_before);
