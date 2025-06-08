@@ -19,7 +19,7 @@ FIRFilter current_filt{0};
 bool should_pump_be_on(int64_t now, float volts, float current) {
     int32_t time_since_off = now - last_pump_off_time;
     current_filt.Feed(current);
-    printk("%d, %f\n", time_since_off, (double) current_filt.Avg());
+    // printk("%d, %f\n", time_since_off, (double) current_filt.Avg());
 
     // Shutdown for pumps (duty cycle)
     if (time_since_off > PUMP_DUTY_ON_MS) {
