@@ -30,17 +30,17 @@ class CPhaseController {
         EventOccured,
     };
     struct EventNotification {
-        k_ticks_t uptime_ticks;
+        k_ticks_t uptimeTicks;
         EventType type;
         SourceID source; // Only valid if type == SourceReported
         EventID event;
-        bool has_already_occured; // Only Valid if type == EventOccured
+        bool hasAlreadyOccured; // Only Valid if type == EventOccured
     };
     /**
      * Notification called when an event occurs or a source reports an event
-     * @param type the type of event
+     * @param notification information about the event
      */
-    using NotificationFunction = void (*)(EventNotification noti);
+    using NotificationFunction = void (*)(EventNotification notification);
 
     /**
      * Description of a timer-triggered event
@@ -75,14 +75,14 @@ class CPhaseController {
      * @param eventNames an array of human readable names for events indexed by 
      * @param timerEvents an array of desciptions of all timer triggered events. See TimerEvent
      * @param deciders an array of decision functions for deciding if an event has really occured based on the state of the sources
-     * @param noti_func a function to be called when events happen or sources report - used to implement logging. Can be null. Should not block for very long
+     * @param notification_func a function to be called when events happen or sources report - used to implement logging. Can be null. Should not block for very long
      * The lifetime of all these paramters should exceed the lifetime of an instance of CPhaseController
      */
     CPhaseController(const std::array<const char *, num_sources> &sourceNames,
                      const std::array<const char *, num_events> &eventNames,
                      const std::array<TimerEvent, num_timers> &timerEvents,
-                     const std::array<DecisionFunc, num_events> &deciders, NotificationFunction noti_func)
-        : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), noti_func(noti_func) {
+                     const std::array<DecisionFunc, num_events> &deciders, NotificationFunction notification_func)
+        : sourceNames(sourceNames), eventNames(eventNames), deciders(deciders), notification_func(notification_func) {
         for (std::size_t i = 0; i < num_timers; i++) {
             timerUserdata[i] = InternalTimerEvent{.controller = this, .event = timerEvents[i]};
             k_timer_init(&timers[i], timer_expiry_cb, NULL);
@@ -108,8 +108,8 @@ class CPhaseController {
      * @param source the source that triggered this event 'IMU1'
      */
     void LogSourceEvent(EventID event, SourceID source) {
-        if (noti_func != nullptr) {
-            noti_func(EventNotification{k_uptime_ticks(), SourceReported, source, event, false});
+        if (notification_func != nullptr) {
+            notification_func(EventNotification{k_uptime_ticks(), SourceReported, source, event, false});
         }
     }
 
@@ -119,8 +119,8 @@ class CPhaseController {
      * @param currentState the state of that even as gotten from HasEventOccurred(event) *before* this confirmation. 
      */
     void LogEventConfirmed(EventID event, bool currentState) {
-        if (noti_func != nullptr) {
-            noti_func(EventNotification{k_uptime_ticks(), EventOccured, (SourceID) 0, event, currentState});
+        if (notification_func != nullptr) {
+            notification_func(EventNotification{k_uptime_ticks(), EventOccured, (SourceID) 0, event, currentState});
         }
     }
 
@@ -216,7 +216,7 @@ const std::array<const char *, num_events> &eventNames;
 const std::array<DecisionFunc, num_events> &deciders;
 
 // function to call on event or null
-NotificationFunction noti_func;
+NotificationFunction notification_func;
 };
 
 #endif
