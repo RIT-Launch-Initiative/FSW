@@ -16,28 +16,28 @@
 		zephyr,shell-uart = &uart5;
 		zephyr,uart-pipe = &uart5;
 
-		storage = &storage_partition;
-		logfs = &lfs1;
+//		storage = &storage_partition;
+//		logfs = &lfs1;
 
 		rtc = &rtc;
 	};
 
-	fstab {
-		compatible = "zephyr,fstab";
-
-		lfs1: lfs1 {
-			compatible = "zephyr,fstab,littlefs";
-			mount-point = "/lfs";
-			partition = <&storage_partition>;
-			automount;
-
-			read-size = <16>;
-			prog-size = <16>;
-			cache-size = <64>;
-			lookahead-size = <32>;
-			block-cycles = <(90 * 1000)>;
-		};
-	};
+//	fstab {
+//		compatible = "zephyr,fstab";
+//
+//		lfs1: lfs1 {
+//			compatible = "zephyr,fstab,littlefs";
+//			mount-point = "/lfs";
+//			partition = <&storage_partition>;
+//			automount;
+//
+//			read-size = <16>;
+//			prog-size = <16>;
+//			cache-size = <64>;
+//			lookahead-size = <32>;
+//			block-cycles = <(90 * 1000)>;
+//		};
+//	};
 
 	aliases {
 		led0 = &red_led_0;

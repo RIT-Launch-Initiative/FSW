@@ -13,7 +13,7 @@ static void chargeDisableTimerCallback(k_timer* timer) {
 }
 
 CPyroControlObserver::CPyroControlObserver() {
-    flightLog.Write("Pyro Controller Observer initialized");
+    // flightLog.Write("Pyro Controller Observer initialized");
     chargeDisableTimer = CSoftTimer(chargeDisableTimerCallback);
     chargeDisableTimer.SetUserData(this);
 }
@@ -25,7 +25,7 @@ void CPyroControlObserver::Notify(void* ctx) {
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::NOSEOVER:
             LOG_INF("Noseover detected. Deploying charges in one second.");
-            flightLog.Write("Noseover detected. Deploying charges in one second.");
+            // flightLog.Write("Noseover detected. Deploying charges in one second.");
             // TODO: Settings library for handling deployment timing
             k_sleep(K_SECONDS(1));
 
@@ -37,14 +37,14 @@ void CPyroControlObserver::Notify(void* ctx) {
                 }
                 pyroCount++;
             }
-            flightLog.Write("Finished deploying charges");
+            // flightLog.Write("Finished deploying charges");
             chargeDisableTimer.StartTimer(3000);
             break;
         default:
             break;
     }
 
-    flightLog.Sync();
+    // flightLog.Sync();
 }
 
 void CPyroControlObserver::DisableCallback() {
@@ -55,5 +55,5 @@ void CPyroControlObserver::DisableCallback() {
         LOG_INF("Disabled charge %d", pyroCount);
         pyroCount++;
     }
-    flightLog.Write("Finished disabling charges");
+    // flightLog.Write("Finished disabling charges");
 }
