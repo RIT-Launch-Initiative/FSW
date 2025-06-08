@@ -8,8 +8,30 @@ LOG_MODULE_REGISTER(storage);
 
 // Flash Targets
 static CFlightLog flight_log{"/lfs/flight.log"};
+K_MSGQ_DEFINE(flightlog_msgq, sizeof(FreakFlightController::EventNotification), 4,
+              alignof(FreakFlightController::EventNotification));
 
 K_MSGQ_DEFINE(datalock_q, sizeof(bool), 1, alignof(bool));
+
+int write_noti_to_flightlog(const FreakFlightController::EventNotification &noti) {
+    static char buf[1024] = {0};
+    int64_t ms = k_ticks_to_ms_near64(noti.uptimeTicks);
+    if (noti.type == FreakFlightController::EventType::EventOccured) {
+        LOG_INF("%lld ms: %s Occured", ms, eventNames[noti.event]);
+        snprintf(buf, sizeof(buf), "%s occured", eventNames[noti.event]);
+        flight_log.Write(ms, buf);
+    } else if (noti.type == FreakFlightController::EventType::SourceReported) {
+        snprintf(buf, sizeof(buf), "%s Reported by %s: %s", eventNames[noti.event], sourceNames[noti.source],
+                 noti.hasAlreadyOccured ? "but already occured" : "");
+        flight_log.Write(ms, buf);
+        LOG_INF("%lld ms: %s Reported by %s: %s", ms, eventNames[noti.event], sourceNames[noti.source],
+                noti.hasAlreadyOccured ? "but already occured" : "");
+    }
+
+    flight_log.Sync();
+    return 0;
+}
+
 void handle_datalock_msg(DataLockMsg msg);
 void lock_loop_forever();
 int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
@@ -42,10 +64,11 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
         LOG_WRN("Failed initial erase of slow partition");
     }
 
-    k_poll_event events[3];
+    k_poll_event events[4];
     k_poll_event_init(&events[0], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &datalock_q);
     k_poll_event_init(&events[1], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, fast_data->msgq);
     k_poll_event_init(&events[2], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, slow_data->msgq);
+    k_poll_event_init(&events[3], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &flightlog_msgq);
 
     while (true) {
         int ret = 0;
@@ -75,9 +98,14 @@ int storage_thread_entry(void *v_fc, void *v_fdev, void *v_sdev) {
             ret = k_msgq_get(slow_data->msgq, &chunk_ptr, K_FOREVER);
             gfs_handle_new_block(slow_dev, chunk_ptr);
             events[2].state = K_POLL_STATE_NOT_READY;
+        } else if (events[3].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
+            FreakFlightController::EventNotification notif = {0};
+            ret = k_msgq_get(&flightlog_msgq, &notif, K_FOREVER);
+            events[3].state = K_POLL_STATE_NOT_READY;
+            LOG_INF("Got log message %lld", notif.uptimeTicks);
+            write_noti_to_flightlog(notif);
         }
     }
-    ret = flight_log.Write("Yeah man im done wild huh");
     if (ret != 0) {
         LOG_WRN("Couldnt write flight log: %d", ret);
     }

@@ -23,7 +23,10 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
 
-FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, NULL};
+extern struct k_msgq flightlog_msgq;
+void handler(FreakFlightController::EventNotification noti) { k_msgq_put(&flightlog_msgq, &noti, K_MSEC(1)); }
+
+FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, handler};
 static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 static const struct device *superslow_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superslow_storage));
 
