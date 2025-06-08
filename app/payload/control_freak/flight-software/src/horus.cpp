@@ -186,7 +186,7 @@ int calc_us_per_fsk_symbol() {
 }
 
 static void transmit_horus(uint8_t *buf, int len) {
-    const uint32_t carrier = 434000000;
+    const uint32_t carrier = 432950000;
     const float deviation = 405;
 
     int us_per_symbol = calc_us_per_fsk_symbol();
@@ -202,6 +202,9 @@ static void transmit_horus(uint8_t *buf, int len) {
                 RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
     SX1276Write(REG_PLLHOP, RF_PLLHOP_FASTHOP_ON | 0x2d); // Fast hop on | default value
     SX1276Write(REG_PACONFIG, 0b11111111);
+    // set_power_config(15, 7, true);
+    SX1276Write(REG_OCP, 0b00100000 + 31);
+
     set_pramble_len(0);
     set_carrier_frequency(high);
 
@@ -273,7 +276,8 @@ horus_packet_v2 get_telemetry() {
     horus_packet_v2 pac{};
     packet_count++;
 
-    pac.payload_id = 808;
+    // pac.payload_id = 808;
+    pac.payload_id = 388;
     pac.counter = packet_count;
 
     int ret = fill_horus_packet_with_gps(&pac);
@@ -316,7 +320,7 @@ int radio_thread(void *, void *, void *) {
     if (is_data_locked()) {
         return -1;
     }
-    // set_power_config(15, 4, true);
+
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         wait_for_timeslot();
