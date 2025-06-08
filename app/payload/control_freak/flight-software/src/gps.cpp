@@ -25,7 +25,7 @@ struct gnss_satellite last_sats[MAX_SATS];
 int64_t last_fix_uptime_ticks = 0;
 constexpr float default_skew_factor = 1.0090;
 float last_valid_skew_factor = default_skew_factor;
-bool is_skew_reasonable(float skew) { return skew < 1.03 && skew > 0.97; }
+bool is_skew_reasonable(float skew) { return skew < 1.020 && skew > 0.98; }
 
 uint32_t millis_since_start_of_day(const gnss_time &time) {
     static constexpr uint32_t millis_per_minute = 60 * 1000;
@@ -164,6 +164,10 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
         return;
     }
     k_ticks_t last_second = ublox_10_last_tick_delta(gps_dev);
+    float skew = (float) last_second / (10000);
+    if (is_skew_reasonable(skew)) {
+        last_valid_skew_factor = skew;
+    }
 
     LOG_INF("Last Second: %lld", last_second);
     last_data = *data;
@@ -172,7 +176,7 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
         LOG_INF("Got GPS");
         LOG_INF("Quality: %d, Status: %d, Sats: %d", data->info.fix_quality, data->info.fix_status,
                 data->info.satellites_cnt);
-        //
+
         LOG_INF("Lat: %lld, Long: %lld", data->nav_data.latitude, data->nav_data.longitude);
         LOG_INF("%d/%d/%d %02d:%02d:%d", data->utc.month, data->utc.month_day, data->utc.century_year, data->utc.hour,
                 data->utc.minute, data->utc.millisecond);
