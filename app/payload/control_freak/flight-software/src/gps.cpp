@@ -23,7 +23,9 @@ struct gnss_data last_data;
 struct gnss_satellite last_sats[MAX_SATS];
 
 int64_t last_fix_uptime_ticks = 0;
-float last_valid_skew_factor = 1.0090; // 10090
+constexpr float default_skew_factor = 1.0090;
+float last_valid_skew_factor = default_skew_factor;
+bool is_skew_reasonable(float skew) { return skew < 1.03 && skew > 0.97; }
 
 uint32_t millis_since_start_of_day(const gnss_time &time) {
     static constexpr uint32_t millis_per_minute = 60 * 1000;
@@ -84,7 +86,6 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
     output.PackedData = (((uint64_t) highside) << 32) | lowside;
     return k_mutex_unlock(&gps_mutex);
 }
-extern int64_t asdf_ticks;
 
 int64_t uptime_of_next_slot(int minutes, int seconds, int64_t tp_ms, bool fix_before_pulse, float skew) {
     int seconds_since_start_of_slot = seconds - CONFIG_HORUS_TIMESLOT_OFFSET_SECONDS;
@@ -106,7 +107,6 @@ uint32_t millis_till_timeslot_opens() {
         return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
     }
     int64_t last_tick_uptime_ticks = ublox_10_last_tick_uptime(gps_dev);
-    last_tick_uptime_ticks = asdf_ticks;
     float skew = last_valid_skew_factor;
     bool fix_b4_pulse = last_fix_uptime_ticks < last_tick_uptime_ticks;
     int minutes = last_data.utc.minute;
@@ -163,16 +163,19 @@ static void gnss_data_cb(const struct device *dev, const struct gnss_data *data)
         LOG_WRN("Failed to lock gps mutex: %d", ret);
         return;
     }
+    k_ticks_t last_second = ublox_10_last_tick_delta(gps_dev);
+
+    LOG_INF("Last Second: %lld", last_second);
     last_data = *data;
     if (data->info.fix_status != GNSS_FIX_STATUS_NO_FIX) {
         last_fix_uptime_ticks = k_uptime_ticks();
-        // LOG_INF("Got GPS");
-        // LOG_INF("Quality: %d, Status: %d, Sats: %d", data->info.fix_quality, data->info.fix_status,
-        // data->info.satellites_cnt);
+        LOG_INF("Got GPS");
+        LOG_INF("Quality: %d, Status: %d, Sats: %d", data->info.fix_quality, data->info.fix_status,
+                data->info.satellites_cnt);
         //
-        // LOG_INF("Lat: %lld, Long: %lld", data->nav_data.latitude, data->nav_data.longitude);
-        // LOG_INF("%d/%d/%d %02d:%02d:%d", data->utc.month, data->utc.month_day, data->utc.century_year, data->utc.hour,
-        // data->utc.minute, data->utc.millisecond);
+        LOG_INF("Lat: %lld, Long: %lld", data->nav_data.latitude, data->nav_data.longitude);
+        LOG_INF("%d/%d/%d %02d:%02d:%d", data->utc.month, data->utc.month_day, data->utc.century_year, data->utc.hour,
+                data->utc.minute, data->utc.millisecond);
     } else {
         LOG_WRN("No Fix");
     }

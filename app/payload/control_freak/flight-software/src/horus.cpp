@@ -389,6 +389,7 @@ int radio_thread(void *, void *, void *) {
     if (is_data_locked()) {
         return -1;
     }
+    k_msleep(5000);
 
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot

@@ -42,7 +42,6 @@ void gntxt_cb(struct modem_chat *chat, char **argv, uint16_t argc, void *user_da
 MODEM_CHAT_MATCHES_DEFINE(unsol_matches, 
             MODEM_CHAT_MATCH_WILDCARD("$??GGA,", ",*", gnss_nmea0183_match_gga_callback),
             MODEM_CHAT_MATCH_WILDCARD("$??RMC,", ",*", gnss_nmea0183_match_rmc_callback),
-            MODEM_CHAT_MATCH_WILDCARD("$??TXT,", ",*", gntxt_cb),
 #if CONFIG_GNSS_SATELLITES
             MODEM_CHAT_MATCH_WILDCARD("$??GSV,", ",*", gnss_nmea0183_match_gsv_callback),
 #endif
@@ -221,7 +220,7 @@ static int ublox_m10_init_chat(const struct device *dev) {
     struct ublox_m10_data *data = dev->data;
 
     const struct modem_chat_config chat_config = {
-        .user_data = data,
+        .user_data = &data->match_data,
         .receive_buf = data->chat_receive_buf,
         .receive_buf_size = sizeof(data->chat_receive_buf),
         .delimiter = ublox_m10_char_delimiter,
@@ -237,17 +236,14 @@ static int ublox_m10_init_chat(const struct device *dev) {
     return modem_chat_init(&data->chat, &chat_config);
 }
 
-int64_t asdf_ticks = 0;
-
 static inline void ublox_m10_handle_irq(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
     struct ublox_m10_data *data = CONTAINER_OF(cb, struct ublox_m10_data, timepulse_cb_data);
-
+    LOG_INF("Data: %p", data);
     int64_t ticks = k_uptime_ticks();
     if (data->last_tick != 0) {
         data->last_tick_delta = ticks - data->last_tick;
     }
     data->last_tick = ticks;
-    asdf_ticks = ticks;
 
     ticks += 2;
 }
