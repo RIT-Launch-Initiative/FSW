@@ -167,6 +167,8 @@ int cmd_preflight(const struct shell *shell, size_t argc, char **argv) {
     k_msleep(10 * 1000);
     shell_print(shell, "Cameras off");
     both_cams_off();
+
+    buzzer_tell(BuzzCommand::BatteryWarning);
     return 0;
 }
 int cmd_info(const struct shell *shell, size_t argc, char **argv) {
