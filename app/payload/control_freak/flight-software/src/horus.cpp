@@ -53,7 +53,6 @@ static int32_t set_power_config(uint8_t output_power, uint8_t max_power, bool pl
     }
     // wired to use PA_BOOST
     uint8_t regpacfg = 0b1000000 | (max_power << 4) | output_power;
-    LOG_INF("PACFGG: %02x", regpacfg);
     SX1276Write(REG_PACONFIG, regpacfg);
 
     uint8_t pa_dac_val = 0;
@@ -80,8 +79,6 @@ void SX1276SetRfTxPower(int8_t power) {
 
     paConfig = SX1276Read(REG_PACONFIG);
     paDac = SX1276Read(REG_PADAC);
-    LOG_INF("CFG Before: %02x", paConfig);
-    LOG_INF("DAC Before: %02x", paDac);
 
     paConfig = (paConfig & RF_PACONFIG_PASELECT_MASK) | SX1276GetPaSelect(power);
 
@@ -121,8 +118,6 @@ void SX1276SetRfTxPower(int8_t power) {
             paConfig = (paConfig & RF_PACONFIG_MAX_POWER_MASK & RF_PACONFIG_OUTPUTPOWER_MASK) | (0 << 4) | (power + 4);
         }
     }
-    LOG_INF("CFG After: %02x", paConfig);
-    LOG_INF("DAC After: %02x", paDac);
     SX1276Write(REG_PACONFIG, paConfig);
     SX1276Write(REG_PADAC, paDac);
 }
@@ -391,6 +386,14 @@ int radio_thread(void *, void *, void *) {
     }
     k_msleep(5000);
 
+    SX1276SetRfTxPower(6);
+
+    for (int i = 0; i < 10; i++) {
+        LOG_INF("Startup: %d", i);
+        make_and_transmit_horus();
+        k_msleep(5);
+    }
+    SX1276SetRfTxPower(20);
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         wait_for_timeslot();

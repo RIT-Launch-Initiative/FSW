@@ -2,6 +2,7 @@
 
 #include "boost.h"
 #include "common.h"
+#include "flipping.h"
 #include "gorbfs.h"
 #include "slow_sensing.h"
 
@@ -48,6 +49,7 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
         if (flight_state == FlightState::OnPad && freak_controller->HasEventOccurred(Events::Boost)) {
             LOG_INF("Fast thread boost");
             flight_state = FlightState::Boost;
+            servo_at_boost();
         } else if (flight_state == FlightState::Boost && freak_controller->HasEventOccurred(Events::Coast)) {
             LOG_INF("Swapping");
             flight_state = FlightState::Flight;

@@ -10,6 +10,7 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output);
 
 // Fill a horus packet with GPS data, doesn't modify non-gps fields
 int fill_horus_packet_with_gps(struct horus_packet_v2 *packet);
+int print_gps();
 
 uint32_t millis_till_timeslot_opens();
 float get_skew_smart();

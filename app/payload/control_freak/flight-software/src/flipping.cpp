@@ -123,6 +123,8 @@ int init_flip_hw() {
     return 0;
 }
 
+void servo_at_boost() { Servo2.close(); }
+
 int get_normed_orientation(const struct device *imu_dev, NTypes::AccelerometerData &vec) {
 
     int ret = sensor_sample_fetch(imu_dev);
@@ -365,3 +367,85 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
 
     return -ENOTSUP;
 }
+
+int servo_preflight(const struct shell *shell) {
+    rail_item_enable(FiveVoltItem::Servos);
+    for (int i = 0; i < 3; i++) {
+        shell_print(shell, "Servo %d Open", i + 1);
+        servos[i]->open();
+        k_msleep(100);
+        servos[i]->disconnect();
+    }
+    for (int i = 0; i < 3; i++) {
+        shell_print(shell, "Servo %d Close", i + 1);
+        servos[i]->close();
+        k_msleep(100);
+        servos[i]->disconnect();
+    }
+    rail_item_disable(FiveVoltItem::Servos);
+
+    return 0;
+}
+
+int cmd_open(const struct shell *shell, size_t argc, char **argv) {
+    if (argc != 2) {
+        shell_error(shell, "SPecify which serv 1-3");
+        return -1;
+    }
+    int servo = atoi(argv[1]);
+    if (servo < 1 || servo > 3) {
+        shell_error(shell, "Bad servo arg");
+        return -1;
+    }
+
+    rail_item_enable(FiveVoltItem::Servos);
+    shell_print(shell, "Opening %d", servo);
+    servos[servo - 1]->open();
+    k_msleep(1000);
+    servos[servo - 1]->disconnect();
+    rail_item_disable(FiveVoltItem::Servos);
+    return 0;
+}
+
+int cmd_close(const struct shell *shell, size_t argc, char **argv) {
+    if (argc != 2) {
+        shell_error(shell, "SPecify which serv 1-3");
+        return -1;
+    }
+    int servo = atoi(argv[1]);
+    if (servo < 1 || servo > 3) {
+        shell_error(shell, "Bad servo arg");
+        return -1;
+    }
+
+    rail_item_enable(FiveVoltItem::Servos);
+    shell_print(shell, "Opening %d", servo);
+    servos[servo - 1]->close();
+    k_msleep(1000);
+    servos[servo - 1]->disconnect();
+    rail_item_disable(FiveVoltItem::Servos);
+    return 0;
+}
+int cmd_zeroall(const struct shell *shell, size_t argc, char **argv) {
+    rail_item_enable(FiveVoltItem::Servos);
+    shell_print(shell, "Closing 1");
+    Servo1.close();
+    k_msleep(1000);
+    Servo1.disconnect();
+    shell_print(shell, "Closing 2");
+    Servo2.close();
+    k_msleep(1000);
+    Servo2.disconnect();
+    shell_print(shell, "Closing 3");
+    Servo3.close();
+    k_msleep(1000);
+    Servo3.disconnect();
+    rail_item_disable(FiveVoltItem::Servos);
+    return 0;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(servo_subcmds, SHELL_CMD(zero, NULL, "Zero all servos", cmd_zeroall),
+                               SHELL_CMD(open, NULL, "Open servo", cmd_open),
+                               SHELL_CMD(close, NULL, "Clos servo", cmd_close), SHELL_SUBCMD_SET_END);
+
+SHELL_CMD_REGISTER(servo, &servo_subcmds, "Servo Commands", NULL);

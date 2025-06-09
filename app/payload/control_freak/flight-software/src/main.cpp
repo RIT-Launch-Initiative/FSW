@@ -9,6 +9,7 @@
 #include "flight.h"
 #include "flipping.h"
 #include "gorbfs.h"
+#include "gps.h"
 #include "slow_sensing.h"
 #include "storage.h"
 
@@ -22,6 +23,8 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
+
+static constexpr float BATTERY_WARNING_THRESH = 7.9;
 
 extern struct k_msgq flightlog_msgq;
 void handler(FreakFlightController::EventNotification noti) { k_msgq_put(&flightlog_msgq, &noti, K_MSEC(1)); }
@@ -52,6 +55,7 @@ K_THREAD_DEFINE(cameras, 512, camera_thread_entry, (void *) &freak_controller, N
 
 K_THREAD_DEFINE(buzzer, 512, buzzer_entry_point, NULL, NULL, NULL, CONFIG_SLOWDATA_THREAD_PRIORITY, 0, 0);
 
+float startup_voltage = 0;
 int main() {
     int ret = 0;
     if (is_data_locked()) {
@@ -79,6 +83,15 @@ int main() {
         LOG_ERR("Sensor devices not ready");
         buzzer_tell(BuzzCommand::SensorTroubles);
         return -1;
+    } else {
+        float current = 0;
+        int ret = read_ina(ina_servo, startup_voltage, current);
+        if (ret != 0) {
+            LOG_ERR("Couldn't read battery");
+        }
+        if (startup_voltage < BATTERY_WARNING_THRESH) {
+            buzzer_tell(BuzzCommand::BatteryWarning);
+        }
     }
     if (!device_is_ready(superfast_storage)) {
         LOG_ERR("Storage not ready");
@@ -90,6 +103,7 @@ int main() {
         LOG_ERR("Error initializing servo hardware");
         buzzer_tell(BuzzCommand::SensorTroubles);
     }
+
     buzzer_tell(BuzzCommand::AllGood);
     // buzzer_tell(BuzzCommand::Silent);
 
@@ -141,9 +155,22 @@ int cmd_boost(const struct shell *shell, size_t argc, char **argv) {
     overriding_boost = true;
     return 0;
 }
-int cmd_inflated(const struct shell *shell, size_t argc, char **argv) {
-    shell_print(shell, "Inflated");
-    freak_controller.SubmitEvent(Sources::InflationSubsys, Events::InitialInflation);
+int cmd_preflight(const struct shell *shell, size_t argc, char **argv) {
+    shell_print(shell, "Preflight Checklist");
+    shell_print(shell, "Cameras on");
+    shell_print(shell, "Startup Voltage: %.3f", (double) startup_voltage);
+    if (startup_voltage < BATTERY_WARNING_THRESH) {
+        LOG_ERR("BATTERY LOW");
+    }
+    both_cams_on();
+    servo_preflight(shell);
+    k_msleep(10 * 1000);
+    shell_print(shell, "Cameras off");
+    both_cams_off();
+    return 0;
+}
+int cmd_info(const struct shell *shell, size_t argc, char **argv) {
+    print_gps();
     return 0;
 }
 
@@ -200,16 +227,6 @@ int cmd_read(const struct device *dev, const struct shell *shell, size_t argc, c
     static uint8_t buf[256] = {0};
     for (int i = 0; i < blocks; i++) {
         gfs_read_block(dev, i, buf);
-        // bool is_end = true;
-        // for (int i = 0; i < 8; i++) {
-        // if (buf[i] != 0xff) {
-        // is_end = false;
-        // }
-        // }
-        // if (is_end) {
-        // shell_print(shell, "Reached erased page partway through (page %d)", i);
-        // break;
-        // }
         hexdump(shell, buf, 256); // TODO investigate b64 slowdown time
     }
     shell_print(shell, "************ gorb end %s ************", dev->name);
@@ -255,16 +272,17 @@ int cmd_readslow(const struct shell *shell, size_t argc, char **argv) {
     return cmd_read(superslow_storage, shell, argc, argv);
 }
 
-SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
+SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
                                SHELL_CMD(unlock, NULL, "Unlock flight data partition", cmd_unlock),
                                SHELL_CMD(lock, NULL, "Lock flight data partition", cmd_lock),
-                               SHELL_CMD(pumpon, NULL, "pump on", cmd_pumpon),
-                               SHELL_CMD(pumpoff, NULL, "pump off", cmd_pumpoff),
+                               SHELL_CMD(module_on, NULL, "pump on", cmd_pumpon),
+                               SHELL_CMD(moduleoff, NULL, "pump off", cmd_pumpoff),
+                               SHELL_CMD(info, NULL, "freak info", cmd_info),
                                SHELL_CMD(boost, NULL, "fake boost detect", cmd_boost),
-                               SHELL_CMD(shut, NULL, "stop yapping", cmd_shutup),
-                               SHELL_CMD(inflated, NULL, "fake inflated", cmd_inflated), SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(preflight, NULL, "run preflight checks", cmd_preflight),
+                               SHELL_CMD(shut, NULL, "stop yapping", cmd_shutup), SHELL_SUBCMD_SET_END);
 
-SHELL_CMD_REGISTER(test, &test_subcmds, "Test Commands", NULL);
+SHELL_CMD_REGISTER(freak, &freak_subcmds, "Test Commands", NULL);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(gorb_subcmds, SHELL_CMD(dumpfast, NULL, "Dump fast partition", cmd_readfast),
                                SHELL_CMD(dumpslow, NULL, "Dump slow partition", cmd_readslow), SHELL_SUBCMD_SET_END);

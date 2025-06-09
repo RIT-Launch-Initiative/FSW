@@ -32,6 +32,20 @@ uint32_t millis_since_start_of_day(const gnss_time &time) {
     static constexpr uint32_t millis_per_hour = 60 * millis_per_minute;
     return time.hour * millis_per_hour + time.minute * millis_per_minute + time.millisecond;
 }
+
+int print_gps() {
+    if (k_mutex_lock(&gps_mutex, K_MSEC(20)) != 0) {
+        return -1;
+    }
+    printk("%.5f, %.5f - %.3f\n", NGnssUtils::NanodegreesToDegreesDouble(last_data.nav_data.latitude),
+           NGnssUtils::NanodegreesToDegreesDouble(last_data.nav_data.longitude),
+           (double) last_data.nav_data.altitude / 1000);
+    printk("%d/%d/%d %02d:%02d:%02d\n", last_data.utc.month, last_data.utc.month_day, last_data.utc.century_year,
+           last_data.utc.hour, last_data.utc.minute, last_data.utc.millisecond / 1000);
+
+    return k_mutex_unlock(&gps_mutex);
+}
+
 // Comment copied from types.yaml
 // Lat/Long stored as 1/65536 degree. 1 LSB = 1.69m
 // 14 bits alt (1 ft / LSB) (0-16384 in case we overshoot or fall into hell)

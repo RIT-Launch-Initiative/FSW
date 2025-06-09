@@ -3,6 +3,11 @@
 #include <cstdint>
 #include <zephyr/device.h>
 #include <zephyr/drivers/pwm.h>
+#include <zephyr/shell/shell.h>
+
+int servo_preflight(const struct shell *shell);
+// Turn on the servo and lock it in place so that when apogee happens the door stays shut
+void servo_at_boost();
 
 struct ServoState {
     uint32_t last_ticks;

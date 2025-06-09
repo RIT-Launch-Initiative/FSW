@@ -19,6 +19,15 @@ int camera_off(const struct gpio_dt_spec *cam) { return gpio_pin_set_dt(cam, 0);
 static const struct gpio_dt_spec antenna_cam = GPIO_DT_SPEC_GET(DT_ALIAS(antennacam), gpios);
 static const struct gpio_dt_spec ground_cam = GPIO_DT_SPEC_GET(DT_ALIAS(antennacam), gpios);
 
+void both_cams_on() {
+    camera_on(&antenna_cam);
+    camera_on(&ground_cam);
+}
+void both_cams_off() {
+    camera_off(&antenna_cam);
+    camera_off(&ground_cam);
+}
+
 int camera_thread_entry(void *v_fc, void *, void *) {
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
 
