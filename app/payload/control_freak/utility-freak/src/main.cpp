@@ -41,6 +41,7 @@ int main() {
     if (ret != 0) {
         LOG_ERR("Error initializing servo hardware");
     }
+    rail_item_enable(FiveVoltItem::Servos);
     return 0;
 }
 

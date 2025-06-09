@@ -25,7 +25,7 @@ struct gnss_satellite last_sats[MAX_SATS];
 int64_t last_fix_uptime_ticks = 0;
 constexpr float default_skew_factor = 1.0090;
 float last_valid_skew_factor = default_skew_factor;
-bool is_skew_reasonable(float skew) { return skew < 1.020 && skew > 0.98; }
+bool is_skew_reasonable(float skew) { return skew < 1.02f && skew > 0.98f; }
 
 uint32_t millis_since_start_of_day(const gnss_time &time) {
     static constexpr uint32_t millis_per_minute = 60 * 1000;
@@ -67,11 +67,9 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
 
     lon = fabs(lon);
     lon -= floorf(lon);
-    LOG_INF("Lat: %f, Lon: %f", (double) lat, (double) lon);
 
     output.LatFrac = lat * UINT16_MAX;
     output.LongFrac = lon * UINT16_MAX;
-    LOG_INF("Lat: %u, Lon: %u", output.LatFrac, output.LongFrac);
 
     uint16_t alt_feet = alt_mm * 0.00328084f;
     alt_feet &= BIT_MASK(14);

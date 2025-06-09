@@ -45,18 +45,10 @@ int camera_thread_entry(void *v_fc, void *, void *) {
     LOG_INF("Down camera off, antenna cam still on");
 
     fc->WaitUntilEvent(Events::InitialInflation);
+    k_msleep(10 * 60 * 1000);
+    camera_off(&antenna_cam);
     camera_off(&antenna_cam);
     LOG_INF("Antenna cam off, will be back soon");
-
-    while (true) {
-        k_msleep(millis_off);
-        if (!should_turnon_cam()) {
-            continue;
-        }
-        camera_on(&antenna_cam);
-        k_msleep(millis_on);
-        camera_off(&antenna_cam);
-    }
 
     return 0;
 }

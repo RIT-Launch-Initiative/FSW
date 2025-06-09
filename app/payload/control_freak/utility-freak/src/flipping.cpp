@@ -117,20 +117,20 @@ ServoState state3{};
 
 static constexpr Servo Servo1{
     .pwm = PWM_DT_SPEC_GET(DT_ALIAS(servo1)),
-    .open_pulselen = min_pulse,
-    .closed_pulselen = max_pulse,
+    .open_pulselen = PWM_USEC(930),
+    .closed_pulselen = PWM_USEC(2010),
     .state = state1,
 };
 static constexpr Servo Servo2{
     .pwm = PWM_DT_SPEC_GET(DT_ALIAS(servo2)),
-    .open_pulselen = max_pulse,
-    .closed_pulselen = min_pulse,
+    .open_pulselen = PWM_USEC(1900),
+    .closed_pulselen = PWM_USEC(985),
     .state = state2,
 };
 static constexpr Servo Servo3{
     .pwm = PWM_DT_SPEC_GET(DT_ALIAS(servo3)),
-    .open_pulselen = max_pulse,
-    .closed_pulselen = min_pulse,
+    .open_pulselen = PWM_USEC(1940),
+    .closed_pulselen = PWM_USEC(800),
     .state = state3,
 };
 
