@@ -15,6 +15,7 @@
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
 #include <f_core/device/c_rtc.h>
+#include <zephyr/fs/littlefs.h>
 
 class CSensorModule : public CProjectConfiguration {
   public:
@@ -44,8 +45,6 @@ class CSensorModule : public CProjectConfiguration {
     void Cleanup() { dataLoggerTenant.Cleanup(); }
 
   private:
-    static std::string generateFlightLogPath();
-
     std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID);
     const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
 

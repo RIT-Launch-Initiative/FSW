@@ -43,7 +43,7 @@ void NRtos::ResumeTask(k_tid_t taskId) {
     k_thread_resume(taskId);
 }
 
-void NRtos::ResumeTask(std::string taskName) {
+void NRtos::ResumeTask(const std::string &taskName) {
     if (taskNameIdMap.Contains(taskName)) {
         k_thread_resume(taskNameIdMap.Get(taskName).value());
     } else {
@@ -55,7 +55,7 @@ void NRtos::SuspendTask(k_tid_t taskId) {
     k_thread_suspend(taskId);
 }
 
-void NRtos::SuspendTask(std::string taskName) {
+void NRtos::SuspendTask(const std::string &taskName) {
     if (taskNameIdMap.Contains(taskName)) {
         k_thread_suspend(taskNameIdMap.Get(taskName).value());
     } else {

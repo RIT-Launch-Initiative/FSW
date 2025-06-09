@@ -37,7 +37,7 @@ void ResumeTask(k_tid_t taskId);
  * Resume a task's execution based on task name
  * @param taskName The name of the task to resume
  */
-void ResumeTask(std::string taskName);
+void ResumeTask(const std::string &taskName);
 
 /**
  * Suspend a task from executing based on task ID
@@ -49,7 +49,7 @@ void SuspendTask(k_tid_t taskId);
  * Suspend a task from execution based on task name
  * @param taskName The name of the task to resume
  */
-void SuspendTask(std::string taskName);
+void SuspendTask(const std::string &taskName);
 
 /**
  * Suspend the currently executing task
