@@ -31,7 +31,9 @@ int cmd_pump_off(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
     printk("Pump Off\n");
-    return gpio_pin_set_dt(&pump_enable, 0);
+    rail_item_disable(FiveVoltItem::Pump);
+
+    return 0;
 }
 int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
@@ -39,14 +41,17 @@ int cmd_pump_on(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argv);
 
     printk("Pump On\n");
-    return gpio_pin_set_dt(&pump_enable, 1);
+    rail_item_enable(FiveVoltItem::Pump);
+    return 0;
 }
+
+bool doflip = false;
 
 int cmd_orient(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(shell);
     ARG_UNUSED(argv);
     ARG_UNUSED(argc);
-
+    doflip = true;
     return 0;
 }
 
@@ -134,7 +139,7 @@ void find_vector_norm(NTypes::AccelerometerData &vec){
     vec.Z /= mag;
 }
 
-int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open);
+int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open, bool hold = false);
 
 
 extern const Servo *servos[];
@@ -182,7 +187,6 @@ int right_until_upright(){
     return 0;
 }
 
-
 extern int init_flip_hw();
 int main() {
     struct sensor_value sampling = {0};
@@ -211,13 +215,8 @@ int main() {
         find_vector_norm(my_dir);
         PayloadFace facing = find_orientation(my_dir);
         
-        if (facing == PayloadFace::OnItsHead){
-            upside_down_count++;
-        } else {
-            upside_down_count = 0;
-        }
 
-        if (upside_down_count > 5){
+        if (doflip){
             for (int i = 0; i < 5; i++){
                 buzzer_on();
                 k_msleep(100);
@@ -226,7 +225,7 @@ int main() {
             }
             k_msleep(3000);
             right_until_upright();
-            upside_down_count = 0;
+            doflip = false;
         }
         k_msleep(100);
     }

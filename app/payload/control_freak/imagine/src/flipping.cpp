@@ -11,6 +11,8 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
+#define INA_NODE DT_ALIAS(inaservo)
+static const struct device *ina_dev = DEVICE_DT_GET(INA_NODE);
 
 int read_ina(const struct device *ina_dev, float &voltage, float &current) {
 
@@ -183,7 +185,7 @@ Shunt current_log[120] = {};
 #endif
 CMovingAverage<float, 5> filter{0};
 
-int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open) {
+int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open, bool hold) {
     int msec = 20;
     if (strat == SweepStrategy::Fast) {
         msec = 5;
@@ -232,10 +234,12 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
         k_msleep(1);
     }
 #endif
-    int ret = servo.disconnect();
-    if (ret < 0) {
-        LOG_WRN("Error %d: failed to disable servo\n", ret);
-        return ret;
+    if (!hold) {
+        int ret = servo.disconnect();
+        if (ret < 0) {
+            LOG_WRN("Error %d: failed to disable servo\n", ret);
+            return ret;
+        }
     }
     return 0;
 }
@@ -301,12 +305,12 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
         } else if (attempts_on_this_face > 3) {
             strategy = SweepStrategy::Fast;
         }
-        ret = flip_one_side(ina_dev, *servos[index], strategy, true);
+        ret = flip_one_side(ina_dev, *servos[index], strategy, true, false);
         if (ret != 0) {
             LOG_WRN("Error sweeping servo: %d", ret);
         }
         // Return
-        flip_one_side(ina_dev, *servos[index], Slow, false);
+        flip_one_side(ina_dev, *servos[index], Slow, false, false);
 
         LOG_INF("Iteration %d complete", i);
     }
@@ -352,6 +356,38 @@ int cmd_open(const struct shell *shell, size_t argc, char **argv) {
     rail_item_disable(FiveVoltItem::Servos);
     return 0;
 }
+int cmd_openhold(const struct shell *shell, size_t argc, char **argv) {
+    if (argc != 2) {
+        shell_error(shell, "SPecify which serv 1-3");
+        return -1;
+    }
+    int servo = atoi(argv[1]);
+    if (servo < 1 || servo > 3) {
+        shell_error(shell, "Bad servo arg");
+        return -1;
+    }
+    rail_item_enable(FiveVoltItem::Servos);
+    flip_one_side(ina_dev, *servos[servo - 1], SweepStrategy::Fast, true, true);
+
+    return 0;
+}
+
+int cmd_closehold(const struct shell *shell, size_t argc, char **argv) {
+    if (argc != 2) {
+        shell_error(shell, "SPecify which serv 1-3");
+        return -1;
+    }
+    int servo = atoi(argv[1]);
+    if (servo < 1 || servo > 3) {
+        shell_error(shell, "Bad servo arg");
+        return -1;
+    }
+
+    rail_item_enable(FiveVoltItem::Servos);
+    flip_one_side(ina_dev, *servos[servo - 1], SweepStrategy::Fast, false, false);
+
+    return 0;
+}
 
 int cmd_close(const struct shell *shell, size_t argc, char **argv) {
     if (argc != 2) {
@@ -395,6 +431,8 @@ int cmd_zeroall(const struct shell *shell, size_t argc, char **argv) {
 
 SHELL_STATIC_SUBCMD_SET_CREATE(servo_subcmds, SHELL_CMD(zero, NULL, "Zero all servos", cmd_zeroall),
                                SHELL_CMD(open, NULL, "Open servo", cmd_open),
-                               SHELL_CMD(close, NULL, "Clos servo", cmd_close), SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(close, NULL, "Clos servo", cmd_close),
+                               SHELL_CMD(openhold, NULL, "Open servo hold", cmd_openhold),
+                               SHELL_CMD(closehold, NULL, "Clos servo hold", cmd_closehold), SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(servo, &servo_subcmds, "Servo Commands", NULL);
