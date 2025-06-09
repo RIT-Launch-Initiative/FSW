@@ -123,7 +123,10 @@ int init_flip_hw() {
     return 0;
 }
 
-void servo_at_boost() { Servo2.close(); }
+void servo_at_boost() {
+    rail_item_enable(FiveVoltItem::Servos);
+    Servo2.close();
+}
 
 int get_normed_orientation(const struct device *imu_dev, NTypes::AccelerometerData &vec) {
 
@@ -349,6 +352,8 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     Servo3.open();
     k_msleep(1000);
 
+    Servo2.disconnect();
+
     static constexpr int initial_inflation_attempts = 20;
     int attempt_number = 0;
     FlightState flight_state = FlightState::InitialPump;
@@ -373,13 +378,14 @@ int servo_preflight(const struct shell *shell) {
     for (int i = 0; i < 3; i++) {
         shell_print(shell, "Servo %d Open", i + 1);
         servos[i]->open();
-        k_msleep(100);
+        k_msleep(700);
         servos[i]->disconnect();
+        k_msleep(1000);
     }
     for (int i = 0; i < 3; i++) {
         shell_print(shell, "Servo %d Close", i + 1);
         servos[i]->close();
-        k_msleep(100);
+        k_msleep(1000);
         servos[i]->disconnect();
     }
     rail_item_disable(FiveVoltItem::Servos);

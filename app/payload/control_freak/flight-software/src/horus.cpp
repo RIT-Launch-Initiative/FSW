@@ -235,10 +235,12 @@ static int32_t rfm9xw_software_reset() {
 
 int calc_us_per_fsk_symbol() {
     float skew = get_skew_smart();
+    LOG_INF("Skew of %f", skew);
     static constexpr uint32_t bitrate = 100; // symbols per second
     static constexpr uint32_t useconds_per_second = 1000 * 1000;
     static constexpr uint32_t useconds_per_symbol = useconds_per_second / bitrate;
     uint32_t useconds_skew_adjusted = useconds_per_symbol * skew;
+    LOG_INF("useconds of %d", useconds_skew_adjusted);
     return useconds_skew_adjusted;
 }
 
@@ -260,7 +262,7 @@ static void transmit_horus(uint8_t *buf, int len) {
     SX1276Write(REG_PLLHOP, RF_PLLHOP_FASTHOP_ON | 0x2d); // Fast hop on | default value
 
     SX1276SetRfTxPower(20);
-    SX1276Write(REG_OCP, 0b00100000 + 24);
+    SX1276Write(REG_OCP, 0b00100000 + 28);
 
     set_pramble_len(0);
     set_carrier_frequency(high);

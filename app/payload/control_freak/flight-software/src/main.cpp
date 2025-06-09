@@ -161,14 +161,15 @@ int cmd_preflight(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Startup Voltage: %.3f", (double) startup_voltage);
     if (startup_voltage < BATTERY_WARNING_THRESH) {
         LOG_ERR("BATTERY LOW");
+        buzzer_tell(BuzzCommand::BatteryWarning);
     }
     both_cams_on();
     servo_preflight(shell);
+    shell_print(shell, "Check Cameras");
     k_msleep(10 * 1000);
     shell_print(shell, "Cameras off");
     both_cams_off();
 
-    buzzer_tell(BuzzCommand::BatteryWarning);
     return 0;
 }
 int cmd_info(const struct shell *shell, size_t argc, char **argv) {
