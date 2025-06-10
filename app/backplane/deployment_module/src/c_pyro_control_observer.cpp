@@ -35,11 +35,11 @@ void CPyroControlObserver::Notify(void* ctx) {
             k_sleep(K_SECONDS(1));
 
             for (auto& [sense, ctrl, led] : pyroTrios) {
-                if (sense.GetPin() == 1) {
+                // if (sense.GetPin() == 1) {
                     ctrl.SetPin(1);
                     led.SetPin(1);
                     LOG_INF("Deployed charge %d", pyroCount);
-                }
+                // }
                 pyroCount++;
             }
             // flightLog.Write("Finished deploying charges");
