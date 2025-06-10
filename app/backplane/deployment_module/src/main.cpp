@@ -14,6 +14,7 @@ int main() {
 
     deploymentModule.AddTenantsToTasks();
     deploymentModule.AddTasksToRtos();
+    deploymentModule.SetupCallbacks();
 
     NRtos::StartRtos();
 

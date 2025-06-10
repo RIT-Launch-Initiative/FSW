@@ -1,5 +1,7 @@
 #include "c_pyro_control_observer.h"
 
+#include "f_core/os/n_rtos.h"
+
 #include <cstdio>
 #include <f_core/n_alerts.h>
 #include <zephyr/logging/log.h>
@@ -9,7 +11,9 @@ LOG_MODULE_REGISTER(CPyroControlObserver);
 
 static void chargeDisableTimerCallback(k_timer* timer) {
     auto* observer = static_cast<CPyroControlObserver*>(timer->user_data);
+
     observer->DisableCallback();
+    NRtos::ResumeTask("Networking Task");
 }
 
 CPyroControlObserver::CPyroControlObserver() {
@@ -21,6 +25,7 @@ CPyroControlObserver::CPyroControlObserver() {
 
 void CPyroControlObserver::Notify(void* ctx) {
     uint8_t pyroCount = 0;
+    LOG_INF("Notified");
 
     switch (*static_cast<NAlerts::AlertType*>(ctx)) {
         case NAlerts::NOSEOVER:
@@ -39,15 +44,20 @@ void CPyroControlObserver::Notify(void* ctx) {
             }
             // flightLog.Write("Finished deploying charges");
             chargeDisableTimer.StartTimer(3000);
+            // Must suspend the networking task. If we get a new event, process after we
+            // process the last one. Otherwise, we can fault during interrupt handling
+            NRtos::SuspendCurrentTask();
             break;
         default:
             break;
     }
 
+
     // flightLog.Sync();
 }
 
 void CPyroControlObserver::DisableCallback() {
+    chargeDisableTimer.StopTimer();
     int pyroCount = 0;
     for (auto& [sense, ctrl, led] : pyroTrios) {
         ctrl.SetPin(0);
