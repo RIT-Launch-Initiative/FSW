@@ -112,10 +112,10 @@ void CSensingTenant::Run() {
     if (detectionHandler.FlightOccurring()) {
         int ret = dataToLog.Send(timestampedData, K_NO_WAIT);
         LOG_WRN_ONCE("Beginning logging");
-        if (ret < 0) {
+        if (dataToLog.AvailableSpace() < 100) {
             LOG_ERR("Failed to log sensor data: %d", ret);
             NRtos::ResumeTask("Data Logging Task");
-            k_msleep(500);
+            k_yield();
         }
     }
 }
