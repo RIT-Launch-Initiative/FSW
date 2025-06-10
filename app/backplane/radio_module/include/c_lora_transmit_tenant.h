@@ -7,7 +7,7 @@
 #include <f_core/os/c_tenant.h>
 
 #include <f_core/radio/c_lora.h>
-#include <f_core/c_pad_flight_landing_state_machine.h>
+#include <../../../../include/f_core/state_machine/c_pad_flight_landing_state_machine.h>
 #include <f_core/utils/c_observer.h>
 #include <f_core/utils/c_hashmap.h>
 
