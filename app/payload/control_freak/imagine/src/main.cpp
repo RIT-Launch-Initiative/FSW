@@ -150,7 +150,7 @@ bool do_righting_once(){
     PayloadFace face = find_orientation(vec);
     if (face > PayloadFace::Face3){
         printk("Cant do anything about that");
-        return false;
+        return true;
     }
     // get associated servo
     // actuate out
@@ -183,6 +183,7 @@ int right_until_upright(){
             k_msleep(5000);
             break;
         }
+        k_msleep(100);
     }
     return 0;
 }
@@ -215,8 +216,13 @@ int main() {
         find_vector_norm(my_dir);
         PayloadFace facing = find_orientation(my_dir);
         
+        if (facing == PayloadFace::OnItsHead){
+            upside_down_count++;
+        } else {
+            upside_down_count = 0;
+        }
 
-        if (doflip){
+        if (upside_down_count > 5){
             for (int i = 0; i < 5; i++){
                 buzzer_on();
                 k_msleep(100);
@@ -225,7 +231,6 @@ int main() {
             }
             k_msleep(3000);
             right_until_upright();
-            doflip = false;
         }
         k_msleep(100);
     }
