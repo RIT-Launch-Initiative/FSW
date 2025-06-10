@@ -1,6 +1,6 @@
 #include "c_state_machine_updater.h"
 
-#include <../../../../include/f_core/state_machine/c_pad_flight_landing_state_machine.h>
+#include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
 #include <f_core/n_alerts.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
