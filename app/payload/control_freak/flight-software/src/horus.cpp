@@ -248,7 +248,8 @@ static void transmit_horus(uint8_t *buf, int len) {
     const float deviation = 405;
 
     int us_per_symbol = calc_us_per_fsk_symbol();
-
+    LOG_INF("us per sym: %d", us_per_symbol);
+    us_per_symbol -= 50;
     const uint32_t high = carrier + deviation;
     const uint32_t step = (uint32_t) ((float) deviation * 2.f / 3.f);
     const uint32_t symbols_fdev[4] = {3 * step, 2 * step, step, 0};
