@@ -13,14 +13,12 @@ void CStateMachineUpdater::Notify(void* ctx) {
             k_mutex_lock(&NStateMachineGlobals::boostMutex, K_FOREVER);
             NStateMachineGlobals::boostDetected = true;
             k_mutex_unlock(&NStateMachineGlobals::boostMutex);
-            LOG_INF("Boost set to true");
             break;
 
         case NAlerts::LANDED:
             k_mutex_lock(&NStateMachineGlobals::landingMutex, K_FOREVER);
             NStateMachineGlobals::landingDetected = true;
             k_mutex_unlock(&NStateMachineGlobals::landingMutex);
-            LOG_INF("Landing set to true");
             break;
 
         default:
