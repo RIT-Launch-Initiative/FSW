@@ -111,15 +111,22 @@ void CSensingTenant::Run() {
     detectionHandler.HandleData(uptime, data, sensor_states);
     if (detectionHandler.FlightOccurring()) {
         int ret = dataToLog.Send(timestampedData, K_NO_WAIT);
+        if (ret) {
+            LOG_ERR("Failed to send sensor data to log port");
+        }
+
         LOG_WRN_ONCE("Beginning logging");
         if (dataToLog.AvailableSpace() < 100) {
             NRtos::ResumeTask("Data Logging Task");
             k_yield();
         }
+    }
 
-        if (ret) {
-            LOG_ERR("Failed to send sensor data to log port");
-        }
+    // Don't care about performance at this point,
+    // Keep making sure the data gets logged
+    if (detectionHandler.FlightFinished()) {
+        NRtos::ResumeTask("Data Logging Task");
+        k_msleep(1000);
     }
 }
 

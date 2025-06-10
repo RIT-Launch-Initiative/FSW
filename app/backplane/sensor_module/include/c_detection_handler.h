@@ -83,6 +83,13 @@ public:
         // return controller.HasEventOccurred(Events::Boost) && !controller.HasEventOccurred(Events::GroundHit);
     }
 
+    bool FlightFinished() {
+        int uptime = k_uptime_get();
+        return uptime >= 30000;
+
+        return controller.HasEventOccurred(Events::GroundHit);
+    }
+
     /**
      * Whether or not the phase detector needs more data. True before ground hit, false after
      * @return true if the detection system wants more data, false if we're all finished
