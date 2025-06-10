@@ -27,6 +27,9 @@ LOG_MODULE_REGISTER(radio);
 #define RADIORST_NODE DT_ALIAS(radioreset)
 static const struct gpio_dt_spec radioreset = GPIO_DT_SPEC_GET(RADIORST_NODE, gpios);
 
+#define RADIO_NODE DT_ALIAS(lora0)
+static const struct device *radio = DEVICE_DT_GET(RADIO_NODE);
+
 extern horus_packet_v2 get_telemetry();
 
 static int32_t set_pramble_len(uint16_t preamble_len) {
@@ -242,9 +245,9 @@ int calc_us_per_fsk_symbol() {
     uint32_t useconds_skew_adjusted = useconds_per_symbol * skew;
     return useconds_skew_adjusted;
 }
+const uint32_t carrier = 432950000;
 
-static void transmit_horus(uint8_t *buf, int len) {
-    const uint32_t carrier = 432950000;
+static void transmit_horus(uint8_t *buf, int len, int power) {
     const float deviation = 405;
 
     int us_per_symbol = calc_us_per_fsk_symbol();
@@ -261,7 +264,7 @@ static void transmit_horus(uint8_t *buf, int len) {
                 RF_OPMODE_LONGRANGEMODE_OFF | RF_OPMODE_MODULATIONTYPE_FSK | RF_OPMODE_STANDBY); // Standby FSK
     SX1276Write(REG_PLLHOP, RF_PLLHOP_FASTHOP_ON | 0x2d); // Fast hop on | default value
 
-    SX1276SetRfTxPower(20);
+    SX1276SetRfTxPower(power);
     SX1276Write(REG_OCP, 0b00100000 + 28);
 
     set_pramble_len(0);
@@ -368,13 +371,44 @@ horus_packet_v2 get_telemetry() {
     return pac;
 }
 
-void make_and_transmit_horus() {
+void make_and_transmit_horus(int power) {
     struct horus_packet_v2 data = get_telemetry();
 
     horus_packet_v2_encoded_buffer_t packet = {0};
     horusv2_encode(&data, &packet);
 
-    transmit_horus(&packet[0], sizeof(packet));
+    transmit_horus(&packet[0], sizeof(packet), power);
+}
+
+void make_and_transmit_lora() {
+    struct lora_modem_config cfg{
+        .frequency = carrier,
+        .bandwidth = BW_250_KHZ,
+        .datarate = SF_12,
+        .coding_rate = CR_4_8,
+        .preamble_len = 8,
+        .tx_power = 25,
+        .tx = true,
+        .public_network = false,
+    };
+
+    int ret = lora_config(radio, &cfg);
+    if (ret != 0) {
+        LOG_WRN("Couldnt conf lora: %d", ret);
+    }
+
+    struct horus_packet_v2 data = get_telemetry();
+    char callsign[] = "KC1MOL";
+    char buf[sizeof(callsign) + sizeof(data)] = {0};
+    for (int i = 0; i < sizeof(callsign); i++) {
+        buf[i] = callsign[i];
+    }
+    memcpy(buf + 6, (void *) &data, sizeof(data));
+
+    ret = lora_send(radio, (uint8_t *) buf, sizeof(buf));
+    if (ret != 0) {
+        LOG_WRN("Couldnt send lora: %d", ret);
+    }
 }
 
 void wait_for_timeslot() {
@@ -396,20 +430,23 @@ int radio_thread(void *, void *, void *) {
 
     for (int i = 0; i < 3; i++) {
         LOG_INF("Startup: %d", i);
-        make_and_transmit_horus();
+        make_and_transmit_horus(4);
     }
-    SX1276SetRfTxPower(20);
+
     int count = 0;
     while (true) {
-        // Maybe make packet AOT and only transmit at timeslot
-        wait_for_timeslot();
-        LOG_ERR("TIME");
-        // LOG_INF("Transmitting Horus");
         if (radio_low_power && (count % 4) != 0) {
             k_msleep(5000); // chill
-        } else {
-            make_and_transmit_horus();
+            continue;
         }
+        count++;
+
+        wait_for_timeslot();
+        LOG_INF("Transmitting Horus");
+        make_and_transmit_horus(20);
+        wait_for_timeslot();
+        LOG_INF("Transmitting Lora");
+        make_and_transmit_lora();
     }
     return 0;
 }
