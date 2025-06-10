@@ -55,11 +55,13 @@ int attempt_inflation_iteration(const struct device *ina_pump) {
         // inputs print
         // printk("%lld, %f, %f, ", now, (double) volts, (double) current);
         if (!should_pump_be_on(now, volts, current)) {
+            rail_item_set(FiveVoltItem::Pump, false);
+            return PUMP_CURRENT_END;
             break;
         }
     }
     LOG_INF("Done pumping");
     rail_item_set(FiveVoltItem::Pump, false);
 
-    return 0;
+    return PUMP_TIME_END;
 }

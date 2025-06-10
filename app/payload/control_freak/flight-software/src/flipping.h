@@ -13,6 +13,14 @@ struct ServoState {
     uint32_t last_ticks;
 };
 
+bool am_upright(const struct device *imu_dec);
+
+enum SweepStrategy {
+    Slow,
+    Fast,
+    Faster,
+};
+
 struct Servo {
     struct pwm_dt_spec pwm;
     uint32_t open_pulselen;
@@ -46,6 +54,8 @@ struct FaceAndId {
  */
 const char *string_face(PayloadFace p);
 
+int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open,
+                  bool hold_strong = false);
 int init_flip_hw();
 
 int do_flipping_and_pumping(const struct device *imu_dev, const struct device *barom_dev,

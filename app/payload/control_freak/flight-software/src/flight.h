@@ -24,12 +24,7 @@ enum Events {
 };
 
 inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
-    "PadReady",
-    "Unlocked",
-    "Boost",
-    "Coast",
-    "InitialInflation"
-    "GroundHit",
+    "PadReady", "Unlocked", "Boost", "Coast", "InitialInflation", "GroundHit",
 };
 enum Sources {
     // Flight Controlling Sources

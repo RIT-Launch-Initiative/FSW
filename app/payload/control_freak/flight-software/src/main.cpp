@@ -132,6 +132,7 @@ int cmd_pumpoff(const struct shell *shell, size_t argc, char **argv) {
 int cmd_unlock(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Unlocking boost data");
     unlock_boostdata();
+    buzzer_tell(BuzzCommand::AllGood);
     return 0;
 }
 
@@ -278,7 +279,7 @@ int cmd_readslow(const struct shell *shell, size_t argc, char **argv) {
 SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
                                SHELL_CMD(unlock, NULL, "Unlock flight data partition", cmd_unlock),
                                SHELL_CMD(lock, NULL, "Lock flight data partition", cmd_lock),
-                               SHELL_CMD(module_on, NULL, "pump on", cmd_pumpon),
+                               SHELL_CMD(moduleon, NULL, "pump on", cmd_pumpon),
                                SHELL_CMD(moduleoff, NULL, "pump off", cmd_pumpoff),
                                SHELL_CMD(info, NULL, "freak info", cmd_info),
                                SHELL_CMD(boost, NULL, "fake boost detect", cmd_boost),

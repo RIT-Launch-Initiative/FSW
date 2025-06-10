@@ -382,11 +382,14 @@ void wait_for_timeslot() {
 }
 
 bool radio_low_power = false;
+
+void set_radio_battery_save() { radio_low_power = true; }
+
 int radio_thread(void *, void *, void *) {
     if (is_data_locked()) {
         return -1;
     }
-    k_msleep(5000);
+    k_msleep(2000);
 
     SX1276SetRfTxPower(6);
 

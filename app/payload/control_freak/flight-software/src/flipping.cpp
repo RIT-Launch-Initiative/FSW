@@ -77,9 +77,9 @@ PayloadFace find_orientation(const NTypes::AccelerometerData &me, size_t face_in
     std::sort(sims.begin(), sims.end(),
               [](const FaceAndSimilarity &a, const FaceAndSimilarity &b) { return a.similarity > b.similarity; });
 
-    for (auto s : sims) {
-        LOG_INF("%11s: %f", string_face(s.id), (double) s.similarity);
-    }
+    // for (auto s : sims) {
+    // LOG_INF("%11s: %f", string_face(s.id), (double) s.similarity);
+    // }
     return sims[face_index].id;
 }
 
@@ -155,12 +155,6 @@ int get_normed_orientation(const struct device *imu_dev, NTypes::AccelerometerDa
 // Ok, but need to put in some more work
 #define FLIPPED_BUT_NOT_RIGHTED 1
 
-enum SweepStrategy {
-    Slow,
-    Fast,
-    Faster,
-};
-
 static constexpr float servo_current_cutoff = 2.4;
 constexpr int servo_steps = 120;
 
@@ -175,8 +169,7 @@ Shunt current_log[120] = {};
 #endif
 CMovingAverage<float, 5> filter{0};
 
-int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open,
-                  float &current_before, float &voltage_before) {
+int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrategy strat, bool open, bool hold_strong) {
     int msec = 20;
     if (strat == SweepStrategy::Fast) {
         msec = 5;
@@ -225,12 +218,24 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
         k_msleep(1);
     }
 #endif
-    int ret = servo.disconnect();
-    if (ret < 0) {
-        LOG_WRN("Error %d: failed to disable servo\n", ret);
-        return ret;
+    if (!hold_strong) {
+        int ret = servo.disconnect();
+        if (ret < 0) {
+            LOG_WRN("Error %d: failed to disable servo\n", ret);
+            return ret;
+        }
     }
     return 0;
+}
+
+bool am_upright(const struct device *imu_dev) {
+    NTypes::AccelerometerData vec;
+    int ret = get_normed_orientation(imu_dev, vec);
+    if (ret != 0) {
+        LOG_WRN("Couldnt read IMU: %d", ret);
+    }
+    PayloadFace face = find_orientation(vec);
+    return face == PayloadFace::Upright;
 }
 
 int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int attempts, FlightState flight_state) {
@@ -271,8 +276,6 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
             return FLIPPED_AND_RIGHTED;
         }
 
-        float current_before = 0;
-        float voltage_before = 0;
         float tempC = 0;
 
         int index = face;
@@ -282,16 +285,20 @@ int try_flipping(const struct device *imu_dev, const struct device *ina_dev, int
         } else if (attempts_on_this_face > 3) {
             strategy = SweepStrategy::Fast;
         }
-        ret = flip_one_side(ina_dev, *servos[index], strategy, true, current_before, voltage_before);
+        ret = flip_one_side(ina_dev, *servos[index], strategy, true);
         if (ret != 0) {
             LOG_WRN("Error sweeping servo: %d", ret);
         }
+
+        float volts = 0;
+        float amps = 0;
+        read_ina(ina_dev, volts, amps);
         // Return
-        flip_one_side(ina_dev, *servos[index], Slow, false, current_before, voltage_before);
+        flip_one_side(ina_dev, *servos[index], Slow, false);
 
         FlipState fs = FLIP_STATE(face, attempts_on_this_face);
         small_orientation snorm = minify_orientation(vec);
-        ret = submit_slowdata(snorm, tempC, current_before, voltage_before, fs, flight_state);
+        ret = submit_slowdata(snorm, tempC, amps, volts, fs, flight_state);
         if (ret < 0) {
             LOG_WRN("Failed to send slowdata");
         }
@@ -331,6 +338,9 @@ int measure_and_send_data(const struct device *imu_dev, const struct device *bmp
     }
     return 0;
 }
+extern void set_radio_battery_save();
+
+K_TIMER_DEFINE(radio_chillout_tmr, NULL, NULL);
 
 int do_flipping_and_pumping(const struct device *imu_dev, const struct device *barom_dev,
                             const struct device *ina_servo, const struct device *ina_pump) {
@@ -345,28 +355,54 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     set_lsm_sampling(imu_dev, 1);
 
     rail_item_enable(FiveVoltItem::Servos);
-    Servo1.open();
+    flip_one_side(ina_servo, Servo1, SweepStrategy::Slow, true, true);
     k_msleep(1000);
-    Servo2.open();
+    flip_one_side(ina_servo, Servo2, SweepStrategy::Slow, true, false);
     k_msleep(1000);
-    Servo3.open();
+    flip_one_side(ina_servo, Servo3, SweepStrategy::Slow, true, true);
     k_msleep(1000);
 
     Servo2.disconnect();
 
     static constexpr int initial_inflation_attempts = 20;
-    int attempt_number = 0;
+
     FlightState flight_state = FlightState::InitialPump;
-    while (true) {
-        if (attempt_number > initial_inflation_attempts) {
-            flight_state = FlightState::Continuous;
-            LOG_INF("Initial pump over, switch to continous");
-        }
+    for (int attempt_number = 0; attempt_number < initial_inflation_attempts; attempt_number++) {
 
         measure_and_send_data(imu_dev, barom_dev, ina_servo, flight_state);
 
+        int ret = attempt_inflation_iteration(ina_pump);
+        if (ret == PUMP_CURRENT_END) {
+            LOG_INF("Ended in current shutoff, go less often");
+            break;
+        }
+        k_msleep(PUMP_DUTY_OFF_MS_INITITAL);
+    }
+    LOG_INF("Finished initial pump");
+    auto give_up = []() {
+        // Give up
+        Servo1.disconnect();
+        Servo3.disconnect();
+        set_radio_battery_save();
+    };
+
+    int not_upright_count = 0;
+    k_timer_start(&radio_chillout_tmr, K_MINUTES(30), K_FOREVER);
+    while (true) {
+        if (k_timer_status_get(&radio_chillout_tmr) > 0) {
+            LOG_INF("Giving up since its been so long");
+            give_up();
+        }
+        if (!am_upright(imu_dev) && not_upright_count <= 10) {
+            not_upright_count++;
+            LOG_WRN("Not upright part %d/10", not_upright_count);
+            if (not_upright_count > 10) {
+                LOG_WRN("Fell over, give up");
+                give_up();
+            }
+        }
+        measure_and_send_data(imu_dev, barom_dev, ina_servo, flight_state);
         attempt_inflation_iteration(ina_pump);
-        attempt_number++;
         k_msleep(PUMP_DUTY_OFF_MS);
     }
 
