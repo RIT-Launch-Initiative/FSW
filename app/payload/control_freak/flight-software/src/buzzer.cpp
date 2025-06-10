@@ -23,7 +23,7 @@ void buzzer_tell(BuzzCommand cond) { k_msgq_put(&buzzer_msgq, &cond, K_MSEC(10))
 
 const uint32_t beepcodes[] = {
     [Silent] = 0b00000000000000000000000000000000,
-#if 1
+#if 0
 #warning "INCORRECT BUZZER"
     [AllGood] = 0b10000000000000000000000000000000,
 #else

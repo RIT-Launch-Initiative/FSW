@@ -117,12 +117,12 @@ int64_t uptime_of_next_slot(int minutes, int seconds, int64_t tp_ms, bool fix_be
 uint32_t millis_till_timeslot_opens() {
     if (k_mutex_lock(&gps_mutex, K_MSEC(20)) != 0) {
         LOG_WRN("Couldnt lock mutex");
-        return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
+        return 15 * 1000;
     }
     if (last_data.info.fix_status == GNSS_FIX_STATUS_NO_FIX) {
         LOG_WRN("No fix, just delay");
         k_mutex_unlock(&gps_mutex);
-        return CONFIG_HORUS_TIMESLOT_SECONDS * 1000;
+        return 15 * 1000;
     }
     int64_t last_tick_uptime_ticks = ublox_10_last_tick_uptime(gps_dev);
     float skew = last_valid_skew_factor;

@@ -22,6 +22,9 @@ static const struct device *radio = DEVICE_DT_GET(RADIO_NODE);
 
 const uint32_t carrier = 432950000;
 
+static const struct gpio_dt_spec ldo_en = GPIO_DT_SPEC_GET(DT_ALIAS(ldo5v), gpios);
+const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(DT_ALIAS(buzz), gpios);
+
 int main() {
     struct lora_modem_config cfg{
         .frequency = carrier,
@@ -41,12 +44,13 @@ int main() {
 
     fs_file_t fil;
     fs_file_t_init(&fil);
-    ret = fs_open(&fil, "/lfs/recv.bin", FS_O_CREATE);
+    ret = fs_open(&fil, "/lfs/recv.bin", FS_O_CREATE | FS_O_APPEND);
     if (ret < 0) {
         LOG_ERR("Couldnt open: %d", ret);
     }
 
     printk("Ready\n");
+    int i = 0;
     while (true) {
         char callsign[] = "KC1MOL";
         struct horus_packet_v2 data = {0};
@@ -58,6 +62,12 @@ int main() {
         if (ret < 0) {
             LOG_WRN("Couldnt ret lora: %d", ret);
         } else {
+            i++;
+            if (i < 15) {
+                gpio_pin_set_dt(&ldo_en, 1);
+                gpio_pin_set_dt(&buzzer, 1);
+            }
+
             data = *(struct horus_packet_v2 *) (&buf[sizeof(callsign) - 1]);
             float bat_volt = (float) (data.battery_voltage) / 255 * 10;
             printk("PACKET:    %lld ms ======================\n", k_uptime_get());
@@ -95,6 +105,9 @@ int main() {
                 continue;
             }
             fs_sync(&fil);
+            k_msleep(50);
+            gpio_pin_set_dt(&ldo_en, 0);
+            gpio_pin_set_dt(&buzzer, 0);
         }
     }
 }
