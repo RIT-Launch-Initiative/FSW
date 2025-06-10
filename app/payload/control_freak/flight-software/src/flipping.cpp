@@ -378,9 +378,8 @@ int servo_preflight(const struct shell *shell) {
     for (int i = 0; i < 3; i++) {
         shell_print(shell, "Servo %d Open", i + 1);
         servos[i]->open();
-        k_msleep(700);
-        servos[i]->disconnect();
         k_msleep(1000);
+        servos[i]->disconnect();
     }
     for (int i = 0; i < 3; i++) {
         shell_print(shell, "Servo %d Close", i + 1);

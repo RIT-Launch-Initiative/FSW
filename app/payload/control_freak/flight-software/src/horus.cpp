@@ -381,6 +381,7 @@ void wait_for_timeslot() {
     k_msleep(ms);
 }
 
+bool radio_low_power = false;
 int radio_thread(void *, void *, void *) {
     if (is_data_locked()) {
         return -1;
@@ -394,13 +395,17 @@ int radio_thread(void *, void *, void *) {
         make_and_transmit_horus();
     }
     SX1276SetRfTxPower(20);
+    int count = 0;
     while (true) {
         // Maybe make packet AOT and only transmit at timeslot
         wait_for_timeslot();
         LOG_ERR("TIME");
         // LOG_INF("Transmitting Horus");
-        make_and_transmit_horus();
-        k_msleep(5000); // chill
+        if (radio_low_power && (count % 4) != 0) {
+            k_msleep(5000); // chill
+        } else {
+            make_and_transmit_horus();
+        }
     }
     return 0;
 }
