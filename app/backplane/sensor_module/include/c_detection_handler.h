@@ -75,17 +75,17 @@ public:
     void HandleGround(const uint32_t t_plus_ms, const NTypes::SensorData& data, const SensorWorkings& workings);
 
     bool FlightOccurring() {
-        int uptime = k_uptime_get();
-        static constexpr int START_TIME = 10000; // 10 seconds
-        static constexpr int END_TIME = 30000; // 30 seconds
+        // int uptime = k_uptime_get();
+        // static constexpr int START_TIME = 10000; // 10 seconds
+        // static constexpr int END_TIME = 30000; // 30 seconds
 
-        return START_TIME <= uptime && uptime <= END_TIME;
-        // return controller.HasEventOccurred(Events::Boost) && !controller.HasEventOccurred(Events::GroundHit);
+        // return START_TIME <= uptime && uptime <= END_TIME;
+        return controller.HasEventOccurred(Events::Boost) && !controller.HasEventOccurred(Events::GroundHit);
     }
 
     bool FlightFinished() {
-        int uptime = k_uptime_get();
-        return uptime >= 30000;
+        // int uptime = k_uptime_get();
+        // return uptime >= 30000;
 
         return controller.HasEventOccurred(Events::GroundHit);
     }
