@@ -44,6 +44,8 @@ public:
             }
         }
 
+        dataLogger.Sync();
+
         NRtos::SuspendCurrentTask();
     }
 
