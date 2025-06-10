@@ -235,11 +235,7 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
     }
 #endif
     if (!hold) {
-        int ret = servo.disconnect();
-        if (ret < 0) {
-            LOG_WRN("Error %d: failed to disable servo\n", ret);
-            return ret;
-        }
+        servo.disconnect();
     }
     return 0;
 }

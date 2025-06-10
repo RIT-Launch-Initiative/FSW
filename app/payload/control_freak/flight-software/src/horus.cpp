@@ -235,12 +235,11 @@ static int32_t rfm9xw_software_reset() {
 
 int calc_us_per_fsk_symbol() {
     float skew = get_skew_smart();
-    LOG_INF("Skew of %f", skew);
+    LOG_INF("Skew of %f", (double) skew);
     static constexpr uint32_t bitrate = 100; // symbols per second
     static constexpr uint32_t useconds_per_second = 1000 * 1000;
     static constexpr uint32_t useconds_per_symbol = useconds_per_second / bitrate;
     uint32_t useconds_skew_adjusted = useconds_per_symbol * skew;
-    LOG_INF("useconds of %d", useconds_skew_adjusted);
     return useconds_skew_adjusted;
 }
 
@@ -390,10 +389,9 @@ int radio_thread(void *, void *, void *) {
 
     SX1276SetRfTxPower(6);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 3; i++) {
         LOG_INF("Startup: %d", i);
         make_and_transmit_horus();
-        k_msleep(5);
     }
     SX1276SetRfTxPower(20);
     while (true) {

@@ -103,8 +103,11 @@ int encode_packed_gps_and_time(NTypes::SlowInfo &output) {
 }
 
 int64_t uptime_of_next_slot(int minutes, int seconds, int64_t tp_ms, bool fix_before_pulse, float skew) {
-    int seconds_since_start_of_slot = seconds - CONFIG_HORUS_TIMESLOT_OFFSET_SECONDS;
-    int sec_to_slot = 60 - seconds_since_start_of_slot;
+
+    int period_index = seconds / 15;
+    int period_open_sec = (1 + period_index) * 15;
+
+    int sec_to_slot = period_open_sec - seconds;
     float ms_to_slot = 1000.f * sec_to_slot * skew;
     LOG_INF("%02d:%02d", minutes, seconds);
     LOG_INF("Seconds until timesloot: %d", sec_to_slot);
