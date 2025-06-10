@@ -47,7 +47,6 @@ class CSensingTenant : public CTenant {
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     void sendDownlinkData(const NTypes::SensorData &data);
-    uint64_t dataCount = 0;
 };
 
 #endif // C_SENSING_TENANT_H
