@@ -25,6 +25,27 @@ const uint32_t carrier = 432950000;
 static const struct gpio_dt_spec ldo_en = GPIO_DT_SPEC_GET(DT_ALIAS(ldo5v), gpios);
 const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(DT_ALIAS(buzz), gpios);
 
+const char *state_name(uint8_t b) {
+    switch (b) {
+        case 0:
+            return "Not Set";
+        case 1:
+            return "On Pad";
+        case 2:
+            return "Boost";
+        case 3:
+            return "Flight";
+        case 4:
+            return "Initial Roll";
+        case 5:
+            return "Initial Pump";
+        case 6:
+            return "Continous";
+        default:
+            return "Other????";
+    }
+}
+
 int main() {
     struct lora_modem_config cfg{
         .frequency = carrier,
@@ -63,7 +84,7 @@ int main() {
             LOG_WRN("Couldnt ret lora: %d", ret);
         } else {
             i++;
-            if (i < 15) {
+            if (i < 8) {
                 gpio_pin_set_dt(&ldo_en, 1);
                 gpio_pin_set_dt(&buzzer, 1);
             }
@@ -85,6 +106,13 @@ int main() {
             printk("Sats:      %d\n", data.sats);
             printk("Temp:      %d\n", data.temp);
             printk("Voltage:   %.3f\n", (double) bat_volt);
+            printk("Orient:    %d %d %d\n", (int8_t) data.custom_data[0], (int8_t) data.custom_data[1],
+                   (int8_t) data.custom_data[2]);
+            uint16_t press = data.custom_data[4] | (data.custom_data[5] << 8);
+            printk("Press:     %d\n", press);
+            uint8_t state = data.custom_data[7];
+            const char *state_str = state_name(state);
+            printk("State:     %s\n", state_str);
             printk("\n");
 
             ret = fs_write(&fil, &snr, sizeof(snr));
