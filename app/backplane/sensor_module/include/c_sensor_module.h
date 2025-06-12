@@ -15,6 +15,7 @@
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
 #include <f_core/device/c_rtc.h>
+#include <zephyr/fs/littlefs.h>
 
 class CSensorModule : public CProjectConfiguration {
   public:
@@ -70,12 +71,12 @@ class CSensorModule : public CProjectConfiguration {
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(), telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
     CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
-    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 0};
+    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 64};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 3072, 5};
-    CTask sensingTask{"Sensing Task", 14, 1024, 10};
-    CTask dataLogTask{"Data Logging Task", 15, 1300, 5};
+    CTask networkTask{"Networking Task", 15, 3072, 0};
+    CTask sensingTask{"Sensing Task", 14, 4096, 10};
+    CTask dataLogTask{"Data Logging Task", 13, 4096, 5};
 };
 
 #endif //C_SENSOR_MODULE_H
