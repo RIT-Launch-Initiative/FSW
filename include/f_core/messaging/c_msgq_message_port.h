@@ -40,8 +40,15 @@ public:
     /**
      * See parent docs
      */
-    void Clear() {
+    void Clear() override {
         k_msgq_purge(queue);
+    }
+
+    /**
+     * See parent docs
+     */
+    int AvailableSpace() override {
+        return k_msgq_num_free_get(queue);
     }
 
 private:

@@ -69,7 +69,8 @@ void CSensingTenant::Run() {
     // Note that compilers don't accept references to packed struct fields
     uint32_t tmpTimestamp = 0;
     if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
-        LOG_ERR("Failed to get time from RTC");
+        // LOG_ERR("Failed to get time from RTC");
+        timestampedData.timestamp = k_uptime_get();
     } else {
         timestampedData.timestamp = tmpTimestamp;
     }
@@ -100,12 +101,32 @@ void CSensingTenant::Run() {
 
     // If we can't send immediately, drop the packet
     // we're gonna sleep then give it new data anywas
-    dataToBroadcast.Send(data, K_NO_WAIT);
+    if (dataToBroadcast.Send(data, K_NO_WAIT)) {
+        LOG_ERR("Failed to send sensor data to broadcast port");
+    } else {
+        LOG_DBG("Sensor data sent to broadcast port");
+    }
     sendDownlinkData(data);
 
     detectionHandler.HandleData(uptime, data, sensor_states);
     if (detectionHandler.FlightOccurring()) {
-        dataToLog.Send(timestampedData, K_NO_WAIT);
+        int ret = dataToLog.Send(timestampedData, K_NO_WAIT);
+        if (ret) {
+            LOG_ERR("Failed to send sensor data to log port");
+        }
+
+        LOG_WRN_ONCE("Beginning logging");
+        if (dataToLog.AvailableSpace() < 100) {
+            NRtos::ResumeTask("Data Logging Task");
+            k_yield();
+        }
+    }
+
+    // Don't care about performance at this point,
+    // Keep making sure the data gets logged
+    if (detectionHandler.FlightFinished()) {
+        NRtos::ResumeTask("Data Logging Task");
+        k_msleep(1000);
     }
 }
 

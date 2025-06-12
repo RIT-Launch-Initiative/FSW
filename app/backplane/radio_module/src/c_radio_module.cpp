@@ -50,4 +50,6 @@ void CRadioModule::AddTasksToRtos() {
     NRtos::AddTask(gnssTask);
 }
 
-void CRadioModule::SetupCallbacks() {}
+void CRadioModule::SetupCallbacks() {
+    alertTenant.Subscribe(&stateMachineUpdater);
+}

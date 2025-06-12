@@ -79,8 +79,8 @@ private:
     static constexpr int ina219SampleTimeMillis = 69; // 68.1 ms based on our devicetree configuration, and we don't need to sample that quickly
 
     CTask networkTask{"Networking Task", 15, 3072, 0};
-    CTask sensingTask{"Sensing Task", 15, 1024, ina219SampleTimeMillis};
-    CTask dataLoggingTask{"Data Logging Task", 15, 1500, 0};
+    CTask sensingTask{"Sensing Task", 15, 2048, ina219SampleTimeMillis};
+    CTask dataLoggingTask{"Data Logging Task", 15, 2048, 0};
 };
 
 

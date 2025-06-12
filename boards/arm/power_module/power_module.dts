@@ -157,6 +157,10 @@
     };
 };
 
+&dma1 {
+	status = "okay";
+};
+
 &dma2 {
 	status = "okay";
 };
@@ -171,16 +175,8 @@
 	// dma stream
 	// dma channel
 	// config flags
-    dmas = <&dma2 5 3
-            (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 |
-            STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS)
-            0x3
-           >,
-	   <&dma2 2 3
-            (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 |
-            STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS)
-            0x3
-       >;
+	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
 	dma-names = "tx", "rx";
 
     w25q128: w25q128jv@0 {

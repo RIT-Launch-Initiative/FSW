@@ -16,28 +16,28 @@
 		zephyr,shell-uart = &uart5;
 		zephyr,uart-pipe = &uart5;
 
-		storage = &storage_partition;
-		logfs = &lfs1;
+//		storage = &storage_partition;
+//		logfs = &lfs1;
 
 		rtc = &rtc;
 	};
 
-	fstab {
-		compatible = "zephyr,fstab";
-
-		lfs1: lfs1 {
-			compatible = "zephyr,fstab,littlefs";
-			mount-point = "/lfs";
-			partition = <&storage_partition>;
-			automount;
-
-			read-size = <16>;
-			prog-size = <16>;
-			cache-size = <64>;
-			lookahead-size = <32>;
-			block-cycles = <(90 * 1000)>;
-		};
-	};
+//	fstab {
+//		compatible = "zephyr,fstab";
+//
+//		lfs1: lfs1 {
+//			compatible = "zephyr,fstab,littlefs";
+//			mount-point = "/lfs";
+//			partition = <&storage_partition>;
+//			automount;
+//
+//			read-size = <16>;
+//			prog-size = <16>;
+//			cache-size = <64>;
+//			lookahead-size = <32>;
+//			block-cycles = <(90 * 1000)>;
+//		};
+//	};
 
 	aliases {
 		led0 = &red_led_0;
@@ -92,7 +92,7 @@
 	};
 
 	connector: gpios {
-		compatible = "gpio-keys";
+		compatible = "gpio-leds";
 
 		gpio_0: gpios_0 {
 			gpios = <&gpioc 3 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
@@ -110,7 +110,7 @@
 		};
 
 		gpio_3: gpios_3 {
-			gpios = <&gpioa 6 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			gpios = <&gpioc 6 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
 			label = "CONNECTOR GPIO 3";
 		};
 	};
@@ -140,25 +140,25 @@
 	};
 
 	pyro_ctrl: pyro_ctrl {
-		compatible = "gpio-keys";
+		compatible = "gpio-leds";
 
 		pyro_ctrl_0: pyro_ctrl_0 {
-			gpios = <&gpioa 11 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			gpios = <&gpioa 11 (GPIO_PUSH_PULL | GPIO_ACTIVE_HIGH)>;
 			label = "PYRO CTRL CHANNEL 0";
 		};
 
 		pyro_ctrl_1: pyro_ctrl_1 {
-			gpios = <&gpioa 12 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			gpios = <&gpioa 12 (GPIO_PUSH_PULL | GPIO_ACTIVE_HIGH)>;
 			label = "PYRO CTRL CHANNEL 1";
 		};
 
 		pyro_ctrl_2: pyro_ctrl_2 {
-			gpios = <&gpioc 9 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			gpios = <&gpioc 9 (GPIO_PUSH_PULL | GPIO_ACTIVE_HIGH)>;
 			label = "PYRO CTRL CHANNEL 2";
 		};
 
 		pyro_ctrl_3: pyro_ctrl_3 {
-			gpios = <&gpioc 8 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+			gpios = <&gpioc 8 (GPIO_PUSH_PULL | GPIO_ACTIVE_HIGH)>;
 			label = "PYRO CTRL CHANNEL 3";
 		};
 	};
@@ -210,7 +210,7 @@
 	w5500: w5500@0 {
 		compatible = "wiznet,w5500";
 		reg = <0x0>;
-		spi-max-frequency = <10000000>;
+		spi-max-frequency = <DT_FREQ_M(80)>;
 		int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
 		reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
 		zephyr,random-mac-address;
