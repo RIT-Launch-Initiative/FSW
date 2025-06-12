@@ -108,23 +108,24 @@ int send_flash_over_tcp_chunked(void) {
 
     int server_fd = 0;
     int client_fd = 0;
-    struct sockaddr_in addr = {0}, client_addr = {0};
+    sockaddr_in addr = {0};
+    sockaddr_in client_addr = {0};
     socklen_t addrlen = sizeof(client_addr);
     int ret = 0;
 
     server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (server_fd < 0) {
         k_free(buffer);
-        printk("Failed to create socket\n");
+        printk("Failed to create socket: %d %d\n", server_fd, errno);
         return -3;
     }
     addr.sin_family = AF_INET;
     addr.sin_port = htons(TCP_PORT);
-    addr.sin_addr.s_addr = INADDR_ANY;
+    inet_pton(AF_INET, "10.0.0.2", &addr.sin_addr);
     if (bind(server_fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
         close(server_fd);
         k_free(buffer);
-        printk("Failed to bind socket\n");
+        printk("Failed to bind socket: %d\n", errno);
         return -4;
     }
 
