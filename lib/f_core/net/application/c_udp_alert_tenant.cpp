@@ -7,6 +7,7 @@ LOG_MODULE_REGISTER(CUdpAlertTenant);
 
 void CUdpAlertTenant::Subscribe(CObserver* observer) {
     observers.push_back(observer);
+    LOG_INF("Subscribed observer %p to CUdpAlertTenant", observer);
 }
 
 void CUdpAlertTenant::Run() {
@@ -20,8 +21,9 @@ void CUdpAlertTenant::Run() {
 
         // Potential alternative is using signals, but that might require passing in a lot of variables around
         NAlerts::AlertType alertType = static_cast<NAlerts::AlertType>(buff[NAlerts::MAGIC_BYTE_SIGNATURE_SIZE]);
-        LOG_DBG("Received alert type %c", alertType); // Would have to be changed to %d if alerts go past 8 bits
+        LOG_INF("Received alert type %c", alertType); // Would have to be changed to %d if alerts go past 8 bits
         for (auto observer : observers) {
+            LOG_INF("NOtifying observer");
             observer->Notify(&alertType);
         }
     }

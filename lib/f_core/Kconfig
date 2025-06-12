@@ -26,6 +26,11 @@ config F_CORE_RADIO
     help
       This option enables radio functionality for F-Core
 
+config F_CORE_STATE_MACHINE
+    bool "State Machine"
+    help
+      This option enables state machine functionality for F-Core
+
 config F_CORE_OS
     bool "OS"
     help
