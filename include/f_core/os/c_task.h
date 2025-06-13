@@ -35,7 +35,7 @@ public:
     /**
      * Initialize the necessary components for the task and starts it
      */
-    void Initialize();
+    void Initialize(const device* watchdogDev = nullptr);
 
     /**
      * Bind a tenant to the task
@@ -82,6 +82,7 @@ private:
 
     std::vector<CTenant*> tenants;
     wdt_timeout_cfg *wdtConfig = nullptr;
+    int wdtTimeoutId = -1;
 };
 
 #endif //C_TASK_H

@@ -46,7 +46,16 @@ CTask::~CTask() {
     }
 }
 
-void CTask::Initialize() {
+void CTask::Initialize(const device* watchdogDev) {
+    if (wdtConfig != nullptr && watchdogDev != nullptr) {
+        wdtTimeoutId = wdt_install_timeout(watchdogDev, wdtConfig);
+    } else if (watchdogDev != nullptr) {
+        LOG_ERR("Watchdog device provided but no configuration specified");
+        k_panic();
+    } else {
+        LOG_DBG("No watchdog configuration or device provided, skipping watchdog setup");
+    }
+
     for (CTenant* tenant : tenants) {
         tenant->Startup();
     }
