@@ -27,7 +27,7 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
     }
 }
 
-CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : name(name),
+CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs, ) : name(name),
                                                                                priority(priority), stackSize(stackSize),
                                                                                sleepTimeMs(sleepTimeMs) {
 }
