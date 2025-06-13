@@ -27,7 +27,7 @@ void NRtos::StartRtos() {
 
     // ReSharper disable once CppDFAConstantConditions
     if (watchdogDev != nullptr) {
-        // ReSharper disable once CppDFAUnreachableCode
+            // ReSharper disable once CppDFAUnreachableCode
         int ret = wdt_setup(watchdogDev, WDT_FLAG_RESET_CPU_CORE);
         if (ret == -EBUSY) {
             LOG_ERR("Watchdog already setup");
