@@ -30,7 +30,7 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
 }
 
 CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs,
-             wdt_timeout_cfg* wdtConfig = nullptr) : name(name),
+             wdt_timeout_cfg* wdtConfig) : name(name),
                                                      priority(priority), stackSize(stackSize),
                                                      sleepTimeMs(sleepTimeMs), wdtConfig(wdtConfig) {}
 

@@ -22,7 +22,7 @@ void NRtos::AddTask(CTask& task) {
 void NRtos::StartRtos() {
     const device* watchdogDev = nullptr;
 #if DT_NODE_EXISTS(DT_ALIAS(watchdog))
-    *watchdogDev = DEVICE_DT_GET(DT_ALIAS(watchdog));
+    watchdogDev = DEVICE_DT_GET(DT_ALIAS(watchdog));
 #endif
 
     // ReSharper disable once CppDFAConstantConditions
