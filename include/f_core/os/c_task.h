@@ -82,6 +82,7 @@ private:
 
     std::vector<CTenant*> tenants;
     wdt_timeout_cfg *wdtConfig = nullptr;
+    const device *watchdogDev = nullptr;
     int wdtTimeoutId = -1;
 };
 

@@ -29,10 +29,10 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
     }
 }
 
-CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs, wdt_timeout_cfg *wdtConfig = nullptr) : name(name),
-                                                                               priority(priority), stackSize(stackSize),
-                                                                               sleepTimeMs(sleepTimeMs), wdtConfig(wdtConfig) {
-}
+CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs,
+             wdt_timeout_cfg* wdtConfig = nullptr) : name(name),
+                                                     priority(priority), stackSize(stackSize),
+                                                     sleepTimeMs(sleepTimeMs), wdtConfig(wdtConfig) {}
 
 CTask::~CTask() {
     for (CTenant* tenant : tenants) {
@@ -46,8 +46,9 @@ CTask::~CTask() {
     }
 }
 
-void CTask::Initialize(const device* watchdogDev) {
+void CTask::Initialize(const device* wdgDev) {
     if (wdtConfig != nullptr && watchdogDev != nullptr) {
+        watchdogDev = wdgDev;
         wdtTimeoutId = wdt_install_timeout(watchdogDev, wdtConfig);
     } else if (watchdogDev != nullptr) {
         LOG_ERR("Watchdog device provided but no configuration specified");
@@ -84,5 +85,10 @@ void CTask::Run() {
     for (CTenant* tenant : tenants) {
         tenant->Run();
     }
+
+    if (wdtTimeoutId >= 0) {
+        wdt_feed(watchdogDev, wdtTimeoutId);
+    }
+
     k_msleep(sleepTimeMs);
 }
