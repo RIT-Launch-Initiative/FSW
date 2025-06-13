@@ -95,11 +95,10 @@ int send_flash_over_tcp_chunked(void) {
         return -1;
     }
 
-    // Fixed size for W25Q512 in bytes
-    #define FLASH_SIZE 256
+    size_t FLASH_SIZE = 64 * 1024 * 1024;
     #define FLASH_CHUNK_SIZE 64  // Smaller chunk size
 
-    uint8_t *buffer = (uint8_t *)k_malloc(FLASH_CHUNK_SIZE);
+    uint8_t *buffer = static_cast<uint8_t*>(k_malloc(FLASH_CHUNK_SIZE));
     if (!buffer) {
         flash_area_close(fa);
         printk("Failed to allocate buffer\n");
@@ -145,7 +144,7 @@ int send_flash_over_tcp_chunked(void) {
         printk("Failed to accept connection\n");
         return -6;
     }
-    printk("Client connected, starting transfer of %d bytes\n", FLASH_SIZE);
+    printk("Client connected, starting transfer of %zu bytes\n", FLASH_SIZE);
 
     // Send the total size first as a 4-byte value
     uint32_t total_size = FLASH_SIZE;
