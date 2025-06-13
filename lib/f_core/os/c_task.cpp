@@ -8,6 +8,8 @@
 #include <f_core/os/c_task.h>
 
 // F-Core Includes
+#include "zephyr/drivers/watchdog.h"
+
 #include <functional>
 #include <f_core/os/c_tenant.h>
 #include <zephyr/logging/log.h>
@@ -27,9 +29,9 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
     }
 }
 
-CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs, ) : name(name),
+CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs, wdt_timeout_cfg *wdtConfig = nullptr) : name(name),
                                                                                priority(priority), stackSize(stackSize),
-                                                                               sleepTimeMs(sleepTimeMs) {
+                                                                               sleepTimeMs(sleepTimeMs), wdtConfig(wdtConfig) {
 }
 
 CTask::~CTask() {

@@ -6,7 +6,8 @@
 #ifndef C_TASK_H
 #define C_TASK_H
 
-#include <cstdint>
+#include "zephyr/drivers/watchdog.h"
+
 #include <vector>
 
 #include <f_core/os/c_tenant.h>
@@ -24,7 +25,7 @@ public:
      * @param stackSize Size of the stack to allocate
      * @param sleepTimeMs Time to sleep between a single cycle of the task
      */
-    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512, int sleepTimeMs = 0);
+    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512, int sleepTimeMs = 0, wdt_timeout_cfg* wdtConfig);
 
     /**
      * Destructor
@@ -80,6 +81,7 @@ private:
     k_thread_stack_t* stack;
 
     std::vector<CTenant*> tenants;
+    wdt_timeout_cfg *wdtConfig = nullptr;
 };
 
 #endif //C_TASK_H
