@@ -4,14 +4,13 @@ import matplotlib.pyplot as plt
 import argparse
 from collections import defaultdict
 import os
-import numpy as np
-
 
 STRUCT_FORMAT = '<I' + 'f'*17
 STRUCT_SIZE = struct.calcsize(STRUCT_FORMAT)
 
 # Flight detection parameters
-TIMESTAMP_GAP_THRESHOLD = 60000
+TIMESTAMP_GAP_THRESHOLD = 60000  # 60 seconds in milliseconds, adjust as needed
+MIN_FLIGHT_DURATION = 0  # Minimum flight duration in seconds (default: no minimum)
 
 def parse_record(data):
     fields = struct.unpack(STRUCT_FORMAT, data)
@@ -63,7 +62,15 @@ def scan_file(filename):
             offset += STRUCT_SIZE
     return records
 
-def identify_flights(records):
+def identify_flights(records, min_duration=0):
+    """
+    Identify separate flights by looking for large gaps in timestamps.
+    Returns a dictionary where keys are flight numbers and values are lists of records.
+
+    Parameters:
+    - records: List of data records
+    - min_duration: Minimum flight duration in seconds to include (default: 0 - include all)
+    """
     if not records:
         return {}
 
@@ -77,9 +84,11 @@ def identify_flights(records):
     # Add the first record to the first flight
     flights[current_flight].append(sorted_records[0])
 
+    # Process remaining records
     for record in sorted_records[1:]:
         time_gap = record['timestamp'] - last_timestamp
 
+        # If there's a large gap, start a new flight
         if time_gap > TIMESTAMP_GAP_THRESHOLD:
             current_flight += 1
             print(f"Detected new flight at timestamp {record['timestamp']} (gap: {time_gap} ms)")
@@ -87,6 +96,27 @@ def identify_flights(records):
         flights[current_flight].append(record)
         last_timestamp = record['timestamp']
 
+    # Filter flights by duration if minimum duration is specified
+    if min_duration > 0:
+        filtered_flights = {}
+        flight_count = 0
+
+        for flight_num, flight_records in flights.items():
+            start_time = flight_records[0]['timestamp']
+            end_time = flight_records[-1]['timestamp']
+            duration = (end_time - start_time) / 1000  # Convert to seconds
+
+            if duration >= min_duration:
+                filtered_flights[flight_count] = flight_records
+                print(f"  Flight {flight_count} (was {flight_num}): {len(flight_records)} records, duration: {duration:.2f} seconds")
+                flight_count += 1
+            else:
+                print(f"  Skipping flight {flight_num}: duration {duration:.2f}s < minimum {min_duration}s")
+
+        print(f"Identified {len(filtered_flights)} potential flight(s) with duration >= {min_duration}s")
+        return filtered_flights
+
+    # Otherwise return all flights
     print(f"Identified {len(flights)} potential flight(s)")
     for flight_num, flight_records in flights.items():
         start_time = flight_records[0]['timestamp']
@@ -192,10 +222,14 @@ if __name__ == '__main__':
     parser.add_argument('--gap', type=int, default=TIMESTAMP_GAP_THRESHOLD,
                         help=f'Timestamp gap threshold in ms (default: {TIMESTAMP_GAP_THRESHOLD})')
     parser.add_argument('--output', help='Directory to save plots instead of displaying them')
+    parser.add_argument('--min-duration', type=float, default=MIN_FLIGHT_DURATION,
+                        help=f'Minimum flight duration in seconds (default: {MIN_FLIGHT_DURATION}s - include all flights)')
 
     args = parser.parse_args()
 
+    # Update gap threshold if provided
     TIMESTAMP_GAP_THRESHOLD = args.gap
+    MIN_FLIGHT_DURATION = args.min_duration
 
     records = scan_file(args.file)
     if not records:
@@ -203,22 +237,30 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Identify separate flights
-    flights = identify_flights(records)
+    flights = identify_flights(records, MIN_FLIGHT_DURATION)
 
+    if not flights:
+        print("No flights found matching the criteria.")
+        sys.exit(0)
+
+    # Create the output directory if specified
     output_dir = args.output
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
         print(f"Output directory: {output_dir}")
 
     if args.flight is not None:
+        # Plot a specific flight
         if args.flight in flights:
             print(f"Plotting flight {args.flight} with {len(flights[args.flight])} records")
             plot_graphs(flights[args.flight], args.flight, output_dir)
         else:
             print(f"Flight {args.flight} not found. Available flights: {sorted(flights.keys())}")
     elif args.combined:
+        # Plot all flights on the same graphs
         plot_all_flights(flights, output_dir)
     else:
+        # Default: plot all flights separately
         for flight_num, flight_records in flights.items():
             print(f"Plotting flight {flight_num} with {len(flight_records)} records")
             plot_graphs(flight_records, flight_num, output_dir)
