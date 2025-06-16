@@ -54,7 +54,7 @@ inline std::array<FreakFlightController::TimerEvent, numTimerEvents> timerEvents
     FreakFlightController::TimerEvent{
         .start = Events::Boost,
         .event = Events::GroundHit,
-        .time = K_SECONDS(15), // 410
+        .time = K_SECONDS(10), // 410
         .source = Sources::GroundHitTimer,
     },
 };

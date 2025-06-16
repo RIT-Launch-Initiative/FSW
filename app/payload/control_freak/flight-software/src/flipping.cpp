@@ -355,11 +355,11 @@ int do_flipping_and_pumping(const struct device *imu_dev, const struct device *b
     set_lsm_sampling(imu_dev, 1);
 
     rail_item_enable(FiveVoltItem::Servos);
-    flip_one_side(ina_servo, Servo1, SweepStrategy::Slow, true, true);
+    flip_one_side(ina_servo, Servo1, SweepStrategy::Fast, true, true);
     k_msleep(1000);
-    flip_one_side(ina_servo, Servo2, SweepStrategy::Slow, true, false);
+    flip_one_side(ina_servo, Servo2, SweepStrategy::Fast, true, false);
     k_msleep(1000);
-    flip_one_side(ina_servo, Servo3, SweepStrategy::Slow, true, true);
+    flip_one_side(ina_servo, Servo3, SweepStrategy::Fast, true, true);
     k_msleep(1000);
 
     Servo2.disconnect();

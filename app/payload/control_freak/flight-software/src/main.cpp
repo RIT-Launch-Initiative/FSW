@@ -25,6 +25,7 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 #include <zephyr/kernel.h>
 
 static constexpr float BATTERY_WARNING_THRESH = 7.9;
+float startup_voltage = 0;
 
 extern struct k_msgq flightlog_msgq;
 void handler(FreakFlightController::EventNotification noti) { k_msgq_put(&flightlog_msgq, &noti, K_MSEC(1)); }
@@ -55,7 +56,6 @@ K_THREAD_DEFINE(cameras, 512, camera_thread_entry, (void *) &freak_controller, N
 
 K_THREAD_DEFINE(buzzer, 512, buzzer_entry_point, NULL, NULL, NULL, CONFIG_SLOWDATA_THREAD_PRIORITY, 0, 0);
 
-float startup_voltage = 0;
 int main() {
     int ret = 0;
     if (is_data_locked()) {
@@ -83,16 +83,16 @@ int main() {
         LOG_ERR("Sensor devices not ready");
         buzzer_tell(BuzzCommand::SensorTroubles);
         return -1;
-    } else {
-        float current = 0;
-        int ret = read_ina(ina_servo, startup_voltage, current);
-        if (ret != 0) {
-            LOG_ERR("Couldn't read battery");
-        }
+    }
+    float current = 0;
+    ret = read_ina(ina_servo, startup_voltage, current);
+    if (ret != 0) {
+        LOG_ERR("Couldn't read battery");
+    }
         if (startup_voltage < BATTERY_WARNING_THRESH) {
             buzzer_tell(BuzzCommand::BatteryWarning);
         }
-    }
+
     if (!device_is_ready(superfast_storage)) {
         LOG_ERR("Storage not ready");
         buzzer_tell(BuzzCommand::SensorTroubles);
@@ -105,7 +105,6 @@ int main() {
     }
 
     buzzer_tell(BuzzCommand::AllGood);
-    // buzzer_tell(BuzzCommand::Silent);
 
     //Ground, Boost, Coast, Flight
     ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, ina_servo, &freak_controller);

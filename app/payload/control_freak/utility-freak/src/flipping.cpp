@@ -208,7 +208,7 @@ int flip_one_side(const struct device *ina_dev, const Servo &servo, SweepStrateg
         if (ret < 0) {
             printk("Error %d: failed to set pulse width\n", ret);
         }
-        k_msleep(20);
+        k_msleep(5);
     }
     // LOG_INF("Current, Voltage\n");
     // for (int i = 0; i < servo_steps; i++) {
@@ -322,6 +322,11 @@ int cmd_zeroall(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
+const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
+const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
+
+const struct device *ina_dev = DEVICE_DT_GET(DT_ALIAS(inaservo));
+
 int cmd_open(const struct shell *shell, size_t argc, char **argv) {
     if (argc != 2) {
         shell_error(shell, "SPecify which serv 1-3");
@@ -335,7 +340,9 @@ int cmd_open(const struct shell *shell, size_t argc, char **argv) {
 
     rail_item_enable(FiveVoltItem::Servos);
     shell_print(shell, "Opening %d", servo);
-    servos[servo - 1]->open();
+    float c, v;
+    flip_one_side(ina_dev, *servos[servo - 1], SweepStrategy::Fast, v, c);
+    // servos[servo - 1]->open();
     k_msleep(1000);
     servos[servo - 1]->disconnect();
     rail_item_disable(FiveVoltItem::Servos);

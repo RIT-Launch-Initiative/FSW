@@ -55,7 +55,7 @@ int camera_thread_entry(void *v_fc, void *, void *) {
     k_msleep(10 * 60 * 1000);
     camera_off(&antenna_cam);
     camera_off(&antenna_cam);
-    LOG_INF("Antenna cam off, will be back soon");
+    LOG_INF("All cam off");
 
     return 0;
 }
