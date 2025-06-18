@@ -24,7 +24,9 @@ private:
     static CCpuMonitorTenant instance;
     CMessagePort<NTypes::CPUMonitor> &outputPort;
 
-#if DT_NODE_EXISTS()
+#if DT_NODE_EXISTS(DT_ALIAS(die_temp))
+    const device *dieTempSensor = DEVICE_DT_GET(DT_ALIAS(die_temp));
+#endif
 };
 
 #endif //C_CPU_MONITOR_TENANT_H

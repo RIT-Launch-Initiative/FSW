@@ -230,5 +230,5 @@ CPUMonitor:
       - name: Utilization
         type: uint8_t
       - name: DieTemperature
-        type: int16_t
+        type: int32_t
     timestamp: false

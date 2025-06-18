@@ -60,7 +60,6 @@
 		pyro-ctrl-2 = &pyro_ctrl_2;
 		pyro-ctrl-3 = &pyro_ctrl_3;
 
-		rtc = &rtc;
 		die-temp = &die_temp;
 	};
 
