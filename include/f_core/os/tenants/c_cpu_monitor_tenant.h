@@ -1,8 +1,27 @@
-//
-// Created by aaron on 6/17/25.
-//
+#ifndef C_CPU_MONITOR_TENANT_H
+#define C_CPU_MONITOR_TENANT_H
 
-#ifndef C_CPU_MONITOR_H
-#define C_CPU_MONITOR_H
+class CCpuMonitorTenant : public CTenant {
+public:
+    static CCpuMonitorTenant &GetInstance() {
+        return instance;
+    }
+    
+    CCpuMonitorTenant (const CCpuMonitorTenant&) = delete;
 
-#endif //C_CPU_MONITOR_H
+    void Startup() override;
+
+    void PostStartup() override;
+
+    void Run() override;
+
+    void Cleanup() override;
+    
+private:
+    static CCpuMonitorTenant instance;
+    
+    explicit CCpuMonitorTenant() : CTenant("CPU Monitor Tenant") {};
+    
+};
+
+#endif //C_CPU_MONITOR_TENANT_H
