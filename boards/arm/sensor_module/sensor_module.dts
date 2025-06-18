@@ -19,6 +19,7 @@
 		logfs = &lfs1;
 
 		rtc = &rtc;
+		die-temp = &die_temp;
 	};
 
 	aliases {

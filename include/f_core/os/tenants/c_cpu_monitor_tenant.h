@@ -23,6 +23,8 @@ public:
 private:
     static CCpuMonitorTenant instance;
     CMessagePort<NTypes::CPUMonitor> &outputPort;
+
+#if DT_NODE_EXISTS()
 };
 
 #endif //C_CPU_MONITOR_TENANT_H

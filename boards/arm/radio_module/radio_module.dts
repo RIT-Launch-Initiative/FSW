@@ -94,6 +94,9 @@
 
         lora = &lora0;
         gnss = &maxm10s;
+
+		rtc = &rtc;
+		die-temp = &die_temp;
     };
 };
 

@@ -59,6 +59,9 @@
 		pyro-ctrl-1 = &pyro_ctrl_1;
 		pyro-ctrl-2 = &pyro_ctrl_2;
 		pyro-ctrl-3 = &pyro_ctrl_3;
+
+		rtc = &rtc;
+		die-temp = &die_temp;
 	};
 
 	leds: leds {
