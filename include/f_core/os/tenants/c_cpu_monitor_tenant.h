@@ -27,6 +27,12 @@ private:
 #if DT_NODE_EXISTS(DT_ALIAS(die_temp))
     const device *dieTempSensor = DEVICE_DT_GET(DT_ALIAS(die_temp));
 #endif
+
+    uint8_t getUtilization();
+
+    uint32_t getUptime();
+
+    int32_t getDieTemperature();
 };
 
 #endif //C_CPU_MONITOR_TENANT_H
