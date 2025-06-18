@@ -12,7 +12,7 @@ int main() {
     cpuMonitorTenant.Startup();
 
     while (true) {
-        NTypes::CPUMonitor cpuMonitorData{0};
+        NTypes::CPUMonitor cpuMonitorData{0, 0, 0};
         cpuMonitorTenant.Run();
         cpuMonitorMsgQueue.Receive(cpuMonitorData, K_FOREVER);
         printk("Uptime: %u ms, Utilization: %u%%, Die Temperature: %d °C\n",

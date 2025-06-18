@@ -28,6 +28,7 @@ env:
     app/samples/phase_detection
     app/samples/horus
     app/samples/compression
+    app/samples/cpu_monitor
   platforms: |
     nucleo_f446re
     radio_module

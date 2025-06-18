@@ -8,7 +8,7 @@ list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/prj.conf)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(cpu-monitor LANGUAGES CXX)
 
-target_compile_options(app PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-ignored-qualifiers)
+target_compile_options(app PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-ignored-qualifiers -Wno-missing-field-initializers)
 FILE(GLOB app_sources src/*.cpp)
 target_sources(app PRIVATE ${app_sources})
 
