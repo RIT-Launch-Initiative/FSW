@@ -16,14 +16,9 @@ void CCpuMonitorTenant::Run() {
         if (sensor_sample_fetch(dieTempSensor) == 0 &&
             sensor_channel_get(dieTempSensor, SENSOR_CHAN_DIE_TEMP, &dieTempValue) == 0) {
             cpuMonitorData.DieTemperature = dieTempValue.val1;
-        } else {
-            cpuMonitorData.DieTemperature = 0; // Default value if sensor fetch fails
         }
-    } else {
-        cpuMonitorData.DieTemperature = 0; // Default value if sensor is not ready
     }
 #endif
-
 
     if (outputPort.Send(cpuMonitorData, K_NO_WAIT) != 0) {
         outputPort.Clear();
