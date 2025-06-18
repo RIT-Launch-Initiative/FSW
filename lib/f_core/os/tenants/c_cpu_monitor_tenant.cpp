@@ -1,15 +1,19 @@
 #include "f_core/os/tenants/c_cpu_monitor_tenant.h"
 
+#include <zephyr/debug/cpu_load.h>
 #include "zephyr/drivers/sensor.h"
 
+void CCpuMonitorTenant::Startup() {
+    cpu_load_init();
+}
 
-void CCpuMonitorTenant::Startup() {}
 void CCpuMonitorTenant::PostStartup() {}
+
 void CCpuMonitorTenant::Run() {
     NTypes::CPUMonitor cpuMonitorData{0};
 
     cpuMonitorData.Uptime = k_uptime_get_32();
-
+    cpuMonitorData.Utilization = cpu_load_get(true);
 #if DT_NODE_EXISTS(DT_ALIAS(die_temp))
     if (device_is_ready(dieTempSensor)) {
         sensor_value dieTempValue{0};
@@ -24,4 +28,5 @@ void CCpuMonitorTenant::Run() {
         outputPort.Clear();
     }
 }
+
 void CCpuMonitorTenant::Cleanup() {}
