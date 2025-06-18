@@ -4,9 +4,9 @@
 #include <zephyr/kernel.h>
 
 K_MSGQ_DEFINE(cpuMonitorQueue, sizeof(NTypes::CPUMonitor), 1, 4);
-static auto cpuMonitorMsgQueue = CMsgqMessagePort<NTypes::CPUMonitor>(cpuMonitorQueue);
 
 int main() {
+    auto cpuMonitorMsgQueue = CMsgqMessagePort<NTypes::CPUMonitor>(cpuMonitorQueue);
     CCpuMonitorTenant cpuMonitorTenant(cpuMonitorMsgQueue);
 
     cpuMonitorTenant.Startup();
@@ -17,7 +17,6 @@ int main() {
         cpuMonitorMsgQueue.Receive(cpuMonitorData, K_FOREVER);
         printk("Uptime: %u ms, Utilization: %u%%, Die Temperature: %d °C\n",
                cpuMonitorData.Uptime, cpuMonitorData.Utilization, cpuMonitorData.DieTemperature);
-
         k_msleep(1000);
     }
 
