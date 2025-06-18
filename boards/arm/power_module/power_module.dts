@@ -214,6 +214,10 @@
     status = "okay";
 };
 
+&die_temp {
+    status = "okay";
+};
+
 &flash0 {
 
     partitions {
