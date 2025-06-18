@@ -13,36 +13,16 @@ static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQu
 K_MSGQ_DEFINE(downlinkQueue, sizeof(NTypes::LoRaBroadcastSensorData), 10, 4);
 static auto downlinkMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastSensorData>(downlinkQueue);
 
-K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::TimestampedSensorData), 10, 4);
+K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::TimestampedSensorData), 512, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::TimestampedSensorData>(dataLogQueue);
 
-K_MSGQ_DEFINE(alertQueue, sizeof(NAlerts::AlertPacket), 10, 4);
+K_MSGQ_DEFINE(alertQueue, sizeof(NAlerts::AlertPacket), 4, 4);
 static auto alertMsgQueue = CMsgqMessagePort<NAlerts::AlertPacket>(alertQueue);
 
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), downlinkMessagePort(downlinkMsgQueue),
-      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{generateFlightLogPath()} {}
+      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{"/lfs/flight_log.txt"} {}
 
-std::string CSensorModule::generateFlightLogPath() {
-    constexpr size_t MAX_FLIGHT_LOG_PATH_SIZE = 32;
-    char flightLogPath[MAX_FLIGHT_LOG_PATH_SIZE] = {0};
-    for (size_t i = 0; i < 100; i++) {
-        snprintf(flightLogPath, MAX_FLIGHT_LOG_PATH_SIZE, "/lfs/flight_log%02d.txt", i);
-        struct fs_dirent ent;
-        int ret = fs_stat(flightLogPath, &ent);
-        if (ret == -ENOENT) {
-            // This path works
-            LOG_INF("Using %s for flight log", flightLogPath);
-            break;
-        } else if (ret != 0) {
-            LOG_WRN("Error reading filesystem for flight log. (error %d) Using name %s", ret, flightLogPath);
-            break;
-        }
-        // otherwise, keep counting up
-    }
-    std::string copystr{flightLogPath};
-    return copystr;
-}
 void CSensorModule::AddTenantsToTasks() {
     // Networking
     networkTask.AddTenant(broadcastTenant);

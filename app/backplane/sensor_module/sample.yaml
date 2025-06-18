@@ -9,5 +9,4 @@ tests:
   backplane.sensor_module.default: {}
   backplane.sensor_module.debug:
     extra_overlay_confs:
-      - debug.conf
       - sim.conf

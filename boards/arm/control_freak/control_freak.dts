@@ -396,6 +396,7 @@
 				// 16384 - 2700 - 10128
 				label = "w25q-storage";
 				reg = <0xcde000 DT_SIZE_K(3208)>;
+
 			};
 		};
 	};

@@ -7,11 +7,14 @@
 
 #include <f_core/os/n_rtos.h>
 
+LOG_MODULE_REGISTER(main);
+
 int main() {
     static CDeploymentModule deploymentModule{};
 
     deploymentModule.AddTenantsToTasks();
     deploymentModule.AddTasksToRtos();
+    deploymentModule.SetupCallbacks();
 
     NRtos::StartRtos();
 

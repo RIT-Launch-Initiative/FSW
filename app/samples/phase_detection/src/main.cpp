@@ -226,7 +226,7 @@ void event_handler(Controller::EventNotification event) {
     char buf[buf_size] = {0};
     if (event.type == Controller::EventType::EventOccured) {
         snprintf(buf, buf_size, "%s occured %s.", eventNames[event.event],
-                 event.has_already_occured ? "(but already occured)" : "");
+        event.has_already_occured ? "(but already occured)" : "");
         LOG_INF("%s", buf);
         fl.Write(ms, buf);
     } else {

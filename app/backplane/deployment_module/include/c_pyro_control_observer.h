@@ -40,7 +40,7 @@ private:
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
 
-    CFlightLog flightLog{"flight.log"};
+    // CFlightLog flightLog{"flight.log"};
     CSoftTimer chargeDisableTimer;
 
     std::array<PyroTrio, 4> pyroTrios{
