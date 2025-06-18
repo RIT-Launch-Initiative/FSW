@@ -15,7 +15,7 @@ int main() {
         NTypes::CPUMonitor cpuMonitorData{0};
         cpuMonitorTenant.Run();
         cpuMonitorMsgQueue.Receive(cpuMonitorData, K_FOREVER);
-        printk("Uptime: %u seconds, Utilization: %u%%, Die Temperature: %d °C\n",
+        printk("Uptime: %u ms, Utilization: %u%%, Die Temperature: %d °C\n",
                cpuMonitorData.Uptime, cpuMonitorData.Utilization, cpuMonitorData.DieTemperature);
 
         k_msleep(1000);
