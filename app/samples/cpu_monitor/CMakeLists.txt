@@ -4,7 +4,7 @@ set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 include(${FSW_ROOT}/cmake/Autocoders.cmake)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(template LANGUAGES CXX)
+project(cpu-monitor LANGUAGES CXX)
 
 target_compile_options(app PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-ignored-qualifiers)
 FILE(GLOB app_sources src/*.cpp)

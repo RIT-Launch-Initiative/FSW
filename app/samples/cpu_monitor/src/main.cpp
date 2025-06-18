@@ -1,11 +1,9 @@
-
-
 #include <f_core/os/tenants/c_cpu_monitor_tenant.h>
 #include <f_core/messaging/c_msgq_message_port.h>
 #include <n_autocoder_types.h>
 #include <zephyr/kernel.h>
 
-K_MSGQ_DEFINE(cpuMonitorQueue, sizeof(NTypes::CPUMonitor), 4, 4);
+K_MSGQ_DEFINE(cpuMonitorQueue, sizeof(NTypes::CPUMonitor), 1, 4);
 static auto cpuMonitorMsgQueue = CMsgqMessagePort<NTypes::CPUMonitor>(cpuMonitorQueue);
 
 int main() {

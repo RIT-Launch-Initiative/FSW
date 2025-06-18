@@ -6,7 +6,6 @@
 
 #include <FSW/n_autocoder_types.h>
 
-
 class CCpuMonitorTenant : public CTenant {
 public:
     CCpuMonitorTenant(CMessagePort<NTypes::CPUMonitor> &outputPort) :
