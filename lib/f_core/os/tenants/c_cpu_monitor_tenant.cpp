@@ -1,11 +1,8 @@
 #include "f_core/os/tenants/c_cpu_monitor_tenant.h"
 
-#include <zephyr/debug/cpu_load.h>
 #include <zephyr/drivers/sensor.h>
 
-void CCpuMonitorTenant::Startup() {
-    cpu_load_init();
-}
+void CCpuMonitorTenant::Startup() {}
 
 void CCpuMonitorTenant::PostStartup() {}
 
@@ -42,5 +39,12 @@ uint32_t CCpuMonitorTenant::getUptime() {
 }
 
 uint8_t CCpuMonitorTenant::getUtilization() {
+    k_thread_runtime_stats stats{0};
 
+    k_thread_runtime_stats_all_get(&stats);
+    if (stats.total_cycles == 0) {
+        return 0; // Avoid division by zero
+    }
+
+    return static_cast<uint8_t>((stats.execution_cycles * 100) / stats.total_cycles);
 }
