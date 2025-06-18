@@ -4,7 +4,6 @@ sample:
 common:
   build_only: true
   platform_allow:
-    - native_sim
     - nucleo_f446re
 tests:
   samples.template.default: {}
