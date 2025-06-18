@@ -4,10 +4,12 @@
 #include "f_core/messaging/c_message_port.h"
 #include "f_core/os/c_tenant.h"
 
+#include <FSW/n_autocoder_types.h>
+
 
 class CCpuMonitorTenant : public CTenant {
 public:
-    CCpuMonitorTenant(const CMessagePort<NTypes::CPUMonitor> &outputPort) :
+    CCpuMonitorTenant(CMessagePort<NTypes::CPUMonitor> &outputPort) :
         CTenant("CPU Monitor Tenant"), outputPort(outputPort) {};
 
     void Startup() override;
