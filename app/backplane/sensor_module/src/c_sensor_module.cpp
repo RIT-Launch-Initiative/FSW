@@ -25,8 +25,7 @@ static auto cpuMonitorMsgQueue = CMsgqMessagePort<NTypes::CPUMonitor>(cpuMonitor
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), downlinkMessagePort(downlinkMsgQueue),
       sensorDataLogMessagePort(dataLogMsgQueue), cpuMonitorMessagePort(cpuMonitorMsgQueue),
-      alertMessagePort(alertMsgQueue),
-      flight_log{"/lfs/flight_log.txt"} {}
+      alertMessagePort(alertMsgQueue), flight_log{"/lfs/flight_log.txt"} {}
 
 void CSensorModule::AddTenantsToTasks() {
     // Networking
