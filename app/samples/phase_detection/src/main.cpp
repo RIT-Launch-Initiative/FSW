@@ -237,7 +237,7 @@ void event_handler(Controller::EventNotification event) {
 }
 
 int main() {
-    Controller controller{sourceNames, eventNames, timer_events, deciders, event_handler};
+    Controller controller{sourceNames, eventNames, timerEvents, deciders, event_handler};
 
     k_thread_create(&barom_thread_data, barom_thread_stack_area, K_THREAD_STACK_SIZEOF(barom_thread_stack_area),
                     barom_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);
