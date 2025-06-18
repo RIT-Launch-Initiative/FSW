@@ -19,9 +19,13 @@ static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::TimestampedSensorData>(da
 K_MSGQ_DEFINE(alertQueue, sizeof(NAlerts::AlertPacket), 4, 4);
 static auto alertMsgQueue = CMsgqMessagePort<NAlerts::AlertPacket>(alertQueue);
 
+K_MSGQ_DEFINE(cpuMonitorQueue, sizeof(NTypes::CPUMonitor), 4, 4);
+static auto cpuMonitorMsgQueue = CMsgqMessagePort<NTypes::CPUMonitor>(cpuMonitorQueue);
+
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), downlinkMessagePort(downlinkMsgQueue),
-      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{"/lfs/flight_log.txt"} {}
+      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue),
+      cpuMonitorMessagePort(cpuMonitorMsgQueue), flight_log{"/lfs/flight_log.txt"} {}
 
 void CSensorModule::AddTenantsToTasks() {
     // Networking

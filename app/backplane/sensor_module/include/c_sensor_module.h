@@ -60,6 +60,7 @@ class CSensorModule : public CProjectConfiguration {
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkMessagePort;
     CMessagePort<NTypes::TimestampedSensorData>& sensorDataLogMessagePort;
+    CMessagePort<NTypes::CPUMOnitor>& cpuMonitorMessagePort;
     CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 
     CFlightLog flight_log;
@@ -73,7 +74,7 @@ class CSensorModule : public CProjectConfiguration {
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
     CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
     CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 64};
-    CCpuMonitorTenant& cpuMonitorTenant = CCpuMonitorTenant::GetInstance();
+    CCpuMonitorTenant& cpuMonitorTenant
 
 
     // Tasks
