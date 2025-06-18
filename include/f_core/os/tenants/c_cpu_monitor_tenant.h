@@ -1,6 +1,9 @@
 #ifndef C_CPU_MONITOR_TENANT_H
 #define C_CPU_MONITOR_TENANT_H
 
+#include "f_core/os/c_tenant.h"
+
+
 class CCpuMonitorTenant : public CTenant {
 public:
     static CCpuMonitorTenant &GetInstance() {
@@ -18,10 +21,8 @@ public:
     void Cleanup() override;
     
 private:
+    CCpuMonitorTenant();
     static CCpuMonitorTenant instance;
-    
-    explicit CCpuMonitorTenant() : CTenant("CPU Monitor Tenant") {};
-    
 };
 
 #endif //C_CPU_MONITOR_TENANT_H
