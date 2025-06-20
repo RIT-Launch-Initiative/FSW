@@ -10,15 +10,21 @@ ZBUS_CHAN_DECLARE(sensor_data_chan);
 
 static bool flash_listener_active = false;
 
-static void writeFlash(const NTypes::TimestampedSensorData* data) {}
+CDataLogger<NTypes::TimestampedSensorData> dataLogger{"/lfs/sensor_module_data.bin"};
+
+static void writeFlash(const NTypes::TimestampedSensorData &data) {
+    static int counter = 0;
+    dataLogger.Write(data);
+    if (counter == 5) {
+        dataLogger.Sync();
+    }
+}
 
 static void flashCallback(const struct zbus_channel* chan) {
     const NTypes::TimestampedSensorData* data = static_cast<const NTypes::TimestampedSensorData*>(
         zbus_chan_const_msg(chan));
 
-    LOG_INF("Logged to flash");
-
-    writeFlash(data);
+    writeFlash(*data);
 }
 
 ZBUS_LISTENER_DEFINE(flash_lis, flashCallback);
