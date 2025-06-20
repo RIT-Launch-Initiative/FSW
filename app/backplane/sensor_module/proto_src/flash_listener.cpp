@@ -1,3 +1,5 @@
+#include "c_sensor_module.h"
+
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/zbus/zbus.h>
@@ -8,19 +10,16 @@ ZBUS_CHAN_DECLARE(sensor_data_chan);
 
 static bool flash_listener_active = false;
 
-static void write_to_flash(const struct sensor_data_msg* data) {
-    LOG_INF("Writing to flash - x: %d, y: %d, z: %d, timestamp: %u",
-            data->x, data->y, data->z, data->timestamp);
+static void writeFlash(const NTypes::TimestampedSensorData* data) {}
+
+static void flashCallback(const struct zbus_channel* chan) {
+    const NTypes::TimestampedSensorData* data = static_cast<const NTypes::TimestampedSensorData*>(
+        zbus_chan_const_msg(chan));
+
+    writeFlash(data);
 }
 
-static void flash_callback(const struct zbus_channel* chan) {
-    const sensor_data_msg* data = zbus_chan_const_msg(chan);
-
-    LOG_DBG("Flash callback received data");
-    write_to_flash(data);
-}
-
-ZBUS_LISTENER_DEFINE(flash_lis, flash_callback);
+ZBUS_LISTENER_DEFINE(flash_lis, flashCallback);
 
 void flashLogEnable(void) {
     if (!flash_listener_active) {
