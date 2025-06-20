@@ -79,13 +79,10 @@ void readSensors() {
 
     if (int ret = zbus_chan_pub(&sensor_data_chan, &data, K_MSEC(100))) {
         LOG_ERR("Failed to publish sensor data to zbus: %d", ret);
-    } else {
-        LOG_INF("Sensor data published successfully");
     }
 
     int64_t delta = k_uptime_delta(&start);
     if (delta < 10) {
-        LOG_INF("Delta was %lld ms", delta);
         k_msleep(10 - delta);
     }
 }
