@@ -12,11 +12,22 @@ static bool flash_listener_active = false;
 
 CDataLogger<NTypes::TimestampedSensorData> dataLogger{"/lfs/sensor_module_data.bin"};
 
-static void writeFlash(const NTypes::TimestampedSensorData &data) {
+struct flashWorkInfo {
+    k_work work;
+    NTypes::TimestampedSensorData data;
+};
+
+static flashWorkInfo flash_work;
+
+static void flashWorkHandler(k_work* work) {
+    flashWorkInfo* info = CONTAINER_OF(work, struct flashWorkInfo, work);
     static int counter = 0;
-    dataLogger.Write(data);
+
+    dataLogger.Write(info->data);
+    counter++;
     if (counter == 5) {
         dataLogger.Sync();
+        counter = 0;
     }
 }
 
@@ -24,7 +35,8 @@ static void flashCallback(const struct zbus_channel* chan) {
     const NTypes::TimestampedSensorData* data = static_cast<const NTypes::TimestampedSensorData*>(
         zbus_chan_const_msg(chan));
 
-    writeFlash(*data);
+    flash_work.data = *data;
+    k_work_submit(&flash_work.work);
 }
 
 ZBUS_LISTENER_DEFINE(flash_lis, flashCallback);
@@ -55,6 +67,9 @@ void flashLogDisable() {
 }
 
 void flashListenerInit() {
+    // Initialize the work item
+    k_work_init(&flash_work.work, flashWorkHandler);
+
     flash_listener_active = false;
     LOG_INF("Flash listener initialized (initially disabled)");
 }
