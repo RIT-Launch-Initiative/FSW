@@ -24,6 +24,11 @@ static void ethCallback(const zbus_channel* chan) {
 ZBUS_LISTENER_DEFINE(ethernet_lis, ethCallback);
 
 void ethListenerInit() {
-    zbus_chan_add_obs(&sensor_data_chan, &ethernet_lis, K_MSEC(100));
+    int ret = zbus_chan_add_obs(&sensor_data_chan, &ethernet_lis, K_MSEC(100));
+    if (ret != 0) {
+        LOG_ERR("Failed to add observer: %d", ret);
+        return;
+    }
+    sock.TransmitSynchronous("Hello, Aaron!", 13);
     LOG_INF("Ethernet listener initialized");
 }

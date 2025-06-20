@@ -23,7 +23,12 @@ ZBUS_LISTENER_DEFINE(flash_lis, flashCallback);
 
 void flashLogEnable() {
     if (!flash_listener_active) {
-        zbus_chan_add_obs(&sensor_data_chan, &flash_lis, K_MSEC(100));
+        int ret = zbus_chan_add_obs(&sensor_data_chan, &flash_lis, K_MSEC(100));
+        if (ret != 0) {
+            LOG_ERR("Failed to add observer: %d", ret);
+            return;
+        }
+
         flash_listener_active = true;
         LOG_INF("Flash logging enabled");
     } else {
@@ -43,6 +48,5 @@ void flashLogDisable() {
 
 void flashListenerInit() {
     flash_listener_active = false;
-
     LOG_INF("Flash listener initialized (initially disabled)");
 }
