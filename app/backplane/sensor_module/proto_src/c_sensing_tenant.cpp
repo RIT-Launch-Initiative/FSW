@@ -8,8 +8,16 @@
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <f_core/device/sensor/c_temperature_sensor.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/zbus/zbus.h>
 
 LOG_MODULE_REGISTER(CSensingTenant);
+
+ZBUS_CHAN_DEFINE(sensor_data_chan,     // Name
+                 NTypes::SensorData,   // Type
+                 NULL,                 // Validator
+                 NULL,                 // Observer notification callback
+                 ZBUS_OBSERVERS_EMPTY, // Initial observers
+                 {0});                 // Initial value
 
 CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
                                CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
@@ -94,7 +102,10 @@ void CSensingTenant::Run() {
     data.SecondaryBarometer.Temperature = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
     data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+
+    if (int ret = zbus_chan_pub(&sensor_data_chan, &data, K_MSEC(100))) {
+        LOG_ERR("Failed to publish sensor data to zbus: %d", ret);
+    }
 }
 
-void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
-}
+void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {}
