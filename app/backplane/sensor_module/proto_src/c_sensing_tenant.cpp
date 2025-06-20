@@ -51,8 +51,6 @@ void CSensingTenant::Run() {
     };
     NTypes::SensorData& data = timestampedData.data;
 
-    uint64_t uptime = k_uptime_get();
-
     CDetectionHandler::SensorWorkings sensor_states = {};
     imuGyroscope.UpdateSensorValue();
     sensor_states.primaryAccOk = imuAccelerometer.UpdateSensorValue();
