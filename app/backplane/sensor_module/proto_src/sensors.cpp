@@ -1,6 +1,4 @@
-#include "c_sensing_tenant.h"
-
-#include "c_sensor_module.h"
+#include <n_autocoder_types.h>
 
 #include <f_core/device/sensor/c_accelerometer.h>
 #include <f_core/device/sensor/c_barometer.h>
@@ -17,26 +15,18 @@ ZBUS_CHAN_DEFINE(sensor_data_chan,     // Name
                  NULL,                 // Validator
                  NULL,                 // Observer notification callback
                  ZBUS_OBSERVERS_EMPTY, // Initial observers
-                 {0});                 // Initial value
+                 {0}                   // Initial value
+);
 
-CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
-                               CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
-                               CMessagePort<NTypes::TimestampedSensorData>& dataToLog, CDetectionHandler& handler)
-    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast),
-      detectionHandler(handler),
-      imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
-      primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
-      secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
-      accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer))), thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer))),
-      magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer))),
-      sensors{&imuAccelerometer, &imuGyroscope, &primaryBarometer, &secondaryBarometer, &accelerometer, &thermometer,
-#ifndef CONFIG_ARCH_POSIX
-              &magnetometer
-#endif
-      } {}
+static CAccelerometer imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu)));
+static CGyroscope imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu)));
+static CBarometer primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer)));
+static CBarometer secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer)));
+static CAccelerometer accelerometer(*DEVICE_DT_GET(DT_ALIAS(accelerometer)));
+static CTemperatureSensor thermometer(*DEVICE_DT_GET(DT_ALIAS(thermometer)));
+static CMagnetometer magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer)));
 
-void CSensingTenant::Startup() {
-#ifndef CONFIG_ARCH_POSIX
+void sensorsInit() {
     const sensor_value imuOdr{.val1 = 104, .val2 = 0};
 
     if (imuAccelerometer.Configure(SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &imuOdr)) {
@@ -46,38 +36,22 @@ void CSensingTenant::Startup() {
     if (imuGyroscope.Configure(SENSOR_CHAN_GYRO_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &imuOdr)) {
         LOG_WRN("IMU Gyroscope ODR configuration failed. IMU gyroscope values will report 0.");
     }
-
-#endif
 }
 
-void CSensingTenant::PostStartup() {}
-
-void CSensingTenant::Run() {
+void readSensors() {
     NTypes::TimestampedSensorData timestampedData{
         .timestamp = 0,
         .data = {0}
     };
     NTypes::SensorData& data = timestampedData.data;
 
-    CDetectionHandler::SensorWorkings sensor_states = {};
     imuGyroscope.UpdateSensorValue();
-    sensor_states.primaryAccOk = imuAccelerometer.UpdateSensorValue();
-    sensor_states.primaryBarometerOk = primaryBarometer.UpdateSensorValue();
-    sensor_states.secondaryBarometerOk = secondaryBarometer.UpdateSensorValue();
-    sensor_states.secondaryAccOk = accelerometer.UpdateSensorValue();
     thermometer.UpdateSensorValue();
 #ifndef CONFIG_ARCH_POSIX
     magnetometer.UpdateSensorValue();
 #endif
+    int64_t start = k_uptime_get();
 
-    // Note that compilers don't accept references to packed struct fields
-    uint32_t tmpTimestamp = 0;
-    if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
-        // LOG_ERR("Failed to get time from RTC");
-        timestampedData.timestamp = k_uptime_get();
-    } else {
-        timestampedData.timestamp = tmpTimestamp;
-    }
 
     data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
@@ -105,7 +79,13 @@ void CSensingTenant::Run() {
 
     if (int ret = zbus_chan_pub(&sensor_data_chan, &data, K_MSEC(100))) {
         LOG_ERR("Failed to publish sensor data to zbus: %d", ret);
+    } else {
+        LOG_INF("Sensor data published successfully");
+    }
+
+    int64_t delta = k_uptime_delta(&start);
+    if (delta < 10) {
+        LOG_INF("Delta was %lld ms", delta);
+        k_msleep(10 - delta);
     }
 }
-
-void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {}
