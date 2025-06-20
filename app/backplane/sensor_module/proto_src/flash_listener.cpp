@@ -21,9 +21,8 @@ static void flashCallback(const struct zbus_channel* chan) {
 
 ZBUS_LISTENER_DEFINE(flash_lis, flashCallback);
 
-void flashLogEnable(void) {
+void flashLogEnable() {
     if (!flash_listener_active) {
-        /* Add the flash listener to the sensor data channel */
         zbus_chan_add_obs(&sensor_data_chan, &flash_lis, K_MSEC(100));
         flash_listener_active = true;
         LOG_INF("Flash logging enabled");
@@ -32,7 +31,7 @@ void flashLogEnable(void) {
     }
 }
 
-void flashLogDisable(void) {
+void flashLogDisable() {
     if (flash_listener_active) {
         zbus_chan_rm_obs(&sensor_data_chan, &flash_lis, K_MSEC(100));
         flash_listener_active = false;
@@ -42,7 +41,7 @@ void flashLogDisable(void) {
     }
 }
 
-void flashListenerInit(void) {
+void flashListenerInit() {
     flash_listener_active = false;
 
     LOG_INF("Flash listener initialized (initially disabled)");

@@ -8,10 +8,14 @@ LOG_MODULE_REGISTER(ethernet_listener, CONFIG_LOG_DEFAULT_LEVEL);
 
 ZBUS_CHAN_DECLARE(sensor_data_chan);
 
-static void sendEth(const NTypes::TimestampedSensorData* data) {}
+static CUdpSocket sock(CIPv4("10.3.2.1"), 13100, 13100);
+
+static void sendEth(const NTypes::TimestampedSensorData* data) {
+    sock.TransmitAsynchronous(data, sizeof(NTypes::TimestampedSensorData));
+}
 
 static void ethCallback(const zbus_channel* chan) {
-    const NTypes::TimestampedSensorData* data = static_cast<const NTypes::TimestampedSensorData*>(
+    const auto data = static_cast<const NTypes::TimestampedSensorData*>(
         zbus_chan_const_msg(chan));
 
     sendEth(data);
@@ -19,8 +23,7 @@ static void ethCallback(const zbus_channel* chan) {
 
 ZBUS_LISTENER_DEFINE(ethernet_lis, ethCallback);
 
-void ethListenerInit(void) {
+void ethListenerInit() {
     zbus_chan_add_obs(&sensor_data_chan, &ethernet_lis, K_MSEC(100));
-
     LOG_INF("Ethernet listener initialized");
 }
