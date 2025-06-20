@@ -1,7 +1,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 #include <zephyr/logging/log.h>
-#include "messages.h"
 
 LOG_MODULE_REGISTER(shell_cmds, CONFIG_LOG_DEFAULT_LEVEL);
 

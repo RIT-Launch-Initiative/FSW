@@ -1,7 +1,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/zbus/zbus.h>
-#include "messages.h"
 
 LOG_MODULE_REGISTER(sensor_mod, CONFIG_LOG_DEFAULT_LEVEL);
 
