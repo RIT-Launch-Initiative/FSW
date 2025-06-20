@@ -11,9 +11,11 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
+CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
+                               CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
                                CMessagePort<NTypes::TimestampedSensorData>& dataToLog, CDetectionHandler& handler)
-    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
+    : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast),
+      detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
@@ -23,8 +25,7 @@ CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData
 #ifndef CONFIG_ARCH_POSIX
               &magnetometer
 #endif
-      } {
-}
+      } {}
 
 void CSensingTenant::Startup() {
 #ifndef CONFIG_ARCH_POSIX
@@ -44,14 +45,11 @@ void CSensingTenant::Startup() {
 void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
-    if (!detectionHandler.ContinueCollecting()) {
-        return;
-    }
     NTypes::TimestampedSensorData timestampedData{
         .timestamp = 0,
         .data = {0}
     };
-    NTypes::SensorData &data = timestampedData.data;
+    NTypes::SensorData& data = timestampedData.data;
 
     uint64_t uptime = k_uptime_get();
 
@@ -98,56 +96,7 @@ void CSensingTenant::Run() {
     data.SecondaryBarometer.Temperature = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
     data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
-
-    // If we can't send immediately, drop the packet
-    // we're gonna sleep then give it new data anywas
-    if (dataToBroadcast.Send(data, K_NO_WAIT)) {
-        LOG_ERR("Failed to send sensor data to broadcast port");
-    } else {
-        LOG_DBG("Sensor data sent to broadcast port");
-    }
-    sendDownlinkData(data);
-
-    detectionHandler.HandleData(uptime, data, sensor_states);
-    if (detectionHandler.FlightOccurring()) {
-        int ret = dataToLog.Send(timestampedData, K_NO_WAIT);
-        if (ret) {
-            LOG_ERR("Failed to send sensor data to log port");
-        }
-
-        LOG_WRN_ONCE("Beginning logging");
-        if (dataToLog.AvailableSpace() < 100) {
-            NRtos::ResumeTask("Data Logging Task");
-            k_yield();
-        }
-    }
-
-    // Don't care about performance at this point,
-    // Keep making sure the data gets logged
-    if (detectionHandler.FlightFinished()) {
-        NRtos::ResumeTask("Data Logging Task");
-        k_msleep(1000);
-    }
 }
 
 void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
-    NTypes::LoRaBroadcastSensorData downlinkData{
-        .Barometer = {
-            .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
-            .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
-        },
-        .Acceleration = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
-        },
-        .Gyroscope = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
-        },
-    };
-
-    dataToDownlink.Send(downlinkData, K_NO_WAIT);
-
 }
