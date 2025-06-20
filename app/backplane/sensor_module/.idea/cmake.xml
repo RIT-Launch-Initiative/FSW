@@ -11,6 +11,8 @@
       </configuration>
       <configuration PROFILE_NAME="Flight Release" ENABLED="true" GENERATION_DIR="build-flight-release" GENERATION_OPTIONS="-G Ninja -DBOARD=sensor_module" />
       <configuration PROFILE_NAME="Flight Debug" ENABLED="true" GENERATION_DIR="build-flight-debug" GENERATION_OPTIONS="-G Ninja -DBOARD=sensor_module -DDEBUG=y" />
+      <configuration PROFILE_NAME="Prototype" ENABLED="true" GENERATION_DIR="build-proto-debug" GENERATION_OPTIONS="-G Ninja -DBOARD=sensor_module -DDEBUG=y -DPROTOTYPE=y" />
+      <configuration PROFILE_NAME="Prototype-event-trace" ENABLED="true" GENERATION_OPTIONS="-G Ninja -DBOARD=sensor_module -DDEBUG=y -DPROTOTYPE=y --profiling-format=google-trace --profiling-output=CMakeFiles/clion-event-trace.json" />
     </configurations>
   </component>
 </project>

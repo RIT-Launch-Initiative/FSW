@@ -35,11 +35,10 @@ project(sensor-module LANGUAGES C CXX)
 
 if (DEFINED PROTOTYPE)
     message(STATUS "Building production application")
-    FILE(GLOB SOURCES src/prototype.cpp)
+    FILE(GLOB SOURCES proto_src/*.cpp prot_src/*.c)
 else ()
     message(STATUS "Building prototype application")
     FILE(GLOB SOURCES src/*.cpp src/*.c)
-    list(REMOVE_ITEM SOURCES src/prototype.cpp)
 endif ()
 
 target_include_directories(app PRIVATE include)
