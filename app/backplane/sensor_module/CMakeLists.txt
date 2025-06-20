@@ -34,10 +34,10 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(sensor-module LANGUAGES C CXX)
 
 if (DEFINED PROTOTYPE)
-    message(STATUS "Building production application")
+    message(STATUS "Building prototype application")
     FILE(GLOB SOURCES proto_src/*.cpp prot_src/*.c)
 else ()
-    message(STATUS "Building prototype application")
+    message(STATUS "Building production application")
     FILE(GLOB SOURCES src/*.cpp src/*.c)
 endif ()
 
