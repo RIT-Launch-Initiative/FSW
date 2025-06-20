@@ -33,7 +33,15 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(sensor-module LANGUAGES C CXX)
 
-FILE(GLOB SOURCES src/*.c src/*.cpp)
+if (DEFINED PROTOTYPE)
+    message(STATUS "Building production application")
+    FILE(GLOB SOURCES src/prototype.cpp)
+else ()
+    message(STATUS "Building prototype application")
+    FILE(GLOB SOURCES src/*.cpp src/*.c)
+    list(REMOVE_ITEM SOURCES src/prototype.cpp)
+endif ()
+
 target_include_directories(app PRIVATE include)
 target_sources(app PRIVATE ${SOURCES})
 
