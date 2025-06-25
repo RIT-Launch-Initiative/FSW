@@ -1,6 +1,8 @@
 #ifndef C_UDP_SOCKET_H
 #define C_UDP_SOCKET_H
 
+#include "zephyr/posix/poll.h"
+
 #include <cstdint>
 #include <f_core/net/c_transciever.h>
 #include <zephyr/net/net_ip.h>
@@ -96,7 +98,14 @@ private:
 
     int sock = -1;
     int dstPort = -1;
+
+    // Socket Service Support
     net_socket_service_desc* serviceDesc = nullptr;
+    pollfd sockfd = {
+        .fd = -1,
+        .events = POLLIN,
+        .revents = 0
+    };
 };
 
 #endif //C_UDP_SOCKET_H
