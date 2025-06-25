@@ -8,15 +8,12 @@
 
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
-static void alertSocketServiceHandler(net_socket_service_event *pev)
-{
-    CTenant *tenant = static_cast<CTenant*>(pev->user_data);
+static void alertSocketServiceHandler(net_socket_service_event* pev) {
+    auto* tenant = static_cast<CUdpAlertTenant*>(pev->user_data);
     if (tenant == nullptr) {
         LOG_ERR("Tenant is null in alertSocketServiceHandler");
         k_oops();
     }
-
-    tenant->Run();
 }
 
 // ReSharper disable once CppVariableCanBeMadeConstexpr
@@ -34,7 +31,7 @@ void CUdpAlertTenant::Run() {
     }
 }
 
-void CUdpAlertTenant::ProcessPacket(const NAlerts::AlertPacket &packet) {
+void CUdpAlertTenant::ProcessPacket(const NAlerts::AlertPacket& packet) {
     for (size_t i = 0; i < NAlerts::MAGIC_BYTE_SIGNATURE_SIZE; i++) {
         if (packet[i] != NAlerts::MAGIC_BYTE_SIGNATURE[i]) {
             return;
