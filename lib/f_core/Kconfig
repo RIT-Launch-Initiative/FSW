@@ -20,6 +20,18 @@ config F_CORE_NET
     bool "Network"
     help
       This option enables network functionality for F-Core
+    select ENTROPY_GENERATOR
+    select NETWORKING
+    select NET_CONTEXT_RCVTIMEO
+    select NET_DEFAULT_IF_ETHERNET
+    select NET_DRIVERS
+    select NET_IPV4
+    select NET_IPV4_ACCEPT_ZERO_BROADCAST
+    select NET_L2_ETHERNET
+    select NET_L2_ETHERNET_MGMT
+    select NET_SOCKETS
+    select NET_STATISTICS
+    select SNTP
 
 config F_CORE_RADIO
     bool "Radio"
