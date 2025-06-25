@@ -11,23 +11,6 @@ on:
     - cron: "0 0 * * 1"
 
 env:
-  test_roots: |
-    app/samples/littlefs
-    app/samples/sensor
-    app/samples/shield_blinky
-    app/samples/shield_mcp3561r
-    app/samples/lora_bcast
-    app/samples/udp_bcast
-    app/samples/message_passing
-    app/samples/openrocket_sensors
-    app/samples/soft_timer
-    app/samples/tenants_and_tasks
-    app/samples/tftp_server
-    app/samples/datalogger
-    app/samples/gpio_blinky
-    app/samples/phase_detection
-    app/samples/horus
-    app/samples/compression
   platforms: |
     nucleo_f446re
     radio_module
@@ -71,6 +54,7 @@ jobs:
           echo "test_roots<<EOF" >> $GITHUB_ENV
           cat test_roots.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+          echo "Test roots set to: ${{ env.test_roots }}"
 
       - name: Build firmware
         working-directory: FSW
