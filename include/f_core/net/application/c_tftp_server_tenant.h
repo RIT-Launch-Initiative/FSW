@@ -109,9 +109,6 @@ private:
      * @return 0 on success, negative error code on failure
      */
     int generateTree();
-
-    // Socket service handler for TFTP
-    static void tftpSocketServiceHandler(net_socket_service_event* pev);
 };
 
 #endif // C_TFTP_SERVER_H

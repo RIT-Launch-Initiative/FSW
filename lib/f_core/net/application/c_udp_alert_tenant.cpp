@@ -1,6 +1,6 @@
 #include "f_core/net/application/c_udp_alert_tenant.h"
 
-#include "zephyr/net/socket_service.h"
+#include <zephyr/net/socket_service.h>
 
 #include <f_core/n_alerts.h>
 
