@@ -137,7 +137,7 @@ int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr *srcAddr, s
 int CUdpSocket::RegisterSocketService(net_socket_service_desc* desc, void* userData) {
     if (desc == nullptr) {
         LOG_ERR("Invalid socket service descriptor");
-        return -;
+        return -1;
     }
 
     auto* serviceUserData = new SocketServiceUserData{this, userData};
