@@ -14,10 +14,11 @@ void CCpuMonitorTenant::Startup() {
     prevTotalCycles = stats.total_cycles;
 }
 
-void CCpuMonitorTenant::PostStartup() {}
+void CCpuMonitorTenant::PostStartup() {
+}
 
 void CCpuMonitorTenant::Run() {
-    NTypes::CPUMonitor cpuMonitorData{0};
+    CpuMonitorData cpuMonitorData{0};
 
     cpuMonitorData.Uptime = getUptime();
     cpuMonitorData.Utilization = getUtilization();
@@ -28,7 +29,8 @@ void CCpuMonitorTenant::Run() {
     }
 }
 
-void CCpuMonitorTenant::Cleanup() {}
+void CCpuMonitorTenant::Cleanup() {
+}
 
 int32_t CCpuMonitorTenant::getDieTemperature() {
     int32_t result = 0;
@@ -57,7 +59,6 @@ uint8_t CCpuMonitorTenant::getUtilization() {
     if (stats.execution_cycles == 0) {
         return 0; // Avoid division by zero
     }
-
 
     // Note that total cycles is non-idle cycles
     // and execution cycles is the sum of non-idle + idle cycles.

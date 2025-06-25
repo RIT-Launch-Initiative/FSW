@@ -3,16 +3,16 @@
 #include <n_autocoder_types.h>
 #include <zephyr/kernel.h>
 
-K_MSGQ_DEFINE(cpuMonitorQueue, sizeof(NTypes::CPUMonitor), 1, 4);
+K_MSGQ_DEFINE(cpuMonitorQueue, sizeof(CpuMonitorData), 1, 4);
 
 int main() {
-    auto cpuMonitorMsgQueue = CMsgqMessagePort<NTypes::CPUMonitor>(cpuMonitorQueue);
+    auto cpuMonitorMsgQueue = CMsgqMessagePort<CpuMonitorData>(cpuMonitorQueue);
     CCpuMonitorTenant cpuMonitorTenant(cpuMonitorMsgQueue);
 
     cpuMonitorTenant.Startup();
 
     while (true) {
-        NTypes::CPUMonitor cpuMonitorData{0, 0, 0};
+        CpuMonitorData cpuMonitorData{0, 0, 0};
         cpuMonitorTenant.Run();
         cpuMonitorMsgQueue.Receive(cpuMonitorData, K_FOREVER);
         printk("Uptime: %u ms, Utilization: %u%%, Die Temperature: %d °C\n",

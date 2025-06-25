@@ -221,14 +221,3 @@ LoRaReceiveStatistics:
       type: int16_t
     - name: SignalToNoiseRatio
       type: int8_t
-
-CPUMonitor:
-    description: CPU monitor data.
-    fields:
-      - name: Uptime
-        type: uint32_t
-      - name: Utilization
-        type: uint8_t
-      - name: DieTemperature
-        type: int32_t
-    timestamp: false

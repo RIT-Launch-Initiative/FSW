@@ -4,12 +4,19 @@
 #include "f_core/messaging/c_message_port.h"
 #include "f_core/os/c_tenant.h"
 
-#include <FSW/n_autocoder_types.h>
+#include <stdint.h>
+
+struct __attribute__((packed)) CpuMonitorData {
+    uint32_t Uptime;
+    int32_t DieTemperature;
+    uint8_t Utilization;
+};
 
 class CCpuMonitorTenant : public CTenant {
 public:
-    CCpuMonitorTenant(CMessagePort<NTypes::CPUMonitor> &outputPort) :
-        CTenant("CPU Monitor Tenant"), outputPort(outputPort) {};
+    CCpuMonitorTenant(CMessagePort<CpuMonitorData>& outputPort) :
+        CTenant("CPU Monitor Tenant"), outputPort(outputPort) {
+    };
 
     void Startup() override;
 
@@ -18,10 +25,9 @@ public:
     void Run() override;
 
     void Cleanup() override;
-    
+
 private:
-    static CCpuMonitorTenant instance;
-    CMessagePort<NTypes::CPUMonitor> &outputPort;
+    CMessagePort<CpuMonitorData>& outputPort;
 
     uint32_t prevExecutionCycles = 0;
     uint32_t prevTotalCycles = 0;
