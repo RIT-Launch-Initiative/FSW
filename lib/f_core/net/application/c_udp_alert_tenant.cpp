@@ -9,11 +9,22 @@
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
 static void alertSocketServiceHandler(net_socket_service_event* pev) {
-    auto* tenant = static_cast<CUdpAlertTenant*>(pev->user_data);
+    NAlerts::AlertPacket buff{};
+    auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
+
+    if (userData == nullptr) {
+        LOG_ERR("User data is null in alertSocketServiceHandler");
+        k_oops();
+    }
+
+    CUdpAlertTenant *tenant = static_cast<CUdpAlertTenant*>(userData->userData);
     if (tenant == nullptr) {
         LOG_ERR("Tenant is null in alertSocketServiceHandler");
         k_oops();
     }
+
+    userData->socket->ReceiveSynchronous(buff.data(), NAlerts::ALERT_PACKET_SIZE);
+    tenant->ProcessPacket(buff);
 }
 
 // ReSharper disable once CppVariableCanBeMadeConstexpr

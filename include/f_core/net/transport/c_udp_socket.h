@@ -12,6 +12,11 @@ class CIPv4;
 
 class CUdpSocket {
 public:
+    struct SocketServiceUserData {
+        CUdpSocket *socket;
+        void *userData;
+    };
+
     /**
      * Constructor
      * @param ipv4 IP address instance to bind to
@@ -99,7 +104,6 @@ private:
     int sock = -1;
     int dstPort = -1;
 
-    // Socket Service Support
     net_socket_service_desc* serviceDesc = nullptr;
     pollfd sockfd = {
         .fd = -1,
