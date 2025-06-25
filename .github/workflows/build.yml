@@ -56,6 +56,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Build firmware
+        if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
         working-directory: FSW
         shell: bash
         run: |

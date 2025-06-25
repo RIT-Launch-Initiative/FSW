@@ -41,12 +41,11 @@ jobs:
         id: set_test_roots
         shell: bash
         working-directory: FSW
+        continue-on-error: false
         run: |
           if [ "$GITHUB_REF_NAME" = "main" ]; then
-            # On main branch, run all test roots
             python3 .github/scripts/determine_test_roots.py --map .github/sample-roots.yaml --run-all > test_roots.txt
           else
-            # On PR/branch, diff against main
             git fetch origin main:refs/remotes/origin/main
             git diff --name-only origin/main...HEAD > changed_files.txt
             cat changed_files.txt | python3 .github/scripts/determine_test_roots.py --map .github/sample-roots.yaml > test_roots.txt
@@ -61,6 +60,7 @@ jobs:
           echo "Test roots set to: ${{ env.test_roots }}"
 
       - name: Build firmware
+        if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
         working-directory: FSW
         shell: bash
         run: |
