@@ -34,6 +34,9 @@ jobs:
           path: FSW
           fetch-depth: 2
 
+      - name: Run Starter Steps
+        uses: ./FSW/.github/actions/fsw-setup
+
       - name: Set test_roots based on changes
         id: set_test_roots
         shell: bash
@@ -52,9 +55,6 @@ jobs:
           cat test_roots.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           echo "Test roots set to: ${{ env.test_roots }}"
-
-      - name: Run Starter Steps
-        uses: ./FSW/.github/actions/fsw-setup
 
       - name: Build firmware
         working-directory: FSW
