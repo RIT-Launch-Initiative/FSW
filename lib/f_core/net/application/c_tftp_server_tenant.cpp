@@ -6,6 +6,7 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket_service.h>
 
 LOG_MODULE_REGISTER(CTftpServerTenant);
 
@@ -18,7 +19,16 @@ char *inet_ntoa(struct in_addr in) {
     return buf;
 }
 
+extern net_socket_service_desc tftpSocketService;
+extern "C" void tftpSocketServiceHandler(net_socket_service_event* pev) {
+    // TODO
+}
+
 void CTftpServerTenant::Startup() {
+    int ret = sock.RegisterSocketService(&tftpSocketService, this);
+    if (ret < 0) {
+        LOG_ERR("Failed to register socket service for CTftpServerTenant: %d", ret);
+    }
 }
 
 void CTftpServerTenant::Cleanup() {

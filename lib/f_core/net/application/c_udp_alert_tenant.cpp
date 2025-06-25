@@ -9,6 +9,7 @@
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
 extern net_socket_service_desc alertSocketService;
+
 extern "C" void alertSocketServiceHandler(net_socket_service_event* pev) {
     NAlerts::AlertPacket buff{};
     auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
@@ -18,7 +19,7 @@ extern "C" void alertSocketServiceHandler(net_socket_service_event* pev) {
         k_oops();
     }
 
-    CUdpAlertTenant *tenant = static_cast<CUdpAlertTenant*>(userData->userData);
+    CUdpAlertTenant* tenant = static_cast<CUdpAlertTenant*>(userData->userData);
     if (tenant == nullptr) {
         LOG_ERR("Tenant is null in alertSocketServiceHandler");
         k_oops();
@@ -34,7 +35,6 @@ void CUdpAlertTenant::Startup() {
         LOG_ERR("Failed to register socket service for CUdpAlertTenant: %d", ret);
     }
 }
-
 
 void CUdpAlertTenant::Subscribe(CObserver* observer) {
     observers.push_back(observer);
