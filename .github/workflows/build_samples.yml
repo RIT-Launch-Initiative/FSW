@@ -54,6 +54,24 @@ jobs:
       - name: Run Starter Steps
         uses: ./FSW/.github/actions/fsw-setup
 
+      - name: Set test_roots based on changes
+        id: set_test_roots
+        shell: bash
+        working-directory: FSW
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            # On main branch, run all test roots
+            python3 .github/scripts/determine_test_roots.py --map .github/sample-roots.yaml --run-all > test_roots.txt
+          else
+            # On PR/branch, diff against main
+            git fetch origin main:refs/remotes/origin/main
+            git diff --name-only origin/main...HEAD > changed_files.txt
+            cat changed_files.txt | python3 .github/scripts/determine_test_roots.py --map .github/sample-roots.yaml > test_roots.txt
+          fi
+          echo "test_roots<<EOF" >> $GITHUB_ENV
+          cat test_roots.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Build firmware
         working-directory: FSW
         shell: bash
