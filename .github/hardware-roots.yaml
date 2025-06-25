@@ -1,0 +1,32 @@
+# Backplane
+app/backplane/deployment_module:
+  - paths:
+      - "app/backplane/deployment_module/**"
+app/backplane/power_module:
+  - paths:
+      - "app/backplane/power_module/**"
+app/backplane/radio_module:
+  - paths:
+      - "app/backplane/radio_module/**"
+app/backplane/sensor_module:
+  - paths:
+      - "app/backplane/sensor_module/**"
+      -
+# Ground
+app/ground/receiver_module:
+  - paths:
+      - "app/ground/receiver_module/**"
+app/ground/tftp_server:
+  - paths:
+      - "app/ground/tftp_server/**"
+
+# Payload
+app/payload/control_freak/flight-software:
+  - paths:
+      - "app/payload/control_freak/flight-software/**"
+
+ALL:
+  - paths:
+      - "include/f_core/**"
+      - "lib/f_core/**"
+
