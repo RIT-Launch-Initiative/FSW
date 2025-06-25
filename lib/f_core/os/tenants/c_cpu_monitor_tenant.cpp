@@ -54,14 +54,18 @@ uint32_t CCpuMonitorTenant::getUptime() {
 
 uint8_t CCpuMonitorTenant::getUtilization() {
     k_thread_runtime_stats stats{0};
-
     k_thread_runtime_stats_all_get(&stats);
-    if (stats.execution_cycles == 0) {
+
+    uint64_t deltaExecution = stats.execution_cycles - prevExecutionCycles;
+    uint64_t deltaTotal = stats.total_cycles - prevTotalCycles;
+
+    prevExecutionCycles = stats.execution_cycles;
+    prevTotalCycles = stats.total_cycles;
+
+    if (deltaExecution == 0) {
         return 0; // Avoid division by zero
     }
 
-    // Note that total cycles is non-idle cycles
-    // and execution cycles is the sum of non-idle + idle cycles.
-    return static_cast<uint8_t>(
-        ((stats.total_cycles) * 100) / (stats.execution_cycles));
+    // Utilization is the percentage of non-idle cycles in the interval
+    return static_cast<uint8_t>((deltaTotal * 100) / deltaExecution);
 }
