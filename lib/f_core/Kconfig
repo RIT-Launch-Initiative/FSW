@@ -23,13 +23,13 @@ config F_CORE_NET
     select ENTROPY_GENERATOR
     select NETWORKING
     select NET_CONTEXT_RCVTIMEO
-    select NET_DEFAULT_IF_ETHERNET
     select NET_DRIVERS
     select NET_IPV4
     select NET_IPV4_ACCEPT_ZERO_BROADCAST
     select NET_L2_ETHERNET
     select NET_L2_ETHERNET_MGMT
     select NET_SOCKETS
+    select NET_SOCKETS_SERVICE
     select NET_STATISTICS
     select SNTP
 
