@@ -8,7 +8,7 @@
 
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
-void alertSocketServiceHandler(net_socket_service_event* pev) {
+extern "C" void alertSocketServiceHandler(net_socket_service_event* pev) {
     NAlerts::AlertPacket buff{};
     auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
 
