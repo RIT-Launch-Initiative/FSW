@@ -1,0 +1,9 @@
+sample:
+  description: Sample application monitoring CPU utilization, uptime and die-temp.
+  name: cpu-monitor
+common:
+  build_only: true
+  platform_allow:
+    - nucleo_f446re
+tests:
+  samples.template.default: {}

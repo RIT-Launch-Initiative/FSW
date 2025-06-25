@@ -35,6 +35,8 @@ config F_CORE_OS
     bool "OS"
     help
       This option enables OS functionality for F-Core
+    select THREAD_RUNTIME_STATS
+    select SCHED_THREAD_USAGE
 
 config F_CORE_UTILS
     bool "Utility"

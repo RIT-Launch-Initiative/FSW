@@ -19,14 +19,17 @@
 
         storage = &w25q128;
         logfs = &lfs1;
+        rtc = &rtc;
     };
 
     aliases {
         inabatt = &ina0;
         ina3v3 = &ina1;
         ina5v0 = &ina2;
+
         vin = &adc1;
         rtc = &rtc;
+		die-temp = &die_temp;
     };
 
     leds: leds {
@@ -211,6 +214,17 @@
 };
 
 &backup_sram {
+    status = "okay";
+};
+
+&adc1 {
+	pinctrl-0 = <&adc1_in0_pa0>;
+	pinctrl-names = "default";
+	st,adc-prescaler = <4>;
+	status = "okay";
+};
+
+&die_temp {
     status = "okay";
 };
 
