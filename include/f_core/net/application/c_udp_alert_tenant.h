@@ -1,6 +1,8 @@
 #ifndef C_UDP_ALERT_TENANT_H
 #define C_UDP_ALERT_TENANT_H
 
+#include "f_core/n_alerts.h"
+
 #include <vector>
 #include <f_core/net/network/c_ipv4.h>
 #include <f_core/net/transport/c_udp_socket.h>
@@ -16,13 +18,17 @@ public:
      */
     void Run() override;
 
-
     /**
      * Subscribe an observer to receive alerts
      * @param observer Observer to subscribe for alerts
      */
     void Subscribe(CObserver* observer);
 
+    /**
+     * Process a (potential) alert packet
+     * @param packet Packet to process
+     */
+    void ProcessPacket(const NAlerts::AlertPacket & packet);
 private:
     CUdpSocket sock;
     std::vector<CObserver*> observers;
