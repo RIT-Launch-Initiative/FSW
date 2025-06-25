@@ -8,22 +8,22 @@
 
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
-void alertSocketServiceHandler(net_socket_service_desc* svc, void* userData) {
+void alertSocketServiceHandler(net_socket_service_event* pev) {
     NAlerts::AlertPacket buff{};
-    auto data = static_cast<CUdpSocket::SocketServiceUserData*>(userData);
+    auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
 
-    if (data == nullptr) {
+    if (userData == nullptr) {
         LOG_ERR("User data is null in alertSocketServiceHandler");
         k_oops();
     }
 
-    CUdpAlertTenant* tenant = static_cast<CUdpAlertTenant*>(data->userData);
+    CUdpAlertTenant *tenant = static_cast<CUdpAlertTenant*>(userData->userData);
     if (tenant == nullptr) {
         LOG_ERR("Tenant is null in alertSocketServiceHandler");
         k_oops();
     }
 
-    data->socket->ReceiveSynchronous(buff.data(), NAlerts::ALERT_PACKET_SIZE);
+    userData->socket->ReceiveSynchronous(buff.data(), NAlerts::ALERT_PACKET_SIZE);
     tenant->ProcessPacket(buff);
 }
 
