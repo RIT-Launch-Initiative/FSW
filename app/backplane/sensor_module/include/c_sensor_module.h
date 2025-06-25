@@ -12,7 +12,6 @@
 #include <f_core/os/c_task.h>
 #include <f_core/os/flight_log.hpp>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
-#include <f_core/os/tenants/c_cpu_monitor_tenant.h>
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
 #include <f_core/device/c_rtc.h>
@@ -60,7 +59,6 @@ class CSensorModule : public CProjectConfiguration {
     CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
     CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkMessagePort;
     CMessagePort<NTypes::TimestampedSensorData>& sensorDataLogMessagePort;
-    CMessagePort<NTypes::CPUMonitor>& cpuMonitorMessagePort;
     CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 
     CFlightLog flight_log;
@@ -74,8 +72,6 @@ class CSensorModule : public CProjectConfiguration {
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
     CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
     CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 64};
-    CCpuMonitorTenant cpuMonitorTenant{cpuMonitorMessagePort};
-
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 3072, 0};
