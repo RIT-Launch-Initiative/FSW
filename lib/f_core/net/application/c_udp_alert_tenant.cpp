@@ -8,6 +8,7 @@
 
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
+extern net_socket_service_desc alertSocketService;
 extern "C" void alertSocketServiceHandler(net_socket_service_event* pev) {
     NAlerts::AlertPacket buff{};
     auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
@@ -26,6 +27,14 @@ extern "C" void alertSocketServiceHandler(net_socket_service_event* pev) {
     userData->socket->ReceiveSynchronous(buff.data(), NAlerts::ALERT_PACKET_SIZE);
     tenant->ProcessPacket(buff);
 }
+
+void CUdpAlertTenant::Startup() {
+    int ret = sock.RegisterSocketService(&alertSocketService, this);
+    if (ret < 0) {
+        LOG_ERR("Failed to register socket service for CUdpAlertTenant: %d", ret);
+    }
+}
+
 
 void CUdpAlertTenant::Subscribe(CObserver* observer) {
     observers.push_back(observer);

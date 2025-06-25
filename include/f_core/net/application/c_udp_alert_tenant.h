@@ -16,6 +16,11 @@ public:
     /**
      * See parent docs
      */
+    void Startup() override;
+
+    /**
+     * See parent docs
+     */
     void Run() override;
 
     /**
