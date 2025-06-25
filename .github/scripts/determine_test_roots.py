@@ -36,7 +36,9 @@ def main():
     for file in changed_files:
         for test_root, entries in mapping.items():
             for entry in entries:
-                for pattern in entry.get('paths', []):
+                for pattern in entry.get("paths", []):
+                    if not pattern:
+                        continue
                     if fnmatch.fnmatch(file, pattern):
                         if test_root == "ALL":
                             run_all = True
@@ -51,4 +53,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
