@@ -134,6 +134,24 @@ int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr *srcAddr, s
     return ret;
 }
 
+int CUdpSocket::RegisterSocketService(net_socket_service_desc* desc, void* userData) {
+    if (desc == nullptr) {
+        LOG_ERR("Invalid socket service descriptor");
+        return;
+    }
+
+    auto* serviceUserData = new SocketServiceUserData{this, userData};
+    desc->pev[0].user_data = serviceUserData;
+
+    int ret = net_socket_service_register(desc, &sockfd, 1, serviceUserData);
+    if (ret == -ENOENT) {
+        LOG_ERR("Socket service not found.");
+    } else if (ret == -EINVAL) {
+        LOG_ERR("Invalid parameter for socket service registration.");
+    }
+}
+
+
 int CUdpSocket::SetTxTimeout(const int timeoutMillis) {
     return zsock_setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeoutMillis, sizeof(timeoutMillis));
 }
