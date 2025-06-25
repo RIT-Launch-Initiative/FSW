@@ -16,7 +16,7 @@ public:
      * @param srcPort Source port to bind to
      * @param dstPort Destination port to send to
      */
-    CUdpSocket(const CIPv4 &ipv4, uint16_t srcPort, uint16_t dstPort);
+    CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort);
 
     /**
      * Destructor
@@ -29,7 +29,7 @@ public:
      * @param len Length of data to transmit
      * @return Number of bytes transmitted or negative error code
      */
-    int TransmitSynchronous(const void *data, size_t len);
+    int TransmitSynchronous(const void* data, size_t len);
 
     /**
      * Receive data synchronously
@@ -39,7 +39,7 @@ public:
      * @param srcAddrLen Optional source address length
      * @return Number of bytes received or negative error code
      */
-    int ReceiveSynchronous(void *data, size_t len, sockaddr *srcAddr = nullptr, socklen_t *srcAddrLen = nullptr);
+    int ReceiveSynchronous(void* data, size_t len, sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
 
     /**
      * Transmit data asynchronously
@@ -47,7 +47,7 @@ public:
      * @param len Length of data to transmit
      * @return Number of bytes transmitted or negative error code
      */
-    int TransmitAsynchronous(const void *data, size_t len);
+    int TransmitAsynchronous(const void* data, size_t len);
 
     /**
      * Receive data asynchronously
@@ -57,12 +57,12 @@ public:
      * @param srcAddrLen Optional source address length
      * @return Number of bytes received or negative error code
      */
-    int TransmitAsynchronous(const void *data, size_t len, uint16_t dstPort);
+    int TransmitAsynchronous(const void* data, size_t len, uint16_t dstPort);
 
     /**
      * See parent docs
      */
-    int ReceiveAsynchronous(void *data, size_t len, sockaddr *srcAddr = nullptr, socklen_t *srcAddrLen = nullptr);
+    int ReceiveAsynchronous(void* data, size_t len, sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
 
     /**
      * Set transmit timeout
@@ -96,6 +96,7 @@ private:
 
     int sock = -1;
     int dstPort = -1;
+    net_socket_service_desc* serviceDesc = nullptr;
 };
 
 #endif //C_UDP_SOCKET_H

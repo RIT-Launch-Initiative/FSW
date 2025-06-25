@@ -4,6 +4,7 @@
 #include <zephyr/net/socket.h>
 
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket_service.h>
 #include <zephyr/posix/fcntl.h>
 
 LOG_MODULE_REGISTER(CUdpSocket);
@@ -47,6 +48,7 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
 
 CUdpSocket::~CUdpSocket() {
     if (sock >= 0) {
+        net_socket_service_unregister(serviceDesc);
         zsock_close(sock);
         sock = -1;
     }
