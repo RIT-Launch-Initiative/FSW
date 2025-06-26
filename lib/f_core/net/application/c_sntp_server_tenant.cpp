@@ -26,6 +26,10 @@ extern "C" void sntpSocketServiceHandler(net_socket_service_event* pev) {
 
 void CSntpServerTenant::Startup() {
     LOG_INF("Starting SNTP server on port %d", sockPort);
+    int ret = sock.RegisterSocketService(&sntpSocketService, this);
+    if (ret < 0) {
+        LOG_ERR("Failed to register socket service for CSntpServerTenant: %d", ret);
+    }
 }
 
 void CSntpServerTenant::PostStartup() {
