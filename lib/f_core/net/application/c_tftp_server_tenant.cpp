@@ -21,7 +21,20 @@ char *inet_ntoa(struct in_addr in) {
 
 extern net_socket_service_desc tftpSocketService;
 extern "C" void tftpSocketServiceHandler(net_socket_service_event* pev) {
-    // TODO
+    auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
+
+    if (userData == nullptr) {
+        LOG_ERR("User data is null in alertSocketServiceHandler");
+        k_oops();
+    }
+
+    CTenant* tenant = static_cast<CTenant*>(userData->userData);
+    if (tenant == nullptr) {
+        LOG_ERR("Tenant is null in tftpSocketServiceHandler");
+        k_oops();
+    }
+
+    tenant->Run();
 }
 
 void CTftpServerTenant::Startup() {
