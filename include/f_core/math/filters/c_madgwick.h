@@ -24,12 +24,6 @@ public:
     int CalibrateBetaTerm(zsl_mtx* accel, zsl_mtx* gyro, zsl_mtx* mag, zsl_real_t* incl);
 
     /**
-     * Initialize the Madgwick filter with the given frequency.
-     * @return ZSL status code
-     */
-    int Initialize();
-
-    /**
      * Run the Madgwick filter update step. All sensor data must be fed before calling.
      * @param[out] quatOut Output quaternion
      * @return ZSL status code

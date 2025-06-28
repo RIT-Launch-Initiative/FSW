@@ -1,16 +1,14 @@
 #include "f_core/math/filters/c_madgwick.h"
 
-CMadgwick::CMadgwick(zsl_real_t frequencyHz) : frequencyHz(frequencyHz) {}
+CMadgwick::CMadgwick(zsl_real_t frequencyHz) : frequencyHz(frequencyHz) {
+    zsl_fus_madg_init(static_cast<uint32_t>(frequencyHz), &cfg);
+}
 
 int CMadgwick::CalibrateBetaTerm(zsl_mtx* accel, zsl_mtx* gyro, zsl_mtx* mag, zsl_real_t* incl) {
     if (accel == nullptr || gyro == nullptr) {
         return -EINVAL;
     }
     return zsl_fus_cal_madg(accel, gyro, mag, frequencyHz, incl, &cfg.beta);
-}
-
-int CMadgwick::Initialize() {
-    return zsl_fus_madg_init(static_cast<uint32_t>(frequencyHz), &cfg);
 }
 
 int CMadgwick::Update(zsl_quat& quatOut) {
