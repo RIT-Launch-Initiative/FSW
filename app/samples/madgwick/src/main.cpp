@@ -9,9 +9,9 @@ int main() {
     CGyroscope gyroscope(*DEVICE_DT_GET(DT_ALIAS(gyroscope)));
     CMagnetometer magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer)));
 
-    zsl_mtx accelInitData[100]{0};
-    zsl_mtx gyroInitData[100]{0};
-    zsl_mtx magnInitData[100]{0};
+    zsl_mtx accelInitData[100];
+    zsl_mtx gyroInitData[100];
+    zsl_mtx magnInitData[100];
 
     for (int i = 0; i < 100; i++) {
         accelerometer.UpdateSensorValue();
@@ -50,7 +50,7 @@ int main() {
     zsl_real_t magnY = 0.0;
     zsl_real_t magnZ = 0.0;
 
-    zsl_quat quatOut{0};
+    zsl_quat quatOut;
 
     while (true) {
         accelerometer.UpdateSensorValue();
