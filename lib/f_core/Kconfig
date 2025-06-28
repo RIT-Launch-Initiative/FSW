@@ -17,7 +17,7 @@ config F_CORE_SENSOR
       This option enables sensor functionality for F-Core
 
 config F_CORE_MATH
-    bool "Network"
+    bool "Math"
     help
       This option enables math functionality for F-Core
     select ZSL

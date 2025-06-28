@@ -1,7 +1,7 @@
 #ifndef N_MATH_UTILS_H
 #define N_MATH_UTILS_H
 
-#include <zsl/zsl.h>
+#include <zsl/orientation/quaternions.h>
 
 namespace NMathUtils {
     /**
