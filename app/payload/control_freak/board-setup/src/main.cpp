@@ -122,8 +122,7 @@ int main() {
             return 0;
         }
     }
-    //
-    // return 0;
+
     while (1) {
         for (int i = 0; i < 3; i++) {
             ret = pwm_set_pulse_dt(servos[i], pulse_width);
