@@ -51,16 +51,23 @@ int main() {
     zsl_real_t magnZ = 0.0;
 
     while (true) {
+        accelerometer.UpdateSensorValue();
+        gyroscope.UpdateSensorValue();
+        magnetometer.UpdateSensorValue();
 
+        accelX = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
+        accelY = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+        accelZ = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
+
+        gyroX = gyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_X);
+        gyroY = gyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Y);
+        gyroZ = gyroscope.GetSensorValueFloat(SENSOR_CHAN_GYRO_Z);
+
+        magnX = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_X);
+        magnY = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Y);
+        magnZ = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Z);
 
     }
-
-
-
-
-
-
-
 
     return 0;
 }
