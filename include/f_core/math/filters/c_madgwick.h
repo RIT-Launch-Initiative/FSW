@@ -40,10 +40,10 @@ public:
 
     /**
      * Run the Madgwick filter update step. All sensor data must be fed before calling.
-     * @param q_out Output quaternion (must be a valid pointer)
+     * @param quatOut Output quaternion
      * @return ZSL status code
      */
-    int Update(zsl_quat* q_out) {
+    int Update(zsl_quat& quatOut) {
         if (!accelFed || !gyroFed) {
             return -EINVAL; // Require at least accel and gyro
         }
@@ -52,7 +52,7 @@ public:
             magFed ? &magData : nullptr,
             &gyroData,
             inclinationFed ? &inclination : nullptr,
-            q_out,
+            &quatOut,
             &cfg
         );
         resetFedFlags();
