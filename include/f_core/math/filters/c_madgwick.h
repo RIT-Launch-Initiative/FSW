@@ -15,16 +15,19 @@ public:
     }
 
     /**
-     * Initialize the beta term for the Madgwick filter
+     * Calibrate the beta term for the Madgwick filter using calibration matrices.
+     * @param accel Pointer to calibration matrix for accelerometer samples
+     * @param gyro Pointer to calibration matrix for gyroscope samples
+     * @param mag Pointer to calibration matrix for magnetometer samples
+     * @param incl Pointer to inclination angle in degrees
      * @return ZSL status code
      */
-    int InitializeBetaTerm() {
-        const bool anythingFed = accelFed || magFed || gyroFed || inclinationFed;
-        if (!anythingFed) {
-            return -EINVAL; // No data fed to the filter. Most likely user error.
+    int CalibrateBetaTerm(zsl_mtx* accel, zsl_mtx* gyro, zsl_mtx* mag, zsl_real_t* incl) {
+        if (accel == nullptr || gyro == nullptr) {
+            return -EINVAL; // Require at least accel and gyro
         }
 
-        return zsl_fus_cal_madg(gyroData, accelData, magData, frequencyHz, inclination, &cfg.beta);
+        return zsl_fus_cal_madg(accel, gyro, mag, frequencyHz, incl, &cfg.beta);
     }
 
     /**
@@ -103,6 +106,10 @@ public:
         gyroFed = true;
     }
 
+    /**
+     * Feed the Madgwick filter with Earth's magnetic field inclination angle
+     * @param inc Inclination angle in degrees
+     */
     void FeedInclination(const zsl_real_t inc) {
         inclination = inc;
         inclinationFed = true;
