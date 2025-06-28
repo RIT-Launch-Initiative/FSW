@@ -8,6 +8,8 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
+    - name: zscilib
+      url-base: https://github.com/zephyrproject-rtos/zscilib
 
   projects:
     - name: zephyr
@@ -21,9 +23,9 @@ manifest:
           - hal_nxp
           - littlefs
           - loramac-node
-          - hal_st
+          - lz4
           - segger
           - percepio
-          - lz4
+          - zscilib
       clone-depth: 1
 
