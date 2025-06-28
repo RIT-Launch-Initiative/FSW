@@ -11,6 +11,7 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 
+		// comment for rtt console
 		zephyr,console = &usart1;
 		zephyr,shell-uart = &usart1;
 
@@ -370,25 +371,32 @@
 				// rest size = 400s
 				// total 405s
 				// 1000 acc samp/s = 100 pack/s = 100 page/s
-				// 405s * 100 page/s = 40500 pages
-				// 40500 pages = 10125 KB sector round to 10128 KB
+				// 415s * 100 page/s = 41500 pages
+				// 41500 pages = 10125 KB sector round to 10128 KB
 				label = "superfast-storage";
-				reg = <0 DT_SIZE_K(10128)>;
+				reg = <0 DT_SIZE_K(10376)>;
 			};
-			super_slow_partition: slowpartition@9e4000{
+			super_slow_partition: slowpartition@a22000{
 				label = "superslow-storage";
 				// 1 day (24 hrs) = 86400s
 				// 1 page / 8 seconds
 				// 86400s * 1 page/ 8 s = 10800 pages
 				// 2700 KB
-				reg = <0x9e4000 DT_SIZE_K(2700)>;
+				reg = <0xa22000 DT_SIZE_K(2700)>;
 			};
 
-			external_storage_partition: partition@c87000 {
+			super_yev_partition: yevpartition@cc5000{
+				// 100 KB yev partition
+				label = "superyev-storage";
+				reg = <0xcc5000 DT_SIZE_K(100)>;
+			};
+
+			external_storage_partition: partition@cde000 {
 				// the rest for littlefs
 				// 16384 - 2700 - 10128
 				label = "w25q-storage";
-				reg = <0xc87000 DT_SIZE_K(3556)>;
+				reg = <0xcde000 DT_SIZE_K(3208)>;
+
 			};
 		};
 	};
