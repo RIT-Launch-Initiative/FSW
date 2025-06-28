@@ -1,6 +1,7 @@
 #ifndef C_MADGWICK_H
 #define C_MADGWICK_H
 
+#include <zephyr/kernel.h>
 #include <zsl/zsl.h>
 #include <zsl/orientation/orientation.h>
 
@@ -17,10 +18,21 @@ public:
      * Initialize the beta term for the Madgwick filter
      * @return ZSL status code
      */
-    int Initialize() {
-        return zsl_fus_cal_madg(gyroData, accelData, magData, frequencyHz, &beta);
+    int InitializeBetaTerm() {
+        const bool anythingFed = accelFed || magFed || gyroFed || inclinationFed;
+        if (!anythingFed) {
+            return -EINVAL; // No data fed to the filter. Most likely user error.
+        }
+
+        return zsl_fus_cal_madg(gyroData, accelData, magData, frequencyHz, inclination, &beta);
     }
 
+    /**
+     * Feed the Madgwick filter with accelerometer data
+     * @param x X-axis acceleration
+     * @param y Y-axis acceleration
+     * @param z Z-axis acceleration
+     */
     void FeedAccel(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
         accelBuff[0] = x;
         accelBuff[1] = y;
@@ -28,6 +40,12 @@ public:
         accelFed = true;
     }
 
+    /**
+     * Feed the Madgwick filter with magnetometer data
+     * @param x X-axis magnetic field
+     * @param y Y-axis magnetic field
+     * @param z Z-axis magnetic field
+     */
     void FeedMagn(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
         magBuff[0] = x;
         magBuff[1] = y;
@@ -35,6 +53,12 @@ public:
         magFed = true;
     }
 
+    /**
+     * Feed the Madgwick filter with gyroscope data
+     * @param x X-axis angular velocity
+     * @param y Y-axis angular velocity
+     * @param z Z-axis angular velocity
+     */
     void FeedGyro(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
         gyroBuff[0] = x;
         gyroBuff[1] = y;
