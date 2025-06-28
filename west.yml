@@ -8,8 +8,6 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
-    - name: zscilib
-      url-base: https://github.com/zephyrproject-rtos/zscilib
 
   projects:
     - name: zephyr
@@ -26,6 +24,7 @@ manifest:
           - lz4
           - segger
           - percepio
-          - zscilib
       clone-depth: 1
-
+    - name: zscilib
+      remote: zephyrproject-rtos
+      revision: master
