@@ -120,7 +120,7 @@ private:
     zsl_real_t frequencyHz;
 
     struct zsl_fus_madg_cfg {
-        zsl_real_t beta = -1.0F;
+        zsl_real_t beta = 0.033; // AHRS states 0.033 for IMU and 0.041 for MARG
     } cfg;
 
     // Inputs
