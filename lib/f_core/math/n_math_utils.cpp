@@ -1,5 +1,7 @@
-//
-// Created by aaron.m.chan on 6/28/25.
-//
+#include "f_core/math/n_math_utils.h"
 
-#include "n_math_utils.h"
+
+void NMathUtils::CalculateRollPitchYaw(zsl_quat inputQuat, float& roll, float& pitch, float& yaw)
+{
+
+}
