@@ -11,7 +11,7 @@ public:
      * Constructor
      * @param frequencyHz Frequency in Hz for the filter
      */
-    CMadgwick(zsl_real_t frequencyHz) : frequencyHz(frequencyHz), beta(-1) {
+    CMadgwick(zsl_real_t frequencyHz) : frequencyHz(frequencyHz) {
     }
 
     /**
@@ -24,7 +24,44 @@ public:
             return -EINVAL; // No data fed to the filter. Most likely user error.
         }
 
-        return zsl_fus_cal_madg(gyroData, accelData, magData, frequencyHz, inclination, &beta);
+        return zsl_fus_cal_madg(gyroData, accelData, magData, frequencyHz, inclination, &cfg.beta);
+    }
+
+    /**
+     * Initialize the Madgwick filter with the given frequency.
+     * @return ZSL status code
+     */
+    int Initialize() {
+        return zsl_fus_madg_init(static_cast<uint32_t>(frequencyHz), &cfg);
+    }
+
+    /**
+     * Run the Madgwick filter update step. All sensor data must be fed before calling.
+     * @param q_out Output quaternion (must be a valid pointer)
+     * @return ZSL status code
+     */
+    int Update(zsl_quat* q_out) {
+        if (!accelFed || !gyroFed) {
+            return -EINVAL; // Require at least accel and gyro
+        }
+        int rc = zsl_fus_madg_feed(
+            &accelData,
+            magFed ? &magData : nullptr,
+            &gyroData,
+            inclinationFed ? &inclination : nullptr,
+            q_out,
+            &cfg
+        );
+        resetFedFlags();
+        return rc;
+    }
+
+    /**
+     * Set the beta parameter for the Madgwick filter.
+     * @param beta Beta value
+     */
+    void SetBeta(zsl_real_t betaVal) {
+        cfg.beta = betaVal;
     }
 
     /**
@@ -74,7 +111,10 @@ public:
 private:
     // Configuration
     zsl_real_t frequencyHz;
-    zsl_real_t beta;
+
+    struct zsl_fus_madg_cfg {
+        zsl_real_t beta = -1.0F;
+    } cfg;
 
     // Inputs
     zsl_real_t accelBuff[3] = {0.0F, 0.0F, 0.0F};
