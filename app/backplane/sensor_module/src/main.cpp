@@ -7,8 +7,6 @@
 
 #include <f_core/os/n_rtos.h>
 
-#include "f_core/math/n_math_utils.h"
-
 int main() {
     static CSensorModule sensorModule{};
 
