@@ -94,6 +94,7 @@
 
         lora = &lora0;
         gnss = &maxm10s;
+		watchdog = &iwdg;
     };
 };
 
@@ -278,4 +279,8 @@
             reg = <0x00060000 DT_SIZE_K(128)>;
         };
     };
+};
+
+&iwdg {
+	status = "okay";
 };
