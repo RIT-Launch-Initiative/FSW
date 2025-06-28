@@ -11,8 +11,7 @@ public:
      * Constructor
      * @param frequencyHz Frequency in Hz for the filter
      */
-    CMadgwick(zsl_real_t frequencyHz) : frequencyHz(frequencyHz) {
-    }
+    CMadgwick(zsl_real_t frequencyHz);
 
     /**
      * Calibrate the beta term for the Madgwick filter using calibration matrices.
@@ -22,50 +21,26 @@ public:
      * @param[in] incl Inclination angle in degrees (pointer)
      * @return ZSL status code
      */
-    int CalibrateBetaTerm(zsl_mtx* accel, zsl_mtx* gyro, zsl_mtx* mag, zsl_real_t* incl) {
-        if (accel == nullptr || gyro == nullptr) {
-            return -EINVAL; // Require at least accel and gyro
-        }
-
-        return zsl_fus_cal_madg(accel, gyro, mag, frequencyHz, incl, &cfg.beta);
-    }
+    int CalibrateBetaTerm(zsl_mtx* accel, zsl_mtx* gyro, zsl_mtx* mag, zsl_real_t* incl);
 
     /**
      * Initialize the Madgwick filter with the given frequency.
      * @return ZSL status code
      */
-    int Initialize() {
-        return zsl_fus_madg_init(static_cast<uint32_t>(frequencyHz), &cfg);
-    }
+    int Initialize();
 
     /**
      * Run the Madgwick filter update step. All sensor data must be fed before calling.
      * @param[out] quatOut Output quaternion
      * @return ZSL status code
      */
-    int Update(zsl_quat& quatOut) {
-        if (!accelFed || !gyroFed) {
-            return -EINVAL; // Require at least accel and gyro
-        }
-        int rc = zsl_fus_madg_feed(
-            &accelData, // [in] Accelerometer data
-            magFed ? &magData : nullptr, // [in] Magnetometer data (optional)
-            &gyroData, // [in] Gyroscope data
-            inclinationFed ? &inclination : nullptr, // [in] Inclination (optional)
-            &quatOut, // [out] Output quaternion
-            &cfg // [in] Filter configuration
-        );
-        resetFedFlags();
-        return rc;
-    }
+    int Update(zsl_quat& quatOut);
 
     /**
      * Set the beta parameter for the Madgwick filter.
      * @param beta Beta value
      */
-    void SetBeta(zsl_real_t betaVal) {
-        cfg.beta = betaVal;
-    }
+    void SetBeta(zsl_real_t betaVal);
 
     /**
      * Feed the Madgwick filter with accelerometer data
@@ -73,47 +48,26 @@ public:
      * @param y Y-axis acceleration
      * @param z Z-axis acceleration
      */
-    void FeedAccel(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
-        accelBuff[0] = x;
-        accelBuff[1] = y;
-        accelBuff[2] = z;
-        accelFed = true;
-    }
-
+    void FeedAccel(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z);
     /**
      * Feed the Madgwick filter with magnetometer data
      * @param x X-axis magnetic field
      * @param y Y-axis magnetic field
      * @param z Z-axis magnetic field
      */
-    void FeedMagn(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
-        magBuff[0] = x;
-        magBuff[1] = y;
-        magBuff[2] = z;
-        magFed = true;
-    }
-
+    void FeedMagn(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z);
     /**
      * Feed the Madgwick filter with gyroscope data
      * @param x X-axis angular velocity
      * @param y Y-axis angular velocity
      * @param z Z-axis angular velocity
      */
-    void FeedGyro(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
-        gyroBuff[0] = x;
-        gyroBuff[1] = y;
-        gyroBuff[2] = z;
-        gyroFed = true;
-    }
-
+    void FeedGyro(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z);
     /**
      * Feed the Madgwick filter with Earth's magnetic field inclination angle
      * @param inc Inclination angle in degrees
      */
-    void FeedInclination(const zsl_real_t inc) {
-        inclination = inc;
-        inclinationFed = true;
-    }
+    void FeedInclination(const zsl_real_t inc);
 
 private:
     // Configuration
@@ -143,12 +97,7 @@ private:
     /**
      * Reset the flags indicating which sensors have been fed
      */
-    void resetFedFlags() {
-        accelFed = false;
-        magFed = false;
-        gyroFed = false;
-        inclinationFed = false;
-    }
+    void resetFedFlags();
 };
 
 #endif //C_MADGWICK_H
