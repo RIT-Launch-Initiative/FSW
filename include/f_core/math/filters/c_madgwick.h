@@ -16,10 +16,10 @@ public:
 
     /**
      * Calibrate the beta term for the Madgwick filter using calibration matrices.
-     * @param accel Pointer to calibration matrix for accelerometer samples
-     * @param gyro Pointer to calibration matrix for gyroscope samples
-     * @param mag Pointer to calibration matrix for magnetometer samples
-     * @param incl Pointer to inclination angle in degrees
+     * @param[in] accel Calibration matrix for accelerometer samples
+     * @param[in] gyro Calibration matrix for gyroscope samples
+     * @param[in] mag Calibration matrix for magnetometer samples
+     * @param[in] incl Inclination angle in degrees (pointer)
      * @return ZSL status code
      */
     int CalibrateBetaTerm(zsl_mtx* accel, zsl_mtx* gyro, zsl_mtx* mag, zsl_real_t* incl) {
@@ -40,7 +40,7 @@ public:
 
     /**
      * Run the Madgwick filter update step. All sensor data must be fed before calling.
-     * @param quatOut Output quaternion
+     * @param[out] quatOut Output quaternion
      * @return ZSL status code
      */
     int Update(zsl_quat& quatOut) {
@@ -48,12 +48,12 @@ public:
             return -EINVAL; // Require at least accel and gyro
         }
         int rc = zsl_fus_madg_feed(
-            &accelData,
-            magFed ? &magData : nullptr,
-            &gyroData,
-            inclinationFed ? &inclination : nullptr,
-            &quatOut,
-            &cfg
+            &accelData, // [in] Accelerometer data
+            magFed ? &magData : nullptr, // [in] Magnetometer data (optional)
+            &gyroData, // [in] Gyroscope data
+            inclinationFed ? &inclination : nullptr, // [in] Inclination (optional)
+            &quatOut, // [out] Output quaternion
+            &cfg // [in] Filter configuration
         );
         resetFedFlags();
         return rc;
