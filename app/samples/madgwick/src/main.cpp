@@ -6,7 +6,7 @@
 int main() {
     CMadgwick madgwickFilter(100.0);
     CAccelerometer accelerometer(*DEVICE_DT_GET(DT_ALIAS(imu)));
-    CGyroscope gyroscope(*DEVICE_DT_GET(DT_ALIAS(gyroscope)));
+    CGyroscope gyroscope(*DEVICE_DT_GET(DT_ALIAS(imu)));
     CMagnetometer magnetometer(*DEVICE_DT_GET(DT_ALIAS(magnetometer)));
 
     zsl_mtx accelInitData[100];
