@@ -50,6 +50,8 @@ int main() {
     zsl_real_t magnY = 0.0;
     zsl_real_t magnZ = 0.0;
 
+    zsl_quat quatOut{0};
+
     while (true) {
         accelerometer.UpdateSensorValue();
         gyroscope.UpdateSensorValue();
@@ -67,6 +69,11 @@ int main() {
         magnY = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Y);
         magnZ = magnetometer.GetSensorValueFloat(SENSOR_CHAN_MAGN_Z);
 
+        madgwickFilter.FeedAccel(accelX, accelY, accelZ);
+        madgwickFilter.FeedGyro(gyroX, gyroY, gyroZ);
+        madgwickFilter.FeedMagn(magnX, magnY, magnZ);
+
+        madgwickFilter.Update(quatOut);
     }
 
     return 0;
