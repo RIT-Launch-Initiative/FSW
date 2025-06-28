@@ -28,18 +28,24 @@ public:
         accelFed = true;
     }
 
-    void FeedMagn() {
-
+    void FeedMagn(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
+        magBuff[0] = x;
+        magBuff[1] = y;
+        magBuff[2] = z;
+        magFed = true;
     }
 
-    void FeedGyro() {
-
+    void FeedGyro(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
+        gyroBuff[0] = x;
+        gyroBuff[1] = y;
+        gyroBuff[2] = z;
+        gyroFed = true;
     }
 
-    void FeedInclination() {
-
+    void FeedInclination(const zsl_real_t inc) {
+        inclination = inc;
+        inclinationFed = true;
     }
-
 
 private:
     // Configuration
@@ -57,7 +63,6 @@ private:
     zsl_vec gyroData{.sz = 3, .data = gyroBuff};
 
     zsl_real_t inclination = 0.0F; // Earth's magnetic field inclination angle in degrees
-
 
     bool accelFed = false;
     bool magFed = false;
