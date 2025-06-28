@@ -1,6 +1,5 @@
-#include <f_core/math/filters/c_madgwick.h>
+#include "f_core/math/filters/c_madgwick.h"
 
-// Constructor
 CMadgwick::CMadgwick(zsl_real_t frequencyHz) : frequencyHz(frequencyHz) {}
 
 int CMadgwick::CalibrateBetaTerm(zsl_mtx* accel, zsl_mtx* gyro, zsl_mtx* mag, zsl_real_t* incl) {
