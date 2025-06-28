@@ -3,6 +3,7 @@
 
 #include <zsl/zsl.h>
 #include <zsl/orientation/orientation.h>
+
 class CMadgwick {
 public:
     /**
@@ -17,17 +18,61 @@ public:
      * @return ZSL status code
      */
     int Initialize() {
-        return zsl_fus_cal_madg(&zsl_fus_data_gyr, &zsl_fus_data_acc,
-             &zsl_fus_data_mag, 100.0, NULL, &beta);
+        return zsl_fus_cal_madg(gyroData, accelData, magData, frequencyHz, &beta);
     }
 
-    int Feed() {
+    void FeedAccel(const zsl_real_t x, const zsl_real_t y, const zsl_real_t z) {
+        accelBuff[0] = x;
+        accelBuff[1] = y;
+        accelBuff[2] = z;
+        accelFed = true;
+    }
+
+    void FeedMagn() {
 
     }
+
+    void FeedGyro() {
+
+    }
+
+    void FeedInclination() {
+
+    }
+
 
 private:
+    // Configuration
     zsl_real_t frequencyHz;
     zsl_real_t beta;
+
+    // Inputs
+    zsl_real_t accelBuff[3] = {0.0F, 0.0F, 0.0F};
+    zsl_vec accelData{.sz = 3, .data = accelBuff};
+
+    zsl_real_t magBuff[3] = {0.0F, 0.0F, 0.0F};
+    zsl_vec magData{.sz = 3, .data = magBuff};
+
+    zsl_real_t gyroBuff[3] = {0.0F, 0.0F, 0.0F};
+    zsl_vec gyroData{.sz = 3, .data = gyroBuff};
+
+    zsl_real_t inclination = 0.0F; // Earth's magnetic field inclination angle in degrees
+
+
+    bool accelFed = false;
+    bool magFed = false;
+    bool gyroFed = false;
+    bool inclinationFed = false;
+
+    /**
+     * Reset the flags indicating which sensors have been fed
+     */
+    void resetFedFlags() {
+        accelFed = false;
+        magFed = false;
+        gyroFed = false;
+        inclinationFed = false;
+    }
 };
 
 #endif //C_MADGWICK_H
