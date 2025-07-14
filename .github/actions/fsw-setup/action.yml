@@ -9,7 +9,7 @@ runs:
       shell: bash
       run: |
         sudo dpkg --add-architecture i386 
-        sudo apt update
+        sudo apt-get -qq update
     - name: Compute Cache Hashes
       id: compute_hashes
       shell: bash
