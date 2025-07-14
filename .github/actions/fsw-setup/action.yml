@@ -4,6 +4,11 @@ description: |
 runs:
   using: "composite"
   steps:
+    - name: Add 32bit
+      if: runner.os == 'Linux'
+      run: |
+        dpkg --add-architecture i386 
+      shell: bash
     - name: Compute Cache Hashes
       id: compute_hashes
       shell: bash
