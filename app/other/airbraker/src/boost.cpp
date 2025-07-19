@@ -1,6 +1,5 @@
 #include "boost.h"
 
-#include "buzzer.h"
 #include "f_core/utils/linear_fit.hpp"
 #include "flight.h"
 
@@ -25,12 +24,12 @@ bool feed_boost_acc(k_ticks_t ts_ticks, const NTypes::AccelerometerData &xyz) {
 #endif
     if (acc_buf.Avg() > boost_thresh) {
         printk("Boosted fr\n");
-        buzzer_tell(BuzzCommand::AllGood);
+        // buzzer_tell(BuzzCommand::AllGood);
         return true;
     }
     if (overriding_boost) {
         printk("Boosted not fr\n");
-        buzzer_tell(BuzzCommand::AllGood);
+        // buzzer_tell(BuzzCommand::AllGood);
         return true;
     }
     return false;

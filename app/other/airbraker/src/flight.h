@@ -15,16 +15,14 @@ static constexpr uint32_t baromBoostTimeThreshold = 1000; // millis
 
 enum Events {
     PadReady,
-    Unlocked,
     Boost,
     Coast,
     GroundHit,
-    InitialInflation,
     NumEvents,
 };
 
 inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
-    "PadReady", "Unlocked", "Boost", "Coast", "InitialInflation", "GroundHit",
+    "PadReady", "Boost", "Coast",  "GroundHit",
 };
 enum Sources {
     // Flight Controlling Sources
@@ -75,9 +73,7 @@ inline constexpr std::array<FreakFlightController::DecisionFunc, Events::NumEven
     arr[Events::GroundHit] = [](FreakFlightController::SourceStates states) -> bool {
         return states[Sources::GroundHitTimer];
     };
-    arr[Events::InitialInflation] = [](FreakFlightController::SourceStates states) -> bool {
-        return states[Sources::InflationSubsys];
-    };
+
     return arr;
 }();
 

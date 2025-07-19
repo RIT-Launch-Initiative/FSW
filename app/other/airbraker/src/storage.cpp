@@ -47,43 +47,21 @@ int storage_thread_entry(void *v_fc, void *v_parts, void *) {
     const struct gorbfs_partition_config *fast_cfg = (struct gorbfs_partition_config *) fast_dev->config;
     struct gorbfs_partition_data *fast_data = (struct gorbfs_partition_data *) parts->superfast_dev->data;
 
-    const struct device *slow_dev = parts->superslow_dev;
-    const struct gorbfs_partition_config *slow_cfg = (struct gorbfs_partition_config *) slow_dev->config;
-    struct gorbfs_partition_data *slow_data = (struct gorbfs_partition_data *) slow_dev->data;
-
-    const struct device *yev_dev = parts->superyev_dev;
-    const struct gorbfs_partition_config *yev_cfg = (struct gorbfs_partition_config *) yev_dev->config;
-    struct gorbfs_partition_data *yev_data = (struct gorbfs_partition_data *) yev_dev->data;
-
     FreakFlightController *fc = static_cast<FreakFlightController *>(v_fc);
     (void) fc;
 
     LOG_INF("Partition %s ready for storage: Page Size: %d, Partition Size: %d, Num Pages: %d", fast_dev->name,
             PAGE_SIZE, fast_cfg->partition_size, fast_cfg->num_pages);
-    LOG_INF("Partition %s ready for storage: Page Size: %d, Partition Size: %d, Num Pages: %d", slow_dev->name,
-            PAGE_SIZE, slow_cfg->partition_size, slow_cfg->num_pages);
-    LOG_INF("Partition %s ready for storage: Page Size: %d, Partition Size: %d, Num Pages: %d", yev_dev->name,
-            PAGE_SIZE, yev_cfg->partition_size, yev_cfg->num_pages);
 
     int ret = gfs_erase_if_on_sector(fast_dev);
     if (ret != 0) {
         LOG_WRN("Failed initial erase of fast partition");
     }
-    ret = gfs_erase_if_on_sector(slow_dev);
-    if (ret != 0) {
-        LOG_WRN("Failed initial erase of slow partition");
-    }
-    ret = gfs_erase_if_on_sector(yev_dev);
-    if (ret != 0) {
-        LOG_WRN("Failed initial erase of yev partition");
-    }
 
     k_poll_event events[5];
     k_poll_event_init(&events[0], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &datalock_q);
     k_poll_event_init(&events[1], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, fast_data->msgq);
-    k_poll_event_init(&events[2], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, slow_data->msgq);
     k_poll_event_init(&events[3], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, &flightlog_msgq);
-    k_poll_event_init(&events[4], K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, yev_data->msgq);
 
     while (true) {
         int ret = 0;
@@ -109,21 +87,10 @@ int storage_thread_entry(void *v_fc, void *v_parts, void *) {
             gfs_handle_new_block(fast_dev, chunk_ptr);
             events[1].state = K_POLL_STATE_NOT_READY;
         } else if (events[2].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
-            void *chunk_ptr = NULL;
-            ret = k_msgq_get(slow_data->msgq, &chunk_ptr, K_FOREVER);
-            gfs_handle_new_block(slow_dev, chunk_ptr);
-            events[2].state = K_POLL_STATE_NOT_READY;
-        } else if (events[3].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
             FreakFlightController::EventNotification notif = {0};
             ret = k_msgq_get(&flightlog_msgq, &notif, K_FOREVER);
-            events[3].state = K_POLL_STATE_NOT_READY;
+            events[2].state = K_POLL_STATE_NOT_READY;
             write_noti_to_flightlog(notif);
-        } else if (events[4].state == K_POLL_STATE_MSGQ_DATA_AVAILABLE) {
-            LOG_INF("Yev data");
-            void *chunk_ptr = NULL;
-            ret = k_msgq_get(yev_data->msgq, &chunk_ptr, K_FOREVER);
-            gfs_handle_new_block(yev_dev, chunk_ptr);
-            events[4].state = K_POLL_STATE_NOT_READY;
         }
     }
     if (ret != 0) {
