@@ -41,7 +41,10 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
 
     while (DONT_STOP && !freak_controller->HasEventOccurred(Events::GroundHit)) {
         for (size_t i = 0; i < packets_per_slab; i++){
-
+         float barom = 0;
+         float accel = 0;
+         float altitude = 0
+         float velocity = 0;   
         }
     }
 

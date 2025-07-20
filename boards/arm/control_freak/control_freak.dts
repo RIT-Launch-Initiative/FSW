@@ -17,6 +17,7 @@
 
 	};
 	aliases {
+		watchdog0 = &iwdg;
 		debug-serial = &uart4;
 		led0 = &led1; // a little broken :(
 		buzz = &buzzer;
@@ -176,6 +177,9 @@
 			};
 		};
 	};
+};
+&iwdg{
+	status = "okay";
 };
 
 &timers3 {
@@ -435,8 +439,6 @@
 	status = "okay";
 };
 
-
-// fake and untrue, call me when we use mcuboot
 
 // fake and untrue, call me when we use mcuboot
 &flash0 {

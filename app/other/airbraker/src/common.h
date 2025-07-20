@@ -23,28 +23,10 @@ enum DataLockMsg {
     Unlock,
 };
 
-struct YevData {
-    uint32_t ms;
-    float altitude;
-    float velocity;
-    float acceleration;
-};
 
-#define GNC_PACKETS_PRE_BLOCK 16
-struct YevPacket {
-    YevData data[GNC_PACKETS_PRE_BLOCK];
-};
-
-typedef uint8_t FlipState;
-#define FLIP_STATE_NOT_TRYING 0xff
-
-#define FLIP_STATE(current_face, attempts) (((current_face & 0b111) << 5) | (attempts > 30 ? 30 : attempts))
 
 #define IMU_SAMPLES_PER_PACKET                                                                                         \
     (sizeof(((NTypes::SuperFastPacket *) 0)->GyroData) / sizeof(((NTypes::SuperFastPacket *) 0)->GyroData[0]))
-
-#define SLOW_DATA_PER_PACKET 8
-using SuperSlowPacket = NTypes::SlowInfo[SLOW_DATA_PER_PACKET];
 
 /**
  * @param ina_dev ina device
@@ -52,9 +34,6 @@ using SuperSlowPacket = NTypes::SlowInfo[SLOW_DATA_PER_PACKET];
  * @param[out] current current that was read or unchanged on error
  */
 int read_ina(const struct device *ina_dev, float &voltage, float &current);
-
-int read_imu(const struct device *imu_dev, NTypes::AccelerometerData &acc, NTypes::GyroscopeData &gyro);
-int read_barom(const struct device *barom_dev, float &temp, float &press);
 
 int set_lsm_sampling(const struct device *imu_dev, int odr);
 
@@ -69,20 +48,5 @@ bool is_data_locked();
 void unlock_boostdata();
 void lock_boostdata();
 
-// implemented by horus
-struct small_orientation {
-    int8_t x;
-    int8_t y;
-    int8_t z;
-};
-
-/**
- * @param normalized orientation vector
- * will be very bad if not orientated
- */
-small_orientation minify_orientation(const NTypes::AccelerometerData &normed);
-
-int submit_horus_data(const float &tempC, const float &press, const float &batteryVoltage,
-                      const small_orientation &orientation, const FlightState &fs);
 
 #endif
