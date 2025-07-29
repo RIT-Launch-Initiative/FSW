@@ -17,25 +17,21 @@
 LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
-
-static constexpr float BATTERY_WARNING_THRESH = 7.9;
+constexpr float BATTERY_WARNING_THRESH = 7.9;
 float startup_voltage = 0;
 
-extern struct k_msgq flightlog_msgq;
-void handler(FreakFlightController::EventNotification noti) { k_msgq_put(&flightlog_msgq, &noti, K_MSEC(1)); }
+// extern struct k_msgq flightlog_msgq;
+// void handler(FreakFlightController::EventNotification noti) { k_msgq_put(&flightlog_msgq, &noti, K_MSEC(1)); }
 
-FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, handler};
-static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
+// FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, handler};
+// static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
 
+// Partitions parts{
+// .superfast_dev = superfast_storage,
+// };
 
-Partitions parts{
-    .superfast_dev = superfast_storage,
-};
-
-
-K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry, (void *) &freak_controller,
-                (void *) &parts, NULL, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
-
+// K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry, (void *) &freak_controller,
+// (void *) &parts, NULL, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
 
 int main() {
     int ret = 0;
@@ -66,6 +62,7 @@ int main() {
         return -1;
     }
     float current = 0;
+
     ret = read_ina(ina_servo, startup_voltage, current);
     if (ret != 0) {
         LOG_ERR("Couldn't read battery");
@@ -74,15 +71,15 @@ int main() {
         // buzzer_tell(BuzzCommand::BatteryWarning);
     }
 
-    if (!device_is_ready(superfast_storage)) {
-        LOG_ERR("Storage not ready");
-        // buzzer_tell(BuzzCommand::SensorTroubles);
-    }
+    // if (!device_is_ready(superfast_storage)) {
+    // LOG_ERR("Storage not ready");
+    // buzzer_tell(BuzzCommand::SensorTroubles);
+    // }
 
     // buzzer_tell(BuzzCommand::AllGood);
 
     //Ground, Boost, Coast, Flight
-    ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, ina_servo, &freak_controller);
+    // ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, ina_servo, &freak_controller);
     LOG_INF("On the ground now");
 
     return 0;
@@ -218,7 +215,8 @@ int cmd_read_compress(const struct device *dev, const struct shell *shell, size_
 }
 
 int cmd_readfast(const struct shell *shell, size_t argc, char **argv) {
-    return cmd_read(superfast_storage, shell, argc, argv);
+    return 0;
+    // return cmd_read(superfast_storage, shell, argc, argv);
 }
 SHELL_STATIC_SUBCMD_SET_CREATE(freak_subcmds, SHELL_CMD(stop, NULL, "Stop Test", cmd_stop),
                                SHELL_CMD(unlock, NULL, "Unlock flight data partition", cmd_unlock),

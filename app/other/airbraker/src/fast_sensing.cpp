@@ -25,12 +25,11 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
 
     int64_t start = k_uptime_get();
 
-
     k_timer_start(&imutimer, K_MSEC(10), K_MSEC(10));
     FlightState flight_state = FlightState::NotSet;
     bool already_imu_boosted = false;
 
-    static constexpr size_t packets_per_slab = 256/32;
+    static constexpr size_t packets_per_slab = 256 / 32;
     int ret = 0;
 
     freak_controller->SubmitEvent(Sources::LSM6DSL, Events::PadReady);
@@ -40,11 +39,11 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
     flight_state = FlightState::OnPad;
 
     while (DONT_STOP && !freak_controller->HasEventOccurred(Events::GroundHit)) {
-        for (size_t i = 0; i < packets_per_slab; i++){
-         float barom = 0;
-         float accel = 0;
-         float altitude = 0
-         float velocity = 0;   
+        for (size_t i = 0; i < packets_per_slab; i++) {
+            float barom = 0;
+            float accel = 0;
+            float altitude = 0;
+            float velocity = 0;
         }
     }
 

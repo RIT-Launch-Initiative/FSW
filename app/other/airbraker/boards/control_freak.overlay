@@ -1,0 +1,18 @@
+/delete-node/ &lfs1;
+/delete-node/ &super_fast_partition;
+/delete-node/ &super_slow_partition;
+/delete-node/ &super_yev_partition;
+/delete-node/ &external_storage_partition;
+
+
+&w25q128{
+        partitions {
+                storage_partition: storage_partition@0{
+                        label = "storage_partition";
+                        reg = <0 DT_SIZE_M(16)>;
+                };
+        };
+};
+
+
+

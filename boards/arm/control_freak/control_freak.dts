@@ -459,8 +459,8 @@
 		 * 0x0001ffff (sectors 16-31) is reserved for use
 		 * by the application.
 		 */
-		storage_partition: partition@10000 {
-			label = "storage";
+		storage_partition2: partition@10000 {
+			label = "storage_partition2";
 			reg = <0x00010000 DT_SIZE_K(64)>;
 		};
 
