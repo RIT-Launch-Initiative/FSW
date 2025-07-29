@@ -23,6 +23,7 @@
 
         storage = &w25q128;
         logfs = &lfs1;
+        rtc = &rtc;
     };
 
     fstab {
@@ -94,6 +95,8 @@
 
         lora = &lora0;
         gnss = &maxm10s;
+
+		rtc = &rtc;
     };
 };
 
@@ -238,6 +241,17 @@
 };
 
 &backup_sram {
+    status = "okay";
+};
+
+&adc1 {
+	pinctrl-0 = <&adc1_in0_pa0>;
+	pinctrl-names = "default";
+	st,adc-prescaler = <4>;
+	status = "okay";
+};
+
+&die_temp {
     status = "okay";
 };
 

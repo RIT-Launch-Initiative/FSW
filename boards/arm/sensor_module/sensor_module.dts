@@ -19,11 +19,13 @@
 		logfs = &lfs1;
 
 		rtc = &rtc;
+		die-temp = &die_temp;
 	};
 
 	aliases {
 		led0 = &red_led_1;
 		led1 = &red_led_2;
+		die-temp = &die_temp;
 	};
 
 	leds: leds {
@@ -246,6 +248,17 @@
 
 &backup_sram {
 	status = "okay";
+};
+
+&adc1 {
+	pinctrl-0 = <&adc1_in0_pa0>;
+	pinctrl-names = "default";
+	st,adc-prescaler = <4>;
+	status = "okay";
+};
+
+&die_temp {
+    status = "okay";
 };
 
 &flash0 {
