@@ -1,0 +1,6 @@
+menuconfig GORBFS
+	bool "Gorbfs file system"
+	default n
+	select FLASH
+	help
+		enable gorbfs file system

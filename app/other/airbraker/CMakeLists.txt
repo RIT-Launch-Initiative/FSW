@@ -5,7 +5,7 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 include(${ZEPHYR_FSW_MODULE_DIR}/cmake/Autocoders.cmake)
 
 
-project(payload_flight_software LANGUAGES CXX)
+project(airbrake_flight_software LANGUAGES CXX)
 
 target_compile_options(app PRIVATE -Wall -Wno-unused-parameter -Wno-unused-function -Wno-ignored-qualifiers)
 FILE(GLOB app_sources src/*.cpp src/*.c)

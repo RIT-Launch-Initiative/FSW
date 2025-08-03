@@ -416,7 +416,7 @@
 		spi-max-frequency = <(DT_FREQ_M(50))>;
 		compatible = "semtech,sx1276";
 
-		reset-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioa 4  GPIO_ACTIVE_LOW>;
 		dio-gpios =   <&gpioc 5  GPIO_ACTIVE_HIGH>,
 					  <&gpiob 0  GPIO_ACTIVE_HIGH>,
 					  <&gpiob 1  GPIO_ACTIVE_HIGH>,

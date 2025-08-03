@@ -1,0 +1,16 @@
+description: Circular buffer simple flash filesystem for flight data partition
+
+compatible: "zephyr,fstab,gorbfs"
+include: "zephyr,fstab-common.yaml"
+
+properties:
+  ram-cache-blocks:
+    type: int
+    description: number of blocks worth of ram to buffer (can help keep it going if IO gets bogged down doing other things for a bit)
+    required: true
+  circle-size:
+    type: int
+    description: when end of circle is signalled, save this many pages back. (if i write a page every second, and my circle size is 4, when i mark end of circle, we are free to overwrite until 4 seconds of data ago)
+    required: true
+
+
