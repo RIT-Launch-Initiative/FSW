@@ -15,123 +15,184 @@
 
 
 / {
-	chosen {
-		zephyr,sram = &sram0;
-		zephyr,flash = &flash0;
-		zephyr,flash-controller = &ssi;
-		zephyr,console = &uart0;
-		zephyr,shell-uart = &uart0;
-		zephyr,code-partition = &code_partition;
-	};
+    compatible = "launch,l1_board";
+    chosen {
+        zephyr,sram = &sram0;
+        zephyr,flash = &flash0;
+        zephyr,flash-controller = &ssi;
+        zephyr,console = &uart0;
+        zephyr,shell-uart = &uart0;
+        zephyr,code-partition = &code_partition;
+    };
 
-	aliases {
-		rtc = &rtc;
-		watchdog0 = &wdt0;
-        led0 = &led0;
-	};
+    aliases {
+        rtc = &rtc;
+        watchdog0 = &wdt0;
+        led0 = &led2;
+    };
     leds {
-                compatible = "gpio-leds";
-                led0: led_0 {
-                        gpios = <&gpio0 25 GPIO_ACTIVE_HIGH>;
-                        label = "LED";
-                };
+        compatible = "gpio-leds";
+        led1: led_red {
+            gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
+            label = "LED-RED";
         };
+        led2: led_green {
+            gpios = <&gpio0 18 GPIO_ACTIVE_HIGH>;
+            label = "LED-GREEN";
+        };
+    };
+
+    gpio_keys {
+		compatible = "gpio-keys";
+		user_button: button_0 {
+			label = "User Button";
+			gpios = <&gpio0 29 GPIO_ACTIVE_LOW>; // CHECK DIRECTION
+			// zephyr,code = <INPUT_KEY_0>;
+		};
+        vbus_det: vbus_gpio {
+			label = "VBUS-DET";
+			gpios = <&gpio0 28 GPIO_ACTIVE_LOW>; // CHECK DIRECTION
+			// zephyr,code = <INPUT_KEY_1>;
+        };
+        sd_card_detect: sd_cd {
+			label = "SD Card Detect";
+			gpios = <&gpio0 1 GPIO_ACTIVE_LOW>; // CHECK DIRECTION
+			// zephyr,code = <INPUT_KEY_1>;
+        };
+	};
 
 };
 
 &flash0 {
-	reg = <0x10000000 DT_SIZE_M(2)>;
+    reg = <0x10000000 DT_SIZE_M(16)>;
 
-	partitions {
-		compatible = "fixed-partitions";
-		#address-cells = <1>;
-		#size-cells = <1>;
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
 
-		/* Reserved memory for the second stage bootloader */
-		second_stage_bootloader: partition@0 {
-			label = "second_stage_bootloader";
-			reg = <0x00000000 0x100>;
-			read-only;
-		};
+        /* Reserved memory for the second stage bootloader */
+        second_stage_bootloader: partition@0 {
+            label = "second_stage_bootloader";
+            reg = <0x00000000 0x100>;
+            read-only;
+        };
 
-		/*
-		 * Usable flash. Starts at 0x100, after the bootloader. The partition
-		 * size is 2MB minus the 0x100 bytes taken by the bootloader.
-		 */
-		code_partition: partition@100 {
-			label = "code-partition";
-			reg = <0x100 (DT_SIZE_M(2) - 0x100)>;
-			read-only;
+        /*
+         * Usable flash. Starts at 0x100, after the bootloader. The partition
+         * size is 16MB minus the 0x100 bytes taken by the bootloader.
+         */
+        code_partition: partition@100 {
+            label = "code-partition";
+            reg = <0x100 (DT_SIZE_M(16) - 0x100)>;
+            read-only;
+        };
+    };
+};
+
+&uart0 {
+    current-speed = <115200>;
+    status = "okay";
+    pinctrl-0 = <&uart0_default>;
+    pinctrl-names = "default";
+};
+
+&gpio0 {
+    status = "okay";
+};
+
+&i2c0 {
+    clock-frequency = <I2C_BITRATE_STANDARD>;
+    status = "okay";
+    pinctrl-0 = <&i2c0_default>;
+    pinctrl-names = "default";
+
+    rtc2@51 {
+        compatible = "microcrystal,rv-8263-c8";
+        status = "okay";
+        reg = <0x51>;
+        int-gpios = <&gpio0 29 GPIO_ACTIVE_LOW>; // CHECK DIRECTION
+        clkout = <4096>;
+    };
+
+    accel@19 { // could be 0x18
+        compatible = "st,lis3dh";
+        reg = < 0x19 >;
+        // irq-gpios = <XXXXXXXXX
+        //              &gpio 15 UNKNOWN_DIRECTION>; 
+        // much to consider   
+        // irq config needs considering as well
+    };
+
+    barom@76 {
+        compatible = "bosch,bmp390";
+        reg = < 0x76 >;
+        odr = "100";      // maybe dont include this so app overlays can set it 
+        osr-temp = < 32 >;  // maybe dont include this so app overlays can set it 
+        osr-press = < 32 >; // maybe dont include this so app overlays can set it
+        int-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>; // CHECK DIRECTION
+    };
+
+};
+
+&i2c1 {
+    pinctrl-0 = <&i2c1_default>;
+    pinctrl-names = "default";
+    status = "disabled";
+    clock-frequency = <I2C_BITRATE_FAST>;
+};
+
+&spi0 {
+    clock-frequency = <DT_FREQ_M(8)>;
+    status = "okay";
+    pinctrl-0 = <&spi0_default>;
+    pinctrl-names = "default";
+    cs-gpios = <&gpio0 5 GPIO_ACTIVE_LOW>; // CHECK DIRECTION
+    
+    // SD CARD
+	sdhc0: sdhc@0 {
+		status = "okay";
+		compatible = "zephyr,sdhc-spi-slot";
+		reg = <0>;
+		spi-max-frequency = <20000000>;
+		mmc {
+			status = "okay";
+			compatible = "zephyr,sdmmc-disk";
+			disk-name = "SD";
 		};
 	};
 };
 
-&uart0 {
-	current-speed = <115200>;
-	status = "okay";
-	pinctrl-0 = <&uart0_default>;
-	pinctrl-names = "default";
-};
-
-&gpio0 {
-	status = "okay";
-};
-
-&i2c0 {
-	clock-frequency = <I2C_BITRATE_STANDARD>;
-	status = "okay";
-	pinctrl-0 = <&i2c0_default>;
-	pinctrl-names = "default";
-};
-
-&i2c1 {
-	pinctrl-0 = <&i2c1_default>;
-	pinctrl-names = "default";
-	status = "disabled";
-	clock-frequency = <I2C_BITRATE_FAST>;
-};
-
-&spi0 {
-	clock-frequency = <DT_FREQ_M(8)>;
-	status = "okay";
-	pinctrl-0 = <&spi0_default>;
-	pinctrl-names = "default";
-};
-
 &timer {
-	status = "okay";
+    status = "okay";
 };
 
 &wdt0 {
-	status = "okay";
+    status = "okay";
 };
 
 &rtc {
-	clocks = <&clocks RPI_PICO_CLKID_CLK_RTC>;
-	status = "okay";
+    clocks = <&clocks RPI_PICO_CLKID_CLK_RTC>;
+    status = "okay";
 };
 
 &adc {
-	status = "okay";
-	pinctrl-0 = <&adc_default>;
-	pinctrl-names = "default";
+    status = "okay";
+    pinctrl-0 = <&adc_default>;
+    pinctrl-names = "default";
+    // vbat on adc0
 };
 
 zephyr_udc0: &usbd {
-	status = "okay";
+    status = "okay";
 };
 
 &pwm {
-	pinctrl-0 = <&pwm_ch4b_default>;
-	pinctrl-names = "default";
+    pinctrl-0 = <&pwm_ch4b_default>;
+    pinctrl-names = "default";
 };
 
 &vreg {
-	regulator-always-on;
-	regulator-allowed-modes = <REGULATOR_RPI_PICO_MODE_NORMAL>;
+    regulator-always-on;
+    regulator-allowed-modes = <REGULATOR_RPI_PICO_MODE_NORMAL>;
 };
-
-pico_spi: &spi0 {};
-pico_i2c0: &i2c0 {};
-pico_i2c1: &i2c1 {};
-pico_serial: &uart0 {};

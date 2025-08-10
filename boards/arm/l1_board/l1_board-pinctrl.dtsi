@@ -6,17 +6,17 @@
 &pinctrl {
 	uart0_default: uart0_default {
 		group1 {
-			pinmux = <UART0_TX_P0>;
+			pinmux = <UART0_TX_P12>; // not wired to anything
 		};
 		group2 {
-			pinmux = <UART0_RX_P1>;
+			pinmux = <UART0_RX_P13>; // not wired to anything
 			input-enable;
 		};
 	};
 
 	i2c0_default: i2c0_default {
 		group1 {
-			pinmux = <I2C0_SDA_P4>, <I2C0_SCL_P5>;
+			pinmux = <I2C0_SDA_P8>, <I2C0_SCL_P9>;
 			input-enable;
 			input-schmitt-enable;
 		};
@@ -32,10 +32,11 @@
 
 	spi0_default: spi0_default {
 		group1 {
-			pinmux = <SPI0_CSN_P17>, <SPI0_SCK_P18>, <SPI0_TX_P19>;
+            // CSN_P17 since its unused and we're never operating as slave
+			pinmux = <SPI0_CSN_P17>, <SPI0_SCK_P2>, <SPI0_TX_P3>;
 		};
 		group2 {
-			pinmux = <SPI0_RX_P16>;
+			pinmux = <SPI0_RX_P0>;
 			input-enable;
 		};
 	};
