@@ -25,5 +25,6 @@ manifest:
           - segger
           - percepio
           - lz4
+          - hal_rpi_pico
       clone-depth: 1
 

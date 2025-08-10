@@ -1,0 +1,7 @@
+board:
+  name: l1_board
+  full_name: Launch Initiative Hardware Onboarding Test Board
+  vendor: launch
+  socs:
+  - name: rp2040
+

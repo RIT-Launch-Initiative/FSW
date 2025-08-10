@@ -1,0 +1,5 @@
+# Copyright (c) 2025 Launch Initiative
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_L1_BOARD
+	select RP2_FLASH_W25Q080
