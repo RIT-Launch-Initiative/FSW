@@ -6,8 +6,8 @@
     "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh"
     },
-    "postCreateCommand": "pip3 install --user west && west --version",
-    "remoteUser": "devuser",
+    "postCreateCommand": "west --version || (pipx ensurepath && west --version)",
+    "remoteUser": "vscode",
     "features": {},
     "mounts": [
         "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
