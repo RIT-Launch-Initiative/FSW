@@ -1,0 +1,16 @@
+{
+    "name": "Launch Initiative FSW Dev (Ubuntu 24.04)",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+    },
+    "postCreateCommand": "pip3 install --user west && west --version",
+    "remoteUser": "devuser",
+    "features": {},
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+    ],
+    "workspaceFolder": "/workspace"
+}
