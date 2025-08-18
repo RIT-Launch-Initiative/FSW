@@ -22,18 +22,35 @@ static flashWorkInfo flash_work;
 static void flashWorkHandler(k_work* work) {
     flashWorkInfo* info = CONTAINER_OF(work, struct flashWorkInfo, work);
     static int counter = 0;
+    LOG_INF("Sensor Data: Timestamp: %lld, Acceleration: [%f, %f, %f], ImuAcceleration: [%f, %f, %f]",
+            info->data.timestamp,
+            info->data.data.Acceleration.X,
+            info->data.data.Acceleration.Y,
+            info->data.data.Acceleration.Z,
+            info->data.data.ImuAcceleration.X,
+            info->data.data.ImuAcceleration.Y,
+            info->data.data.ImuAcceleration.Z);
 
-    dataLogger.Write(info->data);
-    counter++;
-    if (counter == 5) {
-        dataLogger.Sync();
-        counter = 0;
-    }
+    // dataLogger.Write(info->data);
+    // counter++;
+    // if (counter == 5) {
+    //     dataLogger.Sync();
+    //     counter = 0;
+    // }
 }
 
 static void flashCallback(const struct zbus_channel* chan) {
     const NTypes::TimestampedSensorData* data = static_cast<const NTypes::TimestampedSensorData*>(
         zbus_chan_const_msg(chan));
+
+    LOG_INF("Flash Sensor Data: Timestamp: %lld, Acceleration: [%f, %f, %f], ImuAcceleration: [%f, %f, %f]",
+            data->timestamp,
+            data->data.Acceleration.X,
+            data->data.Acceleration.Y,
+            data->data.Acceleration.Z,
+            data->data.ImuAcceleration.X,
+            data->data.ImuAcceleration.Y,
+            data->data.ImuAcceleration.Z);
 
     flash_work.data = *data;
     k_work_submit(&flash_work.work);
