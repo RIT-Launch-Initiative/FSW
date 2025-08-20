@@ -1,0 +1,5 @@
+board:
+  name: sw_board
+  vendor: launch
+  socs:
+    - name: stm32f446xx
