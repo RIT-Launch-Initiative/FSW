@@ -9,24 +9,10 @@ public:
     /**
      * @brief Constructor
      */
-    explicit CTimedTenant(const char* name)
-        : CTenant(name) {}
-
-    /**
-     * @brief See parent docs.
-     */
-    void Startup() override;
-
-    /**
-     * @brief See parent docs.
-     */
-    void Run() override {
-        // Should be no behavior
-    }
+    explicit CTimedTenant(const char* name, uint32_t intervalMillis);
 
 private:
     CSoftTimer timer;
-
 };
 
 #endif //C_TIMED_TENANT_H

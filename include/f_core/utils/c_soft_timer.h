@@ -14,6 +14,17 @@ public:
     }
 
     /**
+    * Constructor
+    * @param timeoutMillis Time in milliseconds until the timer expires
+    * @param expirationFn Function to call when the timer expires
+    * @param stopFn Function to call when the timer is stopped
+    */
+    CSoftTimer(const int timeoutMillis, k_timer_expiry_t expirationFn = nullptr, k_timer_stop_t stopFn = nullptr) {
+        k_timer_init(&timer, expirationFn, stopFn);
+        StartTimer(timeoutMillis);
+    }
+
+    /**
     * Destructor
     */
     ~CSoftTimer() {
