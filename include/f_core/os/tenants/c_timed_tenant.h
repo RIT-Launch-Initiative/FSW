@@ -8,8 +8,10 @@ class CTimedTenant : public CTenant {
 public:
     /**
      * @brief Constructor
+     * @param name Name of the tenant
+     * @param intervalMillis Interval in milliseconds for the timeout
      */
-    explicit CTimedTenant(const char* name, uint32_t intervalMillis);
+    explicit CTimedTenant(const char* name, const uint32_t intervalMillis);
 
 private:
     CSoftTimer timer;
