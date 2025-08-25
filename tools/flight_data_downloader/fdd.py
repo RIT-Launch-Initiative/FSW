@@ -7,6 +7,7 @@ from print_colors import print_red, print_green
 
 transport = FDDTransport()
 
+
 def handle_set_command(args):
     global transport
 
@@ -39,11 +40,11 @@ def handle_set_command(args):
 
         return
 
-    if transport is not None and not isinstance(transport, FDDTransport):
-        transport.set_attribute(attribute, args)
-        return
-    else:
+    if transport is None or type(transport) is not FDDTransport:
         print_red("Transport not set")
+
+    transport.set_attribute(attribute, args)
+
 
 def handle_tree_command():
     if transport is not None:
