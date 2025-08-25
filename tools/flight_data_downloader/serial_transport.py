@@ -15,14 +15,17 @@ class SerialTransport(FDDTransport):
         self.__serial_port = None
         self.__baud_rate = 115200
 
-    def set_serial_port(self, serial_port: str):
+    def set_serial_port(self, serial_port: str) -> bool:
         self.__serial_port = serial_port
+        return True
 
-    def set_baud_rate(self, baud_rate: int):
+    def set_baud_rate(self, baud_rate: int) -> bool:
         if self.__serial_port is None:
             print_red("Serial port not set")
+            return False
 
         self.__baud_rate = baud_rate
+        return True
 
     def _get_file(self, file: str) -> bytes:
         if self.__serial_port is None:
@@ -44,11 +47,11 @@ class SerialTransport(FDDTransport):
 
     def set_attribute(self, attribute, args: list):
         if args[0] == "port":
-            self.set_serial_port(args[1])
-            print_green("Serial port set to {}".format(self.__serial_port))
+            if self.set_serial_port(args[1]):
+                print_green("Serial port set to {}".format(self.__serial_port))
         elif args[0] == "baud":
-            self.set_baud_rate(int(args[1]))
-            print_green("Serial port set to {}".format(self.__serial_port))
+            if self.set_baud_rate(int(args[1])):
+                print_green("Baud rate set to {}".format(self.__serial_port))
         else:
             print_red("Invalid argument(s).")
 
