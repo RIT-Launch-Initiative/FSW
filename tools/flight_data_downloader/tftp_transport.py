@@ -4,8 +4,6 @@ import io
 
 from print_colors import print_red, print_green
 
-RED_ASCII = "\033[91m"
-
 def print_tftp_help():
     print("TFTP commands:")
     print("\tip <ip_address> - Set the TFTP server IP address")
