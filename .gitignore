@@ -75,3 +75,4 @@ app_grim_reefer/extra/out/*
 __pycache__
 
 flash/
+app/payload/control_freak/flight-software/ramreport
