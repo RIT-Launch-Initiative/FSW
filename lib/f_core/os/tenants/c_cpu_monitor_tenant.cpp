@@ -12,6 +12,7 @@ void CCpuMonitorTenant::Startup() {
 
     prevExecutionCycles = stats.execution_cycles;
     prevTotalCycles = stats.total_cycles;
+    prevUptime = k_uptime_get_32();
 }
 
 void CCpuMonitorTenant::PostStartup() {
@@ -55,17 +56,31 @@ uint32_t CCpuMonitorTenant::getUptime() {
 uint8_t CCpuMonitorTenant::getUtilization() {
     k_thread_runtime_stats stats{0};
     k_thread_runtime_stats_all_get(&stats);
+    uint32_t currentUptime = k_uptime_get_32();
 
-    uint64_t deltaExecution = stats.execution_cycles - prevExecutionCycles;
-    uint64_t deltaTotal = stats.total_cycles - prevTotalCycles;
+    // Zephyr's naming is confusing! Based on kernel/thread.h comments:
+    // execution_cycles = total # of cycles (cpu: non-idle + idle) = ALL cycles
+    // total_cycles = total # of non-idle cycles = ACTIVE/BUSY cycles only
+    uint64_t deltaAllCycles = stats.execution_cycles - prevExecutionCycles;  // All cycles (active + idle)
+    uint64_t deltaActiveCycles = stats.total_cycles - prevTotalCycles;       // Active cycles only
+    uint32_t deltaTime = currentUptime - prevUptime;
 
     prevExecutionCycles = stats.execution_cycles;
     prevTotalCycles = stats.total_cycles;
+    prevUptime = currentUptime;
 
-    if (deltaExecution == 0) {
+    if (deltaAllCycles == 0 || deltaTime == 0) {
         return 0; // Avoid division by zero
     }
 
-    // Utilization is the percentage of non-idle cycles in the interval
-    return static_cast<uint8_t>((deltaTotal * 100) / deltaExecution);
+    if (deltaTime < 10) {
+        LOG_WRN_ONCE("CPU utilization measurement interval too short for accuracy");
+    }
+
+    // CPU Utilization = (Active cycles / All cycles) × 100
+    // gives the percentage of time the CPU is NOT idle
+    uint64_t utilization = (deltaActiveCycles * 100) / deltaAllCycles;
+    
+    // Clamp to 100% in case of any edge cases
+    return static_cast<uint8_t>(utilization > 100 ? 100 : utilization);
 }

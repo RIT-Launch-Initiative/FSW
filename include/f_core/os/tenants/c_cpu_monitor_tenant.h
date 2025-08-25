@@ -28,8 +28,9 @@ public:
 
 private:
     CMessagePort<CpuMonitorData>& outputPort;
-    uint64_t prevExecutionCycles = 0;
-    uint64_t prevTotalCycles = 0;
+    uint64_t prevExecutionCycles = 0;  // All cycles (active + idle) - Based on Zephyr naming
+    uint64_t prevTotalCycles = 0;      // Active cycles only - Based on Zephyr naming
+    uint32_t prevUptime = 0;
 
 #if DT_NODE_EXISTS(DT_ALIAS(die_temp))
     const device *dieTempSensor = DEVICE_DT_GET(DT_ALIAS(die_temp));
