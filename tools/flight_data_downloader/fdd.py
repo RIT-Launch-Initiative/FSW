@@ -10,6 +10,10 @@ transport = FDDTransport()
 def handle_set_command(args):
     global transport
 
+    if len(args) == 0:
+        print_red("No attribute specified")
+        return
+
     attribute = args[0]
     args = args[1:]
 

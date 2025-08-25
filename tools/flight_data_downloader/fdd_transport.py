@@ -22,7 +22,7 @@ class FDDTransport:
         file_name = file.split("/")[-1]
         out_path = os.path.join(current_output_folder, file_name)
 
-        with open(out_path, "w") as fout:
+        with open(out_path, "wb") as fout:
             contents = self._get_file(file)
             if contents is not None:
                 fout.write(contents)
