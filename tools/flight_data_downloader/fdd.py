@@ -56,7 +56,7 @@ def handle_download_command(args):
             transport.download(file)
 
 
-def handle_exit_command(args):
+def handle_exit_command():
     exit(0)
 
 
@@ -80,7 +80,7 @@ def print_help():
 
 def signal_handler(sig, frame):
     if sig == signal.SIGINT:
-        handle_exit_command([])
+        handle_exit_command()
 
 
 def main():
@@ -106,7 +106,7 @@ def main():
             case "help":
                 print_help()
             case "exit":
-                handle_exit_command(arguments)
+                handle_exit_command()
             case "":
                 continue
             case _:
