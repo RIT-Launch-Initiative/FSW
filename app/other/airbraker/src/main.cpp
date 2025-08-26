@@ -48,7 +48,7 @@ int main() {
     const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
     const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
 
-    const struct device *ina_servo = DEVICE_DT_GET(DT_ALIAS(inaservo));
+    const struct device *ina_servo =    DEVICE_DT_GET(DT_ALIAS(inaservo));
     const struct device *ina_pump = DEVICE_DT_GET(DT_ALIAS(inapump));
 
     if (!device_is_ready(imu_dev) || !device_is_ready(barom_dev)) {
