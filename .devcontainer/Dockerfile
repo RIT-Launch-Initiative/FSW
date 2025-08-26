@@ -55,6 +55,10 @@ RUN dpkg --add-architecture i386 && \
     libsdl2-dev \
     pkg-config \
     libfuse-dev:i386 \
+    gcc-multilib \
+    g++-multilib \
+    libc6-dev:i386 \
+    libstdc++-13-dev:i386 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set PKG_CONFIG_PATH for 32-bit FUSE library
