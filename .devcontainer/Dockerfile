@@ -45,14 +45,20 @@ ENV PIPX_HOME=/opt/pipx
 ENV PIPX_BIN_DIR=/usr/local/bin
 RUN pipx install west
 
-# Add deps for native_sim
-RUN apt-get update && \
+# Add deps for sim
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     gperf \
     python3-dev \
     python3-tk \
     libsdl2-dev \
+    pkg-config \
+    libfuse-dev:i386 \
     && rm -rf /var/lib/apt/lists/*
+
+# Set PKG_CONFIG_PATH for 32-bit FUSE library
+ENV PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
 
 # Set up Zephyr environment variables
 ENV ZEPHYR_TOOLCHAIN_VARIANT=zephyr
