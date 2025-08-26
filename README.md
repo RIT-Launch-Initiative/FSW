@@ -1,6 +1,58 @@
 # Launch Flight Software
 Current source code for Launch's custom flight hardware utilizing Zephyr RTOS. This includes but is not limited to the Backplane (modules), GRIM and POTATO.  
 
+## Docker Environment (Non-Linux Users)
+NOTE: Non-Linux users will still need to setup Zephyr for now including cloning the FSW repo, setting up west and getting the necessary Zephyr modules downloaded for now through west update. This should hopefully go away in the future. The reason is that the Docker setup mounts the FSW, zephyr and modules directories for now  
+
+This project includes a pre-configured development container that sets up the necessary dependencies for running in an Ubuntu environment. Dev Containers were mainly designed for VSCode, but should work with IDEs like CLion. Docker Compose is also available to run outside of an IDE. Although you can build FSW for hardware, simulation is only supported in Zephyr due to OS limitations.
+
+#### Quick Start
+1. Open the FSW repository in VS Code
+2. When prompted, click "Reopen in Container" or run the command "Dev Containers: Reopen in Container"
+3. The container will automatically build and configure the environment for use.
+
+## Manual Docker Setup
+If you prefer to use Docker directly without VS Code:
+
+```bash
+# Start the development environment
+make dev-start
+
+# Enter the container shell
+make docker-shell
+
+# Stop the development environment
+make dev-stop
+
+# Rebuild and restart
+make dev-restart
+```
+
+#### Container Features
+- **Ubuntu 24.04** base image
+- **Zephyr SDK 0.16.8** pre-installed
+- **West build tool** configured
+- **Python virtual environment** with Zephyr dependencies
+- **Cross-compilation tools** for ARM targets
+- **Simulation support** with 32-bit libraries
+- **Git, CMake, Ninja** and other development tools
+
+#### Environment Variables
+The container automatically sets up:
+- `ZEPHYR_BASE=/workspace/zephyr`
+- `ZEPHYR_TOOLCHAIN_VARIANT=zephyr`
+- `ZEPHYR_SDK_INSTALL_DIR=/opt/zephyr-sdk-0.16.8`
+
+#### Workspace Structure
+The container mounts three directories:
+- `/workspace/FSW` - This repository
+- `/workspace/zephyr` - Zephyr RTOS source
+- `/workspace/modules` - Additional Zephyr modules
+
+#### Troubleshooting
+- Container logs can be viewed with: `make docker-logs`
+
+
 ## Ways to Compile FSW Applications
 There are 3 different ways to compile a project:
 - Run make <name of project> from the root of the repository. 
