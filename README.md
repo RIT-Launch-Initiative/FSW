@@ -1,6 +1,24 @@
 # Launch Flight Software
 Current source code for Launch's custom flight hardware utilizing Zephyr RTOS. This includes but is not limited to the Backplane (modules), GRIM and POTATO.  
 
+## Installation
+
+### All OSes
+1. Find a proper subdirectory to clone this repository into. You will have other folders at the same level in this subdirectory with FSW too.
+2. Follow the [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/develop/getting_started/index.html) for installing west.
+3. Run ```west init -l FSW``` where FSW is referencing the cloned repository
+4. Run ```west update```
+5. You should now have 3 directories ```FSW```, ```zephyr``` and ```modules``` 
+6. Continue to other sections based on your OS
+
+### Linux 
+7. Just reference the rest of the guide for installing the Zephyr SDK :)
+8. Confirm you can compile software. See below sections of this README. Work with teammates and avionics lead if issues arise.
+
+### Windows and MacOS
+7. See the below section on Docker Environment
+8. Confirm you can compile software. See below sections of this README. Work with teammates and avionics lead if issues arise.
+
 ## Docker Environment (Non-Linux Users)
 NOTE: Non-Linux users will still need to setup Zephyr for now including cloning the FSW repo, setting up west and getting the necessary Zephyr modules downloaded for now through west update. This should hopefully go away in the future. The reason is that the Docker setup mounts the FSW, zephyr and modules directories for now  
 
