@@ -68,9 +68,14 @@ ENV PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
 ENV ZEPHYR_TOOLCHAIN_VARIANT=zephyr
 ENV ZEPHYR_SDK_INSTALL_DIR=/opt/zephyr-sdk-0.16.8
 
-# zsh as default shell
-RUN chsh -s /usr/bin/zsh vscode || true
+# Rename the existing vscode user to launch and set zsh as shell
+RUN usermod -l launch vscode && \
+    groupmod -n launch vscode && \
+    usermod -d /home/launch -m launch && \
+    chsh -s /usr/bin/zsh launch && \
+    echo 'launch ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/launch && \
+    chmod 0440 /etc/sudoers.d/launch
 
-# Use the pre-created non-root user from the devcontainers base image
-USER vscode
+# Use the launch user
+USER launch
 WORKDIR /workspace
