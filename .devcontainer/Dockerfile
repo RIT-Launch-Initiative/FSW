@@ -33,10 +33,9 @@ RUN apt-get update && \
     zsh \
     && rm -rf /var/lib/apt/lists/*
 
-# Install GNU Arm Embedded Toolchain
-RUN apt-get update && \
-    apt-get install -y gcc-arm-none-eabi gdb-arm-none-eabi && \
-    rm -rf /var/lib/apt/lists/*
+# Install Zephyr SDK
+RUN wget -O- https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.8/zephyr-sdk-0.16.8_linux-x86_64_minimal.tar.xz | tar -xJ -C /opt/ && \
+    /opt/zephyr-sdk-0.16.8/setup.sh -t arm-zephyr-eabi -h -c
 
 # Install pipx and west
 RUN apt-get update && \
@@ -56,8 +55,8 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up Zephyr environment variables
-ENV ZEPHYR_TOOLCHAIN_VARIANT=gnuarmemb
-ENV GNUARMEMB_TOOLCHAIN_PATH=/usr
+ENV ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+ENV ZEPHYR_SDK_INSTALL_DIR=/opt/zephyr-sdk-0.16.8
 
 # zsh as default shell
 RUN chsh -s /usr/bin/zsh vscode || true
