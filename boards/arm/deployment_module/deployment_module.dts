@@ -59,6 +59,8 @@
 		pyro-ctrl-1 = &pyro_ctrl_1;
 		pyro-ctrl-2 = &pyro_ctrl_2;
 		pyro-ctrl-3 = &pyro_ctrl_3;
+
+		die-temp = &die_temp;
 	};
 
 	leds: leds {
@@ -249,6 +251,18 @@
 
 &backup_sram {
 	status = "okay";
+};
+
+&adc1 {
+	pinctrl-0 = <&adc1_in0_pa0>;
+	pinctrl-names = "default";
+	st,adc-prescaler = <4>;
+	status = "okay";
+};
+
+
+&die_temp {
+    status = "okay";
 };
 
 &flash0 {
