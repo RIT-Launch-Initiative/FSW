@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Fix potential permissions issues for bind mounts (host-to-container UID mismatch)
+echo "🔑 Fixing permissions for /workspace..."
+sudo chown -R $(id -u):$(id -g) /workspace
+
 echo "🚀 Setting up Launch FSW development environment..."
 
 # Navigate to workspace
