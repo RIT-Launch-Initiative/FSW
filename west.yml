@@ -15,7 +15,7 @@ manifest:
       revision: v4.2.0
       import:
         name-allowlist:
-          - cmsis
+          - cmsis_6
           - hal_st
           - hal_stm32
           - hal_nxp
