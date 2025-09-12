@@ -1,0 +1,37 @@
+services:
+  fsw-dev:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace/FSW
+      - ../zephyr:/workspace/zephyr
+      - ../modules:/workspace/modules
+    working_dir: /workspace/FSW
+    environment:
+      - ZEPHYR_BASE=/workspace/zephyr
+    stdin_open: true
+    tty: true
+    command: >
+      bash -c "
+      cd /workspace &&
+      west --version &&
+      if [ ! -d .west ]; then 
+        echo 'Initializing west workspace...' &&
+        west init -l FSW &&
+        west update
+      else
+        echo 'West workspace already exists, running update...' &&
+        west update
+      fi &&
+      echo 'export ZEPHYR_BASE=/workspace/zephyr' | sudo tee /etc/profile.d/zephyr_base.sh >/dev/null &&
+      VENV_DIR=/home/launch/.venvs/zephyr &&
+      [ -d $VENV_DIR ] || python3 -m venv $VENV_DIR &&
+      . $VENV_DIR/bin/activate &&
+      pip install -U pip &&
+      [ -f zephyr/scripts/requirements.txt ] && pip install -r zephyr/scripts/requirements.txt &&
+      west zephyr-export &&
+      echo 'source /home/launch/.venvs/zephyr/bin/activate' >> /home/launch/.zshrc &&
+      echo 'Development environment ready! Use: docker compose exec fsw-dev zsh' &&
+      tail -f /dev/null
+      "
