@@ -1,0 +1,53 @@
+app/samples/littlefs:
+  - paths:
+      - "app/samples/littlefs/**"
+app/samples/sensor:
+  - paths:
+      - "app/samples/sensor/**"
+app/samples/shield_blinky:
+  - paths:
+      - "app/samples/shield_blinky/**"
+app/samples/shield_mcp3561r:
+  - paths:
+      - "app/samples/shield_mcp3561r/**"
+app/samples/lora_bcast:
+  - paths:
+      - "app/samples/lora_bcast/**"
+app/samples/udp_bcast:
+  - paths:
+      - "app/samples/udp_bcast/**"
+app/samples/message_passing:
+  - paths:
+      - "app/samples/message_passing/**"
+app/samples/openrocket_sensors:
+  - paths:
+      - "app/samples/openrocket_sensors/**"
+app/samples/soft_timer:
+  - paths:
+      - "app/samples/soft_timer/**"
+app/samples/tenants_and_tasks:
+  - paths:
+      - "app/samples/tenants_and_tasks/**"
+app/samples/tftp_server:
+  - paths:
+      - "app/samples/tftp_server/**"
+app/samples/datalogger:
+  - paths:
+      - "app/samples/datalogger/**"
+app/samples/gpio_blinky:
+  - paths:
+      - "app/samples/gpio_blinky/**"
+app/samples/phase_detection:
+  - paths:
+      - "app/samples/phase_detection/**"
+app/samples/horus:
+  - paths:
+      - "app/samples/horus/**"
+app/samples/compression:
+  - paths:
+      - "app/samples/compression/**"
+ALL:
+  - paths:
+      - "include/f_core/**"
+      - "lib/f_core/**"
+
