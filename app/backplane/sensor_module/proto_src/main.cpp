@@ -1,5 +1,6 @@
 #include "c_sensing_tenant.h"
 #include "f_core/messaging/c_msgq_message_port.h"
+#include "f_core/messaging/c_zbus_message_port.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
