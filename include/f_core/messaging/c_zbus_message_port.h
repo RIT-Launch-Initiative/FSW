@@ -27,14 +27,14 @@ public:
      * See parent docs
      */
     int Send(const T& message, const k_timeout_t timeout) override {
-        return zbus_chan_pub(channel, message, timeout);
+        return zbus_chan_pub(&channel, &message, timeout);
     }
 
     /**
      * See parent docs
      */
     int Receive(T& message, const k_timeout_t timeout) override {
-        return zbus_chan_read(channel, &message, timeout);
+        return zbus_chan_read(&channel, &message, timeout);
     }
 
     /**
