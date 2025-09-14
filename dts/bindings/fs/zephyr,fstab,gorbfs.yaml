@@ -12,5 +12,8 @@ properties:
     type: int
     description: when end of circle is signalled, save this many pages back. (if i write a page every second, and my circle size is 4, when i mark end of circle, we are free to overwrite until 4 seconds of data ago)
     required: true
-
+  partition:
+    type: phandle
+    description: Partition on which to store data
+    required: true
 

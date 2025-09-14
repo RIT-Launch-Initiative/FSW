@@ -41,9 +41,9 @@ struct gorbfs_partition_data {
 LOG_MODULE_REGISTER(gorbfs, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
 #ifdef CONFIG_BOARD_NATIVE_SIM
-#define GORBFS_GET_FLASH_DEV(partition_name) DEVICE_DT_GET_ONE(zephyr_sim_flash)
+#define GORBFS_GET_FLASH_DEV(node) DEVICE_DT_GET_ONE(zephyr_sim_flash)
 #else
-#define GORBFS_GET_FLASH_DEV(partition_name) DEVICE_DT_GET(DT_GPARENT(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)))
+#define GORBFS_GET_FLASH_DEV(node) DEVICE_DT_GET(DT_GPARENT(node))
 #endif
 
 #define GORBFS_INIT_PRIORITY 60
@@ -166,24 +166,24 @@ int gfs_signal_end_of_circle(const struct device *dev) {
 }
 
 #define GORBFS_PARTITION_DEFINE(n, node)                                                   \
-    BUILD_ASSERT(DT_REG_SIZE(node) % PAGE_SIZE == 0,                       \
+    BUILD_ASSERT(DT_REG_SIZE(DT_PROP(node, partition)) % PAGE_SIZE == 0,                       \
                  "Need partition size to be multiple of msg size (256)");                                              \
     BUILD_ASSERT(                                                                                                      \
-        DT_REG_SIZE(node) % SECTOR_SIZE == 0,                              \
+        DT_REG_SIZE(DT_PROP(node, partition)) % SECTOR_SIZE == 0,                              \
         "Need partition size to be multiple of sector size (4096) or we'll explode the next partition with an erase"); \
-    BUILD_ASSERT(DT_REG_ADDR(node) % SECTOR_SIZE == 0,                     \
+    BUILD_ASSERT(DT_REG_ADDR(DT_PROP(node, partition)) % SECTOR_SIZE == 0,                     \
                  "Need partition addr mod sector_size = 0 to be able to do aligned erases");                           \
                                                                                                                        \
-    K_MEM_SLAB_DEFINE_STATIC(partition_slab##n, sizeof(msg_type), DT_INST_PROP(node, ram_cache_blocks), alignof(uint8_t[256]));                    \
+    K_MEM_SLAB_DEFINE_STATIC(partition_slab##n, PAGE_SIZE, DT_PROP(node, ram_cache_blocks), alignof(uint8_t[256]));                    \
                                                                                                                        \
-    K_MSGQ_DEFINE(partition_msgq##n, sizeof(void *), DT_INST_PROP(node, ram_cache_blocks), alignof(void *));                                   \
+    K_MSGQ_DEFINE(partition_msgq##n, sizeof(void *), DT_PROP(node, ram_cache_blocks), alignof(void *));                                   \
                                                                                                                        \
     const struct gorbfs_partition_config gorbfs_partition_config_##n = {                                     \
         .flash_dev = GORBFS_GET_FLASH_DEV(node),                                                             \
-        .partition_addr = DT_REG_ADDR(node),                               \
-        .partition_size = DT_REG_SIZE(node),                               \
-        .num_pages = DT_REG_SIZE(node) / PAGE_SIZE,                        \
-        .circle_size_pages = DT_INST_PROP(node, circle_size),                                                                                \
+        .partition_addr = DT_REG_ADDR(DT_PROP(node, partition)),                               \
+        .partition_size = DT_REG_SIZE(DT_PROP(node, partition)),                               \
+        .num_pages = DT_REG_SIZE(DT_PROP(node, partition)) / PAGE_SIZE,                        \
+        .circle_size_pages = DT_PROP(node, circle_size),                                                                                \
     };                                                                                                                 \
     struct gorbfs_partition_data gorbfs_partition_data_##n = {                                               \
         .page_index = 0,                                                                                               \

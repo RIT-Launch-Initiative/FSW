@@ -5,31 +5,31 @@
 /delete-node/ &external_storage_partition;
 
 / {
-        fstab{
-                gfs1: gfs1 {
-                        status = "okay";
-                        compatible = "zephyr,fstab,gorbfs";
-                        mount-point = "/gfs1";
-                        partition = <&data_partition>;
-                        ram-cache-blocks = <4>;
-                        circle-size = <(100 * 5)>; // 5 seconds @ 100hz
-
-                };
-        };
+	fstab{
+		gfs1: gfs1 {
+			status = "okay";
+			compatible = "zephyr,fstab,gorbfs";
+			mount-point = "/gfs1";
+			partition = <&data_partition>;
+			ram-cache-blocks = <4>;
+			circle-size = <(100 * 5)>;// 5 seconds @ 100hz
+			
+		};
+	};
 };
 
 &w25q128{
-        partitions {
-                compatible = "fixed-partitions";
-                storage_partition: storage_partition@0{
-                        label = "storage_partition";
-                        reg = <0 DT_SIZE_M(2)>;
-                };
-                data_partition: data_partition@200000{
-                        label = "data_partition";
-                        reg = <0x200000 DT_SIZE_M(14)>;
-                };
-        };
+	partitions {
+		compatible = "fixed-partitions";
+		storage_partition: storage_partition@0{
+			label = "storage_partition";
+			reg = <0 DT_SIZE_M(2)>;
+		};
+		data_partition: data_partition@200000{
+			label = "data_partition";
+			reg = <0x200000 DT_SIZE_M(14)>;
+		};
+	};
 };
 
 
