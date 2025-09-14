@@ -20,19 +20,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 constexpr float BATTERY_WARNING_THRESH = 7.9;
 float startup_voltage = 0;
 
-// extern struct k_msgq flightlog_msgq;
-// void handler(FreakFlightController::EventNotification noti) { k_msgq_put(&flightlog_msgq, &noti, K_MSEC(1)); }
-
-// FreakFlightController freak_controller{sourceNames, eventNames, timerEvents, decisionFuncs, handler};
-// static const struct device *superfast_storage = DEVICE_DT_GET(DT_NODE_BY_FIXED_PARTITION_LABEL(superfast_storage));
-
-// Partitions parts{
-// .superfast_dev = superfast_storage,
-// };
-
-// K_THREAD_DEFINE(storage, CONFIG_STORAGE_THREAD_STACK_SIZE, storage_thread_entry, (void *) &freak_controller,
-// (void *) &parts, NULL, CONFIG_STORAGE_THREAD_PRIORITY, 0, 0);
-
 int main() {
     int ret = 0;
     if (is_data_locked()) {
@@ -70,13 +57,6 @@ int main() {
     if (startup_voltage < BATTERY_WARNING_THRESH) {
         // buzzer_tell(BuzzCommand::BatteryWarning);
     }
-
-    // if (!device_is_ready(superfast_storage)) {
-    // LOG_ERR("Storage not ready");
-    // buzzer_tell(BuzzCommand::SensorTroubles);
-    // }
-
-    // buzzer_tell(BuzzCommand::AllGood);
 
     //Ground, Boost, Coast, Flight
     // ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, ina_servo, &freak_controller);
