@@ -8,8 +8,6 @@
 #include <f_core/utils/c_hashmap.h>
 #include <f_core/net/transport/c_udp_socket.h>
 
-LOG_MODULE_REGISTER(udp_transmit);
-
 void transmitRawData(const zbus_channel* chan) {
     CHashMap<std::string, void*> userData = *static_cast<CHashMap<std::string, void*>*>(zbus_chan_user_data(chan));
     CUdpSocket* socket = static_cast<CUdpSocket*>(userData.Get("TelemetrySocket").value_or(nullptr));

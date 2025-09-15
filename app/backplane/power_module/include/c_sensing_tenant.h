@@ -12,7 +12,7 @@
 
 class CSensingTenant : public CTenant, public CObserver {
 public:
-    explicit CSensingTenant(const char* name, CMessagePort<NTypes::TimestampedSensorData> &sensorMessagePort)
+    explicit CSensingTenant(const char* name, CMessagePort<NTypes::TimestampedSensorData> &sensorMessagePort, CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
         : CTenant(name), sensorMessagePort(sensorMessagePort) {}
 
     ~CSensingTenant() override = default;

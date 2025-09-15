@@ -8,6 +8,10 @@
 LOG_MODULE_REGISTER(CSensingTenant);
 
 
+static void sendDownlinkDataCallback() {
+
+}
+
 void CSensingTenant::Startup() {
     static constexpr uint32_t minuteInMillis = 1000 * 60;
     timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
@@ -82,9 +86,11 @@ void CSensingTenant::Run() {
     data.RailBattery.Power = data.RailBattery.Current * data.RailBattery.Voltage;
 #endif
 
-    sensorMessagePort.Send(timestampedData);
+    dataToBroadcast.Send(data, K_MSEC(5));
+    sendDownlinkData(data);
 
     if (timer.IsExpired()) {
+        sensorMessagePort.Send(timestampedData, K_MSEC(5));
         NRtos::ResumeTask("Data Logging Task");
     }
 }
