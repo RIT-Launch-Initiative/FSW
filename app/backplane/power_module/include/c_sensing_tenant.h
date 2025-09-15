@@ -29,8 +29,6 @@ private:
     CMessagePort<NTypes::TimestampedSensorData> &sensorMessagePort;
     CSoftTimer timer{nullptr, nullptr};
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
-
-    void sendDownlinkData(const NTypes::SensorData &data);
 };
 
 

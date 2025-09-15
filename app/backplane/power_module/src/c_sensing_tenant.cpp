@@ -112,20 +112,3 @@ void CSensingTenant::Notify(void* ctx) {
             return;
     }
 }
-
-void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
-    NTypes::LoRaBroadcastSensorData downlinkData{
-        .RailBattery = {
-            .Voltage = static_cast<int16_t>(data.RailBattery.Voltage),
-            .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Current)),
-            .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Power))
-        },
-        .Rail3v3 = {
-            .Voltage = static_cast<int16_t>(data.Rail3v3.Voltage),
-            .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Current)),
-            .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Power))
-        }
-    };
-
-    dataToDownlink.Send(downlinkData, K_MSEC(5));
-}
