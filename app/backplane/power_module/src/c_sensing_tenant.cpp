@@ -7,11 +7,6 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-
-static void sendDownlinkDataCallback() {
-
-}
-
 void CSensingTenant::Startup() {
     static constexpr uint32_t minuteInMillis = 1000 * 60;
     timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
