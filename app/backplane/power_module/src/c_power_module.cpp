@@ -22,8 +22,6 @@ CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataMessagePort(se
 
 void CPowerModule::AddTenantsToTasks() {
     // Networking
-    networkTask.AddTenant(broadcastTenant);
-    networkTask.AddTenant(downlinkBroadcastTenant);
     networkTask.AddTenant(alertTenant);
 
     // Sensing
@@ -45,7 +43,7 @@ void CPowerModule::AddTasksToRtos() {
 }
 
 void CPowerModule::SetupCallbacks() {
-    udpSockets.Insert("telemetry", *(new CUdpSocket(CIPv4(ipAddrStr), NNetworkDefs::POWER_MODULE_INA_DATA_PORT, NNetworkDefs::POWER_MODULE_INA_DATA_PORT)));
+    sensorDataMessagePort.("telemetry", *(new CUdpSocket(CIPv4(ipAddrStr), NNetworkDefs::POWER_MODULE_INA_DATA_PORT, NNetworkDefs::POWER_MODULE_INA_DATA_PORT)));
     udpSockets.Insert("downlink", *(new CUdpSocket(CIPv4(ipAddrStr), NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT, NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT)));
 
     alertTenant.Subscribe(&sensingTenant);
