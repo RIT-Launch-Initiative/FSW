@@ -8,10 +8,10 @@
 
 void transmitRawData(const struct zbus_channel* chan) {
     CHashMap<std::string, CUdpSocket> udpSockets = static_cast<CHashMap<std::string, CUdpSocket>>(zbus_chan_user_data(chan));
-    udpSockets.Get("telemetry")->TransmitAsynchronous(zbus_chan_const_msg(chan), zbus_chan_msg_size(chan));
+    udpSockets.Get("TelemetrySocket")->TransmitAsynchronous(zbus_chan_const_msg(chan), zbus_chan_msg_size(chan));
 }
 
 void transmitDownlinkData(const struct zbus_channel* chan) {
     CHashMap<std::string, CUdpSocket> udpSockets = static_cast<CHashMap<std::string, CUdpSocket>>(zbus_chan_user_data(chan));
-    udpSockets.Get("downlink")->TransmitAsynchronous(zbus_chan_const_msg(chan), zbus_chan_msg_size(chan));
+    udpSockets.Get("DownlinkSocket")->TransmitAsynchronous(zbus_chan_const_msg(chan), zbus_chan_msg_size(chan));
 }
