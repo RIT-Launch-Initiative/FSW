@@ -9,8 +9,28 @@
 
 
 ZBUS_CHAN_DECLARE(broadcastChannel);
-ZBUS_CHAN_DECLARE(timestampedChannel);
-ZBUS_CHAN_DECLARE(downlinkChannel);
+ZBUS_CHAN_DEFINE(broadcastChannel,     // Name
+                 NTypes::SensorData,   // Type
+                 NULL,                 // Validator
+                 NULL,                 // Observer notification callback
+                 ZBUS_OBSERVERS_EMPTY, // Initial observers
+                 {0}                   // Initial value
+    );
+ZBUS_CHAN_DEFINE(timestampedChannel,            // Name
+                 NTypes::TimestampedSensorData, // Type
+                 NULL,                          // Validator
+                 NULL,                          // Observer notification callback
+                 ZBUS_OBSERVERS_EMPTY,          // Initial observers
+                 {0}                            // Initial value
+    );
+ZBUS_CHAN_DEFINE(downlinkChannel,                 // Name
+                 NTypes::LoRaBroadcastSensorData, // Type
+                 NULL,                            // Validator
+                 NULL,                            // Observer notification callback
+                 ZBUS_OBSERVERS_EMPTY,            // Initial observers
+                 {0}                              // Initial value
+    );
+
 static auto broadcastMsgQueue = CZbusMessagePort<NTypes::SensorData>(broadcastChannel);
 static auto dataLogMsgQueue = CZbusMessagePort<NTypes::TimestampedSensorData>(timestampedChannel);
 static auto downlinkMessageQueue = CZbusMessagePort<NTypes::LoRaBroadcastSensorData>(downlinkChannel);
