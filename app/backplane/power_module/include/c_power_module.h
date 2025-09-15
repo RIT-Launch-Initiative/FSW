@@ -60,7 +60,7 @@ private:
 
     // Tenants
     CSensingTenant sensingTenant{
-        "Sensing Tenant", sensorDataMessagePort, sensorDataMessagePort, sensorDataDownlinkMessagePort
+        "Sensing Tenant", sensorDataMessagePort
     };
 
     CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{
