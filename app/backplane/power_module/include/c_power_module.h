@@ -6,6 +6,8 @@
 #include <n_autocoder_types.h>
 
 // F-Core Includes
+#include "f_core/utils/c_hashmap.h"
+
 #include <f_core/c_project_configuration.h>
 #include <f_core/device/c_rtc.h>
 #include <f_core/messaging/c_message_port.h>
@@ -81,6 +83,8 @@ private:
     CTask networkTask{"Networking Task", 15, 3072, 0};
     CTask sensingTask{"Sensing Task", 15, 2048, ina219SampleTimeMillis};
     CTask dataLoggingTask{"Data Logging Task", 15, 2048, 0};
+
+    CHashMap<std::string, CUdpSocket> udpSockets;
 };
 
 
