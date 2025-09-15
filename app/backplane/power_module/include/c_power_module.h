@@ -46,7 +46,7 @@ public:
     void Cleanup();
 
 private:
-    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID)).c_str();
+    std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID);
     const char* sntpServerAddr = "10.2.1.1";
     // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
     static constexpr int telemetryBroadcastPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
@@ -66,7 +66,7 @@ private:
     CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{
         "Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataMessagePort, K_SECONDS(60), 5
     };
-    CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
+    CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 
     // Tasks
