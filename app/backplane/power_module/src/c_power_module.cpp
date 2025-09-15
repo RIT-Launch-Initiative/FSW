@@ -16,9 +16,13 @@ ZBUS_CHAN_DEFINE(sensorChannel,            // Name
                  {0}                            // Initial value
 );
 
-static auto sensorMessagePort = CZbusMessagePort<NTypes::TimestampedSensorData>(sensorChannel);
+static auto broadcastMsgQueue = CZbusMessagePort<NTypes::SensorData>(broadcastChannel);
+static auto dataLogMsgQueue = CZbusMessagePort<NTypes::TimestampedSensorData>(timestampedChannel);
+static auto downlinkMessageQueue = CZbusMessagePort<NTypes::LoRaBroadcastSensorData>(downlinkChannel);
 
-CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataMessagePort(sensorMessagePort){}
+CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue),
+                               sensorDataLogMessagePort(dataLogMsgQueue),
+                               sensorDataDownlinkMessagePort(downlinkMessageQueue) {}
 
 void CPowerModule::AddTenantsToTasks() {
     // Networking

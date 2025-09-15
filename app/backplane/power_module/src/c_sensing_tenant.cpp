@@ -90,7 +90,7 @@ void CSensingTenant::Run() {
     sendDownlinkData(data);
 
     if (timer.IsExpired()) {
-        sensorMessagePort.Send(timestampedData, K_MSEC(5));
+        dataToLog.Send(timestampedData, K_MSEC(5));
         NRtos::ResumeTask("Data Logging Task");
     }
 }
