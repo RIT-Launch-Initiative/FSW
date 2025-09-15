@@ -1,4 +1,5 @@
 #include "c_power_module.h"
+#include "udp_transmit.h"
 
 #include <n_autocoder_types.h>
 
@@ -15,6 +16,10 @@ ZBUS_CHAN_DEFINE(sensorChannel,            // Name
                  ZBUS_OBSERVERS_EMPTY,          // Initial observers
                  {0}                            // Initial value
 );
+
+ZBUS_LISTENER_DEFINE(rawDataListener, transmitRawData);
+ZBUS_LISTENER_DEFINE(downlinkListener, transmitDownlinkData);
+
 
 static auto sensorMessagePort = CZbusMessagePort<NTypes::TimestampedSensorData>(sensorChannel);
 
@@ -43,8 +48,18 @@ void CPowerModule::AddTasksToRtos() {
 }
 
 void CPowerModule::SetupCallbacks() {
-    sensorMessagePort.AddUserData("TelemetrySocket", new CUdpSocket(CIPv4(ipAddrStr), NNetworkDefs::POWER_MODULE_INA_DATA_PORT, NNetworkDefs::POWER_MODULE_INA_DATA_PORT));
-    sensorMessagePort.AddUserData("DownlinkSocket", new CUdpSocket(CIPv4(ipAddrStr), NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT, NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT));
+    if (zbus_chan_add_obs(&sensorChannel, &rawDataListener, K_MSEC(100)) != 0) {
+        LOG_ERR("Failed to add raw data listener to sensor channel");
+    } else {
+        sensorMessagePort.AddUserData("TelemetrySocket", new CUdpSocket(CIPv4(ipAddrStr), NNetworkDefs::POWER_MODULE_INA_DATA_PORT, NNetworkDefs::POWER_MODULE_INA_DATA_PORT));
+    }
+
+    if (zbus_chan_add_obs(&sensorChannel, &downlinkListener, K_MSEC(100)) != 0) {
+        LOG_ERR("Failed to add downlink listener to sensor channel");
+    } else {
+        sensorMessagePort.AddUserData("DownlinkSocket", new CUdpSocket(CIPv4(ipAddrStr), NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT, NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT));
+    }
+
 
     alertTenant.Subscribe(&sensingTenant);
 
