@@ -10,11 +10,11 @@
 
 LOG_MODULE_REGISTER(CPowerModule);
 
-static CHashMap<std::string, void*> sensorChannelUserData;
+
 ZBUS_CHAN_DEFINE(sensorChannel,                 // Name
                  NTypes::TimestampedSensorData, // Type
                  NULL,                          // Validator
-                 &sensorChannelUserData,        // User data
+                 NULL,                          // Observer notification callback
                  ZBUS_OBSERVERS_EMPTY,          // Initial observers
                  {0}                            // Initial value
     );
@@ -62,8 +62,7 @@ void CPowerModule::SetupCallbacks() {
         LOG_ERR("Failed to add downlink listener to sensor channel");
     } else {
         sensorMessagePort.AddUserData("DownlinkSocket",
-                                      new CUdpSocket(CIPv4(ipAddrStr.c_str()),
-                                                     NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT,
+                                      new CUdpSocket(CIPv4(ipAddrStr.c_str()), NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT,
                                                      NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT));
     }
 

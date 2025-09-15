@@ -13,7 +13,8 @@ public:
      * Constructor
      * @param channel Zbus channel to use
      */
-    explicit CZbusMessagePort(const zbus_channel& channel) : channel(channel), userData(*static_cast<CHashMap<std::string, void*>*>(zbus_chan_user_data(&channel))) {
+    explicit CZbusMessagePort(zbus_channel channel) : channel(channel) {
+        channel.user_data = &userData;
     }
 
     /**
@@ -62,7 +63,7 @@ public:
 
 private:
     zbus_channel channel;
-    CHashMap<std::string, void*>& userData;
+    CHashMap<std::string, void*> userData;
 };
 
 #endif // C_ZBUS_MESSAGE_PORT_H

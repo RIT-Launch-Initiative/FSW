@@ -11,13 +11,8 @@
 LOG_MODULE_REGISTER(udp_transmit);
 
 void transmitRawData(const zbus_channel* chan) {
-    CHashMap<std::string, void*>* userData = static_cast<CHashMap<std::string, void*>*>(zbus_chan_user_data(chan));
-    if (userData == nullptr) {
-        LOG_ERR("No user data was set");
-        return;
-    }
-
-    CUdpSocket* socket = static_cast<CUdpSocket*>(userData->Get("TelemetrySocket").value_or(nullptr));
+    CHashMap<std::string, void*> userData = *static_cast<CHashMap<std::string, void*>*>(zbus_chan_user_data(chan));
+    CUdpSocket* socket = static_cast<CUdpSocket*>(userData.Get("TelemetrySocket").value_or(nullptr));
     if (socket == nullptr) {
         LOG_ERR("No socket was set for telemetry transmission");
         return;
@@ -28,12 +23,8 @@ void transmitRawData(const zbus_channel* chan) {
 }
 
 void transmitDownlinkData(const zbus_channel* chan) {
-    CHashMap<std::string, void*>* userData = static_cast<CHashMap<std::string, void*>*>(zbus_chan_user_data(chan));
-    if (userData == nullptr) {
-        LOG_ERR("No user data was set");
-        return;
-    }
-    CUdpSocket* socket = static_cast<CUdpSocket*>(userData->Get("DownlinkSocket").value_or(nullptr));
+    CHashMap<std::string, void*> userData = *static_cast<CHashMap<std::string, void*>*>(zbus_chan_user_data(chan));
+    CUdpSocket* socket = static_cast<CUdpSocket*>(userData.Get("DownlinkSocket").value_or(nullptr));
     if (socket == nullptr) {
         LOG_ERR("No socket was set for LoRa transmission");
         return;
