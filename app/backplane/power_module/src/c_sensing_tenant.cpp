@@ -38,48 +38,48 @@ void CSensingTenant::Run() {
 
     NTypes::SensorData &data = timestampedData.data;
 
-#ifndef CONFIG_ARCH_POSIX
-    CShunt shuntBatt(*DEVICE_DT_GET(DT_ALIAS(shunt_batt)));
-    CShunt shunt3v3(*DEVICE_DT_GET(DT_ALIAS(shunt_3v3)));
-    CShunt shunt5v0(*DEVICE_DT_GET(DT_ALIAS(shunt_5v0)));
-    CSensorDevice* sensors[] = {&shuntBatt, &shunt3v3, &shunt5v0};
-#endif
-
-#ifndef CONFIG_ARCH_POSIX
-    int i = 0;
-    for (auto sensor : sensors) {
-        if (!sensor->UpdateSensorValue()) {
-            LOG_ERR("Failed to update sensor value for %d", i);
-        }
-        i++;
-    }
-
-    // Note that compilers don't accept references to packed struct fields
-    uint32_t tmpTimestamp = 0;
-    if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
-        LOG_ERR("Failed to get time from RTC");
-    } else {
-        timestampedData.timestamp = tmpTimestamp;
-    }
-
-    // NOTE: The below calibration values were determined based on using a load tester
-    // Zephyr does not support inputting floats into the LSB microamp offset, so we must do it manually
-    static constexpr float extra3VCalibrationMultiplier = 0.885f;
-    data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extra3VCalibrationMultiplier;
-    data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail3v3.Power = data.Rail3v3.Current * data.Rail3v3.Voltage;
-
-    static constexpr float extra5VCalibrationMultiplier = 0.980f;
-    data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extra5VCalibrationMultiplier;
-
-    data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.Rail5v0.Power = data.Rail5v0.Current * data.Rail5v0.Voltage;
-
-    static constexpr float extraBattCalibrationMultiplier = 0.962f;
-    data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extraBattCalibrationMultiplier;
-    data.RailBattery.Voltage = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
-    data.RailBattery.Power = data.RailBattery.Current * data.RailBattery.Voltage;
-#endif
+// #ifndef CONFIG_ARCH_POSIX
+//     CShunt shuntBatt(*DEVICE_DT_GET(DT_ALIAS(shunt_batt)));
+//     CShunt shunt3v3(*DEVICE_DT_GET(DT_ALIAS(shunt_3v3)));
+//     CShunt shunt5v0(*DEVICE_DT_GET(DT_ALIAS(shunt_5v0)));
+//     CSensorDevice* sensors[] = {&shuntBatt, &shunt3v3, &shunt5v0};
+// #endif
+//
+// #ifndef CONFIG_ARCH_POSIX
+//     int i = 0;
+//     for (auto sensor : sensors) {
+//         if (!sensor->UpdateSensorValue()) {
+//             LOG_ERR("Failed to update sensor value for %d", i);
+//         }
+//         i++;
+//     }
+//
+//     // Note that compilers don't accept references to packed struct fields
+//     uint32_t tmpTimestamp = 0;
+//     if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
+//         LOG_ERR("Failed to get time from RTC");
+//     } else {
+//         timestampedData.timestamp = tmpTimestamp;
+//     }
+//
+//     // NOTE: The below calibration values were determined based on using a load tester
+//     // Zephyr does not support inputting floats into the LSB microamp offset, so we must do it manually
+//     static constexpr float extra3VCalibrationMultiplier = 0.885f;
+//     data.Rail3v3.Current = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extra3VCalibrationMultiplier;
+//     data.Rail3v3.Voltage = shunt3v3.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+//     data.Rail3v3.Power = data.Rail3v3.Current * data.Rail3v3.Voltage;
+//
+//     static constexpr float extra5VCalibrationMultiplier = 0.980f;
+//     data.Rail5v0.Current = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extra5VCalibrationMultiplier;
+//
+//     data.Rail5v0.Voltage = shunt5v0.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+//     data.Rail5v0.Power = data.Rail5v0.Current * data.Rail5v0.Voltage;
+//
+//     static constexpr float extraBattCalibrationMultiplier = 0.962f;
+//     data.RailBattery.Current = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_CURRENT) * extraBattCalibrationMultiplier;
+//     data.RailBattery.Voltage = shuntBatt.GetSensorValueFloat(SENSOR_CHAN_VOLTAGE);
+//     data.RailBattery.Power = data.RailBattery.Current * data.RailBattery.Voltage;
+// #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
     sendDownlinkData(data);
