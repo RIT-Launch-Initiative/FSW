@@ -12,8 +12,8 @@
 
 class CSensingTenant : public CTenant, public CObserver {
 public:
-    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
-        : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(dataToDownlink) {}
+    explicit CSensingTenant(const char* name, CMessagePort<NTypes::TimestampedSensorData> &sensorMessagePort, CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
+        : CTenant(name), sensorMessagePort(sensorMessagePort) {}
 
     ~CSensingTenant() override = default;
 
@@ -26,9 +26,7 @@ public:
     void Notify(void *ctx) override;
 
 private:
-    CMessagePort<NTypes::SensorData> &dataToBroadcast;
-    CMessagePort<NTypes::TimestampedSensorData> &dataToLog;
-    CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
+    CMessagePort<NTypes::TimestampedSensorData> &sensorMessagePort;
     CSoftTimer timer{nullptr, nullptr};
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 

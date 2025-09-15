@@ -56,23 +56,15 @@ private:
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     // Message Ports
-    CMessagePort<NTypes::SensorData>& sensorDataBroadcastMessagePort;
-    CMessagePort<NTypes::TimestampedSensorData>& sensorDataLogMessagePort;
-    CMessagePort<NTypes::LoRaBroadcastSensorData>& sensorDataDownlinkMessagePort;
+    CMessagePort<NTypes::TimestampedSensorData>& sensorDataMessagePort;
 
     // Tenants
     CSensingTenant sensingTenant{
-        "Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort, sensorDataDownlinkMessagePort
-    };
-    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{
-        "Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort
-    };
-    CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkBroadcastTenant{
-        "Broadcast Tenant", ipAddrStr, downlinkBroadcastPort, downlinkBroadcastPort, sensorDataDownlinkMessagePort
+        "Sensing Tenant", sensorDataMessagePort, sensorDataMessagePort, sensorDataDownlinkMessagePort
     };
 
     CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{
-        "Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(60), 5
+        "Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataMessagePort, K_SECONDS(60), 5
     };
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
 
