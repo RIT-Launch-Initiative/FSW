@@ -37,7 +37,7 @@ void CSensingTenant::Run() {
         }
     };
 
-    NTypes::SensorData& data = timestampedData.data;
+    NTypes::SensorData &data = timestampedData.data;
 
 #ifndef CONFIG_ARCH_POSIX
     CShunt shuntBatt(*DEVICE_DT_GET(DT_ALIAS(shunt_batt)));
