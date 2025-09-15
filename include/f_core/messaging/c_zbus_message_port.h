@@ -51,16 +51,6 @@ public:
         return 1;
     }
 
-    /**
-     * Store user data in the message port
-     * @param key Key to store the data under
-     * @param data Data to store
-     * @return Whether the data was successfully added
-     */
-    bool AddUserData(const std::string &key, void* data) {
-        return userData.Insert(key, data);
-    }
-
 private:
     zbus_channel channel;
     CHashMap<std::string, void*> userData;
