@@ -9,7 +9,6 @@
 // Brain dead fast time series file storage
 // follows ideas from zephyr i2s subsystem using k_mem_slab to minimize copies
 
-
 // entry point for storage thread (will in the future be setup to handle more data)
 int storage_thread_entry(void *, void *, void *);
 /**
@@ -18,7 +17,12 @@ int storage_thread_entry(void *, void *, void *);
  * @param dev the device gotten by DEVICE_DT_GET identifying this gfs partition
  * @param slab_ptr pointer to the pointer that will identify the buffer to write into
  * @param timeout timeout for waiting for a slab to be ready to be allocate
- */
+ * @retval 0 Memory allocated. The block address area pointed at by slab_ptr
+ *         is set to the starting address of the memory block.
+ * @retval -ENOMEM Returned without waiting.
+ * @retval -EAGAIN Waiting period timed out.
+ * @retval -EINVAL Invalid data supplied
+  */
 int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeout);
 /**
  * Submit a buffer to be processed
@@ -27,12 +31,27 @@ int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeou
  * @param timeout the time to wait for submitting the slab (more time = more time for flash to catch up)
  */
 int gfs_submit_slab(const struct device *dev, void *slab, k_timeout_t timeout);
+
+/**
+ * Free a slab without submitting it to be stored
+ * only call if slab not already submitted (submit_slab returns non zero)
+ */
+void gfs_free_slab(const struct device *dev, void *slab);
+
 /**
  * Get the total number of blocks (pages) that the partition holds
  * @param dev the device gotten by DEVICE_DT_GET identifying this gfs partition
  * @return the number of blocks this partition holds
  */
 int gfs_total_blocks(const struct device *dev);
+
+
+/**
+ * Check if the circular buffer has had its stopping point set
+ * @return true if already set, false if not
+ */
+bool gfs_circle_point_set(const struct device *dev);
+
 /**
  * Tell the system that it should stop circular buffer mode and start saturating mode
  * when this is called, the system marks CURRENT_PAGE - CIRCLE_SIZE_PAGES as the point to stop
@@ -54,6 +73,7 @@ int gfs_read_block(const struct device *dev, int idx, uint8_t *pac);
 /**
  * Actual flash actioner
  * call on you flash thread if your flash driver isnt thread safe o_O
+ * gfs_handle_poll_item calls this if you don't want to wait on individual msgqs all the time
  */
 int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr);
 
@@ -63,3 +83,15 @@ int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr);
  * not done at init time in case you need to check something before you erase a sector
  */
 int gfs_erase_if_on_sector(const struct device *gfs_dev);
+
+
+// initialize a poll item for this partition
+// https://docs.zephyrproject.org/latest/kernel/services/polling.html
+void gfs_poll_item_init(const struct device *gfs_dev, struct k_poll_event* event);
+/**
+ * Handle a submitted block as received by k_poll
+ * This function *WILL* reset event.state to K_POLL_STATE_NOT_READY so the user does not need to do that manually.
+ */
+int gfs_handle_poll_item(const struct device *gfs_dev, struct k_poll_event* event);
+
+#define GFS_POLL_ITEM_AVAILABLE(event) (event.state== K_POLL_STATE_MSGQ_DATA_AVAILABLE)

@@ -4,3 +4,7 @@ menuconfig GORBFS
 	select FLASH
 	help
 		enable gorbfs file system
+
+module = GORBFS
+module-str = GORBFS
+source "subsys/logging/Kconfig.template.log_config"

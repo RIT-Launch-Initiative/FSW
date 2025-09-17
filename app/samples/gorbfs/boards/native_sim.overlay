@@ -1,0 +1,47 @@
+/ {
+    chosen {
+        zephyr,console = &uart0;
+        zephyr,shell-uart = &uart0;
+    };
+    fstab{
+        gfs1: gfs1 {
+            status = "okay";
+            compatible = "zephyr,fstab,gorbfs";
+            mount-point = "/gfs1";
+            partition = <&gfs_partition1>;
+            ram-cache-blocks = <4>;
+            circle-size = <(2)>;
+        };
+
+        gfs2: gfs2 {
+            status = "okay";
+            compatible = "zephyr,fstab,gorbfs";
+            mount-point = "/gfs2";
+            partition = <&gfs_partition1>;
+            ram-cache-blocks = <4>;
+            circle-size = <(1)>;// 10 seconds @ 10hz    
+        };
+
+    };
+};
+&flash0{
+    partitions {
+
+        // first 0x100000 reserved for program, use the rest as storage
+        gfs_partition1: partition@100000{
+            label = "gf-partition1";
+            reg = <0x100000 DT_SIZE_K(12)>; 
+        };
+        gfs_partition2: partition@200000{
+            label = "gf-partition2";
+            reg = <0x200000 DT_SIZE_M(1)>; 
+        };
+    };
+};
+
+&rtc {
+    status = "okay";
+};
+&uart0 {
+    status = "okay";
+};
