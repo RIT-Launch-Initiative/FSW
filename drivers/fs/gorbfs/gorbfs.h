@@ -9,8 +9,6 @@
 // Brain dead fast time series file storage
 // follows ideas from zephyr i2s subsystem using k_mem_slab to minimize copies
 
-// entry point for storage thread (will in the future be setup to handle more data)
-int storage_thread_entry(void *, void *, void *);
 /**
  * Get a buffer to write into
  * This should *always* be submitted back to the storage system with gfs_submit_slab
@@ -82,8 +80,16 @@ int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr);
  * Erase the block if the block needs to be erase
  * exposed for initial init
  * not done at init time in case you need to check something before you erase a sector
+ * theres a good chance you dont need to call this manually
  */
 int gfs_erase_if_on_sector(const struct device *gfs_dev);
+
+/**
+ * Check if the partition is already saturated
+ * @param dev the device gotten by DEVICE_DT_GET identifying this gfs partition
+ * @returns true if the partition has been marked as saturated
+ */
+bool gfs_partition_saturated(const struct device *dev);
 
 
 // initialize a poll item for this partition

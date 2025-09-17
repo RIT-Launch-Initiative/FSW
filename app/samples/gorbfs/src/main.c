@@ -26,6 +26,16 @@ struct msg1 {
 };
 BUILD_ASSERT(sizeof(struct msg1) == 256, "WANT THIS EQUAL SO WE CAN JUST CAST SLAB INTO THIS");
 
+struct msg2item{
+    uint32_t timestamp;
+    uint32_t reading;
+};
+struct msg2{
+    struct msg2item items[32];
+};
+BUILD_ASSERT(sizeof(struct msg2) == 256, "WANT THIS EQUAL SO WE CAN JUST CAST SLAB INTO THIS");
+
+
 bool keep_generating = true;
 
 void worker1_fn(void*, void*, void*) {
@@ -42,7 +52,7 @@ void worker1_fn(void*, void*, void*) {
         }
         // printk("Slot\n");
         msg->timestamp = k_uptime_get();
-        if (msg->timestamp > 5000 && !gfs_circle_point_set(gfs1)) {
+        if (msg->timestamp > 2000 && !gfs_circle_point_set(gfs1)) {
             // after 5 seconds, saturate rather than wrapping
             gfs_signal_end_of_circle(gfs1);
             printk("End of circle\n");
@@ -70,7 +80,7 @@ void worker1_fn(void*, void*, void*) {
     printk("Its all over, not generating and sending anything more\n");
 }
 
-K_THREAD_DEFINE(worker1, 256, worker1_fn, NULL, NULL, NULL, 1, 0, 0);
+K_THREAD_DEFINE(worker1, 256, worker1_fn, NULL, NULL, NULL, 1, 0, 1000);
 
 int main() {
     struct k_poll_event events[1];
@@ -89,7 +99,7 @@ int main() {
             rc = gfs_handle_poll_item(gfs1, &events[0]);
             if (rc == -ENOSPC){
                 // saturated, can quit now
-                printk("Saturated gfs partition '%s'", gfs1->name);
+                printk("Saturated gfs partition '%s'\n", gfs1->name);
                 break;
             } else if (rc != 0){
                 printk("asdasdsadasdada\n");

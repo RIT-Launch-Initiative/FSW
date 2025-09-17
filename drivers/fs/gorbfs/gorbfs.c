@@ -49,7 +49,13 @@ LOG_MODULE_REGISTER(gorbfs, CONFIG_GORBFS_LOG_LEVEL);
 #define GORBFS_INIT_PRIORITY 60
 BUILD_ASSERT(GORBFS_INIT_PRIORITY > CONFIG_FLASH_INIT_PRIORITY, "Gorbfs depends on flash");
 
-static int gorbfs_init(const struct device *dev) { return 0; }
+static int gorbfs_init(const struct device *dev) {
+    int ret = gfs_erase_if_on_sector(dev);
+    if (ret != 0){
+        LOG_WRN("Failed first erase: %d", ret);
+    }
+    return 0;
+}
 
 #define UNSET_START_INDEX   UINT32_MAX
 #define SET_START_INDEX     (UINT32_MAX - 1)
@@ -58,6 +64,11 @@ static int gorbfs_init(const struct device *dev) { return 0; }
 // helper to create an address from a page index
 static uint32_t gen_addr(const struct gorbfs_partition_config *cfg, uint32_t page_index) {
     return cfg->partition_addr + page_index * PAGE_SIZE;
+}
+
+bool gfs_partition_saturated(const struct device *dev){
+    struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
+    return data->page_index == ITS_OVER_PAGE_INDEX;
 }
 
 int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeout) {
@@ -104,8 +115,6 @@ static int set_cutoff_if_needed(const struct device *gfs_dev) {
         data->start_index = cutoff_index;
         LOG_DBG("Setting start index to %d (was at %d with circ size %d)", cutoff_index, data->page_index,
                 cfg->circle_size_pages);
-        int start = k_uptime_get();
-        int end = k_uptime_get() - start;
     }
     return 0;
 }
@@ -142,8 +151,6 @@ int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     if (ret != 0) {
         LOG_WRN("Failed to flash write at addr:%d index:%d (of %d pages): %d", addr, data->page_index, cfg->num_pages,
                 ret);
-    } else {
-        LOG_DBG("did write index %d of %d pages", data->page_index, cfg->num_pages);
     }
     data->page_index++;
     if (data->page_index >= cfg->num_pages) {
