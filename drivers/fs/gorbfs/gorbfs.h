@@ -19,6 +19,7 @@ int storage_thread_entry(void *, void *, void *);
  * @param timeout timeout for waiting for a slab to be ready to be allocate
  * @retval 0 Memory allocated. The block address area pointed at by slab_ptr
  *         is set to the starting address of the memory block.
+ * @retval -ENOBUFS The file is already saturated, so not allocating for you
  * @retval -ENOMEM Returned without waiting.
  * @retval -EAGAIN Waiting period timed out.
  * @retval -EINVAL Invalid data supplied

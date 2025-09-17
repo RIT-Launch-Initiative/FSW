@@ -32,7 +32,10 @@ void worker1_fn(void*, void*, void*) {
     struct msg1* msg = NULL;
     while (keep_generating) {
         int ret = gfs_alloc_slab(gfs1, (void**) &msg, K_MSEC(1000));
-        if (ret != 0) {
+        if (ret == -ENOBUFS){
+            // full, not generating any more
+            break;
+        } else if (ret != 0) {
             printk("Failed to allocate slab (%d). Trying again in a second\n", ret);
             k_msleep(1000);
             continue;
@@ -64,6 +67,7 @@ void worker1_fn(void*, void*, void*) {
         }
         k_msleep(1);
     }
+    printk("Its all over, not generating and sending anything more\n");
 }
 
 K_THREAD_DEFINE(worker1, 256, worker1_fn, NULL, NULL, NULL, 1, 0, 0);

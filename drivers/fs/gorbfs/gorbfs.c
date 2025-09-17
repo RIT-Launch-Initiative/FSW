@@ -51,8 +51,9 @@ BUILD_ASSERT(GORBFS_INIT_PRIORITY > CONFIG_FLASH_INIT_PRIORITY, "Gorbfs depends 
 
 static int gorbfs_init(const struct device *dev) { return 0; }
 
-#define UNSET_START_INDEX UINT32_MAX
-#define SET_START_INDEX   (UINT32_MAX - 1)
+#define UNSET_START_INDEX   UINT32_MAX
+#define SET_START_INDEX     (UINT32_MAX - 1)
+#define ITS_OVER_PAGE_INDEX UINT32_MAX
 
 // helper to create an address from a page index
 static uint32_t gen_addr(const struct gorbfs_partition_config *cfg, uint32_t page_index) {
@@ -61,7 +62,11 @@ static uint32_t gen_addr(const struct gorbfs_partition_config *cfg, uint32_t pag
 
 int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeout) {
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
+    if (data->page_index == ITS_OVER_PAGE_INDEX) {
+        return -ENOBUFS;
+    }
     int ret = k_mem_slab_alloc(data->slab, slab_ptr, timeout);
+
     return ret;
 }
 int gfs_submit_slab(const struct device *dev, void *slab, k_timeout_t timeout) {
@@ -120,7 +125,8 @@ int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     // printk("Page index: %d\n", data->page_index);
     size_t addr = gen_addr(cfg, data->page_index);
 
-    if (data->page_index == data->start_index) {
+    if (data->page_index == ITS_OVER_PAGE_INDEX || data->page_index == data->start_index) {
+        data->page_index = ITS_OVER_PAGE_INDEX;
         LOG_WRN_ONCE("Discarding page because flash is saturated");
         k_mem_slab_free(data->slab, (void *) chunk_ptr);
         return -ENOSPC;
@@ -134,7 +140,8 @@ int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     }
     ret = flash_write(cfg->flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
     if (ret != 0) {
-        LOG_WRN("Failed to flash write at addr:%d index:%d (of %d pages): %d", addr, data->page_index, cfg->num_pages, ret);
+        LOG_WRN("Failed to flash write at addr:%d index:%d (of %d pages): %d", addr, data->page_index, cfg->num_pages,
+                ret);
     } else {
         LOG_DBG("did write index %d of %d pages", data->page_index, cfg->num_pages);
     }
@@ -176,7 +183,6 @@ int gfs_signal_end_of_circle(const struct device *dev) {
     return 0;
 }
 
-
 void gfs_poll_item_init(const struct device *gfs_dev, struct k_poll_event *event) {
     const struct gorbfs_partition_data *data = gfs_dev->data;
     k_poll_event_init(event, K_POLL_TYPE_MSGQ_DATA_AVAILABLE, K_POLL_MODE_NOTIFY_ONLY, data->msgq);
@@ -196,8 +202,8 @@ int gfs_handle_poll_item(const struct device *gfs_dev, struct k_poll_event *even
 #define GORBFS_PARTITION_DEFINE(n, node)                                                                               \
     BUILD_ASSERT(DT_REG_SIZE(DT_PROP(node, partition)) % PAGE_SIZE == 0,                                               \
                  "Need partition size to be multiple of msg size (256)");                                              \
-    BUILD_ASSERT(DT_PROP(node, circle_size) < (DT_REG_SIZE(DT_PROP(node, partition)) / PAGE_SIZE),                                               \
-                 "Circle size pages must be less than total number of pages");                                              \
+    BUILD_ASSERT(DT_PROP(node, circle_size) < (DT_REG_SIZE(DT_PROP(node, partition)) / PAGE_SIZE),                     \
+                 "Circle size pages must be less than total number of pages");                                         \
     BUILD_ASSERT(                                                                                                      \
         DT_REG_SIZE(DT_PROP(node, partition)) % SECTOR_SIZE == 0,                                                      \
         "Need partition size to be multiple of sector size (4096) or we'll explode the next partition with an erase"); \
