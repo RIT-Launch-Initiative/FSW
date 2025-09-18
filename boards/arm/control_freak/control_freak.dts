@@ -39,7 +39,7 @@
 		barom = &bmp390;
 
 		inapump = &ina260_pump;
-		inaservo = &ina260_servo;
+		ina-servo = &ina260_servo;
 
 		groundcam = &cam1_enable;
 		antennacam = &cam2_enable;

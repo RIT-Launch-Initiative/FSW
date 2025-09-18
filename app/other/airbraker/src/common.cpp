@@ -37,27 +37,17 @@ int read_barom(const struct device *barom_dev, float &temp, float &press) {
     return 0;
 }
 
-int read_imu(const struct device *imu_dev, NTypes::AccelerometerData &acc, NTypes::GyroscopeData &gyro) {
+int read_imu_up(const struct device *imu_dev, float &vert_axis){
     int ret = sensor_sample_fetch(imu_dev);
     if (ret != 0) {
         return ret;
     }
-    struct sensor_value vals[3];
-    ret = sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_XYZ, vals);
+    struct sensor_value val;
+    ret = sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_X, &val);
     if (ret != 0) {
         return ret;
     }
-    acc.X = sensor_value_to_float(&vals[0]);
-    acc.Y = sensor_value_to_float(&vals[1]);
-    acc.Z = sensor_value_to_float(&vals[2]);
-
-    ret = sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, vals);
-    if (ret != 0) {
-        return ret;
-    }
-    gyro.X = sensor_value_to_float(&vals[0]);
-    gyro.Y = sensor_value_to_float(&vals[1]);
-    gyro.Z = sensor_value_to_float(&vals[2]);
+    vert_axis = sensor_value_to_float(&val);
     return 0;
 }
 
@@ -77,32 +67,11 @@ int set_lsm_sampling(const struct device *imu_dev, int odr) {
     return 0;
 }
 
-NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc) {
-    float magn = sqrtf(acc.X * acc.X + acc.Y * acc.Y + acc.Z * acc.Z);
-    return {acc.X / magn, acc.Y / magn, acc.Z / magn};
-}
-
-extern bool boostdata_locked;
-static struct fs_file_t allowfile;
-
-bool is_data_locked() { return boostdata_locked; }
-
 // Needed for sys init (seemingly)
 extern "C" {
 int init_boostdata_locked() {
     printk("\nChecking boostdata lock\n");
-    fs_file_t_init(&allowfile);
-    fs_dirent ent = {};
-    int ret = fs_stat(ALLOWFILE_PATH, &ent);
-    if (ret != 0) {
-        printk("No allowfile found, locked!\n\n");
-        boostdata_locked = true;
-        return -1;
-    } else {
-        printk("Allowfile found, flash unlocked\n\n");
-        boostdata_locked = false;
-        return 0;
-    }
+    return 0;
 }
 }
 #define DATA_LOCK_PRIORITY 99

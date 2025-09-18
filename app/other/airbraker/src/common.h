@@ -7,14 +7,14 @@
 #include <stdint.h>
 #include <zephyr/device.h>
 
+#define FAST_PACKET_ITEMS_PER_PACKET (sizeof(NTypes::FastPacket) / sizeof(NTypes::FastPacketItem))
+
 enum class FlightState : uint8_t {
     NotSet = 0,
     OnPad = 1,
     Boost = 2,
     Flight = 3,
-    InitialRoll = 4,
-    InitialPump = 5,
-    Continuous = 6,
+    Ground = 4,
 
 };
 
@@ -24,9 +24,7 @@ enum DataLockMsg {
 };
 
 
-
-#define IMU_SAMPLES_PER_PACKET                                                                                         \
-    (sizeof(((NTypes::SuperFastPacket *) 0)->GyroData) / sizeof(((NTypes::SuperFastPacket *) 0)->GyroData[0]))
+int set_lsm_sampling(const struct device *imu_dev, int odr);
 
 /**
  * @param ina_dev ina device
@@ -34,19 +32,9 @@ enum DataLockMsg {
  * @param[out] current current that was read or unchanged on error
  */
 int read_ina(const struct device *ina_dev, float &voltage, float &current);
+int read_barom(const struct device *barom_dev, float &temp, float &press);
+int read_imu_up(const struct device *imu_dev, float &vert_axis);
 
-int set_lsm_sampling(const struct device *imu_dev, int odr);
-
-NTypes::AccelerometerData normalize(NTypes::AccelerometerData acc);
-
-// If the file exists, you're good to write
-// If the file doesn't exist, consider the flash locked
-#define ALLOWFILE_PATH "/lfs/good_to_write"
-bool is_data_locked();
-
-// implemented by flash thread
-void unlock_boostdata();
-void lock_boostdata();
 
 
 #endif

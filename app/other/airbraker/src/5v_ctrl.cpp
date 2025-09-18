@@ -7,9 +7,7 @@
 LOG_MODULE_REGISTER(rail5v);
 
 static const struct gpio_dt_spec ldo_en = GPIO_DT_SPEC_GET(DT_ALIAS(ldo5v), gpios);
-
 static const struct gpio_dt_spec servo_en = GPIO_DT_SPEC_GET(DT_NODELABEL(servo_enable), gpios);
-
 static const struct gpio_dt_spec pump_enable = GPIO_DT_SPEC_GET(DT_NODELABEL(pump_enable), gpios);
 
 const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(DT_ALIAS(buzz), gpios);

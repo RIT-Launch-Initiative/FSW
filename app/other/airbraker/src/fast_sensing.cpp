@@ -6,31 +6,50 @@
 
 #include <cmath>
 #include <zephyr/device.h>
+#include <zephyr/devicetree.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/shell/shell.h>
 LOG_MODULE_REGISTER(sensing);
 
-K_TIMER_DEFINE(imutimer, NULL, NULL);
-K_TIMER_DEFINE(slowdata_timer, NULL, NULL);
+const struct device *ina_dev = DEVICE_DT_GET(DT_ALIAS(ina_servo));
+const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
+const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
 
-static int set_sampling(const struct device *imu_dev);
+struct Measurements {
+    float current;
+    float voltage;
+    float pressure;
+    float temperature;
+    float axis_accel;
+};
 
-bool DONT_STOP = true;
+int measure_all(Measurements *measurements) {
+    int ina_ret = read_ina(ina_dev, measurements->voltage, measurements->current);
+    int lsm_ret = read_imu_up(imu_dev, measurements->axis_accel);
+    int bmp_ret = read_barom(barom_dev, measurements->temperature, measurements->pressure);
+    if (ina_ret != 0) {
+        LOG_WRN("Couldnt read ina: %d", ina_ret);
+        return ina_ret;
+    }
+    if (lsm_ret != 0) {
+        LOG_WRN("Couldnt read lsm: %d", lsm_ret);
+        return lsm_ret;
+    }
+    if (bmp_ret != 0) {
+        LOG_WRN("Couldnt read lsm: %d", bmp_ret);
+        return bmp_ret;
+    }
+    return 0;
+}
 
 int boost_and_flight_sensing(const struct device *superfast_storage, const struct device *imu_dev,
                              const struct device *barom_dev, const struct device *ina_servo,
                              FreakFlightController *freak_controller) {
-    set_sampling(imu_dev);
+    set_lsm_sampling(imu_dev, 1666);
 
-    int64_t start = k_uptime_get();
-
-    k_timer_start(&imutimer, K_MSEC(10), K_MSEC(10));
     FlightState flight_state = FlightState::NotSet;
     bool already_imu_boosted = false;
-
-    static constexpr size_t packets_per_slab = 256 / 32;
-    int ret = 0;
 
     freak_controller->SubmitEvent(Sources::LSM6DSL, Events::PadReady);
     freak_controller->SubmitEvent(Sources::BMP390, Events::PadReady);
@@ -38,34 +57,12 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
     freak_controller->WaitUntilEvent(Events::PadReady);
     flight_state = FlightState::OnPad;
 
-    while (DONT_STOP && !freak_controller->HasEventOccurred(Events::GroundHit)) {
-        for (size_t i = 0; i < packets_per_slab; i++) {
-            float barom = 0;
-            float accel = 0;
-            float altitude = 0;
-            float velocity = 0;
+    while (!freak_controller->HasEventOccurred(Events::GroundHit)) {
+        NTypes::FastPacket *packet = NULL;
+        for (size_t i = 0; i < FAST_PACKET_ITEMS_PER_PACKET; i++) {
+            NTypes::FastPacketItem *item = &packet->items[i];
         }
     }
 
-    return 0;
-}
-
-static int set_sampling(const struct device *imu_dev) {
-    struct sensor_value sampling = {0};
-    sensor_value_from_float(&sampling, 1666);
-    int ret = sensor_attr_set(imu_dev, SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);
-    if (ret < 0) {
-        LOG_ERR("Couldnt set sampling\n");
-    }
-    ret = sensor_attr_set(imu_dev, SENSOR_CHAN_GYRO_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);
-    if (ret < 0) {
-        LOG_ERR("Couldnt set sampling\n");
-    }
-    return 0;
-}
-
-int cmd_stop(const struct shell *shell, size_t argc, char **argv) {
-    DONT_STOP = false;
-    shell_print(shell, "Stopping");
     return 0;
 }
