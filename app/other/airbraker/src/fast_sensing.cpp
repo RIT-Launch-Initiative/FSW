@@ -43,24 +43,28 @@ int measure_all(Measurements *measurements) {
     return 0;
 }
 
-int boost_and_flight_sensing(const struct device *superfast_storage, const struct device *imu_dev,
-                             const struct device *barom_dev, const struct device *ina_servo,
-                             FreakFlightController *freak_controller) {
+int boost_and_flight_sensing(const struct device *imu_dev,
+                             const struct device *barom_dev, const struct device *ina_servo) {
     set_lsm_sampling(imu_dev, 1666);
 
     FlightState flight_state = FlightState::NotSet;
-    bool already_imu_boosted = false;
 
-    freak_controller->SubmitEvent(Sources::LSM6DSL, Events::PadReady);
-    freak_controller->SubmitEvent(Sources::BMP390, Events::PadReady);
+    // freak_controller->SubmitEvent(Sources::LSM6DSL, Events::PadReady);
+    // freak_controller->SubmitEvent(Sources::BMP390, Events::PadReady);
 
-    freak_controller->WaitUntilEvent(Events::PadReady);
+    // freak_controller->WaitUntilEvent(Events::PadReady);
     flight_state = FlightState::OnPad;
 
-    while (!freak_controller->HasEventOccurred(Events::GroundHit)) {
+    while (true) {
         NTypes::FastPacket *packet = NULL;
         for (size_t i = 0; i < FAST_PACKET_ITEMS_PER_PACKET; i++) {
             NTypes::FastPacketItem *item = &packet->items[i];
+            Measurements meas = {0};
+            measure_all(&meas);
+            printf("Press: %f\n", (double)meas.pressure);
+            
+            
+            k_msleep(10);
         }
     }
 

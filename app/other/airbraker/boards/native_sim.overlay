@@ -4,9 +4,12 @@
 	};
 
 	aliases {
-		led0 = &led1; // a little broken :(
+		led0 = &led1; // a little broken: (
 		buzz = &buzzer;
 		ldo5v = &ldo5v_enable;
+		imu = &imu;
+		barom = &barom;
+		ina-servo = &inaservo;
 	};
 
 	leds {
@@ -15,15 +18,57 @@
 			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
 			label = "GPS LED";
 		};
-		buzzer: buzzer{
+		servo_enable: servo-enable{
 			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for the servo";
+		};
+		buzzer: buzzer{
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
 			label = "buzzer pin";
 		};
 		ldo5v_enable: ldo5v-enable{
-			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
 			label = "Enable pin for 5v ldo";
-		};	
+		};
+		pump_enable: pump-enable{
+			gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for pumps";
+		};
 	};
+
+	imu: imu {
+		status = "okay";
+		compatible = "openrocket,imu";
+		vertical-axis = "OPENROCKET_AXIS_X";
+		vertical-axis-invert;
+		lateral-axis = "OPENROCKET_AXIS_Z";
+		lag-time-us = <2000>; // 2 ms delay 
+		sampling-period-us = <600>;// 1666 hz
+
+		roll-axis = "OPENROCKET_AXIS_Z";
+		pitch-axis = "OPENROCKET_AXIS_Y";
+		yaw-axis = "OPENROCKET_AXIS_X";
+
+		accel-noise = <0>;
+		gyro-noise = <0>;
+	};
+
+	barom: barom {
+		status = "okay";
+		compatible = "openrocket,barometer";
+		lag-time-us = <1000>;
+		sampling-period-us = <10>;
+		temp-noise = <420>; // millicelsius - everett
+		pressure-noise = <0>; // pascals
+	};
+
+	inaservo: inaservo{
+        status = "okay";
+        compatible = "sim,simshunt";
+        simulated-voltage = <5000>;   // milliVolts
+        simulated-current = <100>;    // milliAmps
+    };
+
 };
 
 &flashcontroller0 {
@@ -63,8 +108,8 @@
 				label = "image-scratch";
 				reg = <0x000de000 0x0001e000>;
 			};
-			
-			
+
+
 			fast_partition: fastpartition@100000 {
 				label = "superfast-storage";
 				reg = <0x100000 DT_SIZE_M(128)>;

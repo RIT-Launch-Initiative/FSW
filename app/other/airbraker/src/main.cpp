@@ -32,14 +32,13 @@ int main() {
     const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
 
     const struct device *ina_servo =    DEVICE_DT_GET(DT_ALIAS(ina_servo));
-    const struct device *ina_pump = DEVICE_DT_GET(DT_ALIAS(inapump));
 
     if (!device_is_ready(imu_dev) || !device_is_ready(barom_dev)) {
         LOG_ERR("Sensor devices not ready");
         // buzzer_tell(BuzzCommand::SensorTroubles);
         return -1;
     }
-    if (!device_is_ready(ina_servo) || !device_is_ready(ina_pump)) {
+    if (!device_is_ready(ina_servo)) {
         LOG_ERR("Sensor devices not ready");
         // buzzer_tell(BuzzCommand::SensorTroubles);
         return -1;
@@ -55,7 +54,7 @@ int main() {
     }
 
     //Ground, Boost, Coast, Flight
-    // ret = boost_and_flight_sensing(superfast_storage, imu_dev, barom_dev, ina_servo, &freak_controller);
+    ret = boost_and_flight_sensing(imu_dev, barom_dev, ina_servo);
     LOG_INF("On the ground now");
 
     return 0;

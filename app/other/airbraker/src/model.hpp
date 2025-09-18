@@ -26,6 +26,5 @@ float pressure_altitude(float pressure);
 void init_kalman_filt();
 KalmanOutput kalman_filt(const Measurement &meas);
 
-using ActuatorValue = uint16_t;
 
-ActuatorValue actuator_lut(Estimate &est);
+float actuator_effort_lut(float altitude_est, float velocity_est);

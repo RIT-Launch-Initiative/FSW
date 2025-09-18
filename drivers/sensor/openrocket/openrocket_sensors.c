@@ -113,6 +113,7 @@ static const char* event_to_str(enum or_event_t e) {
     return names[e];
 }
 static void or_event_thread_handler(void) {
+    return;
     // This thread starts at T=0 via the zephyr thread startup time
     or_scalar_t time = 0;
     unsigned int i = 0;
