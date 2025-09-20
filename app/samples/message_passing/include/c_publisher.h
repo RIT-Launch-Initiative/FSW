@@ -30,7 +30,7 @@ public:
     void Run() override;
 
 private:
-    using CBase = CTenant;
+    using CBase = CRunnableTenant;
 
     CMessagePort<Message> &messagePort;
     Message message;

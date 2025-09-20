@@ -23,7 +23,7 @@ public:
     void Run() override;
 
 private:
-    using CBase = CTenant;
+    using CBase = CRunnableTenant;
 
     CMessagePort<Message> &messagePort;
     CMessagePort<bool> &completedPort;

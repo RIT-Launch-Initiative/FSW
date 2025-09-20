@@ -6,7 +6,7 @@
 LOG_MODULE_REGISTER(Receiver);
 
 CReceiver::CReceiver(CMessagePort<Message>& messagePort, CMessagePort<bool>& completedPort, int messageCountToReceive) :
-    CTenant("Receiver"), messagePort(messagePort), completedPort(completedPort),
+    CRunnableTenant("Receiver"), messagePort(messagePort), completedPort(completedPort),
     messageCountToReceive(messageCountToReceive) {
 
 }
