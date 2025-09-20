@@ -6,10 +6,9 @@
 #ifndef C_TASK_H
 #define C_TASK_H
 
-#include <cstdint>
 #include <vector>
 
-#include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 #include <zephyr/kernel.h>
 
 /**
@@ -40,7 +39,7 @@ public:
      * Bind a tenant to the task
      * @param tenant Tenant to bind to a task
      */
-    void AddTenant(CTenant& tenant);
+    void AddTenant(CRunnableTenant& tenant);
 
     /**
      * @brief Run through the tenants and execute their Run method
@@ -79,7 +78,7 @@ private:
     k_thread thread;
     k_thread_stack_t* stack;
 
-    std::vector<CTenant*> tenants;
+    std::vector<CRunnableTenant*> tenants;
 };
 
 #endif //C_TASK_H
