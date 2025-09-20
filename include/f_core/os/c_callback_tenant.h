@@ -15,7 +15,7 @@ public:
      * Constructor
      * @param name Name of the tenant
      */
-    explicit CCallbackTenant(const char *name) : CTenant(name) {};
+    explicit CCallbackTenant(const char *name) : CRunnableTenant(name) {};
 
     /**
      * Destructor

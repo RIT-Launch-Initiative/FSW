@@ -86,7 +86,7 @@ private:
      * @param port Port to bind to. Standard is 69
      */
     CTftpServerTenant(const CIPv4 &ipv4, uint16_t port = TFTP_DEFAULT_PORT)
-        : CTenant("TFTP server"), sock(ipv4, port, port), ip(ipv4) {};
+        : CRunnableTenant("TFTP server"), sock(ipv4, port, port), ip(ipv4) {};
 
     /**
      * Handles TFTP RRQ requests

@@ -163,7 +163,7 @@ private:
 
     CSntpServerTenant(CRtc& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
                       uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
-        : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc), stratum(stratum),
+        : CRunnableTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc), stratum(stratum),
           pollInterval(pollInterval), precisionExponent(precisionExponent), sockPort(port) {}
 
     int getLastUpdateTimeAsSeconds(uint32_t& seconds);
