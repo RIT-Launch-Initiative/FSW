@@ -11,7 +11,7 @@
 class CGnssTenant : public CRunnableTenant {
 public:
     explicit CGnssTenant(const char* name, CMessagePort<NTypes::LoRaBroadcastData>* loraTransmitPort, CMessagePort<NTypes::GnssData>* dataLoggingPort)
-        : CTenant(name), loraTransmitPort(*loraTransmitPort), dataLoggingPort(*dataLoggingPort)
+        : CRunnableTenant(name), loraTransmitPort(*loraTransmitPort), dataLoggingPort(*dataLoggingPort)
     {
     }
 

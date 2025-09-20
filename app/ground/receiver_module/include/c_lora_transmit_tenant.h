@@ -15,7 +15,7 @@ public:
 
     explicit CLoraTransmitTenant(const char* name, CLora& lora,
                                  CMessagePort<NTypes::LoRaBroadcastData>* loraTransmitPort)
-        : CTenant(name), lora(lora), loraTransmitPort(*loraTransmitPort) {}
+        : CRunnableTenant(name), lora(lora), loraTransmitPort(*loraTransmitPort) {}
 
     ~CLoraTransmitTenant() override = default;
 

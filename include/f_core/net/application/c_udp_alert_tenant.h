@@ -9,7 +9,7 @@
 
 class CUdpAlertTenant : public CRunnableTenant {
 public:
-    explicit CUdpAlertTenant(const char* name, const char* ipAddrStr, const uint16_t port) : CTenant(name), sock(CUdpSocket(CIPv4(ipAddrStr), port, port)) {};
+    explicit CUdpAlertTenant(const char* name, const char* ipAddrStr, const uint16_t port) : CRunnableTenant(name), sock(CUdpSocket(CIPv4(ipAddrStr), port, port)) {};
 
     /**
      * See parent docs

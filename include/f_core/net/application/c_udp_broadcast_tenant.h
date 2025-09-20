@@ -17,7 +17,7 @@ public:
      * @param dstPort Destination port to broadcast to
      * @param messagePort Message port to receive messages to broadcast
      */
-    CUdpBroadcastTenant(const char* name, const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : CTenant(name), udp(CIPv4(ipAddr), srcPort, dstPort), messagesToBroadcast(&messagePort), dstPort(dstPort)  {}
+    CUdpBroadcastTenant(const char* name, const char *ipAddr, const int srcPort, const int dstPort, CMessagePort<T> &messagePort) : CRunnableTenant(name), udp(CIPv4(ipAddr), srcPort, dstPort), messagesToBroadcast(&messagePort), dstPort(dstPort)  {}
 
     /**
      * Constructor
@@ -25,7 +25,7 @@ public:
      * @param udp UDP socket to broadcast messages to
      * @param messagePort Message port to receive messages to broadcast
      */
-    CUdpBroadcastTenant(const char* name, const CUdpSocket& udp, CMessagePort<T> &messagePort) : CTenant(name), udp(udp), messagesToBroadcast(&messagePort) {}
+    CUdpBroadcastTenant(const char* name, const CUdpSocket& udp, CMessagePort<T> &messagePort) : CRunnableTenant(name), udp(udp), messagesToBroadcast(&messagePort) {}
 
     /**
      * Destructor

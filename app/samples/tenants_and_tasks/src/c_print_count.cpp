@@ -4,7 +4,7 @@
 
 LOG_MODULE_REGISTER(counter);
 
-CPrintCount::CPrintCount(const char* name, int *count) : CTenant(name), count(count) {
+CPrintCount::CPrintCount(const char* name, int *count) : CRunnableTenant(name), count(count) {
 }
 
 void CPrintCount::Startup() {

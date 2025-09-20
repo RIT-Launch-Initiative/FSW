@@ -15,7 +15,7 @@ class CDataLoggerTenant : public CRunnableTenant {
 public:
     explicit CDataLoggerTenant(const char* name, const char* filename, LogMode mode, std::size_t numPackets,
                       CMessagePort<T>& messagePort, k_timeout_t syncTimeout = K_FOREVER, int syncOnCount = 0)
-        : CTenant(name), messagePort(messagePort), dataLogger(filename, mode, numPackets), filename(filename),
+        : CRunnableTenant(name), messagePort(messagePort), dataLogger(filename, mode, numPackets), filename(filename),
           syncTimeout(syncTimeout), syncOnCount(syncOnCount) {}
 
     ~CDataLoggerTenant() override {

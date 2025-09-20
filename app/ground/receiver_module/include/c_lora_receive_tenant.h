@@ -13,7 +13,7 @@ void shutoffTimerExpirationFn(k_timer* timer);
 class CLoraReceiveTenant : public CRunnableTenant {
 public:
     explicit CLoraReceiveTenant(const char* name, CLoraTransmitTenant& loraTransmitTenant, const char* ip, const uint16_t srcPort)
-        : CTenant(name), loraTransmitTenant(loraTransmitTenant), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort)) {}
+        : CRunnableTenant(name), loraTransmitTenant(loraTransmitTenant), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort)) {}
 
     /**
      * See Parent Docs

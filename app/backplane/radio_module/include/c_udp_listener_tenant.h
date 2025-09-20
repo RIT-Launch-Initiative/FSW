@@ -12,7 +12,7 @@
 class CUdpListenerTenant : public CRunnableTenant {
 public:
     explicit CUdpListenerTenant(const char* name, const char *ipStr, const uint16_t listenPort, CMessagePort<NTypes::LoRaBroadcastData>* loraTransmitPort)
-        : CTenant(name), ip(CIPv4{ipStr}), udp(CUdpSocket{ip, listenPort, listenPort}),
+        : CRunnableTenant(name), ip(CIPv4{ipStr}), udp(CUdpSocket{ip, listenPort, listenPort}),
           loraTransmitPort(*loraTransmitPort), listenPort(listenPort) {}
 
     ~CUdpListenerTenant() override = default;
