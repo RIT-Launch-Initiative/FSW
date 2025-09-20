@@ -11,6 +11,8 @@
 
 /**
  * Tenant designed to be executed in a superloop or task periodically
+ * F-Core tenants should ideally be non-blocking and return as quickly as possible
+ * Application tenants can block, but should recognize other tenants that could be sharing the same thread context
  */
 class CRunnableTenant : public CTenant {
 public:

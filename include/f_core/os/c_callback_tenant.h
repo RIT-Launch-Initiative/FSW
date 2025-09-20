@@ -10,6 +10,7 @@
 
 /**
  * Tenant designed to be executed in a callback periodically
+ * This tenant should not block under any circumstance when executing
  */
 class CCallbackTenant : public CTenant {
 public:
