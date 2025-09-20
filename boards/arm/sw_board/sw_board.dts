@@ -9,6 +9,15 @@
 	model = "Software Board";
 	compatible = "launch,sw_board";
 
+	// hid_dev_0: hid_dev_0 {
+		// compatible = "zephyr,hid-device";
+		// interface-name = "HID0";
+		// protocol-code = "none";
+		// in-polling-period-us = <1000>;
+		// in-report-size = <64>;
+	// };
+
+
 	chosen {
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
@@ -21,6 +30,7 @@
 		led0 = &led1;
 		rtc = &rtc;
 		led-strip = &led_strip;
+		imu = &lsm6dv;
 	};
 
 	gpio_hog_led: gpio-hog {
@@ -39,19 +49,21 @@
 
 	buttons: buttons {
 		compatible = "gpio-keys";
-		status = "disabled";
+		status = "okay";
 		button1 {
 			gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;
+			zephyr,code = <INPUT_KEY_0>;
 		};
 		button2 {
 			gpios = <&gpiob 9 GPIO_ACTIVE_LOW>;
+			zephyr,code = <INPUT_KEY_1>;
 		};
-		sd-card-detect {
-			gpios = <&gpiob 1 GPIO_ACTIVE_LOW>;
-		};
-		vbus-detect {
-			gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
-		};
+		// sd-card-detect {
+			// gpios = <&gpiob 1 GPIO_ACTIVE_LOW>;
+		// };
+		// vbus-detect {
+			// gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
+		// };
 	};
 
 	generic_gpios: generic-gpios {
@@ -116,7 +128,7 @@
 	usb_control: usb-control{
 		// pins for selecting
 		compatible = "gpio-leds";
-		status = "okay";
+		status = "disabled";
 		// usb_pu: usb-pu{
 			//     at HighZ, Internal pull up makes it negotiate high speed
 			//     at On,  Pulled up externally negotiating high speed
@@ -161,14 +173,14 @@
 			#address-cells = <0x1>;
 			#size-cells = <0x0>;
 
-			w25: qspi-nor-flash@00000000 {
+			w25: qspi-nor-flash@0 {
 				compatible = "st,stm32-qspi-nor";
 				reg = <0x00000000 DT_SIZE_M(16)>; /* 128 Mbits */
 				size = <DT_SIZE_M(128)>; /* 64 Mbits */
 				qspi-max-frequency = <DT_FREQ_M(8)>;
 				status = "okay";
 				spi-bus-width = <4>;
-				jedec-id = [ef 40 18];
+				jedec-id = [ ef 40 18  ];
 
 				writeoc = "PP_1_4_4";
 
@@ -228,11 +240,20 @@ zephyr_udc0: &usbotg_fs {
 	pinctrl-0 = <&usb_otg_fs_dm_pa11 &usb_otg_fs_dp_pa12>;
 	pinctrl-names = "default";
 	maximum-speed = "full-speed";
+	status = "okay";
 	// USB VBUS Detection/Control GPIOA9
 	cdc_acm_uart0: cdc_acm_uart0 {
 		compatible = "zephyr,cdc-acm-uart";
 		label = "Zephyr USB CDC-ACM";
 	};
+	hid_dev_0: hid_dev_0 {
+		compatible = "zephyr,hid-device";
+		interface-name = "HID0";
+		protocol-code = "none";
+		in-polling-period-us = <1000>;
+		in-report-size = <64>;
+	};
+
 };
 
 
