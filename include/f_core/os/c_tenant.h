@@ -30,11 +30,6 @@ public:
     virtual void PostStartup() {};
 
     /**
-     * Run the tenant
-     */
-    virtual void Run() = 0;
-
-    /**
      * Cleanup the tenant
      */
     virtual void Cleanup() {};
