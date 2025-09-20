@@ -4,14 +4,14 @@
 #include <n_autocoder_types.h>
 #include <array>
 #include <f_core/messaging/c_message_port.h>
-#include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 
 #include <f_core/radio/c_lora.h>
 #include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
 #include <f_core/utils/c_observer.h>
 #include <f_core/utils/c_hashmap.h>
 
-class CLoraTransmitTenant : public CTenant, public CPadFlightLandedStateMachine {
+class CLoraTransmitTenant : public CRunnableTenant, public CPadFlightLandedStateMachine {
 public:
     friend class CLoraReceiveTenant;
 

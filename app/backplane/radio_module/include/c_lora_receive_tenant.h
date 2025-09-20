@@ -5,7 +5,7 @@
 #include <c_lora_transmit_tenant.h>
 
 #include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
-#include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 #include <f_core/net/network/c_ipv4.h>
 #include <f_core/net/transport/c_udp_socket.h>
 #include <f_core/device/c_gpio.h>
@@ -13,7 +13,7 @@
 
 void shutoffTimerExpirationFn(k_timer* timer);
 
-class CLoraReceiveTenant : public CTenant, public CPadFlightLandedStateMachine {
+class CLoraReceiveTenant : public CRunnableTenant, public CPadFlightLandedStateMachine {
 public:
     explicit CLoraReceiveTenant(const char* name, CLoraTransmitTenant& loraTransmitTenant, const char* ip, const uint16_t srcPort)
         : CTenant(name), loraTransmitTenant(loraTransmitTenant), udp(CUdpSocket(CIPv4(ip), srcPort, srcPort)) {}

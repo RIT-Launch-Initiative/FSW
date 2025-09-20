@@ -2,12 +2,12 @@
 #define PRINTCOUNT_H
 
 // F-Core Includes
-#include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 
 /**
  * Increments and prints the current count for a given integer.
  */
-class CPrintCount : public CTenant {
+class CPrintCount : public CRunnableTenant {
 public:
     /**
      * Constructor.

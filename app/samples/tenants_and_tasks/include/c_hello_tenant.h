@@ -2,12 +2,12 @@
 #define HELLOTENANT_H
 
 // F-Core Includes
-#include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 
 /**
  * Print "Hello, " followed by a name.
  */
-class CHelloTenant : public CTenant {
+class CHelloTenant : public CRunnableTenant {
 public:
     /**
      * Constructor

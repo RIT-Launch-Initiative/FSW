@@ -6,11 +6,11 @@
 #include <n_autocoder_types.h>
 
 #include <f_core/messaging/c_message_port.h>
-#include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 #include <f_core/utils/c_observer.h>
 #include <f_core/utils/c_soft_timer.h>
 
-class CSensingTenant : public CTenant, public CObserver {
+class CSensingTenant : public CRunnableTenant, public CObserver {
 public:
     explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
         : CTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(dataToDownlink) {}
