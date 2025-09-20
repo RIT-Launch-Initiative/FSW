@@ -13,9 +13,20 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 		zephyr,canbus = &can1;
+		zephyr,console = &uart4;
+		zephyr,shell_uart = &uart4;
+		// uart1 =
 	};
 	aliases {
 		led0 = &led1;
+		rtc = &rtc;
+		led-strip = &led_strip;
+	};
+
+	gpio_hog_led: gpio-hog {
+		gpio-hog; // Required property
+		gpios = <&gpioe 15 GPIO_ACTIVE_HIGH>;
+		label = "hogged-led";
 	};
 
 	leds: leds {
@@ -130,8 +141,46 @@
 	// IO1 PD12
 	// IO2 PE2
 	// IO3 pd13
+	// qspi {
+		// compatible
+	// };
 
+
+	soc {
+		quadspi: spi@a0001000 {
+			compatible = "st,stm32-qspi";
+			pinctrl-names = "default";
+			pinctrl-0 = <&quadspi_clk_pb2 &quadspi_bk1_ncs_pb6
+			&quadspi_bk1_io0_pd11 &quadspi_bk1_io1_pd12
+			&quadspi_bk1_io2_pe2 &quadspi_bk1_io3_pd13>;
+			reg = <0xa0001000 0x400>;
+			interrupts = <92 0>;
+			clocks = <&rcc STM32_CLOCK(AHB3, 1U)>;
+			flash-id = <1>;
+			status = "okay";
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+
+			w25: qspi-nor-flash@00000000 {
+				compatible = "st,stm32-qspi-nor";
+				reg = <0x00000000 DT_SIZE_M(16)>; /* 128 Mbits */
+				size = <DT_SIZE_M(128)>; /* 64 Mbits */
+				qspi-max-frequency = <DT_FREQ_M(8)>;
+				status = "okay";
+				spi-bus-width = <4>;
+				jedec-id = [ef 40 18];
+
+				writeoc = "PP_1_4_4";
+
+				// reset-gpios = <&gpiod 3 GPIO_ACTIVE_LOW>;
+				// reset-gpios-duration = <1>;
+
+			};
+		};
+	};
 };
+
+
 
 &can1 {
 	pinctrl-0 = <&can1_rx_pb8 &can1_tx_pb9>;
@@ -140,9 +189,10 @@
 
 
 &adc1 {
+	status = "okay";
+	st,adc-prescaler = <4>;
 	#address-cells = <1>;
 	#size-cells = <0>;
-	// 3,4,12,14
 	cont1: channel@3 {
 		reg = <3>;
 		zephyr,gain = "ADC_GAIN_1";
@@ -175,15 +225,24 @@
 
 
 zephyr_udc0: &usbotg_fs {
-	status = "okay";
 	pinctrl-0 = <&usb_otg_fs_dm_pa11 &usb_otg_fs_dp_pa12>;
 	pinctrl-names = "default";
 	maximum-speed = "full-speed";
 	// USB VBUS Detection/Control GPIOA9
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+		label = "Zephyr USB CDC-ACM";
+	};
 };
 
 
+
 &clk_lsi {
+	status = "okay";
+	clock-frequency = <32768>;
+};
+
+&clk_lse {
 	status = "okay";
 	clock-frequency = <32768>;
 };
@@ -219,7 +278,7 @@ zephyr_udc0: &usbotg_fs {
 
 &uart4 {
 	// UART1 TX1/RX1
-	status = "disabled";
+	status = "okay";
 	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
 	pinctrl-names = "default";
 	current-speed = <115200>;
@@ -247,6 +306,8 @@ zephyr_udc0: &usbotg_fs {
 	// MS5607
 	ms5607: ms5607@76 {
 		// https: //www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Data+Sheet%7FMS5607-02BA03%7FB2%7Fpdf%7FEnglish%7FENG_DS_MS5607-02BA03_B2.pdf%7FCAT-BLPS0035
+		compatible = "meas,ms5607";
+		status = "okay";
 		reg = <0x76>;
 	};
 	// LSM6DSVETR
@@ -260,27 +321,42 @@ zephyr_udc0: &usbotg_fs {
 		int2-gpios = <&gpiod 3 GPIO_ACTIVE_HIGH>;
 
 	};
-	ina219_3v3: ina260-3v3@45 {
+	ina219_3v3: ina219-3v3@45 {
 		// 3.3 Volt line
-		status = "disabled";
+		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x45>;
-		// CONFIG
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 7.5 mV drop.
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <400>;
 
 	};
 	ina219_5v: ina219-5v@40 {
 		// Pump Power - expect 5 V
-		status = "disabled";
+		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x40>;
-		// Config
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 7.5 mV drop.
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <400>;
 	};
 	ina219_battery: ina219-battery@4a {
 		// Pump Power - expect 5 V
-		status = "disabled";
+		status = "okay";
 		compatible = "ti,ina219";
 		reg = <0x4a>;
-		// Config
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 7.5 mV drop.
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <400>;
 	};
 
 	// NAU7802SGI (at a later date)
