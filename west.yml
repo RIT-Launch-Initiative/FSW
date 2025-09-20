@@ -21,9 +21,10 @@ manifest:
           - hal_nxp
           - littlefs
           - loramac-node
-          - hal_st
+          - lz4
           - segger
           - percepio
-          - lz4
       clone-depth: 1
-
+    - name: zscilib
+      remote: zephyrproject-rtos
+      revision: master

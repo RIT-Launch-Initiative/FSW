@@ -1,0 +1,44 @@
+/ {
+	aliases {
+		imu = &imu;
+		accelerometer = &secondimu;
+		magnetometer = &imu;
+	};
+
+    imu: imu {
+        status = "okay";
+        compatible = "openrocket,imu";
+        vertical-axis = "OPENROCKET_AXIS_Z";
+        vertical-axis-invert;
+        lateral-axis = "OPENROCKET_AXIS_X";
+        lag-time-us = <0>;
+        sampling-period-us = <1000>;
+
+        roll-axis = "OPENROCKET_AXIS_Z";
+        pitch-axis = "OPENROCKET_AXIS_Y";
+        yaw-axis = "OPENROCKET_AXIS_X";
+    };
+
+
+    secondimu: secondimu {
+        status = "okay";
+        compatible = "openrocket,imu";
+        vertical-axis = "OPENROCKET_AXIS_Z";
+        vertical-axis-invert;
+        lateral-axis = "OPENROCKET_AXIS_X";
+        lag-time-us = <0>;
+        sampling-period-us = <1000>;
+
+        roll-axis = "OPENROCKET_AXIS_Z";
+        pitch-axis = "OPENROCKET_AXIS_Y";
+        yaw-axis = "OPENROCKET_AXIS_X";
+    };
+
+    magn: magn {
+        status = "okay";
+        compatible = "openrocket,magnetometer";
+        lag-time-us = <1000>;
+		sampling-period-us = <10>;
+    };
+
+};

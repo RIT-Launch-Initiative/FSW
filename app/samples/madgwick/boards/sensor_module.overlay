@@ -1,0 +1,7 @@
+/ {
+	aliases {
+		imu = &lsm6dsl;
+		accelerometer = &adxl375;
+		magnetometer = &lis3mdl;
+	};
+};
