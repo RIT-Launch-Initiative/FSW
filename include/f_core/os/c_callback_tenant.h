@@ -6,7 +6,8 @@
 #ifndef C_CALLBACK_TENANT_H
 #define C_CALLBACK_TENANT_H
 
-#include "c_tenant.h"
+#include "f_core/os/c_tenant.h"
+
 
 class CCallbackTenant : public CTenant {
 public:

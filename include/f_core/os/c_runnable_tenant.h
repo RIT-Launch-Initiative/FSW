@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "c_tenant.h"
+#include "f_core/os/c_tenant.h"
 
 #ifndef C_RUNNABLE_TENANT_H
 #define C_RUNNABLE_TENANT_H

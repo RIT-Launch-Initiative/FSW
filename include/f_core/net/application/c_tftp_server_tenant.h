@@ -4,8 +4,9 @@
 #include "f_core/os/c_tenant.h"
 #include "f_core/net/network/c_ipv4.h"
 #include "f_core/net/transport/c_udp_socket.h"
+#include "f_core/os/c_runnable_tenant.h"
 
-class CTftpServerTenant : public CTenant {
+class CTftpServerTenant : public CRunnableTenant {
 public:
     static constexpr uint16_t TFTP_DEFAULT_PORT = 69;
     inline static CTftpServerTenant *instance = nullptr;

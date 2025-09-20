@@ -1,12 +1,13 @@
 #ifndef C_UDP_RECEIVER_TENANT_H
 #define C_UDP_RECEIVER_TENANT_H
 
-#include <f_core/net/network/c_ipv4.h>
-#include <f_core/net/transport/c_udp_socket.h>
-#include <f_core/messaging/c_message_port.h>
+#include "f_core/net/network/c_ipv4.h"
+#include "f_core/net/transport/c_udp_socket.h"
+#include "f_core/os/c_runnable_tenant.h"
+#include "f_core/messaging/c_message_port.h"
 
 template <typename T>
-class CUdpReceiveTenant : public CTenant {
+class CUdpReceiveTenant : public CRunnableTenant {
 public:
     /**
      * Constructor
