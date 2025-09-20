@@ -49,7 +49,7 @@ void CTask::Initialize() {
         tenant->Startup();
     }
 
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->PostStartup();
     }
 
