@@ -4,6 +4,7 @@
 #include <zephyr/net/socket.h>
 
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket_service.h>
 #include <zephyr/posix/fcntl.h>
 
 LOG_MODULE_REGISTER(CUdpSocket);
@@ -15,8 +16,8 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         return;
     }
 
-    sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock < 0) {
+    sockfd.fd = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sockfd.fd  < 0) {
         LOG_ERR("Failed to create socket: %d", errno);
         return;
     }
@@ -34,6 +35,7 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         sock = -1;
         return;
     }
+    sockfd.fd = sock;
 #else
     LOG_WRN("Skipping bind. Using native_sim loopback");
 #endif
@@ -47,6 +49,7 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
 
 CUdpSocket::~CUdpSocket() {
     if (sock >= 0) {
+        net_socket_service_unregister(serviceDesc);
         zsock_close(sock);
         sock = -1;
     }
@@ -130,6 +133,28 @@ int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr *srcAddr, s
 
     return ret;
 }
+
+int CUdpSocket::RegisterSocketService(net_socket_service_desc* desc, void* userData) {
+    if (desc == nullptr) {
+        LOG_ERR("Invalid socket service descriptor");
+        return -1;
+    }
+
+    auto* serviceUserData = new SocketServiceUserData{this, userData};
+    desc->pev[0].user_data = serviceUserData;
+
+    int ret = net_socket_service_register(desc, &sockfd, 1, serviceUserData);
+    if (ret == -ENOENT) {
+        LOG_ERR("Socket service not found.");
+        return ret;
+    } else if (ret == -EINVAL) {
+        LOG_ERR("Invalid parameter for socket service registration.");
+        return ret;
+    }
+
+    return 0;
+}
+
 
 int CUdpSocket::SetTxTimeout(const int timeoutMillis) {
     return zsock_setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeoutMillis, sizeof(timeoutMillis));
