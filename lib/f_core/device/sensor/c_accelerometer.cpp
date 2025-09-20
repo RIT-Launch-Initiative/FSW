@@ -23,7 +23,7 @@ sensor_value CAccelerometer::GetSensorValue(sensor_channel chan) const {
             return acceleration.z;
         default:
             // Assert here since this should never occur
-            LOG_ERR("Invalid sensor channel (%d) called for accelerometer", chan);
+            LOG_ERR("Invalid sensor channel (%d) called for accelerometer", static_cast<int>(chan));
             k_oops();
             return {INT32_MIN, INT32_MIN};
     }

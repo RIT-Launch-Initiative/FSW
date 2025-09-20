@@ -41,7 +41,7 @@ using Controller = CPhaseController<Events, Events::NumEvents, Sources, Sources:
 /**
  * Special events triggered not by sensors but by timers between phases
  */
-inline std::array<Controller::TimerEvent, num_timer_events> timer_events = {
+inline std::array<Controller::TimerEvent, num_timer_events> timerEvents = {
     // The engine should burn for around X seconds. don't detect coast unless the engine has been firing for a bit
     // Can be implemented as a lockout or as another way of progressing states if you don't want to do unboost detection
     Controller::TimerEvent{

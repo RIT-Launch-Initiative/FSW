@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: control_freak bring up and debugging
+common:
+  build_only: true
+  platform_allow:
+    - control_freak
+tests:
+  control_freak.bringup.default: {}

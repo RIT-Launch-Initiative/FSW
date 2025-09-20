@@ -1,0 +1,1 @@
+add_subdirectory_ifdef(CONFIG_U_BLOX_M10 u_blox_m10)

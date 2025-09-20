@@ -19,15 +19,12 @@ enum Events {
     Boost,
     Coast,
     GroundHit,
+    InitialInflation,
     NumEvents,
 };
 
 inline constexpr std::array<const char *, Events::NumEvents> eventNames = {
-    "PadReady",
-    "Unlocked",
-    "Boost",
-    "Coast",
-    "GroundHit",
+    "PadReady", "Unlocked", "Boost", "Coast", "InitialInflation", "GroundHit",
 };
 enum Sources {
     // Flight Controlling Sources
@@ -35,13 +32,11 @@ enum Sources {
     BMP390,
     BoostTimer,
     GroundHitTimer,
+    InflationSubsys,
     NumSources,
 };
 inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
-    "LSM6DSL",
-    "BMP390",
-    "BoostTimer"
-    "GroundHitTimer",
+    "LSM6DSL", "BMP390", "BoostTimer", "GroundHitTimer", "InflationSubsys",
 };
 
 inline constexpr size_t numTimerEvents = 2;
@@ -59,7 +54,7 @@ inline std::array<FreakFlightController::TimerEvent, numTimerEvents> timerEvents
     FreakFlightController::TimerEvent{
         .start = Events::Boost,
         .event = Events::GroundHit,
-        .time = K_SECONDS(400),
+        .time = K_SECONDS(10), // 410
         .source = Sources::GroundHitTimer,
     },
 };
@@ -80,7 +75,9 @@ inline constexpr std::array<FreakFlightController::DecisionFunc, Events::NumEven
     arr[Events::GroundHit] = [](FreakFlightController::SourceStates states) -> bool {
         return states[Sources::GroundHitTimer];
     };
-
+    arr[Events::InitialInflation] = [](FreakFlightController::SourceStates states) -> bool {
+        return states[Sources::InflationSubsys];
+    };
     return arr;
 }();
 

@@ -199,13 +199,13 @@
 	};
 
 	tmp117: tmp117@48 {
-		compatible = "ti,tmp116"; // TMP117 Compatible
+		compatible = "ti,tmp11x";
 		reg = <0x48>;
 		#address-cells = <1>;
 		#size-cells = <0>;
 
 		eeprom: ti_tmp116_eeprom@0 {
-			compatible = "ti,tmp116-eeprom";
+			compatible = "ti,tmp11x-eeprom";
 			reg = <0x0>;
 			read-only;
 		};
