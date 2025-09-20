@@ -1,0 +1,4 @@
+
+if GNSS
+rsource "u_blox_m10/Kconfig"
+endif

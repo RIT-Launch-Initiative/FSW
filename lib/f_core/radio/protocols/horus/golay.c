@@ -50,6 +50,62 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(GOLAY_ENC, CONFIG_HORUS_LOG_LEVEL);
 
+/* Functions ----------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*\
+
+                                   GOLAY FUNCTIONS
+
+\*---------------------------------------------------------------------------*/
+
+/* File:    golay23.c
+ * Title:   Encoder/decoder for a binary (23,12,7) Golay code
+ * Author:  Robert Morelos-Zaragoza (robert@spectra.eng.hawaii.edu)
+ * Date:    August 1994
+ *
+ * The binary (23,12,7) Golay code is an example of a perfect code, that is,
+ * the number of syndromes equals the number of correctable error patterns.
+ * The minimum distance is 7, so all error patterns of Hamming weight up to
+ * 3 can be corrected. The total number of these error patterns is:
+ *
+ *       Number of errors         Number of patterns
+ *       ----------------         ------------------
+ *              0                         1
+ *              1                        23
+ *              2                       253
+ *              3                      1771
+ *                                     ----
+ *    Total number of error patterns = 2048 = 2^{11} = number of syndromes
+ *                                               --
+ *                number of redundant bits -------^
+ *
+ * Because of its relatively low length (23), dimension (12) and number of
+ * redundant bits (11), the binary (23,12,7) Golay code can be encoded and
+ * decoded simply by using look-up tables. The program below uses a 16K
+ * encoding table and an 8K decoding table.
+ *
+ * For more information, suggestions, or other ideas on implementing error
+ * correcting codes, please contact me at (I'm temporarily in Japan, but
+ * below is my U.S. address):
+ *
+ *                    Robert Morelos-Zaragoza
+ *                    770 S. Post Oak Ln. #200
+ *                      Houston, Texas 77056
+ *
+ *             email: robert@spectra.eng.hawaii.edu
+ *
+ *       Homework: Add an overall parity-check bit to get the (24,12,8)
+ *                 extended Golay code.
+ *
+ * COPYRIGHT NOTICE: This computer program is free for non-commercial purposes.
+ * You may implement this program for any non-commercial application. You may
+ * also implement this program for commercial purposes, provided that you
+ * obtain my written permission. Any modification of this program is covered
+ * by this copyright.
+ *
+ * ==   Copyright (c) 1994  Robert Morelos-Zaragoza. All rights reserved.   ==
+ */
+
 #define X22    0x00400000 /* vector representation of X^{22} */
 #define X11    0x00000800 /* vector representation of X^{11} */
 #define MASK12 0xfffff800 /* auxiliary vector for testing */
@@ -69,16 +125,16 @@ LOG_MODULE_REGISTER(GOLAY_ENC, CONFIG_HORUS_LOG_LEVEL);
  * a[] = auxiliary array to generate correctable error patterns
  */
 
-// Tables are to be initialized at startup with SYS_INIT. Will be set to true on startup
-static bool inited = false;
+static int inited = 0;
 
 static int encoding_table[4096], decoding_table[2048];
 
+static int arr2int(int a[], int r)
 /*
  * Convert a binary vector of Hamming weight r, and nonzero positions in
  * array a[1]...a[r], to a long integer \sum_{i=1}^r 2^{a[i]-1}.
  */
-static int arr2int(int a[], int r) {
+{
     int i;
     long mul, result = 0, temp;
 
@@ -88,12 +144,14 @@ static int arr2int(int a[], int r) {
         while (temp--) mul = mul << 1;
         result += mul;
     }
-    return result;
+    return (result);
 }
+
+void nextcomb(int n, int r, int a[])
 /*
  * Calculate next r-combination of an n-set.
  */
-void nextcomb(int n, int r, int a[]) {
+{
     int i, j;
 
     a[r]++;
@@ -103,6 +161,8 @@ void nextcomb(int n, int r, int a[]) {
     for (i = r; i >= j; i--) a[i] = a[j] + i - j + 1;
     return;
 }
+
+int32_t get_syndrome(int32_t pattern)
 /*
  * Compute the syndrome corresponding to the given pattern, i.e., the
  * remainder after dividing the pattern (when considering it as the vector
@@ -112,7 +172,7 @@ void nextcomb(int n, int r, int a[]) {
  * when constructing the decoding table; and (3) pattern = received vector, to
  * obtain its syndrome in decoding.
  */
-int32_t get_syndrome(int32_t pattern) {
+{
     int32_t aux = X22;
 
     if (pattern >= X11)
@@ -120,7 +180,7 @@ int32_t get_syndrome(int32_t pattern) {
             while (!(aux & pattern)) aux = aux >> 1;
             pattern ^= (aux / X11) * GENPOL;
         }
-    return pattern;
+    return (pattern);
 }
 
 /*---------------------------------------------------------------------------*\
@@ -200,11 +260,9 @@ int golay23_init(void) {
         temp = arr2int(a, 3);
         decoding_table[get_syndrome(temp)] = temp;
     }
-    inited = true;
+    inited = 1;
     return 0;
 }
-// Initialize the golay tables
-SYS_INIT(golay23_init, POST_KERNEL, 0);
 
 /*---------------------------------------------------------------------------*\
 
@@ -244,7 +302,7 @@ int golay23_decode(int received_codeword) {
     return received_codeword ^= decoding_table[get_syndrome(received_codeword)];
 }
 
-int golay23_count_errors(int received_codeword, int corrected_codeword) {
+int golay23_count_errors(int recd_codeword, int corrected_codeword) {
     int errors = 0;
     int diff, i;
 
@@ -258,3 +316,17 @@ int golay23_count_errors(int received_codeword, int corrected_codeword) {
 }
 
 #endif
+
+// from http://stackoverflow.com/questions/10564491/function-to-calculate-a-crc16-checksum
+
+unsigned short gen_crc16(unsigned char *data_p, unsigned char length) {
+    unsigned char x;
+    unsigned short crc = 0xFFFF;
+
+    while (length--) {
+        x = crc >> 8 ^ *data_p++;
+        x ^= x >> 4;
+        crc = (crc << 8) ^ ((unsigned short) (x << 12)) ^ ((unsigned short) (x << 5)) ^ ((unsigned short) x);
+    }
+    return crc;
+}

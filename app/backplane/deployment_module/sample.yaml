@@ -10,3 +10,4 @@ tests:
   backplane.deployment_module.debug:
     extra_overlay_confs:
       - debug.conf
+      - sim.conf

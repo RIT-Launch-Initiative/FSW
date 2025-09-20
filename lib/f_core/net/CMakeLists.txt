@@ -4,6 +4,7 @@
 zephyr_library()
 FILE(GLOB sources 
         application/*.cpp
+        application/*.c
         device/*.cpp
         network/*.cpp
         transport/*.cpp

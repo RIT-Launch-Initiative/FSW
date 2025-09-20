@@ -38,6 +38,11 @@ public:
      * Clear the message port
      */
     virtual void Clear() = 0;
+
+    /**
+     * Get available space left in the message port
+     */
+    virtual int AvailableSpace() = 0;
 };
 
 

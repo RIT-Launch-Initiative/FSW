@@ -1,6 +1,7 @@
 / {
 	aliases {
 		gnss = &gnss;
+		// Note that the RTC is already aliased in the native_sim dt
 	};
     chosen {
 		storage = &flash0;

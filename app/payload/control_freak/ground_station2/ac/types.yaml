@@ -1,0 +1,52 @@
+SuperFastPacket:
+  description: Preboost, Boost, and Coast datapacket
+  fields:
+    - name: Timestamp
+      type: int64_t
+    - name: BaromData
+      type: BarometerData
+    - name: GyroData
+      type: GyroscopeData
+      array_size: 10
+    - name: AccelData
+      type: AccelerometerData
+      array_size: 10
+SlowInfo:
+  description: |2-
+    Low rate data from control freak ft. funky bitpacking
+    Lat/Long stored as 1/65536 degree. 1 LSB = 1.69m
+    14 bits alt (1 ft / LSB) (0-16384 in case we overshoot or fall into hell)
+    10 bits speed (1 m/s / LSB) (0-1024m/s (OR says max 800))
+    3 bits flight state (0 notready, 1 waiting, 2 boost, 3 coast, 4 ground, 5 flipping, 6 transmitting, 7 error)
+    2 bits fix status (0 None, 1 GNSS Fix, 2 DGNSS Fix, 3 Estimated Fix)
+    3 bits fix quality (see zephyr enum)
+
+    4 bits satelites (max 16 in sight at once http://csno-tarc.cn/en/gps/number)
+    27 bits millis since start of day
+    1 bit for fun
+  fields:
+    - name: Timestamp
+      type: int64_t
+    - name: PackedData
+      type: uint64_t
+    - name: LatFrac
+      type: uint16_t
+    - name: LongFrac
+      type: uint16_t
+    - name: Orientation
+      type: int8_t
+      array_size: 3
+    - name: FlightState
+      type: uint8_t
+    - name: Other2
+      type: uint8_t
+    - name: Other3
+      type: uint8_t
+    - name: Battery_voltage
+      type: int16_t
+    - name: Current
+      type: uint16_t
+    - name: TempC
+      type: uint8_t
+    - name: FlipStatus
+      type: uint8_t

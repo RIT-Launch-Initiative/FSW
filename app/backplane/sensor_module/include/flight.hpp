@@ -38,7 +38,7 @@ using SensorModulePhaseController =
 /**
  * Special events triggered not by sensors but by timers between phases
  */
-inline std::array<SensorModulePhaseController::TimerEvent, numTimerEvents> timer_events = {
+inline std::array<SensorModulePhaseController::TimerEvent, numTimerEvents> timerEvents = {
     // We dont want to accidentally detect noseover when still burning and the baroms are lagging.
     // Adds a lockout timer so even if our sensors say we nosed over, don't trust them until we've had time to slowdown
     SensorModulePhaseController::TimerEvent{

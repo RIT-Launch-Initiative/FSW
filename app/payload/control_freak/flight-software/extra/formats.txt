@@ -1,0 +1,6 @@
+Dumping struct fmt for SlowInfo
+('<qQhhhhhhHBB', ['Timestamp', 'PackedData', 'LatFrac', 'LongFrac', 'Orientation[0]', 'Orientation[1]', 'Orientation[2]', 'BatteryVoltage', 'Current', 'TempC', 'FlipStatus'])
+
+
+Dumping struct fmt for SuperFastPacket
+('<qffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', ['Timestamp', 'BaromData0.Pressure', 'BaromData0.Temperature', 'GyroData0.X', 'GyroData0.Y', 'GyroData0.Z', 'GyroData1.X', 'GyroData1.Y', 'GyroData1.Z', 'GyroData2.X', 'GyroData2.Y', 'GyroData2.Z', 'GyroData3.X', 'GyroData3.Y', 'GyroData3.Z', 'GyroData4.X', 'GyroData4.Y', 'GyroData4.Z', 'GyroData5.X', 'GyroData5.Y', 'GyroData5.Z', 'GyroData6.X', 'GyroData6.Y', 'GyroData6.Z', 'GyroData7.X', 'GyroData7.Y', 'GyroData7.Z', 'GyroData8.X', 'GyroData8.Y', 'GyroData8.Z', 'GyroData9.X', 'GyroData9.Y', 'GyroData9.Z', 'AccelData0.X', 'AccelData0.Y', 'AccelData0.Z', 'AccelData1.X', 'AccelData1.Y', 'AccelData1.Z', 'AccelData2.X', 'AccelData2.Y', 'AccelData2.Z', 'AccelData3.X', 'AccelData3.Y', 'AccelData3.Z', 'AccelData4.X', 'AccelData4.Y', 'AccelData4.Z', 'AccelData5.X', 'AccelData5.Y', 'AccelData5.Z', 'AccelData6.X', 'AccelData6.Y', 'AccelData6.Z', 'AccelData7.X', 'AccelData7.Y', 'AccelData7.Z', 'AccelData8.X', 'AccelData8.Y', 'AccelData8.Z', 'AccelData9.X', 'AccelData9.Y', 'AccelData9.Z'])

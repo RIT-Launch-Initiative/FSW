@@ -13,7 +13,13 @@ public:
 
     int GetTime(tm& time);
 
+    int GetMillisTime(uint32_t& millis);
+
+    int GetMillisTime(uint64_t& millis);
+
     int GetUnixTime(time_t &unixTimestamp);
+
+    int GetUnixTime(uint32_t &unixTimestamp);
 
     int SetTime(rtc_time& rtcTime);
 

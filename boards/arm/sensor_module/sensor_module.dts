@@ -15,8 +15,10 @@
         zephyr,shell-uart = &uart4;
 		zephyr,uart-pipe = &uart4;
 
-		storage = &w25q128;
+		storage = &w25q512;
 		logfs = &lfs1;
+
+		rtc = &rtc;
 	};
 
 	aliases {
@@ -58,10 +60,10 @@
 			partition = <&external_storage_partition>;
 			automount;
 
-			read-size = <16>;
-			prog-size = <16>;
-			cache-size = <64>;
-			lookahead-size = <32>;
+			read-size = <256>;
+			prog-size = <256>;
+			cache-size = <512>;
+			lookahead-size = <128>;
 			block-cycles = <(90 * 1000)>;
 		};
 	};
@@ -78,21 +80,22 @@
 	status = "okay";
 };
 
-//&pll {
-//    div-m = <8>;
-//    mul-n = <384>;
-//    div-p = <2>;
-//    div-q = <2>;
-//    clocks = <&clk_hsi>;
-//    status = "okay";
-//};
+&pll {
+	div-m = <8>;
+	mul-n = <90>;
+	div-p = <2>;
+	div-q = <2>;
+	div-r = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
 
 &rcc {
-	clocks = <&clk_hsi>;
-	clock-frequency = <DT_FREQ_M(16)>;
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(90)>;
 	ahb-prescaler = <1>;
 	apb1-prescaler = <2>;
-	apb2-prescaler = <1>;
+	apb2-prescaler = <2>;
 };
 
 &uart4 {
@@ -109,6 +112,14 @@
 	status = "okay";
 };
 
+&dma1 {
+	status = "okay";
+};
+
+&dma2 {
+	status = "okay";
+};
+
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5
 				 &spi1_miso_pa6 &spi1_mosi_pa7>;
@@ -120,7 +131,7 @@
 	w5500: w5500@0 {
 		compatible = "wiznet,w5500";
 		reg = <0x0>;
-		spi-max-frequency = <10000000>;
+		spi-max-frequency = <DT_FREQ_M(80)>;
 		int-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
 		reset-gpios = <&gpioa 3 GPIO_ACTIVE_LOW>;
 		zephyr,random-mac-address;
@@ -134,11 +145,19 @@
 	pinctrl-names = "default";
 	status = "okay";
 
-	w25q128: w25q128jv@0 {
+	// dma identifier
+	// dma stream
+	// dma channel
+	// config flags
+	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+	dma-names = "tx", "rx";
+
+	w25q512: w25q512jv@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
-		spi-max-frequency = <(10 * 1000 * 1000)>;
+		spi-max-frequency = <DT_FREQ_M(104)>;
 		size = <DT_SIZE_M(512)>;
 		jedec-id = [ef 40 20];
 
@@ -163,7 +182,7 @@
 	pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pc9>;
 	pinctrl-names = "default";
 	status = "okay";
-	clock-frequency = <I2C_BITRATE_STANDARD>;
+	clock-frequency = <I2C_BITRATE_FAST>;
 
 	lis3mdl: lis3mdl@1c {
 		compatible = "st,lis3mdl-magn";
@@ -180,13 +199,13 @@
 	};
 
 	tmp117: tmp117@48 {
-		compatible = "ti,tmp116"; // TMP117 Compatible
+		compatible = "ti,tmp11x";
 		reg = <0x48>;
 		#address-cells = <1>;
 		#size-cells = <0>;
 
 		eeprom: ti_tmp116_eeprom@0 {
-			compatible = "ti,tmp116-eeprom";
+			compatible = "ti,tmp11x-eeprom";
 			reg = <0x0>;
 			read-only;
 		};

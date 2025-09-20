@@ -6,7 +6,7 @@ common:
   integration_platforms:
     - radio_module
 tests:
-  app.default: {}
-  app.debug:
+  radio_module.default: {}
+  radio_module.debug:
     extra_overlay_confs:
       - debug.conf

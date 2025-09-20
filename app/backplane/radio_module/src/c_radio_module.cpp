@@ -1,5 +1,3 @@
-#ifndef CONFIG_RADIO_MODULE_RECEIVER
-
 #include "c_radio_module.h"
 
 // F-Core Tenant
@@ -7,12 +5,12 @@
 #include <f_core/messaging/c_msgq_message_port.h>
 #include <zephyr/drivers/gnss.h>
 
-K_MSGQ_DEFINE(loraBroadcastQueue, sizeof(NTypes::RadioBroadcastData), 10, 4);
-K_MSGQ_DEFINE(udpBroadcastQueue, sizeof(NTypes::RadioBroadcastData), 10, 4);
-K_MSGQ_DEFINE(gnssDataLogQueue, sizeof(NTypes::GnssLoggingData), 10, 4);
-static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(loraBroadcastQueue);
-static auto udpBroadcastMsgQueue = CMsgqMessagePort<NTypes::RadioBroadcastData>(udpBroadcastQueue);
-static auto gnssLogMsgQueue = CMsgqMessagePort<NTypes::GnssLoggingData>(gnssDataLogQueue);
+K_MSGQ_DEFINE(loraBroadcastQueue, sizeof(NTypes::LoRaBroadcastData), 10, 4);
+K_MSGQ_DEFINE(udpBroadcastQueue, sizeof(NTypes::LoRaBroadcastData), 10, 4);
+K_MSGQ_DEFINE(gnssDataLogQueue, sizeof(NTypes::GnssData), 10, 4);
+static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastData>(loraBroadcastQueue);
+static auto udpBroadcastMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastData>(udpBroadcastQueue);
+static auto gnssLogMsgQueue = CMsgqMessagePort<NTypes::GnssData>(gnssDataLogQueue);
 
 CRadioModule::CRadioModule() : CProjectConfiguration(),
 #ifndef CONFIG_ARCH_POSIX
@@ -25,7 +23,7 @@ void CRadioModule::AddTenantsToTasks() {
     // Networking
     networkingTask.AddTenant(sensorModuleListenerTenant);
     networkingTask.AddTenant(powerModuleListenerTenant);
-    networkingTask.AddTenant(tftpServerTenant);
+    networkingTask.AddTenant(sntpServerTenant);
     networkingTask.AddTenant(alertTenant);
 
 #ifndef CONFIG_ARCH_POSIX
@@ -52,6 +50,6 @@ void CRadioModule::AddTasksToRtos() {
     NRtos::AddTask(gnssTask);
 }
 
-void CRadioModule::SetupCallbacks() {}
-
-#endif //CONFIG_RADIO_MODULE_RECEIVER
+void CRadioModule::SetupCallbacks() {
+    alertTenant.Subscribe(&stateMachineUpdater);
+}

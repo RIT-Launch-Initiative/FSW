@@ -37,8 +37,6 @@ void interleave(unsigned char *inout, int nbytes, int dir);
 
 void scramble(unsigned char *inout, int nbytes);
 
-/* Functions ----------------------------------------------------------*/
-
 /*
    We are using a Golay (23,12) code which has a codeword 23 bits
    long.  The tx packet format is:
@@ -55,20 +53,18 @@ int horus_l2_get_num_tx_data_bytes(int num_payload_data_bytes) {
 
     num_payload_data_bits = num_payload_data_bytes * 8;
     num_golay_codewords = num_payload_data_bits / 12;
-    if (num_payload_data_bits % 12) { /* round up to 12 bits, may mean some unused bits */
+    if (num_payload_data_bits % 12) /* round up to 12 bits, may mean some unused bits */
         num_golay_codewords++;
-    }
 
-    num_tx_data_bits = (sizeof(uw) * 8) + num_payload_data_bits + (num_golay_codewords * 11);
+    num_tx_data_bits = sizeof(uw) * 8 + num_payload_data_bits + num_golay_codewords * 11;
     num_tx_data_bytes = num_tx_data_bits / 8;
-    if (num_tx_data_bits % 8) { /* round up to nearest byte, may mean some unused bits */
+    if (num_tx_data_bits % 8) /* round up to nearest byte, may mean some unused bits */
         num_tx_data_bytes++;
-    }
 
-    LOG_DBG("num_payload_data_bytes: %d", num_payload_data_bytes);
-    LOG_DBG("num_golay_codewords...: %d", num_golay_codewords);
-    LOG_DBG("num_tx_data_bits......: %d", num_tx_data_bits);
-    LOG_DBG("num_tx_data_bytes.....: %d", num_tx_data_bytes);
+    LOG_INF("num_payload_data_bytes: %d", num_payload_data_bytes);
+    LOG_INF("num_golay_codewords...: %d", num_golay_codewords);
+    LOG_INF("num_tx_data_bits......: %d", num_tx_data_bits);
+    LOG_INF("num_tx_data_bytes.....: %d", num_tx_data_bytes);
 
     return num_tx_data_bytes;
 }
@@ -87,9 +83,13 @@ int horus_l2_get_num_tx_data_bytes(int num_payload_data_bytes) {
 
 int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *input_payload_data,
                               int num_payload_data_bytes) {
+    int num_tx_data_bytes, num_payload_data_bits;
     unsigned char *pout = output_tx_data;
+    int ninbit, ningolay, nparitybits;
+    int32_t ingolay, paritybyte, inbit, golayparity;
+    int ninbyte, shift, golayparitybit, i;
 
-    int num_tx_data_bytes = horus_l2_get_num_tx_data_bytes(num_payload_data_bytes);
+    num_tx_data_bytes = horus_l2_get_num_tx_data_bytes(num_payload_data_bytes);
     memcpy(pout, uw, sizeof(uw));
     pout += sizeof(uw);
     memcpy(pout, input_payload_data, num_payload_data_bytes);
@@ -98,19 +98,21 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
     /* Read input bits one at a time.  Fill input Golay codeword.  Find output Golay codeword.
        Write this to parity bits.  Write parity bytes when we have 8 parity bits.  Bits are
        written MSB first. */
-    int num_payload_data_bits = num_payload_data_bytes * 8;
-    int ninbit = 0;
-    int32_t ingolay = 0;
-    int32_t ningolay = 0;
-    int32_t paritybyte = 0;
-    int nparitybits = 0;
+
+    num_payload_data_bits = num_payload_data_bytes * 8;
+    ninbit = 0;
+    ingolay = 0;
+    ningolay = 0;
+    paritybyte = 0;
+    nparitybits = 0;
 
     while (ninbit < num_payload_data_bits) {
 
         /* extract input data bit */
-        int ninbyte = ninbit / 8;
-        int shift = 7 - (ninbit % 8);
-        int inbit = (input_payload_data[ninbyte] >> shift) & 0x1;
+
+        ninbyte = ninbit / 8;
+        shift = 7 - (ninbit % 8);
+        inbit = (input_payload_data[ninbyte] >> shift) & 0x1;
         LOG_DBG("inbit %d ninbyte: %d inbyte: 0x%02x inbit: %d", ninbit, ninbyte, input_payload_data[ninbyte], inbit);
         ninbit++;
 
@@ -125,15 +127,15 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
             ingolay <<= 1;
         } else {
             LOG_INF("ningolay: %d ingolay: 0x%04x", ningolay, ingolay);
-            int32_t golayparity = get_syndrome(ingolay << 11);
+            golayparity = get_syndrome(ingolay << 11);
             ingolay = 0;
 
             LOG_INF("golayparity: 0x%04x", golayparity);
 
             /* write parity bits to output data */
 
-            for (int i = 0; i < 11; i++) {
-                int golayparitybit = (golayparity >> (10 - i)) & 0x1;
+            for (i = 0; i < 11; i++) {
+                golayparitybit = (golayparity >> (10 - i)) & 0x1;
                 paritybyte = paritybyte | golayparitybit;
                 LOG_INF("i: %d golayparitybit: %d paritybyte: 0x%02x", i, golayparitybit, paritybyte);
                 nparitybits++;
@@ -142,13 +144,13 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
                 } else {
                     /* OK we have a full byte ready */
                     *pout = paritybyte;
-                    LOG_INF("\t\tWrite paritybyte: 0x%02x", paritybyte);
+                    LOG_INF("      Write paritybyte: 0x%02x", paritybyte);
                     pout++;
                     paritybyte = 0;
                 }
             }
         }
-    }
+    } /* while(.... */
 
     /* Complete final Golay encode, we may have partially finished ingolay, paritybyte */
 
@@ -156,23 +158,23 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
 
     if (ningolay % 12) {
         ingolay >>= 1;
-        int32_t golayparity = get_syndrome(ingolay << 12);
-        LOG_INF("\tningolay: %d ingolay: 0x%04x", ningolay, ingolay);
-        LOG_INF("\tgolayparity: 0x%04x", golayparity);
+        golayparity = get_syndrome(ingolay << 12);
+        LOG_INF("  ningolay: %d ingolay: 0x%04x", ningolay, ingolay);
+        LOG_INF("  golayparity: 0x%04x", golayparity);
 
         /* write parity bits to output data */
 
-        for (int i = 0; i < 11; i++) {
-            int golayparitybit = (golayparity >> (10 - i)) & 0x1;
+        for (i = 0; i < 11; i++) {
+            golayparitybit = (golayparity >> (10 - i)) & 0x1;
             paritybyte = paritybyte | golayparitybit;
-            LOG_DBG("\ti: %d golayparitybit: %d paritybyte: 0x%02x", i, golayparitybit, paritybyte);
+            LOG_DBG("    i: %d golayparitybit: %d paritybyte: 0x%02x", i, golayparitybit, paritybyte);
             nparitybits++;
             if (nparitybits % 8) {
                 paritybyte <<= 1;
             } else {
                 /* OK we have a full byte ready */
                 *pout++ = (unsigned char) paritybyte;
-                LOG_INF("\t\tWrite paritybyte: 0x%02x", paritybyte);
+                LOG_INF("      Write paritybyte: 0x%02x", paritybyte);
                 paritybyte = 0;
             }
         }
@@ -183,7 +185,7 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
     if (nparitybits % 8) {
         paritybyte <<= 7 - (nparitybits % 8); // use MS bits first
         *pout++ = (unsigned char) paritybyte;
-        LOG_INF("\t\tWrite last paritybyte: 0x%02x nparitybits: %d", paritybyte, nparitybits);
+        LOG_INF("      Write last paritybyte: 0x%02x nparitybits: %d", paritybyte, nparitybits);
     }
 
     // LOG_INF(pout - output_tx_data: %ld num_tx_data_bytes: %d", pout - output_tx_data, num_tx_data_bytes);
@@ -208,9 +210,11 @@ int horus_l2_encode_tx_packet(unsigned char *output_tx_data, unsigned char *inpu
 #ifdef CONFIG_HORUSV2_RX
 void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char *input_rx_data,
                                int num_payload_data_bytes) {
+    int num_payload_data_bits;
     unsigned char *pout = output_payload_data;
     unsigned char *pin = input_rx_data;
-    // int ninbyte, shift, inbit, golayparitybit, i, outbit, outbyte, noutbits, outdata;
+    int ninbit, ingolay, ningolay, paritybyte, nparitybits;
+    int ninbyte, shift, inbit, golayparitybit, i, outbit, outbyte, noutbits, outdata;
     int num_tx_data_bytes = horus_l2_get_num_tx_data_bytes(num_payload_data_bytes);
 
     /* optional scrambler and interleaver - we dont interleave UW */
@@ -228,24 +232,24 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
     /* Read input data bits one at a time.  When we have 12 read 11 parity bits. Golay decode.
        Write decoded (output data) bits every time we have 8 of them. */
 
-    int num_payload_data_bits = num_payload_data_bytes * 8;
-    int ninbit = 0;
-    int ingolay = 0;
-    int ningolay = 0;
-    int nparitybits = 0;
-    int paritybyte = *pin++;
+    num_payload_data_bits = num_payload_data_bytes * 8;
+    ninbit = 0;
+    ingolay = 0;
+    ningolay = 0;
+    nparitybits = 0;
+    paritybyte = *pin++;
     LOG_INF("Read paritybyte: 0x%02x", paritybyte);
     pout = output_payload_data;
-    int noutbits = 0;
-    int outbyte = 0;
+    noutbits = 0;
+    outbyte = 0;
 
     while (ninbit < num_payload_data_bits) {
 
         /* extract input data bit */
 
-        int ninbyte = ninbit / 8 + sizeof(uw);
-        int shift = 7 - (ninbit % 8);
-        int inbit = (input_rx_data[ninbyte] >> shift) & 0x1;
+        ninbyte = ninbit / 8 + sizeof(uw);
+        shift = 7 - (ninbit % 8);
+        inbit = (input_rx_data[ninbyte] >> shift) & 0x1;
         LOG_DBG("inbit %d ninbyte: %d inbyte: 0x%02x inbit: %d", ninbit, ninbyte, input_rx_data[ninbyte], inbit);
         ninbit++;
 
@@ -259,30 +263,30 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
 
         if ((ningolay % 12) == 0) {
             LOG_INF("ningolay: %d ingolay: 0x%04x", ningolay, ingolay >> 1);
-            for (int i = 0; i < 11; i++) {
+            for (i = 0; i < 11; i++) {
                 shift = 7 - (nparitybits % 8);
-                int golayparitybit = (paritybyte >> shift) & 0x1;
+                golayparitybit = (paritybyte >> shift) & 0x1;
                 ingolay |= golayparitybit;
                 if (i != 10) ingolay <<= 1;
                 nparitybits++;
                 if ((nparitybits % 8) == 0) {
                     /* OK grab a new byte */
                     paritybyte = *pin++;
-                    LOG_INF("\tRead paritybyte: 0x%02x", paritybyte);
+                    LOG_INF("  Read paritybyte: 0x%02x", paritybyte);
                 }
             }
 
-            LOG_INF("\tgolay code word: 0x%04x", ingolay);
-            LOG_INF("\tgolay decode...: 0x%04x", golay23_decode(ingolay));
+            LOG_INF("  golay code word: 0x%04x", ingolay);
+            LOG_INF("  golay decode...: 0x%04x", golay23_decode(ingolay));
 
             /* write decoded/error corrected bits to output payload data */
 
-            int outdata = golay23_decode(ingolay) >> 11;
-            LOG_INF("\toutdata...: 0x%04x", outdata);
+            outdata = golay23_decode(ingolay) >> 11;
+            LOG_INF("  outdata...: 0x%04x", outdata);
 
-            for (int i = 0; i < 12; i++) {
+            for (i = 0; i < 12; i++) {
                 shift = 11 - i;
-                int outbit = (outdata >> shift) & 0x1;
+                outbit = (outdata >> shift) & 0x1;
                 outbyte |= outbit;
                 noutbits++;
                 if (noutbits % 8) {
@@ -296,7 +300,7 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
 
             ingolay = 0;
         }
-    }
+    } /* while(.... */
 
     LOG_INF("finishing up .....");
 
@@ -304,41 +308,41 @@ void horus_l2_decode_rx_packet(unsigned char *output_payload_data, unsigned char
 
     int golayparity = 0;
     if (ningolay % 12) {
-        for (int i = 0; i < 11; i++) {
-            int shift = 7 - (nparitybits % 8);
-            int golayparitybit = (paritybyte >> shift) & 0x1;
+        for (i = 0; i < 11; i++) {
+            shift = 7 - (nparitybits % 8);
+            golayparitybit = (paritybyte >> shift) & 0x1;
             golayparity |= golayparitybit;
             if (i != 10) golayparity <<= 1;
             nparitybits++;
             if ((nparitybits % 8) == 0) {
                 /* OK grab a new byte */
                 paritybyte = *pin++;
-                LOG_INF("\tRead paritybyte: 0x%02x", paritybyte);
+                LOG_INF("  Read paritybyte: 0x%02x", paritybyte);
             }
         }
 
         ingolay >>= 1;
         int codeword = (ingolay << 12) + golayparity;
-        LOG_INF("\tningolay: %d ingolay: 0x%04x", ningolay, ingolay);
-        LOG_INF("\tgolay code word: 0x%04x", codeword);
-        LOG_INF("\tgolay decode...: 0x%04x", golay23_decode(codeword));
+        LOG_INF("  ningolay: %d ingolay: 0x%04x", ningolay, ingolay);
+        LOG_INF("  golay code word: 0x%04x", codeword);
+        LOG_INF("  golay decode...: 0x%04x", golay23_decode(codeword));
 
-        int outdata = golay23_decode(codeword) >> 11;
-        LOG_INF("\toutdata...: 0x%04x", outdata);
-        LOG_INF("\tnum_payload_data_bits: %d noutbits: %d", num_payload_data_bits, noutbits);
+        outdata = golay23_decode(codeword) >> 11;
+        LOG_INF("  outdata...: 0x%04x", outdata);
+        LOG_INF("  num_payload_data_bits: %d noutbits: %d", num_payload_data_bits, noutbits);
 
         /* write final byte */
 
         int ntogo = num_payload_data_bits - noutbits;
-        for (int i = 0; i < ntogo; i++) {
-            int shift = ntogo - i;
-            int outbit = (outdata >> shift) & 0x1;
+        for (i = 0; i < ntogo; i++) {
+            shift = ntogo - i;
+            outbit = (outdata >> shift) & 0x1;
             outbyte |= outbit;
             noutbits++;
             if (noutbits % 8) {
                 outbyte <<= 1;
             } else {
-                LOG_INF("\toutput payload byte: 0x%02x", outbyte);
+                LOG_INF("  output payload byte: 0x%02x", outbyte);
                 *pout++ = outbyte;
                 outbyte = 0;
             }
@@ -361,24 +365,28 @@ uint16_t primes[] = {2,   3,   5,   7,   11,  13,  17,  19,  23,  29,  31,  37, 
 
 void interleave(unsigned char *inout, int nbytes, int dir) {
     uint16_t nbits = (uint16_t) nbytes * 8;
-    unsigned char out[nbytes] = {};
+    uint32_t i, j, n, ibit, ibyte, ishift, jbyte, jshift;
+    uint32_t b;
+    unsigned char out[nbytes];
+
+    memset(out, 0, nbytes);
 
     /* b chosen to be co-prime with nbits, I'm cheating by just finding the
        nearest prime to nbits.  It also uses storage, is run on every call,
        and has an upper limit.  Oh Well, still seems to interleave OK. */
-    uint32_t i = 1;
+    i = 1;
     uint16_t imax = sizeof(primes) / sizeof(uint16_t);
     while ((primes[i] < nbits) && (i < imax)) i++;
-    uint32_t b = primes[i - 1];
+    b = primes[i - 1];
 
-    for (uint32_t n = 0; n < nbits; n++) {
+    for (n = 0; n < nbits; n++) {
 
         /*
           "On the Analysis and Design of Good Algebraic Interleavers", Xie et al,eq (5)
         */
 
-        uint32_t i = n;
-        uint32_t j = (b * i) % nbits;
+        i = n;
+        j = (b * i) % nbits;
 
         if (dir) {
             uint16_t tmp = j;
@@ -390,12 +398,12 @@ void interleave(unsigned char *inout, int nbytes, int dir) {
 
         /* read bit i and write to bit j postion */
 
-        uint32_t ibyte = i / 8;
-        uint32_t ishift = i % 8;
-        uint32_t ibit = (inout[ibyte] >> ishift) & 0x1;
+        ibyte = i / 8;
+        ishift = i % 8;
+        ibit = (inout[ibyte] >> ishift) & 0x1;
 
-        uint32_t jbyte = j / 8;
-        uint32_t jshift = j % 8;
+        jbyte = j / 8;
+        jshift = j % 8;
 
         /* write jbit to ibit position */
 
@@ -450,19 +458,6 @@ void scramble(unsigned char *inout, int nbytes) {
 }
 
 #endif
-
-// from http://stackoverflow.com/questions/10564491/function-to-calculate-a-crc16-checksum
-unsigned short gen_crc16(unsigned char *data_p, unsigned char length) {
-    unsigned char x;
-    unsigned short crc = 0xFFFF;
-
-    while (length--) {
-        x = crc >> 8 ^ *data_p++;
-        x ^= x >> 4;
-        crc = (crc << 8) ^ ((unsigned short) (x << 12)) ^ ((unsigned short) (x << 5)) ^ ((unsigned short) x);
-    }
-    return crc;
-}
 
 /*
  * Added code, not from RS41ng, to wrap generic encoding for specifically V2 use

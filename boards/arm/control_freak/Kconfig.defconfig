@@ -1,0 +1,7 @@
+if BOARD_CONTROL_FREAK
+
+config SPI_STM32_INTERRUPT
+	default y
+	depends on SPI
+
+endif # BOARD_CONTROL_FREAK

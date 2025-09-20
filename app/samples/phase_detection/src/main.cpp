@@ -43,7 +43,7 @@ void imu_thread_f(void *vp_controller, void *, void *) {
     controller.SubmitEvent(Sources::IMU1, Events::PadReady);
     controller.WaitUntilEvent(Events::PadReady);
 
-    while (!controller.HasEventOccured(Events::GroundHit)) {
+    while (!controller.HasEventOccurred(Events::GroundHit)) {
         k_timer_status_sync(&imu_timer);
         uint32_t timestamp = k_uptime_get();
 
@@ -56,13 +56,13 @@ void imu_thread_f(void *vp_controller, void *, void *) {
         double mag = sqrt((x * x) + (y * y) + (z * z));
 
         // Boost Detecting
-        if (!controller.HasEventOccured(Events::Boost)) {
+        if (!controller.HasEventOccurred(Events::Boost)) {
             boost_detector.Feed(timestamp, mag);
             coast_detector.Feed(timestamp, mag);
             if (boost_detector.Passed()) {
                 controller.SubmitEvent(Sources::IMU1, Events::Boost);
             }
-        } else if (!controller.HasEventOccured(Events::Coast)) {
+        } else if (!controller.HasEventOccurred(Events::Coast)) {
             coast_detector.Feed(timestamp, mag);
             if (coast_detector.Passed()) {
                 controller.SubmitEvent(Sources::IMU1, Events::Coast);
@@ -153,7 +153,7 @@ void barom_thread_f(void *vp_controller, void *, void *) {
     constexpr double no_vel_threshold = 10.0;
     NoVelocityDebouncerT no_vel_debouncer{no_vel_time_ms, no_vel_threshold};
 
-    while (!controller.HasEventOccured(Events::GroundHit)) {
+    while (!controller.HasEventOccurred(Events::GroundHit)) {
         k_timer_status_sync(&barom_timer);
         bool good = barometer.UpdateSensorValue();
         if (!good) {
@@ -182,45 +182,35 @@ void barom_thread_f(void *vp_controller, void *, void *) {
             max_feet_agl = feet_agl;
         }
         // Check
-        if (!controller.HasEventOccured(Events::Boost)) {
+        if (!controller.HasEventOccurred(Events::Boost)) {
             ground_level_avger.Feed(feet);
             boost_debouncer.Feed(time_ms, velocity_ft_s);
             if (boost_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Boost);
             }
         }
-        if (!controller.HasEventOccured(Events::Noseover)) {
+        if (!controller.HasEventOccurred(Events::Noseover)) {
             noseover_debouncer.Feed(time_ms, velocity_ft_s);
-            if (controller.HasEventOccured(Events::Boost) && noseover_debouncer.Passed()) {
+            if (controller.HasEventOccurred(Events::Boost) && noseover_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::Noseover);
-                if (controller.GetFlightLog() != nullptr) {
-                    char print_buf[256] = {0};
-                    int len = snprintf(print_buf, 256,
-                                       "Noseover occured at barometeric altitude of %.2f ft agl (%.2f ft asl)",
-                                       feet_agl, feet);
-                    controller.GetFlightLog()->Write(print_buf, len);
-                }
+                LOG_INF("Noseover occured at barometeric altitude of %.2f ft agl (%.2f ft asl)", feet_agl, feet);
             }
         }
-        if (!controller.HasEventOccured(Events::MainChute)) {
+
+        if (!controller.HasEventOccurred(Events::MainChute)) {
             mainheight_debouncer.Feed(time_ms, feet_agl);
-            if (controller.HasEventOccured(Events::Noseover) && mainheight_debouncer.Passed()) {
+            if (controller.HasEventOccurred(Events::Noseover) && mainheight_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::MainChute);
             }
         }
-        if (!controller.HasEventOccured(Events::GroundHit)) {
+        if (!controller.HasEventOccurred(Events::GroundHit)) {
             no_vel_debouncer.Feed(time_ms, fabs(velocity_ft_s));
-            if (controller.HasEventOccured(Events::Boost) && no_vel_debouncer.Passed()) {
+            if (controller.HasEventOccurred(Events::Boost) && no_vel_debouncer.Passed()) {
                 controller.SubmitEvent(Sources::Barom1, Events::GroundHit);
             }
         }
     }
-    if (controller.GetFlightLog() != nullptr) {
-        char print_buf[256] = {0};
-        int len = snprintf(print_buf, 256, "Maximum barometric altitude of %.2f ft agl", max_feet_agl);
-
-        controller.GetFlightLog()->Write(print_buf, len);
-    }
+    LOG_INF("Maximum barometric altitude of %.2f ft agl", max_feet_agl);
 }
 
 K_THREAD_STACK_DEFINE(imu_thread_stack_area, 1024);
@@ -228,10 +218,26 @@ struct k_thread imu_thread_data;
 
 K_THREAD_STACK_DEFINE(barom_thread_stack_area, 1024);
 struct k_thread barom_thread_data;
+CFlightLog fl{"/lfs/flight_log.txt"};
+
+void event_handler(Controller::EventNotification event) {
+    int64_t ms = k_ticks_to_ms_near32(event.uptimeTicks);
+    static constexpr size_t buf_size = 64;
+    char buf[buf_size] = {0};
+    if (event.type == Controller::EventType::EventOccured) {
+        snprintf(buf, buf_size, "%s occured %s.", eventNames[event.event],
+                 event.hasAlreadyOccured ? "(but already occured)" : "");
+        LOG_INF("%s", buf);
+        fl.Write(ms, buf);
+    } else {
+        snprintf(buf, buf_size, "%s submitted by %s.", eventNames[event.event], sourceNames[event.source]);
+        LOG_INF("%s", buf);
+        fl.Write(ms, buf);
+    }
+}
 
 int main() {
-    CFlightLog fl{"/lfs/flight_log.txt"};
-    Controller controller{sourceNames, eventNames, timer_events, deciders, &fl};
+    Controller controller{sourceNames, eventNames, timerEvents, deciders, event_handler};
 
     k_thread_create(&barom_thread_data, barom_thread_stack_area, K_THREAD_STACK_SIZEOF(barom_thread_stack_area),
                     barom_thread_f, &controller, NULL, NULL, 0, 0, K_NO_WAIT);

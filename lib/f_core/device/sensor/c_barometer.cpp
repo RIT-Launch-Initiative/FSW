@@ -38,7 +38,7 @@ sensor_value CBarometer::GetSensorValue(sensor_channel chan) const {
         case SENSOR_CHAN_AMBIENT_TEMP:
             return barometerData.temperature;
         default:
-            LOG_ERR("Invalid sensor channel (%d) called for barometer", chan);
+            LOG_ERR("Invalid sensor channel (%d) called for barometer", static_cast<int>(chan));
             k_oops();
             return sensor_value{INT32_MIN, INT32_MIN};
     }

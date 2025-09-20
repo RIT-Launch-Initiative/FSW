@@ -4,6 +4,7 @@
 #include <zephyr/net/socket.h>
 
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket_service.h>
 #include <zephyr/posix/fcntl.h>
 
 LOG_MODULE_REGISTER(CUdpSocket);
@@ -15,22 +16,26 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         return;
     }
 
-    sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock < 0) {
+    sockfd.fd = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sockfd.fd  < 0) {
+        LOG_ERR("Failed to create socket: %d", errno);
         return;
     }
 
 #if !defined(CONFIG_ARCH_POSIX) && !defined(CONFIG_NET_NATIVE_OFFLOADED_SOCKETS)
-    sockaddr_in addr = {
+    sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(srcPort),
         .sin_addr = INADDR_ANY // Bind to all interfaces TODO: Might not need ipv4 variable anymore
     };
 
     if (zsock_bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
-        LOG_ERR("Failed to bind socket.");
+        LOG_ERR("Failed to bind socket: %d", errno);
         zsock_close(sock);
+        sock = -1;
+        return;
     }
+    sockfd.fd = sock;
 #else
     LOG_WRN("Skipping bind. Using native_sim loopback");
 #endif
@@ -43,11 +48,15 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
 }
 
 CUdpSocket::~CUdpSocket() {
-    zsock_close(sock);
+    if (sock >= 0) {
+        net_socket_service_unregister(serviceDesc);
+        zsock_close(sock);
+        sock = -1;
+    }
 }
 
 int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
-    static const sockaddr_in addr{
+    const sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
@@ -56,7 +65,7 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
 
     int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0) {
-        LOG_ERR("Failed to send broadcast message (%d)", ret);
+        LOG_ERR("Failed to send broadcast message (%d)", errno);
     }
 
     return ret;
@@ -67,14 +76,18 @@ int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr *srcAddr, so
 }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
-    static const sockaddr_in addr = {
+    return TransmitAsynchronous(data, len, dstPort);
+}
+
+int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstPort) {
+    const sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
     int flags = zsock_fcntl(sock, F_GETFL, 0);
     if (flags < 0) {
         LOG_ERR("Failed to get socket flags (%d)", flags);
-        return -1;
+        return flags;
     }
 
     if (!(flags & O_NONBLOCK)) {
@@ -86,7 +99,6 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
     }
 
     z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
-
     int ret = zsock_sendto(sock, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
         LOG_ERR("Failed to send async message (%d)", errno);
@@ -121,6 +133,28 @@ int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr *srcAddr, s
 
     return ret;
 }
+
+int CUdpSocket::RegisterSocketService(net_socket_service_desc* desc, void* userData) {
+    if (desc == nullptr) {
+        LOG_ERR("Invalid socket service descriptor");
+        return -1;
+    }
+
+    auto* serviceUserData = new SocketServiceUserData{this, userData};
+    desc->pev[0].user_data = serviceUserData;
+
+    int ret = net_socket_service_register(desc, &sockfd, 1, serviceUserData);
+    if (ret == -ENOENT) {
+        LOG_ERR("Socket service not found.");
+        return ret;
+    } else if (ret == -EINVAL) {
+        LOG_ERR("Invalid parameter for socket service registration.");
+        return ret;
+    }
+
+    return 0;
+}
+
 
 int CUdpSocket::SetTxTimeout(const int timeoutMillis) {
     return zsock_setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeoutMillis, sizeof(timeoutMillis));

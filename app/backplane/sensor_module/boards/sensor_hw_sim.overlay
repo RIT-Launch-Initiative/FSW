@@ -1,0 +1,63 @@
+/ {
+	aliases {
+		primary-barometer = &barom;
+		secondary-barometer = &secondbarom;
+		imu = &imu;
+		accelerometer = &secondimu;
+		magnetometer = &imu;
+		thermometer = &barom;
+	};
+
+    imu: imu {
+        status = "okay";
+        compatible = "openrocket,imu";
+        vertical-axis = "OPENROCKET_AXIS_Z";
+        vertical-axis-invert;
+        lateral-axis = "OPENROCKET_AXIS_X";
+        lag-time-us = <0>;
+        sampling-period-us = <1000>;
+
+        roll-axis = "OPENROCKET_AXIS_Z";
+        pitch-axis = "OPENROCKET_AXIS_Y";
+        yaw-axis = "OPENROCKET_AXIS_X";
+    };
+
+
+    secondimu: secondimu {
+        status = "okay";
+        compatible = "openrocket,imu";
+        vertical-axis = "OPENROCKET_AXIS_Z";
+        vertical-axis-invert;
+        lateral-axis = "OPENROCKET_AXIS_X";
+        lag-time-us = <0>;
+        sampling-period-us = <1000>;
+
+        roll-axis = "OPENROCKET_AXIS_Z";
+        pitch-axis = "OPENROCKET_AXIS_Y";
+        yaw-axis = "OPENROCKET_AXIS_X";
+    };
+
+
+    barom: barom {
+        status = "okay";
+        compatible = "openrocket,barometer";
+        lag-time-us = <300000>; // from grim analysis
+		pressure-noise = <10>;
+        sampling-period-us = <1000>;
+    };
+
+    secondbarom: secondbarom {
+        status = "okay";
+        compatible = "openrocket,barometer";
+        lag-time-us = <300000>; // from grim analysis
+		pressure-noise = <10>;
+		sampling-period-us = <10000>;
+    };
+
+    magn: magn {
+        status = "okay";
+        compatible = "openrocket,magnetometer";
+        lag-time-us = <1000>;
+		sampling-period-us = <10>;
+    };
+};

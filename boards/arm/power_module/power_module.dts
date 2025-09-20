@@ -26,6 +26,7 @@
         ina3v3 = &ina1;
         ina5v0 = &ina2;
         vin = &adc1;
+        rtc = &rtc;
     };
 
     leds: leds {
@@ -41,10 +42,10 @@
             partition = <&external_storage_partition>;
             automount;
 
-            read-size = <16>;
-            prog-size = <16>;
-            cache-size = <64>;
-            lookahead-size = <32>;
+            read-size = <256>;
+            prog-size = <256>;
+            cache-size = <512>;
+            lookahead-size = <128>;
             block-cycles = <(90 * 1000)>;
         };
     };
@@ -108,36 +109,36 @@
         status = "okay";
         compatible = "ti,ina219";
         reg = <0x40>;
-        brng = <0>;
-        pg = <0>;
-        sadc = <13>;
-        badc = <13>;
-        shunt-milliohm = <100>;
-        lsb-microamp = <10>;
+        brng = <0>; // Set to 0 since we don't expect >16V
+        pg = <0>; // 7.5 mV drop.
+        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+        shunt-milliohm = <5>;
+        lsb-microamp = <400>;
     };
 
     ina1: ina219_3v3@44 {
         status = "okay";
         compatible = "ti,ina219";
         reg = <0x44>;
-        brng = <0>;
-        pg = <0>;
-        sadc = <13>;
-        badc = <13>;
-        shunt-milliohm = <100>;
-        lsb-microamp = <10>;
+        brng = <0>; // Set to 0 since we don't expect >16V
+        pg = <0>; // 0 mV drop
+        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+        shunt-milliohm = <5>;
+        lsb-microamp = <33>;
     };
 
     ina2: ina219_5v0@41 {
         status = "okay";
         compatible = "ti,ina219";
         reg = <0x41>;
-        brng = <0>;
-        pg = <0>;
-        sadc = <13>;
-        badc = <13>;
-        shunt-milliohm = <100>;
-        lsb-microamp = <10>;
+        brng = <0>; // Set to 0 since we don't expect >16V
+        pg = <0>; // 0 mV drop
+        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+        shunt-milliohm = <5>;
+        lsb-microamp = <33>;
     };
 };
 
@@ -150,10 +151,18 @@
     w5500: w5500@0 {
         compatible = "wiznet,w5500";
         reg = <0x0>;
-        spi-max-frequency = <10000000>;
+        spi-max-frequency = <DT_FREQ_M(80)>;
         int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
         reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
     };
+};
+
+&dma1 {
+	status = "okay";
+};
+
+&dma2 {
+	status = "okay";
 };
 
 &spi2 {
@@ -162,11 +171,19 @@
     pinctrl-names = "default";
     status = "okay";
 
+    // dma identifier
+	// dma stream
+	// dma channel
+	// config flags
+	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+	dma-names = "tx", "rx";
+
     w25q128: w25q128jv@0 {
         compatible = "jedec,spi-nor";
         reg = <0>;
 
-        spi-max-frequency = <(10 * 1000 * 1000)>;
+        spi-max-frequency = <DT_FREQ_M(104)>;
         size = <DT_SIZE_M(128)>;
         jedec-id = [ef 40 18];
 

@@ -4,6 +4,10 @@
 		logfs = &lfs1;
 	};
 
+	aliases {
+		rtc = &rtc;
+	};
+
 	fstab {
 		compatible = "zephyr,fstab";
 		lfs1: lfs1 {

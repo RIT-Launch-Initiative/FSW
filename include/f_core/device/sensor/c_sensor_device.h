@@ -78,6 +78,24 @@ public:
         return dev.name;
     }
 
+    /**
+     * Convert a value to milli-units
+     * @param value Value to convert
+     * @return Input value in milli-units
+     */
+    static constexpr float ToMilliUnits(float value) {
+        return value * 1000.0f;
+    }
+
+    /**
+     * Convert a value to micro-units
+     * @param value Value to convert
+     * @return Input value in micro-units
+     */
+    static constexpr float ToMicroUnits(float value) {
+        return value * 1000000.0f;
+    }
+
 protected:
     const device &dev;
 

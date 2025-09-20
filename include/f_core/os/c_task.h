@@ -56,6 +56,10 @@ public:
         return this->thread;
     };
 
+    k_tid_t GetTaskId() {
+        return this->taskId;
+    }
+
     /**
      * Get the name of the task
      * @return Name of the task
