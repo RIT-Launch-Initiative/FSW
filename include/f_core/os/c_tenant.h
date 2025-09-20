@@ -6,6 +6,12 @@
 #ifndef C_TENANT_H
 #define C_TENANT_H
 
+/**
+ * Base class for all tenants - Ideally applications should not inherit from this class directly
+ * A tenant is considered a software module meant to be ran periodically
+ * The user can choose how they are executed whether in a task, callback, superloop...
+ * See CRunnableTenant and CCallbackTenant for more specific types of tenants
+ */
 class CTenant {
 public:
     /**

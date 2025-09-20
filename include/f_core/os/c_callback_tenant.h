@@ -8,7 +8,9 @@
 
 #include "f_core/os/c_tenant.h"
 
-
+/**
+ * Tenant designed to be executed in a callback periodically
+ */
 class CCallbackTenant : public CTenant {
 public:
     /**

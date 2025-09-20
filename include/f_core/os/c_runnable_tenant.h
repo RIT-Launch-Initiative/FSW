@@ -9,6 +9,9 @@
 #ifndef C_RUNNABLE_TENANT_H
 #define C_RUNNABLE_TENANT_H
 
+/**
+ * Tenant designed to be executed in a superloop or task periodically
+ */
 class CRunnableTenant : public CTenant {
 public:
     /**
