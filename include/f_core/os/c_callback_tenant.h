@@ -23,6 +23,11 @@ public:
     virtual ~CCallbackTenant() = default;
 
     /**
+     * Sets up the tenant to be ran in a callback
+     */
+    virtual void Register() = 0;
+
+    /**
      * Function to execute on callback
      */
     virtual void Callback() = 0;

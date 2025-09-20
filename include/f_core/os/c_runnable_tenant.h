@@ -15,12 +15,22 @@ public:
      * Constructor
      * @param name Name of the tenant
      */
-    explicit CRunnableTenant(const char *name) : CTenant(name) {};
+    explicit CRunnableTenant(const char* name) : CTenant(name) {};
 
     /**
      * Destructor
      */
     virtual ~CRunnableTenant() = default;
+
+    /**
+     * Initialize the tenant
+     */
+    virtual void Startup() {};
+
+    /**
+     * Perform any other initializations after all tenants in the same task have been initialized
+     */
+    virtual void PostStartup() {};
 
     /**
      * Run the tenant
