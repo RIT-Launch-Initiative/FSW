@@ -36,7 +36,9 @@ public:
     virtual void PostStartup() {};
 
     /**
-     * Run the tenant
+     * Run the tenant. This function is allowed to block
+     * Users should recognize other tenants that could be sharing the same thread context
+     * Ideally, F-Core tenants should be non-blocking and return as quickly as possible
      */
     virtual void Run() = 0;
 };

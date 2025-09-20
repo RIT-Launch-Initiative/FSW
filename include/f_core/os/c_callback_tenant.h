@@ -30,7 +30,7 @@ public:
     virtual void Register() = 0;
 
     /**
-     * Function to execute on callback
+     * Function to execute on callback. This function should not block
      */
     virtual void Callback() = 0;
 };
