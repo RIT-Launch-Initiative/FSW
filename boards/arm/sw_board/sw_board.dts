@@ -9,21 +9,14 @@
 	model = "Software Board";
 	compatible = "launch,sw_board";
 
-	// hid_dev_0: hid_dev_0 {
-		// compatible = "zephyr,hid-device";
-		// interface-name = "HID0";
-		// protocol-code = "none";
-		// in-polling-period-us = <1000>;
-		// in-report-size = <64>;
-	// };
 
 
 	chosen {
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 		zephyr,canbus = &can1;
-		zephyr,console = &uart4;
-		zephyr,shell_uart = &uart4;
+		zephyr,console = &cdc_acm_uart0;
+		zephyr,shell_uart = &cdc_acm_uart0;
 		// uart1 =
 	};
 	aliases {
@@ -173,16 +166,17 @@
 			#address-cells = <0x1>;
 			#size-cells = <0x0>;
 
-			w25: qspi-nor-flash@0 {
+			w25: qspi-nor-flash@90000000 {
 				compatible = "st,stm32-qspi-nor";
-				reg = <0x00000000 DT_SIZE_M(16)>; /* 128 Mbits */
-				size = <DT_SIZE_M(128)>; /* 64 Mbits */
-				qspi-max-frequency = <DT_FREQ_M(8)>;
+				reg = <0x90000000 0x10000000>; /* 128 Mbits */
+				size = <DT_SIZE_M(128)>; /* 128 Mbits */
+				qspi-max-frequency = <DT_FREQ_M(50)>;
 				status = "okay";
 				spi-bus-width = <4>;
 				jedec-id = [ ef 40 18  ];
-
-				writeoc = "PP_1_4_4";
+				page-size= <256>;
+				writeoc = "PP_1_1_4";
+				requires-ulbpr;
 
 				// reset-gpios = <&gpiod 3 GPIO_ACTIVE_LOW>;
 				// reset-gpios-duration = <1>;
