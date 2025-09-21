@@ -60,7 +60,6 @@
 	// <&generic_gpios 1 GPIO_ACTIVE_HIGH>
 	// rather than having to remember the mapping
 	generic_gpios: generic-gpios {
-		compatible = "gpio-header-idk";
 		#gpio-cells = <2>;
 		gpio-map-mask = <0xffffffff 0xffffffc0>;
 		gpio-map-pass-thru = <0 0x3f>;
@@ -69,7 +68,7 @@
 		<2 0  &gpioe 11 0>, // GPIO 2
 		<3 0  &gpioe 14 0>, // GPIO 3
 		<4 0  &gpioe 13 0>, // GPIO 4
-		<5 0  &gpiob 14 0>, // GPIO 5 (NOPE)
+		<5 0  &gpioa 8  0>, // GPIO 5
 		<6 0  &gpiod 9  0>, // GPIO 6
 		<7 0  &gpiod 8  0>, // GPIO 7
 		<8 0  &gpiob 15 0>, // GPIO 8
