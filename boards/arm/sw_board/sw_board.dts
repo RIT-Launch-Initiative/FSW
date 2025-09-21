@@ -10,6 +10,22 @@
 	compatible = "launch,sw_board";
 
 
+	msc_disk0 {
+		compatible = "zephyr,flash-disk";
+		partition = <&storage_partition>;
+		disk-name = "NAND";
+		cache-size = <4096>;
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+		ffs1: ffs1 {
+			compatible = "zephyr,fstab,fatfs";
+			automount;
+			disk-access;
+			mount-point = "/SD:";
+		};
+	};
 
 	chosen {
 		zephyr,sram = &sram0;
@@ -21,16 +37,8 @@
 	};
 	aliases {
 		led0 = &led1;
-		rtc = &rtc;
-		led-strip = &led_strip;
-		imu = &lsm6dv;
 	};
 
-	gpio_hog_led: gpio-hog {
-		gpio-hog; // Required property
-		gpios = <&gpioe 15 GPIO_ACTIVE_HIGH>;
-		label = "hogged-led";
-	};
 
 	leds: leds {
 		compatible = "gpio-leds";
@@ -51,12 +59,12 @@
 			gpios = <&gpiob 9 GPIO_ACTIVE_LOW>;
 			zephyr,code = <INPUT_KEY_1>;
 		};
-		// sd-card-detect {
-			// gpios = <&gpiob 1 GPIO_ACTIVE_LOW>;
-		// };
-		// vbus-detect {
-			// gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
-		// };
+		sd-card-detect {
+			gpios = <&gpiob 1 GPIO_ACTIVE_LOW>;
+		};
+		vbus-detect {
+			gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	generic_gpios: generic-gpios {
@@ -139,16 +147,6 @@
 		};
 	};
 
-	// TODO Quadspi
-	// CLK PB2
-	// CS  PB6
-	// IO0 PD11
-	// IO1 PD12
-	// IO2 PE2
-	// IO3 pd13
-	// qspi {
-		// compatible
-	// };
 
 
 	soc {
@@ -174,13 +172,20 @@
 				status = "okay";
 				spi-bus-width = <4>;
 				jedec-id = [ ef 40 18  ];
-				page-size= <256>;
+				page-size = <256>;
 				writeoc = "PP_1_1_4";
 				requires-ulbpr;
 
-				// reset-gpios = <&gpiod 3 GPIO_ACTIVE_LOW>;
-				// reset-gpios-duration = <1>;
+				partitions {
+					compatible = "fixed-partitions";
+					#address-cells = <1>;
+					#size-cells = <1>;
 
+					storage_partition: partition@0 {
+						label = "storage";
+						reg = <0x0  DT_SIZE_M(16)>;
+					};
+				};
 			};
 		};
 	};
@@ -437,6 +442,7 @@ i2cout: &i2c2 {
 			compatible = "zephyr,sdmmc-disk";
 			disk-name = "SD";
 			status = "okay";
+			
 		};
 	};
 };
