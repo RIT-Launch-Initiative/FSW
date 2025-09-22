@@ -18,7 +18,9 @@ struct index_parts gen_index_parts(float value) {
         return {0, 0};
     }
     if (value > LUT_MAXIMUM_X) {
-        return {LUT_SIZE - 1, 0};
+        // to keep common code path below, if we would be at the point of last element and element off the end of the array
+        // this will return second to last, 1 which causes the lerping to calculate the last element in its entirety
+        return {LUT_SIZE - 2, 1};
     }
 
     float float_index = (LUT_SIZE - 1) * (value - LUT_MINIMUM_X) / (LUT_MAXIMUM_X - LUT_MINIMUM_X);
