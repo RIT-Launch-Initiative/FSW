@@ -37,7 +37,7 @@ int read_barom(const struct device *barom_dev, float &temp, float &press) {
     return 0;
 }
 
-int read_imu_up(const struct device *imu_dev, float &vert_axis){
+int read_imu_up(const struct device *imu_dev, float &vert_axis) {
     int ret = sensor_sample_fetch(imu_dev);
     if (ret != 0) {
         return ret;
@@ -52,6 +52,9 @@ int read_imu_up(const struct device *imu_dev, float &vert_axis){
 }
 
 int set_lsm_sampling(const struct device *imu_dev, int odr) {
+#ifdef CONFIG_BOARD_NATIVE_SIM
+    return 0;
+#endif
     struct sensor_value sampling = {0};
     sensor_value_from_float(&sampling, odr);
     int ret = sensor_attr_set(imu_dev, SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);
@@ -70,10 +73,7 @@ int set_lsm_sampling(const struct device *imu_dev, int odr) {
 // Needed for sys init (seemingly)
 extern "C" {
 int init_boostdata_locked() {
-    printk("\nChecking boostdata lock\n");
     return 0;
 }
 }
-#define DATA_LOCK_PRIORITY 99
-static_assert(DATA_LOCK_PRIORITY > CONFIG_FILE_SYSTEM_INIT_PRIORITY, "Relies on FS");
-SYS_INIT(init_boostdata_locked, POST_KERNEL, DATA_LOCK_PRIORITY);
+SYS_INIT(init_boostdata_locked, APPLICATION, 0);

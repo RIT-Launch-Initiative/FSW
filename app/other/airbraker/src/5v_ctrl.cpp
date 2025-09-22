@@ -12,6 +12,7 @@ static const struct gpio_dt_spec pump_enable = GPIO_DT_SPEC_GET(DT_NODELABEL(pum
 
 const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(DT_ALIAS(buzz), gpios);
 
+extern "C" {
 // Prepares the GPIO
 int five_volt_rail_init() {
     using Pair = std::tuple<const struct gpio_dt_spec *, const char *>;
@@ -31,9 +32,11 @@ int five_volt_rail_init() {
             return ret;
         }
     }
-    LOG_INF("5V Rail all good");
+    LOG_INF("5V Rail ready");
     return 0;
 }
+}
+SYS_INIT(five_volt_rail_init, APPLICATION, 90);
 
 static bool state[(int) FiveVoltItem::NumItems] = {false};
 

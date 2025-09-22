@@ -5,6 +5,7 @@
 #include "fast_sensing.h"
 #include "flight.h"
 #include "gorbfs.h"
+#include "model.hpp"
 #include "storage.h"
 
 #include <zephyr/drivers/gnss.h>
@@ -22,16 +23,11 @@ float startup_voltage = 0;
 
 int main() {
     int ret = 0;
-    ret = five_volt_rail_init();
-    if (ret != 0) {
-        LOG_ERR("Failed to init 5v rail control");
-        // buzzer_tell(BuzzCommand::SensorTroubles);
-    }
-
+    return 0;
     const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
     const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
 
-    const struct device *ina_servo =    DEVICE_DT_GET(DT_ALIAS(ina_servo));
+    const struct device *ina_servo = DEVICE_DT_GET(DT_ALIAS(ina_servo));
 
     if (!device_is_ready(imu_dev) || !device_is_ready(barom_dev)) {
         LOG_ERR("Sensor devices not ready");

@@ -13,9 +13,6 @@ The LDO draws a fair amount of current when running even when things downstream 
 This file allows controlling individual elements and automatically handling the LDO Enable pin 
 */
 
-// Prepares the GPIO
-int five_volt_rail_init();
-
 // enable a zone (if everything else is off, turn the rail on)
 int rail_item_enable(FiveVoltItem item);
 
