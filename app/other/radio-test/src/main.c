@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/gnss.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/lora.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -30,7 +31,7 @@ const struct device *const gps_dev = DEVICE_DT_GET(GPS_NODE);
 K_MUTEX_DEFINE(gps_mutex);
 
 struct lora_modem_config config = {
-    .frequency = 0,
+    .frequency = 433000000,
     .bandwidth = BW_125_KHZ,
     .datarate = SF_6,
     .coding_rate = CR_4_5,
@@ -81,32 +82,29 @@ int fill_packet(uint8_t *data, size_t size) {
     }
     int len = sizeof(struct packet_required);
     memcpy(data, &gps_info, sizeof(struct packet_required));
-    while (len < size) {
-        len++;
-        data[len] = len % 16;
+    if (packet_size == PAC_SIZE_LARGE) {
+        while (len < size) {
+            len++;
+            data[len] = len % 16;
+        }
     }
     k_mutex_unlock(&gps_mutex);
 
     return len;
 }
 void describe_packet(uint8_t *data, int len, int8_t snr, int16_t rssi) {
-    printk("HEADER: Lat, Long, Alt, Sats, SNR, RSSI, Packet Length");
+    printk("HEADER: Lat, Long, Alt, Sats, SNR, RSSI, Packet Length\n");
     struct packet_required pac = {0};
-    printk("DATA:   %f, %f, %f, %d, %d, %d, %d", (double) pac.lat, (double) pac.lon, (double) pac.alt, (int) pac.sats,
+    printk("DATA:   %f, %f, %f, %d, %d, %d, %d\n", (double) pac.lat, (double) pac.lon, (double) pac.alt, (int) pac.sats,
            (int) snr, (int) rssi, (int) len);
 }
 
-int remaining_to_rx = 0;
-
 void recv_cb(const struct device *dev, uint8_t *data, uint16_t size, int16_t rssi, int8_t snr, void *user_data) {
     describe_packet(data, size, snr, rssi);
-    remaining_to_rx--;
-    if (remaining_to_rx < 0) {
-        // cancel
-        LOG_INF("Stopping receive. got all we expected");
-        lora_recv_async(lora_dev, NULL, NULL);
-    }
 }
+
+#define LED0_NODE DT_ALIAS(led0)
+static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 int main(void) {
     int ret;
@@ -121,19 +119,37 @@ int main(void) {
         LOG_ERR("Initial LoRa config failed");
         return 0;
     }
+
+    ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        return 0;
+    }
+
+    while (1) {
+        ret = gpio_pin_toggle_dt(&led);
+        if (ret < 0) {
+            return 0;
+        }
+
+        k_msleep(1000);
+    }
+
     return 0;
 }
 
 static int cmd_tx(const struct shell *shell, size_t argc, char **argv) {
+    config.tx = true;
+
+    lora_config(lora_dev, &config);
     shell_print(shell, "Transmit");
-    if (argc < 1) {
+    if (argc < 2) {
         shell_error(shell, "Not enough arguments: Requires # of packets to send");
         return 0;
     }
-    shell_print(shell, "Got arg0: %s", argv[0]);
+    shell_print(shell, "Got arg0: %s", argv[1]);
     char *end = NULL;
 
-    long num = strtol(argv[0], &end, 10);
+    long num = strtol(argv[1], &end, 10);
     if (num < 1) {
         shell_print(shell, "invalid number of attempts. need at least 1");
     }
@@ -145,26 +161,17 @@ static int cmd_tx(const struct shell *shell, size_t argc, char **argv) {
             LOG_WRN("Failed to send lora; %d", ret);
             continue;
         }
+        k_msleep(500);
     }
 
     return 0;
 }
 
 static int cmd_rx(const struct shell *shell, size_t argc, char **argv) {
+    config.tx = false;
+    lora_config(lora_dev, &config);
     shell_print(shell, "Receive");
-    if (argc < 1) {
-        shell_error(shell, "Not enough arguments: Requires # of packets to send");
-        return 0;
-    }
-    shell_print(shell, "Got arg0: %s", argv[0]);
-    char *end = NULL;
 
-    long num = strtol(argv[0], &end, 10);
-    if (num < 1) {
-        shell_print(shell, "invalid number of attempts. need at least 1");
-    }
-
-    remaining_to_rx = num;
     int ret = lora_recv_async(lora_dev, recv_cb, NULL);
     if (ret < 0) {
         shell_error(shell, "Failed to start receiving lora; %d", ret);
@@ -179,10 +186,9 @@ static int cmd_cancel_rx(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argv);
     shell_print(shell, "Cancelling Receiving");
     lora_recv_async(lora_dev, NULL, NULL);
-    remaining_to_rx = 0;
     return 0;
 }
-static void cmd_describe_config(struct shell *sh, int, void **) {
+static void cmd_describe_config(struct shell *sh, int, char **) {
     shell_print(sh, "== Current Config ==");
     shell_print(sh, "\tFreq: %ud", config.frequency);
     shell_print(sh, "\tBW:   %s", bw_to_str(config.bandwidth));
@@ -196,9 +202,39 @@ static int cmd_gps_log(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
+static int cmd_config_bw(struct shell *sh, int argc, char **argv) {
+    if (argc < 2) {
+        shell_error(sh, "Not enough args for config: `bw_cfg [bw]")
+    }
+    if (argc < 2) {
+        shell_error(shell, "Not enough arguments: Requires # of packets to send");
+        return 0;
+    }
+
+    char *end = NULL;
+
+    long num = strtol(argv[1], &end, 10);
+
+    switch (num) {
+        case 125:
+            config.bandwidth = BW_125_KHZ;
+            break;
+        case 250:
+            config.bandwidth = BW_250_KHZ;
+            break;
+        case 500:
+            config.bandwidth = BW_500_KHZ;
+            break;
+        default:
+            shell_print(sh, "Invalid bw val: %d", num);
+            return -1;
+    }
+    shell_print(sh, "Set BW to %s", bw_to_str(config.bandwidth));
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(tx, NULL, "Transmit: (# of attempts)", cmd_tx),
-                               SHELL_CMD(tx, NULL, "Receive: (# of attempts).", cmd_rx),
-                               SHELL_CMD(cfg, NULL, "Configure Paramater: (f/b/s/c/l)", cmd_describe_config),
+                               SHELL_CMD(rx, NULL, "Receive: (# of attempts).", cmd_rx),
+                               SHELL_CMD(bw_cfg, NULL, "Configure Bandwidth: [bw]", cmd_config),
                                SHELL_CMD(desc, NULL, "Describe Config", cmd_describe_config),
                                SHELL_CMD(gps_dump, NULL, "Toggle GPS log", cmd_gps_log),
                                SHELL_CMD(cancel_rx, NULL, "cancel receive", cmd_cancel_rx), SHELL_SUBCMD_SET_END);
