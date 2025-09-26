@@ -4,7 +4,7 @@
 
 LOG_MODULE_REGISTER(Publisher);
 
-CPublisher::CPublisher(CMessagePort<Message> &messagePort) : CTenant("Publisher"), messagePort(messagePort), message({})  {
+CPublisher::CPublisher(CMessagePort<Message> &messagePort) : CRunnableTenant("Publisher"), messagePort(messagePort), message({})  {
 }
 
 void CPublisher::Startup() {

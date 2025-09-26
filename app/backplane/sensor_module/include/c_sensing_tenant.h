@@ -11,13 +11,13 @@
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <f_core/device/sensor/c_temperature_sensor.h>
 #include <f_core/messaging/c_message_port.h>
-#include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 #include <n_autocoder_types.h>
 #include <zephyr/device.h>
 
 class CSensorDevice;
 
-class CSensingTenant : public CTenant {
+class CSensingTenant : public CRunnableTenant {
   public:
     explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData> &downlinkDataToBroadcast,
                             CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CDetectionHandler &handler);
