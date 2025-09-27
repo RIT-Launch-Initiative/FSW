@@ -204,10 +204,10 @@ static int cmd_gps_log(const struct shell *shell, size_t argc, char **argv) {
 
 static int cmd_config_bw(struct shell *sh, int argc, char **argv) {
     if (argc < 2) {
-        shell_error(sh, "Not enough args for config: `bw_cfg [bw]")
+        shell_error(sh, "Not enough args for config: `bw_cfg [bw]");
     }
     if (argc < 2) {
-        shell_error(shell, "Not enough arguments: Requires # of packets to send");
+        shell_error(sh, "Not enough arguments: Requires # of bw");
         return 0;
     }
 
@@ -226,15 +226,73 @@ static int cmd_config_bw(struct shell *sh, int argc, char **argv) {
             config.bandwidth = BW_500_KHZ;
             break;
         default:
-            shell_print(sh, "Invalid bw val: %d", num);
+            shell_print(sh, "Invalid bw val: %ld", num);
             return -1;
     }
-    shell_print(sh, "Set BW to %s", bw_to_str(config.bandwidth));
+    cmd_describe_config(sh, 0, NULL);
+    return 0;
+}
+
+static int cmd_config_sf(struct shell *sh, int argc, char **argv) {
+    if (argc < 2) {
+        shell_error(sh, "Not enough args for config: `sf_cfg [sf]");
+    }
+    if (argc < 2) {
+        shell_error(sh, "Not enough arguments: Requires # of sf");
+        return 0;
+    }
+
+    char *end = NULL;
+
+    long num = strtol(argv[1], &end, 10);
+    if (num < 6 || num > 12) {
+        shell_error(sh, "Invalid SF Argument (6-12)");
+        return -1;
+    }
+    config.datarate = (enum lora_datarate) num;
+    cmd_describe_config(sh, 0, NULL);
+    return 0;
+}
+
+static int cmd_config_cr(struct shell *sh, int argc, char **argv) {
+    if (argc < 2) {
+        shell_error(sh, "Not enough args for config: `cr_cfg [5,6,7,8]");
+    }
+    if (argc < 2) {
+        shell_error(sh, "Not enough arguments: Requires CR");
+        return 0;
+    }
+
+    char *end = NULL;
+
+    long num = strtol(argv[1], &end, 10);
+
+    switch (num) {
+        case 5:
+            config.coding_rate = CR_4_5;
+            break;
+        case 6:
+            config.coding_rate = CR_4_6;
+            break;
+        case 7:
+            config.coding_rate = CR_4_7;
+            break;
+        case 8:
+            config.coding_rate = CR_4_8;
+            break;
+        default:
+            shell_error(sh, "Invalid arg for CR [5,6,7,8]");
+            return -1;
+    }
+    cmd_describe_config(sh, 0, NULL);
+    return 0;
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(tx, NULL, "Transmit: (# of attempts)", cmd_tx),
                                SHELL_CMD(rx, NULL, "Receive: (# of attempts).", cmd_rx),
-                               SHELL_CMD(bw_cfg, NULL, "Configure Bandwidth: [bw]", cmd_config),
+                               SHELL_CMD(bw_cfg, NULL, "Configure Bandwidth: [125,250,500]", cmd_config_bw),
+                               SHELL_CMD(sf_cfg, NULL, "Configure SF: [6-12]", cmd_config_sf),
+                               SHELL_CMD(cr_cfg, NULL, "Configure CR: [5,6,7,8]", cmd_config_cr),
                                SHELL_CMD(desc, NULL, "Describe Config", cmd_describe_config),
                                SHELL_CMD(gps_dump, NULL, "Toggle GPS log", cmd_gps_log),
                                SHELL_CMD(cancel_rx, NULL, "cancel receive", cmd_cancel_rx), SHELL_SUBCMD_SET_END);
