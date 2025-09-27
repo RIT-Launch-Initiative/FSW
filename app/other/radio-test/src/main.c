@@ -288,11 +288,22 @@ static int cmd_config_cr(struct shell *sh, int argc, char **argv) {
     return 0;
 }
 
+static int cmd_toggle_size(struct shell *sh, int argc, char **argv) {
+    if (packet_size == PAC_SIZE_LARGE){
+        packet_size = PAC_SIZE_SMALL;
+    } else {
+        packet_size = PAC_SIZE_LARGE;
+    }
+    cmd_describe_config(sh, 0, NULL);
+    return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(test_subcmds, SHELL_CMD(tx, NULL, "Transmit: (# of attempts)", cmd_tx),
                                SHELL_CMD(rx, NULL, "Receive: (# of attempts).", cmd_rx),
                                SHELL_CMD(bw_cfg, NULL, "Configure Bandwidth: [125,250,500]", cmd_config_bw),
                                SHELL_CMD(sf_cfg, NULL, "Configure SF: [6-12]", cmd_config_sf),
                                SHELL_CMD(cr_cfg, NULL, "Configure CR: [5,6,7,8]", cmd_config_cr),
+                               SHELL_CMD(size_cfg, NULL, "Toggle packet size", cmd_toggle_size),
                                SHELL_CMD(desc, NULL, "Describe Config", cmd_describe_config),
                                SHELL_CMD(gps_dump, NULL, "Toggle GPS log", cmd_gps_log),
                                SHELL_CMD(cancel_rx, NULL, "cancel receive", cmd_cancel_rx), SHELL_SUBCMD_SET_END);
