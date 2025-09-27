@@ -18,20 +18,15 @@ template <typename T, size_t packetBufferSize>
 class CRawDataLogger {
 public:
     CRawDataLogger(const device *flash_dev, size_t flashAddress, size_t fileSize, const std::string &filename)
-        : flash(flash_dev), flashAddress(flashAddress), fileSize(fileSize), bytesBuffered(0), bytesWritten(0), initialized(false)
+        : flash(flash_dev), flashAddress(flashAddress), fileSize(fileSize), lastError(0), initialized(false)
     {
-        memset(&ctx, 0, sizeof(ctx));
-        memset(buffer, 0, sizeof(buffer));
-
         // prep metadata
         DataloggerMetadata meta = {};
         strncpy(meta.filename, filename.c_str(), sizeof(meta.filename) - 1);
         meta.allocated_size = fileSize;
         meta.version = DATALOGGER_VERSION;
         meta.packet_size = sizeof(T);
-
-        // metadata to flash
-        int ret = stream_flash_init(&ctx, flash, buffer, bufferSize, flashAddress, fileSize, nullptr);
+        int ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress, fileSize, nullptr);
         if (ret < 0) {
             lastError = ret;
             return;
@@ -41,11 +36,8 @@ public:
             lastError = ret;
             return;
         }
-        bytesWritten = sizeof(meta);
         initialized = true;
-
-        // reinit ctx start after metadata
-        ret = stream_flash_init(&ctx, flash, buffer, bufferSize, flashAddress + sizeof(meta), fileSize - sizeof(meta), nullptr);
+        ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(meta), fileSize - sizeof(meta), nullptr);
         if (ret < 0) {
             lastError = ret;
             initialized = false;
@@ -56,49 +48,39 @@ public:
 
     int Write(const T &data, bool flush = false) {
         if (!initialized) return lastError ? lastError : -1;
-
-        if (bytesBuffered + sizeof(T) > bufferSize) {
-            int ret = Flush();
-            if (ret < 0) return ret;
-        }
-
-        memcpy(buffer + bytesBuffered, &data, sizeof(T));
-        bytesBuffered += sizeof(T);
-
-        // Flush if requested or buffer full
-        if (flush || bytesBuffered == bufferSize) {
-            int ret = Flush();
-            if (ret < 0) return ret;
+        int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&data), sizeof(T), flush);
+        if (ret < 0) {
+            lastError = ret;
+            return ret;
         }
         return 0;
     }
 
     int Flush() {
         if (!initialized) return lastError ? lastError : -1;
-        if (bytesBuffered == 0) return 0;
-        int ret = stream_flash_buffered_write(&ctx, buffer, bytesBuffered, true);
+        int ret = stream_flash_buffered_write(&ctx, nullptr, 0, true);
         if (ret < 0) {
             lastError = ret;
             return ret;
         }
-        bytesWritten += bytesBuffered;
-        bytesBuffered = 0;
         return 0;
     }
 
-    size_t GetBytesWritten() const { return bytesWritten; }
-    size_t GetBytesBuffered() const { return bytesBuffered; }
+    size_t GetBytesWritten() const {
+        return stream_flash_bytes_written(&ctx);
+    }
+    size_t GetBytesBuffered() const {
+        return stream_flash_bytes_buffered(&ctx);
+    }
+    int GetLastError() const { return lastError; }
 
 private:
     const device *flash;
     stream_flash_ctx ctx;
     size_t flashAddress;
     size_t fileSize;
-    uint8_t buffer[packetBufferSize * sizeof(T)];
-    size_t bufferSize = sizeof(buffer);
-    size_t bytesBuffered;
-    size_t bytesWritten;
-    int lastError = 0;
+    uint8_t buffer[packetBufferSize];
+    int lastError;
     bool initialized;
 };
 
