@@ -69,7 +69,7 @@ private:
         "Broadcast Tenant", ipAddrStr, downlinkBroadcastPort, downlinkBroadcastPort, sensorDataDownlinkMessagePort
     };
 
-    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{
+    CFsDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{
         "Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(60), 5
     };
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};

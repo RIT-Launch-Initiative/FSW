@@ -1,0 +1,4 @@
+#ifndef C_RAW_DATALOGGER_H
+#define C_RAW_DATALOGGER_H
+
+#endif //C_RAW_DATALOGGER_H
