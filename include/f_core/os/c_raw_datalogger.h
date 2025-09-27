@@ -4,11 +4,13 @@
 #include <zephyr/storage/stream_flash.h>
 #include <cstring>
 #include <string>
+#include <optional>
 
 enum class DataloggerMode {
     Rotating,
     Fixed,
-    Linked
+    LinkedFixed,
+    LinkedTruncate
 };
 
 struct DataloggerMetadata {
@@ -67,7 +69,8 @@ public:
                     break;
                 case DataloggerMode::Fixed:
                     return -ENOSPC;
-                case DataloggerMode::Linked:
+                case DataloggerMode::LinkedFixed:
+                case DataloggerMode::LinkedTruncate:
                     nextFileAddress = flashAddress + fileSize;
                     PrepMetadata(metadata.filename, nextFileAddress);
                     stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress, fileSize, nullptr);
@@ -115,6 +118,41 @@ public:
     size_t GetCurrentOffset() const { return currentOffset; }
     size_t GetNextFileAddress() const { return nextFileAddress; }
 
+    std::optional<std::pair<size_t, size_t>> FindLinkedSpace() {
+        if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
+        size_t addr = flashAddress;
+        size_t max_flash_size = /* TODO: get max flash size from device or config */ 0x1000000; // Example: 16MB
+        size_t file_sz = fileSize;
+        DataloggerMetadata meta;
+        while (addr + sizeof(DataloggerMetadata) < max_flash_size) {
+            int ret = ReadMetadata(addr, meta);
+            if (ret == 0) {
+                // Metadata found, follow next pointer or jump to next file boundary
+                if (meta.next_file_address != 0 && meta.next_file_address > addr) {
+                    addr = meta.next_file_address;
+                } else {
+                    addr += file_sz;
+                }
+            } else {
+                // No metadata found here
+                if (mode == DataloggerMode::LinkedFixed) {
+                    // Check if enough space for a new file
+                    if (addr + file_sz < max_flash_size) {
+                        return std::make_pair(addr, file_sz);
+                    } else {
+                        return std::nullopt;
+                    }
+                } else if (mode == DataloggerMode::LinkedTruncate) {
+                    // Truncate to next metadata or use initial size
+                    size_t next_meta_addr = FindNextMetadata(addr + sizeof(DataloggerMetadata), max_flash_size);
+                    size_t available_size = (next_meta_addr > addr) ? (next_meta_addr - addr) : file_sz;
+                    return std::make_pair(addr, available_size);
+                }
+            }
+        }
+        return std::nullopt;
+    }
+
 private:
     const device* flash;
     stream_flash_ctx ctx;
@@ -135,6 +173,19 @@ private:
         metadata.version = DATALOGGER_VERSION;
         metadata.packet_size = sizeof(T);
         metadata.next_file_address = next_addr;
+    }
+
+    int ReadMetadata(size_t addr, DataloggerMetadata& out_meta) {
+        return -1; // TODO
+    }
+    size_t FindNextMetadata(size_t start_addr, size_t max_addr) {
+        DataloggerMetadata meta;
+        for (size_t addr = start_addr; addr + sizeof(DataloggerMetadata) < max_addr; addr += sizeof(DataloggerMetadata)) {
+            if (ReadMetadata(addr, meta) == 0) {
+                return addr;
+            }
+        }
+        return max_addr;
     }
 };
 
