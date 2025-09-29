@@ -199,6 +199,7 @@ static void cmd_describe_config(struct shell *sh, int, char **) {
 
 static int cmd_gps_log(const struct shell *shell, size_t argc, char **argv) {
     dump_gps = !dump_gps;
+    shell_print(shell, "Dumping GPS: %d", (int)dump_gps);
     return 0;
 }
 
