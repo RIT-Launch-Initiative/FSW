@@ -113,10 +113,6 @@ public:
         return stream_flash_bytes_written(&ctx);
     }
 
-    size_t GetBytesBuffered() const {
-        return stream_flash_bytes_buffered(&ctx);
-    }
-
     int GetLastError() const { return lastError; }
     size_t GetCurrentOffset() const { return currentOffset; }
     size_t GetNextFileAddress() const { return nextFileAddress; }
@@ -139,14 +135,14 @@ public:
                 // No metadata found
                 if (mode == DataloggerMode::LinkedFixed) {
                     // Check if enough space for a new file
-                    if (addr + file_sz < max_flash_size) {
+                    if (addr + file_sz < flashSize) {
                         return std::make_pair(addr, file_sz);
                     } else {
                         return std::nullopt;
                     }
                 } else if (mode == DataloggerMode::LinkedTruncate) {
                     // Truncate to next metadata or use initial size
-                    size_t next_meta_addr = FindNextMetadata(addr + sizeof(DataloggerMetadata), max_flash_size);
+                    size_t next_meta_addr = FindNextMetadata(addr + sizeof(DataloggerMetadata), flashSize);
                     size_t available_size = (next_meta_addr > addr) ? (next_meta_addr - addr) : file_sz;
                     return std::make_pair(addr, available_size);
                 }
