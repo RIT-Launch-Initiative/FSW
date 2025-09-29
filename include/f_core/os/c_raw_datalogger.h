@@ -32,6 +32,7 @@ public:
           initialized(false), currentOffset(0), nextFileAddress(0) {
         memset(&ctx, 0, sizeof(ctx));
         memset(buffer, 0, sizeof(buffer));
+
         PrepMetadata(filename, 0); // next_file_address = 0 for first file
         int ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress, fileSize, nullptr);
         if (ret < 0) {
@@ -51,6 +52,8 @@ public:
             lastError = ret;
             initialized = false;
         }
+
+        ret = flash_get_size(flash, &flashSize);
     }
 
     bool IsInitialized() const { return initialized; }
@@ -121,10 +124,9 @@ public:
     std::optional<std::pair<size_t, size_t>> FindLinkedSpace() {
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
         size_t addr = flashAddress;
-        size_t max_flash_size = /* TODO: get max flash size from device or config */ 0x1000000; // Example: 16MB
         size_t file_sz = fileSize;
         DataloggerMetadata meta;
-        while (addr + sizeof(DataloggerMetadata) < max_flash_size) {
+        while (addr + sizeof(DataloggerMetadata) < flashSize) {
             int ret = ReadMetadata(addr, meta);
             if (ret == 0) {
                 // Metadata found, follow next pointer or jump to next file boundary
@@ -134,7 +136,7 @@ public:
                     addr += file_sz;
                 }
             } else {
-                // No metadata found here
+                // No metadata found
                 if (mode == DataloggerMode::LinkedFixed) {
                     // Check if enough space for a new file
                     if (addr + file_sz < max_flash_size) {
@@ -157,6 +159,7 @@ private:
     const device* flash;
     stream_flash_ctx ctx;
     size_t flashAddress;
+    uint64_t flashSize;
     size_t fileSize;
     uint8_t buffer[packetBufferSize];
     DataloggerMode mode;
