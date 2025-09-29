@@ -9,6 +9,7 @@
 #include "storage.h"
 
 #include <zephyr/drivers/gnss.h>
+#include <zephyr/drivers/pwm.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
@@ -55,3 +56,50 @@ int main() {
 
     return 0;
 }
+
+struct pwm_dt_spec servo = PWM_DT_SPEC_GET(DT_ALIAS(servo1));
+const uint32_t open_pulselen PWM_USEC(930);
+const uint32_t closed_pulselen = PWM_USEC(2010);
+uint32_t last_pulselen = 0;
+
+int disconnect() { return pwm_set_pulse_dt(&servo, 0); }
+
+int set_servo(uint32_t pulse) {
+    last_pulselen = pulse;
+    return pwm_set_pulse_dt(&servo, pulse);
+}
+void sweep_servo(uint32_t next_pulse) {
+    const int steps = 100;
+    const uint32_t start_pulse = last_pulselen;
+
+    int delta = (int) next_pulse - (int) start_pulse;
+    int step = delta / steps;
+
+    for (int i = 0; i < steps; i++) {
+        uint32_t pulse = start_pulse + step * i;
+        int ret = set_servo(pulse);
+        if (ret != 0) {
+            LOG_WRN("Failed to set servo");
+        }
+    }
+    disconnect();
+}
+
+int cmd_move(const struct shell *shell, size_t argc, char **argv) {
+    if (argc < 2) {
+        shell_error(shell, "Specify microsecond value for PWM. 0-3000 give or take");
+        return -1;
+    }
+    int pulse_us = atoi(argv[1]);
+
+    rail_item_enable(FiveVoltItem::Servos);
+    sweep_servo(PWM_USEC(pulse_us));
+    rail_item_disable(FiveVoltItem::Servos);
+
+    return 0;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(servo_subcmds, SHELL_CMD(move, NULL, "Move servo to the us value", cmd_move),
+                               SHELL_SUBCMD_SET_END);
+
+SHELL_CMD_REGISTER(servo, &servo_subcmds, "Servo Commands", NULL);
