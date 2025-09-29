@@ -172,13 +172,13 @@ private:
     size_t currentOffset;
     size_t nextFileAddress;
 
-    void PrepMetadata(const std::string& filename, size_t nextADdr) {
+    void PrepMetadata(const std::string& filename, size_t nextAddr) {
         memset(&metadata, 0, sizeof(metadata));
         strncpy(metadata.filename, filename.c_str(), sizeof(metadata.filename) - 1);
         metadata.allocated_size = fileSize;
         metadata.version = DATALOGGER_VERSION;
         metadata.packet_size = sizeof(T);
-        metadata.next_file_address = nextADdr;
+        metadata.next_file_address = nextAddr;
     }
 
     int ReadMetadata(off_t addr, DataloggerMetadata& outMeta) {
@@ -193,6 +193,7 @@ private:
             }
             addr += sizeof(DataloggerMetadata);
         }
+        return -1;
     }
 
     size_t FindNextMetadata(off_t startAddr, off_t maxAddr) {
