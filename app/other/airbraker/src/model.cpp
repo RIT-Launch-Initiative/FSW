@@ -4,9 +4,53 @@
 
 #include <cmath>
 
-class Vec4 {
-    float parts[4];
+struct vec2 {
+    float s[2];
 };
+struct vec4 {
+    float s[4];
+};
+struct mat4 {
+    vec4 vs[4];
+};
+struct mat2 {
+    vec2 vs[2];
+};
+
+mat2 mul_s_m2(float scalar, const mat2 *mat) {
+    mat2 out = {0};
+    out.vs[0].s[0] = mat->vs[0].s[0] * scalar;
+    out.vs[0].s[1] = mat->vs[0].s[1] * scalar;
+    out.vs[1].s[0] = mat->vs[1].s[0] * scalar;
+    out.vs[1].s[1] = mat->vs[1].s[1] * scalar;
+    return out;
+}
+
+// mat4 mul_m4_m4(const mat4 *a, const mat4 *b) {
+    // mat4 out = {0};
+    // for (size_t i = 0; i < 4; i++) {
+        // for (size_t j = 0; j < 4; j++) {
+            // for (size_t k = 0; k < 4; k++) {
+                // out.vs[i].s[j] += a[i][j                
+            // }
+        // }
+    // }
+// }
+
+bool inv2x2(const mat2 *in, mat2 *out) {
+    float det = (*in).vs[0].s[0] * (*in).vs[1].s[1] - (*in).vs[0].s[1] * (*in).vs[1].s[0]; // ad -bc;
+    if (det == 0) {
+        return false;
+    }
+    mat2 temp = {0};
+    temp.vs[0].s[0] = in->vs[1].s[1];
+    temp.vs[1].s[1] = in->vs[0].s[0];
+    temp.vs[0].s[1] = -in->vs[0].s[1];
+    temp.vs[1].s[0] = -in->vs[1].s[0];
+
+    *out = mul_s_m2((1 / det), &temp);
+    return true;
+}
 
 struct index_parts {
     size_t whole;   // The index of the LUT value just before this value
@@ -62,17 +106,15 @@ void bounds_lut(float altitude_est, float *lower, float *upper) {
     *upper = lerp(index.fraction, upperPrevious, upperNext);
 }
 
-
-float actuator_effort_lut(float altitude_est, float velocity_est){
+float actuator_effort_lut(float altitude_est, float velocity_est) {
     float z_hat_min = 0;
     float z_hat_max = 0;
     bounds_lut(altitude_est, &z_hat_min, &z_hat_max);
     float Q = (velocity_est - z_hat_min) / (z_hat_max - z_hat_min);
-    if (Q > 1){
+    if (Q > 1) {
         return 1;
-    } else if (Q < 0){
+    } else if (Q < 0) {
         return 0;
     }
     return Q;
-
 }

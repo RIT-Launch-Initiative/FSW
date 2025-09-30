@@ -23,6 +23,7 @@ constexpr float BATTERY_WARNING_THRESH = 7.9;
 float startup_voltage = 0;
 
 int main() {
+    return 0;
     int ret = 0;
     return 0;
     const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
@@ -49,7 +50,7 @@ int main() {
     if (startup_voltage < BATTERY_WARNING_THRESH) {
         // buzzer_tell(BuzzCommand::BatteryWarning);
     }
-
+    return 0;
     //Ground, Boost, Coast, Flight
     ret = boost_and_flight_sensing(imu_dev, barom_dev, ina_servo);
     LOG_INF("On the ground now");
