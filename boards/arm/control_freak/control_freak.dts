@@ -2,7 +2,6 @@
 #include <st/f4/stm32f446Xe.dtsi>
 #include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
-#include <zephyr/dt-bindings/pwm/pwm.h>
 
 / {
 	model = "Control Freak";
@@ -18,7 +17,6 @@
 
 	};
 	aliases {
-		watchdog0 = &iwdg;
 		debug-serial = &uart4;
 		led0 = &led1; // a little broken :(
 		buzz = &buzzer;
@@ -39,7 +37,7 @@
 		barom = &bmp390;
 
 		inapump = &ina260_pump;
-		ina-servo = &ina260_servo;
+		inaservo = &ina260_servo;
 
 		groundcam = &cam1_enable;
 		antennacam = &cam2_enable;
@@ -178,9 +176,6 @@
 			};
 		};
 	};
-};
-&iwdg{
-	status = "okay";
 };
 
 &timers3 {
@@ -417,7 +412,7 @@
 		spi-max-frequency = <(DT_FREQ_M(50))>;
 		compatible = "semtech,sx1276";
 
-		reset-gpios = <&gpioa 4  GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
 		dio-gpios =   <&gpioc 5  GPIO_ACTIVE_HIGH>,
 					  <&gpiob 0  GPIO_ACTIVE_HIGH>,
 					  <&gpiob 1  GPIO_ACTIVE_HIGH>,
@@ -442,6 +437,8 @@
 
 
 // fake and untrue, call me when we use mcuboot
+
+// fake and untrue, call me when we use mcuboot
 &flash0 {
 
 	partitions {
@@ -460,8 +457,8 @@
 		 * 0x0001ffff (sectors 16-31) is reserved for use
 		 * by the application.
 		 */
-		storage_partition2: partition@10000 {
-			label = "storage_partition2";
+		storage_partition: partition@10000 {
+			label = "storage";
 			reg = <0x00010000 DT_SIZE_K(64)>;
 		};
 

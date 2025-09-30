@@ -16,14 +16,14 @@ LOG_MODULE_REGISTER(sensing);
 K_TIMER_DEFINE(imutimer, NULL, NULL);
 K_TIMER_DEFINE(slowdata_timer, NULL, NULL);
 
-static int set_sampling_freq(const struct device *imu_dev);
+static int set_sampling(const struct device *imu_dev);
 
 bool DONT_STOP = true;
 
 int boost_and_flight_sensing(const struct device *superfast_storage, const struct device *imu_dev,
                              const struct device *barom_dev, const struct device *ina_servo,
                              FreakFlightController *freak_controller) {
-    set_sampling_freq(imu_dev);
+    set_sampling(imu_dev);
 
     int64_t start = k_uptime_get();
 
@@ -151,7 +151,7 @@ int boost_and_flight_sensing(const struct device *superfast_storage, const struc
     return 0;
 }
 
-static int set_sampling_freq(const struct device *imu_dev) {
+static int set_sampling(const struct device *imu_dev) {
     struct sensor_value sampling = {0};
     sensor_value_from_float(&sampling, 1666);
     int ret = sensor_attr_set(imu_dev, SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &sampling);

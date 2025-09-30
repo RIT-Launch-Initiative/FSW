@@ -27,12 +27,6 @@ int gfs_alloc_slab(const struct device *dev, void **slab_ptr, k_timeout_t timeou
  */
 int gfs_submit_slab(const struct device *dev, void *slab, k_timeout_t timeout);
 /**
- * Free a slab without submitting it for storage
- * only call this if the slab has not been submitted (gfs_submit_slab returns non zero exit code)
- */
-void gfs_free_slab(const struct device *dev, void *slab);
-
-/**
  * Get the total number of blocks (pages) that the partition holds
  * @param dev the device gotten by DEVICE_DT_GET identifying this gfs partition
  * @return the number of blocks this partition holds
