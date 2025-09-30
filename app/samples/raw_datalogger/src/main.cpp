@@ -1,4 +1,9 @@
+#include "zephyr/logging/log.h"
+
 #include <f_core/os/c_raw_datalogger.h>
+#include <zephyr/kernel.h>
+
+LOG_MODULE_REGISTER(main);
 
 struct TestData {
     const char name[16];
@@ -11,7 +16,7 @@ int main() {
     // Rotating
     off_t nextAddr = 0x00000000;
     const size_t rotatingFileSize = sizeof(TestData) * 5 + sizeof(DataloggerMetadata);
-    CRawDataLogger<TestData, 3> logger(nullptr, nextAddr, sizeof(TestData) * , "test_rotating", DataloggerMode::Rotating);
+    CRawDataLogger<TestData, 3> logger(nullptr, nextAddr, rotatingFileSize, "test_rotating", DataloggerMode::Rotating);
     for (int i = 0; i < 10; ++i) {
         TestData data = { "rotating", i, i + 1, i + 2, i + 3 };
         int ret = logger.Write(data);
