@@ -23,7 +23,7 @@ struct DataloggerMetadata {
 
 constexpr uint32_t DATALOGGER_VERSION = 1;
 
-template <typename T, size_t packetBufferSize>
+template <typename T, size_t numPacketsInBuffer>
 class CRawDataLogger {
 public:
     CRawDataLogger(const device* flashDev, off_t flashAddress, off_t fileSize, const std::string& filename,
@@ -164,7 +164,7 @@ private:
     size_t flashAddress;
     uint64_t flashSize;
     size_t fileSize;
-    uint8_t buffer[packetBufferSize];
+    uint8_t buffer[numPacketsInBuffer * sizeof(T)];
     DataloggerMode mode;
     int lastError;
     bool initialized;
