@@ -45,6 +45,7 @@ int main() {
     if (ret < 0) {
         printk("couldnt set servo_en: %d\n", ret);
     }
+    rail_item_enable(FiveVoltItem::Servos);
 
     const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
     const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
