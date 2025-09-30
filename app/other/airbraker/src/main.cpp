@@ -9,6 +9,7 @@
 #include "storage.h"
 
 #include <zephyr/drivers/gnss.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
@@ -22,14 +23,30 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 constexpr float BATTERY_WARNING_THRESH = 7.9;
 float startup_voltage = 0;
 
+
+#define SERVO_EN DT_NODELABEL(servo_enable)
+static const struct gpio_dt_spec servo_en = GPIO_DT_SPEC_GET(SERVO_EN, gpios);
+
 int main() {
-    return 0;
     int ret = 0;
-    return 0;
+    if (!gpio_is_ready_dt(&servo_en)) {
+        printk("No servo enable :(\n");
+        return 0;
+    }
+    ret = gpio_pin_configure_dt(&servo_en, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        printk("Failed to conf servo_en :(\n");
+        return 0;
+    }
+
+    ret = gpio_pin_set_dt(&servo_en, 1);
+    if (ret < 0) {
+        printk("couldnt set servo_en: %d\n", ret);
+    }
+
     const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
     const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
-
-    const struct device *ina_servo = DEVICE_DT_GET(DT_ALIAS(ina_servo));
+    const struct device *ina_servo = DEVICE_DT_GET(DT_ALIAS(inaservo));
 
     if (!device_is_ready(imu_dev) || !device_is_ready(barom_dev)) {
         LOG_ERR("Sensor devices not ready");
@@ -57,7 +74,6 @@ int main() {
 
     return 0;
 }
-
 struct pwm_dt_spec servo = PWM_DT_SPEC_GET(DT_ALIAS(servo1));
 const uint32_t open_pulselen PWM_USEC(930);
 const uint32_t closed_pulselen = PWM_USEC(2010);
@@ -78,10 +94,12 @@ void sweep_servo(uint32_t next_pulse) {
 
     for (int i = 0; i < steps; i++) {
         uint32_t pulse = start_pulse + step * i;
+        printk("Pulse: %d\n", pulse);
         int ret = set_servo(pulse);
         if (ret != 0) {
             LOG_WRN("Failed to set servo");
         }
+        k_msleep(10);
     }
     disconnect();
 }
@@ -95,7 +113,7 @@ int cmd_move(const struct shell *shell, size_t argc, char **argv) {
 
     rail_item_enable(FiveVoltItem::Servos);
     sweep_servo(PWM_USEC(pulse_us));
-    rail_item_disable(FiveVoltItem::Servos);
+    // rail_item_disable(FiveVoltItem::Servos);
 
     return 0;
 }

@@ -257,7 +257,7 @@
 		//  MAX-M10M-00B
 		compatible = "u-blox,m10";
 		label = "UBLOXM10";
-		status="okay";
+		status="disabled";
 		reset-gpios = <&gpioa 11 GPIO_ACTIVE_LOW>;
 		timepulse-gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
 		// reset-on-boot;

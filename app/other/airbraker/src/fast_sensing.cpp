@@ -12,7 +12,7 @@
 #include <zephyr/shell/shell.h>
 LOG_MODULE_REGISTER(sensing);
 
-const struct device *ina_dev = DEVICE_DT_GET(DT_ALIAS(ina_servo));
+const struct device *ina_dev = DEVICE_DT_GET(DT_ALIAS(inaservo));
 const struct device *imu_dev = DEVICE_DT_GET(DT_ALIAS(imu));
 const struct device *barom_dev = DEVICE_DT_GET(DT_ALIAS(barom));
 
