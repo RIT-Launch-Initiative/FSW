@@ -164,7 +164,7 @@
 	};
 
 	rv8263: rv8263@51 {
-		compatible = "rv-rtc,rv-8263";
+		compatible = "microcrystal,rv-8263-c8";
 		reg = <0x51>;
 		status = "okay";
 		supply-gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
