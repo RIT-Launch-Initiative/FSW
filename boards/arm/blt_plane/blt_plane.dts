@@ -167,6 +167,7 @@
 		compatible = "rv-rtc,rv-8263";
 		reg = <0x51>;
 		status = "okay";
+		supply-gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
 
 		clkout = <32768>;
 	};
