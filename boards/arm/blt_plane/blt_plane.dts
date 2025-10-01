@@ -147,6 +147,51 @@
     pinctrl-names = "default";
     status = "okay";
     clock-frequency = <I2C_BITRATE_FAST>;
+
+
+    ina0: ina219_battery@40 {
+        status = "okay";
+        compatible = "ti,ina219";
+        reg = <0x40>;
+        brng = <0>; // Set to 0 since we don't expect >16V
+        pg = <0>; // 7.5 mV drop.
+        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+        shunt-milliohm = <5>;
+        lsb-microamp = <400>;
+    };
+
+    ina1: ina219_3v3@44 {
+        status = "okay";
+        compatible = "ti,ina219";
+        reg = <0x44>;
+        brng = <0>; // Set to 0 since we don't expect >16V
+        pg = <0>; // 0 mV drop
+        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+        shunt-milliohm = <5>;
+        lsb-microamp = <33>;
+    };
+
+    ina2: ina219_5v0@41 {
+        status = "okay";
+        compatible = "ti,ina219";
+        reg = <0x41>;
+        brng = <0>; // Set to 0 since we don't expect >16V
+        pg = <0>; // 0 mV drop
+        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+        shunt-milliohm = <5>;
+        lsb-microamp = <33>;
+    };
+
+    rv8263: rv8263@51 {
+        compatible = "rv-rtc,rv-8263";
+        reg = <0x51>;
+        status = "okay";
+
+        clkout = <32768>;
+    };
 };
 
 &dma1 {
