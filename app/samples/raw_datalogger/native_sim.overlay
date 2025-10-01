@@ -4,6 +4,10 @@
 		logfs = &lfs1;
 	};
 
+	aliases {
+		storage = &flash0;
+	};
+
 
 	fstab {
 		compatible = "zephyr,fstab";

@@ -14,7 +14,7 @@ struct TestData {
 };
 
 int main() {
-    device* flash = DEVICE_DT_GET(DT_ALIAS(storage));
+    const device* flash = DEVICE_DT_GET(DT_ALIAS(storage));
     // Rotating
     off_t nextAddr = 0x00000000;
     const size_t rotatingFileSize = sizeof(TestData) * 5 + sizeof(DataloggerMetadata);
