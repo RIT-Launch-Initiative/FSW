@@ -1,0 +1,8 @@
+if BOARD_BLT_PLANE
+
+config SPI_STM32_INTERRUPT
+	default y
+	depends on SPI
+
+endif # BOARD_BLT_PLANE
+
