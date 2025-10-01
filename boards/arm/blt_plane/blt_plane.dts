@@ -10,74 +10,96 @@
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
-    model = "Power Module";
-    compatible = "st,stm32f446xx";
+	model = "Power Module";
+	compatible = "st,stm32f446xx";
 
-    chosen {
-        zephyr,sram = &sram0;
-        zephyr,flash = &flash0;
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,console = &uart5;
+		zephyr,shell-uart = &uart5;
 
-        storage = &w25q128;
-        logfs = &lfs1;
-    };
+		storage = &w25q128;
+		logfs = &lfs1;
+	};
 
-    aliases {
-        inabatt = &ina0;
-        ina3v3 = &ina1;
-        ina5v0 = &ina2;
-        vin = &adc1;
-        rtc = &rtc;
-    };
+	aliases {
+		inabatt = &ina0;
+		ina3v3 = &ina1;
+		ina5v0 = &ina2;
+		vin = &adc1;
+		rtc = &rtc;
+	};
 
-    leds: leds {
-        compatible = "gpio-leds";
-    };
+	leds: leds {
+		compatible = "gpio-leds";
 
-    fstab {
-        compatible = "zephyr,fstab";
+		led_0: led_0 {
+			gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
+		};
 
-        lfs1: lfs1 {
-            compatible = "zephyr,fstab,littlefs";
-            mount-point = "/lfs";
-            partition = <&external_storage_partition>;
-            automount;
+		led_1: led_1 {
+			gpios = <&gpiob 13 GPIO_ACTIVE_HIGH>;
+		};
 
-            read-size = <256>;
-            prog-size = <256>;
-            cache-size = <512>;
-            lookahead-size = <128>;
-            block-cycles = <(90 * 1000)>;
-        };
-    };
+		led_2: led_2 {
+			gpios = <&gpiob 14 GPIO_ACTIVE_HIGH>;
+		};
 
-    zephyr,user {
-        io-channels = <&adc1 4>;
-    };
+		led_3: led_3 {
+			gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
+		};
+
+		wiznet_led: wiznet_led {
+			gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&external_storage_partition>;
+			automount;
+
+			read-size = <256>;
+			prog-size = <256>;
+			cache-size = <512>;
+			lookahead-size = <128>;
+			block-cycles = <(90 * 1000)>;
+		};
+	};
+
+	zephyr,user {
+		io-channels = <&adc1 4>;
+	};
 };
 
 &clk_lsi {
-    status = "okay";
+	status = "okay";
 };
 
 &clk_hsi {
-    clock-frequency = <DT_FREQ_M(16)>;
-    status = "okay";
+	clock-frequency = <DT_FREQ_M(16)>;
+	status = "okay";
 };
 
 &pll {
-    div-m = <8>;
-    mul-n = <90>;
-    div-p = <2>;
-    clocks = <&clk_hsi>;
-    status = "okay";
+	div-m = <8>;
+	mul-n = <90>;
+	div-p = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
 };
 
 &rcc {
-    clocks = <&pll>;
-    clock-frequency = <DT_FREQ_M(45)>;
-    ahb-prescaler = <2>;
-    apb1-prescaler = <2>;
-    apb2-prescaler = <1>;
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(45)>;
+	ahb-prescaler = <2>;
+	apb1-prescaler = <2>;
+	apb2-prescaler = <1>;
 };
 
 /*
@@ -100,70 +122,77 @@
 };
 */
 &i2c1 {
-    pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
-    pinctrl-names = "default";
-    status = "okay";
-    clock-frequency = <I2C_BITRATE_FAST>;
+	pinctrl-0 = <&i2c1_scl_pb6 &i2c1_sda_pb7>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
 
-    ina0: ina219_battery@40 {
-        status = "okay";
-        compatible = "ti,ina219";
-        reg = <0x40>;
-        brng = <0>; // Set to 0 since we don't expect >16V
-        pg = <0>; // 7.5 mV drop.
-        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
-        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
-        shunt-milliohm = <5>;
-        lsb-microamp = <400>;
-    };
+	ina0: ina219_battery@40 {
+		status = "okay";
+		compatible = "ti,ina219";
+		reg = <0x40>;
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 7.5 mV drop.
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <400>;
+	};
 
-    ina1: ina219_3v3@44 {
-        status = "okay";
-        compatible = "ti,ina219";
-        reg = <0x44>;
-        brng = <0>; // Set to 0 since we don't expect >16V
-        pg = <0>; // 0 mV drop
-        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
-        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
-        shunt-milliohm = <5>;
-        lsb-microamp = <33>;
-    };
+	ina1: ina219_3v3@44 {
+		status = "okay";
+		compatible = "ti,ina219";
+		reg = <0x44>;
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 0 mV drop
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <33>;
+	};
 
-    ina2: ina219_5v0@41 {
-        status = "okay";
-        compatible = "ti,ina219";
-        reg = <0x41>;
-        brng = <0>; // Set to 0 since we don't expect >16V
-        pg = <0>; // 0 mV drop
-        sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
-        badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
-        shunt-milliohm = <5>;
-        lsb-microamp = <33>;
-    };
+	ina2: ina219_5v0@41 {
+		status = "okay";
+		compatible = "ti,ina219";
+		reg = <0x41>;
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 0 mV drop
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <33>;
+	};
 
-    rv8263: rv8263@51 {
-        compatible = "rv-rtc,rv-8263";
-        reg = <0x51>;
-        status = "okay";
+	rv8263: rv8263@51 {
+		compatible = "rv-rtc,rv-8263";
+		reg = <0x51>;
+		status = "okay";
 
-        clkout = <32768>;
-    };
+		clkout = <32768>;
+	};
 
 };
 
 &spi1 {
-    pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
-    cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
-    pinctrl-names = "default";
-    status = "okay";
+	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
+	cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>;
+	pinctrl-names = "default";
+	status = "okay";
 
-    w5500: w5500@0 {
-        compatible = "wiznet,w5500";
-        reg = <0x0>;
-        spi-max-frequency = <DT_FREQ_M(80)>;
-        int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
-        reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
-    };
+	w5500: w5500@0 {
+		compatible = "wiznet,w5500";
+		reg = <0x0>;
+		spi-max-frequency = <DT_FREQ_M(80)>;
+		int-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>;
+	};
+};
+
+&uart5 {
+	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
 };
 
 &dma1 {
@@ -175,89 +204,93 @@
 };
 
 &spi2 {
-    pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
-    cs-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
-    pinctrl-names = "default";
-    status = "okay";
+	pinctrl-0 = <&spi2_sck_pb10 &spi2_miso_pc2 &spi2_mosi_pc1>;
+	cs-gpios = <&gpioc 11 GPIO_ACTIVE_LOW>;
+	pinctrl-names = "default";
+	status = "okay";
 
-    // dma identifier
+	// dma identifier
 	// dma stream
 	// dma channel
 	// config flags
-	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
-		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+	dmas = <&dma1 4 0
+			(STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS)
+			0x1>,
+		   <&dma1 3 0
+			(STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS)
+			0x1>;
 	dma-names = "tx", "rx";
 
-    w25q128: w25q128jv@0 {
-        compatible = "jedec,spi-nor";
-        reg = <0>;
+	w25q128: w25q128jv@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
 
-        spi-max-frequency = <DT_FREQ_M(104)>;
-        size = <DT_SIZE_M(128)>;
-        jedec-id = [ef 40 18];
+		spi-max-frequency = <DT_FREQ_M(104)>;
+		size = <DT_SIZE_M(128)>;
+		jedec-id = [ef 40 18];
 
-        has-dpd;
-        t-enter-dpd = <(3 * 1000)>;
-        t-exit-dpd = <(3 * 1000)>;
+		has-dpd;
+		t-enter-dpd = <(3 * 1000)>;
+		t-exit-dpd = <(3 * 1000)>;
 
-        partitions {
-            compatible = "fixed-partitions";
-            #address-cells = <1>;
-            #size-cells = <1>;
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
 
-            external_storage_partition: partition@0 {
-                label = "w25q-storage";
-                reg = <0 DT_SIZE_M(16)>;
-            };
-        };
-    };
+			external_storage_partition: partition@0 {
+				label = "w25q-storage";
+				reg = <0 DT_SIZE_M(16)>;
+			};
+		};
+	};
 };
 
 &rtc {
-    clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
-             <&rcc STM32_SRC_LSI RTC_SEL(2)>;
-    status = "okay";
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
+			 <&rcc STM32_SRC_LSI RTC_SEL(2)>;
+	status = "okay";
 };
 
 &backup_sram {
-    status = "okay";
+	status = "okay";
 };
 
 &flash0 {
-    partitions {
-        compatible = "fixed-partitions";
-        #address-cells = <1>;
-        #size-cells = <1>;
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
 
-        boot_partition: partition@0 {
-            label = "mcuboot";
-            reg = <0x00000000 DT_SIZE_K(64)>;
-            read-only;
-        };
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 DT_SIZE_K(64)>;
+			read-only;
+		};
 
-        /*
-         * The flash starting at 0x00010000 and ending at
-         * 0x0001ffff (sectors 16-31) is reserved for use
-         * by the application.
-         */
-        storage_partition: partition@10000 {
-            label = "storage";
-            reg = <0x00010000 DT_SIZE_K(64)>;
-        };
+		/*
+		 * The flash starting at 0x00010000 and ending at
+		 * 0x0001ffff (sectors 16-31) is reserved for use
+		 * by the application.
+		 */
+		storage_partition: partition@10000 {
+			label = "storage";
+			reg = <0x00010000 DT_SIZE_K(64)>;
+		};
 
-        slot0_partition: partition@20000 {
-            label = "image-0";
-            reg = <0x00020000 DT_SIZE_K(128)>;
-        };
+		slot0_partition: partition@20000 {
+			label = "image-0";
+			reg = <0x00020000 DT_SIZE_K(128)>;
+		};
 
-        slot1_partition: partition@40000 {
-            label = "image-1";
-            reg = <0x00040000 DT_SIZE_K(128)>;
-        };
+		slot1_partition: partition@40000 {
+			label = "image-1";
+			reg = <0x00040000 DT_SIZE_K(128)>;
+		};
 
-        scratch_partition: partition@60000 {
-            label = "image-scratch";
-            reg = <0x00060000 DT_SIZE_K(128)>;
-        };
-    };
+		scratch_partition: partition@60000 {
+			label = "image-scratch";
+			reg = <0x00060000 DT_SIZE_K(128)>;
+		};
+	};
 };
