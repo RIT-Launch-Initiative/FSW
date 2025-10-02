@@ -53,6 +53,11 @@
 		wiznet_led: wiznet_led {
 			gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
 		};
+
+		rtc_en_clk_out: rtc_en_clk_out {
+			gpios = <&gpiob 5 GPIO_ACTIVE_LOW>; // this defaults to enabling CLKOUT
+			label = "RV8263 Enable Clock Out";
+		};
 	};
 
 	fstab {
@@ -167,9 +172,7 @@
 		compatible = "microcrystal,rv-8263-c8";
 		reg = <0x51>;
 		status = "okay";
-		supply-gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
-
-		clkout = <32768>;
+		clkout = <1>;
 	};
 
 };
