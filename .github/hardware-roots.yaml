@@ -8,6 +8,7 @@ app/backplane/power_module:
   - paths:
       - "app/backplane/power_module/**"
       - "boards/arm/power_module/**"
+      - "boards/arm/blt_plane/**"
 
 app/backplane/radio_module:
   - paths:
