@@ -9,12 +9,19 @@ LOG_MODULE_REGISTER(CRtc);
 
 CRtc::CRtc(const device& dev) : rtc(dev) {
     rtc_time rtcTime{0};
-#ifdef CONFIG_RTC_STM32
     rtcTime.tm_year = 100;
-#endif
+    rtcTime.tm_mday = 1;
+
     if (GetTime(rtcTime) == -ENODATA) {
         LOG_INF("RTC not initialized, setting to default time");
         SetTime(rtcTime);
+    }
+
+    if (int ret = GetTime(rtcTime); ret < 0) {
+        LOG_ERR("Failed to get RTC time during initialization: %d", ret);
+    } else {
+        LOG_INF("RTC initialized to %04d-%02d-%02d %02d:%02d:%02d", rtcTime.tm_year + 1900,
+                rtcTime.tm_mon + 1, rtcTime.tm_mday, rtcTime.tm_hour, rtcTime.tm_min, rtcTime.tm_sec);
     }
 }
 
