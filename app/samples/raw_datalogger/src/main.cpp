@@ -15,8 +15,23 @@ struct TestData {
 
 int main() {
     const device* flash = DEVICE_DT_GET(DT_CHOSEN(zephyr_flash_controller));
+    if (!device_is_ready(flash)) {
+        LOG_ERR("Flash device not ready!");
+        return -1;
+    } else {
+        // Print flash size
+        uint64_t flashSize = 0;
+        int ret = flash_get_size(flash, &flashSize);
+        if (ret < 0) {
+            LOG_ERR("Failed to get flash size: %d", ret);
+            return -1;
+        }
+
+        LOG_INF("Flash Size: %llu bytes", flashSize);
+    }
+
     // Rotating
-    off_t nextAddr = 0x00000000;
+    off_t nextAddr = 0x000fc000;
     const size_t rotatingFileSize = sizeof(TestData) * 5 + sizeof(DataloggerMetadata);
     CRawDataLogger<TestData, 3> logger(flash, nextAddr, rotatingFileSize, "test_rotating", DataloggerMode::Rotating);
     for (int i = 0; i < 10; ++i) {
