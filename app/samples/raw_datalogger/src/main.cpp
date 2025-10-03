@@ -27,6 +27,8 @@ int main() {
         }
     }
 
+    LOG_INF("Finished writing data for rotating logger");
+
     nextAddr += rotatingFileSize;
 
     // Fixed
@@ -39,6 +41,8 @@ int main() {
             LOG_ERR("Error writing data for fixed: %d", ret);
         }
     }
+    LOG_INF("Finished writing data for fixed logger.");
+
     nextAddr += fixedFileSize;
 
     // LinkedFixed
@@ -52,6 +56,9 @@ int main() {
         }
     }
 
+    LOG_INF("Finished writing data for linked fixed logger.");
+
+
     nextAddr += linkedFixedFileSize;
     // Add a file in between to test finding next linked space using a fixed logger
     const size_t intermediateFileSize = sizeof(TestData) * 1 + sizeof(DataloggerMetadata);
@@ -61,6 +68,8 @@ int main() {
     if (intermediateLogger.GetLastError() != 0) {
         LOG_ERR("Error writing intermediate data: %d", intermediateLogger.GetLastError());
     }
+
+    LOG_INF("Finished writing data for intermediate fixed logger");
 
     nextAddr += intermediateFileSize;
     // LinkedFixed should skip the intermediate file
@@ -72,6 +81,8 @@ int main() {
         }
     }
 
+    LOG_INF("Finished writing more data for linked fixed logger.");
+
     // Test LinkedTruncate
     CRawDataLogger<TestData, 3> linkedTruncateLogger(flash, nextAddr, linkedFixedFileSize, "test_linked_truncate", DataloggerMode::LinkedTruncate);
 
@@ -82,6 +93,8 @@ int main() {
     if (anotherIntermediateLogger.GetLastError() != 0) {
         LOG_ERR("Error writing another intermediate data: %d", anotherIntermediateLogger.GetLastError());
     }
+    LOG_INF("Finished writing data for another intermediate fixed logger");
+
 
     for (int i = 0; i < 10; ++i) {
         TestData data = { "linked_truncate", i, i + 1, i + 2, i + 3 };
@@ -90,6 +103,8 @@ int main() {
             LOG_ERR("Error writing data for linked truncate: %d", ret);
         }
     }
+
+    LOG_INF("Finished writing data for linked truncate logger");
 
     return 0;
 }
