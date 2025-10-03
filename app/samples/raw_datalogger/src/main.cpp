@@ -29,6 +29,14 @@ int main() {
 
         LOG_INF("Flash Size: %llu bytes", flashSize);
     }
+    off_t start_addr = 0x00000000;
+    size_t erase_size = 0x00100000; // 1 MiB
+
+    int err = flash_erase(flash, start_addr, erase_size);
+    if (err < 0) {
+        LOG_ERR("Failed to erase flash: %d", err);
+        return -1;
+    }
 
     // Rotating
     off_t nextAddr = 0x00000000;
