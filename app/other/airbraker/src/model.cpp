@@ -1,55 +1,72 @@
 #include "model.hpp"
 
+#include "algebra.h"
 #include "model_data.inc"
 
-#include <cmath>
-
-struct vec2 {
-    float s[2];
-};
-struct vec4 {
-    float s[4];
-};
-struct mat4 {
-    vec4 vs[4];
-};
-struct mat2 {
-    vec2 vs[2];
-};
-
-mat2 mul_s_m2(float scalar, const mat2 *mat) {
-    mat2 out = {0};
-    out.vs[0].s[0] = mat->vs[0].s[0] * scalar;
-    out.vs[0].s[1] = mat->vs[0].s[1] * scalar;
-    out.vs[1].s[0] = mat->vs[1].s[0] * scalar;
-    out.vs[1].s[1] = mat->vs[1].s[1] * scalar;
-    return out;
-}
-
-// mat4 mul_m4_m4(const mat4 *a, const mat4 *b) {
-    // mat4 out = {0};
-    // for (size_t i = 0; i < 4; i++) {
-        // for (size_t j = 0; j < 4; j++) {
-            // for (size_t k = 0; k < 4; k++) {
-                // out.vs[i].s[j] += a[i][j                
-            // }
-        // }
-    // }
-// }
-
-bool inv2x2(const mat2 *in, mat2 *out) {
-    float det = (*in).vs[0].s[0] * (*in).vs[1].s[1] - (*in).vs[0].s[1] * (*in).vs[1].s[0]; // ad -bc;
-    if (det == 0) {
-        return false;
+//constexpr float GROUND_LEVEL = ABCDEF;
+#define V4(x, y, z, w)                                                                                                 \
+    {                                                                                                                  \
+        .s = { x, y, z, w }                                                                                            \
     }
-    mat2 temp = {0};
-    temp.vs[0].s[0] = in->vs[1].s[1];
-    temp.vs[1].s[1] = in->vs[0].s[0];
-    temp.vs[0].s[1] = -in->vs[0].s[1];
-    temp.vs[1].s[0] = -in->vs[1].s[0];
+constexpr float dt = 0.01;
+// kalman state matrix
+constexpr struct mat4 F = {
+    .vs =
+        {
+            V4(1, dt, dt *dt / 2, 0),
+            V4(0, 1, dt, 0),
+            V4(0, 0, 1, 0),
+            V4(0, 0, 0, 1),
+        },
+};
+const struct mat4 F_T = transpose_m4(&F);
+// kalman state covariance
+constexpr struct mat4 Q = {
+    .vs =
+        {
+            V4(1e-4, 0, 0, 0),
+            V4(0, 1e-4, 0, 0),
+            V4(0, 0, 20, 0),
+            V4(0, 0, 0, 1),
+        },
+};
+constexpr struct mat2x4 H = {
+    .vs =
+        {
+            V4(1, 0, 0, 0),
+            V4(0, 0, 1, 1),
+        },
+};
 
-    *out = mul_s_m2((1 / det), &temp);
-    return true;
+constexpr struct mat2 R = {
+    .vs =
+        {
+            {.s = {0.23193856, 0.0}},
+            {.s = {0.0, 0.0008}},
+        },
+};
+
+constexpr struct mat4 eye_m4 = {
+    .vs =
+        {
+            V4(1, 0, 0, 0),
+            V4(0, 1, 0, 0),
+            V4(0, 0, 1, 0),
+            V4(0, 0, 0, 1),
+        },
+};
+
+static struct vec4 state_x = V4(0, 0, 0, 0);
+static struct mat4 state_P = eye_m4;
+
+void update_filter(float acc_meas, float barom_meas) {
+
+    const struct vec2 measurement = {.s = {barom_meas, acc_meas}};
+    const struct vec4 x_prior = mul_m4_v4(&F, &state_x);
+    
+    const struct mat4 interm = mul_m4_m4(&F, &state_P);
+    const struct mat4 P_prior = mul_m4_m4(&interm, &F_T);
+
 }
 
 struct index_parts {

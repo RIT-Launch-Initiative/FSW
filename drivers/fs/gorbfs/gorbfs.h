@@ -1,13 +1,19 @@
 #pragma once
-
+/**
+ * Brain dead simple storage system for time series data on flash devices
+ * Doesn't even index your partitions, but you're adding a timestamp or index bc its time series data anyways
+ * The only interesting feature is the circular buffer mode.
+ * 
+ * General principle of operation is that you can use the partition as a flash backed circular buffer such that you can record data before you know you need to save it (boost detection)
+ * If that data remains unused, no need to save it and it will be overwritten.
+ * Once you know you need to save that data, gfs_signal_end_of_circle can be used to tell the partition to stop overwriting data as of N pages ago where N is a preconfigured number selected depending on your detection delay
+ * If you don't need this wrapping behavior, call gfs_signal_end_of_circle on init with a circle size of 0 to never overwrite
+ */
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
-
-// Brain dead fast time series file storage
-// follows ideas from zephyr i2s subsystem using k_mem_slab to minimize copies
 
 /**
  * Get a buffer to write into
@@ -43,7 +49,6 @@ void gfs_free_slab(const struct device *dev, void *slab);
  * @return the number of blocks this partition holds
  */
 int gfs_total_blocks(const struct device *dev);
-
 
 /**
  * Check if the circular buffer has had its stopping point set
@@ -91,14 +96,13 @@ int gfs_erase_if_on_sector(const struct device *gfs_dev);
  */
 bool gfs_partition_saturated(const struct device *dev);
 
-
 // initialize a poll item for this partition
 // https://docs.zephyrproject.org/latest/kernel/services/polling.html
-void gfs_poll_item_init(const struct device *gfs_dev, struct k_poll_event* event);
+void gfs_poll_item_init(const struct device *gfs_dev, struct k_poll_event *event);
 /**
  * Handle a submitted block as received by k_poll
  * This function *WILL* reset event.state to K_POLL_STATE_NOT_READY so the user does not need to do that manually.
  */
-int gfs_handle_poll_item(const struct device *gfs_dev, struct k_poll_event* event);
+int gfs_handle_poll_item(const struct device *gfs_dev, struct k_poll_event *event);
 
-#define GFS_POLL_ITEM_AVAILABLE(event) (event.state== K_POLL_STATE_MSGQ_DATA_AVAILABLE)
+#define GFS_POLL_ITEM_AVAILABLE(event) (event.state == K_POLL_STATE_MSGQ_DATA_AVAILABLE)

@@ -50,10 +50,13 @@ LOG_MODULE_REGISTER(gorbfs, CONFIG_GORBFS_LOG_LEVEL);
 BUILD_ASSERT(GORBFS_INIT_PRIORITY > CONFIG_FLASH_INIT_PRIORITY, "Gorbfs depends on flash");
 
 static int gorbfs_init(const struct device *dev) {
+    struct gorbfs_partition_config *cfg = (struct gorbfs_partition_config *) dev->config;
+
     int ret = gfs_erase_if_on_sector(dev);
-    if (ret != 0){
-        LOG_WRN("Failed first erase: %d", ret);
+    if (ret != 0) {
+        LOG_WRN("%s: Failed first erase: %d", dev->name, ret);
     }
+    LOG_INF("Partition '%s' ready. %d pages, %d circle size", dev->name, cfg->num_pages, cfg->circle_size_pages);
     return 0;
 }
 
@@ -66,7 +69,7 @@ static uint32_t gen_addr(const struct gorbfs_partition_config *cfg, uint32_t pag
     return cfg->partition_addr + page_index * PAGE_SIZE;
 }
 
-bool gfs_partition_saturated(const struct device *dev){
+bool gfs_partition_saturated(const struct device *dev) {
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
     return data->page_index == ITS_OVER_PAGE_INDEX;
 }
@@ -113,8 +116,8 @@ static int set_cutoff_if_needed(const struct device *gfs_dev) {
             cutoff_index = data->page_index + cfg->num_pages - cfg->circle_size_pages;
         }
         data->start_index = cutoff_index;
-        LOG_DBG("Setting start index to %d (was at %d with circ size %d)", cutoff_index, data->page_index,
-                cfg->circle_size_pages);
+        LOG_INF("%s: Setting start index to %d (was at %d with circ size %d)", gfs_dev->name, cutoff_index,
+                data->page_index, cfg->circle_size_pages);
     }
     return 0;
 }
@@ -124,7 +127,7 @@ int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) gfs_dev->data;
 
     if (chunk_ptr == NULL) {
-        LOG_WRN("Received NULL from msgq");
+        LOG_WRN("%s: Received NULL from msgq", gfs_dev->name);
         return -ENODATA;
     }
     int ret = 0;
@@ -136,21 +139,21 @@ int gfs_handle_new_block(const struct device *gfs_dev, void *chunk_ptr) {
 
     if (data->page_index == ITS_OVER_PAGE_INDEX || data->page_index == data->start_index) {
         data->page_index = ITS_OVER_PAGE_INDEX;
-        LOG_WRN_ONCE("Discarding page because flash is saturated");
+        LOG_WRN_ONCE("%s: Discarding page because flash is saturated", gfs_dev->name);
         k_mem_slab_free(data->slab, (void *) chunk_ptr);
         return -ENOSPC;
     }
 
     if (addr >= cfg->partition_addr + cfg->partition_size) {
-        LOG_WRN("Tried to write out of bounds: End: %d, addr: %d, ind: %d", (cfg->partition_addr + cfg->partition_size),
-                addr, data->page_index);
+        LOG_WRN("%s: Tried to write out of bounds: End: %d, addr: %d, ind: %d", gfs_dev->name,
+                (cfg->partition_addr + cfg->partition_size), addr, data->page_index);
         k_mem_slab_free(data->slab, (void *) chunk_ptr);
         return -EOVERFLOW;
     }
     ret = flash_write(cfg->flash_dev, addr, (void *) chunk_ptr, PAGE_SIZE);
     if (ret != 0) {
-        LOG_WRN("Failed to flash write at addr:%d index:%d (of %d pages): %d", addr, data->page_index, cfg->num_pages,
-                ret);
+        LOG_WRN("%s: Failed to flash write at addr:%d index:%d (of %d pages): %d", gfs_dev->name, addr,
+                data->page_index, cfg->num_pages, ret);
     }
     data->page_index++;
     if (data->page_index >= cfg->num_pages) {
@@ -183,7 +186,7 @@ bool gfs_circle_point_set(const struct device *dev) {
 int gfs_signal_end_of_circle(const struct device *dev) {
     struct gorbfs_partition_data *data = (struct gorbfs_partition_data *) dev->data;
     if (gfs_circle_point_set(dev)) {
-        LOG_WRN_ONCE("Attempting to set start index that was already set, ignoring");
+        LOG_WRN_ONCE("%s: Attempting to set start index that was already set, ignoring", dev->name);
         return -ENOTSUP;
     }
     data->start_index = SET_START_INDEX;
