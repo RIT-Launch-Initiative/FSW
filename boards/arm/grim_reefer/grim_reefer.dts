@@ -1,9 +1,3 @@
-/*
- * Copyright (c) 2023 RIT Launch Initiative
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 /dts-v1/;
 #include <st/f4/stm32f446Xe.dtsi>
 #include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
@@ -29,6 +23,7 @@
         storage = &w25q512;
         logfs = &lfs1;
         debug-serial = &uart4;
+        led0 = &led1;
     };
 
 
