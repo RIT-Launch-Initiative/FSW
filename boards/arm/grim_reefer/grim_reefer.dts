@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Launch Initiative
+ * SPDX-License-Identifier: Apache-2.0
+ */
 /dts-v1/;
 #include <st/f4/stm32f446Xe.dtsi>
 #include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
