@@ -8,7 +8,6 @@
 #include <zephyr/kernel.h>
 
 enum class DataloggerMode {
-    Rotating,
     Fixed,
     LinkedFixed,
     LinkedTruncate
@@ -61,6 +60,7 @@ public:
     }
 
     bool IsInitialized() const { return initialized; }
+
     DataloggerMode GetMode() const { return mode; }
 
     int Write(const T& data, bool flush = false) {
@@ -68,33 +68,35 @@ public:
         size_t spaceLeft = fileSize - currentOffset;
 
         if (spaceLeft < sizeof(T)) {
-            printk("Reinitializing");
             resetBuffers();
 
+            int ret = 0;
+
             switch (mode) {
-                case DataloggerMode::Rotating:
-                    currentOffset = sizeof(metadata);
-                    stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
-                                      fileSize - sizeof(metadata), nullptr);
-                    break;
                 case DataloggerMode::Fixed:
                     return -ENOSPC;
                 case DataloggerMode::LinkedFixed:
                 case DataloggerMode::LinkedTruncate:
                     nextFileAddress = flashAddress + fileSize;
                     prepMetadata(metadata.filename, nextFileAddress);
-                    stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress, fileSize, nullptr);
+                    ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress, fileSize, nullptr);
                     int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&metadata),
                                                           sizeof(metadata), true);
                     if (ret < 0) {
                         lastError = ret;
                         return ret;
                     }
-                    stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress + sizeof(metadata),
+                    ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress + sizeof(metadata),
                                       fileSize - sizeof(metadata), nullptr);
                     flashAddress = nextFileAddress;
                     currentOffset = sizeof(metadata);
                     break;
+            }
+
+            if (ret < 0) {
+                lastError = ret;
+                printk("Error reinitializing: %d\n", ret);
+                return ret;
             }
         } else if ((spaceLeft - sizeof(T)) < sizeof(T)) { // Force flush if this write will fill the file
             flush = true;
@@ -103,6 +105,7 @@ public:
 
         int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&data), sizeof(T), flush);
         if (ret < 0) {
+            printk("Failed to write data: %d\n", ret);
             lastError = ret;
             return ret;
         }

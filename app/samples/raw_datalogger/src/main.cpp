@@ -38,25 +38,8 @@ int main() {
         return -1;
     }
 
-    // Rotating
-    off_t nextAddr = 0x00000000;
-    const size_t rotatingFileSize = (sizeof(TestData) * 5) + sizeof(DataloggerMetadata);
-    CRawDataLogger<TestData, 3> logger(flash, nextAddr, rotatingFileSize, "test_rotating", DataloggerMode::Rotating);
-    for (int i = 0; i < 10; ++i) {
-        TestData data = { "rotating", i, i + 1, i + 2, i + 3 };
-        int ret = logger.Write(data);
-        if (ret < 0) {
-            LOG_ERR("Error writing data for rotating: %d", ret);
-        } else {
-            LOG_INF("Successfully wrote %d entries to rotating logger", i + 1);
-        }
-    }
-
-    LOG_INF("Finished writing data for rotating logger");
-
-    nextAddr += rotatingFileSize;
-
     // Fixed
+    off_t nextAddr = 0x00000000;
     const size_t fixedFileSize = sizeof(TestData) * 5 + sizeof(DataloggerMetadata);
     CRawDataLogger<TestData, 3> fixedLogger(flash, nextAddr, fixedFileSize, "test_fixed", DataloggerMode::Fixed);
     for (int i = 0; i < 10; ++i) {
