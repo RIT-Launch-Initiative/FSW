@@ -96,9 +96,11 @@ public:
         }
 
         printk("%d bytes left in file. Writing %d bytes\n", spaceLeft, sizeof(T));
-        if (spaceLeft == sizeof(T)) {
+
+        // Force a flush if the buffer is going to be full after this write
+        if ((spaceLeft - sizeof(T)) < sizeof(T)) {
             flush = true;
-            printk("Forced flush!");
+            printk("Forced flush!\n");
         }
 
         int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&data), sizeof(T), flush);
