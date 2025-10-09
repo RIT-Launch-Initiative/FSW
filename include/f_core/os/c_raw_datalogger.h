@@ -15,7 +15,7 @@ enum class DataloggerMode {
 };
 
 struct DataloggerMetadata {
-    char filename[15];
+    char filename[18]; // 18 just to keep the overall struct size at a clean 32 bytes
     uint8_t version;
     size_t packetSize;
     size_t allocatedSize;
@@ -66,7 +66,7 @@ public:
 
     int Write(const T& data, bool flush = false) {
         if (!initialized) return lastError ? lastError : -1;
-        size_t spaceLeft = fileSize - (sizeof(metadata) + currentOffset);
+        size_t spaceLeft = fileSize - currentOffset;
         if (spaceLeft < sizeof(T)) {
             switch (mode) {
                 case DataloggerMode::Rotating:
