@@ -47,6 +47,8 @@ int main() {
         int ret = logger.Write(data);
         if (ret < 0) {
             LOG_ERR("Error writing data for rotating: %d", ret);
+        } else {
+            LOG_INF("Successfully wrote %d entries to rotating logger", i + 1);
         }
     }
 
@@ -62,6 +64,8 @@ int main() {
         int ret = fixedLogger.Write(data);
         if (ret < 0) {
             LOG_ERR("Error writing data for fixed: %d", ret);
+        } else {
+            LOG_INF("Successfully wrote %d entries to fixed logger", i + 1);
         }
     }
     LOG_INF("Finished writing data for fixed logger.");
@@ -76,6 +80,8 @@ int main() {
         int ret = linkedFixedLogger.Write(data);
         if (ret < 0) {
             LOG_ERR("Error writing data for linked fixed: %d", ret);
+        } else {
+            LOG_INF("Successfully wrote %d entries to linked fix logger", i + 1);
         }
     }
 
@@ -101,6 +107,8 @@ int main() {
         int ret = linkedFixedLogger.Write(data);
         if (ret < 0) {
             LOG_ERR("Error writing data for linked fixed 2: %d", ret);
+        } else {
+            LOG_INF("Successfully wrote %d entries to linked fixed logger", i + 1);
         }
     }
 
@@ -124,6 +132,8 @@ int main() {
         int ret = linkedTruncateLogger.Write(data);
         if (ret < 0) {
             LOG_ERR("Error writing data for linked truncate: %d", ret);
+        } else {
+            LOG_INF("Successfully wrote %d entries to linked truncate logger", i + 1);
         }
     }
 
