@@ -31,10 +31,9 @@ public:
                    DataloggerMode mode)
         : flash(flashDev), flashAddress(flashAddress), fileSize(fileSize), mode(mode), lastError(0),
           initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextFileAddress(0) {
-        memset(&ctx, 0, sizeof(ctx));
-        memset(buffer, 0, sizeof(buffer));
+        resetBuffers();
 
-        PrepMetadata(filename, 0); // next_file_address = 0 for first file
+        prepMetadata(filename, 0); // next_file_address = 0 for first file
         int ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress, fileSize, nullptr);
         if (ret < 0) {
             lastError = ret;
@@ -67,7 +66,11 @@ public:
     int Write(const T& data, bool flush = false) {
         if (!initialized) return lastError ? lastError : -1;
         size_t spaceLeft = fileSize - currentOffset;
+
         if (spaceLeft < sizeof(T)) {
+            printk("Reinitializing");
+            resetBuffers();
+
             switch (mode) {
                 case DataloggerMode::Rotating:
                     currentOffset = sizeof(metadata);
@@ -79,7 +82,7 @@ public:
                 case DataloggerMode::LinkedFixed:
                 case DataloggerMode::LinkedTruncate:
                     nextFileAddress = flashAddress + fileSize;
-                    PrepMetadata(metadata.filename, nextFileAddress);
+                    prepMetadata(metadata.filename, nextFileAddress);
                     stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress, fileSize, nullptr);
                     int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&metadata),
                                                           sizeof(metadata), true);
@@ -93,12 +96,7 @@ public:
                     currentOffset = sizeof(metadata);
                     break;
             }
-        }
-
-        printk("%d bytes left in file. Writing %d bytes\n", spaceLeft, sizeof(T));
-
-        // Force a flush if the buffer is going to be full after this write
-        if ((spaceLeft - sizeof(T)) < sizeof(T)) {
+        } else if ((spaceLeft - sizeof(T)) < sizeof(T)) { // Force flush if this write will fill the file
             flush = true;
             printk("Forced flush!\n");
         }
@@ -136,7 +134,7 @@ public:
         size_t file_sz = fileSize;
         DataloggerMetadata meta;
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
-            int ret = ReadMetadata(addr, meta);
+            int ret = readMetadata(addr, meta);
             if (ret == 0) {
                 // Metadata found, follow next pointer or jump to next file boundary
                 if (meta.nextFileAddress != 0 && meta.nextFileAddress > addr) {
@@ -153,7 +151,7 @@ public:
                     }
                 } else if (mode == DataloggerMode::LinkedTruncate) {
                     // Truncate to next metadata or use initial size
-                    size_t next_meta_addr = FindNextMetadata(addr + sizeof(DataloggerMetadata), flashSize);
+                    size_t next_meta_addr = findNextMetadata(addr + sizeof(DataloggerMetadata), flashSize);
                     size_t available_size = (next_meta_addr > addr) ? (next_meta_addr - addr) : file_sz;
                     return std::make_pair(addr, available_size);
                 }
@@ -181,7 +179,7 @@ private:
     size_t currentOffset;
     size_t nextFileAddress;
 
-    void PrepMetadata(const std::string& filename, size_t nextAddr) {
+    void prepMetadata(const std::string& filename, size_t nextAddr) {
         memset(&metadata, 0, sizeof(metadata));
         strncpy(metadata.filename, filename.c_str(), sizeof(metadata.filename) - 1);
         metadata.allocatedSize = fileSize;
@@ -190,7 +188,7 @@ private:
         metadata.nextFileAddress = nextAddr;
     }
 
-    int ReadMetadata(off_t addr, DataloggerMetadata& outMeta) {
+    int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
             int ret = flash_read(flash, addr, &outMeta, sizeof(DataloggerMetadata));
             if (ret < 0) {
@@ -205,15 +203,20 @@ private:
         return -1;
     }
 
-    size_t FindNextMetadata(off_t startAddr, off_t maxAddr) {
+    size_t findNextMetadata(off_t startAddr, off_t maxAddr) {
         DataloggerMetadata meta{};
         for (off_t addr = startAddr; addr + sizeof(DataloggerMetadata) < maxAddr;
              addr += sizeof(DataloggerMetadata)) {
-            if (ReadMetadata(addr, meta) == 0) {
+            if (readMetadata(addr, meta) == 0) {
                 return addr;
             }
         }
         return maxAddr;
+    }
+
+    int resetBuffers() {
+        memset(&ctx, 0, sizeof(ctx));
+        memset(&buffer, 0, sizeof(buffer));
     }
 };
 
