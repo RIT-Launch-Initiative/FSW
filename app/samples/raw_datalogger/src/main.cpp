@@ -40,9 +40,10 @@ int main() {
 
     // Fixed
     off_t nextAddr = 0x00000000;
-    const size_t fixedFileSize = sizeof(TestData) * 5 + sizeof(DataloggerMetadata);
+    const size_t packetsInFixedFile = 5;
+    const size_t fixedFileSize = sizeof(TestData) * packetsInFixedFile + sizeof(DataloggerMetadata);
     CRawDataLogger<TestData, 3> fixedLogger(flash, nextAddr, fixedFileSize, "test_fixed", DataloggerMode::Fixed);
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < packetsInFixedFile; ++i) {
         TestData data = { "fixed", i, i + 1, i + 2, i + 3 };
         int ret = fixedLogger.Write(data);
         if (ret < 0) {
@@ -52,6 +53,9 @@ int main() {
         }
     }
     LOG_INF("Finished writing data for fixed logger.");
+    if (fixedLogger.Write(TestData{ "fixed_overflow", 0, 1, 2, 3 }) != -ENOSPC) {
+        LOG_ERR("Error: Should not have been able to write more data to fixed logger");
+    }
 
     nextAddr += fixedFileSize;
 
