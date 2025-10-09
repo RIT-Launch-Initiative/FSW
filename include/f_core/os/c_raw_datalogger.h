@@ -5,6 +5,7 @@
 #include <cstring>
 #include <string>
 #include <optional>
+#include <zephyr/kernel.h>
 
 enum class DataloggerMode {
     Rotating,
@@ -14,11 +15,11 @@ enum class DataloggerMode {
 };
 
 struct DataloggerMetadata {
-    char filename[32];
-    size_t allocated_size;
-    uint32_t version;
-    size_t packet_size;
-    size_t next_file_address;
+    char filename[15];
+    uint8_t version;
+    size_t packetSize;
+    size_t allocatedSize;
+    size_t nextFileAddress;
 };
 
 constexpr uint32_t DATALOGGER_VERSION = 1;
@@ -29,7 +30,7 @@ public:
     CRawDataLogger(const device* flashDev, off_t flashAddress, off_t fileSize, const std::string& filename,
                    DataloggerMode mode)
         : flash(flashDev), flashAddress(flashAddress), fileSize(fileSize), mode(mode), lastError(0),
-          initialized(false), currentOffset(0), nextFileAddress(0) {
+          initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextFileAddress(0) {
         memset(&ctx, 0, sizeof(ctx));
         memset(buffer, 0, sizeof(buffer));
 
@@ -65,8 +66,7 @@ public:
 
     int Write(const T& data, bool flush = false) {
         if (!initialized) return lastError ? lastError : -1;
-        size_t bytesWritten = stream_flash_bytes_written(&ctx);
-        size_t spaceLeft = fileSize - sizeof(metadata) - bytesWritten;
+        size_t spaceLeft = fileSize - (sizeof(metadata) + currentOffset);
         if (spaceLeft < sizeof(T)) {
             switch (mode) {
                 case DataloggerMode::Rotating:
@@ -94,6 +94,13 @@ public:
                     break;
             }
         }
+
+        printk("%d bytes left in file. Writing %d bytes\n", spaceLeft, sizeof(T));
+        if (spaceLeft == sizeof(T)) {
+            flush = true;
+            printk("Forced flush!");
+        }
+
         int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&data), sizeof(T), flush);
         if (ret < 0) {
             lastError = ret;
@@ -130,8 +137,8 @@ public:
             int ret = ReadMetadata(addr, meta);
             if (ret == 0) {
                 // Metadata found, follow next pointer or jump to next file boundary
-                if (meta.next_file_address != 0 && meta.next_file_address > addr) {
-                    addr = meta.next_file_address;
+                if (meta.nextFileAddress != 0 && meta.nextFileAddress > addr) {
+                    addr = meta.nextFileAddress;
                 } else {
                     addr += file_sz;
                 }
@@ -175,10 +182,10 @@ private:
     void PrepMetadata(const std::string& filename, size_t nextAddr) {
         memset(&metadata, 0, sizeof(metadata));
         strncpy(metadata.filename, filename.c_str(), sizeof(metadata.filename) - 1);
-        metadata.allocated_size = fileSize;
+        metadata.allocatedSize = fileSize;
         metadata.version = DATALOGGER_VERSION;
-        metadata.packet_size = sizeof(T);
-        metadata.next_file_address = nextAddr;
+        metadata.packetSize = sizeof(T);
+        metadata.nextFileAddress = nextAddr;
     }
 
     int ReadMetadata(off_t addr, DataloggerMetadata& outMeta) {
@@ -187,8 +194,8 @@ private:
             if (ret < 0) {
                 return ret;
             }
-            if (outMeta.version == DATALOGGER_VERSION && outMeta.packet_size == sizeof(T) &&
-                outMeta.allocated_size == fileSize) {
+            if (outMeta.version == DATALOGGER_VERSION && outMeta.packetSize == sizeof(T) &&
+                outMeta.allocatedSize == fileSize) {
                 return 0;
             }
             addr += sizeof(DataloggerMetadata);
