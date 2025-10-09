@@ -217,6 +217,8 @@ private:
     int resetBuffers() {
         memset(&ctx, 0, sizeof(ctx));
         memset(&buffer, 0, sizeof(buffer));
+
+        return 0;
     }
 };
 
