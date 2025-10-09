@@ -40,7 +40,7 @@ int main() {
 
     // Fixed
     off_t nextAddr = 0x00000000;
-    const size_t packetsInFixedFile = 5;
+    const int packetsInFixedFile = 5;
     const size_t fixedFileSize = sizeof(TestData) * packetsInFixedFile + sizeof(DataloggerMetadata);
     CRawDataLogger<TestData, 3> fixedLogger(flash, nextAddr, fixedFileSize, "test_fixed", DataloggerMode::Fixed);
     for (int i = 0; i < packetsInFixedFile; ++i) {
@@ -60,10 +60,10 @@ int main() {
     nextAddr += fixedFileSize;
 
     // LinkedFixed
-    const size_t linkedFixedFileSize = sizeof(TestData) * 5 + sizeof(DataloggerMetadata);
+    const size_t linkedFixedFileSize = (sizeof(TestData) * 5) + sizeof(DataloggerMetadata);
     CRawDataLogger<TestData, 3> linkedFixedLogger(flash, nextAddr, linkedFixedFileSize, "test_linked_fixed", DataloggerMode::LinkedFixed);
-    for (int i = 0; i < 10; ++i) {
-        TestData data = { "linked_fixed", i, i + 1, i + 2, i + 3 };
+    for (int i = 0; i < 5; ++i) {
+        TestData data = { "linked_fixed", i + 1, i + 1, i + 2, i + 3 };
         int ret = linkedFixedLogger.Write(data);
         if (ret < 0) {
             LOG_ERR("Error writing data for linked fixed: %d", ret);
@@ -77,7 +77,7 @@ int main() {
 
     nextAddr += linkedFixedFileSize;
     // Add a file in between to test finding next linked space using a fixed logger
-    const size_t intermediateFileSize = sizeof(TestData) * 1 + sizeof(DataloggerMetadata);
+    const size_t intermediateFileSize = sizeof(TestData) + sizeof(DataloggerMetadata);
     CRawDataLogger<TestData, 1> intermediateLogger(flash, nextAddr, intermediateFileSize, "intermediate", DataloggerMode::Fixed);
     TestData intermediateData = { "intermediate", 0, 1, 2, 3 };
     intermediateLogger.Write(intermediateData);
