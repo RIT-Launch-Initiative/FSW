@@ -14,9 +14,10 @@ enum class DataloggerMode {
     LinkedTruncate
 };
 
+static constexpr size_t LOG_NAME_SIZE = 15;
 struct DataloggerMetadata {
     uint32_t logNameHash; // Hash logName as a way to check for metadata
-    char logName[15];
+    char logName[LOG_NAME_SIZE];
     uint8_t version;
     size_t packetSize;
     size_t allocatedSize;
@@ -163,7 +164,7 @@ private:
         metadata.version = DATALOGGER_VERSION;
         metadata.packetSize = sizeof(T);
         metadata.nextLogAddress = 0;
-        metadata.logNameHash = sys_hash32_murmur3(metadata.logName, sizeof(metadata.logName));
+        metadata.logNameHash = sys_hash32_murmur3(metadata.logName, LOG_NAME_SIZE);
 
         // DO NOT WRITE nextLogAddress IF ZERO AND MODE IS LINKED. This is so we can write nextAddr later, without an erase
         const size_t len = sizeof(metadata) - sizeof(metadata.logNameHash);
@@ -194,7 +195,7 @@ private:
             return ret;
         }
 
-        if (outMeta.logNameHash == sys_hash32_murmur3(outMeta.logName, sizeof(outMeta.logName))) {
+        if (outMeta.logNameHash == sys_hash32_murmur3(outMeta.logName, LOG_NAME_SIZE)) {
             return 0;
         }
 
