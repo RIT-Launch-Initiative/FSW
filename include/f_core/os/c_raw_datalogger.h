@@ -123,25 +123,22 @@ public:
                 addr += meta.allocatedSize;
             } else {
                 // No metadata found
-                if (mode == DataloggerMode::LinkedFixed) {
-                    // Check if enough space for a new file
-                    for (size_t testAddr = addr; testAddr < addr + fileSz; testAddr += sizeof(DataloggerMetadata)) {
-                        ret = readMetadata(testAddr, meta);
-                        if (ret == 0) {
-                            // Found metadata in the range, cannot use this space
-                            addr = testAddr + meta.allocatedSize; // Move to next possible file start
+                // Check if enough space for a new file
+                for (size_t testAddr = addr; testAddr < addr + fileSz; testAddr += sizeof(DataloggerMetadata)) {
+                    if (readMetadata(testAddr, meta) == 0) {
+                        if (mode == DataloggerMode::LinkedTruncate) {
+                            fileSz = (testAddr - addr); // Shrink file size to fit
                             break;
                         }
 
-                        if (testAddr + sizeof(DataloggerMetadata) >= addr + fileSz) {
-                            return std::make_pair(addr, fileSz);
-                        }
+                        // Found metadata in the range, cannot use this space
+                        addr = testAddr + meta.allocatedSize; // Move to next possible file start
+                        break;
                     }
-                } else if (mode == DataloggerMode::LinkedTruncate) {
-                    // Truncate to next metadata or use initial size
-                    size_t nextMetaAddr = findNextMetadata(addr + sizeof(DataloggerMetadata), flashSize);
-                    size_t availableSize = (nextMetaAddr > addr) ? (nextMetaAddr - addr) : fileSz;
-                    return std::make_pair(addr, availableSize);
+
+                    if (testAddr + sizeof(DataloggerMetadata) >= addr + fileSz) {
+                        return std::make_pair(addr, fileSz);
+                    }
                 }
             }
         }
