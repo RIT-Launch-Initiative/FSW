@@ -124,8 +124,10 @@ public:
             } else {
                 // No metadata found
                 // Check if enough space for a new file
+                printk("Searching between 0x%zx and 0x%zx\n", addr, addr + fileSz);
                 for (size_t testAddr = addr; testAddr < addr + fileSz; testAddr += sizeof(DataloggerMetadata)) {
                     if (readMetadata(testAddr, meta) == 0) {
+                        printk("While searching, found metadata at 0x%zx\n", testAddr);
                         if (mode == DataloggerMode::LinkedTruncate) {
                             fileSz = (testAddr - addr); // Shrink file size to fit
                             break;
@@ -191,18 +193,15 @@ private:
     }
 
     int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
-        while (addr + sizeof(DataloggerMetadata) < flashSize) {
-            int ret = flash_read(flash, addr, &outMeta, sizeof(DataloggerMetadata));
-            if (ret < 0) {
-                printk("Failed to read metadata at 0x%zx\n", addr);
-                return ret;
-            }
+        printk("reading metadata at 0x%zx\n", addr);
+        int ret = flash_read(flash, addr, &outMeta, sizeof(DataloggerMetadata));
+        if (ret < 0) {
+            printk("Failed to read metadata at 0x%zx\n", addr);
+            return ret;
+        }
 
-            if (outMeta.filenameHash == sys_hash32_murmur3(outMeta.filename, sizeof(outMeta.filename))) {
-                return 0;
-            }
-
-            addr += sizeof(DataloggerMetadata);
+        if (outMeta.filenameHash == sys_hash32_murmur3(outMeta.filename, sizeof(outMeta.filename))) {
+            return 0;
         }
 
         return -1;
@@ -241,7 +240,7 @@ private:
             lastError = ret;
             return;
         }
-        printk("Linked!");
+        printk("Linked!\n");
 
         // Write new metadata
         flashAddress = newAddr; // Update flash address to new file
@@ -251,7 +250,7 @@ private:
             lastError = ret;
             return;
         }
-        printk("Wrote new metadata!");
+        printk("Wrote new metadata!\n");
 
         currentOffset = sizeof(metadata);
     }
