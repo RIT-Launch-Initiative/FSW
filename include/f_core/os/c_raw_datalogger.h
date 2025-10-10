@@ -93,7 +93,11 @@ public:
                     return -ENOSPC;
                 case DataloggerMode::LinkedFixed:
                 case DataloggerMode::LinkedTruncate:
-                    seekAndUpdateMetadata();
+                    ret = seekAndUpdateMetadata();
+                    if (ret < 0) {
+                        lastError = ret;
+                        return ret;
+                    }
 
                     ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
                                       currentLogSize - sizeof(metadata), nullptr);
@@ -167,12 +171,23 @@ private:
         return flash_write(flash, flashAddress, &metadata, len);
     }
 
-    int linkToNextLog(size_t addr) {
+    /**
+     * Link the current log to the next log by writing the address into the current log's metadata
+     * @param addr Address to link to as the next log
+     * @return 0 on success, negative errno code on failure, -1 if mode is not linked
+     */
+    int linkToNextLog(const size_t addr) {
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return -1;
         return flash_write(flash, flashAddress + offsetof(DataloggerMetadata, nextLogAddress),
                            &addr, sizeof(metadata.nextLogAddress));
     }
 
+    /**
+     * Attempt to read metadata from flash and validate it
+     * @param addr Address to read metadata from
+     * @param outMeta Output metadata structure
+     * @return 0 on success, negative errno code on failure, -1 if metadata is invalid (bad hash)
+     */
     int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
         int ret = flash_read(flash, addr, &outMeta, sizeof(DataloggerMetadata));
         if (ret < 0) {
@@ -186,6 +201,12 @@ private:
         return -1;
     }
 
+    /**
+     * Linear search for the next valid metadata structure in flash
+     * @param startAddr Address to start searching from
+     * @param maxAddr Address to stop searching at
+     * @return Address of next valid metadata, or maxAddr if none found
+     */
     size_t findNextMetadata(off_t startAddr, off_t maxAddr) {
         DataloggerMetadata meta{};
         for (off_t addr = startAddr; static_cast<off_t>(addr + sizeof(DataloggerMetadata)) < maxAddr;
@@ -197,13 +218,18 @@ private:
         return maxAddr;
     }
 
-    int resetBuffers() {
+    /**
+     * Reset internal buffers and context
+     */
+    void resetBuffers() {
         memset(&ctx, 0, sizeof(ctx));
         memset(&buffer, 0, sizeof(buffer));
-
-        return 0;
     }
 
+    /**
+     * Find the next available space for a linked log
+     * @return Optional pair of (address, size) for the next linked log space, or nullopt if none found or not in linked mode
+     */
     std::optional<std::pair<size_t, size_t>> findLinkedSpace() {
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
         size_t addr = flashAddress + currentLogSize;
@@ -237,19 +263,24 @@ private:
         return std::nullopt;
     }
 
-    void seekAndUpdateMetadata() {
+    /**
+     * Seek to the next available linked log space and update metadata accordingly
+     * @return 0 on success, negative errno code on failure
+     */
+    int seekAndUpdateMetadata() {
         auto spaceOpt = findLinkedSpace();
         if (!spaceOpt.has_value()) {
             lastError = -ENOSPC;
-            return;
+            return -ENOSPC;
         }
+
         size_t newAddr = spaceOpt.value().first;
         size_t newSize = spaceOpt.value().second;
 
         int ret = linkToNextLog(newAddr);
         if (ret < 0) {
             lastError = ret;
-            return;
+            return ret;
         }
 
         // Set up new log
@@ -258,10 +289,11 @@ private:
         ret = prepMetadata(metadata.logName);
         if (ret < 0) {
             lastError = ret;
-            return;
+            return ret;
         }
 
         currentOffset = sizeof(metadata);
+        return 0;
     }
 };
 
