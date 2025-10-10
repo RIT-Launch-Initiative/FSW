@@ -89,8 +89,7 @@ int main() {
 
     LOG_INF("Finished writing data for intermediate fixed logger");
 
-    nextAddr += intermediateFileSize;
-    // LinkedFixed should skip the intermediate file
+    // LinkedFixed should skip the intermediate file and create 2 new files consecutively
     for (int i = 0; i < 10; ++i) {
         char iter = '0' + i;
 

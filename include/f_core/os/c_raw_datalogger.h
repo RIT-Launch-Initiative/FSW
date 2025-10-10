@@ -80,9 +80,11 @@ public:
                     printk("Creating new file!\n");
                     nextFileAddress = FindLinkedSpace().has_value() ? FindLinkedSpace().value().first : 0;
                     if (nextFileAddress == 0) {
+                        printk("Did not find space for new file!\n");
                         lastError = -ENOSPC;
                         return lastError;
                     }
+                    printk("Found space for new file at address 0x%zx\n", nextFileAddress);
 
                     prepMetadata(metadata.filename, nextFileAddress);
                     ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress, fileSize, nullptr);
@@ -188,13 +190,22 @@ private:
     size_t currentOffset;
     size_t nextFileAddress;
 
-    void prepMetadata(const std::string& filename, size_t nextAddr) {
+    int prepMetadata(const std::string& filename, size_t nextAddr) {
         memset(&metadata, 0, sizeof(metadata));
         strncpy(metadata.filename, filename.c_str(), sizeof(metadata.filename) - 1);
         metadata.allocatedSize = fileSize;
         metadata.version = DATALOGGER_VERSION;
         metadata.packetSize = sizeof(T);
         metadata.nextFileAddress = nextAddr;
+
+        size_t len = sizeof(metadata);
+
+        // DO NOT WRITE nextFileAddress IF ZERO AND MODE IS LINKED. This is so we can write nextAddr later, without an erase
+        if (nextAddr == 0 && (mode == DataloggerMode::LinkedTruncate || mode == DataloggerMode::LinkedFixed)) {
+            len -= sizeof(metadata.nextFileAddress); //
+        }
+
+        return flash_write(flash, flashAddress, &metadata, len);
     }
 
     int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
@@ -228,6 +239,50 @@ private:
         memset(&buffer, 0, sizeof(buffer));
 
         return 0;
+    }
+
+    void seekAndUpdateMetadata() {
+        auto spaceOpt = FindLinkedSpace();
+        if (!spaceOpt.has_value()) {
+            lastError = -ENOSPC;
+            return;
+        }
+        size_t newAddr = spaceOpt.value().first;
+        size_t newSize = spaceOpt.value().second;
+
+        prepMetadata(metadata.filename, newAddr);
+
+        // Erase current metadata region
+        int ret = flash_erase(flash, flashAddress, sizeof(DataloggerMetadata));
+        if (ret < 0) {
+            lastError = ret;
+            return;
+        }
+
+        // Write new metadata
+        ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), newAddr, newSize, nullptr);
+        if (ret < 0) {
+            lastError = ret;
+            return;
+        }
+        ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&metadata), sizeof(metadata), true);
+        if (ret < 0) {
+            lastError = ret;
+            return;
+        }
+
+        // Update next file address and context
+        nextFileAddress = newAddr;
+        flashAddress = newAddr;
+        fileSize = newSize;
+        currentOffset = sizeof(metadata);
+
+        ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
+                                fileSize - sizeof(metadata), nullptr);
+        if (ret < 0) {
+            lastError = ret;
+            initialized = false;
+        }
     }
 };
 
