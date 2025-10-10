@@ -104,6 +104,8 @@ int main() {
 
     LOG_INF("Finished writing more data for linked fixed logger.");
 
+    nextAddr += intermediateFileSize + (2 * linkedFixedFileSize); // Move past the intermediate and 2 linked fixed files
+
     // Test LinkedTruncate
     CRawDataLogger<TestData, 3> linkedTruncateLogger(flash, nextAddr, linkedFixedFileSize, "test_linked_truncate", DataloggerMode::LinkedTruncate);
 
