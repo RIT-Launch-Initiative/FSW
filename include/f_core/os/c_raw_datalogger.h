@@ -79,15 +79,14 @@ public:
                 case DataloggerMode::LinkedTruncate:
                     printk("Creating new file!\n");
                     seekAndUpdateMetadata();
-                    ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress, fileSize, nullptr);
-                    int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&metadata),
-                                                          sizeof(metadata), true);
+
+                    ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress + sizeof(metadata),
+                                      fileSize - sizeof(metadata), nullptr);
                     if (ret < 0) {
                         lastError = ret;
                         return ret;
                     }
-                    ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress + sizeof(metadata),
-                                      fileSize - sizeof(metadata), nullptr);
+
                     flashAddress = nextFileAddress;
                     currentOffset = sizeof(metadata);
                     break;
