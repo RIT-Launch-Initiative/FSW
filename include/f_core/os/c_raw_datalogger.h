@@ -153,7 +153,7 @@ private:
     size_t nextLogAddress;
 
     /**
-     *
+     * Prepare and write metadata to flash
      * @param logName Log name for metadata
      * @return
      */
