@@ -198,7 +198,7 @@ private:
                     if (readMetadata(testAddr, meta) == 0) {
                         if (mode == DataloggerMode::LinkedTruncate) {
                             logSz = (testAddr - addr); // Shrink log size to fit
-                            return std::make_pair(addr, logSz);
+                            return std::make_pair(addr, MIN(logSz, flashSize - addr));
                         }
 
                         // Found metadata in the range, cannot use this space
