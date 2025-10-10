@@ -57,6 +57,12 @@ public:
         }
     }
 
+    ~CRawDataLogger() {
+        if (initialized) {
+            stream_flash_buffered_write(&ctx, nullptr, 0, true);
+        }
+    }
+
     bool IsInitialized() const { return initialized; }
 
     DataloggerMode GetMode() const { return mode; }
