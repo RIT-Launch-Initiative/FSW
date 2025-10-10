@@ -203,23 +203,20 @@ private:
                 // No metadata found
                 // Check if enough space for a new log
                 printk("Searching between 0x%zx and 0x%zx\n", addr, addr + logSz);
-                for (size_t testAddr = addr; testAddr < addr + logSz; testAddr += sizeof(DataloggerMetadata)) {
+                for (size_t testAddr = addr; testAddr < addr + logSz; testAddr += 0x10) {
                     if (readMetadata(testAddr, meta) == 0) {
                         printk("While searching, found metadata at 0x%zx\n", testAddr);
                         if (mode == DataloggerMode::LinkedTruncate) {
                             logSz = (testAddr - addr); // Shrink log size to fit
-                            break;
+                            return std::make_pair(addr, logSz);
                         }
 
                         // Found metadata in the range, cannot use this space
                         addr = testAddr + meta.allocatedSize; // Move to next possible log start
                         break;
                     }
-
-                    if (testAddr + sizeof(DataloggerMetadata) >= addr + logSz) {
-                        return std::make_pair(addr, logSz);
-                    }
                 }
+                return std::make_pair(addr, logSz);
             }
         }
         return std::nullopt;
