@@ -209,12 +209,10 @@ private:
         return flash_write(flash, flashAddress, &metadata, len);
     }
 
-    int linkToNextFile(off_t addr) {
+    int linkToNextFile(size_t addr) {
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return -1;
-
-        metadata.nextFileAddress = addr;
         return flash_write(flash, flashAddress + offsetof(DataloggerMetadata, nextFileAddress),
-                           &metadata.nextFileAddress, sizeof(metadata.nextFileAddress));
+                           &addr, sizeof(metadata.nextFileAddress));
     }
 
     int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
@@ -263,39 +261,23 @@ private:
         size_t newSize = spaceOpt.value().second;
         printk("New file at 0x%zx of size 0x%zx\n", newAddr, newSize);
 
-        prepMetadata(metadata.filename, newAddr);
-
-        // Erase current metadata region
-        int ret = flash_erase(flash, flashAddress, sizeof(DataloggerMetadata));
+        int ret = linkToNextFile(newAddr);
         if (ret < 0) {
             lastError = ret;
             return;
         }
+        printk("Linked!");
 
         // Write new metadata
-        ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), newAddr, newSize, nullptr);
+        flashAddress = newAddr; // Update flash address to new file
+        ret = prepMetadata(metadata.filename, 0);
         if (ret < 0) {
             lastError = ret;
             return;
         }
-        ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&metadata), sizeof(metadata), true);
-        if (ret < 0) {
-            lastError = ret;
-            return;
-        }
+        printk("Wrote new metadata!");
 
-        // Update next file address and context
-        nextFileAddress = newAddr;
-        flashAddress = newAddr;
-        fileSize = newSize;
-        currentOffset = sizeof(metadata);
-
-        ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
-                                fileSize - sizeof(metadata), nullptr);
-        if (ret < 0) {
-            lastError = ret;
-            initialized = false;
-        }
+        currentOffset = newAddr + sizeof(metadata);
     }
 };
 
