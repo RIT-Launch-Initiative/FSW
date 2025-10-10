@@ -107,9 +107,10 @@ int main() {
     nextAddr += intermediateFileSize + (2 * linkedFixedFileSize); // Move past the intermediate and 2 linked fixed files
 
     // Test LinkedTruncate
-    CRawDataLogger<TestData, 3> linkedTruncateLogger(flash, nextAddr, linkedFixedFileSize, "test_linked_truncate", DataloggerMode::LinkedTruncate);
+    const size_t linkedTruncateFileSize = (sizeof(TestData) * 5) + sizeof(DataloggerMetadata);
+    CRawDataLogger<TestData, 3> linkedTruncateLogger(flash, nextAddr, linkedTruncateFileSize, "test_linked_truncate", DataloggerMode::LinkedTruncate);
 
-    nextAddr += linkedFixedFileSize - sizeof(DataloggerMetadata) + sizeof(TestData) * 2;
+    nextAddr += ((linkedTruncateFileSize * 2) + sizeof(DataloggerMetadata)) - (sizeof(TestData) * 2); // Leave space for 2 files minus 2 entries to test truncation
     CRawDataLogger<TestData, 1> anotherIntermediateLogger(flash, nextAddr, intermediateFileSize, "another_intermediate", DataloggerMode::Fixed);
     anotherIntermediateLogger.Write(intermediateData);
 
@@ -124,6 +125,7 @@ int main() {
 
         TestData data = { "linked_truncate", iter, iter, iter, iter  };
         int ret = linkedTruncateLogger.Write(data);
+
         if (ret < 0) {
             LOG_ERR("Error writing data for linked truncate: %d", ret);
         } else {

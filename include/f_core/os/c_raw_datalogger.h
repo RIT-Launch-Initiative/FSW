@@ -30,7 +30,7 @@ class CRawDataLogger {
 public:
     CRawDataLogger(const device* flashDev, off_t flashAddress, off_t fileSize, const std::string& filename,
                    DataloggerMode mode)
-        : flash(flashDev), flashAddress(flashAddress), fileSize(fileSize), mode(mode), lastError(0),
+        : flash(flashDev), flashAddress(flashAddress), originalFileSize(fileSize), currentFileSize(fileSize), mode(mode), lastError(0),
           initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextFileAddress(0) {
         resetBuffers();
 
@@ -65,7 +65,7 @@ public:
 
     int Write(const T& data, bool flush = false) {
         if (!initialized) return lastError ? lastError : -1;
-        size_t spaceLeft = fileSize - currentOffset;
+        size_t spaceLeft = currentFileSize - currentOffset;
 
         if (spaceLeft < sizeof(T)) {
             resetBuffers();
@@ -81,7 +81,7 @@ public:
                     seekAndUpdateMetadata();
 
                     ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
-                                      fileSize - sizeof(metadata), nullptr);
+                                      currentFileSize - sizeof(metadata), nullptr);
                     if (ret < 0) {
                         lastError = ret;
                         return ret;
@@ -110,8 +110,8 @@ public:
 
     std::optional<std::pair<size_t, size_t>> FindLinkedSpace() {
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
-        size_t addr = flashAddress + fileSize;
-        size_t fileSz = fileSize;
+        size_t addr = flashAddress + currentFileSize;
+        size_t fileSz = originalFileSize;
         DataloggerMetadata meta{};
 
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
@@ -129,7 +129,7 @@ public:
                         ret = readMetadata(testAddr, meta);
                         if (ret == 0) {
                             // Found metadata in the range, cannot use this space
-                            addr = testAddr + fileSz; // Move to next possible file start
+                            addr = testAddr + meta.allocatedSize; // Move to next possible file start
                             break;
                         }
 
@@ -139,9 +139,9 @@ public:
                     }
                 } else if (mode == DataloggerMode::LinkedTruncate) {
                     // Truncate to next metadata or use initial size
-                    size_t next_meta_addr = findNextMetadata(addr + sizeof(DataloggerMetadata), flashSize);
-                    size_t available_size = (next_meta_addr > addr) ? (next_meta_addr - addr) : fileSz;
-                    return std::make_pair(addr, available_size);
+                    size_t nextMetaAddr = findNextMetadata(addr + sizeof(DataloggerMetadata), flashSize);
+                    size_t availableSize = (nextMetaAddr > addr) ? (nextMetaAddr - addr) : fileSz;
+                    return std::make_pair(addr, availableSize);
                 }
             }
         }
@@ -158,7 +158,8 @@ private:
     stream_flash_ctx ctx;
     size_t flashAddress;
     uint64_t flashSize;
-    size_t fileSize;
+    const size_t originalFileSize;
+    size_t currentFileSize;
     uint8_t buffer[numPacketsInBuffer * sizeof(T)];
     DataloggerMode mode;
     int lastError;
@@ -170,7 +171,7 @@ private:
     int prepMetadata(const std::string& filename, size_t nextAddr) {
         memset(&metadata, 0, sizeof(metadata));
         strncpy(metadata.filename, filename.c_str(), sizeof(metadata.filename) - 1);
-        metadata.allocatedSize = fileSize;
+        metadata.allocatedSize = currentFileSize;
         metadata.version = DATALOGGER_VERSION;
         metadata.packetSize = sizeof(T);
         metadata.nextFileAddress = nextAddr;
@@ -247,6 +248,7 @@ private:
 
         // Write new metadata
         flashAddress = newAddr; // Update flash address to new file
+        currentFileSize = newSize;
         ret = prepMetadata(metadata.filename, 0);
         if (ret < 0) {
             lastError = ret;
