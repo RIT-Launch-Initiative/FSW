@@ -142,12 +142,8 @@ public:
             printk("Reading metadata at 0x%zx. Got %d\n", addr, ret);
 
             if (ret == 0) {
-                // Metadata found, follow next pointer or jump to next file boundary
-                if (meta.nextFileAddress != 0 && meta.nextFileAddress > addr) {
-                    addr = meta.nextFileAddress;
-                } else {
-                    addr += fileSz;
-                }
+                // Metadata found, jump to next file boundary
+                addr += fileSz;
             } else {
                 // No metadata found
                 if (mode == DataloggerMode::LinkedFixed) {
