@@ -47,7 +47,7 @@ public:
             initialized = false;
         }
 
-        ret = prepMetadata(logName, 0);
+        ret = prepMetadata(logName);
         if (ret < 0) {
             lastError = ret;
             return;
@@ -116,17 +116,18 @@ public:
         return 0;
     }
 
-    size_t GetBytesWritten() const {
-        return stream_flash_bytes_written(&ctx);
-    }
 
+    /**
+     * Getter to check if the datalogger was initialized successfully
+     * @return true if initialized, false otherwise
+     */
     bool IsInitialized() const { return initialized; }
 
-    DataloggerMode GetMode() const { return mode; }
-
+    /**
+     * Getter for last error code
+     * @return Last error code encountered, 0 if no error
+     */
     int GetLastError() const { return lastError; }
-    off_t GetCurrentOffset() const { return currentOffset; }
-    off_t GetNextLogAddress() const { return nextLogAddress; }
 
 private:
     const device* flash;
@@ -146,21 +147,22 @@ private:
     size_t currentOffset;
     size_t nextLogAddress;
 
-    int prepMetadata(const std::string& logName, size_t nextAddr) {
+    /**
+     *
+     * @param logName Log name for metadata
+     * @return
+     */
+    int prepMetadata(const std::string& logName) {
         memset(&metadata, 0, sizeof(metadata));
         strncpy(metadata.logName, logName.c_str(), sizeof(metadata.logName) - 1);
         metadata.allocatedSize = currentLogSize;
         metadata.version = DATALOGGER_VERSION;
         metadata.packetSize = sizeof(T);
-        metadata.nextLogAddress = nextAddr;
+        metadata.nextLogAddress = 0;
         metadata.logNameHash = sys_hash32_murmur3(metadata.logName, sizeof(metadata.logName));
 
-        size_t len = sizeof(metadata);
-
         // DO NOT WRITE nextLogAddress IF ZERO AND MODE IS LINKED. This is so we can write nextAddr later, without an erase
-        if (nextAddr == 0 && (mode == DataloggerMode::LinkedTruncate || mode == DataloggerMode::LinkedFixed)) {
-            len -= sizeof(metadata.nextLogAddress); //
-        }
+        const size_t len = sizeof(metadata) - sizeof(metadata.logNameHash);
 
         return flash_write(flash, flashAddress, &metadata, len);
     }
@@ -253,7 +255,7 @@ private:
         // Set up new log
         flashAddress = newAddr; // Update flash address to new log
         currentLogSize = newSize;
-        ret = prepMetadata(metadata.logName, 0);
+        ret = prepMetadata(metadata.logName);
         if (ret < 0) {
             lastError = ret;
             return;
