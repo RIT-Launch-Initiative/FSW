@@ -28,6 +28,14 @@ constexpr uint32_t DATALOGGER_VERSION = 1;
 template <typename T, size_t numPacketsInBuffer>
 class CRawDataLogger {
 public:
+    /**
+     * Constructor
+     * @param flashDev Flash device to write to
+     * @param flashAddress Starting address in flash to write log
+     * @param logSize Total size of log including metadata
+     * @param logName Name of the log (for metadata)
+     * @param mode Datalogger mode (Fixed, LinkedFixed, LinkedTruncate)
+     */
     explicit CRawDataLogger(const device* flashDev, const off_t flashAddress, const off_t logSize, const std::string& logName, const DataloggerMode mode)
         : flash(flashDev), flashAddress(flashAddress), originalLogSize(logSize), currentLogSize(logSize), mode(mode), lastError(0),
           initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextLogAddress(0) {
@@ -39,7 +47,7 @@ public:
             initialized = false;
         }
 
-        ret = prepMetadata(logName, 0); // next_log_address = 0 for first log
+        ret = prepMetadata(logName, 0);
         if (ret < 0) {
             lastError = ret;
             return;
@@ -56,13 +64,22 @@ public:
         }
     }
 
+    /**
+     * Destructor ensuring any buffered data is flushed
+     * This is more for testing, since this lifetime of this class will most likely be forever in real-world applications
+     */
     ~CRawDataLogger() {
         if (initialized) {
             stream_flash_buffered_write(&ctx, nullptr, 0, true);
         }
     }
 
-    int Write(const T& data, bool flush = false) {
+    /**
+     * Write data to the buffer which will flush to flash as needed
+     * @param data Data to write
+     * @return 0 on success, negative errno code on failure
+     */
+    int Write(const T& data) {
         if (!initialized) return lastError ? lastError : -1;
         size_t spaceLeft = currentLogSize - currentOffset;
 
@@ -87,10 +104,9 @@ public:
 
                     currentOffset = sizeof(metadata);
             }
-        } else if ((spaceLeft - sizeof(T)) < sizeof(T)) { // Force flush if this write will fill the log
-            flush = true;
         }
 
+        const bool flush = (spaceLeft - sizeof(T)) < sizeof(T);
         int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&data), sizeof(T), flush);
         if (ret < 0) {
             lastError = ret;
@@ -116,15 +132,15 @@ private:
     const device* flash;
     const DataloggerMode mode;
     const size_t originalLogSize;
-    uint64_t flashSize;
+    uint64_t flashSize{};
 
     int lastError;
     bool initialized;
 
-    uint8_t buffer[numPacketsInBuffer * sizeof(T)];
-    stream_flash_ctx ctx;
+    uint8_t buffer[numPacketsInBuffer * sizeof(T)]{};
+    stream_flash_ctx ctx{};
 
-    DataloggerMetadata metadata;
+    DataloggerMetadata metadata{};
     size_t flashAddress;
     size_t currentLogSize;
     size_t currentOffset;
