@@ -16,7 +16,7 @@ enum class DataloggerMode {
 
 struct DataloggerMetadata {
     uint32_t logNameHash; // Hash logName as a way to check for metadata
-    char logName[31];
+    char logName[15];
     uint8_t version;
     size_t packetSize;
     size_t allocatedSize;

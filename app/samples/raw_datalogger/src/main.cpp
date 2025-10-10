@@ -62,7 +62,7 @@ int main() {
 
     // LinkedFixed
     const size_t linkedFixedFileSize = (sizeof(TestData) * 5) + sizeof(DataloggerMetadata);
-    CRawDataLogger<TestData, 3> linkedFixedLogger(flash, nextAddr, linkedFixedFileSize, "test_linked_fixed", DataloggerMode::LinkedFixed);
+    CRawDataLogger<TestData, 3> linkedFixedLogger(flash, nextAddr, linkedFixedFileSize, "test_link_fixed", DataloggerMode::LinkedFixed);
     for (int i = 0; i < 5; ++i) {
         char iter = '0' + i;
         TestData data = { "linked_fixed", iter, iter, iter, iter };
@@ -108,10 +108,10 @@ int main() {
 
     // Test LinkedTruncate
     const size_t linkedTruncateFileSize = (sizeof(TestData) * 5) + sizeof(DataloggerMetadata);
-    CRawDataLogger<TestData, 3> linkedTruncateLogger(flash, nextAddr, linkedTruncateFileSize, "test_linked_truncate", DataloggerMode::LinkedTruncate);
+    CRawDataLogger<TestData, 3> linkedTruncateLogger(flash, nextAddr, linkedTruncateFileSize, "test_link_trunc", DataloggerMode::LinkedTruncate);
 
     nextAddr += ((linkedTruncateFileSize * 2) + sizeof(DataloggerMetadata)) - (sizeof(TestData) * 2); // Leave space for 2 files minus 2 entries to test truncation
-    CRawDataLogger<TestData, 1> anotherIntermediateLogger(flash, nextAddr, intermediateFileSize, "another_intermediate", DataloggerMode::Fixed);
+    CRawDataLogger<TestData, 1> anotherIntermediateLogger(flash, nextAddr, intermediateFileSize, "intermediate2", DataloggerMode::Fixed);
     anotherIntermediateLogger.Write(intermediateData);
 
     if (anotherIntermediateLogger.GetLastError() != 0) {
