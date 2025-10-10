@@ -55,8 +55,6 @@ public:
             lastError = ret;
             initialized = false;
         }
-
-
     }
 
     bool IsInitialized() const { return initialized; }
@@ -77,7 +75,6 @@ public:
                     return -ENOSPC;
                 case DataloggerMode::LinkedFixed:
                 case DataloggerMode::LinkedTruncate:
-                    printk("Creating new log!\n");
                     seekAndUpdateMetadata();
 
                     ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
@@ -91,12 +88,10 @@ public:
             }
         } else if ((spaceLeft - sizeof(T)) < sizeof(T)) { // Force flush if this write will fill the log
             flush = true;
-            printk("Forced flush!\n");
         }
 
         int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&data), sizeof(T), flush);
         if (ret < 0) {
-            printk("Failed to write data: %d\n", ret);
             lastError = ret;
             return ret;
         }
@@ -154,10 +149,8 @@ private:
     }
 
     int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
-        printk("reading metadata at 0x%zx\n", addr);
         int ret = flash_read(flash, addr, &outMeta, sizeof(DataloggerMetadata));
         if (ret < 0) {
-            printk("Failed to read metadata at 0x%zx\n", addr);
             return ret;
         }
 
@@ -194,7 +187,6 @@ private:
 
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
             int ret = readMetadata(addr, meta);
-            printk("Reading metadata at 0x%zx. Got %d\n", addr, ret);
 
             if (ret == 0) {
                 // Metadata found, jump to next log boundary
@@ -202,10 +194,8 @@ private:
             } else {
                 // No metadata found
                 // Check if enough space for a new log
-                printk("Searching between 0x%zx and 0x%zx\n", addr, addr + logSz);
                 for (size_t testAddr = addr; testAddr < addr + logSz; testAddr += 0x10) {
                     if (readMetadata(testAddr, meta) == 0) {
-                        printk("While searching, found metadata at 0x%zx\n", testAddr);
                         if (mode == DataloggerMode::LinkedTruncate) {
                             logSz = (testAddr - addr); // Shrink log size to fit
                             return std::make_pair(addr, logSz);
@@ -230,14 +220,12 @@ private:
         }
         size_t newAddr = spaceOpt.value().first;
         size_t newSize = spaceOpt.value().second;
-        printk("New log at 0x%zx of size 0x%zx\n", newAddr, newSize);
 
         int ret = linkToNextLog(newAddr);
         if (ret < 0) {
             lastError = ret;
             return;
         }
-        printk("Linked!\n");
 
         // Set up new log
         flashAddress = newAddr; // Update flash address to new log
@@ -247,7 +235,6 @@ private:
             lastError = ret;
             return;
         }
-        printk("Wrote new metadata!\n");
 
         currentOffset = sizeof(metadata);
     }

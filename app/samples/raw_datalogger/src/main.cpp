@@ -120,8 +120,8 @@ int main() {
     LOG_INF("Finished writing data for another intermediate fixed logger");
 
 
-    for (int i = 0; i < 10; ++i) {
-        char iter = '0' + i;
+    for (int i = 0; i < 12; ++i) {
+        char iter = '0' + (i % 10);
 
         TestData data = { "linked_truncate", iter, iter, iter, iter  };
         int ret = linkedTruncateLogger.Write(data);
