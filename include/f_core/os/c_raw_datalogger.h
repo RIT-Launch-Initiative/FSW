@@ -135,7 +135,7 @@ public:
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
         size_t addr = flashAddress + fileSize;
         size_t fileSz = fileSize;
-        DataloggerMetadata meta = {0};
+        DataloggerMetadata meta{};
 
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
             int ret = readMetadata(addr, meta);
@@ -228,18 +228,21 @@ private:
                 printk("Failed to read metadata at 0x%zx\n", addr);
                 return ret;
             }
-            if (outMeta.version == DATALOGGER_VERSION) {
+
+            if (outMeta.filenameHash == sys_hash32_murmur3(outMeta.filename, sizeof(outMeta.filename))) {
                 return 0;
             }
+
             addr += sizeof(DataloggerMetadata);
         }
+
         return -1;
     }
 
     size_t findNextMetadata(off_t startAddr, off_t maxAddr) {
         DataloggerMetadata meta{};
         for (off_t addr = startAddr; static_cast<off_t>(addr + sizeof(DataloggerMetadata)) < maxAddr;
-             addr += sizeof(DataloggerMetadata)) {
+            addr += sizeof(DataloggerMetadata)) {
             if (readMetadata(addr, meta) == 0) {
                 return addr;
             }
