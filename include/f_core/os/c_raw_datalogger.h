@@ -77,7 +77,13 @@ public:
                     return -ENOSPC;
                 case DataloggerMode::LinkedFixed:
                 case DataloggerMode::LinkedTruncate:
-                    nextFileAddress = flashAddress + fileSize;
+                    printk("Creating new file!\n");
+                    nextFileAddress = FindLinkedSpace().has_value() ? FindLinkedSpace().value().first : 0;
+                    if (nextFileAddress == 0) {
+                        lastError = -ENOSPC;
+                        return lastError;
+                    }
+
                     prepMetadata(metadata.filename, nextFileAddress);
                     ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress, fileSize, nullptr);
                     int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&metadata),
