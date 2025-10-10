@@ -188,7 +188,7 @@ private:
      * @param outMeta Output metadata structure
      * @return 0 on success, negative errno code on failure, -1 if metadata is invalid (bad hash)
      */
-    int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
+    int readMetadata(const off_t addr, DataloggerMetadata& outMeta) {
         int ret = flash_read(flash, addr, &outMeta, sizeof(DataloggerMetadata));
         if (ret < 0) {
             return ret;
@@ -207,7 +207,7 @@ private:
      * @param maxAddr Address to stop searching at
      * @return Address of next valid metadata, or maxAddr if none found
      */
-    size_t findNextMetadata(off_t startAddr, off_t maxAddr) {
+    size_t findNextMetadata(const off_t startAddr, const off_t maxAddr) {
         DataloggerMetadata meta{};
         for (off_t addr = startAddr; static_cast<off_t>(addr + sizeof(DataloggerMetadata)) < maxAddr;
             addr += sizeof(DataloggerMetadata)) {
