@@ -6,6 +6,7 @@
 #include <string>
 #include <optional>
 #include <zephyr/kernel.h>
+#include <zephyr/sys/hash_function.h>
 
 enum class DataloggerMode {
     Fixed,
@@ -14,7 +15,8 @@ enum class DataloggerMode {
 };
 
 struct DataloggerMetadata {
-    char filename[18]; // 18 just to keep the overall struct size at a clean 32 bytes
+    uint32_t filenameHash; // Hash filename as a way to check for metadata
+    char filename[31];
     uint8_t version;
     size_t packetSize;
     size_t allocatedSize;
@@ -136,8 +138,9 @@ public:
         DataloggerMetadata meta = {0};
 
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
-            printk("Reading metadata at 0x%zx\n", addr);
             int ret = readMetadata(addr, meta);
+            printk("Reading metadata at 0x%zx. Got %d\n", addr, ret);
+
             if (ret == 0) {
                 // Metadata found, follow next pointer or jump to next file boundary
                 if (meta.nextFileAddress != 0 && meta.nextFileAddress > addr) {
@@ -198,6 +201,7 @@ private:
         metadata.version = DATALOGGER_VERSION;
         metadata.packetSize = sizeof(T);
         metadata.nextFileAddress = nextAddr;
+        metadata.filenameHash = sys_hash32_murmur3(metadata.filename, sizeof(metadata.filename));
 
         size_t len = sizeof(metadata);
 
@@ -221,10 +225,10 @@ private:
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
             int ret = flash_read(flash, addr, &outMeta, sizeof(DataloggerMetadata));
             if (ret < 0) {
+                printk("Failed to read metadata at 0x%zx\n", addr);
                 return ret;
             }
-            if (outMeta.version == DATALOGGER_VERSION && outMeta.packetSize == sizeof(T) &&
-                outMeta.allocatedSize == fileSize) {
+            if (outMeta.version == DATALOGGER_VERSION) {
                 return 0;
             }
             addr += sizeof(DataloggerMetadata);
