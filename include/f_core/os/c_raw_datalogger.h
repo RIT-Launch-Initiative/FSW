@@ -15,12 +15,12 @@ enum class DataloggerMode {
 };
 
 struct DataloggerMetadata {
-    uint32_t filenameHash; // Hash filename as a way to check for metadata
-    char filename[31];
+    uint32_t logNameHash; // Hash logName as a way to check for metadata
+    char logName[31];
     uint8_t version;
     size_t packetSize;
     size_t allocatedSize;
-    size_t nextFileAddress;
+    size_t nextLogAddress;
 };
 
 constexpr uint32_t DATALOGGER_VERSION = 1;
@@ -28,10 +28,10 @@ constexpr uint32_t DATALOGGER_VERSION = 1;
 template <typename T, size_t numPacketsInBuffer>
 class CRawDataLogger {
 public:
-    CRawDataLogger(const device* flashDev, off_t flashAddress, off_t fileSize, const std::string& filename,
+    CRawDataLogger(const device* flashDev, off_t flashAddress, off_t logSize, const std::string& logName,
                    DataloggerMode mode)
-        : flash(flashDev), flashAddress(flashAddress), originalFileSize(fileSize), currentFileSize(fileSize), mode(mode), lastError(0),
-          initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextFileAddress(0) {
+        : flash(flashDev), flashAddress(flashAddress), originalLogSize(logSize), currentLogSize(logSize), mode(mode), lastError(0),
+          initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextLogAddress(0) {
         resetBuffers();
 
         int ret = flash_get_size(flash, &flashSize);
@@ -40,7 +40,7 @@ public:
             initialized = false;
         }
 
-        ret = prepMetadata(filename, 0); // next_file_address = 0 for first file
+        ret = prepMetadata(logName, 0); // next_log_address = 0 for first log
         if (ret < 0) {
             lastError = ret;
             return;
@@ -50,7 +50,7 @@ public:
         currentOffset = sizeof(metadata);
 
         ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
-                                fileSize - sizeof(metadata), nullptr);
+                                logSize - sizeof(metadata), nullptr);
         if (ret < 0) {
             lastError = ret;
             initialized = false;
@@ -65,7 +65,7 @@ public:
 
     int Write(const T& data, bool flush = false) {
         if (!initialized) return lastError ? lastError : -1;
-        size_t spaceLeft = currentFileSize - currentOffset;
+        size_t spaceLeft = currentLogSize - currentOffset;
 
         if (spaceLeft < sizeof(T)) {
             resetBuffers();
@@ -77,11 +77,11 @@ public:
                     return -ENOSPC;
                 case DataloggerMode::LinkedFixed:
                 case DataloggerMode::LinkedTruncate:
-                    printk("Creating new file!\n");
+                    printk("Creating new log!\n");
                     seekAndUpdateMetadata();
 
                     ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
-                                      currentFileSize - sizeof(metadata), nullptr);
+                                      currentLogSize - sizeof(metadata), nullptr);
                     if (ret < 0) {
                         lastError = ret;
                         return ret;
@@ -89,7 +89,7 @@ public:
 
                     currentOffset = sizeof(metadata);
             }
-        } else if ((spaceLeft - sizeof(T)) < sizeof(T)) { // Force flush if this write will fill the file
+        } else if ((spaceLeft - sizeof(T)) < sizeof(T)) { // Force flush if this write will fill the log
             flush = true;
             printk("Forced flush!\n");
         }
@@ -110,8 +110,8 @@ public:
 
     std::optional<std::pair<size_t, size_t>> FindLinkedSpace() {
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
-        size_t addr = flashAddress + currentFileSize;
-        size_t fileSz = originalFileSize;
+        size_t addr = flashAddress + currentLogSize;
+        size_t logSz = originalLogSize;
         DataloggerMetadata meta{};
 
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
@@ -119,27 +119,27 @@ public:
             printk("Reading metadata at 0x%zx. Got %d\n", addr, ret);
 
             if (ret == 0) {
-                // Metadata found, jump to next file boundary
+                // Metadata found, jump to next log boundary
                 addr += meta.allocatedSize;
             } else {
                 // No metadata found
-                // Check if enough space for a new file
-                printk("Searching between 0x%zx and 0x%zx\n", addr, addr + fileSz);
-                for (size_t testAddr = addr; testAddr < addr + fileSz; testAddr += sizeof(DataloggerMetadata)) {
+                // Check if enough space for a new log
+                printk("Searching between 0x%zx and 0x%zx\n", addr, addr + logSz);
+                for (size_t testAddr = addr; testAddr < addr + logSz; testAddr += sizeof(DataloggerMetadata)) {
                     if (readMetadata(testAddr, meta) == 0) {
                         printk("While searching, found metadata at 0x%zx\n", testAddr);
                         if (mode == DataloggerMode::LinkedTruncate) {
-                            fileSz = (testAddr - addr); // Shrink file size to fit
+                            logSz = (testAddr - addr); // Shrink log size to fit
                             break;
                         }
 
                         // Found metadata in the range, cannot use this space
-                        addr = testAddr + meta.allocatedSize; // Move to next possible file start
+                        addr = testAddr + meta.allocatedSize; // Move to next possible log start
                         break;
                     }
 
-                    if (testAddr + sizeof(DataloggerMetadata) >= addr + fileSz) {
-                        return std::make_pair(addr, fileSz);
+                    if (testAddr + sizeof(DataloggerMetadata) >= addr + logSz) {
+                        return std::make_pair(addr, logSz);
                     }
                 }
             }
@@ -150,46 +150,46 @@ public:
 
     int GetLastError() const { return lastError; }
     off_t GetCurrentOffset() const { return currentOffset; }
-    off_t GetNextFileAddress() const { return nextFileAddress; }
+    off_t GetNextLogAddress() const { return nextLogAddress; }
 
 private:
     const device* flash;
     stream_flash_ctx ctx;
     size_t flashAddress;
     uint64_t flashSize;
-    const size_t originalFileSize;
-    size_t currentFileSize;
+    const size_t originalLogSize;
+    size_t currentLogSize;
     uint8_t buffer[numPacketsInBuffer * sizeof(T)];
     DataloggerMode mode;
     int lastError;
     bool initialized;
     DataloggerMetadata metadata;
     size_t currentOffset;
-    size_t nextFileAddress;
+    size_t nextLogAddress;
 
-    int prepMetadata(const std::string& filename, size_t nextAddr) {
+    int prepMetadata(const std::string& logName, size_t nextAddr) {
         memset(&metadata, 0, sizeof(metadata));
-        strncpy(metadata.filename, filename.c_str(), sizeof(metadata.filename) - 1);
-        metadata.allocatedSize = currentFileSize;
+        strncpy(metadata.logName, logName.c_str(), sizeof(metadata.logName) - 1);
+        metadata.allocatedSize = currentLogSize;
         metadata.version = DATALOGGER_VERSION;
         metadata.packetSize = sizeof(T);
-        metadata.nextFileAddress = nextAddr;
-        metadata.filenameHash = sys_hash32_murmur3(metadata.filename, sizeof(metadata.filename));
+        metadata.nextLogAddress = nextAddr;
+        metadata.logNameHash = sys_hash32_murmur3(metadata.logName, sizeof(metadata.logName));
 
         size_t len = sizeof(metadata);
 
-        // DO NOT WRITE nextFileAddress IF ZERO AND MODE IS LINKED. This is so we can write nextAddr later, without an erase
+        // DO NOT WRITE nextLogAddress IF ZERO AND MODE IS LINKED. This is so we can write nextAddr later, without an erase
         if (nextAddr == 0 && (mode == DataloggerMode::LinkedTruncate || mode == DataloggerMode::LinkedFixed)) {
-            len -= sizeof(metadata.nextFileAddress); //
+            len -= sizeof(metadata.nextLogAddress); //
         }
 
         return flash_write(flash, flashAddress, &metadata, len);
     }
 
-    int linkToNextFile(size_t addr) {
+    int linkToNextLog(size_t addr) {
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return -1;
-        return flash_write(flash, flashAddress + offsetof(DataloggerMetadata, nextFileAddress),
-                           &addr, sizeof(metadata.nextFileAddress));
+        return flash_write(flash, flashAddress + offsetof(DataloggerMetadata, nextLogAddress),
+                           &addr, sizeof(metadata.nextLogAddress));
     }
 
     int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
@@ -200,7 +200,7 @@ private:
             return ret;
         }
 
-        if (outMeta.filenameHash == sys_hash32_murmur3(outMeta.filename, sizeof(outMeta.filename))) {
+        if (outMeta.logNameHash == sys_hash32_murmur3(outMeta.logName, sizeof(outMeta.logName))) {
             return 0;
         }
 
@@ -233,19 +233,19 @@ private:
         }
         size_t newAddr = spaceOpt.value().first;
         size_t newSize = spaceOpt.value().second;
-        printk("New file at 0x%zx of size 0x%zx\n", newAddr, newSize);
+        printk("New log at 0x%zx of size 0x%zx\n", newAddr, newSize);
 
-        int ret = linkToNextFile(newAddr);
+        int ret = linkToNextLog(newAddr);
         if (ret < 0) {
             lastError = ret;
             return;
         }
         printk("Linked!\n");
 
-        // Write new metadata
-        flashAddress = newAddr; // Update flash address to new file
-        currentFileSize = newSize;
-        ret = prepMetadata(metadata.filename, 0);
+        // Set up new log
+        flashAddress = newAddr; // Update flash address to new log
+        currentLogSize = newSize;
+        ret = prepMetadata(metadata.logName, 0);
         if (ret < 0) {
             lastError = ret;
             return;
