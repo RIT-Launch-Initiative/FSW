@@ -80,7 +80,7 @@ public:
                     printk("Creating new file!\n");
                     seekAndUpdateMetadata();
 
-                    ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress + sizeof(metadata),
+                    ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
                                       fileSize - sizeof(metadata), nullptr);
                     if (ret < 0) {
                         lastError = ret;
@@ -89,13 +89,6 @@ public:
 
                     flashAddress = nextFileAddress;
                     currentOffset = sizeof(metadata);
-                    break;
-            }
-
-            if (ret < 0) {
-                lastError = ret;
-                printk("Error reinitializing: %d\n", ret);
-                return ret;
             }
         } else if ((spaceLeft - sizeof(T)) < sizeof(T)) { // Force flush if this write will fill the file
             flush = true;
@@ -262,7 +255,7 @@ private:
         }
         printk("Wrote new metadata!");
 
-        currentOffset = newAddr + sizeof(metadata);
+        currentOffset = sizeof(metadata);
     }
 };
 
