@@ -108,45 +108,6 @@ public:
         return stream_flash_bytes_written(&ctx);
     }
 
-    std::optional<std::pair<size_t, size_t>> FindLinkedSpace() {
-        if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
-        size_t addr = flashAddress + currentLogSize;
-        size_t logSz = originalLogSize;
-        DataloggerMetadata meta{};
-
-        while (addr + sizeof(DataloggerMetadata) < flashSize) {
-            int ret = readMetadata(addr, meta);
-            printk("Reading metadata at 0x%zx. Got %d\n", addr, ret);
-
-            if (ret == 0) {
-                // Metadata found, jump to next log boundary
-                addr += meta.allocatedSize;
-            } else {
-                // No metadata found
-                // Check if enough space for a new log
-                printk("Searching between 0x%zx and 0x%zx\n", addr, addr + logSz);
-                for (size_t testAddr = addr; testAddr < addr + logSz; testAddr += sizeof(DataloggerMetadata)) {
-                    if (readMetadata(testAddr, meta) == 0) {
-                        printk("While searching, found metadata at 0x%zx\n", testAddr);
-                        if (mode == DataloggerMode::LinkedTruncate) {
-                            logSz = (testAddr - addr); // Shrink log size to fit
-                            break;
-                        }
-
-                        // Found metadata in the range, cannot use this space
-                        addr = testAddr + meta.allocatedSize; // Move to next possible log start
-                        break;
-                    }
-
-                    if (testAddr + sizeof(DataloggerMetadata) >= addr + logSz) {
-                        return std::make_pair(addr, logSz);
-                    }
-                }
-            }
-        }
-        return std::nullopt;
-    }
-
 
     int GetLastError() const { return lastError; }
     off_t GetCurrentOffset() const { return currentOffset; }
@@ -225,8 +186,47 @@ private:
         return 0;
     }
 
+    std::optional<std::pair<size_t, size_t>> findLinkedSpace() {
+        if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
+        size_t addr = flashAddress + currentLogSize;
+        size_t logSz = originalLogSize;
+        DataloggerMetadata meta{};
+
+        while (addr + sizeof(DataloggerMetadata) < flashSize) {
+            int ret = readMetadata(addr, meta);
+            printk("Reading metadata at 0x%zx. Got %d\n", addr, ret);
+
+            if (ret == 0) {
+                // Metadata found, jump to next log boundary
+                addr += meta.allocatedSize;
+            } else {
+                // No metadata found
+                // Check if enough space for a new log
+                printk("Searching between 0x%zx and 0x%zx\n", addr, addr + logSz);
+                for (size_t testAddr = addr; testAddr < addr + logSz; testAddr += sizeof(DataloggerMetadata)) {
+                    if (readMetadata(testAddr, meta) == 0) {
+                        printk("While searching, found metadata at 0x%zx\n", testAddr);
+                        if (mode == DataloggerMode::LinkedTruncate) {
+                            logSz = (testAddr - addr); // Shrink log size to fit
+                            break;
+                        }
+
+                        // Found metadata in the range, cannot use this space
+                        addr = testAddr + meta.allocatedSize; // Move to next possible log start
+                        break;
+                    }
+
+                    if (testAddr + sizeof(DataloggerMetadata) >= addr + logSz) {
+                        return std::make_pair(addr, logSz);
+                    }
+                }
+            }
+        }
+        return std::nullopt;
+    }
+
     void seekAndUpdateMetadata() {
-        auto spaceOpt = FindLinkedSpace();
+        auto spaceOpt = findLinkedSpace();
         if (!spaceOpt.has_value()) {
             lastError = -ENOSPC;
             return;
