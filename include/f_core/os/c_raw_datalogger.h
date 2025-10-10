@@ -208,6 +208,14 @@ private:
         return flash_write(flash, flashAddress, &metadata, len);
     }
 
+    int linkToNextFile(off_t addr) {
+        if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return -1;
+
+        metadata.nextFileAddress = addr;
+        return flash_write(flash, flashAddress + offsetof(DataloggerMetadata, nextFileAddress),
+                           &metadata.nextFileAddress, sizeof(metadata.nextFileAddress));
+    }
+
     int readMetadata(off_t addr, DataloggerMetadata& outMeta) {
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
             int ret = flash_read(flash, addr, &outMeta, sizeof(DataloggerMetadata));
