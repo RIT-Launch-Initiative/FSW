@@ -37,8 +37,8 @@ public:
      * @param mode Datalogger mode (Fixed, LinkedFixed, LinkedTruncate)
      */
     explicit CRawDataLogger(const device* flashDev, const off_t flashAddress, const off_t logSize, const std::string& logName, const DataloggerMode mode)
-        : flash(flashDev), flashAddress(flashAddress), originalLogSize(logSize), currentLogSize(logSize), mode(mode), lastError(0),
-          initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextLogAddress(0) {
+        : flash(flashDev), mode(mode), originalLogSize(logSize), lastError(0), initialized(false), flashAddress(flashAddress),
+          currentLogSize(logSize), currentOffset(sizeof(DataloggerMetadata)), nextLogAddress(0) {
         resetBuffers();
 
         int ret = flash_get_size(flash, &flashSize);
