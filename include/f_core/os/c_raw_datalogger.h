@@ -113,20 +113,6 @@ public:
         return 0;
     }
 
-    int Flush() {
-        if (!initialized) {
-            return (lastError != 0) ? lastError : -1;
-        }
-
-        int ret = stream_flash_buffered_write(&ctx, nullptr, 0, true);
-        if (ret < 0) {
-            lastError = ret;
-            return ret;
-        }
-
-        return 0;
-    }
-
     size_t GetBytesWritten() const {
         return stream_flash_bytes_written(&ctx);
     }
