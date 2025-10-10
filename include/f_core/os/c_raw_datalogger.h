@@ -143,7 +143,7 @@ public:
 
             if (ret == 0) {
                 // Metadata found, jump to next file boundary
-                addr += fileSz;
+                addr += meta.allocatedSize;
             } else {
                 // No metadata found
                 if (mode == DataloggerMode::LinkedFixed) {
