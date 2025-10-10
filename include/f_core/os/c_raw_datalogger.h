@@ -231,7 +231,7 @@ private:
 
     size_t findNextMetadata(off_t startAddr, off_t maxAddr) {
         DataloggerMetadata meta{};
-        for (off_t addr = startAddr; addr + sizeof(DataloggerMetadata) < maxAddr;
+        for (off_t addr = startAddr; static_cast<off_t>(addr + sizeof(DataloggerMetadata)) < maxAddr;
              addr += sizeof(DataloggerMetadata)) {
             if (readMetadata(addr, meta) == 0) {
                 return addr;
