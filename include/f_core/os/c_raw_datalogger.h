@@ -76,15 +76,7 @@ public:
                 case DataloggerMode::LinkedFixed:
                 case DataloggerMode::LinkedTruncate:
                     printk("Creating new file!\n");
-                    nextFileAddress = FindLinkedSpace().has_value() ? FindLinkedSpace().value().first : 0;
-                    if (nextFileAddress == 0) {
-                        printk("Did not find space for new file!\n");
-                        lastError = -ENOSPC;
-                        return lastError;
-                    }
-                    printk("Found space for new file at address 0x%zx\n", nextFileAddress);
-
-                    prepMetadata(metadata.filename, nextFileAddress);
+                    seekAndUpdateMetadata();
                     ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), nextFileAddress, fileSize, nullptr);
                     int ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&metadata),
                                                           sizeof(metadata), true);
@@ -139,29 +131,40 @@ public:
 
     std::optional<std::pair<size_t, size_t>> FindLinkedSpace() {
         if (mode != DataloggerMode::LinkedFixed && mode != DataloggerMode::LinkedTruncate) return std::nullopt;
-        size_t addr = flashAddress;
-        size_t file_sz = fileSize;
-        DataloggerMetadata meta;
+        size_t addr = flashAddress + fileSize;
+        size_t fileSz = fileSize;
+        DataloggerMetadata meta = {0};
+
         while (addr + sizeof(DataloggerMetadata) < flashSize) {
+            printk("Reading metadata at 0x%zx\n", addr);
             int ret = readMetadata(addr, meta);
             if (ret == 0) {
                 // Metadata found, follow next pointer or jump to next file boundary
                 if (meta.nextFileAddress != 0 && meta.nextFileAddress > addr) {
                     addr = meta.nextFileAddress;
                 } else {
-                    addr += file_sz;
+                    addr += fileSz;
                 }
             } else {
                 // No metadata found
                 if (mode == DataloggerMode::LinkedFixed) {
                     // Check if enough space for a new file
-                    if (addr + file_sz < flashSize) {
-                        return std::make_pair(addr, file_sz);
+                    for (size_t testAddr = addr; testAddr < addr + fileSz; testAddr += sizeof(DataloggerMetadata)) {
+                        ret = readMetadata(testAddr, meta);
+                        if (ret == 0) {
+                            // Found metadata in the range, cannot use this space
+                            addr = testAddr + fileSz; // Move to next possible file start
+                            break;
+                        }
+
+                        if (testAddr + sizeof(DataloggerMetadata) >= addr + fileSz) {
+                            return std::make_pair(addr, fileSz);
+                        }
                     }
                 } else if (mode == DataloggerMode::LinkedTruncate) {
                     // Truncate to next metadata or use initial size
                     size_t next_meta_addr = findNextMetadata(addr + sizeof(DataloggerMetadata), flashSize);
-                    size_t available_size = (next_meta_addr > addr) ? (next_meta_addr - addr) : file_sz;
+                    size_t available_size = (next_meta_addr > addr) ? (next_meta_addr - addr) : fileSz;
                     return std::make_pair(addr, available_size);
                 }
             }
@@ -255,6 +258,7 @@ private:
         }
         size_t newAddr = spaceOpt.value().first;
         size_t newSize = spaceOpt.value().second;
+        printk("New file at 0x%zx of size 0x%zx\n", newAddr, newSize);
 
         prepMetadata(metadata.filename, newAddr);
 
