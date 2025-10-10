@@ -87,7 +87,6 @@ public:
                         return ret;
                     }
 
-                    flashAddress = nextFileAddress;
                     currentOffset = sizeof(metadata);
             }
         } else if ((spaceLeft - sizeof(T)) < sizeof(T)) { // Force flush if this write will fill the file
