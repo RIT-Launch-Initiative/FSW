@@ -28,8 +28,7 @@ constexpr uint32_t DATALOGGER_VERSION = 1;
 template <typename T, size_t numPacketsInBuffer>
 class CRawDataLogger {
 public:
-    CRawDataLogger(const device* flashDev, off_t flashAddress, off_t logSize, const std::string& logName,
-                   DataloggerMode mode)
+    explicit CRawDataLogger(const device* flashDev, const off_t flashAddress, const off_t logSize, const std::string& logName, const DataloggerMode mode)
         : flash(flashDev), flashAddress(flashAddress), originalLogSize(logSize), currentLogSize(logSize), mode(mode), lastError(0),
           initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextLogAddress(0) {
         resetBuffers();
@@ -62,10 +61,6 @@ public:
             stream_flash_buffered_write(&ctx, nullptr, 0, true);
         }
     }
-
-    bool IsInitialized() const { return initialized; }
-
-    DataloggerMode GetMode() const { return mode; }
 
     int Write(const T& data, bool flush = false) {
         if (!initialized) return lastError ? lastError : -1;
@@ -109,6 +104,9 @@ public:
         return stream_flash_bytes_written(&ctx);
     }
 
+    bool IsInitialized() const { return initialized; }
+
+    DataloggerMode GetMode() const { return mode; }
 
     int GetLastError() const { return lastError; }
     off_t GetCurrentOffset() const { return currentOffset; }
@@ -116,16 +114,19 @@ public:
 
 private:
     const device* flash;
-    stream_flash_ctx ctx;
-    size_t flashAddress;
-    uint64_t flashSize;
+    const DataloggerMode mode;
     const size_t originalLogSize;
-    size_t currentLogSize;
-    uint8_t buffer[numPacketsInBuffer * sizeof(T)];
-    DataloggerMode mode;
+    uint64_t flashSize;
+
     int lastError;
     bool initialized;
+
+    uint8_t buffer[numPacketsInBuffer * sizeof(T)];
+    stream_flash_ctx ctx;
+
     DataloggerMetadata metadata;
+    size_t flashAddress;
+    size_t currentLogSize;
     size_t currentOffset;
     size_t nextLogAddress;
 
