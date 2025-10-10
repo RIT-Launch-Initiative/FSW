@@ -32,19 +32,21 @@ public:
           initialized(false), currentOffset(sizeof(DataloggerMetadata)), nextFileAddress(0) {
         resetBuffers();
 
-        prepMetadata(filename, 0); // next_file_address = 0 for first file
-        int ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress, fileSize, nullptr);
+        int ret = flash_get_size(flash, &flashSize);
+        if (ret < 0) {
+            lastError = ret;
+            initialized = false;
+        }
+
+        ret = prepMetadata(filename, 0); // next_file_address = 0 for first file
         if (ret < 0) {
             lastError = ret;
             return;
         }
-        ret = stream_flash_buffered_write(&ctx, reinterpret_cast<const uint8_t*>(&metadata), sizeof(metadata), true);
-        if (ret < 0) {
-            lastError = ret;
-            return;
-        }
+
         initialized = true;
         currentOffset = sizeof(metadata);
+
         ret = stream_flash_init(&ctx, flash, buffer, sizeof(buffer), flashAddress + sizeof(metadata),
                                 fileSize - sizeof(metadata), nullptr);
         if (ret < 0) {
@@ -52,11 +54,7 @@ public:
             initialized = false;
         }
 
-        ret = flash_get_size(flash, &flashSize);
-        if (ret < 0) {
-            lastError = ret;
-            initialized = false;
-        }
+
     }
 
     bool IsInitialized() const { return initialized; }
