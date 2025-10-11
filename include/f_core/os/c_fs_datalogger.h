@@ -7,7 +7,7 @@
 
 enum class LogMode { Growing, Circular, FixedSize };
 
-/// @brief Internal, type-unsafe datalogger. Don't use this directly. Use CDataLogger instead
+/// @brief Internal, type-unsafe datalogger. Don't use this directly. Use CFsDataLogger instead
 namespace detail {
 class datalogger {
   public:
@@ -32,7 +32,7 @@ class datalogger {
  * This class is implemented as a type safe wrapper to detail::datalogger.
  */
 template <typename T>
-class CDataLogger {
+class CFsDataLogger {
   public:
     using PacketType = T;
     static_assert(std::is_trivially_copyable<PacketType>::value,
@@ -46,14 +46,14 @@ class CDataLogger {
      * The logger will use the "Growing" mode and will expand as you write more data until your filesystem runs out of space.
      * @param filename the name of the file to write to
      */
-    CDataLogger(const char *filename) : internal(filename, LogMode::Growing, 0) {}
+    CFsDataLogger(const char *filename) : internal(filename, LogMode::Growing, 0) {}
     /**
      * Construct a Datalogger for the specified filename, grow mode, and size
      * @param filename the name of the file to write to
      * @param mode the logging mode to use
      * @param the number of packets to log (only used if mode is Circular or FixedSize)
      */
-    CDataLogger(const char *filename, LogMode mode, std::size_t num_packets) : internal(filename, mode, num_packets) {}
+    CFsDataLogger(const char *filename, LogMode mode, std::size_t num_packets) : internal(filename, mode, num_packets) {}
 
    /**
      * Write a packet to the file

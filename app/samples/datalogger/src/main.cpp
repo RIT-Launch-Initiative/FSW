@@ -6,9 +6,9 @@ struct Packet {
     uint8_t a;
     uint8_t b;
 };
-CDataLogger<Packet> expand_logger{"/lfs/expand.bin"};
-CDataLogger<Packet> fill_logger{"/lfs/fill.bin", LogMode::FixedSize, 10};
-CDataLogger<Packet> wrap_logger{"/lfs/wrap.bin", LogMode::Circular, 10};
+CFsDataLogger<Packet> expand_logger{"/lfs/expand.bin"};
+CFsDataLogger<Packet> fill_logger{"/lfs/fill.bin", LogMode::FixedSize, 10};
+CFsDataLogger<Packet> wrap_logger{"/lfs/wrap.bin", LogMode::Circular, 10};
 
 int main() {
     for (uint8_t i = 0; i < 100; i++) {
