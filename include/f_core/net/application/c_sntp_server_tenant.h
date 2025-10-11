@@ -6,13 +6,14 @@
 #include "f_core/os/c_tenant.h"
 #include "f_core/net/network/c_ipv4.h"
 #include "f_core/net/transport/c_udp_socket.h"
+#include "f_core/os/c_runnable_tenant.h"
 
 // Static instances
 // Note these must be defined outside the class to avoid linker issues
 static rtc_time lastUpdatedTime;
 static K_MUTEX_DEFINE(lastUpdatedTimeLock); // Use macro here so we dont need to call init
 
-class CSntpServerTenant : public CTenant {
+class CSntpServerTenant : public CRunnableTenant {
 public:
     enum SntpPrecisionExponents : int8_t {
         SNTP_NANOSECONDS_PRECISION = -30,
@@ -162,7 +163,7 @@ private:
 
     CSntpServerTenant(CRtc& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
                       uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
-        : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc), stratum(stratum),
+        : CRunnableTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc), stratum(stratum),
           pollInterval(pollInterval), precisionExponent(precisionExponent), sockPort(port) {}
 
     int getLastUpdateTimeAsSeconds(uint32_t& seconds);

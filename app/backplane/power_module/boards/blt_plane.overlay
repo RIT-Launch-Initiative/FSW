@@ -1,0 +1,24 @@
+/ {
+	aliases {
+		shunt-batt = &ina0;
+		shunt-3v3 = &ina1;
+		shunt-5v0 = &ina2;
+	};
+
+	fstab {
+		compatible = "zephyr,fstab";
+
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&external_storage_partition>;
+			automount;
+
+			read-size = <256>;
+			prog-size = <256>;
+			cache-size = <512>;
+			lookahead-size = <128>;
+			block-cycles = <(90 * 1000)>;
+		};
+	};
+};
