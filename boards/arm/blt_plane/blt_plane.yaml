@@ -1,0 +1,17 @@
+identifier: blt_plane
+name: BLTPlane
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - counter
+  - gpio
+  - spi
+  - i2c
+  - backup_sram
+ram: 96
+flash: 512
+vendor: launch

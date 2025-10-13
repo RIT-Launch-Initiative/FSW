@@ -1,0 +1,5 @@
+board:
+  name: blt_plane
+  vendor: launch
+  socs:
+    - name: stm32f446xx

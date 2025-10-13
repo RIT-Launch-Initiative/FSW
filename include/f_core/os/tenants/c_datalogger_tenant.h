@@ -5,17 +5,18 @@
 
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 #include <f_core/os/c_fs_datalogger.h>
 #include <f_core/utils/c_soft_timer.h>
 #include <zephyr/logging/log.h>
 
 
 template <typename T>
-class CFsDataLoggerTenant : public CTenant {
+class CFsDataLoggerTenant : public CRunnableTenant {
 public:
     explicit CFsDataLoggerTenant(const char* name, const char* filename, LogMode mode, std::size_t numPackets,
                       CMessagePort<T>& messagePort, k_timeout_t syncTimeout = K_FOREVER, int syncOnCount = 0)
-        : CTenant(name), messagePort(messagePort), dataLogger(filename, mode, numPackets), filename(filename),
+        : CRunnableTenant(name), messagePort(messagePort), dataLogger(filename, mode, numPackets), filename(filename),
           syncTimeout(syncTimeout), syncOnCount(syncOnCount) {}
 
     ~CFsDataLoggerTenant() override {
