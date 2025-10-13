@@ -168,7 +168,7 @@ private:
         metadata.logNameHash = sys_hash32_murmur3(metadata.logName, LOG_NAME_SIZE);
 
         // DO NOT WRITE nextLogAddress IF ZERO AND MODE IS LINKED. This is so we can write nextAddr later, without an erase
-        const size_t len = sizeof(metadata) - sizeof(metadata.logNameHash);
+        const size_t len = sizeof(metadata) - sizeof(metadata.nextLogAddress);
 
         return flash_write(flash, flashAddress, &metadata, len);
     }
