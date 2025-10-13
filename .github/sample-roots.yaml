@@ -46,6 +46,9 @@ app/samples/horus:
 app/samples/compression:
   - paths:
       - "app/samples/compression/**"
+app/samples/raw_datalogger:
+    - paths:
+        - "app/samples/raw_datalogger/**"
 ALL:
   - paths:
       - "include/f_core/**"
