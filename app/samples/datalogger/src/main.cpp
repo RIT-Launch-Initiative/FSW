@@ -1,4 +1,4 @@
-#include "f_core/os/c_datalogger.h"
+#include "f_core/os/c_fs_datalogger.h"
 
 #include <zephyr/kernel.h>
 

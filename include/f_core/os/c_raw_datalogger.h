@@ -31,7 +31,8 @@ class CRawDataLogger {
 public:
     /**
      * Constructor
-     * @param flashDev Flash device to write to
+     * @param flashDev Flash device to write to.
+     *                 It is highly recommended to use the flash_area struct's device if you want partitioning
      * @param flashAddress Starting address in flash to write log
      * @param logSize Total size of log including metadata
      * @param logName Name of the log (for metadata)
