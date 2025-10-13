@@ -14,10 +14,10 @@ enum class DataloggerMode {
     LinkedTruncate
 };
 
-static constexpr size_t LOG_NAME_SIZE = 15;
+static constexpr size_t LOG_NAME_SIZE = 14;
 struct DataloggerMetadata {
     uint32_t logNameHash; // Hash logName as a way to check for metadata
-    char logName[LOG_NAME_SIZE];
+    char logName[LOG_NAME_SIZE + 1];
     uint8_t version;
     size_t packetSize;
     size_t allocatedSize;
@@ -155,11 +155,12 @@ private:
     /**
      * Prepare and write metadata to flash
      * @param logName Log name for metadata
-     * @return
+     * @return 0 on success, negative errno code on failure
      */
     int prepMetadata(const std::string& logName) {
         memset(&metadata, 0, sizeof(metadata));
-        strncpy(metadata.logName, logName.c_str(), sizeof(metadata.logName) - 1);
+        strncpy(metadata.logName, logName.c_str(), LOG_NAME_SIZE);
+        metadata.logName[LOG_NAME_SIZE + 1] = '\0';
         metadata.allocatedSize = currentLogSize;
         metadata.version = DATALOGGER_VERSION;
         metadata.packetSize = sizeof(T);
