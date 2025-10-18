@@ -2,8 +2,14 @@ cmake_minimum_required(VERSION 3.13.1)
 
 set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 include(${FSW_ROOT}/cmake/Snippets.cmake)
-AddSnippets("bpl-networking")
-
+if (BOARD STREQUAL "native_sim")
+    if (UNIX AND NOT APPLE)
+        message(STATUS "Adding simulation configuration")
+        AddSimSnippets()
+    else ()
+        message(FATAL_ERROR "Simulation is only supported on Linux systems")
+    endif ()
+endif ()
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(tftp-server LANGUAGES C CXX)
