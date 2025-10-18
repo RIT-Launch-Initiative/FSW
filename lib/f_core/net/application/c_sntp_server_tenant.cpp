@@ -33,7 +33,7 @@ void CSntpServerTenant::Register() {
 
     rtc_time time = {0};
 
-    int ret = rtc.GetTime(time);
+    ret = rtc.GetTime(time);
     if (ret < 0) {
         LOG_ERR("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
         // Default to 2025-01-01 00:00:00 until the RTC is set
