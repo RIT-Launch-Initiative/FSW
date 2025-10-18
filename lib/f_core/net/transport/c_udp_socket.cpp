@@ -16,8 +16,8 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         return;
     }
 
-    sockfd.fd = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sockfd.fd  < 0) {
+    sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock < 0) {
         LOG_ERR("Failed to create socket: %d", errno);
         return;
     }
