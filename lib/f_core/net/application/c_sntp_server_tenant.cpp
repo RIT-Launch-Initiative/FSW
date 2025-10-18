@@ -15,16 +15,16 @@ extern "C" void sntpSocketServiceHandler(net_socket_service_event* pev) {
         k_oops();
     }
 
-    CTenant* tenant = static_cast<CTenant*>(userData->userData);
+    auto* tenant = static_cast<CCallbackTenant*>(userData->userData);
     if (tenant == nullptr) {
         LOG_ERR("Tenant is null in tftpSocketServiceHandler");
         k_oops();
     }
 
-    tenant->Run();
+    tenant->Callback();
 }
 
-void CSntpServerTenant::Startup() {
+void CSntpServerTenant::Register() {
     LOG_INF("Starting SNTP server on port %d", sockPort);
     int ret = sock.RegisterSocketService(&sntpSocketService, this);
     if (ret < 0) {
@@ -32,42 +32,13 @@ void CSntpServerTenant::Startup() {
     }
 }
 
+
+void CSntpServerTenant::Startup() {
+
+}
+
 void CSntpServerTenant::PostStartup() {
-    rtc_time time = {0};
-
-    int ret = rtc.GetTime(time);
-    if (ret < 0) {
-        LOG_ERR("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
-        // Default to 2025-01-01 00:00:00 until the RTC is set
-        rtc_time tm = {
-            .tm_sec = 0,
-            .tm_min = 0,
-            .tm_hour = 0,
-            .tm_mday = 1,
-            .tm_mon = 0,
-            // STM32 RTC is from 2000. This leads to some scuffed things. 100 will correspond to 1900, but 101 corresponds to 2001. See rtc_ll_stm32.c
-            .tm_year = 125, // 2025 - 1900 = 125
-            .tm_wday = 4,
-            .tm_yday = 0,
-            .tm_isdst = -1,
-            .tm_nsec = 0,
-        };
-
-        ret = rtc.SetTime(tm);
-        if (ret != 0) {
-            LOG_ERR("Failed to set RTC time on SNTP server startup (%d)", ret);
-            if (ret == -EINVAL) {
-                LOG_ERR("EINVAL error setting RTC. Confirm tm struct is properly formatted");
-            }
-        }
-    }
-
-    int retryCount = 0;
-    while (SetLastUpdatedTime(time) != 0 && retryCount < 5) {
-        k_sleep(K_MSEC(100));
-        retryCount++;
-        LOG_ERR("Failed to set last updated time. Retrying (%d)", retryCount);
-    }
+    setupRtcTime();
 }
 
 void CSntpServerTenant::Cleanup() {}
@@ -141,6 +112,7 @@ void CSntpServerTenant::Run() {
     }
 }
 
+
 int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     rtc_time time{0};
     if (int ret = GetLastUpdatedTime(time, K_NO_WAIT); ret != 0) {
@@ -159,3 +131,42 @@ int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     seconds = mktime(&timeinfo);
     return 0;
 }
+
+void CSntpServerTenant::setupRtcTime() {
+    rtc_time time = {0};
+
+    int ret = rtc.GetTime(time);
+    if (ret < 0) {
+        LOG_ERR("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
+        // Default to 2025-01-01 00:00:00 until the RTC is set
+        rtc_time tm = {
+            .tm_sec = 0,
+            .tm_min = 0,
+            .tm_hour = 0,
+            .tm_mday = 1,
+            .tm_mon = 0,
+            // STM32 RTC is from 2000. This leads to some scuffed things. 100 will correspond to 1900, but 101 corresponds to 2001. See rtc_ll_stm32.c
+            .tm_year = 125, // 2025 - 1900 = 125
+            .tm_wday = 4,
+            .tm_yday = 0,
+            .tm_isdst = -1,
+            .tm_nsec = 0,
+        };
+
+        ret = rtc.SetTime(tm);
+        if (ret != 0) {
+            LOG_ERR("Failed to set RTC time on SNTP server startup (%d)", ret);
+            if (ret == -EINVAL) {
+                LOG_ERR("EINVAL error setting RTC. Confirm tm struct is properly formatted");
+            }
+        }
+    }
+
+    int retryCount = 0;
+    while (SetLastUpdatedTime(time) != 0 && retryCount < 5) {
+        k_sleep(K_MSEC(100));
+        retryCount++;
+        LOG_ERR("Failed to set last updated time. Retrying (%d)", retryCount);
+    }
+}
+
