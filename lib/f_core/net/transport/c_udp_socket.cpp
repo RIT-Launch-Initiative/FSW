@@ -150,6 +150,9 @@ int CUdpSocket::RegisterSocketService(net_socket_service_desc* desc, void* userD
     } else if (ret == -EINVAL) {
         LOG_ERR("Invalid parameter for socket service registration.");
         return ret;
+    } else if (ret < 0) {
+        LOG_ERR("Failed to register socket service (%d)", ret);
+        return ret;
     }
 
     return 0;

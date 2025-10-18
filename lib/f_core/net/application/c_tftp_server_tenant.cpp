@@ -41,6 +41,8 @@ void CTftpServerTenant::Register() {
     int ret = sock.RegisterSocketService(&tftpSocketService, this);
     if (ret < 0) {
         LOG_ERR("Failed to register socket service for CTftpServerTenant: %d", ret);
+    } else {
+        LOG_INF("TFTP socket service registered.");
     }
 }
 
