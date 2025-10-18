@@ -4,6 +4,30 @@
 		logfs = &lfs1;
 	};
 
+	aliases {
+		led0 = &led1; // a little broken :(
+		buzz = &buzzer;
+		ldo5v = &ldo5v_enable;
+		//gnss = &gnss;
+		//gpsreset = &gps_reset;
+		//gpssafeboot = &gps_timepulse;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led1: led1 {
+			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			label = "GPS LED";
+		};
+		buzzer: buzzer{
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "buzzer pin";
+		};
+		ldo5v_enable: ldo5v-enable{
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "Enable pin for 5v ldo";
+		};	};
+
 
 	fstab {
 		compatible = "zephyr,fstab";
@@ -16,8 +40,8 @@
 			// the binding reccomends defaults for these
 			read-size = <16>;
 			prog-size = <16>;
-			cache-size = <64>; // may need to grow for optimization
-			lookahead-size = <32>;
+			cache-size = <16>; // may need to grow for optimization
+			lookahead-size = <16>;
 			block-cycles = <(90 * 1000)>;
 			// the datasheet gives 100K P-E cycles
 			// NOTE: this seems to default to 512 for the mounted filesystem

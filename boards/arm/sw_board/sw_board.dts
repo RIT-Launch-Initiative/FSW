@@ -1,0 +1,417 @@
+/dts-v1/;
+#include <st/f4/stm32f446Xe.dtsi>
+#include <st/f4/stm32f446v(c-e)tx-pinctrl.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/led/led.h>
+
+
+/ {
+	model = "Software Board";
+	compatible = "launch,sw_board";
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,canbus = &can1;
+		zephyr,console = &cdc_acm_uart0;
+		zephyr,shell_uart = &cdc_acm_uart0;
+	};
+	aliases {
+		led0 = &led1;
+		sw0 = &button1;
+		led-strip = &led_strip;
+	};
+
+
+	leds: leds {
+		compatible = "gpio-leds";
+		led1: led1 {
+			gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+			label = "LED1";
+		};
+		led2: led2 {
+			gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
+			label = "LED2";
+		};
+	};
+
+	buttons: buttons {
+		compatible = "gpio-keys";
+		status = "okay";
+		button1: button1 {
+			gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;
+			label = "Button1"; // (Hardware SW3)
+		};
+		button2: button2 {
+			gpios = <&gpiob 9 GPIO_ACTIVE_LOW>;
+			label = "Button2"; // (Hardware SW4)
+		};
+
+		sd-card-detect {
+			// 0 when no card detected
+			// 1 when card detected
+			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+		};
+		vbus-detect {
+			gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	// passthrough to allow referencing gpio outputs like
+	// <&generic_gpios 1 GPIO_ACTIVE_HIGH>
+	// rather than having to remember the mapping
+	generic_gpios: generic-gpios {
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map = <0 0  &gpioe 9  0>, // GPIO-PWR
+		<1 0  &gpioe 10 0>, // GPIO 1
+		<2 0  &gpioe 11 0>, // GPIO 2
+		<3 0  &gpioe 14 0>, // GPIO 3
+		<4 0  &gpioe 13 0>, // GPIO 4
+		<5 0  &gpioa 8  0>, // GPIO 5
+		<6 0  &gpiod 9  0>, // GPIO 6
+		<7 0  &gpiod 8  0>, // GPIO 7
+		<8 0  &gpiob 15 0>, // GPIO 8
+		<9 0  &gpiod 10 0>, // GPIO 9
+		<10 0 &gpiod 14 0>, // GPIO 10
+		<11 0 &gpiod 15 0>, // GPIO 11
+		<12 0 &gpioc 8  0>, // GPIO 12
+		<13 0 &gpiod 5  0>; // GPIO-PWR5
+	};
+
+	control_gpios: control-gpios {
+		compatible = "gpio-leds";
+		uart1_pwr: uart1-pwr {
+			// Power control for uart 1 (3.3V)
+			gpios = <&gpioe 15 GPIO_ACTIVE_HIGH>;
+			label = "uart1-pwr";
+		};
+		uart2_pwr: uart2-pwr {
+			// Power control for uart 2 (5V)
+			gpios = <&gpioc 7 GPIO_ACTIVE_HIGH>;
+			label = "uart2-pwr";
+		};
+		servo1_pwr: servo1-pwr {
+			// Power Enable for Servo 1
+			gpios = <&gpioc 9 GPIO_ACTIVE_HIGH>;
+			label = "servo1-pwr";
+		};
+		servo1_hp: servo1-hp {
+			// High Power Enable for Servo 1
+			gpios = <&gpioc 6 GPIO_ACTIVE_HIGH>;
+			label = "servo1-hp";
+		};
+		servo2_pwr: servo2-pwr {
+			// Power Enable for Servo 2
+			gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
+			label = "servo2-pwr";
+		};
+		servo2_hp: servo2-hp {
+			// High Power Enable for Servo 1
+			gpios = <&gpiod 4 GPIO_ACTIVE_HIGH>;
+			label = "servo2-hp";
+		};
+		deploy_pwr: deploy-pwr {
+			// Power activation for deployment channels
+			gpios = <&gpioe 6 GPIO_ACTIVE_HIGH>;
+			label = "deploy-pwr";
+		};
+		stemma_pwr: stemma-pwr {
+			// Power enable for i2c stemma connector
+			gpios = <&gpiod 2 GPIO_ACTIVE_HIGH>;
+			label = "stemma-pwr";
+		};
+	};
+
+	usb_control: usb-control {
+		// pins for selecting
+		compatible = "gpio-leds";
+		status = "disabled";
+		usb_1a: usb-1a {
+			// Enable this to ask for 1A (rather than the .5A default)
+			// Enable this in combination with usb_15a to request 2A
+			// This may not have any affect depending on the type of USB Cable and the USB Power Source
+			gpios = <&gpioe 4 GPIO_ACTIVE_HIGH>;
+			label = "usb-1a";
+		};
+		usb_15a: usb-15a {
+			// Enable this to ask for 1/5A (rather than the .5A default)
+			// Enable this in combination with usb_1a to request 2A
+			// This may not have any affect depending on the type of USB Cable and the USB Power Source
+			gpios = <&gpioe 3 GPIO_ACTIVE_HIGH>;
+			label = "usb-1.5a";
+		};
+	};
+
+	soc {
+		quadspi: spi@a0001000 {
+			compatible = "st,stm32-qspi";
+			pinctrl-names = "default";
+			pinctrl-0 = <&quadspi_clk_pb2 &quadspi_bk1_ncs_pb6
+			&quadspi_bk1_io0_pd11 &quadspi_bk1_io1_pd12
+			&quadspi_bk1_io2_pe2 &quadspi_bk1_io3_pd13>;
+			reg = <0xa0001000 0x400>, <0x90000000 DT_SIZE_M(128)>;
+			interrupts = <92 0>;
+			clocks = <&rcc STM32_CLOCK(AHB3, 1U)>;
+			flash-id = <1>;
+			status = "okay";
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+
+			w25q128: qspi-nor-flash@90000000 {
+				compatible = "st,stm32-qspi-nor";
+				reg = <0x90000000 0x10000000>; /* 128 Mbits */
+				size = <DT_SIZE_M(128)>; /* 128 Mbits */
+				qspi-max-frequency = <DT_FREQ_M(50)>;
+				status = "okay";
+				spi-bus-width = <4>;
+				jedec-id = [ ef 40 18  ];
+				page-size = <256>;
+				writeoc = "PP_1_1_4";
+				requires-ulbpr;
+
+				partitions {
+					compatible = "fixed-partitions";
+					#address-cells = <1>;
+					#size-cells = <1>;
+				};
+			};
+		};
+	};
+};
+
+&adc1 {
+	status = "disabled";
+	st,adc-prescaler = <4>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	cont1: channel@3 {
+		// ADC Channel for measuring continuity on deployment channel 1
+		// Corresponds to GPIO A3
+		reg = <3>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+	cont2: channel@c {
+		// ADC Channel for measuring continuity on deployment channel 2
+		// Corresponds to GPIO C2
+		reg = <12>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+	CC1: channel@4 {
+		// ADC Channel for measuring CC1 and the available current from power source
+		// Corresponds to GPIO C4
+		reg = <4>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+	CC2: channel@e {
+		// ADC Channel for measuring CC2 and the available current from power source
+		// Corresponds to GPIO A4
+		reg = <14>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+};
+
+
+zephyr_udc0: &usbotg_fs {
+	pinctrl-0 = <&usb_otg_fs_dm_pa11 &usb_otg_fs_dp_pa12>;
+	pinctrl-names = "default";
+	maximum-speed = "full-speed";
+	status = "okay";
+
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+		label = "USB CDC-ACM";
+	};
+};
+
+&uart4 {
+	// HW UART1 TX1/RX1 (3.3V)
+	status = "okay";
+	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+};
+
+&uart5 {
+	// HW UART2 TX2/RX2 (3.3V)
+	status = "okay";
+	pinctrl-0 = <&uart5_tx_pe8 &uart5_rx_pe7>;
+
+	pinctrl-names = "default";
+	current-speed = <9600>;
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
+	pinctrl-names = "default";
+	status = "okay";
+	cs-gpios = <&gpioe 12 0>;
+
+	sd_card: sd-card@0 {
+		// see sd-card-detect for gpio that tells you if theres a card plugged in
+		compatible = "zephyr,sdhc-spi-slot";
+		reg = <0>;
+		status = "okay";
+		spi-max-frequency = <DT_FREQ_M(24)>;
+	};
+};
+
+&rtc {
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
+	         <&rcc STM32_SRC_LSE RTC_SEL(1)>;
+	status = "okay";
+};
+
+&i2c1 {
+	status = "okay";
+	pinctrl-0 = <&i2c1_scl_pb8 &i2c1_sda_pb7>;
+	pinctrl-names = "default";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	// manually specify these to enable bus recovery
+	scl-gpios = <&gpiob 6 GPIO_ACTIVE_HIGH>;
+	sda-gpios = <&gpiob 7 GPIO_ACTIVE_HIGH>;
+
+	// MS5607
+	ms5607: ms5607@76 {
+		compatible = "meas,ms5607";
+		reg = <0x76>;
+	};
+
+	// LSM6DSVETR
+	lsm6dv: lsm6dv@6b {
+		// Even though this isn't the exact same compatible string, it works for the LSM6DSVETR
+		// See link for more info: https: //github.com/zephyrproject-rtos/zephyr/discussions/72902
+		compatible = "st,lsm6dsv16x";
+		reg = <0x6b>;
+		int1-gpios = <&gpioc 10 GPIO_ACTIVE_HIGH>;
+		int2-gpios = <&gpiod 3 GPIO_ACTIVE_HIGH>;
+
+	};
+	ina219_3v3: ina219-3v3@45 {
+		// 3.3 Logic line - expect 3.3V
+		compatible = "ti,ina219";
+		reg = <0x45>;
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 7.5 mV drop.
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <400>;
+
+	};
+	ina219_5v: ina219-5v@40 {
+		// 5V Line - expect 5 V
+		status = "okay";
+		compatible = "ti,ina219";
+		reg = <0x40>;
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 7.5 mV drop.
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <400>;
+	};
+	ina219_battery: ina219-battery@4a {
+		// Battery Power - expect what ever your battery is, or useless value if no battery connected
+		status = "okay";
+		compatible = "ti,ina219";
+		reg = <0x4a>;
+		brng = <0>; // Set to 0 since we don't expect >16V
+		pg = <0>; // 7.5 mV drop.
+		sadc = <15>; // Shunt ADC: 12 bit - 128 sample averaging - 68.10 ms
+		badc = <15>; // Bus ADC: 12 bit - 128 sample averaging - 68.10 ms
+		shunt-milliohm = <5>;
+		lsb-microamp = <400>;
+	};
+
+	// NAU7802SGI (gone missing, might come back at a later date)
+	// Addr 0x2a
+
+};
+
+stemma_i2c: &i2c2 {
+	// exterior I2C
+	pinctrl-0 = <&i2c2_scl_pb10 &i2c2_sda_pc12>;
+	pinctrl-names = "default";
+
+};
+
+&can1 {
+	pinctrl-0 = <&can1_rx_pb8 &can1_tx_pb9>;
+	pinctrl-names = "default";
+	status = "disabled";
+};
+
+&spi2 {
+	// SPI Bus for running the LED Strip bus
+	// all but mosi are unused. ws2812 just needs the one wire but uses spi controller for hardware acceleration
+	pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pb14 &spi2_mosi_pc1>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	led_strip: ws2812@0 {
+		compatible = "worldsemi,ws2812-spi";
+		status = "okay";
+		spi-max-frequency = <DT_FREQ_K(6400)>;
+
+		reg = <0>;
+		chain-length = <4>;
+		spi-cpha;
+		spi-one-frame = <0xf0>; /* 11110000: 625 ns high and 625 ns low */
+		spi-zero-frame = <0xc0>; /* 11000000: 312.5 ns high and 937.5 ns low */
+		color-mapping = <
+		LED_COLOR_ID_GREEN
+		LED_COLOR_ID_RED
+		LED_COLOR_ID_BLUE>;
+	};
+};
+
+
+&clk_lsi {
+	status = "okay";
+	clock-frequency = <32768>;
+};
+
+&clk_lse {
+	status = "okay";
+	clock-frequency = <32768>;
+};
+
+&clk_hse {
+	status = "okay";
+	clock-frequency = <DT_FREQ_M(16)>;
+};
+
+&pll {
+	div-m = <8>;
+	mul-n = <72>;
+	div-p = <2>;
+	div-q = <3>;
+	clocks = <&clk_hse>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(72)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <2>;
+	apb2-prescaler = <1>;
+};
+
+&backup_sram {
+	status = "okay";
+};

@@ -4,6 +4,12 @@ description: |
 runs:
   using: "composite"
   steps:
+    - name: Add 32bit
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo dpkg --add-architecture i386 
+        sudo apt-get -qq update
     - name: Compute Cache Hashes
       id: compute_hashes
       shell: bash
@@ -13,7 +19,7 @@ runs:
     - uses: awalsh128/cache-apt-pkgs-action@latest
       if: runner.os == 'Linux'
       with:
-        packages: pkg-config libfuse-dev:i1386 gcc-multilib g++-multilib
+        packages: pkg-config libfuse-dev:i386 gcc-multilib g++-multilib
         version: 1.0
 
     - name: Set up Python

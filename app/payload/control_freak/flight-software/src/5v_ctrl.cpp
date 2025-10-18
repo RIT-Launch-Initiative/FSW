@@ -29,7 +29,7 @@ int five_volt_rail_init() {
         }
         int ret = gpio_pin_configure_dt(gpio, GPIO_OUTPUT_INACTIVE);
         if (ret < 0) {
-            LOG_WRN("Failed to conf %s pin :(", name);
+            LOG_WRN("Failed to conf %s pin:(", name);
             return ret;
         }
     }
@@ -61,6 +61,13 @@ int rail_item_enable(FiveVoltItem item) { return rail_item_set(item, true); }
 int rail_item_disable(FiveVoltItem item) { return rail_item_set(item, false); }
 
 int rail_item_set(FiveVoltItem item, bool set) {
+#if 0
+#warning "Buzzer is fake"
+    if (item == FiveVoltItem::Buzzer) {
+        set_item(item, false);
+        return set_ldo_accordingly();
+    }
+#endif
     set_item(item, set);
     return set_ldo_accordingly();
 }

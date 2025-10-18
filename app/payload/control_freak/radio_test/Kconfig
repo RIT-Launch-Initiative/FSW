@@ -1,0 +1,4 @@
+source "Kconfig.zephyr"
+config HORUS_PAYLOAD_ID
+	int "Payload ID"
+	default 0

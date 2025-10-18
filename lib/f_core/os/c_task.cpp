@@ -33,7 +33,7 @@ CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : n
 }
 
 CTask::~CTask() {
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->Cleanup();
     }
 
@@ -45,11 +45,11 @@ CTask::~CTask() {
 }
 
 void CTask::Initialize() {
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->Startup();
     }
 
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->PostStartup();
     }
 
@@ -65,12 +65,12 @@ void CTask::Initialize() {
     k_thread_name_set(taskId, name);
 }
 
-void CTask::AddTenant(CTenant& tenant) {
+void CTask::AddTenant(CRunnableTenant& tenant) {
     tenants.push_back(&tenant);
 }
 
 void CTask::Run() {
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->Run();
     }
     k_msleep(sleepTimeMs);

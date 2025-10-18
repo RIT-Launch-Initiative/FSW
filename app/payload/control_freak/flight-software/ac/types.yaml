@@ -6,9 +6,9 @@ SuperFastPacket:
     - name: BaromData
       type: BarometerData
     - name: GyroData
-      type: AccelerometerData
+      type: GyroscopeData
       array_size: 10
-    - name: AccelSize
+    - name: AccelData
       type: AccelerometerData
       array_size: 10
 SlowInfo:
@@ -30,13 +30,19 @@ SlowInfo:
     - name: PackedData
       type: uint64_t
     - name: LatFrac
-      type: int16_t
+      type: uint16_t
     - name: LongFrac
-      type: int16_t
+      type: uint16_t
     - name: Orientation
-      type: int16_t
+      type: int8_t
       array_size: 3
-    - name: BatteryVoltage
+    - name: FlightState
+      type: uint8_t
+    - name: Other2
+      type: uint8_t
+    - name: Other3
+      type: uint8_t
+    - name: Battery_voltage
       type: int16_t
     - name: Current
       type: uint16_t
