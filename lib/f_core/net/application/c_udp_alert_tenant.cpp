@@ -62,17 +62,9 @@ void CUdpAlertTenant::ProcessPacket(const NAlerts::AlertPacket& packet) {
         LOG_INF("Notifying observer");
         observer->Notify(&alertType);
         for (size_t i = 0; i < NAlerts::MAGIC_BYTE_SIGNATURE_SIZE; i++) {
-            if (buff[i] != NAlerts::MAGIC_BYTE_SIGNATURE[i]) {
+            if (packet[i] != NAlerts::MAGIC_BYTE_SIGNATURE[i]) {
                 return;
             }
-        }
-
-        // Potential alternative is using signals, but that might require passing in a lot of variables around
-        NAlerts::AlertType alertType = static_cast<NAlerts::AlertType>(buff[NAlerts::MAGIC_BYTE_SIGNATURE_SIZE]);
-        LOG_INF("Received alert type %d", static_cast<int>(alertType));
-        for (auto observer : observers) {
-            LOG_INF("Notifying observer");
-            observer->Notify(&alertType);
         }
     }
 }
