@@ -2,26 +2,26 @@
 #define C_UDP_ALERT_TENANT_H
 
 #include "f_core/n_alerts.h"
-
-#include <vector>
 #include "f_core/net/network/c_ipv4.h"
 #include "f_core/net/transport/c_udp_socket.h"
-#include "f_core/os/c_runnable_tenant.h"
+#include "f_core/os/c_callback_tenant.h"
 #include "f_core/utils/c_observer.h"
 
-class CUdpAlertTenant : public CRunnableTenant {
+#include <vector>
+
+class CUdpAlertTenant : public CCallbackTenant {
 public:
-    explicit CUdpAlertTenant(const char* name, const char* ipAddrStr, const uint16_t port) : CRunnableTenant(name), sock(CUdpSocket(CIPv4(ipAddrStr), port, port)) {};
+    explicit CUdpAlertTenant(const char* name, const char* ipAddrStr, const uint16_t port) : CCallbackTenant(name), sock(CUdpSocket(CIPv4(ipAddrStr), port, port)) {};
 
     /**
      * See parent docs
      */
-    void Startup() override;
+    void Register() override;
 
     /**
      * See parent docs
      */
-    void Run() override;
+    void Callback() override;
 
     /**
      * Subscribe an observer to receive alerts

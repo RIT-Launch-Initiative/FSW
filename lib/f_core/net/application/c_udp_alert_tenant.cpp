@@ -29,7 +29,7 @@ extern "C" void alertSocketServiceHandler(net_socket_service_event* pev) {
     tenant->ProcessPacket(buff);
 }
 
-void CUdpAlertTenant::Startup() {
+void CUdpAlertTenant::Register() {
     int ret = sock.RegisterSocketService(&alertSocketService, this);
     if (ret < 0) {
         LOG_ERR("Failed to register socket service for CUdpAlertTenant: %d", ret);
@@ -41,7 +41,7 @@ void CUdpAlertTenant::Subscribe(CObserver* observer) {
     LOG_INF("Subscribed observer %p to CUdpAlertTenant", observer);
 }
 
-void CUdpAlertTenant::Run() {
+void CUdpAlertTenant::Callback() {
     NAlerts::AlertPacket buff{};
     if (sock.ReceiveAsynchronous(buff.data(), NAlerts::ALERT_PACKET_SIZE) > 0) {
         ProcessPacket(buff);
