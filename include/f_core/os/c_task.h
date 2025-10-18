@@ -6,6 +6,8 @@
 #ifndef C_TASK_H
 #define C_TASK_H
 
+#include "zephyr/drivers/watchdog.h"
+
 #include <vector>
 
 #include <f_core/os/c_runnable_tenant.h>
@@ -22,8 +24,9 @@ public:
      * @param priority Zephyr priority level
      * @param stackSize Size of the stack to allocate
      * @param sleepTimeMs Time to sleep between a single cycle of the task
+     * @param wdtConfig Configuration for the watchdog timer, if used. If nullptr, no watchdog will be used.
      */
-    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512, int sleepTimeMs = 0);
+    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512, int sleepTimeMs = 0, wdt_timeout_cfg* wdtConfig = nullptr);
 
     /**
      * Destructor
@@ -33,7 +36,7 @@ public:
     /**
      * Initialize the necessary components for the task and starts it
      */
-    void Initialize();
+    void Initialize(const device* watchdogDev = nullptr);
 
     /**
      * Bind a tenant to the task
@@ -79,6 +82,9 @@ private:
     k_thread_stack_t* stack;
 
     std::vector<CRunnableTenant*> tenants;
+    wdt_timeout_cfg *wdtConfig = nullptr;
+    const device *watchdogDev = nullptr;
+    int wdtTimeoutId = -1;
 };
 
 #endif //C_TASK_H
