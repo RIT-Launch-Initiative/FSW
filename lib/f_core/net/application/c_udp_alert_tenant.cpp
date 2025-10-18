@@ -1,10 +1,8 @@
 #include "f_core/net/application/c_udp_alert_tenant.h"
 
-#include <zephyr/net/socket_service.h>
-
-#include <f_core/n_alerts.h>
-
 #include <array>
+#include <f_core/n_alerts.h>
+#include <zephyr/net/socket_service.h>
 
 LOG_MODULE_REGISTER(CUdpAlertTenant);
 
@@ -57,7 +55,7 @@ void CUdpAlertTenant::ProcessPacket(const NAlerts::AlertPacket& packet) {
 
     // Potential alternative is using signals, but that might require passing in a lot of variables around
     NAlerts::AlertType alertType = static_cast<NAlerts::AlertType>(packet[NAlerts::MAGIC_BYTE_SIGNATURE_SIZE]);
-    LOG_INF("Received alert type %c", alertType); // Would have to be changed to %d if alerts go past 8 bits
+    LOG_INF("Received alert type %d", static_cast<int>(alertType)); // Would have to be changed to %d if alerts go past 8 bits
     for (auto observer : observers) {
         LOG_INF("Notifying observer");
         observer->Notify(&alertType);
