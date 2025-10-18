@@ -108,11 +108,10 @@ private:
     static constexpr char BROADCAST_IP[] = "255.255.255.255";
 #endif
 
-    int sock = -1;
     int dstPort = -1;
 
     net_socket_service_desc* serviceDesc = nullptr;
-    pollfd sockfd = {
+    zsock_pollfd sockfd = {
         .fd = -1,
         .events = POLLIN,
         .revents = 0
