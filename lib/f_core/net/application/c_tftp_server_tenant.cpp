@@ -10,7 +10,7 @@
 
 LOG_MODULE_REGISTER(CTftpServerTenant);
 
-char *inet_ntoa(struct in_addr in) {
+char *inet_ntoa(in_addr in) {
     static char buf[INET_ADDRSTRLEN];
     unsigned char *bytes = (unsigned char *)&in.s_addr;
 
@@ -34,10 +34,10 @@ extern "C" void tftpSocketServiceHandler(net_socket_service_event* pev) {
         k_oops();
     }
 
-    tenant->Run();
+    tenant->Callback();
 }
 
-void CTftpServerTenant::Startup() {
+void CTftpServerTenant::Register() {
     int ret = sock.RegisterSocketService(&tftpSocketService, this);
     if (ret < 0) {
         LOG_ERR("Failed to register socket service for CTftpServerTenant: %d", ret);
@@ -47,7 +47,7 @@ void CTftpServerTenant::Startup() {
 void CTftpServerTenant::Cleanup() {
 }
 
-void CTftpServerTenant::Run() {
+void CTftpServerTenant::Callback() {
     sockaddr srcAddr = {0};
     socklen_t srcAddrLen = sizeof(srcAddr);
     uint8_t packet[rwRequestPacketSize] = {0};
