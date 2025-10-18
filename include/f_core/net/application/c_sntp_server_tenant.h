@@ -13,7 +13,7 @@
 static rtc_time lastUpdatedTime;
 static K_MUTEX_DEFINE(lastUpdatedTimeLock); // Use macro here so we dont need to call init
 
-class CSntpServerTenant : public CRunnableTenant, public CCallbackTenant {
+class CSntpServerTenant : public CCallbackTenant {
 public:
     enum SntpPrecisionExponents : int8_t {
         SNTP_NANOSECONDS_PRECISION = -30,
@@ -72,22 +72,7 @@ public:
     /**
      * See parent docs
      */
-    void Startup() override;
-
-    /**
-     * See parent docs
-     */
-    void PostStartup() override;
-
-    /**
-     * See parent docs
-     */
     void Cleanup() override;
-
-    /**
-     * See parent docs
-     */
-    void Run() override;
 
     /**
      * See parent docs
@@ -173,7 +158,8 @@ private:
 
     CSntpServerTenant(CRtc& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
                       uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
-        : CRunnableTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc), stratum(stratum),
+        : CCallbackTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc),
+          stratum(stratum),
           pollInterval(pollInterval), precisionExponent(precisionExponent), sockPort(port) {}
 
     int getLastUpdateTimeAsSeconds(uint32_t& seconds);

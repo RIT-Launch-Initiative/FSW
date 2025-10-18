@@ -30,20 +30,47 @@ void CSntpServerTenant::Register() {
     if (ret < 0) {
         LOG_ERR("Failed to register socket service for CSntpServerTenant: %d", ret);
     }
-}
 
+    rtc_time time = {0};
 
-void CSntpServerTenant::Startup() {
+    int ret = rtc.GetTime(time);
+    if (ret < 0) {
+        LOG_ERR("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
+        // Default to 2025-01-01 00:00:00 until the RTC is set
+        rtc_time tm = {
+            .tm_sec = 0,
+            .tm_min = 0,
+            .tm_hour = 0,
+            .tm_mday = 1,
+            .tm_mon = 0,
+            // STM32 RTC is from 2000. This leads to some scuffed things. 100 will correspond to 1900, but 101 corresponds to 2001. See rtc_ll_stm32.c
+            .tm_year = 125, // 2025 - 1900 = 125
+            .tm_wday = 4,
+            .tm_yday = 0,
+            .tm_isdst = -1,
+            .tm_nsec = 0,
+        };
 
-}
+        ret = rtc.SetTime(tm);
+        if (ret != 0) {
+            LOG_ERR("Failed to set RTC time on SNTP server startup (%d)", ret);
+            if (ret == -EINVAL) {
+                LOG_ERR("EINVAL error setting RTC. Confirm tm struct is properly formatted");
+            }
+        }
+    }
 
-void CSntpServerTenant::PostStartup() {
-    setupRtcTime();
+    int retryCount = 0;
+    while (SetLastUpdatedTime(time) != 0 && retryCount < 5) {
+        k_sleep(K_MSEC(100));
+        retryCount++;
+        LOG_ERR("Failed to set last updated time. Retrying (%d)", retryCount);
+    }
 }
 
 void CSntpServerTenant::Cleanup() {}
 
-void CSntpServerTenant::Run() {
+void CSntpServerTenant::Callback() {
     SntpPacket clientPacket = {0};
     uint32_t rxPacketSecondsTimestamp = 0;
     uint32_t txPacketSecondsTimestamp = 0;
@@ -131,42 +158,3 @@ int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     seconds = mktime(&timeinfo);
     return 0;
 }
-
-void CSntpServerTenant::setupRtcTime() {
-    rtc_time time = {0};
-
-    int ret = rtc.GetTime(time);
-    if (ret < 0) {
-        LOG_ERR("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
-        // Default to 2025-01-01 00:00:00 until the RTC is set
-        rtc_time tm = {
-            .tm_sec = 0,
-            .tm_min = 0,
-            .tm_hour = 0,
-            .tm_mday = 1,
-            .tm_mon = 0,
-            // STM32 RTC is from 2000. This leads to some scuffed things. 100 will correspond to 1900, but 101 corresponds to 2001. See rtc_ll_stm32.c
-            .tm_year = 125, // 2025 - 1900 = 125
-            .tm_wday = 4,
-            .tm_yday = 0,
-            .tm_isdst = -1,
-            .tm_nsec = 0,
-        };
-
-        ret = rtc.SetTime(tm);
-        if (ret != 0) {
-            LOG_ERR("Failed to set RTC time on SNTP server startup (%d)", ret);
-            if (ret == -EINVAL) {
-                LOG_ERR("EINVAL error setting RTC. Confirm tm struct is properly formatted");
-            }
-        }
-    }
-
-    int retryCount = 0;
-    while (SetLastUpdatedTime(time) != 0 && retryCount < 5) {
-        k_sleep(K_MSEC(100));
-        retryCount++;
-        LOG_ERR("Failed to set last updated time. Retrying (%d)", retryCount);
-    }
-}
-
