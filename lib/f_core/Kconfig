@@ -32,6 +32,7 @@ config F_CORE_NET
     select NET_SOCKETS_SERVICE
     select NET_STATISTICS
     select SNTP
+    imply ZVFS_POLL_MAX_HINT
 
 config F_CORE_RADIO
     bool "Radio"
@@ -58,5 +59,16 @@ config F_CORE_PROTOCOLS
     depends on F_CORE
     help
       This option enables support for some protocols for F-Core
+
+config ZVFS_POLL_MAX_HINT
+    bool
+    help
+      Internal signal to suggest default ZVFS_POLL_MAX=5 if not overridden
+
+config ZVFS_POLL_MAX
+    int
+    default 5 if ZVFS_POLL_MAX_HINT
+    help
+      Max number of poll events in ZVFS
 
 rsource "radio/Kconfig"

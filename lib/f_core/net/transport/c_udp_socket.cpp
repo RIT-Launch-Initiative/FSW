@@ -139,6 +139,11 @@ int CUdpSocket::RegisterSocketService(net_socket_service_desc* desc, void* userD
         return -1;
     }
 
+    if (sockfd.fd < 0) {
+        LOG_ERR("Socket file descriptor is invalid");
+        return -1;
+    }
+
     auto* serviceUserData = new SocketServiceUserData{this, userData};
     desc->pev[0].user_data = serviceUserData;
 
