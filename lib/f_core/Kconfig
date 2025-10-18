@@ -60,6 +60,9 @@ config F_CORE_PROTOCOLS
     help
       This option enables support for some protocols for F-Core
 
+
+# The below is an internal config to suggest a default value for ZVFS_POLL_MAX
+# for socket service support, since the original default is 3, which is low
 config ZVFS_POLL_MAX_HINT
     bool
     help
