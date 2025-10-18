@@ -4,8 +4,9 @@
 #include "f_core/os/c_tenant.h"
 #include "f_core/net/network/c_ipv4.h"
 #include "f_core/net/transport/c_udp_socket.h"
+#include "f_core/os/c_runnable_tenant.h"
 
-class CTftpServerTenant : public CTenant {
+class CTftpServerTenant : public CRunnableTenant {
 public:
     static constexpr uint16_t TFTP_DEFAULT_PORT = 69;
     inline static CTftpServerTenant *instance = nullptr;
@@ -85,7 +86,7 @@ private:
      * @param port Port to bind to. Standard is 69
      */
     CTftpServerTenant(const CIPv4 &ipv4, uint16_t port = TFTP_DEFAULT_PORT)
-        : CTenant("TFTP server"), sock(ipv4, port, port), ip(ipv4) {};
+        : CRunnableTenant("TFTP server"), sock(ipv4, port, port), ip(ipv4) {};
 
     /**
      * Handles TFTP RRQ requests

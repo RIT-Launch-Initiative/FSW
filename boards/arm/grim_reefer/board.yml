@@ -1,0 +1,5 @@
+board:
+  name: grim_reefer
+  vendor: launch
+  socs:
+    - name: stm32f446xx

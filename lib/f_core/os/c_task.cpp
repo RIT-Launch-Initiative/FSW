@@ -35,7 +35,7 @@ CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs,
                                                      sleepTimeMs(sleepTimeMs), wdtConfig(wdtConfig) {}
 
 CTask::~CTask() {
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->Cleanup();
     }
 
@@ -57,11 +57,11 @@ void CTask::Initialize(const device* wdgDev) {
         LOG_DBG("No watchdog configuration or device provided, skipping watchdog setup");
     }
 
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->Startup();
     }
 
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->PostStartup();
     }
 
@@ -77,12 +77,12 @@ void CTask::Initialize(const device* wdgDev) {
     k_thread_name_set(taskId, name);
 }
 
-void CTask::AddTenant(CTenant& tenant) {
+void CTask::AddTenant(CRunnableTenant& tenant) {
     tenants.push_back(&tenant);
 }
 
 void CTask::Run() {
-    for (CTenant* tenant : tenants) {
+    for (CRunnableTenant* tenant : tenants) {
         tenant->Run();
     }
 
