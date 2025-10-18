@@ -28,7 +28,7 @@ extern "C" void tftpSocketServiceHandler(net_socket_service_event* pev) {
         k_oops();
     }
 
-    CTenant* tenant = static_cast<CTenant*>(userData->userData);
+    CCallbackTenant* tenant = static_cast<CCallbackTenant*>(userData->userData);
     if (tenant == nullptr) {
         LOG_ERR("Tenant is null in tftpSocketServiceHandler");
         k_oops();
