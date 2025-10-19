@@ -24,7 +24,6 @@ void CPowerModule::AddTenantsToTasks() {
     // Networking
     networkTask.AddTenant(broadcastTenant);
     networkTask.AddTenant(downlinkBroadcastTenant);
-    networkTask.AddTenant(alertTenant);
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);
@@ -46,6 +45,7 @@ void CPowerModule::AddTasksToRtos() {
 
 void CPowerModule::SetupCallbacks() {
     alertTenant.Subscribe(&sensingTenant);
+    alertTenant.Register();
 
     // Not a callback, but ¯\_(ツ)_/¯
     // Maybe have Add and Setup tasks be private and have main.cpp call a single function?

@@ -16,6 +16,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 int main() {
     CIPv4 ip("10.0.0.1");
     CTftpServerTenant *tftpServer = CTftpServerTenant::GetInstance(ip);
+    tftpServer->Register();
 
     LOG_INF("Creating file");
 
@@ -29,8 +30,8 @@ int main() {
     LOG_INF("Wrote to file %d", ret);
 
     while (true) {
-        tftpServer->Run();
-        k_msleep(100);
+        // TFTP Runs as a socket service now, so just keep the main thread alive
+        k_msleep(1000);
     }
 
     return 0;

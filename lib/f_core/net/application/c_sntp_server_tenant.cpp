@@ -1,16 +1,39 @@
 #include "f_core/net/application/c_sntp_server_tenant.h"
+
+#include "zephyr/net/socket_service.h"
+
 #include <zephyr/net/net_ip.h>
 
 LOG_MODULE_REGISTER(CSntpServerTenant);
 
-void CSntpServerTenant::Startup() {
-    LOG_INF("Starting SNTP server on port %d", sockPort);
+extern net_socket_service_desc sntpSocketService;
+extern "C" void sntpSocketServiceHandler(net_socket_service_event* pev) {
+    auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
+
+    if (userData == nullptr) {
+        LOG_ERR("User data is null in alertSocketServiceHandler");
+        k_oops();
+    }
+
+    auto* tenant = static_cast<CCallbackTenant*>(userData->userData);
+    if (tenant == nullptr) {
+        LOG_ERR("Tenant is null in tftpSocketServiceHandler");
+        k_oops();
+    }
+
+    tenant->Callback();
 }
 
-void CSntpServerTenant::PostStartup() {
+void CSntpServerTenant::Register() {
+    LOG_INF("Starting SNTP server on port %d", sockPort);
+    int ret = sock.RegisterSocketService(&sntpSocketService, this);
+    if (ret < 0) {
+        LOG_ERR("Failed to register socket service for CSntpServerTenant: %d", ret);
+    }
+
     rtc_time time = {0};
 
-    int ret = rtc.GetTime(time);
+    ret = rtc.GetTime(time);
     if (ret < 0) {
         LOG_ERR("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
         // Default to 2025-01-01 00:00:00 until the RTC is set
@@ -47,7 +70,7 @@ void CSntpServerTenant::PostStartup() {
 
 void CSntpServerTenant::Cleanup() {}
 
-void CSntpServerTenant::Run() {
+void CSntpServerTenant::Callback() {
     SntpPacket clientPacket = {0};
     uint32_t rxPacketSecondsTimestamp = 0;
     uint32_t txPacketSecondsTimestamp = 0;
@@ -115,6 +138,7 @@ void CSntpServerTenant::Run() {
         LOG_ERR("Failed to transmit packet (%d)", ret);
     }
 }
+
 
 int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     rtc_time time{0};
