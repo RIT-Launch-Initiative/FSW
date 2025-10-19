@@ -1,0 +1,9 @@
+sample:
+  description:
+  name: grim_reefer
+common:
+  build_only: true
+  platform_allow:
+    - grim_reefer
+tests:
+  solids_test.default: {}
