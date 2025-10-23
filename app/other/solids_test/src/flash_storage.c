@@ -113,7 +113,7 @@ static void flash_storage_thread_entry(){
         }
 
         off_t test_block_addr = get_test_block_addr(current_test_number);
-        LOG_INF("Starting test %d at addr 0x%08x", current_test_number, (long)test_block_addr);
+        LOG_INF("Starting test %u at addr 0x%08lx", current_test_number, (long)test_block_addr);
 
         // Erase block
         int ret = flash_erase(flash_dev, test_block_addr, SPI_FLASH_BLOCK_SIZE);
@@ -154,6 +154,8 @@ void stop_flash_storage(){
     k_msgq_put(&storage_control_queue, &event, K_FOREVER);
 }
 
+int flash_erase_all();
+
 int flash_dump_all(const struct shell *shell){
     struct adc_sample sample;
     uint32_t test_index = 0;
@@ -171,12 +173,21 @@ int flash_dump_all(const struct shell *shell){
         off_t addr = block_addr;
 
         for(int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++){
+<<<<<<< HEAD
             if(flash_read(flash_dev, addr, &sample, sizeof(sample)) < 0){
                 shell_print(shell, "Flash read failed");
                 break;
             } 
             if(sample.value == 0xFFFF && sample.timestamp == 0xFFFFFFFF){
                 shell_print(shell, "Flash block empty");
+=======
+            if (flash_read(flash_dev, addr, &sample, sizeof(sample)) < 0){
+                // shell_print(shell, "Flash read failed");
+                break;
+            } 
+            if (sample.value == 0xFFFF && sample.timestamp == 0xFFFFFFFF){
+                // shell_print(shell, "Flash block empty");
+>>>>>>> 0904818554a7ceac08a34dfddcd6f0eff1d2839c
                 break;
             }
             shell_print(shell, "%u,%u", sample.timestamp, sample.value);
@@ -184,7 +195,7 @@ int flash_dump_all(const struct shell *shell){
         }
     }
 
-    // flash_erase_all();
+    flash_erase_all();
 
     return 0;
 }
@@ -201,6 +212,8 @@ static int flash_erase_all(){
             LOG_INF("Flash block %d erased", i);
         }
     }
+    current_test_number = 0;
+    save_metadata();
 
     current_test_number = 0;
     save_metadata();
