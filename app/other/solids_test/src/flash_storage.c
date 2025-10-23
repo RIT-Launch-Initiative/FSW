@@ -171,10 +171,34 @@ int flash_dump_all(const struct shell *shell){
         off_t addr = block_addr;
 
         for(int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++){
-            if (flash_read(flash_dev, addr, &sample, sizeof(sample)) < 0) break;
-            if (sample.value == 0xFFFF && sample.timestamp == 0xFFFFFFFF) break;
+            if (flash_read(flash_dev, addr, &sample, sizeof(sample)) < 0){
+                shell_print(shell, "Flash read failed");
+                break;
+            } 
+            if (sample.value == 0xFFFF && sample.timestamp == 0xFFFFFFFF){
+                shell_print(shell, "Flash block empty");
+                break;
+            };
             shell_print(shell, "%u,%u", sample.timestamp, sample.value);
             addr += sizeof(sample);
+        }
+    }
+
+    // flash_erase_all();
+
+    return 0;
+}
+
+int flash_erase_all(){
+    for(uint32_t i = 0; i < MAX_TESTS; i++){
+        off_t curr_add = get_test_block_addr(i);
+        int ret = flash_erase(flash_dev, curr_add, SPI_FLASH_BLOCK_SIZE);
+        if(ret < 0){
+            LOG_ERR("flash_erase failed: %d", ret);
+            continue;
+        }
+        else{
+            LOG_INF("Flash block %d erased", i);
         }
     }
 

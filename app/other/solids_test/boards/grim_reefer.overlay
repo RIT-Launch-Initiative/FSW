@@ -7,6 +7,7 @@
 
     aliases {
         adc0 = &adc;
+        buzzer = &led1;
     };
 };
 
@@ -23,7 +24,7 @@
         analog-clock-prescaler = <0>;
         boost-current-bias = <0>;
         spi-max-frequency = <DT_FREQ_M(10)>;
-        irq-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+        irq-gpios = <&gpiob 14 GPIO_ACTIVE_LOW>;
 
         channel@0 {
             reg = <0>;
@@ -38,6 +39,7 @@
             zephyr,input-positive = <0x1>;
             zephyr,input-negative = <0x0>;
 
+            zephyr,oversampling = <8>;
         };
     };
 };

@@ -2,11 +2,12 @@
 #include "config.h"
 #include "flash_storage.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/logging/log.h>
-#include <stdint.h>
+#include <zephyr/devicetree.h>
 
 LOG_MODULE_REGISTER(adc_reader, LOG_LEVEL_INF);
 
@@ -37,14 +38,16 @@ static struct adc_sequence sequence = {
     .resolution = 24
 };
 
+#define DT_SPEC_AND_COMMA(node_id, prop, idx) \
+    ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
+
 static const struct adc_dt_spec adc_channels[] = {
-        DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels,
-                             DT_SPEC_AND_COMMA)
+    DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)
 };
 
 void adc_init(){
     if(!adc_is_ready_dt(&adc_channels[0])){
-        LOG_ERR("ADC controller device %s not ready\n", adc_channels[i].dev->name);
+        LOG_ERR("ADC controller device %s not ready\n", adc_channels[0].dev->name);
         return 0;
     }
 
@@ -53,17 +56,6 @@ void adc_init(){
         LOG_ERR("Could not setup channel (%d)\n", err);
         return 0;
     }
-
-    // if(!device_is_ready(adc_dev)){
-    //     LOG_ERR("ADC device not ready");
-    //     return;
-    // }
-
-    // int ret = adc_channel_setup(adc_dev, adc_channels[0]);
-    // if(ret < 0){
-    //     LOG_ERR("Failed to configure ADC channel (%d)", ret);
-    //     return;
-    // }
 
     LOG_INF("ADC initialized");
 }
@@ -95,6 +87,7 @@ void adc_reading_task(){
         sequence.buffer_size = sizeof(adc_val);
 
         // Read from ADC
+        (void)adc_sequence_init_dt(&adc_channels[0], &sequence);
         ret = adc_read(adc_dev, &sequence);
         if(ret < 0){
             LOG_ERR("ADC read failed (%d)", ret);
@@ -103,6 +96,8 @@ void adc_reading_task(){
 
         sample.timestamp = k_uptime_get_32();
         sample.value = adc_val;
+
+        LOG_INF("%u", sample.value);
 
         k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT);
     }
