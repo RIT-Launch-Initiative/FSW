@@ -37,24 +37,33 @@ static struct adc_sequence sequence = {
     .resolution = 24
 };
 
-static struct adc_channel_cfg channel_cfg = {
-    .gain = ADC_GAIN_1,
-    .reference = ADC_REF_INTERNAL,
-    .acquisition_time = ADC_ACQ_TIME_DEFAULT,
-    .channel_id = 0,
+static const struct adc_dt_spec adc_channels[] = {
+        DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels,
+                             DT_SPEC_AND_COMMA)
 };
 
 void adc_init(){
-    if(!device_is_ready(adc_dev)){
-        LOG_ERR("ADC device not ready");
-        return;
+    if(!adc_is_ready_dt(&adc_channels[0])){
+        LOG_ERR("ADC controller device %s not ready\n", adc_channels[i].dev->name);
+        return 0;
     }
 
-    int ret = adc_channel_setup(adc_dev, &channel_cfg);
-    if(ret < 0){
-        LOG_ERR("Failed to configure ADC channel (%d)", ret);
-        return;
+    int err = adc_channel_setup_dt(&adc_channels[0]);
+    if(err < 0){
+        LOG_ERR("Could not setup channel (%d)\n", err);
+        return 0;
     }
+
+    // if(!device_is_ready(adc_dev)){
+    //     LOG_ERR("ADC device not ready");
+    //     return;
+    // }
+
+    // int ret = adc_channel_setup(adc_dev, adc_channels[0]);
+    // if(ret < 0){
+    //     LOG_ERR("Failed to configure ADC channel (%d)", ret);
+    //     return;
+    // }
 
     LOG_INF("ADC initialized");
 }
