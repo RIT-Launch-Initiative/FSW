@@ -25,6 +25,7 @@
         boost-current-bias = <0>;
         spi-max-frequency = <DT_FREQ_M(10)>;
         irq-gpios = <&gpiob 14 GPIO_ACTIVE_LOW>;
+        use-internal-clock;
 
         channel@0 {
             reg = <0>;

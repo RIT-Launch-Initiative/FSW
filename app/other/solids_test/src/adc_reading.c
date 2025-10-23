@@ -69,16 +69,17 @@ void adc_reading_task(){
     LOG_INF("ADC reading task waiting to start...");
 
     // Wait for start event
-    k_event_wait(&adc_control_event, BEGIN_READING_EVENT, false, K_FOREVER);
+    k_event_wait(&adc_control_event, BEGIN_READING_EVENT, true, K_FOREVER);
 
     LOG_INF("ADC reading started");
 
     k_timer_start(&adc_timer, K_MSEC(1), K_MSEC(1)); // 1kHz loop
 
+    int x = 0;
+
     while(true){
         uint32_t events = k_event_wait(&adc_control_event, BEGIN_READING_EVENT | STOP_READING_EVENT, false, K_NO_WAIT);
         if(events & STOP_READING_EVENT){
-            LOG_INF("ADC reading stopped");
             break;
         }
 
@@ -98,7 +99,10 @@ void adc_reading_task(){
         sample.timestamp = k_uptime_get_32();
         sample.value = adc_val;
 
-        LOG_INF("%u", sample.value);
+        if(x % 100 == 0){
+            LOG_INF("sample value: %u", sample.value);
+        }
+        x++;
 
         k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT);
     }
@@ -108,10 +112,8 @@ void adc_reading_task(){
 
 void adc_start_reading(){
     k_event_set(&adc_control_event, BEGIN_READING_EVENT);
-    LOG_INF("ADC reading started");
 }
 
 void adc_stop_recording(){
     k_event_set(&adc_control_event, STOP_READING_EVENT);
-    LOG_INF("ADC reading stopped");
 }

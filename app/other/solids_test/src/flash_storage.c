@@ -173,21 +173,12 @@ int flash_dump_all(const struct shell *shell){
         off_t addr = block_addr;
 
         for(int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++){
-<<<<<<< HEAD
             if(flash_read(flash_dev, addr, &sample, sizeof(sample)) < 0){
                 shell_print(shell, "Flash read failed");
                 break;
             } 
             if(sample.value == 0xFFFF && sample.timestamp == 0xFFFFFFFF){
                 shell_print(shell, "Flash block empty");
-=======
-            if (flash_read(flash_dev, addr, &sample, sizeof(sample)) < 0){
-                // shell_print(shell, "Flash read failed");
-                break;
-            } 
-            if (sample.value == 0xFFFF && sample.timestamp == 0xFFFFFFFF){
-                // shell_print(shell, "Flash block empty");
->>>>>>> 0904818554a7ceac08a34dfddcd6f0eff1d2839c
                 break;
             }
             shell_print(shell, "%u,%u", sample.timestamp, sample.value);
@@ -200,7 +191,7 @@ int flash_dump_all(const struct shell *shell){
     return 0;
 }
 
-static int flash_erase_all(){
+int flash_erase_all(){
     for(uint32_t i = 0; i < MAX_TESTS; i++){
         off_t curr_add = get_test_block_addr(i);
         int ret = flash_erase(flash_dev, curr_add, SPI_FLASH_BLOCK_SIZE);
@@ -212,8 +203,6 @@ static int flash_erase_all(){
             LOG_INF("Flash block %d erased", i);
         }
     }
-    current_test_number = 0;
-    save_metadata();
 
     current_test_number = 0;
     save_metadata();
