@@ -1,43 +1,24 @@
-/*
- * :wa:
- */
+#include "control.h"
 
-#include <stdio.h>
 #include <zephyr/kernel.h>
-#include <zephyr/drivers/gpio.h>
+#include <zephyr/device.h>
+#include <zephyr/shell/shell.h>
+#include <zephyr/logging/log.h>
 
-// 1000 msec = 1 sec
-#define SLEEP_TIME_MS   1000
-
-// blinky for debugging
-#define LED0_NODE DT_ALIAS(led0)
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-
-#define ADC_NODE DT_ALIAS(adc)
+LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 int main(void)
 {
-	int ret;
-	bool led_state = true;
+	LOG_INF("Solids Test Start");
 
-	if (!gpio_is_ready_dt(&led)) {
-		return 0;
-	}
+	control_init();
 
-	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-	if (ret < 0) {
-		return 0;
-	}
+	LOG_INF("Use 'test start' to begin test");
+    LOG_INF("Commands: test start | test stop | test dump");
 
-	while (1) {
-		ret = gpio_pin_toggle_dt(&led);
-		if (ret < 0) {
-			return 0;
-		}
+	while(1){
+        k_sleep(K_MSEC(10));
+    }
 
-		led_state = !led_state;
-		printf("LED state: %s\n", led_state ? "ON" : "OFF");
-		k_msleep(SLEEP_TIME_MS);
-	}
 	return 0;
 }

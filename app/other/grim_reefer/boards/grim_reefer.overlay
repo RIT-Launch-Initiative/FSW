@@ -1,5 +1,11 @@
 /delete-node/ &adc;
 
+/ {
+    aliases {
+        adc0 = &adc;
+    };
+};
+
 &spi2 {
     status = "okay";
     adc: mcp3561@0 { // new and cool driver

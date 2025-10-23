@@ -1,0 +1,16 @@
+#ifndef ADC_READING_H
+#define ADC_READING_H
+
+#include <stdint.h>
+
+struct adc_sample {
+    uint32_t timestamp;
+    uint32_t value;
+};
+
+void adc_init();
+void adc_reading_task();
+void adc_start_reading();
+void adc_stop_recording();
+
+#endif // ADC_READING_H
