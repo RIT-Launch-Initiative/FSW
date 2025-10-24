@@ -66,48 +66,53 @@ void adc_reading_task(){
     uint32_t adc_val = 0;
     struct adc_sample sample = {0};
 
-    LOG_INF("ADC reading task waiting to start...");
-
-    // Wait for start event
-    k_event_wait(&adc_control_event, BEGIN_READING_EVENT, true, K_FOREVER);
-
-    LOG_INF("ADC reading started");
-
-    k_timer_start(&adc_timer, K_MSEC(1), K_MSEC(1)); // 1kHz loop
-
-    int x = 0;
-
     while(true){
-        uint32_t events = k_event_wait(&adc_control_event, BEGIN_READING_EVENT | STOP_READING_EVENT, false, K_NO_WAIT);
-        if(events & STOP_READING_EVENT){
-            break;
+        LOG_INF("ADC reading task waiting to start...");
+
+        // Wait for start event
+        k_event_wait(&adc_control_event, BEGIN_READING_EVENT, true, K_FOREVER);
+
+        LOG_INF("ADC reading started");
+
+        k_timer_start(&adc_timer, K_USEC(100), K_USEC(100)); // 1kHz loop
+
+        int x = 0;
+
+        uint64_t start_time = k_uptime_get();
+
+        while(true){
+            uint32_t events = k_event_wait(&adc_control_event, BEGIN_READING_EVENT | STOP_READING_EVENT, false, K_NO_WAIT);
+            if(events & STOP_READING_EVENT){
+                break;
+            }
+
+            k_timer_status_sync(&adc_timer);
+
+            sequence.buffer = &adc_val;
+            sequence.buffer_size = sizeof(adc_val);
+
+            // Read from ADC
+            (void)adc_sequence_init_dt(&adc_channels[0], &sequence);
+            ret = adc_read(adc_dev, &sequence);
+            if(ret < 0){
+                LOG_ERR("ADC read failed (%d)", ret);
+                continue;
+            }
+
+            sample.timestamp = k_uptime_get() - start_time;
+            sample.value = adc_val;
+
+            if(x % 25 == 0){
+                LOG_INF("sample value: %u", sample.value);
+            }
+            x++;
+
+            k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT);
         }
 
-        k_timer_status_sync(&adc_timer);
-
-        sequence.buffer = &adc_val;
-        sequence.buffer_size = sizeof(adc_val);
-
-        // Read from ADC
-        (void)adc_sequence_init_dt(&adc_channels[0], &sequence);
-        ret = adc_read(adc_dev, &sequence);
-        if(ret < 0){
-            LOG_ERR("ADC read failed (%d)", ret);
-            continue;
-        }
-
-        sample.timestamp = k_uptime_get_32();
-        sample.value = adc_val;
-
-        if(x % 100 == 0){
-            LOG_INF("sample value: %u", sample.value);
-        }
-        x++;
-
-        k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT);
+        k_timer_stop(&adc_timer);
+        LOG_INF("number of samples: %d", x);
     }
-
-    k_timer_stop(&adc_timer);
 }
 
 void adc_start_reading(){

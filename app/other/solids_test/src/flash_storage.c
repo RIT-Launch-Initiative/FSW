@@ -14,7 +14,7 @@ LOG_MODULE_REGISTER(flash_storage, LOG_LEVEL_INF);
 
 #define SPI_FLASH_ADDR         0x00000000
 #define FLASH_METADATA_ADDR    SPI_FLASH_ADDR
-#define SPI_FLASH_BLOCK_SIZE   (64 * 1024) // 64KB
+#define SPI_FLASH_BLOCK_SIZE   (64 * 2048) // 128KB
 #define FLASH_METADATA_SIZE    (4 * 1024)  // 4KB
 #define SPI_FLASH_START_ADDR   (FLASH_METADATA_ADDR + FLASH_METADATA_SIZE)
 
@@ -156,6 +156,38 @@ void stop_flash_storage(){
 
 int flash_erase_all();
 
+int flash_dump_one(const struct shell *shell, uint32_t test_index){
+    struct adc_sample sample;
+
+    if(!device_is_ready(flash_dev)){
+        shell_error(shell, "Flash not ready");
+        return -1;
+    }
+
+    off_t block_addr = get_test_block_addr(test_index);
+    if(flash_block_is_empty(block_addr)){
+        shell_print(shell, "Flash block empty");
+        return 0;
+    }
+
+    shell_print(shell, "Dumping Test %d:", test_index);
+
+    for(int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++){
+        if(flash_read(flash_dev, block_addr, &sample, sizeof(sample)) < 0){
+            shell_print(shell, "Flash read failed");
+            break;
+        } 
+        if(sample.value == 0xFFFFFFFF && sample.timestamp == 0xFFFFFFFF){
+            shell_print(shell, "Flash block unwritten");
+            break;
+        }
+        shell_print(shell, "%u,%u", sample.timestamp, sample.value);
+        block_addr += sizeof(sample);
+    }
+
+    return 0;
+}
+
 int flash_dump_all(const struct shell *shell){
     struct adc_sample sample;
     uint32_t test_index = 0;
@@ -177,8 +209,8 @@ int flash_dump_all(const struct shell *shell){
                 shell_print(shell, "Flash read failed");
                 break;
             } 
-            if(sample.value == 0xFFFF && sample.timestamp == 0xFFFFFFFF){
-                shell_print(shell, "Flash block empty");
+            if(sample.value == 0xFFFFFFFF && sample.timestamp == 0xFFFFFFFF){
+                shell_print(shell, "Flash block unwritten");
                 break;
             }
             shell_print(shell, "%u,%u", sample.timestamp, sample.value);

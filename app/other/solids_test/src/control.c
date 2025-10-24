@@ -53,6 +53,10 @@ void control_dump_data(const struct shell *shell){
     flash_dump_all(shell);
 }
 
+void control_dump_one(const struct shell *shell, uint32_t test_index){
+    flash_dump_one(shell, test_index);
+}
+
 bool control_is_running(){
     return test_running;
 }

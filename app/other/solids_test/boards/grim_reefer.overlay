@@ -29,7 +29,7 @@
 
         channel@0 {
             reg = <0>;
-            zephyr,gain = "ADC_GAIN_8";
+            zephyr,gain = "ADC_GAIN_64";
             zephyr,reference = "ADC_REF_INTERNAL";
             zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 
