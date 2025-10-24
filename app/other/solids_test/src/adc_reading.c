@@ -102,9 +102,6 @@ void adc_reading_task() {
 
             sample.timestamp = k_ticks_to_us_near32(k_uptime_ticks() - start_time_ticks);
             sample.value = adc_val;
-            if (x % 100 == 0){
-                printk("Reading: %d\n", sample.value);
-            }
             x++;
 
             if (k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT) != 0) {
