@@ -22,7 +22,7 @@ enum storage_event {BEGIN_STORAGE, END_STORAGE};
 
 K_MSGQ_DEFINE(storage_control_queue, sizeof(enum storage_event), 5, 1);
 
-K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_sample), SAMPLE_RATE_HZ * TEST_DURATION, 4);
+K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_sample), 100, 4);
 
 static const struct device *flash_dev = DEVICE_DT_GET(DT_ALIAS(storage));
 static uint32_t current_test_number = 0;
