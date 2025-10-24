@@ -31,7 +31,7 @@ static K_TIMER_DEFINE(adc_timer, NULL, NULL);
 
 void adc_reading_task(void);
 
-K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, ADC_READ_PRIORITY, 0, THREAD_START_DELAY);
+K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, 15, 0, THREAD_START_DELAY);
 
 static uint32_t adc_buffer;
 static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = sizeof(adc_buffer), .resolution = 24};
@@ -70,14 +70,16 @@ void adc_reading_task() {
         test_start_beep();
         LOG_INF("ADC reading started");
 
-        k_timer_start(&adc_timer, K_USEC(920), K_USEC(920)); // 1kHz loop
+        k_timer_start(&adc_timer, K_USEC(1000), K_USEC(1000)); // 1kHz loop
 
         int x = 0;
         uint32_t dropped_samples = 0;
-        uint64_t start_time = k_uptime_get();
-        uint64_t total_adc_time = 0;
+        uint64_t start_time_ticks = k_uptime_ticks();
+        uint64_t total_adc_ticks = 0;
         (void) adc_sequence_init_dt(&adc_channels[0], &sequence);
+        uint64_t total_loop_ticks = 0;
         while (true) {
+            uint32_t start_loop_ticks = k_uptime_ticks();
             uint32_t events =
                 k_event_wait(&adc_control_event, BEGIN_READING_EVENT | STOP_READING_EVENT, false, K_NO_WAIT);
             if (events & STOP_READING_EVENT) {
@@ -90,27 +92,30 @@ void adc_reading_task() {
             sequence.buffer_size = sizeof(adc_val);
 
             // Read from ADC
-            uint32_t start_read = k_uptime_get_32();
+            uint32_t start_read = k_uptime_ticks();
             ret = adc_read(adc_dev, &sequence);
             if (ret < 0) {
                 LOG_ERR("ADC read failed (%d)", ret);
                 continue;
             }
-            total_adc_time += k_uptime_get_32() - start_read;
+            total_adc_ticks += k_uptime_ticks() - start_read;
 
-            sample.timestamp = k_uptime_get() - start_time;
+            sample.timestamp = k_ticks_to_us_near32(k_uptime_ticks() - start_time_ticks);
             sample.value = adc_val;
-
+            if (x % 100 == 0){
+                printk("Reading: %d\n", sample.value);
+            }
             x++;
 
             if (k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT) != 0) {
                 dropped_samples++;
             }
+            total_loop_ticks += k_uptime_ticks() - start_loop_ticks;
         }
 
         k_timer_stop(&adc_timer);
-        LOG_INF("number of samples: %d, %u dropped, read time %llu, ms per = %.2f", x, dropped_samples, total_adc_time,
-                (double) total_adc_time / (double) x);
+        LOG_INF("number of samples: %d, %u dropped, read time %llu, ms per = %.2f, loop time: %llu, loop time ticks: %llu", x, dropped_samples,
+                k_ticks_to_ms_near64(total_adc_ticks), (double) k_ticks_to_ms_near64(total_adc_ticks) / (double) x, k_ticks_to_ms_near64(total_loop_ticks), total_loop_ticks);
         test_end_beep();
     }
 }

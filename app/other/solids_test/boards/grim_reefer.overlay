@@ -30,7 +30,7 @@
 
         channel@0 {
             reg = <0>;
-            zephyr,gain = "ADC_GAIN_64";
+            zephyr,gain = "ADC_GAIN_2";
             zephyr,reference = "ADC_REF_INTERNAL";
             zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 
@@ -40,7 +40,7 @@
             zephyr,input-positive = <0x1>;
             zephyr,input-negative = <0x0>;
 
-            zephyr,oversampling = <5>;
+            zephyr,oversampling = <7>;
         };
     };
 };

@@ -204,7 +204,7 @@ int flash_dump_one(const struct shell *shell, uint32_t test_index) {
             shell_print(shell, "Flash block unwritten. Read %d packets", i);
             break;
         }
-        shell_print(shell, "%u,%u", sample.timestamp, sample.value);
+        shell_print(shell, "%u,%d", sample.timestamp, sample.value);
         block_addr += sizeof(sample);
     }
 

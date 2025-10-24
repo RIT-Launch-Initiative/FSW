@@ -10,7 +10,6 @@ static const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(DT_ALIAS(buzzer), gpi
 
 void set_buzz(int which) {
     gpio_pin_set_dt(&buzzer, which);
-    gpio_pin_set_dt(&ldo_enable, which);
 }
 
 void buzzer_init() {
@@ -19,6 +18,12 @@ void buzzer_init() {
         printk("Failed to conf buzzer pin:(");
         return;
     }
+    ret = gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_INACTIVE);
+    if (ret < 0) {
+        printk("Failed to conf ldo enable pin:(");
+        return;
+    }
+    gpio_pin_set_dt(&ldo_enable, 1);
 }
 void beep_full() {
     for (int i = 0; i < 10; i++) {

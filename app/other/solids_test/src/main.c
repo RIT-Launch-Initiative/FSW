@@ -16,9 +16,5 @@ int main(void)
 	LOG_INF("Use 'test start' to begin test");
     LOG_INF("Commands: test start | test stop | test dump");
 
-	while(1){
-        k_sleep(K_MSEC(10));
-    }
-
 	return 0;
 }

@@ -5,7 +5,7 @@
 
 struct adc_sample {
     uint32_t timestamp;
-    uint32_t value;
+    int32_t value;
 };
 
 int adc_init();
