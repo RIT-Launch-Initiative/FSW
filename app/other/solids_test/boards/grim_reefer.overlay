@@ -7,7 +7,7 @@
 
     aliases {
         adc0 = &adc;
-        // buzzer = &led1;
+        buzzer = &led1;
     };
 };
 

@@ -24,7 +24,7 @@ void control_start_test(){
         return;
     }
 
-    LOG_INF("Starting test run #%d", test_number + 1);
+    LOG_INF("Starting test run");
     test_running = true;
 
     start_flash_storage();
@@ -55,6 +55,10 @@ void control_dump_data(const struct shell *shell){
 
 void control_dump_one(const struct shell *shell, uint32_t test_index){
     flash_dump_one(shell, test_index);
+}
+
+void control_erase_all(const struct shell *shell){
+    flash_erase_all(shell);
 }
 
 bool control_is_running(){

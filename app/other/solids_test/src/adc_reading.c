@@ -102,9 +102,9 @@ void adc_reading_task(){
             sample.timestamp = k_uptime_get() - start_time;
             sample.value = adc_val;
 
-            if(x % 25 == 0){
-                LOG_INF("sample value: %u", sample.value);
-            }
+            // if(x % 25 == 0){
+                // LOG_INF("sample value: %u", sample.value);
+            // }
             x++;
 
             k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT);
