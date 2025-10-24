@@ -1,13 +1,15 @@
 #include "adc_reading.h"
+
+#include "buzzer.h"
 #include "config.h"
 #include "flash_storage.h"
 
 #include <stdint.h>
 #include <stdio.h>
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/adc.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/drivers/adc.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(adc_reader, LOG_LEVEL_INF);
 
@@ -32,27 +34,21 @@ void adc_reading_task(void);
 K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, ADC_READ_PRIORITY, 0, THREAD_START_DELAY);
 
 static uint32_t adc_buffer;
-static struct adc_sequence sequence = {
-    .buffer = &adc_buffer,
-    .buffer_size = sizeof(adc_buffer),
-    .resolution = 24
-};
+static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = sizeof(adc_buffer), .resolution = 24};
 
-#define DT_SPEC_AND_COMMA(node_id, prop, idx) \
-    ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
+#define DT_SPEC_AND_COMMA(node_id, prop, idx) ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
 
 static const struct adc_dt_spec adc_channels[] = {
-    DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)
-};
+    DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
 
-int adc_init(){
-    if(!adc_is_ready_dt(&adc_channels[0])){
+int adc_init() {
+    if (!adc_is_ready_dt(&adc_channels[0])) {
         LOG_ERR("ADC controller device %s not ready\n", adc_channels[0].dev->name);
         return 0;
     }
 
     int err = adc_channel_setup_dt(&adc_channels[0]);
-    if(err < 0){
+    if (err < 0) {
         LOG_ERR("Could not setup channel (%d)\n", err);
         return 0;
     }
@@ -61,28 +57,30 @@ int adc_init(){
     return 0;
 }
 
-void adc_reading_task(){
+void adc_reading_task() {
     int ret;
     uint32_t adc_val = 0;
     struct adc_sample sample = {0};
 
-    while(true){
+    while (true) {
         LOG_INF("ADC reading task waiting to start...");
 
         // Wait for start event
         k_event_wait(&adc_control_event, BEGIN_READING_EVENT, true, K_FOREVER);
-
+        test_start_beep();
         LOG_INF("ADC reading started");
 
-        k_timer_start(&adc_timer, K_USEC(100), K_USEC(100)); // 1kHz loop
+        k_timer_start(&adc_timer, K_USEC(920), K_USEC(920)); // 1kHz loop
 
         int x = 0;
-
+        uint32_t dropped_samples = 0;
         uint64_t start_time = k_uptime_get();
-
-        while(true){
-            uint32_t events = k_event_wait(&adc_control_event, BEGIN_READING_EVENT | STOP_READING_EVENT, false, K_NO_WAIT);
-            if(events & STOP_READING_EVENT){
+        uint64_t total_adc_time = 0;
+        (void) adc_sequence_init_dt(&adc_channels[0], &sequence);
+        while (true) {
+            uint32_t events =
+                k_event_wait(&adc_control_event, BEGIN_READING_EVENT | STOP_READING_EVENT, false, K_NO_WAIT);
+            if (events & STOP_READING_EVENT) {
                 break;
             }
 
@@ -92,33 +90,31 @@ void adc_reading_task(){
             sequence.buffer_size = sizeof(adc_val);
 
             // Read from ADC
-            (void)adc_sequence_init_dt(&adc_channels[0], &sequence);
+            uint32_t start_read = k_uptime_get_32();
             ret = adc_read(adc_dev, &sequence);
-            if(ret < 0){
+            if (ret < 0) {
                 LOG_ERR("ADC read failed (%d)", ret);
                 continue;
             }
+            total_adc_time += k_uptime_get_32() - start_read;
 
             sample.timestamp = k_uptime_get() - start_time;
             sample.value = adc_val;
 
-            // if(x % 25 == 0){
-                // LOG_INF("sample value: %u", sample.value);
-            // }
             x++;
 
-            k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT);
+            if (k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT) != 0) {
+                dropped_samples++;
+            }
         }
 
         k_timer_stop(&adc_timer);
-        LOG_INF("number of samples: %d", x);
+        LOG_INF("number of samples: %d, %u dropped, read time %llu, ms per = %.2f", x, dropped_samples, total_adc_time,
+                (double) total_adc_time / (double) x);
+        test_end_beep();
     }
 }
 
-void adc_start_reading(){
-    k_event_set(&adc_control_event, BEGIN_READING_EVENT);
-}
+void adc_start_reading() { k_event_set(&adc_control_event, BEGIN_READING_EVENT); }
 
-void adc_stop_recording(){
-    k_event_set(&adc_control_event, STOP_READING_EVENT);
-}
+void adc_stop_recording() { k_event_set(&adc_control_event, STOP_READING_EVENT); }

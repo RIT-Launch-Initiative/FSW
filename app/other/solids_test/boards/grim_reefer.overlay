@@ -2,28 +2,29 @@
 
 / {
     zephyr,user {
-        io-channels = <&adc 0>, <&adc 0>;
+        io-channels = <&adc 0>;
     };
 
     aliases {
         adc0 = &adc;
         buzzer = &led1;
+        // buzzer = &buzzer;
     };
 };
 
 &spi2 {
     status = "okay";
     adc: mcp3561@0 { // new and cool driver
-        compatible = "microchip,mcp356xr";
-        status = "okay";
-        reg = <0>;
         #io-channel-cells = <1>;
         #address-cells = <1>;
         #size-cells = <0>;
+        compatible = "microchip,mcp356xr";
+        status = "okay";
+        reg = <0>;
         address = <1>;
         analog-clock-prescaler = <0>;
         boost-current-bias = <0>;
-        spi-max-frequency = <DT_FREQ_M(10)>;
+        spi-max-frequency = <DT_FREQ_M(18)>;
         irq-gpios = <&gpiob 14 GPIO_ACTIVE_LOW>;
         use-internal-clock;
 
@@ -36,11 +37,10 @@
             zephyr,resolution = <24>;
 
             zephyr,differential;
-
             zephyr,input-positive = <0x1>;
             zephyr,input-negative = <0x0>;
 
-            zephyr,oversampling = <8>;
+            zephyr,oversampling = <5>;
         };
     };
 };

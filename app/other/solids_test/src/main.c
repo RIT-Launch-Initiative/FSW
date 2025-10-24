@@ -1,5 +1,5 @@
 #include "control.h"
-
+#include "buzzer.h"
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/shell/shell.h>
@@ -12,7 +12,7 @@ int main(void)
 	LOG_INF("Solids Test Start");
 
 	control_init();
-
+	buzzer_init();
 	LOG_INF("Use 'test start' to begin test");
     LOG_INF("Commands: test start | test stop | test dump");
 

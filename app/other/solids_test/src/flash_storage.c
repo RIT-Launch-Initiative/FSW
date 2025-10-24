@@ -1,5 +1,5 @@
 #include "flash_storage.h"
-
+#include "buzzer.h"
 #include "adc_reading.h"
 #include "config.h"
 
@@ -111,6 +111,7 @@ static void flash_storage_thread_entry() {
 
         if (current_test_number >= MAX_TESTS) {
             LOG_ERR("Maximum number of test reached");
+            beep_full();
             continue;
         }
 
@@ -177,7 +178,6 @@ void stop_flash_storage() {
     k_msgq_put(&storage_control_queue, &event, K_FOREVER);
 }
 
-int flash_erase_all();
 
 int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     struct adc_sample sample;
