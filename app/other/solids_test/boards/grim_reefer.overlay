@@ -10,6 +10,21 @@
         buzzer = &led1;
         // buzzer = &buzzer;
     };
+
+    leds: leds {
+        tx: tx{
+            gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
+            label = "TX"
+        };
+        rx: rx{
+            gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;
+            label = "RX"
+        };
+    }
+};
+
+&uart4 {
+    status = "disabled";
 };
 
 &spi2 {
