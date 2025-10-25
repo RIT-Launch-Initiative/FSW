@@ -9,35 +9,19 @@
 
 LOG_MODULE_REGISTER(shell_cmds, LOG_LEVEL_INF);
 
-static int cmd_test_print_one(const struct shell *shell, size_t argc, char **argv) {
-    ARG_UNUSED(argc);
-    ARG_UNUSED(argv);
-    shell_print(shell, "Getting one sample...");
-    control_print_one(shell);
-    return 0;
-}
-
-static int cmd_test_ematch(const struct shell *shell, size_t argc, char **argv) {
-    ARG_UNUSED(argc);
-    ARG_UNUSED(argv);
-    shell_print(shell, "Setting ematch...");
-    control_set_ematch(shell);
-    return 0;
-}
-
-static int cmd_test_estop(const struct shell *shell, size_t argc, char **argv) {
-    ARG_UNUSED(argc);
-    ARG_UNUSED(argv);
-    shell_print(shell, "Stopping ematch...");
-    control_stop_ematch(shell);
-    return 0;
-}
-
 static int cmd_test_start(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
     shell_print(shell, "Starting test...");
     control_start_test();
+    return 0;
+}
+
+static int cmd_test_print_one(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    shell_print(shell, "Getting one sample...");
+    control_print_one(shell);
     return 0;
 }
 
@@ -74,6 +58,22 @@ static int cmd_test_dump(const struct shell *shell, size_t argc, char **argv) {
         return -1;
     }
 
+    return 0;
+}
+
+static int cmd_test_ematch(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    shell_print(shell, "Setting ematch...");
+    control_set_ematch(shell);
+    return 0;
+}
+
+static int cmd_test_estop(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    shell_print(shell, "Stopping ematch...");
+    control_stop_ematch(shell);
     return 0;
 }
 

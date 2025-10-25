@@ -197,7 +197,7 @@ int flash_dump_one(const struct shell *shell, uint32_t test_index) {
         return 0;
     }
 
-    shell_print(shell, "Dumping Test %d:", test_index);
+    shell_print(shell, "==============Dumping Test %d==============", test_index);
 
     for (int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++) {
         if (flash_read(flash_dev, block_addr, &sample, sizeof(sample)) < 0) {
