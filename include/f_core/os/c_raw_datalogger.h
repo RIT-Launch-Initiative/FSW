@@ -8,6 +8,10 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/hash_function.h>
 
+#define RAW_DATA_LOGGER(partition_id, logname, mode) \
+CRawDataLogger(PARTITION_GET_FLASH_DEV(partition_id), PARTITION_GET_FLASH_SIZE(partition_id), PARTITION_GET_FLASH_ADDR(partition_id), logname, mode)
+
+
 enum class DataloggerMode {
     Fixed,
     LinkedFixed,
