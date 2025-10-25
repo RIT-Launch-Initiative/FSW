@@ -2,11 +2,13 @@
 #include "config.h"
 #include "adc_reading.h"
 #include "flash_storage.h"
+#include "buzzer.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/shell/shell.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 LOG_MODULE_REGISTER(control, LOG_LEVEL_INF);
 
@@ -31,10 +33,6 @@ void control_start_test(){
     adc_start_reading();
 
     test_number++;
-
-    // Run test for 10 seconds
-    k_sleep(K_SECONDS(TEST_DURATION));
-    control_stop_test();
 }
 
 void control_stop_test(){
@@ -47,6 +45,15 @@ void control_stop_test(){
     adc_stop_recording();
     stop_flash_storage();
     test_running = false;
+}
+
+void control_print_one(const struct shell *shell){
+    set_ldo(1);
+    k_msleep(5000);
+    uint32_t adc_val = 0;
+    adc_read_one(&adc_val);
+    shell_print(shell, "%d", adc_val);
+    set_ldo(0);
 }
 
 void control_dump_data(const struct shell *shell){

@@ -7,20 +7,20 @@
 
     aliases {
         adc0 = &adc;
-        buzzer = &led1;
-        // buzzer = &buzzer;
+        buzzer = &buzzer;
+        // buzzer = &led1;
     };
 
     leds: leds {
         tx: tx{
             gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
-            label = "TX"
+            label = "TX";
         };
         rx: rx{
             gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;
-            label = "RX"
+            label = "RX";
         };
-    }
+    };
 };
 
 &uart4 {

@@ -2,7 +2,7 @@
 #define REEFER_INCLUDE_CONFIG_H
 
 #define SAMPLE_RATE_HZ 1000
-#define TEST_DURATION 10
+#define TEST_DURATION 10000 // 10 seconds, 10000 ms
 #define MAX_TESTS 30
 
 #define STORAGE_THREAD_PRIORITY   1

@@ -9,6 +9,14 @@
 
 LOG_MODULE_REGISTER(shell_cmds, LOG_LEVEL_INF);
 
+static int cmd_test_print_one(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    shell_print(shell, "Getting one sample...");
+    control_print_one(shell);
+    return 0;
+}
+
 static int cmd_test_start(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
@@ -33,6 +41,7 @@ static int cmd_test_erase(const struct shell *shell, size_t argc, char **argv) {
     control_erase_all(shell);
     return 0;
 }
+
 static int cmd_test_dump(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
@@ -56,6 +65,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_test, SHELL_CMD(start, NULL, "Start test", cm
                                SHELL_CMD(stop, NULL, "Stop test preemptively", cmd_test_stop),
                                SHELL_CMD(dump, NULL, "Dump flash data. Optional arg [test #]", cmd_test_dump),
                                SHELL_CMD(erase, NULL, "Erase all flash data, prepare for new tests", cmd_test_erase),
+                               SHELL_CMD(read, NULL, "Read one sample", cmd_test_print_one),
                                SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(test, &sub_test, "Solids Test Board control commands", NULL);

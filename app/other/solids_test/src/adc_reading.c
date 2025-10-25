@@ -3,6 +3,7 @@
 #include "buzzer.h"
 #include "config.h"
 #include "flash_storage.h"
+#include "control.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -42,6 +43,7 @@ static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
 
 int adc_init() {
+
     if (!adc_is_ready_dt(&adc_channels[0])) {
         LOG_ERR("ADC controller device %s not ready\n", adc_channels[0].dev->name);
         return 0;
@@ -53,12 +55,24 @@ int adc_init() {
         return 0;
     }
 
+    (void) adc_sequence_init_dt(&adc_channels[0], &sequence);
+
     LOG_INF("ADC initialized");
     return 0;
 }
 
+void adc_read_one(uint32_t *adc_val) {
+    sequence.buffer = adc_val;
+    sequence.buffer_size = sizeof(*adc_val);
+
+    int ret = adc_read(adc_dev, &sequence);
+    if (ret < 0) {
+        LOG_ERR("ADC read failed (%d)", ret);
+        return;
+    }
+}
+
 void adc_reading_task() {
-    int ret;
     uint32_t adc_val = 0;
     struct adc_sample sample = {0};
     while (true) {
@@ -69,17 +83,18 @@ void adc_reading_task() {
         test_start_beep();
         LOG_INF("ADC reading started");
         set_ldo(1);
+        k_msleep(1000);
         k_msleep(1);
 
         k_timer_start(&adc_timer, K_USEC(1000), K_USEC(1000)); // 1kHz loop
 
         int x = 0;
         uint32_t dropped_samples = 0;
-        uint64_t start_time_ticks = k_uptime_ticks();
         uint64_t total_adc_ticks = 0;
-        (void) adc_sequence_init_dt(&adc_channels[0], &sequence);
         uint64_t total_loop_ticks = 0;
         uint32_t num_missed_expires = 0;
+        uint64_t start_time_ticks = k_uptime_ticks();
+        
         while (true) {
             uint32_t start_loop_ticks = k_uptime_ticks();
             uint32_t events =
@@ -87,28 +102,23 @@ void adc_reading_task() {
             if (events & STOP_READING_EVENT) {
                 break;
             }
+
             uint32_t num_expiries = k_timer_status_get(&adc_timer);
             if (num_expiries == 0) {
                 k_timer_status_sync(&adc_timer);
             } else {
                 num_missed_expires += num_expiries-1;
             }
+
             if (x == 250) {
                 set_ematch(1);
             } else if (x == 500) {
                 set_ematch(0);
             }
 
-            sequence.buffer = &adc_val;
-            sequence.buffer_size = sizeof(adc_val);
-
             // Read from ADC
             uint32_t start_read = k_uptime_ticks();
-            ret = adc_read(adc_dev, &sequence);
-            if (ret < 0) {
-                LOG_ERR("ADC read failed (%d)", ret);
-                continue;
-            }
+            adc_read_one(&adc_val);
             total_adc_ticks += k_uptime_ticks() - start_read;
 
             sample.timestamp = k_ticks_to_us_near32(k_uptime_ticks() - start_time_ticks);
@@ -119,6 +129,12 @@ void adc_reading_task() {
                 dropped_samples++;
             }
             total_loop_ticks += k_uptime_ticks() - start_loop_ticks;
+
+            // Run test for 10 seconds
+            if ((k_ticks_to_ms_near32(k_uptime_ticks()) - k_ticks_to_ms_near32(start_time_ticks)) >= TEST_DURATION) {
+                control_stop_test();
+                break;
+            }
         }
 
         set_ldo(0);

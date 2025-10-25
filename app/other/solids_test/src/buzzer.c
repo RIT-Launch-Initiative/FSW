@@ -21,7 +21,6 @@ void set_ematch(int level) {
     gpio_pin_set_dt(&ematch, level);
 }
 
-
 void buzzer_init() {
     int ret = gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
@@ -34,7 +33,6 @@ void buzzer_init() {
         return;
     }
 }
-
 
 void beep_full() {
     for (int i = 0; i < 10; i++) {
@@ -55,6 +53,7 @@ void test_start_beep() {
         k_msleep(100);
     }
 }
+
 void test_end_beep() {
     printk("BEEP");
     set_buzz(1);
