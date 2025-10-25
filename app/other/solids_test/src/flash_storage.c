@@ -180,6 +180,10 @@ void stop_flash_storage() {
 
 
 int flash_dump_one(const struct shell *shell, uint32_t test_index) {
+    if (test_index >= MAX_TESTS ){
+        shell_print(shell, "Pick a valid test, 0-29");
+        return -1;
+    }
     struct adc_sample sample;
 
     if (!device_is_ready(flash_dev)) {
