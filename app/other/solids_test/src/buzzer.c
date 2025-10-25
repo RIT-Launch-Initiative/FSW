@@ -1,3 +1,5 @@
+#include "buzzer.h"
+
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 

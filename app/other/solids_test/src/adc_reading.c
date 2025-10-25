@@ -83,10 +83,10 @@ void adc_reading_task() {
         test_start_beep();
         LOG_INF("ADC reading started");
         set_ldo(1);
-        k_msleep(1000);
+        k_msleep(2000);
         k_msleep(1);
 
-        k_timer_start(&adc_timer, K_USEC(1000), K_USEC(1000)); // 1kHz loop
+        k_timer_start(&adc_timer, K_USEC(SAMPLE_RATE_HZ), K_USEC(SAMPLE_RATE_HZ)); // 1kHz loop
 
         int x = 0;
         uint32_t dropped_samples = 0;
@@ -110,9 +110,9 @@ void adc_reading_task() {
                 num_missed_expires += num_expiries-1;
             }
 
-            if (x == 250) {
+            if (x == 500) {
                 set_ematch(1);
-            } else if (x == 500) {
+            } else if (x == 900) {
                 set_ematch(0);
             }
 

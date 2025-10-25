@@ -71,3 +71,13 @@ void control_erase_all(const struct shell *shell){
 bool control_is_running(){
     return test_running;
 }
+
+void control_set_ematch(const struct shell *shell){
+    set_ematch(1);
+    shell_print(shell, "ematch: 1");
+}
+
+void control_stop_ematch(const struct shell *shell){
+    set_ematch(0);
+    shell_print(shell, "ematch: 0");
+}
