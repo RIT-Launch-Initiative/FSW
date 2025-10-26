@@ -7,7 +7,7 @@
 void control_init();
 void control_start_test();
 void control_stop_test();
-void control_print_one(const struct shell *shell);
+void control_print_n(const struct shell *shell, int num);
 void control_dump_data(const struct shell *shell);
 void control_dump_one(const struct shell *shell, uint32_t test_index);
 void control_erase_all(const struct shell *shell);
