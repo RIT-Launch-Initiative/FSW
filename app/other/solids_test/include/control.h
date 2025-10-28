@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <zephyr/shell/shell.h>
 
-void control_init();
+int control_init(void);
 void control_start_test();
 void control_stop_test();
 void control_print_n(const struct shell *shell, int num);

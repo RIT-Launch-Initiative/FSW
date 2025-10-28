@@ -41,21 +41,22 @@ static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = siz
 static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
 
-void adc_init() {
+int adc_init(void) {
     if (!adc_is_ready_dt(&adc_channels[0])) {
         LOG_ERR("ADC controller device %s not ready\n", adc_channels[0].dev->name);
-        return;
+        return -1;
     }
 
     int err = adc_channel_setup_dt(&adc_channels[0]);
     if (err < 0) {
         LOG_ERR("Could not setup channel (%d)\n", err);
-        return;
+        return -1;
     }
 
     (void) adc_sequence_init_dt(&adc_channels[0], &sequence);
 
     LOG_INF("ADC initialized");
+    return 0;
 }
 
 // Read one adc sample

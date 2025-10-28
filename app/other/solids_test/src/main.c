@@ -2,20 +2,17 @@
 #include "buzzer.h"
 #include "button.h"
 
-#include <zephyr/kernel.h>
-#include <zephyr/device.h>
-#include <zephyr/shell/shell.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/drivers/gpio.h>
+#include <zephyr/init.h>
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
+SYS_INIT(control_init, APPLICATION, 0);
+SYS_INIT(buzzer_init, APPLICATION, 0);
+SYS_INIT(button_init, APPLICATION, 0);
+
 int main (void) {
 	LOG_INF("Solids Test Start");
-
-	control_init();
-	buzzer_init();
-	button_init();
 	
 	LOG_INF("Use 'test start' to begin test");
     LOG_INF("Commands: test start | test stop | test dump");

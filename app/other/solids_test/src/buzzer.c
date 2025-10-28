@@ -26,17 +26,19 @@ void set_ematch(int level) {
     gpio_pin_set_dt(&ematch, level);
 }
 
-void buzzer_init() {
+int buzzer_init(void) {
     int ret = gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
         LOG_ERR("Failed to conf buzzer pin :(");
-        return;
+        return -1;
     }
     ret = gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
         LOG_ERR("Failed to conf ldo enable pin :(");
-        return;
+        return -1;
     }
+
+    return 0;
 }
 
 void beep_full() {

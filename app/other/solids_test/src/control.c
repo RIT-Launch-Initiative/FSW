@@ -14,9 +14,9 @@ LOG_MODULE_REGISTER(control, LOG_LEVEL_INF);
 
 static bool test_running = false;
 
-void control_init() {
+int control_init(void) {
     LOG_INF("Initializing...");
-    adc_init();
+    return adc_init();
 }
 
 void control_start_test() {

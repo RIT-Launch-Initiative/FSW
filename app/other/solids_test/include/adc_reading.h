@@ -8,7 +8,7 @@ struct adc_sample {
     int32_t value;
 };
 
-void adc_init();
+int adc_init(void);
 void adc_read_one(uint32_t *adc_val);
 void adc_reading_task();
 void adc_start_reading();
