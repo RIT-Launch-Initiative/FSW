@@ -19,7 +19,7 @@ static int cmd_test_start(const struct shell *shell, size_t argc, char **argv) {
 
 static int cmd_test_print_one(const struct shell *shell, size_t argc, char **argv) {
     int num = 1;
-     if (argc == 2) {
+    if (argc == 2) {
         num = atoi(argv[1]);
     }
     shell_print(shell, "Getting %d sample(s)...", num);

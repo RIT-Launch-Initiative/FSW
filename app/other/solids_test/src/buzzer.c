@@ -2,6 +2,9 @@
 
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(buzzer, LOG_LEVEL_INF);
 
 #define LDO_EN_NODE DT_NODELABEL(ldo_enable)
 #define CAM_EN_NODE DT_NODELABEL(cam_enable)
@@ -26,12 +29,12 @@ void set_ematch(int level) {
 void buzzer_init() {
     int ret = gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
-        printk("Failed to conf buzzer pin:(");
+        LOG_ERR("Failed to conf buzzer pin :(");
         return;
     }
     ret = gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
-        printk("Failed to conf ldo enable pin:(");
+        LOG_ERR("Failed to conf ldo enable pin :(");
         return;
     }
 }

@@ -2,6 +2,7 @@
 #define FLASH_STORAGE_H
 
 #include <zephyr/shell/shell.h>
+#include <stdint.h>
 
 int start_flash_storage();
 void stop_flash_storage();

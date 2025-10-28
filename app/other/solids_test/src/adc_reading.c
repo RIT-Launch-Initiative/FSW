@@ -1,5 +1,4 @@
 #include "adc_reading.h"
-
 #include "buzzer.h"
 #include "config.h"
 #include "flash_storage.h"
@@ -42,25 +41,24 @@ static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = siz
 static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
 
-int adc_init() {
-
+void adc_init() {
     if (!adc_is_ready_dt(&adc_channels[0])) {
         LOG_ERR("ADC controller device %s not ready\n", adc_channels[0].dev->name);
-        return 0;
+        return;
     }
 
     int err = adc_channel_setup_dt(&adc_channels[0]);
     if (err < 0) {
         LOG_ERR("Could not setup channel (%d)\n", err);
-        return 0;
+        return;
     }
 
     (void) adc_sequence_init_dt(&adc_channels[0], &sequence);
 
     LOG_INF("ADC initialized");
-    return 0;
 }
 
+// Read one adc sample
 void adc_read_one(uint32_t *adc_val) {
     sequence.buffer = adc_val;
     sequence.buffer_size = sizeof(*adc_val);
@@ -80,13 +78,13 @@ void adc_reading_task() {
 
         // Wait for start event
         k_event_wait(&adc_control_event, BEGIN_READING_EVENT, true, K_FOREVER);
-        test_start_beep();
         LOG_INF("ADC reading started");
-        set_ldo(1);
+        // set_ldo(1);
+        // Delay test 2 seconds, beep when test actually starts
         k_msleep(2000);
-        k_msleep(1);
+        test_start_beep();
 
-        k_timer_start(&adc_timer, K_USEC(SAMPLE_RATE_HZ), K_USEC(SAMPLE_RATE_HZ)); // 1kHz loop
+        k_timer_start(&adc_timer, K_USEC(SAMPLE_RATE_HZ), K_USEC(SAMPLE_RATE_HZ)); // 1000Hz periods
 
         int x = 0;
         uint32_t dropped_samples = 0;
@@ -107,9 +105,10 @@ void adc_reading_task() {
             if (num_expiries == 0) {
                 k_timer_status_sync(&adc_timer);
             } else {
-                num_missed_expires += num_expiries-1;
+                num_missed_expires += num_expiries - 1;
             }
 
+            // Set ematch 500ms into test
             if (x == 500) {
                 set_ematch(1);
             } else if (x == 900) {
@@ -123,21 +122,21 @@ void adc_reading_task() {
 
             sample.timestamp = k_ticks_to_us_near32(k_uptime_ticks() - start_time_ticks);
             sample.value = adc_val;
-            x++;
-
+            
             if (k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT) != 0) {
                 dropped_samples++;
             }
+            x++;
             total_loop_ticks += k_uptime_ticks() - start_loop_ticks;
 
-            // Run test for 10 seconds
+            // Stop test after 10 seconds
             if ((k_ticks_to_ms_near32(k_uptime_ticks()) - k_ticks_to_ms_near32(start_time_ticks)) >= TEST_DURATION) {
                 control_stop_test();
                 break;
             }
         }
 
-        set_ldo(0);
+        // set_ldo(0);
         k_timer_stop(&adc_timer);
         LOG_INF(
             "number of samples: %d, %u missed, %u dropped, read time %llu, ms per = %.2f, loop time: %llu, loop time ticks: %llu",
