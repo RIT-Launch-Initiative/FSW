@@ -8,7 +8,7 @@
     aliases {
         adc0 = &adc;
         // buzzer = &buzzer;
-        buzzer = &led1;
+        buzzer = &led1; // delete before pr
     };
 
     leds: leds {

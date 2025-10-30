@@ -41,7 +41,8 @@ static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = siz
 static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
 
-int adc_init(void) {
+int adc_init() {
+    LOG_INF("Initializing...");
     if (!adc_is_ready_dt(&adc_channels[0])) {
         LOG_ERR("ADC controller device %s not ready\n", adc_channels[0].dev->name);
         return -1;
@@ -59,7 +60,6 @@ int adc_init(void) {
     return 0;
 }
 
-// Read one adc sample
 void adc_read_one(uint32_t *adc_val) {
     sequence.buffer = adc_val;
     sequence.buffer_size = sizeof(*adc_val);

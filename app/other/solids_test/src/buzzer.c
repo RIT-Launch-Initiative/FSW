@@ -26,7 +26,7 @@ void set_ematch(int level) {
     gpio_pin_set_dt(&ematch, level);
 }
 
-int buzzer_init(void) {
+int buzzer_init() {
     int ret = gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
         LOG_ERR("Failed to conf buzzer pin :(");

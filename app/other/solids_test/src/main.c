@@ -1,4 +1,4 @@
-#include "control.h"
+#include "adc_reading.h"
 #include "buzzer.h"
 #include "button.h"
 
@@ -7,7 +7,7 @@
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
-SYS_INIT(control_init, APPLICATION, 0);
+SYS_INIT(adc_init, APPLICATION, 0);
 SYS_INIT(buzzer_init, APPLICATION, 0);
 SYS_INIT(button_init, APPLICATION, 0);
 

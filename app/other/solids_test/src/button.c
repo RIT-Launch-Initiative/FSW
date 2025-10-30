@@ -15,7 +15,7 @@ static const struct gpio_dt_spec tx = GPIO_DT_SPEC_GET(TX_NODE, gpios);
 static const struct gpio_dt_spec rx = GPIO_DT_SPEC_GET(RX_NODE, gpios);
 static struct gpio_callback button_cb_data;
 
-int button_init(void) {
+int button_init() {
     int ret = gpio_pin_configure_dt(&rx, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
         LOG_ERR("Failed to conf rx :(");
