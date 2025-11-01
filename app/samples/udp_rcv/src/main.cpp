@@ -24,7 +24,7 @@ int main() {
 
 
     while (true) {
-
+        k_msleep(10000);
     }
 
 

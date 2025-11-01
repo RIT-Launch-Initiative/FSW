@@ -9,7 +9,6 @@ LOG_MODULE_REGISTER(CUdpAlertTenant);
 extern net_socket_service_desc alertSocketService;
 
 extern "C" void alertSocketServiceHandler(net_socket_service_event* pev) {
-    NAlerts::AlertPacket buff{};
     auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
 
     if (userData == nullptr) {
@@ -23,8 +22,7 @@ extern "C" void alertSocketServiceHandler(net_socket_service_event* pev) {
         k_oops();
     }
 
-    userData->socket->ReceiveSynchronous(buff.data(), NAlerts::ALERT_PACKET_SIZE);
-    tenant->ProcessPacket(buff);
+    tenant->Callback();
 }
 
 void CUdpAlertTenant::Register() {
@@ -55,7 +53,7 @@ void CUdpAlertTenant::ProcessPacket(const NAlerts::AlertPacket& packet) {
 
     // Potential alternative is using signals, but that might require passing in a lot of variables around
     NAlerts::AlertType alertType = static_cast<NAlerts::AlertType>(packet[NAlerts::MAGIC_BYTE_SIGNATURE_SIZE]);
-    LOG_INF("Received alert type %d", static_cast<int>(alertType)); // Would have to be changed to %d if alerts go past 8 bits
+    LOG_INF("Received alert type %d", static_cast<int>(alertType));
     for (auto observer : observers) {
         LOG_INF("Notifying observer");
         observer->Notify(&alertType);
