@@ -1,0 +1,73 @@
+/ {
+	chosen {
+		storage = &flash0;
+		logfs = &lfs1;
+	};
+
+
+	fstab {
+		compatible = "zephyr,fstab";
+		lfs1: lfs1 {
+			compatible = "zephyr,fstab,littlefs";
+			mount-point = "/lfs";
+			partition = <&external_storage_partition>;
+			automount;
+
+			// the binding reccomends defaults for these
+			read-size = <16>;
+			prog-size = <16>;
+			cache-size = <64>; // may need to grow for optimization
+			lookahead-size = <32>;
+			block-cycles = <(90 * 1000)>;
+			// the datasheet gives 100K P-E cycles
+			// NOTE: this seems to default to 512 for the mounted filesystem
+			// anyway
+		};
+	};
+
+};
+
+&flashcontroller0 {
+	status = "okay";
+	compatible = "zephyr,sim-flash";
+	reg = <0x00000000 DT_SIZE_M(513)>;
+
+	#address-cells = <1>;
+	#size-cells = <1>;
+	erase-value = <0xff>;
+
+	flash0: flash@0 {
+		status = "okay";
+		compatible = "soc-nv-flash";
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		reg = <0x00000000 DT_SIZE_M(513)>; // builtin stuff + external flash simulation
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x00000000 0x0000C000>;
+			};
+			slot0_partition: partition@c000 {
+				label = "image-0";
+				reg = <0x0000C000 0x00069000>;
+			};
+			slot1_partition: partition@75000 {
+				label = "image-1";
+				reg = <0x00075000 0x00069000>;
+			};
+			scratch_partition: partition@de000 {
+				label = "image-scratch";
+				reg = <0x000de000 0x0001e000>;
+			};
+			external_storage_partition: partition@fc000 {
+				label = "storage";
+				reg = <0x000fc000 DT_SIZE_M(512)>;
+			};
+		};
+	};
+};

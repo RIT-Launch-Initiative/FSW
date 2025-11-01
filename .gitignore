@@ -65,6 +65,7 @@ twister-out*/
 **/.idea/workspace.xml
 **/.idea/tasks.xml
 **/.idea/dtsSettings.xml
+**/.idea/copilot*
 
 .cache/
 zephyr-windows.code-workspace

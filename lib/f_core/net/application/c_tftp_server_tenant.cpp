@@ -6,10 +6,11 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket_service.h>
 
 LOG_MODULE_REGISTER(CTftpServerTenant);
 
-char *inet_ntoa(struct in_addr in) {
+char *inet_ntoa(in_addr in) {
     static char buf[INET_ADDRSTRLEN];
     unsigned char *bytes = (unsigned char *)&in.s_addr;
 
@@ -18,13 +19,37 @@ char *inet_ntoa(struct in_addr in) {
     return buf;
 }
 
-void CTftpServerTenant::Startup() {
+extern net_socket_service_desc tftpSocketService;
+extern "C" void tftpSocketServiceHandler(net_socket_service_event* pev) {
+    auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
+
+    if (userData == nullptr) {
+        LOG_ERR("User data is null in alertSocketServiceHandler");
+        k_oops();
+    }
+
+    CCallbackTenant* tenant = static_cast<CCallbackTenant*>(userData->userData);
+    if (tenant == nullptr) {
+        LOG_ERR("Tenant is null in tftpSocketServiceHandler");
+        k_oops();
+    }
+
+    tenant->Callback();
+}
+
+void CTftpServerTenant::Register() {
+    int ret = sock.RegisterSocketService(&tftpSocketService, this);
+    if (ret < 0) {
+        LOG_ERR("Failed to register socket service for CTftpServerTenant: %d", ret);
+    } else {
+        LOG_INF("TFTP socket service registered.");
+    }
 }
 
 void CTftpServerTenant::Cleanup() {
 }
 
-void CTftpServerTenant::Run() {
+void CTftpServerTenant::Callback() {
     sockaddr srcAddr = {0};
     socklen_t srcAddrLen = sizeof(srcAddr);
     uint8_t packet[rwRequestPacketSize] = {0};

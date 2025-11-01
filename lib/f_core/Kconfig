@@ -20,6 +20,20 @@ config F_CORE_NET
     bool "Network"
     help
       This option enables network functionality for F-Core
+    select ENTROPY_GENERATOR
+    select NETWORKING
+    select NET_CONTEXT_RCVTIMEO
+    select NET_DRIVERS
+    select NET_IPV4
+    select NET_IPV4_ACCEPT_ZERO_BROADCAST
+    select NET_L2_ETHERNET
+    select NET_L2_ETHERNET_MGMT
+    select NET_SOCKETS
+    select NET_SOCKETS_SERVICE
+    select NET_STATISTICS
+    select SNTP
+    imply ZVFS_POLL_MAX_HINT
+    imply NET_SOCKETS_SERVICE_STACK_SIZE_HINT
 
 config F_CORE_RADIO
     bool "Radio"
@@ -46,5 +60,33 @@ config F_CORE_PROTOCOLS
     depends on F_CORE
     help
       This option enables support for some protocols for F-Core
+
+
+# The below is an internal config to suggest a default value for ZVFS_POLL_MAX
+# for socket service support, since the original default is 3, which is low
+config ZVFS_POLL_MAX_HINT
+    bool
+    help
+      Internal signal to suggest default ZVFS_POLL_MAX=5 if not overridden
+
+config ZVFS_POLL_MAX
+    int
+    default 5 if ZVFS_POLL_MAX_HINT
+    help
+      Max number of poll events in ZVFS
+
+
+# Below is an internal config for increasing the socket service stack size to
+# avoid stack overflow with the socket service that uses the most stack
+config NET_SOCKETS_SERVICE_STACK_SIZE_HINT
+    bool
+    help
+      Internal signal to suggest increasing NET_SOCKETS_SERVICE_STACK_SIZE
+
+config NET_SOCKETS_SERVICE_STACK_SIZE
+    int
+    default 4096 if NET_SOCKETS_SERVICE_STACK_SIZE_HINT
+    help
+        Stack size for the network sockets service thread
 
 rsource "radio/Kconfig"
