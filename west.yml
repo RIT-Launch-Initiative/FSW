@@ -19,9 +19,9 @@ manifest:
           - hal_st
           - hal_stm32
           - hal_nxp
+          - fatfs
           - littlefs
           - loramac-node
-          - hal_st
           - segger
           - percepio
           - lz4

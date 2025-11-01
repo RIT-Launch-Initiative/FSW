@@ -75,7 +75,7 @@ private:
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
     CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
-    CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
+    CFsDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
     CStateMachineUpdater stateMachineUpdater;
 
     // Tasks
