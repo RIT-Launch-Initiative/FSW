@@ -24,13 +24,13 @@ void test_end_beep();
 
 /**
  * @brief Set ematch gpio pin
- * @param level Value assigned to pin
+ * @param level Value to assign to pin
  */
 void set_ematch(int level);
 
 /**
  * @brief Set ldo gpio pin
- * @param level Value assigned to pin
+ * @param level Value to assign to pin
  */
 void set_ldo(int level);
 

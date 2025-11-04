@@ -36,7 +36,7 @@ K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, 15, 0, THR
 static uint32_t adc_buffer;
 static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = sizeof(adc_buffer), .resolution = 24};
 
-#define DT_SPEC_AND_COMMA(node_id, prop, idx) ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
+#define DT_SPEC_AND_COMMA(node_id, prop, idx) ADC_DT_SPEC_GET_BY_IDX(node_id, idx), // ?
 
 static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
@@ -106,10 +106,9 @@ void adc_reading_task() {
             if (num_expiries == 0) {
                 k_timer_status_sync(&adc_timer);
             } else {
-                num_missed_expires += num_expiries - 1;
+                num_missed_expires += num_expiries -1;
             }
 
-            // Set ematch 500ms into test
             if (x == 500) {
                 set_ematch(1);
             } else if (x == 900) {

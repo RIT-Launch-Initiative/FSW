@@ -1,17 +1,19 @@
 #include "adc_reading.h"
 #include "buzzer.h"
 #include "button.h"
+#include "config.h"
 
 #include <zephyr/logging/log.h>
 #include <zephyr/init.h>
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
-SYS_INIT(adc_init, APPLICATION, 0);
-SYS_INIT(buzzer_init, APPLICATION, 0);
-SYS_INIT(button_init, APPLICATION, 0);
+// APPLICATION: Executed just before application code (main)
+SYS_INIT(adc_init, APPLICATION, SYS_INIT_PRIORITY);
+SYS_INIT(buzzer_init, APPLICATION, SYS_INIT_PRIORITY);
+SYS_INIT(button_init, APPLICATION, SYS_INIT_PRIORITY);
 
-int main (void) {
+int main(void) {
 	LOG_INF("Solids Test Start");
 	
 	LOG_INF("Use 'test start' to begin test");

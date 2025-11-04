@@ -6,7 +6,7 @@
 #define MAX_TESTS 30
 
 #define STORAGE_THREAD_PRIORITY 1
-#define ADC_READ_PRIORITY -1
 #define THREAD_START_DELAY 100
+#define SYS_INIT_PRIORITY 1
 
 #endif // CONFIG_H

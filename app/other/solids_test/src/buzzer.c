@@ -49,6 +49,7 @@ void beep_full() {
         set_buzz(0);
         k_msleep(1000);
     }
+    printk("\n");
 }
 
 void test_start_beep() {
@@ -59,10 +60,11 @@ void test_start_beep() {
         set_buzz(0);
         k_msleep(100);
     }
+    printk("\n");
 }
 
 void test_end_beep() {
-    printk("BEEP");
+    printk("BEEEEEP\n");
     set_buzz(1);
     k_msleep(100);
     set_buzz(0);

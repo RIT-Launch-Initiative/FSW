@@ -13,6 +13,9 @@ int button_init();
 
 /**
  * @brief Interrupt function that starts a test when TX pin is pulled high
+ * @param dev GPIO device
+ * @param cb Callback structure pointer
+ * @param pins 
  */
 void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
 

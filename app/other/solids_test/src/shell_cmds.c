@@ -38,7 +38,7 @@ static int cmd_test_stop(const struct shell *shell, size_t argc, char **argv) {
 static int cmd_test_erase(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
-    shell_print(shell, "Erasing all test data......");
+    shell_print(shell, "Erasing all test data...");
 
     control_erase_all(shell);
     return 0;

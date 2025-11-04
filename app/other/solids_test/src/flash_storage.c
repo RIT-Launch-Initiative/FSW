@@ -84,8 +84,6 @@ static void save_metadata() {
 
     if (ret < 0) {
         LOG_ERR("flash_write(metadata) failed: %d", ret);
-    } else {
-        LOG_INF("Saved current_test_number = %u", current_test_number);
     }
 }
 
@@ -110,7 +108,7 @@ static void flash_storage_thread_entry() {
         if (event != BEGIN_STORAGE) continue;
 
         if (current_test_number >= MAX_TESTS) {
-            LOG_ERR("Maximum number of test reached");
+            LOG_ERR("Maximum number of tests reached!");
             beep_full();
             continue;
         }
@@ -181,7 +179,7 @@ void stop_flash_storage() {
 
 int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     if (test_index >= MAX_TESTS ){
-        shell_print(shell, "Pick a valid test, 0-29");
+        shell_print(shell, "Pick a valid test [0-29]");
         return -1;
     }
     struct adc_sample sample;
@@ -197,17 +195,20 @@ int flash_dump_one(const struct shell *shell, uint32_t test_index) {
         return 0;
     }
 
-    shell_print(shell, "==============Dumping Test %d==============", test_index);
+    shell_print(shell, "==============Dumping Test #%d===============", test_index);
+    shell_print(shell, "==============timestamp, value==============");
 
     for (int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++) {
         if (flash_read(flash_dev, block_addr, &sample, sizeof(sample)) < 0) {
             shell_print(shell, "Flash read failed");
             break;
         }
+
         if (sample.value == 0xFFFFFFFF && sample.timestamp == 0xFFFFFFFF) {
             shell_print(shell, "Flash block unwritten. Read %d packets", i);
             break;
         }
+        
         shell_print(shell, "%u,%d", sample.timestamp, sample.value);
         block_addr += sizeof(sample);
     }
