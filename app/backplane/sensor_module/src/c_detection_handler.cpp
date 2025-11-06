@@ -18,7 +18,6 @@ CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller,
                                      CMessagePort<NAlerts::AlertPacket>& alertMessagePort)
     : controller(controller),
       primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
-      secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},
 
       primaryBaromVelocityFinder{LinearFitSample<double>{0, 0}},
       secondaryBaromVelocityFinder{LinearFitSample<double>{0, 0}},
@@ -116,19 +115,10 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
     double primary_mag_squared_m_s2 = data.ImuAcceleration.X * data.ImuAcceleration.X +
                                       data.ImuAcceleration.Y * data.ImuAcceleration.Y +
                                       data.ImuAcceleration.Z * data.ImuAcceleration.Z;
-    double secondary_mag_squared_m_s2 = data.Acceleration.X * data.Acceleration.X +
-                                        data.Acceleration.Y * data.Acceleration.Y +
-                                        data.Acceleration.Z * data.Acceleration.Z;
-
     primaryImuBoostSquaredDetector.Feed(timestamp, primary_mag_squared_m_s2);
-    secondaryImuBoostSquaredDetector.Feed(timestamp, secondary_mag_squared_m_s2);
 
     if (primaryImuBoostSquaredDetector.Passed() && sensor_states.primaryAccOk) {
         controller.SubmitEvent(Sources::HighGImu, Events::Boost);
-        alertMessagePort.Send(boostNotification);
-    }
-    if (secondaryImuBoostSquaredDetector.Passed() && sensor_states.secondaryAccOk) {
-        controller.SubmitEvent(Sources::LowGImu, Events::Boost);
         alertMessagePort.Send(boostNotification);
     }
 }

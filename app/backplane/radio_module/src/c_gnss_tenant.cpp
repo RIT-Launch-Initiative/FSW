@@ -32,7 +32,7 @@ static void gnssCallback(const device *, const gnss_data *data) {
 
     gnssUpdated = 1;
 
-    LOG_DBG("Latitude: %f, Longitude: %f, Altitude: %f", static_cast<double>(gnssData.Coordinates.Latitude),
+    LOG_INF("Latitude: %f, Longitude: %f, Altitude: %f", static_cast<double>(gnssData.Coordinates.Latitude),
             static_cast<double>(gnssData.Coordinates.Longitude), static_cast<double>(gnssData.Coordinates.Altitude));
 
     // Set the rtc time
@@ -72,14 +72,6 @@ void CGnssTenant::Run() {
 
         gnssUpdated = 0;
     } else {
-        static NTypes::GnssData fake_data{
-            .Coordinates =
-                {
-                    .Latitude = 99,
-                    .Longitude = 99,
-                    .Altitude = 99,
-                },
-        };
         if (transmitTimer.IsExpired()) {
             LOG_INF("Fake Data");
             sendGnssToLora();

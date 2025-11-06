@@ -33,25 +33,10 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-    SetBoostDetected(NStateMachineGlobals::boostDetected);
-    SetLandingDetected(NStateMachineGlobals::landingDetected);
-    Clock();
-}
-
-void CLoraTransmitTenant::PadRun() {
-    FlightRun();
-}
-
-void CLoraTransmitTenant::FlightRun() {
     NTypes::LoRaBroadcastData data{};
     if (readTransmitQueue(data)) {
         (void) transmit(data);
     }
-}
-
-
-void CLoraTransmitTenant::LandedRun() {
-    FlightRun();
 }
 
 int CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
