@@ -65,6 +65,7 @@ class CSensorModule : public CProjectConfiguration {
     CFlightLog flight_log;
     SensorModulePhaseController controller{sourceNames, eventNames, timerEvents, deciders, NULL};
     CDetectionHandler detectionHandler{controller, alertMessagePort};
+    CZmsManager zmsManager{*DEVICE_DT_GET(DT_CHOSEN(zephyr_flash)), 0x00080000, 8};
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, downlinkMessagePort, sensorDataLogMessagePort,

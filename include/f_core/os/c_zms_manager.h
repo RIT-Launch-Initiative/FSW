@@ -13,7 +13,7 @@ struct zms_fs;
 
 class CZmsManager {
 public:
-    CZmsManager(device& flash, off_t offset, uint32_t sectorCount);
+    CZmsManager(const device& flash, off_t offset, uint32_t sectorCount);
 
     ~CZmsManager() = default;
 
