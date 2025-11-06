@@ -32,7 +32,6 @@ void CPyroControlObserver::Notify(void* ctx) {
             LOG_INF("Noseover detected. Deploying charges in one second.");
             // flightLog.Write("Noseover detected. Deploying charges in one second.");
             // TODO: Settings library for handling deployment timing
-            k_sleep(K_SECONDS(1));
 
             for (auto& [sense, ctrl, led] : pyroTrios) {
                 // if (sense.GetPin() == 1) {
