@@ -137,9 +137,9 @@ void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
             .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
         },
         .Acceleration = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
+            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuAcceleration.X)),
+            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuAcceleration.Y)),
+            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuAcceleration.Z)),
         },
         .Gyroscope = {
             .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),

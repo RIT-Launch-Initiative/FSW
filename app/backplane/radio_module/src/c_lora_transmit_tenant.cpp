@@ -39,21 +39,7 @@ void CLoraTransmitTenant::Run() {
 }
 
 void CLoraTransmitTenant::PadRun() {
-    NTypes::LoRaBroadcastData rxData{};
-    readTransmitQueue(rxData);
-    portDataMap.Set(rxData.Port, rxData);
-
-    for (uint16_t port : listeningPortsList) {
-        if (padDataRequestedMap.Get(port).value_or(false)) {
-            NTypes::LoRaBroadcastData data = portDataMap.Get(port).value_or(NTypes::LoRaBroadcastData{.Port = 0, .Size = 0});
-            if (port == 0) {
-                continue;
-            }
-
-            (void) transmit(data);
-            padDataRequestedMap.Set(port, false);
-        }
-    }
+    FlightRun();
 }
 
 void CLoraTransmitTenant::FlightRun() {
@@ -65,11 +51,7 @@ void CLoraTransmitTenant::FlightRun() {
 
 
 void CLoraTransmitTenant::LandedRun() {
-    NTypes::LoRaBroadcastData data{};
-
-    if (readTransmitQueue(data) && data.Port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
-        (void) transmit(data);
-    }
+    FlightRun();
 }
 
 int CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
