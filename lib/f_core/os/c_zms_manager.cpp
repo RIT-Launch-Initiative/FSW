@@ -24,7 +24,7 @@ CZmsManager::CZmsManager(device &flash, off_t offset, uint32_t sectorCount) : mo
     flash_pages_info info;
     int ret = flash_get_page_info_by_offs(fs.flash_device, fs.offset, &info);
     if (ret != 0) {
-        LOG_ERR("Failed to get flash page info: %d", rc);
+        LOG_ERR("Failed to get flash page info: %d", ret);
         return;
     }
 
@@ -33,7 +33,7 @@ CZmsManager::CZmsManager(device &flash, off_t offset, uint32_t sectorCount) : mo
 
     ret = zms_mount(&fs);
     if (ret != 0) {
-        LOG_ERR("Failed to mount ZMS: %d", rc);
+        LOG_ERR("Failed to mount ZMS: %d", ret);
         return;
     }
 
