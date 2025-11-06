@@ -37,6 +37,20 @@ CZmsManager::CZmsManager(device &flash, off_t offset, uint32_t sectorCount) : mo
         return;
     }
 
+    uint32_t bootCount = 0;
+    ssize_t readResult = zms_read(&fs, IdFromKey("bootcount"), &bootCount, sizeof(bootCount));
+    if (readResult >= 0 && static_cast<size_t>(readResult) == sizeof(bootCount)) {
+        bootCount++;
+    } else {
+        bootCount = 1;
+    }
+    int writeResult = zms_write(&fs, IdFromKey("bootcount"), &bootCount, sizeof(bootCount));
+    if (writeResult < 0) {
+        LOG_ERR("Failed to write bootcount: %d", writeResult);
+    } else {
+        LOG_INF("Bootcount: %u", bootCount);
+    }
+
     mounted = true;
 }
 
