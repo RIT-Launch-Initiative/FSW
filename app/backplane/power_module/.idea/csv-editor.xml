@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/../../../data/orksim_csv/l1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../../../data/orksim_csv/omen.csv">
           <value>
             <Attribute>
