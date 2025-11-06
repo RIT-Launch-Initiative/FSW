@@ -18,6 +18,10 @@
 #include <f_core/device/c_rtc.h>
 #include <zephyr/fs/littlefs.h>
 
+#define ZMS_PARTITION storage_partition
+#define ZMS_PARTITION_DEVICE FIXED_PARTITION_DEVICE(ZMS_PARTITION)
+#define ZMS_PARTITION_OFFSET FIXED_PARTITION_OFFSET(ZMS_PARTITION)
+
 class CSensorModule : public CProjectConfiguration {
   public:
     /**
@@ -65,7 +69,7 @@ class CSensorModule : public CProjectConfiguration {
     CFlightLog flight_log;
     SensorModulePhaseController controller{sourceNames, eventNames, timerEvents, deciders, NULL};
     CDetectionHandler detectionHandler{controller, alertMessagePort};
-    CZmsManager zmsManager{*DEVICE_DT_GET(DT_CHOSEN(zephyr_flash)), 0x00080000, 8};
+    CZmsManager zmsManager{*ZMS_PARTITION_DEVICE, ZMS_PARTITION_OFFSET, 3};
 
     // Tenants
     CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, downlinkMessagePort, sensorDataLogMessagePort,
