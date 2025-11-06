@@ -12,6 +12,7 @@
 #include <f_core/os/c_task.h>
 #include <f_core/os/flight_log.hpp>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
+#include <f_core/os/c_zms_manager.h>
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
 #include <f_core/device/c_rtc.h>
