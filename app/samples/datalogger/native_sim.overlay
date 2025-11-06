@@ -1,7 +1,12 @@
 / {
 	chosen {
+		flashcontroller = &flash0;
 		storage = &flash0;
 		logfs = &lfs1;
+	};
+
+	aliases {
+		storage = &flash0;
 	};
 
 

@@ -35,6 +35,8 @@ config F_CORE_OS
     bool "OS"
     help
       This option enables OS functionality for F-Core
+    select SYS_HASH_FUNC32
+    select SYS_HASH_FUNC32_MURMUR3
 
 config F_CORE_UTILS
     bool "Utility"
