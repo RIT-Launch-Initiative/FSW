@@ -13,8 +13,9 @@ struct zms_fs;
 
 class CZmsManager {
 public:
-    CZmsManager();
-    ~CZmsManager();
+    CZmsManager(device& flash, off_t offset, uint32_t sectorCount);
+
+    ~CZmsManager() = default;
 
     // Read the value for `key` into `buf` up to `len` bytes. Returns number of
     // bytes read (>0) or a negative errno on error (or 0 if not found).

@@ -17,9 +17,7 @@ static uint32_t fnv1a_32(const void *data, size_t len) {
     return hash;
 }
 
-CZmsManager::CZmsManager() : fs(nullptr), mounted(false) {}
-
-CZmsManager::~CZmsManager(device &flash, off_t offset, uint32_t sectorCount) {
+CZmsManager::CZmsManager(device &flash, off_t offset, uint32_t sectorCount) : mounted(false) {
     fs.flash_device = &flash;
     fs.offset = offset;
 
