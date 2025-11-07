@@ -6,13 +6,14 @@
 
 #include "c_power_module.h"
 
-#include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
-#include <n_autocoder_network_defs.h>
+#include <f_core/utils/n_bootcount.h>
 
 LOG_MODULE_REGISTER(main);
 
 int main() {
+    NBootCount::IncrementBootCount();
+
     static CPowerModule powerModule{};
 
     powerModule.AddTenantsToTasks();

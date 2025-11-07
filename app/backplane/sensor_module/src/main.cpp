@@ -120,7 +120,6 @@ SYS_INIT(bootcount_before_anything, POST_KERNEL, BOOTCOUNT_PRIO);
 
 static CSensorModule sensorModule{};
 int main() {
-
     sensorModule.AddTenantsToTasks();
     sensorModule.AddTasksToRtos();
     sensorModule.SetupCallbacks();

@@ -6,10 +6,13 @@
 #include "c_deployment_module.h"
 
 #include <f_core/os/n_rtos.h>
+#include <f_core/utils/n_bootcount.h>
 
 LOG_MODULE_REGISTER(main);
 
 int main() {
+    NBootCount::IncrementBootCount();
+
     static CDeploymentModule deploymentModule{};
 
     deploymentModule.AddTenantsToTasks();
