@@ -15,6 +15,7 @@
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
 #include <f_core/device/c_rtc.h>
+#include "c_dumb_flash_tenant.h"
 #include <zephyr/fs/littlefs.h>
 
 class CSensorModule : public CProjectConfiguration {
@@ -75,7 +76,12 @@ class CSensorModule : public CProjectConfiguration {
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
     CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
     
-    CFsDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 64};
+    // 400 sectors = 22754 packets = = ~225 seconds worth. way overkil
+    // 1600 KByte
+    // MUST BE ON ITS OWN THREAD/TASK BLOCKS
+    // ARCHITECTURE AND TIMING COLLIDED AND THIS IS NOW NONSENSICAL
+    CDumbFlashTenant dataLoggerTenant{"Logger", DEVICE_DT_GET(DT_CHOSEN(storage)), 4096, 400*4096, sensorDataLogMessagePort}; 
+
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 3072, 0};
