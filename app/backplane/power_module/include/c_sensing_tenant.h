@@ -30,6 +30,7 @@ private:
     CMessagePort<NTypes::TimestampedSensorData> &dataToLog;
     CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
     CSoftTimer timer{nullptr, nullptr};
+    CSoftTimer sendingTimer{nullptr, nullptr};
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     void sendDownlinkData(const NTypes::SensorData &data);
