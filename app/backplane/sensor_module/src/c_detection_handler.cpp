@@ -100,11 +100,8 @@ void CDetectionHandler::HandleNoseover(const uint32_t t_plus_ms, const NTypes::S
         secondaryBaromNoseoverDetector.Feed(t_plus_ms, secondary_barom_velocity);
     }
 
-    printk("slope: %f, %f, \t%d, %d\n", primary_barom_velocity, secondary_barom_velocity, primaryBaromNoseoverDetector.Passed(), secondaryBaromNoseoverDetector.Passed());
-    printk("lockout: %d, ok %d", controller.HasEventOccurred(Events::NoseoverLockout), sensor_states.primaryBarometerOk);
     if (primaryBaromNoseoverDetector.Passed() && controller.HasEventOccurred(Events::NoseoverLockout) &&
         sensor_states.primaryBarometerOk) {
-        printk("Sending MS5 ");
         controller.SubmitEvent(Sources::BaromMS5611, Events::Noseover);
         alertMessagePort.Send(noseoverNotification);
     }
