@@ -55,7 +55,7 @@ int CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
     memcpy(txData.begin(), &data.Port, 2);             // Copy port number to first 2 bytes
     memcpy(txData.begin() + 2, &data.Payload, data.Size); // Copy payload to the rest of the buffer
 
-    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.Size, data.Port);
+    LOG_INF("Transmitting %d bytes from port %d over LoRa, %d space", data.Size, data.Port, loraTransmitPort.AvailableSpace());
     return lora.TransmitSynchronous(txData.data(), data.Size + 2);
 }
 

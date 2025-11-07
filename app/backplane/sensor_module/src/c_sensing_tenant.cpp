@@ -29,7 +29,7 @@ CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData
 }
 
 void CSensingTenant::Startup() {
-    sendingTimer.StartTimer(10*1000);
+    sendingTimer.StartTimer(10 * 1000);
     broadcastTimer.StartTimer(100);
 
 #ifndef CONFIG_ARCH_POSIX
@@ -158,3 +158,4 @@ void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
 
     dataToDownlink.Send(downlinkData, K_NO_WAIT);
 }
+

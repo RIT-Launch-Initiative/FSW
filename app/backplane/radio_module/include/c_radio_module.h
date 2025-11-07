@@ -81,7 +81,7 @@ private:
     CTask networkingTask{"Networking Task", 14, 3072, 5};
     CTask gnssTask{"GNSS Task", 15, 1024, 2000};
     CTask dataLoggingTask{"Data Logging Task", 15, 2048, 10};
-    CTask loraTask{"LoRa Task", 14, 2048, 100};
+    CTask loraTask{"LoRa Task", 14, 2048, 200};
 
 };
 

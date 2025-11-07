@@ -44,7 +44,7 @@ inline std::array<SensorModulePhaseController::TimerEvent, numTimerEvents> timer
     SensorModulePhaseController::TimerEvent{
         .start = Events::Boost,
         .event = Events::NoseoverLockout,
-        .time = K_SECONDS(15),
+        .time = K_SECONDS(3),
         .source = Sources::NoseoverLockoutTimer,
     },
     // We know our entire flight will not last longer than X seconds even if we main at apogee.
@@ -52,7 +52,7 @@ inline std::array<SensorModulePhaseController::TimerEvent, numTimerEvents> timer
     SensorModulePhaseController::TimerEvent{
         .start = Events::Boost,
         .event = Events::GroundHit,
-        .time = K_SECONDS(350),
+        .time = K_SECONDS(100),
         .source = Sources::FullFlightTimer,
     },
 

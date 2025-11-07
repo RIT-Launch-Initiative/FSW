@@ -1,6 +1,6 @@
 #include <f_core/os/c_fs_datalogger.h>
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(datalogger);
+LOG_MODULE_REGISTER(fs_datalogger);
 
 namespace detail {
 datalogger::datalogger(const char *filename, LogMode mode, std::size_t num_packets)
