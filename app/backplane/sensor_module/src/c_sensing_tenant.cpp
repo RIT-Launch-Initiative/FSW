@@ -79,8 +79,6 @@ void CSensingTenant::Run() {
     // } else {
         // timestampedData.timestamp = tmpTimestamp;
     // }
-    printk("%lu\n", timestampedData.timestamp);
-
 
     data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
