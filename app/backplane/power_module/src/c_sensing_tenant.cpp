@@ -1,8 +1,9 @@
 #include "c_sensing_tenant.h"
+
 #include "c_power_module.h"
 
-#include <f_core/n_alerts.h>
 #include <f_core/device/sensor/c_shunt.h>
+#include <f_core/n_alerts.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CSensingTenant);
@@ -10,6 +11,7 @@ LOG_MODULE_REGISTER(CSensingTenant);
 void CSensingTenant::Startup() {
     static constexpr uint32_t minuteInMillis = 1000 * 60;
     timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
+    sendingTimer.StartTimer(20 * 1000);  // send downlink data every 20 seconds
 }
 
 void CSensingTenant::PostStartup() {}
@@ -17,26 +19,15 @@ void CSensingTenant::PostStartup() {}
 void CSensingTenant::Run() {
     NTypes::TimestampedSensorData timestampedData{
         .timestamp = 0,
-        .data = {
-            .RailBattery = {
-                .Voltage = 0.0f,
-                .Current = 0.0f,
-                .Power = 0.0f
+        .data =
+            {
+                .RailBattery = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f},
+                .Rail3v3 = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f},
+                .Rail5v0 = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f},
             },
-            .Rail3v3 = {
-                .Voltage = 0.0f,
-                .Current = 0.0f,
-                .Power = 0.0f
-            },
-            .Rail5v0 = {
-                .Voltage = 0.0f,
-                .Current = 0.0f,
-                .Power = 0.0f
-            }
-        }
     };
 
-    NTypes::SensorData &data = timestampedData.data;
+    NTypes::SensorData& data = timestampedData.data;
 
 #ifndef CONFIG_ARCH_POSIX
     CShunt shuntBatt(*DEVICE_DT_GET(DT_ALIAS(shunt_batt)));
@@ -82,7 +73,9 @@ void CSensingTenant::Run() {
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
-    sendDownlinkData(data);
+    if (sendingTimer.IsExpired()) {
+        sendDownlinkData(data);
+    }
 
     if (timer.IsExpired()) {
         dataToLog.Send(timestampedData, K_MSEC(5));
@@ -110,16 +103,18 @@ void CSensingTenant::Notify(void* ctx) {
 
 void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
     NTypes::LoRaBroadcastSensorData downlinkData{
-        .RailBattery = {
-            .Voltage = static_cast<int16_t>(data.RailBattery.Voltage),
-            .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Current)),
-            .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Power))
-        },
-        .Rail3v3 = {
-            .Voltage = static_cast<int16_t>(data.Rail3v3.Voltage),
-            .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Current)),
-            .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Power))
-        }
+        .RailBattery =
+            {
+                .Voltage = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Voltage)),
+                .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Current)),
+                .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Power)),
+            },
+        .Rail3v3 =
+            {
+                .Voltage = static_cast<int16_t>(data.Rail3v3.Voltage),
+                .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Current)),
+                .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Power)),
+            },
     };
 
     dataToDownlink.Send(downlinkData, K_MSEC(5));

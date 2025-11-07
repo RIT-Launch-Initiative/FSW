@@ -1,6 +1,6 @@
 #include <f_core/os/c_fs_datalogger.h>
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(datalogger);
+LOG_MODULE_REGISTER(fs_datalogger);
 
 namespace detail {
 datalogger::datalogger(const char *filename, LogMode mode, std::size_t num_packets)
@@ -20,7 +20,6 @@ int datalogger::write(const void *data, std::size_t size) {
         if (err < 0) {
             LOG_ERR("Error writing to file: %d", err);
         }
-
         return err;
     }
 
@@ -39,7 +38,8 @@ int datalogger::write(const void *data, std::size_t size) {
         }
     } else if (mode == LogMode::Circular) {
         if (index >= num_packets) {
-            fs_seek(&file, 0, FS_SEEK_SET);
+            int ret = fs_seek(&file, 0, FS_SEEK_SET);
+            LOG_WRN("Failed to seek: %d", ret);
         }
         return fs_write(&file, data, size);
     }

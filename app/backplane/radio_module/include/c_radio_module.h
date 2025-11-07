@@ -73,7 +73,6 @@ private:
 
 #ifndef CONFIG_ARCH_POSIX
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
 #endif
     CFsDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
     CStateMachineUpdater stateMachineUpdater;
@@ -82,7 +81,7 @@ private:
     CTask networkingTask{"Networking Task", 14, 3072, 5};
     CTask gnssTask{"GNSS Task", 15, 1024, 2000};
     CTask dataLoggingTask{"Data Logging Task", 15, 2048, 10};
-    CTask loraTask{"LoRa Task", 14, 2048, 10};
+    CTask loraTask{"LoRa Task", 14, 2048, 200};
 
 };
 

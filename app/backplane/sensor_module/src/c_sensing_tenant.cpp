@@ -11,9 +11,11 @@
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
+CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
+                               CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
                                CMessagePort<NTypes::TimestampedSensorData>& dataToLog, CDetectionHandler& handler)
-    : CRunnableTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
+    : CRunnableTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog),
+      dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
@@ -27,6 +29,9 @@ CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData
 }
 
 void CSensingTenant::Startup() {
+    sendingTimer.StartTimer(10 * 1000);
+    broadcastTimer.StartTimer(100);
+
 #ifndef CONFIG_ARCH_POSIX
     const sensor_value imuOdr{.val1 = 104, .val2 = 0};
 
@@ -44,14 +49,8 @@ void CSensingTenant::Startup() {
 void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
-    if (!detectionHandler.ContinueCollecting()) {
-        return;
-    }
-    NTypes::TimestampedSensorData timestampedData{
-        .timestamp = 0,
-        .data = {0}
-    };
-    NTypes::SensorData &data = timestampedData.data;
+    NTypes::TimestampedSensorData timestampedData{.timestamp = 0, .data = {0}};
+    NTypes::SensorData& data = timestampedData.data;
 
     uint64_t uptime = k_uptime_get();
 
@@ -67,13 +66,17 @@ void CSensingTenant::Run() {
 #endif
 
     // Note that compilers don't accept references to packed struct fields
-    uint32_t tmpTimestamp = 0;
-    if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
+
+    // this clobbers sensor_states for some damn reason
+    // uint32_t tmpTimestamp = 0;
+    // if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
         // LOG_ERR("Failed to get time from RTC");
-        timestampedData.timestamp = k_uptime_get();
-    } else {
-        timestampedData.timestamp = tmpTimestamp;
-    }
+    timestampedData.timestamp = k_uptime_get();
+    // } else {
+        // timestampedData.timestamp = tmpTimestamp;
+    // }
+
+
 
     data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
@@ -101,12 +104,16 @@ void CSensingTenant::Run() {
 
     // If we can't send immediately, drop the packet
     // we're gonna sleep then give it new data anywas
-    if (dataToBroadcast.Send(data, K_NO_WAIT)) {
-        LOG_ERR("Failed to send sensor data to broadcast port");
-    } else {
-        LOG_DBG("Sensor data sent to broadcast port");
+    if (broadcastTimer.IsExpired()) {
+        if (dataToBroadcast.Send(data, K_NO_WAIT)) {
+            LOG_ERR("Failed to send sensor data to broadcast port");
+        } else {
+            LOG_DBG("Sensor data sent to broadcast port");
+        }
     }
-    sendDownlinkData(data);
+    if (sendingTimer.IsExpired()) {
+        sendDownlinkData(data);
+    }
 
     detectionHandler.HandleData(uptime, data, sensor_states);
     if (detectionHandler.FlightOccurring()) {
@@ -123,7 +130,7 @@ void CSensingTenant::Run() {
     }
 
     // Don't care about performance at this point,
-    // Keep making sure the data gets logged
+    // Keep making sure the data we sent gets logged
     if (detectionHandler.FlightFinished()) {
         NRtos::ResumeTask("Data Logging Task");
         k_msleep(1000);
@@ -132,22 +139,27 @@ void CSensingTenant::Run() {
 
 void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
     NTypes::LoRaBroadcastSensorData downlinkData{
-        .Barometer = {
-            .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
-            .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
-        },
-        .Acceleration = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
-        },
-        .Gyroscope = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
-        },
+        .Barometer =
+            {
+                .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
+                .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
+            },
+        .Acceleration =
+            {
+                .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuAcceleration.X)),
+                .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuAcceleration.Y)),
+                .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuAcceleration.Z)),
+            },
+        .Gyroscope =
+            {
+                .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
+                .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
+                .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
+            },
+        .BootCount = 2,
+        .Phase = detectionHandler.PhaseByte(),
     };
 
     dataToDownlink.Send(downlinkData, K_NO_WAIT);
-
 }
+

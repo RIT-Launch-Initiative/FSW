@@ -18,7 +18,6 @@ CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller,
                                      CMessagePort<NAlerts::AlertPacket>& alertMessagePort)
     : controller(controller),
       primaryImuBoostSquaredDetector(boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2),
-      secondaryImuBoostSquaredDetector{boostTimeThreshold, boostThresholdMPerS2 * boostThresholdMPerS2},
 
       primaryBaromVelocityFinder{LinearFitSample<double>{0, 0}},
       secondaryBaromVelocityFinder{LinearFitSample<double>{0, 0}},
@@ -54,9 +53,11 @@ void CDetectionHandler::HandleData(const uint64_t timestamp, const NTypes::Senso
     if (!controller.HasEventOccurred(Events::Noseover)) {
         HandleNoseover(t_plus_ms, data, sensor_states);
     }
-    if (controller.HasEventOccurred(Events::Noseover) && !controller.HasEventOccurred(Events::GroundHit)) {
-        HandleGround(t_plus_ms, data, sensor_states);
-    }
+
+    // Ground hit detection at best gets us 10 seconds less of data and at worst gets us too many seconds of dropped data
+    // if (controller.HasEventOccurred(Events::Noseover) && !controller.HasEventOccurred(Events::GroundHit)) {
+        // HandleGround(t_plus_ms, data, sensor_states);
+    // }
 }
 
 void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::SensorData& data,
@@ -99,8 +100,11 @@ void CDetectionHandler::HandleNoseover(const uint32_t t_plus_ms, const NTypes::S
         secondaryBaromNoseoverDetector.Feed(t_plus_ms, secondary_barom_velocity);
     }
 
+    printk("slope: %f, %f, \t%d, %d\n", primary_barom_velocity, secondary_barom_velocity, primaryBaromNoseoverDetector.Passed(), secondaryBaromNoseoverDetector.Passed());
+    printk("lockout: %d, ok %d", controller.HasEventOccurred(Events::NoseoverLockout), sensor_states.primaryBarometerOk);
     if (primaryBaromNoseoverDetector.Passed() && controller.HasEventOccurred(Events::NoseoverLockout) &&
         sensor_states.primaryBarometerOk) {
+        printk("Sending MS5 ");
         controller.SubmitEvent(Sources::BaromMS5611, Events::Noseover);
         alertMessagePort.Send(noseoverNotification);
     }
@@ -116,19 +120,10 @@ void CDetectionHandler::HandleBoost(const uint64_t timestamp, const NTypes::Sens
     double primary_mag_squared_m_s2 = data.ImuAcceleration.X * data.ImuAcceleration.X +
                                       data.ImuAcceleration.Y * data.ImuAcceleration.Y +
                                       data.ImuAcceleration.Z * data.ImuAcceleration.Z;
-    double secondary_mag_squared_m_s2 = data.Acceleration.X * data.Acceleration.X +
-                                        data.Acceleration.Y * data.Acceleration.Y +
-                                        data.Acceleration.Z * data.Acceleration.Z;
-
     primaryImuBoostSquaredDetector.Feed(timestamp, primary_mag_squared_m_s2);
-    secondaryImuBoostSquaredDetector.Feed(timestamp, secondary_mag_squared_m_s2);
 
     if (primaryImuBoostSquaredDetector.Passed() && sensor_states.primaryAccOk) {
         controller.SubmitEvent(Sources::HighGImu, Events::Boost);
-        alertMessagePort.Send(boostNotification);
-    }
-    if (secondaryImuBoostSquaredDetector.Passed() && sensor_states.secondaryAccOk) {
-        controller.SubmitEvent(Sources::LowGImu, Events::Boost);
         alertMessagePort.Send(boostNotification);
     }
 }

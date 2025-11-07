@@ -3,12 +3,12 @@
 #include "f_core/utils/linear_fit.hpp"
 #include "flight.hpp"
 
-#include <n_autocoder_types.h>
-#include <f_core/n_alerts.h>
 #include <f_core/messaging/c_message_port.h>
+#include <f_core/n_alerts.h>
+#include <n_autocoder_types.h>
 
 class CDetectionHandler {
-public:
+  public:
     struct SensorWorkings {
         bool primaryAccOk;
         bool secondaryAccOk;
@@ -25,12 +25,10 @@ public:
 
     using BaromNoseoverDetector = CDebouncer<ThresholdDirection::Under, double>;
     using BaromGroundDetector = CDebouncer<ThresholdDirection::Under, double>;
-    CDetectionHandler(SensorModulePhaseController& controller,
-                      CMessagePort<NAlerts::AlertPacket>& alertMessagePort);
+    CDetectionHandler(SensorModulePhaseController& controller, CMessagePort<NAlerts::AlertPacket>& alertMessagePort);
 
     SensorModulePhaseController& controller;
     AccBoostDetector primaryImuBoostSquaredDetector;
-    AccBoostDetector secondaryImuBoostSquaredDetector;
 
     VelocityFinder primaryBaromVelocityFinder;
     VelocityFinder secondaryBaromVelocityFinder;
@@ -89,6 +87,18 @@ public:
 
         return controller.HasEventOccurred(Events::GroundHit);
     }
+    // Return byte representing phase happenings
+    // bit 0: 1 if boost has occured
+    // bit 1: 1 if noseover lockout time is over
+    // bit 2: 1 if noseover has occured
+    // bit 3: 1 if the flight is over
+    uint8_t PhaseByte() {
+        uint8_t b = controller.HasEventOccurred(Events::Boost) |
+                    controller.HasEventOccurred(Events::NoseoverLockout) << 1 |
+                    controller.HasEventOccurred(Events::Noseover) << 2 |
+                    controller.HasEventOccurred(Events::GroundHit) << 3;
+        return b;
+    }
 
     /**
      * Whether or not the phase detector needs more data. True before ground hit, false after
@@ -96,13 +106,10 @@ public:
      */
     bool ContinueCollecting();
 
-private:
-    static constexpr NAlerts::AlertPacket boostNotification = {
-        'L', 'A', 'U', 'N', 'C', 'H', 'b'};
-    static constexpr NAlerts::AlertPacket noseoverNotification = {
-        'L', 'A', 'U', 'N', 'C', 'H', 'n'};
-    static constexpr NAlerts::AlertPacket landedNotification = {
-        'L', 'A', 'U', 'N', 'C', 'H', 'l'};
+  private:
+    static constexpr NAlerts::AlertPacket boostNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'b'};
+    static constexpr NAlerts::AlertPacket noseoverNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'n'};
+    static constexpr NAlerts::AlertPacket landedNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'l'};
 
     CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 };

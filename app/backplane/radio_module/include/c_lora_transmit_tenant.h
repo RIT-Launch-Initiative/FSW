@@ -11,7 +11,7 @@
 #include <f_core/utils/c_observer.h>
 #include <f_core/utils/c_hashmap.h>
 
-class CLoraTransmitTenant : public CRunnableTenant, public CPadFlightLandedStateMachine {
+class CLoraTransmitTenant : public CRunnableTenant {
 public:
     friend class CLoraReceiveTenant;
 
@@ -36,20 +36,6 @@ public:
      */
     void Run() override;
 
-    /**
-     * See Parent Docs
-     */
-    void PadRun() override;
-
-    /**
-     * See Parent Docs
-     */
-    void FlightRun() override;
-
-    /**
-     * See Parent Docs
-     */
-    void LandedRun() override;
 
 private:
     static constexpr uint8_t totalPortsListenedTo = 3;

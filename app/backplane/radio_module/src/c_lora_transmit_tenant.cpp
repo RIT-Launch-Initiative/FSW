@@ -33,41 +33,8 @@ void CLoraTransmitTenant::PostStartup() {
 }
 
 void CLoraTransmitTenant::Run() {
-    SetBoostDetected(NStateMachineGlobals::boostDetected);
-    SetLandingDetected(NStateMachineGlobals::landingDetected);
-    Clock();
-}
-
-void CLoraTransmitTenant::PadRun() {
-    NTypes::LoRaBroadcastData rxData{};
-    readTransmitQueue(rxData);
-    portDataMap.Set(rxData.Port, rxData);
-
-    for (uint16_t port : listeningPortsList) {
-        if (padDataRequestedMap.Get(port).value_or(false)) {
-            NTypes::LoRaBroadcastData data = portDataMap.Get(port).value_or(NTypes::LoRaBroadcastData{.Port = 0, .Size = 0});
-            if (port == 0) {
-                continue;
-            }
-
-            (void) transmit(data);
-            padDataRequestedMap.Set(port, false);
-        }
-    }
-}
-
-void CLoraTransmitTenant::FlightRun() {
     NTypes::LoRaBroadcastData data{};
     if (readTransmitQueue(data)) {
-        (void) transmit(data);
-    }
-}
-
-
-void CLoraTransmitTenant::LandedRun() {
-    NTypes::LoRaBroadcastData data{};
-
-    if (readTransmitQueue(data) && data.Port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT) {
         (void) transmit(data);
     }
 }
@@ -88,7 +55,7 @@ int CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
     memcpy(txData.begin(), &data.Port, 2);             // Copy port number to first 2 bytes
     memcpy(txData.begin() + 2, &data.Payload, data.Size); // Copy payload to the rest of the buffer
 
-    LOG_INF("Transmitting %d bytes from port %d over LoRa", data.Size, data.Port);
+    LOG_INF("Transmitting %d bytes from port %d over LoRa, %d space", data.Size, data.Port, loraTransmitPort.AvailableSpace());
     return lora.TransmitSynchronous(txData.data(), data.Size + 2);
 }
 

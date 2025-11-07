@@ -14,6 +14,7 @@
 #include <f_core/os/c_runnable_tenant.h>
 #include <n_autocoder_types.h>
 #include <zephyr/device.h>
+#include <f_core/utils/c_soft_timer.h>
 
 class CSensorDevice;
 
@@ -41,6 +42,8 @@ class CSensingTenant : public CRunnableTenant {
     CAccelerometer accelerometer;
     CTemperatureSensor thermometer;
     CMagnetometer magnetometer;
+    CSoftTimer sendingTimer{nullptr, nullptr};
+    CSoftTimer broadcastTimer{nullptr, nullptr};
 
     std::array<CSensorDevice *, 7> sensors;
 
