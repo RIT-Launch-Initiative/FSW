@@ -8,7 +8,13 @@ set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 include(${FSW_ROOT}/cmake/Autocoders.cmake)
 include(${FSW_ROOT}/cmake/Snippets.cmake)
 
-AddCommonSnippets()
+list(APPEND SNIPPETS
+"bpl-networking"
+"cpp"
+)
+
+AddSnippets(${SNIPPETS})
+
 
 list(APPEND CONF_FILE ${CMAKE_CURRENT_SOURCE_DIR}/core.conf)
 

@@ -7,9 +7,13 @@
 #include <f_core/device/sensor/c_gyroscope.h>
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <f_core/device/sensor/c_temperature_sensor.h>
+#include <f_core/os/n_rtos.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CSensingTenant);
+
+extern size_t sensor_mod_bootcount;
+
 
 CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
                                CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
@@ -49,7 +53,6 @@ void CSensingTenant::Startup() {
 
 void CSensingTenant::PostStartup() {}
 
-constexpr size_t s = sizeof(NTypes::TimestampedSensorData);
 void CSensingTenant::Run() {
     sensingTimer.BlockUntilExpired();
 
@@ -74,10 +77,10 @@ void CSensingTenant::Run() {
     // this clobbers sensor_states for some damn reason
     // uint32_t tmpTimestamp = 0;
     // if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
-        // LOG_ERR("Failed to get time from RTC");
+    // LOG_ERR("Failed to get time from RTC");
     timestampedData.timestamp = k_uptime_get();
     // } else {
-        // timestampedData.timestamp = tmpTimestamp;
+    // timestampedData.timestamp = tmpTimestamp;
     // }
 
     data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
@@ -103,6 +106,9 @@ void CSensingTenant::Run() {
     data.SecondaryBarometer.Temperature = secondaryBarometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
 
     data.Temperature.Temperature = thermometer.GetSensorValueFloat(SENSOR_CHAN_AMBIENT_TEMP);
+
+    data.StatusByte = detectionHandler.PhaseByte();
+    data.BootCount = sensor_mod_bootcount;
 
     // If we can't send immediately, drop the packet
     // we're gonna sleep then give it new data anywas
@@ -158,10 +164,9 @@ void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
                 .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
                 .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
             },
-        .BootCount = 2,
+        .BootCount = (uint8_t) (sensor_mod_bootcount % 256),
         .Phase = detectionHandler.PhaseByte(),
     };
 
     dataToDownlink.Send(downlinkData, K_NO_WAIT);
 }
-

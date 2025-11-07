@@ -22,7 +22,7 @@ static auto alertMsgQueue = CMsgqMessagePort<NAlerts::AlertPacket>(alertQueue);
 
 CSensorModule::CSensorModule()
     : CProjectConfiguration(), sensorDataBroadcastMessagePort(broadcastMsgQueue), downlinkMessagePort(downlinkMsgQueue),
-      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue), flight_log{"/lfs/flight_log.txt"} {}
+      sensorDataLogMessagePort(dataLogMsgQueue), alertMessagePort(alertMsgQueue) {}
 
 void CSensorModule::AddTenantsToTasks() {
     // Networking

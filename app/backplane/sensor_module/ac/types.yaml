@@ -15,6 +15,10 @@ SensorData:
       type: MagnetometerData
     - name: Temperature
       type: TemperatureData
+    - name: StatusByte
+      type: uint8_t
+    - name: BootCount
+      type: uint8_t
   timestamp: true
 
 LoRaBroadcastSensorData:

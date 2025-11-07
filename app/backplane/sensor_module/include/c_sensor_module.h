@@ -11,12 +11,10 @@
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/flight_log.hpp>
-#include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
 #include <f_core/device/c_rtc.h>
 #include "c_dumb_flash_tenant.h"
-#include <zephyr/fs/littlefs.h>
 
 class CSensorModule : public CProjectConfiguration {
   public:
@@ -65,7 +63,6 @@ class CSensorModule : public CProjectConfiguration {
     CMessagePort<NTypes::TimestampedSensorData>& sensorDataLogMessagePort;
     CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 
-    CFlightLog flight_log;
     SensorModulePhaseController controller{sourceNames, eventNames, timerEvents, deciders, NULL};
     CDetectionHandler detectionHandler{controller, alertMessagePort};
 
@@ -76,11 +73,10 @@ class CSensorModule : public CProjectConfiguration {
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
     CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
     
-    // 400 sectors = 22754 packets = = ~225 seconds worth. way overkil
-    // 1600 KByte
+    // packets * 100 packets/s * 100 sec * 2 factor of safety
     // MUST BE ON ITS OWN THREAD/TASK BLOCKS
     // ARCHITECTURE AND TIMING COLLIDED AND THIS IS NOW NONSENSICAL
-    CDumbFlashTenant dataLoggerTenant{"Logger", DEVICE_DT_GET(DT_CHOSEN(storage)), 4096, 400*4096, sensorDataLogMessagePort}; 
+    CDumbFlashTenant dataLoggerTenant{"Logger", DEVICE_DT_GET(DT_CHOSEN(storage)), 2*4096, sizeof(NTypes::TimestampedSensorData) * 100 * 200, sensorDataLogMessagePort}; 
 
 
     // Tasks
