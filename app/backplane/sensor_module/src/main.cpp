@@ -6,6 +6,7 @@
 #include "c_sensor_module.h"
 
 #include <f_core/os/n_rtos.h>
+#include <f_core/utils/n_bootcount.h>
 #include <zephyr/shell/shell.h>
 
 static CSensorModule sensorModule{};
