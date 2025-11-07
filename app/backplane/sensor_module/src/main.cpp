@@ -10,7 +10,6 @@
 
 static CSensorModule sensorModule{};
 int main() {
-
     sensorModule.AddTenantsToTasks();
     sensorModule.AddTasksToRtos();
     sensorModule.SetupCallbacks();
