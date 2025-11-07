@@ -29,7 +29,7 @@ CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData
 }
 
 void CSensingTenant::Startup() {
-    sendingTimer.StartTimer(5000);
+    sendingTimer.StartTimer(10*1000);
     broadcastTimer.StartTimer(100);
 
 #ifndef CONFIG_ARCH_POSIX
@@ -49,9 +49,6 @@ void CSensingTenant::Startup() {
 void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
-    if (!detectionHandler.ContinueCollecting()) {
-        return;
-    }
     NTypes::TimestampedSensorData timestampedData{.timestamp = 0, .data = {0}};
     NTypes::SensorData& data = timestampedData.data;
 
@@ -129,7 +126,7 @@ void CSensingTenant::Run() {
     }
 
     // Don't care about performance at this point,
-    // Keep making sure the data gets logged
+    // Keep making sure the data we sent gets logged
     if (detectionHandler.FlightFinished()) {
         NRtos::ResumeTask("Data Logging Task");
         k_msleep(1000);
@@ -155,6 +152,8 @@ void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
                 .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
                 .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
             },
+        .BootCount = 2,
+        .Phase = detectionHandler.PhaseByte(),
     };
 
     dataToDownlink.Send(downlinkData, K_NO_WAIT);

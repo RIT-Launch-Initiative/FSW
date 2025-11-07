@@ -26,4 +26,8 @@ LoRaBroadcastSensorData:
       type: FixedPointAccelerometerData
     - name: Gyroscope
       type: FixedPointGyroscopeData
+    - name: BootCount
+      type: uint8_t
+    - name: Phase
+      type: uint8_t
   timestamp: false
