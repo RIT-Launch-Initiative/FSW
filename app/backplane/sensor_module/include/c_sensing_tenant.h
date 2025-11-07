@@ -44,7 +44,7 @@ class CSensingTenant : public CRunnableTenant {
     CMagnetometer magnetometer;
     CSoftTimer sendingTimer{nullptr, nullptr};
     CSoftTimer broadcastTimer{nullptr, nullptr};
-
+    CSoftTimer sensingTimer{nullptr, nullptr};
     std::array<CSensorDevice *, 7> sensors;
 
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};

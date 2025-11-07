@@ -31,6 +31,7 @@ CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData
 void CSensingTenant::Startup() {
     sendingTimer.StartTimer(10 * 1000);
     broadcastTimer.StartTimer(100);
+    sensingTimer.StartTimer(10);
 
 #ifndef CONFIG_ARCH_POSIX
     const sensor_value imuOdr{.val1 = 104, .val2 = 0};
@@ -48,7 +49,10 @@ void CSensingTenant::Startup() {
 
 void CSensingTenant::PostStartup() {}
 
+constexpr size_t s = sizeof(NTypes::TimestampedSensorData);
 void CSensingTenant::Run() {
+    sensingTimer.BlockUntilExpired();
+
     NTypes::TimestampedSensorData timestampedData{.timestamp = 0, .data = {0}};
     NTypes::SensorData& data = timestampedData.data;
 
@@ -75,7 +79,7 @@ void CSensingTenant::Run() {
     // } else {
         // timestampedData.timestamp = tmpTimestamp;
     // }
-
+    printk("%lu\n", timestampedData.timestamp);
 
 
     data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
