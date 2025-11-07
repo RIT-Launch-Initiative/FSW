@@ -87,7 +87,7 @@ int NBootCount::IncrementBootCount() {
         return ret;
     }
 
-    LOG_INF("Boot Count: %d", boot_count);
+    LOG_INF("Boot Count: %d", bootCount);
 
     return static_cast<int>(bootCount);
 }
