@@ -11,6 +11,7 @@
 
 static CSensorModule sensorModule{};
 int main() {
+    NBootCount::IncrementBootCount();
 
     sensorModule.AddTenantsToTasks();
     sensorModule.AddTasksToRtos();

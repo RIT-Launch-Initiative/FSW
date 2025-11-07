@@ -4,15 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
-#include <zephyr/drivers/gpio.h>
+#include <f_core/utils/n_bootcount.h>
 
 #include "c_radio_module.h"
 
 LOG_MODULE_REGISTER(main);
 
 int main() {
+    NBootCount::IncrementBootCount();
+
     LOG_INF("Transmitter started");
     static CRadioModule radioModule{};
 
