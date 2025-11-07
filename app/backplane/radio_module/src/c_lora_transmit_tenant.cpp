@@ -60,6 +60,10 @@ int CLoraTransmitTenant::transmit(const NTypes::LoRaBroadcastData& data) const {
 }
 
 // TODO: Maybe make a thread safe HashMap that directly writes instead of all this overhead
+// TODO i think thats a better approach where diferent ports get stuck in their hashmap and then 
+// we define a weighting of we want 4 gps packets per power packet and send accordingly rather than just sending
+// as they come as the current approach is very liable to getting full of 1 type of packet
+// if one module is sending pretty fast
 bool CLoraTransmitTenant::readTransmitQueue(NTypes::LoRaBroadcastData& data) const {
     if (int ret = loraTransmitPort.Receive(data, K_MSEC(10)); ret < 0) {
         LOG_WRN_ONCE("Failed to receive from message port (%d)", ret);
