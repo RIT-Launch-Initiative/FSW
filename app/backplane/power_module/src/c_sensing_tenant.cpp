@@ -11,8 +11,7 @@ LOG_MODULE_REGISTER(CSensingTenant);
 void CSensingTenant::Startup() {
     static constexpr uint32_t minuteInMillis = 1000 * 60;
     timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
-    sendingTimer.StartTimer(20*1000); // send downlink data every 20 seconds
-
+    sendingTimer.StartTimer(20 * 1000);  // send downlink data every 20 seconds
 }
 
 void CSensingTenant::PostStartup() {}
@@ -20,9 +19,13 @@ void CSensingTenant::PostStartup() {}
 void CSensingTenant::Run() {
     NTypes::TimestampedSensorData timestampedData{
         .timestamp = 0,
-        .data = {.RailBattery = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f},
-                 .Rail3v3 = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f},
-                 .Rail5v0 = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f}}};
+        .data =
+            {
+                .RailBattery = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f},
+                .Rail3v3 = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f},
+                .Rail5v0 = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f},
+            },
+    };
 
     NTypes::SensorData& data = timestampedData.data;
 
@@ -100,12 +103,19 @@ void CSensingTenant::Notify(void* ctx) {
 
 void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
     NTypes::LoRaBroadcastSensorData downlinkData{
-        .RailBattery = {.Voltage = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Voltage)),
-                        .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Current)),
-                        .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Power))},
-        .Rail3v3 = {.Voltage = static_cast<int16_t>(data.Rail3v3.Voltage),
-                    .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Current)),
-                    .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Power))}};
+        .RailBattery =
+            {
+                .Voltage = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Voltage)),
+                .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Current)),
+                .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.RailBattery.Power)),
+            },
+        .Rail3v3 =
+            {
+                .Voltage = static_cast<int16_t>(data.Rail3v3.Voltage),
+                .Current = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Current)),
+                .Power = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Rail3v3.Power)),
+            },
+    };
 
     dataToDownlink.Send(downlinkData, K_MSEC(5));
 }

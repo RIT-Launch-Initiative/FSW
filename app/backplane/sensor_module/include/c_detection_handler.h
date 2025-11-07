@@ -93,7 +93,7 @@ class CDetectionHandler {
     // bit 2: 1 if noseover has occured
     // bit 3: 1 if the flight is over
     uint8_t PhaseByte() {
-        uint8_t b = controller.HasEventOccurred(Events::Boost) | controller.HasEventOccurred(Events::Boost) |
+        uint8_t b = controller.HasEventOccurred(Events::Boost) |
                     controller.HasEventOccurred(Events::NoseoverLockout) << 1 |
                     controller.HasEventOccurred(Events::Noseover) << 2 |
                     controller.HasEventOccurred(Events::GroundHit) << 3;

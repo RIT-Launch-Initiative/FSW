@@ -66,13 +66,17 @@ void CSensingTenant::Run() {
 #endif
 
     // Note that compilers don't accept references to packed struct fields
-    uint32_t tmpTimestamp = 0;
-    if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
+
+    // this clobbers sensor_states for some damn reason
+    // uint32_t tmpTimestamp = 0;
+    // if (int ret = rtc.GetMillisTime(tmpTimestamp); ret < 0) {
         // LOG_ERR("Failed to get time from RTC");
-        timestampedData.timestamp = k_uptime_get();
-    } else {
-        timestampedData.timestamp = tmpTimestamp;
-    }
+    timestampedData.timestamp = k_uptime_get();
+    // } else {
+        // timestampedData.timestamp = tmpTimestamp;
+    // }
+
+
 
     data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
