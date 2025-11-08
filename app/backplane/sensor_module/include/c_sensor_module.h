@@ -15,7 +15,8 @@
 #include <n_autocoder_types.h>
 #include <f_core/device/c_rtc.h>
 #include "c_dumb_flash_tenant.h"
-
+#define STORAGE_BUFFER_SIZE (sizeof(NTypes::TimestampedSensorData) * 100 * 200)
+#define STORAGE_BUFFER_OFFSET (2*4096)
 class CSensorModule : public CProjectConfiguration {
   public:
     /**
@@ -76,7 +77,7 @@ class CSensorModule : public CProjectConfiguration {
     // packets * 100 packets/s * 100 sec * 2 factor of safety
     // MUST BE ON ITS OWN THREAD/TASK BLOCKS
     // ARCHITECTURE AND TIMING COLLIDED AND THIS IS NOW NONSENSICAL
-    CDumbFlashTenant dataLoggerTenant{"Logger", DEVICE_DT_GET(DT_CHOSEN(storage)), 2*4096, sizeof(NTypes::TimestampedSensorData) * 100 * 200, sensorDataLogMessagePort}; 
+    CDumbFlashTenant dataLoggerTenant{"Logger", DEVICE_DT_GET(DT_CHOSEN(storage)), STORAGE_BUFFER_OFFSET, STORAGE_BUFFER_SIZE, sensorDataLogMessagePort}; 
 
 
     // Tasks

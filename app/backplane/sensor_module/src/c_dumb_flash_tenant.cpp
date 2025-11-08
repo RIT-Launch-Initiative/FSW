@@ -11,10 +11,7 @@ CDumbFlashTenant::CDumbFlashTenant(const char *name, const struct device *device
     }
 }
 
-void CDumbFlashTenant::Startup() {
-    // erase first page
-    flash_erase(device, flash_offset, ERASE_SIZE);
-}
+void CDumbFlashTenant::Startup() {}
 void CDumbFlashTenant::Run() {
     Element message{};
     while (1) {
@@ -22,6 +19,10 @@ void CDumbFlashTenant::Run() {
         if (ret != 0) {
             LOG_ERR("Failed to recv from port: %d", ret);
             continue;
+        }
+        if (offset_into_partition == 0) {
+            // erase first page
+            flash_erase(device, flash_offset, ERASE_SIZE);
         }
         if (offset_into_partition >= partition_size) {
             LOG_ERR("Saturated partition stopping reading");
@@ -32,8 +33,8 @@ void CDumbFlashTenant::Run() {
         if (ret != 0) {
             LOG_WRN("Failed to write. still moving header this block will be bad: %d", ret);
         }
-        LOG_INF("Wrote page at %u", offset_into_partition);
-        offset_into_partition+=ELEMENT_SIZE;
+
+        offset_into_partition += ELEMENT_SIZE;
         size_t offset_in_sector = offset_into_partition % ERASE_SIZE;
         size_t left_in_sector = ERASE_SIZE - offset_in_sector;
         if (left_in_sector <= ELEMENT_SIZE) {
@@ -47,6 +48,5 @@ void CDumbFlashTenant::Run() {
                 LOG_ERR("Couldnt erase next sector. Your next sector will be nonsense");
             }
         }
-
     }
 }

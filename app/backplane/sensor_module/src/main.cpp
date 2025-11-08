@@ -35,8 +35,8 @@ int load_bootcount_info(size_t offset, struct boot_count_info* bootcount_info) {
     if (!match) {
         printk("Failed to load correct magic bytes for bootcount\n");
         printk("%02x %02x %02x %02x %u %02x %02x %02x %02x\n", bootcount_info->magic[0], bootcount_info->magic[1],
-               bootcount_info->magic[2], bootcount_info->magic[3], bootcount_info->bootcount, bootcount_info->magic2[0], bootcount_info->magic2[1],
-               bootcount_info->magic2[2], bootcount_info->magic2[3]);
+               bootcount_info->magic[2], bootcount_info->magic[3], bootcount_info->bootcount, bootcount_info->magic2[0],
+               bootcount_info->magic2[1], bootcount_info->magic2[2], bootcount_info->magic2[3]);
         return -1;
     }
     return 0;
@@ -140,7 +140,31 @@ int cmd_doboost(const struct shell* shell, size_t argc, char** argv) {
     return 0;
 }
 
+int hexdump(const struct shell* shell, uint8_t* buf, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        shell_fprintf_normal(shell, "%02X", buf[i]);
+        if (i % 32 == 31 && i != 0) {
+            shell_print(shell, "");
+        }
+    }
+
+    return 0;
+}
+
+int cmd_read(const struct shell* shell, size_t argc, char** argv) {
+    int blocks = STORAGE_BUFFER_SIZE / 256;
+
+    shell_print(shell, "************ storage start ************");
+    static uint8_t buf[256] = {0};
+    for (int i = 0; i < blocks; i++) {
+        flash_read(DEVICE_DT_GET(DT_CHOSEN(storage)), STORAGE_BUFFER_OFFSET + i * 256, buf, sizeof(buf));
+        hexdump(shell, buf, 256); 
+    }
+    shell_print(shell, "************ storage end ************");
+    return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(control_subcmds, SHELL_CMD(boost, NULL, "Send LSM Boost", cmd_doboost),
-                               SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(read, NULL, "Read Data Buffer", cmd_read), SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(control, &control_subcmds, "Control Commands", NULL);

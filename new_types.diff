@@ -1,0 +1,26 @@
+diff --git a/app/backplane/sensor_module/ac/types.yaml b/app/backplane/sensor_module/ac/types.yaml
+index c5940b71..0dbf2a19 100644
+--- a/app/backplane/sensor_module/ac/types.yaml
++++ b/app/backplane/sensor_module/ac/types.yaml
+@@ -15,6 +15,10 @@ SensorData:
+       type: MagnetometerData
+     - name: Temperature
+       type: TemperatureData
++    - name: StatusByte
++      type: uint8_t
++    - name: BootCount
++      type: uint8_t
+   timestamp: true
+ 
+ LoRaBroadcastSensorData:
+@@ -26,4 +30,8 @@ LoRaBroadcastSensorData:
+       type: FixedPointAccelerometerData
+     - name: Gyroscope
+       type: FixedPointGyroscopeData
+-  timestamp: false
+\ No newline at end of file
++    - name: BootCount
++      type: uint8_t
++    - name: Phase
++      type: uint8_t
++  timestamp: false
