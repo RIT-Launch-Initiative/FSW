@@ -6,7 +6,7 @@
 
 /**
  * @brief Begin flash storage event
- * @return 0 if message queue put successful
+ * @return 0 if successful
  */
 int start_flash_storage();
 
@@ -19,18 +19,21 @@ void stop_flash_storage();
  * @brief Dumps one ADC test from flash storage
  * @param shell Pointer to shell instance
  * @param test_index The test number to dump
+ * @return 0 if successful
  */
 int flash_dump_one(const struct shell *shell, uint32_t test_index);
 
 /**
  * @brief Dumps all ADC data from flash storage
  * @param shell Pointer to shell instance
+ * @return 0 if successful
  */
 int flash_dump_all(const struct shell *shell);
 
 /**
  * @brief Clear all flash blocks
  * @param shell Pointer to shell instance
+ * @return 0 if successful
  */
 int flash_erase_all(const struct shell *shell);
 

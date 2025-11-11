@@ -68,7 +68,7 @@ static void load_metadata() {
         memcpy(&current_test_number, buf, sizeof(current_test_number));
     }
 
-    LOG_INF("Loaded test number %d", current_test_number);
+    LOG_INF("Next test: %d", current_test_number);
 }
 
 static void save_metadata() {
@@ -85,6 +85,8 @@ static void save_metadata() {
     if (ret < 0) {
         LOG_ERR("flash_write(metadata) failed: %d", ret);
     }
+
+    LOG_INF("Next test: %d", current_test_number);
 }
 
 static off_t get_test_block_addr(uint32_t test_index) {

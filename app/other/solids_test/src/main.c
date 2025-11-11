@@ -17,7 +17,6 @@ int main(void) {
 	LOG_INF("Solids Test Start");
 	
 	LOG_INF("Use 'test start' to begin test");
-    LOG_INF("Commands: test start | test stop | test dump [optional test #] | test erase | test read [optional #]");
-
+    LOG_INF("Use 'test help' to see all available commands");
 	return 0;
 }

@@ -37,13 +37,13 @@ int buzzer_init() {
         LOG_ERR("Failed to conf ldo enable pin :(");
         return -1;
     }
-
+    
     return 0;
 }
 
 void beep_full() {
     for (int i = 0; i < 10; i++) {
-        printk("BEEP");
+        printk("BEEP ");
         set_buzz(1);
         k_msleep(1000);
         set_buzz(0);
@@ -54,7 +54,7 @@ void beep_full() {
 
 void test_start_beep() {
     for (int i = 0; i < 3; i++) {
-        printk("BEEP");
+        printk("BEEP ");
         set_buzz(1);
         k_msleep(100);
         set_buzz(0);
