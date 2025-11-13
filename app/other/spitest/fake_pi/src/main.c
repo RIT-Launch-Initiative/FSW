@@ -18,8 +18,8 @@
 const struct device *spi_periph_dev = DEVICE_DT_GET(DT_NODELABEL(arduino_spi));
 
 static const struct spi_config spi_periph_cfg = {
-    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_SLAVE,
-    .frequency = 4000000,
+    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_MASTER,
+    .frequency = 1000000,
     .slave = 0,
 };
 
@@ -37,21 +37,27 @@ int main(void)
 	if (!gpio_is_ready_dt(&led)) {
 		return 0;
 	}
+	if (!device_is_ready(&spi_periph_dev)){
+		printk("Spi not ready\n");
+		return 0;
+	}
 
 	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
 	if (ret < 0) {
 		return 0;
 	}
 
-	uint8_t tx[2] = {0xaa, 33};
+	uint8_t tx[20] = {0xaa, 33};
 	uint8_t rx[8] = {0};
 	struct spi_buf tx_buf = {.buf = tx, .len = sizeof(tx)};
 	struct spi_buf rx_buf = {.buf = rx, .len = sizeof(rx)};
 
 	struct spi_buf_set tx_bufs = {.buffers = &tx_buf, .count = 1};
 	struct spi_buf_set rx_bufs = {.buffers = &rx_buf, .count = 1};
-
-	spi_transceive(spi_bus, spi_config, tx_bufs, rx_bufs);
+	printk("transceiveing\n");
+	ret = spi_transceive(spi_periph_dev, &spi_periph_cfg, &tx_bufs, &rx_bufs);
+	printk("Ret: %d\n", ret);
+	printk("done transceiveing\n");
 	while (1) {
 		ret = gpio_pin_toggle_dt(&led);
 		if (ret < 0) {
