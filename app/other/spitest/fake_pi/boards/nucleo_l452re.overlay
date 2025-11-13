@@ -1,0 +1,12 @@
+/ {
+
+};
+
+&arduino_spi {
+	status = "okay";
+
+	fake_mc: fake_mc@0 {
+		compatible = "spi-device";
+		reg = <0>;
+	};
+};

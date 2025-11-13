@@ -1,0 +1,15 @@
+/ {
+	gpio_keys {
+		compatible = "gpio-keys";
+
+		cs_spi: cs_spi {
+			label = "CS for spi peripheral";
+			gpios = <&gpiob 6 GPIO_ACTIVE_LOW>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
+};
+
+&arduino_spi {
+	status = "okay";
+};
