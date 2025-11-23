@@ -53,7 +53,17 @@ public:
      */
     int ReceiveAsynchronous(lora_recv_cb cb);
 
-    // TODO: Implement configuration functions
+    int SetBandwidth(const lora_signal_bandwidth bandwidth);
+
+    int SetSpreadingFactor(const lora_datarate spreadingFactor);
+
+    int SetCodingRate(const lora_coding_rate codingRate);
+
+    int SetTxPower(int8_t txPower);
+
+    int SetFrequency(uint32_t frequency);
+
+    int SetFrequency(float frequencyMHz);
 
 private:
     const device* lora_dev;
@@ -80,6 +90,8 @@ private:
     * @return Zephyr status code
     */
     int setTxRx(Direction transmitDirection);
+
+    int updateSettings();
 };
 
 
