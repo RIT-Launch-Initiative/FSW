@@ -95,6 +95,13 @@ public:
      */
     int SetFrequency(float frequencyMHz);
 
+    /**
+     * Set the entire LoRa modem configuration
+     * @param newConfig New LoRa modem configuration
+     * @return Zephyr status code
+     */
+    int SetConfiguration(const lora_modem_config& newConfig);
+
 private:
     const device* lora_dev;
     lora_modem_config config = {

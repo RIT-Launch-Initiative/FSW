@@ -129,6 +129,15 @@ int CLora::SetFrequency(float frequencyMHz) {
     return SetFrequency(frequencyHz);
 }
 
+int CLora::SetConfiguration(const lora_modem_config& newConfig) {
+    if (updateSettings() != 0) {
+        return updateSettings();
+    }
+
+    memcpy(&config, &newConfig, sizeof(lora_modem_config));
+    return 0;
+}
+
 int CLora::updateSettings() {
     const int ret = lora_config(lora_dev, &config);
     if (ret != 0) {
