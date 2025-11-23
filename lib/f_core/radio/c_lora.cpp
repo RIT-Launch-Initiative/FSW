@@ -70,32 +70,62 @@ int CLora::SetBandwidth(const lora_signal_bandwidth bandwidth) {
 }
 
 int CLora::SetSpreadingFactor(const lora_datarate spreadingFactor) {
+    const lora_datarate originalSpreadingFactor = config.datarate;
     config.datarate = spreadingFactor;
+    if (updateSettings() != 0) {
+        config.datarate = originalSpreadingFactor;
+        return updateSettings();
+    }
+
     return updateSettings();
 }
 
 int CLora::SetCodingRate(const lora_coding_rate codingRate) {
+    const lora_coding_rate originalCodingRate = config.coding_rate;
     config.coding_rate = codingRate;
-    return updateSettings();
+    if (updateSettings() != 0) {;
+        config.coding_rate = originalCodingRate;
+        return updateSettings();
+    }
+
+    return 0;
 }
 
 int CLora::SetTxPower(int8_t txPower) {
+    // TODO: Figure out a way to determine SX1276 vs SX1262
+    // Currently expecting only SX1276 which has 2-20 dBm range
     if (txPower < 2 || txPower > 20) {
-        LOG_ERR("Tx Power %d out of range (2-20)", txPower);
+        LOG_ERR("Tx Power %d dBm is out of range (2-20 dBm)", txPower);
         return -EINVAL;
     }
-
+    const int8_t originalTxPower = config.tx_power;
     config.tx_power = txPower;
+    if (updateSettings() != 0) {
+        config.tx_power = originalTxPower;
+        return updateSettings();
+    }
+
     return updateSettings();
 }
 
 int CLora::SetFrequency(uint32_t frequency) {
+    if (frequency < 902'000'000 || frequency > 928'000'000) {
+        LOG_ERR("Frequency %u Hz is out of range (902-928 MHz)", frequency);
+        return -EINVAL;
+    }
+
+    const uint32_t originalFrequency = config.frequency;
     config.frequency = frequency;
+    if (updateSettings() != 0) {
+        config.frequency = originalFrequency;
+        return updateSettings();
+    }
+
     return updateSettings();
 }
 
 int CLora::SetFrequency(float frequencyMHz) {
-    uint32_t frequencyHz = static_cast<uint32_t>(frequencyMHz * 1'000'000);
+    const uint32_t frequencyHz = static_cast<uint32_t>(frequencyMHz * 1'000'000);
     return SetFrequency(frequencyHz);
 }
 
