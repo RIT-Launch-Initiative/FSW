@@ -110,7 +110,7 @@ int CLora::SetTxPower(int8_t txPower) {
 
 int CLora::SetFrequency(uint32_t frequencyHz) {
     if (frequencyHz < 902'000'000 || frequencyHz > 928'000'000) {
-        LOG_ERR("Frequency %u Hz is out of range (902-928 MHz)", frequency);
+        LOG_ERR("Frequency %u Hz is out of range (902-928 MHz)", frequencyHz);
         return -EINVAL;
     }
 
