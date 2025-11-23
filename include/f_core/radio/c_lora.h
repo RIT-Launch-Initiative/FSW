@@ -35,7 +35,7 @@ public:
      * @param timeout[out] Timeout for receiving data
      * @return Zephyr status code
      */
-    int ReceiveSynchronous(void* data, size_t len, int16_t *rssi, int8_t *snr, k_timeout_t timeout = K_FOREVER);
+    int ReceiveSynchronous(void* data, size_t len, int16_t* rssi, int8_t* snr, k_timeout_t timeout = K_FOREVER);
 
     /**
      * Transmit data asynchronously (non-blocking)
@@ -44,7 +44,7 @@ public:
      * @param signal[in] Signal to notify when transmission is complete
      * @return Zephyr status code
      */
-    int TransmitAsynchronous(const void* data, size_t len, k_poll_signal *signal);
+    int TransmitAsynchronous(const void* data, size_t len, k_poll_signal* signal);
 
     /**
      * Receive data asynchronously (non-blocking)
@@ -53,7 +53,54 @@ public:
      */
     int ReceiveAsynchronous(lora_recv_cb cb);
 
-    // TODO: Implement configuration functions
+    /**
+     * Set the LoRa bandwidth
+     * @param bandwidth Bandwidth to set
+     * @return Zephyr status code
+     */
+    int SetBandwidth(const lora_signal_bandwidth bandwidth);
+
+    /**
+     * Set the LoRa spreading factor
+     * @param spreadingFactor Spreading factor to set
+     * @return Zephyr status code
+     */
+    int SetSpreadingFactor(const lora_datarate spreadingFactor);
+
+    /**
+     * Set the LoRa coding rate
+     * @param codingRate Coding rate to set
+     * @return Zephyr status code
+     */
+    int SetCodingRate(const lora_coding_rate codingRate);
+
+    /**
+     * Set the LoRa transmission power
+     * @param txPower Tx power to set (in dBm)
+     * @return Zephyr status code
+     */
+    int SetTxPower(int8_t txPower);
+
+    /**
+     * Set the LoRa frequency
+     * @param frequencyHz Frequency to set (in Hz)
+     * @return Zephyr status code
+     */
+    int SetFrequency(uint32_t frequencyHz);
+
+    /**
+     * Set the LoRa frequency
+     * @param frequencyMHz Frequency to set (in MHz)
+     * @return Zephyr status code
+     */
+    int SetFrequency(float frequencyMHz);
+
+    /**
+     * Set the entire LoRa modem configuration
+     * @param newConfig New LoRa modem configuration
+     * @return Zephyr status code
+     */
+    int SetConfiguration(const lora_modem_config& newConfig);
 
 private:
     const device* lora_dev;
@@ -70,16 +117,18 @@ private:
     };
 
     enum Direction {
-      RX = 0,
-      TX
+        RX = 0,
+        TX
     };
 
-   /**
-    * Set the LoRa modem to transmit or receive mode
-    * @param transmitDirection true to transmit, false to receive
-    * @return Zephyr status code
-    */
+    /**
+     * Set the LoRa modem to transmit or receive mode
+     * @param transmitDirection true to transmit, false to receive
+     * @return Zephyr status code
+     */
     int setTxRx(Direction transmitDirection);
+
+    int updateSettings();
 };
 
 
