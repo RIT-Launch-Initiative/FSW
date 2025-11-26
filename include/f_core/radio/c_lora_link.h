@@ -24,15 +24,6 @@ public:
     explicit CLoraLink(CLora& lora) : lora(lora) {}
 
     /**
-     * Send a raw payload on a logical port.
-     *
-     * Layout on-air:
-     *   [port_lo][port_hi][payload...]
-     *
-     * @return >=0 length sent on success, negative errno on error.
-     */
-
-    /**
      * @brief Format and send a broadcast message over LoRa.
      * @param[in] port Port number to be the first two bytes of the message
      * @param[in] data Pointer to the payload data
@@ -48,7 +39,7 @@ public:
      * @param[in] timeout Timeout for receiving data
      * @return >=0 length received on success, negative errno on error
      */
-    int Receive(LaunchLoraFrame& frame, k_timeout_t timeout);
+    int Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t *rssi = nullptr, int8_t *snr = nullptr);
 
 private:
     CLora& lora;

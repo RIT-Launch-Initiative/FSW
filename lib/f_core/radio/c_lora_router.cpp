@@ -19,7 +19,7 @@ void CLoraRouter::PollOnce(const k_timeout_t timeout) {
     LaunchLoraFrame frame{};
     const int len = link.Receive(frame, timeout);
     if (len <= 0) {
-        return; // timeout or error already logged by CRadioLink
+        return;
     }
 
     CLoraFrameHandler* handler = handlers.Get(frame.Port).value_or(nullptr);
