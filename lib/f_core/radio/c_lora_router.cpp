@@ -11,7 +11,7 @@ LOG_MODULE_REGISTER(CLoraRouter);
 
 void CLoraRouter::RegisterHandler(const uint16_t port, CLoraFrameHandler& handler) {
     if (!handlers.Insert(port, &handler)) {
-        LOG_ERR("RadioRouter: failed to register handler for port %u", port);
+        LOG_ERR("failed to register handler for port %u", port);
     }
 }
 
@@ -27,7 +27,7 @@ void CLoraRouter::PollOnce(const k_timeout_t timeout) {
     if (handler != nullptr) {
         handler->HandleFrame(frame);
     } else {
-        LOG_WRN("RadioRouter: no handler for port %u", frame.Port);
+        LOG_WRN("no handler for port %u", frame.Port);
     }
 }
 

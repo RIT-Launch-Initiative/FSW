@@ -13,7 +13,7 @@ LOG_MODULE_REGISTER(CLoraLink);
 
 int CLoraLink::Send(uint16_t port, const uint8_t* data, uint16_t len) {
     if (len + 2 > RADIO_MAX_FRAME_SIZE) {
-        LOG_ERR("RadioLink: payload too large (%u)", len);
+        LOG_ERR("payload too large (%u)", len);
         return -EMSGSIZE;
     }
 
@@ -43,18 +43,18 @@ int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t *rss
 
     if (size < 0) {
         if (size != -EAGAIN) {
-            LOG_ERR("RadioLink: RX error (%d)", size);
+            LOG_ERR("RX error (%d)", size);
         }
         return size;
     }
 
     if (size == 0) {
-        LOG_WRN("RadioLink: RX 0 bytes");
+        LOG_WRN("RX 0 bytes");
         return 0;
     }
 
     if (size < 2) {
-        LOG_WRN("RadioLink: RX too small for header (%d)", size);
+        LOG_WRN("RX too small for header (%d)", size);
         return -EINVAL;
     }
 
