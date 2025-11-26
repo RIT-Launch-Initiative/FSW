@@ -9,8 +9,6 @@
 
 #include <f_core/radio/c_lora.h>
 
-#include <zephyr/logging/log.h>
-
 LOG_MODULE_REGISTER(CLoraLink);
 
 int CLoraLink::Send(uint16_t port, const uint8_t* data, uint16_t len) {
@@ -36,7 +34,7 @@ int CLoraLink::Send(uint16_t port, const uint8_t* data, uint16_t len) {
 }
 
 
-int CLoraLink::Receive(RadioFrame& frame, k_timeout_t timeout) {
+int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout) {
     int16_t rssi = 0;
     int8_t snr = 0;
 
@@ -63,15 +61,13 @@ int CLoraLink::Receive(RadioFrame& frame, k_timeout_t timeout) {
         return -EINVAL;
     }
 
-    const uint16_t port =
-        static_cast<uint16_t>(rxBuffer[0]) |
-        (static_cast<uint16_t>(rxBuffer[1]) << 8);
+    const uint16_t port = static_cast<uint16_t>(rxBuffer[0]) | (static_cast<uint16_t>(rxBuffer[1]) << 8);
 
-    frame.port = port;
-    frame.payload = &rxBuffer[2];
-    frame.length = static_cast<uint16_t>(sz - 2);
+    frame.Port = port;
+    frame.Size = static_cast<uint16_t>(sz - 2);
+    memcpy(frame.Payload, &rxBuffer[2], frame.Size);
 
-    return frame.length;
+    return frame.Size;
 }
 
 

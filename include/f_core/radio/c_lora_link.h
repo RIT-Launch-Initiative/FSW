@@ -10,20 +10,14 @@
 
 #include <f_core/radio/c_lora.h>
 
-static constexpr std::size_t RADIO_MAX_FRAME_SIZE = 256;
+static constexpr uint16_t RADIO_MAX_FRAME_SIZE = 256;
 
 // Launch standardized LoRa packet.
 typedef struct __attribute__((packed)) {
     uint16_t Port;
     uint8_t Size;
     uint8_t Payload[256 - sizeof(uint16_t)];
-} LoRaBroadcastData;
-
-struct RadioFrame {
-    uint16_t port;
-    uint8_t* payload;
-    uint16_t length;
-};
+} LaunchLoraFrame;
 
 class CLoraLink {
 public:
@@ -54,7 +48,7 @@ public:
      * @param[in] timeout Timeout for receiving data
      * @return >=0 length received on success, negative errno on error
      */
-    int Receive(RadioFrame& frame, k_timeout_t timeout);
+    int Receive(LaunchLoraFrame& frame, k_timeout_t timeout);
 
 private:
     CLora& lora;
