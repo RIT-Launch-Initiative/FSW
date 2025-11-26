@@ -43,7 +43,7 @@ int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t *rss
 
     if (size < 0) {
         if (size != -EAGAIN) {
-            LOG_ERR("RadioLink: RX error (%d)", sz);
+            LOG_ERR("RadioLink: RX error (%d)", size);
         }
         return size;
     }
@@ -54,7 +54,7 @@ int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t *rss
     }
 
     if (size < 2) {
-        LOG_WRN("RadioLink: RX too small for header (%d)", sz);
+        LOG_WRN("RadioLink: RX too small for header (%d)", size);
         return -EINVAL;
     }
 

@@ -9,6 +9,8 @@
     <mapping directory="$PROJECT_DIR$/../../../../GSW-2021" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../../../modules/fs/littlefs" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../../../modules/hal/cmsis" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../modules/hal/cmsis_6" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../modules/hal/nxp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../../../modules/hal/st" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../../../modules/hal/stm32" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../../../../modules/lib/loramac-node" vcs="Git" />

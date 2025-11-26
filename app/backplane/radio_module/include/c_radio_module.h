@@ -15,6 +15,7 @@
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <f_core/radio/c_lora_router.h>
+#include <f_core/radio/c_lora_tenant.h>
 #include <f_core/device/c_rtc.h>
 
 // Autocoder Includes
