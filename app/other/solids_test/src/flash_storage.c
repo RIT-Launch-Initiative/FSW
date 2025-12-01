@@ -1,10 +1,12 @@
 #include "flash_storage.h"
-#include "buzzer.h"
 #include "adc_reading.h"
+#include "buzzer.h"
 #include "config.h"
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 #include <stdalign.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/flash.h>
@@ -35,6 +37,8 @@ static off_t current_write_addr = 0;
 static void flash_storage_thread_entry(void);
 
 K_THREAD_DEFINE(storage_thread, 2048, flash_storage_thread_entry, NULL, NULL, NULL, STORAGE_THREAD_PRIORITY, 0, 1000);
+
+char calibration[32];
 
 // Check if flash block is all 0xFF
 static bool flash_block_is_empty(off_t addr) {
@@ -101,7 +105,6 @@ static void flash_storage_thread_entry() {
         return;
     }
 
-    // Get current test number
     load_metadata();
 
     while (1) {
@@ -127,9 +130,16 @@ static void flash_storage_thread_entry() {
 
         current_write_addr = test_block_addr;
 
+        flash_write(flash_dev, current_write_addr, calibration, 32);
+        current_write_addr += 32;
+
+        // flash_write(flash_dev, current_write_addr, &curr_test_type, sizeof(curr_test_type));
+        // current_write_addr += 4;
+
         static struct adc_sample page[SAMPLE_PER_PAGE] = {0};
         size_t i = 0;
         size_t pages = 0;
+        // buffer here, write calibration name to flash block
         while (1) {
             if (k_msgq_get(&storage_control_queue, &event, K_NO_WAIT) == 0 && event == END_STORAGE) {
                 LOG_INF("Test %d complete", current_test_number);
@@ -168,7 +178,16 @@ static void flash_storage_thread_entry() {
     }
 }
 
-int start_flash_storage() {
+int start_flash_storage(char calib_name[]) {
+    // Set calibration name
+    int res1 = strcmp(calib_name, "default");
+    int res2 = strcmp(calib_name, "");
+    if (res1 == 0 || res2 == 0) {
+        snprintf(calibration, sizeof(calibration), "Test %u", current_test_number);
+    } else {
+        snprintf(calibration, sizeof(calibration), "%s", calib_name);
+    }
+
     enum storage_event event = BEGIN_STORAGE;
     return k_msgq_put(&storage_control_queue, &event, K_FOREVER);
 }
@@ -177,7 +196,6 @@ void stop_flash_storage() {
     enum storage_event event = END_STORAGE;
     k_msgq_put(&storage_control_queue, &event, K_FOREVER);
 }
-
 
 int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     if (test_index >= MAX_TESTS ){
@@ -198,6 +216,15 @@ int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     }
 
     shell_print(shell, "==============Dumping Test #%d===============", test_index);
+    // print calibration name from flash block
+    // should we print if a test was a terminal or meep test?
+    char calib_name[32];
+
+    flash_read(flash_dev, block_addr, calib_name, sizeof(calib_name));
+    calib_name[31] = '\0';
+    block_addr += 32;
+
+    shell_print(shell, "==============CALIBRATION: %s==============", calib_name);
     shell_print(shell, "==============timestamp, value==============");
 
     for (int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++) {

@@ -12,11 +12,11 @@
     };
 
     leds: leds {
-        tx: tx{
+        tx: tx{ // button
             gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
             label = "TX";
         };
-        rx: rx{
+        rx: rx{ // key switch
             gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;
             label = "RX";
         };

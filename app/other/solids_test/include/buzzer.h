@@ -8,6 +8,24 @@
 int buzzer_init();
 
 /**
+ * @brief Start or stop buzzer
+ * @param which Value to set buzzer
+ */
+void set_buzz(int which);
+
+/**
+ * @brief Set ematch gpio pin
+ * @param level Value to assign to pin
+ */
+void set_ematch(int level);
+
+/**
+ * @brief Set ldo gpio pin
+ * @param level Value to assign to pin
+ */
+void set_ldo(int level);
+
+/**
  * @brief Beep loudly in 1 second intervals for 10 seconds to indicate that flash is full (max tests reached)
  */
 void beep_full();
@@ -23,15 +41,8 @@ void test_start_beep();
 void test_end_beep();
 
 /**
- * @brief Set ematch gpio pin
- * @param level Value to assign to pin
+ * @brief Beep forever
  */
-void set_ematch(int level);
-
-/**
- * @brief Set ldo gpio pin
- * @param level Value to assign to pin
- */
-void set_ldo(int level);
+void continuous_beep();
 
 #endif // BUZZER_H

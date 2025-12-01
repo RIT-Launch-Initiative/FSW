@@ -6,9 +6,10 @@
 
 /**
  * @brief Begin flash storage event
+ * @param calib_name Name of calibration to store. Defaults to "Test [#]" if empty or default string passed in
  * @return 0 if successful
  */
-int start_flash_storage();
+int start_flash_storage(char calib_name[]);
 
 /**
  * @brief End flash storage event

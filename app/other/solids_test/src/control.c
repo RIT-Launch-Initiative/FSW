@@ -6,6 +6,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/shell/shell.h>
@@ -13,8 +14,15 @@
 LOG_MODULE_REGISTER(control, LOG_LEVEL_INF);
 
 static bool test_running = false;
+static char curr_name[32];
 
-void control_start_test() {
+void control_start_test(char calib_name[], bool terminal_test) {
+    // Set calibration name. If string is empty, get calibration name from previous test
+    // Assume name passed in from shell cmd before actual test, otherwise default name will be set in flash_storage
+    if (calib_name && calib_name[0] != '\0') {
+        memcpy(curr_name, calib_name, sizeof(curr_name));
+    }
+
     if (test_running) {
         LOG_WRN("Test already running");
         return;
@@ -22,8 +30,8 @@ void control_start_test() {
 
     test_running = true;
 
-    start_flash_storage();
-    adc_start_reading();
+    start_flash_storage(curr_name);
+    adc_start_reading(terminal_test);
 }
 
 void control_stop_test() {
@@ -61,10 +69,14 @@ void control_erase_all(const struct shell *shell) { flash_erase_all(shell); }
 
 void control_set_ematch(const struct shell *shell) {
     set_ematch(1);
-    shell_print(shell, "Ematch: 1");
+    shell_print(shell, "Ematch enabled");
 }
 
 void control_stop_ematch(const struct shell *shell) {
     set_ematch(0);
-    shell_print(shell, "Ematch: 0");
+    shell_print(shell, "Ematch disabled");
+}
+
+bool control_get_test_status() {
+    return test_running;
 }

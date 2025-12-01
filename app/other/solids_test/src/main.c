@@ -11,12 +11,11 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 // APPLICATION: Executed just before application code (main)
 SYS_INIT(adc_init, APPLICATION, SYS_INIT_PRIORITY);
 SYS_INIT(buzzer_init, APPLICATION, SYS_INIT_PRIORITY);
-SYS_INIT(button_init, APPLICATION, SYS_INIT_PRIORITY);
+SYS_INIT(button_switch_init, APPLICATION, SYS_INIT_PRIORITY);
 
 int main(void) {
 	LOG_INF("Solids Test Start");
-	
-	LOG_INF("Use 'test start' to begin test");
+	LOG_INF("Use 'test start [calibration name]' to begin test");
     LOG_INF("Use 'test help' to see all available commands");
 	return 0;
 }

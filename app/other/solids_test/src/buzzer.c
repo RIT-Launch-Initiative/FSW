@@ -13,6 +13,8 @@ const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
 static const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(DT_ALIAS(buzzer), gpios);
 static const struct gpio_dt_spec ematch = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
+bool test_running = false;
+
 void set_buzz(int which) {
     gpio_pin_set_dt(&ldo_enable, which);
     gpio_pin_set_dt(&buzzer, which);
@@ -53,6 +55,7 @@ void beep_full() {
 }
 
 void test_start_beep() {
+    test_running = true;
     for (int i = 0; i < 3; i++) {
         printk("BEEP ");
         set_buzz(1);
@@ -64,6 +67,7 @@ void test_start_beep() {
 }
 
 void test_end_beep() {
+    test_running = false;
     printk("BEEEEEP\n");
     set_buzz(1);
     k_msleep(100);
@@ -71,5 +75,14 @@ void test_end_beep() {
     k_msleep(100);
     set_buzz(1);
     k_msleep(1000);
+    set_buzz(0);
+}
+
+void continuous_beep() {
+    printk("BEEEEEEEEEEEEEEEEEEEEEEEP\n");
+    while (!test_running) {
+        set_buzz(1);
+        k_msleep(10);
+    }
     set_buzz(0);
 }

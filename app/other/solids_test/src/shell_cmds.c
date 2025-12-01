@@ -3,6 +3,7 @@
 #include "flash_storage.h"
 
 #include <stdint.h>
+#include <string.h>
 #include <stdlib.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/shell/shell.h>
@@ -12,8 +13,20 @@ LOG_MODULE_REGISTER(shell_cmds, LOG_LEVEL_INF);
 static int cmd_test_start(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
+
+    // If solids members need more than 32 characters then they need better naming standards
+    char calib_name[32] = "default"; // If no name arg, set to default. Name will be set to "Test [#]" in flash_storage
+    if (argc >= 2) {
+        calib_name[0] = '\0'; // clear "default"
+        for (int i = 1; i < argc; i++) {
+            snprintf(calib_name + strlen(calib_name), 
+                    sizeof(calib_name) - strlen(calib_name), 
+                    i == 1 ? "%s" : " %s", argv[i]);
+        }
+    }
+
     shell_print(shell, "Starting test...");
-    control_start_test();
+    control_start_test(calib_name, true);
     return 0;
 }
 
@@ -79,7 +92,7 @@ static int cmd_test_estop(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
-SHELL_STATIC_SUBCMD_SET_CREATE(sub_test, SHELL_CMD(start, NULL, "Start test", cmd_test_start),
+SHELL_STATIC_SUBCMD_SET_CREATE(sub_test, SHELL_CMD(start, NULL, "Start test. Arg [calibration name]", cmd_test_start),
                                SHELL_CMD(stop, NULL, "Stop test preemptively", cmd_test_stop),
                                SHELL_CMD(dump, NULL, "Dump flash data. Optional arg [test #]", cmd_test_dump),
                                SHELL_CMD(erase, NULL, "Erase all flash data, prepare for new tests", cmd_test_erase),

@@ -6,8 +6,10 @@
 
 /**
  * @brief Starts flash storage and ADC reading
+ * @param calib_name Name of calibration to store in flash storage
+ * @param terminal_test Whether test was triggered by terminal cmd or meep
  */
-void control_start_test();
+void control_start_test(char calib_name[], bool terminal_test);
 
 /**
  * @brief Stops flash storage and ADC reading
@@ -51,5 +53,11 @@ void control_set_ematch(const struct shell *shell);
  * @param shell Pointer to shell instance
  */
 void control_stop_ematch(const struct shell *shell);
+
+/**
+ * @brief Get status of test 
+ * @return Whether a test is running or not
+ */
+bool control_get_test_status();
 
 #endif // CONTROL_H

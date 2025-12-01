@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define SAMPLE_RATE_HZ 1000
+#define SAMPLE_RATE 1000
 #define TEST_DURATION 10000 // ms
 #define MAX_TESTS 30
 

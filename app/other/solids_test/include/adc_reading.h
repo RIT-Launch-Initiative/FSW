@@ -2,15 +2,14 @@
 #define ADC_READING_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * @brief Struct to hold one ADC sample
  */
 struct adc_sample {
-    /** Timestamp the sample was recorded in ms */
-    uint32_t timestamp;
-    /** Value of the sample */
-    int32_t value;
+    uint32_t timestamp; /** Timestamp the sample was recorded in ms */
+    int32_t value;      /** Value of the sample */
 };
 
 /**
@@ -32,8 +31,9 @@ void adc_reading_task();
 
 /**
  * @brief Sets ADC control event to start
+ * @param terminal_test Whether test was triggered by terminal cmd or meep
  */
-void adc_start_reading();
+void adc_start_reading(bool terminal_test);
 
 /**
  * @brief Sets ADC control event to end

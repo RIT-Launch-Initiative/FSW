@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/kernel.h>
@@ -40,6 +41,8 @@ static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = siz
 
 static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
+
+bool terminal = true;
 
 int adc_init() {
     if (!adc_is_ready_dt(&adc_channels[0])) {
@@ -84,7 +87,7 @@ void adc_reading_task() {
         k_msleep(2000);
         test_start_beep();
 
-        k_timer_start(&adc_timer, K_USEC(SAMPLE_RATE_HZ), K_USEC(SAMPLE_RATE_HZ)); // 1000Hz periods
+        k_timer_start(&adc_timer, K_USEC(SAMPLE_RATE), K_USEC(SAMPLE_RATE));
 
         int x = 0;
         uint32_t dropped_samples = 0;
@@ -102,16 +105,19 @@ void adc_reading_task() {
             }
 
             uint32_t num_expiries = k_timer_status_get(&adc_timer);
-            if (num_expiries == 0) {
+            if (num_expiries == 0) { // timer still running
                 k_timer_status_sync(&adc_timer);
-            } else {
+            } else { // timer expired
                 num_missed_expires += num_expiries -1;
             }
 
-            if (x == 500) {
-                set_ematch(1);
-            } else if (x == 900) {
-                set_ematch(0);
+            // Only set off ematch if test is triggered by meep
+            if (!terminal) {
+                if (x == 500) {
+                    set_ematch(1);
+                } else if (x == 900) {
+                    set_ematch(0);
+                }
             }
 
             // Read from ADC
@@ -146,6 +152,9 @@ void adc_reading_task() {
     }
 }
 
-void adc_start_reading() { k_event_set(&adc_control_event, BEGIN_READING_EVENT); }
+void adc_start_reading(bool terminal_test) { 
+    terminal = terminal_test; // Whether test was triggered by terminal command or meep
+    k_event_set(&adc_control_event, BEGIN_READING_EVENT); 
+}
 
 void adc_stop_recording() { k_event_set(&adc_control_event, STOP_READING_EVENT); }
