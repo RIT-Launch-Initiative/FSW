@@ -43,13 +43,13 @@ int button_switch_init() {
         return -1;
 	}
 
-	ret = gpio_pin_interrupt_configure_dt(&tx, GPIO_INT_EDGE_TO_ACTIVE);
+	ret = gpio_pin_interrupt_configure_dt(&tx, GPIO_INT_EDGE_BOTH);
 	if (ret != 0) {
 		LOG_ERR("Error %d: failed to configure interrupt on %s pin %d\n", ret, tx.port->name, tx.pin);
         return -1;
 	}
 
-    ret = gpio_pin_interrupt_configure_dt(&rx, GPIO_INT_EDGE_BOTH);
+    ret = gpio_pin_interrupt_configure_dt(&rx, GPIO_INT_EDGE_BOTH); // GPIO_INT_EDGE_TO_ACTIVE?
 	if (ret != 0) {
 		LOG_ERR("Error %d: failed to configure interrupt on %s pin %d\n", ret, rx.port->name, rx.pin);
         return -1;
@@ -79,6 +79,7 @@ void key_switch_state(const struct device *dev, struct gpio_callback *cb, uint32
         if (!control_get_test_status()) {
             buzzing = true; // scream until test start
         }
+
     } else {
         key_switched = false;
         buzzing = false;
