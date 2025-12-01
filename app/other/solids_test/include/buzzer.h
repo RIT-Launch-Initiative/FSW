@@ -41,7 +41,7 @@ void test_start_beep();
 void test_end_beep();
 
 /**
- * @brief Beep forever
+ * @brief Beep until test starts
  */
 void continuous_beep();
 

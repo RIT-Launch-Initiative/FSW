@@ -133,13 +133,14 @@ static void flash_storage_thread_entry() {
         flash_write(flash_dev, current_write_addr, calibration, 32);
         current_write_addr += 32;
 
-        // flash_write(flash_dev, current_write_addr, &curr_test_type, sizeof(curr_test_type));
-        // current_write_addr += 4;
+        // if we include test type, implement this
+        // flash_write(flash_dev, current_write_addr, [test type], sizeof([test type]));
+        // current_write_addr += sizeof([test type]);
 
         static struct adc_sample page[SAMPLE_PER_PAGE] = {0};
         size_t i = 0;
         size_t pages = 0;
-        // buffer here, write calibration name to flash block
+
         while (1) {
             if (k_msgq_get(&storage_control_queue, &event, K_NO_WAIT) == 0 && event == END_STORAGE) {
                 LOG_INF("Test %d complete", current_test_number);

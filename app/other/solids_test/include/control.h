@@ -55,7 +55,7 @@ void control_set_ematch(const struct shell *shell);
 void control_stop_ematch(const struct shell *shell);
 
 /**
- * @brief Get status of test 
+ * @brief Get status of test
  * @return Whether a test is running or not
  */
 bool control_get_test_status();

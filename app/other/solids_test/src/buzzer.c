@@ -1,4 +1,5 @@
 #include "buzzer.h"
+#include "control.h"
 
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
@@ -83,6 +84,7 @@ void continuous_beep() {
     while (!test_running) {
         set_buzz(1);
         k_msleep(10);
+        test_running = control_get_test_status();
     }
     set_buzz(0);
 }
