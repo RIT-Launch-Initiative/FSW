@@ -17,8 +17,8 @@ static bool test_running = false;
 static char curr_name[32];
 
 void control_start_test(char calib_name[], bool terminal_test) {
-    // Set calibration name. If string is empty, get calibration name from previous test
-    // Assume name passed in from shell cmd before actual test, otherwise default name will be set in flash_storage
+    // If string is empty, get calibration name from last named test - name will stay until new one is passed in
+    // Default name will be set in flash_storage if no name specified in shell_cmd
     if (calib_name && calib_name[0] != '\0') {
         memcpy(curr_name, calib_name, sizeof(curr_name));
     }
