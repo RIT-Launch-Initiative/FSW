@@ -36,13 +36,12 @@ K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, 15, 0, THR
 
 static uint32_t adc_buffer;
 static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = sizeof(adc_buffer), .resolution = 24};
+static bool terminal = true;
 
 #define DT_SPEC_AND_COMMA(node_id, prop, idx) ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
 
 static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
-
-bool terminal = true;
 
 int adc_init() {
     if (!adc_is_ready_dt(&adc_channels[0])) {

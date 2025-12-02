@@ -14,7 +14,7 @@ const struct gpio_dt_spec ldo_enable = GPIO_DT_SPEC_GET(LDO_EN_NODE, gpios);
 static const struct gpio_dt_spec buzzer = GPIO_DT_SPEC_GET(DT_ALIAS(buzzer), gpios);
 static const struct gpio_dt_spec ematch = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
-bool test_running = false;
+static bool test_running = false;
 
 void set_buzz(int which) {
     gpio_pin_set_dt(&ldo_enable, which);

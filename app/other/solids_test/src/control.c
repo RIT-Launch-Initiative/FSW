@@ -30,7 +30,7 @@ void control_start_test(char calib_name[], bool terminal_test) {
 
     test_running = true;
 
-    start_flash_storage(curr_name);
+    start_flash_storage(curr_name, terminal_test);
     adc_start_reading(terminal_test);
 }
 

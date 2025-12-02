@@ -33,12 +33,13 @@ K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_sample), 1000, alignof(struct ad
 static const struct device *flash_dev = DEVICE_DT_GET(DT_ALIAS(storage));
 static uint32_t current_test_number = 0;
 static off_t current_write_addr = 0;
+static char test_type[] = "terminal";
 
 static void flash_storage_thread_entry(void);
 
 K_THREAD_DEFINE(storage_thread, 2048, flash_storage_thread_entry, NULL, NULL, NULL, STORAGE_THREAD_PRIORITY, 0, 1000);
 
-char calibration[32];
+static char calibration[32];
 
 // Check if flash block is all 0xFF
 static bool flash_block_is_empty(off_t addr) {
@@ -130,12 +131,12 @@ static void flash_storage_thread_entry() {
 
         current_write_addr = test_block_addr;
 
+        // Save calibration name and test type (terminal or meep)
         flash_write(flash_dev, current_write_addr, calibration, 32);
         current_write_addr += 32;
 
-        // if we include test type, implement this
-        // flash_write(flash_dev, current_write_addr, [test type], sizeof([test type]));
-        // current_write_addr += sizeof([test type]);
+        flash_write(flash_dev, current_write_addr, test_type, sizeof(test_type));
+        current_write_addr += sizeof(test_type);
 
         static struct adc_sample page[SAMPLE_PER_PAGE] = {0};
         size_t i = 0;
@@ -179,7 +180,7 @@ static void flash_storage_thread_entry() {
     }
 }
 
-int start_flash_storage(char calib_name[]) {
+int start_flash_storage(char calib_name[], bool terminal_test) {
     // Set calibration name
     int res1 = strcmp(calib_name, "default");
     int res2 = strcmp(calib_name, "");
@@ -187,6 +188,10 @@ int start_flash_storage(char calib_name[]) {
         snprintf(calibration, sizeof(calibration), "Test %u", current_test_number);
     } else {
         snprintf(calibration, sizeof(calibration), "%s", calib_name);
+    }
+
+    if (!terminal_test) {
+        snprintf(test_type, sizeof(test_type), "meep");
     }
 
     enum storage_event event = BEGIN_STORAGE;
@@ -216,17 +221,17 @@ int flash_dump_one(const struct shell *shell, uint32_t test_index) {
         return 0;
     }
 
-    shell_print(shell, "==============Dumping Test #%d===============", test_index);
-    // print calibration name from flash block
-    // should we print if a test was a terminal or meep test?
     char calib_name[32];
-
     flash_read(flash_dev, block_addr, calib_name, sizeof(calib_name));
-    calib_name[31] = '\0';
     block_addr += 32;
 
-    shell_print(shell, "==============CALIBRATION: %s==============", calib_name);
-    shell_print(shell, "==============timestamp, value==============");
+    flash_read(flash_dev, block_addr, test_type, sizeof(test_type));
+    block_addr += sizeof(test_type);
+
+    shell_print(shell, "================================\nDumping Test #%d", test_index);
+    shell_print(shell, "CALIBRATION: %s", calib_name);
+    shell_print(shell, "Test triggered by %s", test_type);
+    shell_print(shell, "timestamp, value\n================================");
 
     for (int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++) {
         if (flash_read(flash_dev, block_addr, &sample, sizeof(sample)) < 0) {

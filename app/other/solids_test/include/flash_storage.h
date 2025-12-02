@@ -7,9 +7,10 @@
 /**
  * @brief Begin flash storage event
  * @param calib_name Name of calibration to store. Defaults to "Test [#]" if empty or default string passed in
+ * @param terminal_test Whether test was triggered by terminal cmd or meep
  * @return 0 if successful
  */
-int start_flash_storage(char calib_name[]);
+int start_flash_storage(char calib_name[], bool terminal_test);
 
 /**
  * @brief End flash storage event
