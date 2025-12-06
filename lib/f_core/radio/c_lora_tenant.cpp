@@ -30,11 +30,9 @@ void CLoraTenant::serviceTx() {
         return;
     }
 
-    CacheDownlink(msg);
-
     ret = link.Send(msg.Port, msg.Payload, msg.Size);
     if (ret < 0) {
-        LOG_ERR("CLoraTenant: TX broadcast failed (%d)", txRet);
+        LOG_ERR("TX broadcast failed (%d)", ret);
     }
 }
 
