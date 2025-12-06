@@ -2,7 +2,6 @@
 #define C_LORA_TENANT_H
 
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
 
 #include <f_core/os/c_runnable_tenant.h>
 #include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
@@ -25,10 +24,11 @@ public:
 
     void PadRun() override;
     void FlightRun() override;
+    void LandedRun() override;
 
 private:
-    void ServiceTx();
-    void ServiceRx(k_timeout_t timeout);
+    void serviceTx();
+    void serviceRx(const k_timeout_t timeout);
 
     void CacheDownlink(const LaunchLoraFrame& data);
 
