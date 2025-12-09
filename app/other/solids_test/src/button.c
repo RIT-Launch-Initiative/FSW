@@ -79,7 +79,6 @@ void key_switch_state(const struct device *dev, struct gpio_callback *cb, uint32
         if (!control_get_test_status()) {
             buzzing = true; // scream until test start
         }
-
     } else {
         key_switched = false;
         buzzing = false;

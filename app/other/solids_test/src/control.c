@@ -47,7 +47,7 @@ void control_stop_test() {
 }
 
 void control_print_n(const struct shell *shell, int num) {
-    // set_ldo(1);
+    set_ldo(1);
     k_msleep(5000);
     uint32_t adc_val = 0;
     uint32_t start = k_uptime_ticks();
@@ -58,7 +58,7 @@ void control_print_n(const struct shell *shell, int num) {
         shell_print(shell, "%u, %d", k_ticks_to_us_near32(t), adc_val);
         k_msleep(1);
     }
-    // set_ldo(0);
+    set_ldo(0);
 }
 
 void control_dump_data(const struct shell *shell) { flash_dump_all(shell); }

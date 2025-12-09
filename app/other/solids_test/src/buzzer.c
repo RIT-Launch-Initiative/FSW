@@ -16,19 +16,6 @@ static const struct gpio_dt_spec ematch = GPIO_DT_SPEC_GET(CAM_EN_NODE, gpios);
 
 static bool test_running = false;
 
-void set_buzz(int which) {
-    gpio_pin_set_dt(&ldo_enable, which);
-    gpio_pin_set_dt(&buzzer, which);
-}
-
-void set_ldo(int level) {
-    gpio_pin_set_dt(&ldo_enable, level);
-}
-
-void set_ematch(int level) {
-    gpio_pin_set_dt(&ematch, level);
-}
-
 int buzzer_init() {
     int ret = gpio_pin_configure_dt(&buzzer, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
@@ -42,6 +29,19 @@ int buzzer_init() {
     }
     
     return 0;
+}
+
+void set_buzz(int which) {
+    gpio_pin_set_dt(&ldo_enable, which);
+    gpio_pin_set_dt(&buzzer, which);
+}
+
+void set_ldo(int level) {
+    gpio_pin_set_dt(&ldo_enable, level);
+}
+
+void set_ematch(int level) {
+    gpio_pin_set_dt(&ematch, level);
 }
 
 void beep_full() {

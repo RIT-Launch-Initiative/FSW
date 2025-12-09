@@ -81,7 +81,7 @@ void adc_reading_task() {
         // Wait for start event
         k_event_wait(&adc_control_event, BEGIN_READING_EVENT, true, K_FOREVER);
         LOG_INF("ADC reading started");
-        // set_ldo(1);
+        set_ldo(1);
         // Delay test 2 seconds, beep when test actually starts
         k_msleep(2000);
         test_start_beep();
@@ -140,7 +140,7 @@ void adc_reading_task() {
             }
         }
 
-        // set_ldo(0);
+        set_ldo(0);
         k_timer_stop(&adc_timer);
         LOG_INF(
             "number of samples: %d, %u missed, %u dropped, read time %llu, ms per = %.2f, loop time: %llu, loop time ticks: %llu",
