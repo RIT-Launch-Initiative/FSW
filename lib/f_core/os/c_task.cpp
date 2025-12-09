@@ -8,6 +8,8 @@
 #include <f_core/os/c_task.h>
 
 // F-Core Includes
+#include "zephyr/drivers/watchdog.h"
+
 #include <functional>
 #include <f_core/os/c_tenant.h>
 #include <zephyr/logging/log.h>
@@ -27,10 +29,10 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
     }
 }
 
-CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : name(name),
-                                                                               priority(priority), stackSize(stackSize),
-                                                                               sleepTimeMs(sleepTimeMs) {
-}
+CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs,
+             wdt_timeout_cfg* wdtConfig) : name(name),
+                                                     priority(priority), stackSize(stackSize),
+                                                     sleepTimeMs(sleepTimeMs), wdtConfig(wdtConfig) {}
 
 CTask::~CTask() {
     for (CRunnableTenant* tenant : tenants) {
@@ -44,7 +46,17 @@ CTask::~CTask() {
     }
 }
 
-void CTask::Initialize() {
+void CTask::Initialize(const device* wdgDev) {
+    if (wdtConfig != nullptr && wdgDev != nullptr) {
+        watchdogDev = wdgDev;
+        wdtTimeoutId = wdt_install_timeout(watchdogDev, wdtConfig);
+    } else if (wdgDev != nullptr) {
+        LOG_ERR("Watchdog device provided but no configuration specified");
+        k_panic();
+    } else {
+        LOG_DBG("No watchdog configuration or device provided, skipping watchdog setup");
+    }
+
     for (CRunnableTenant* tenant : tenants) {
         tenant->Startup();
     }
@@ -73,5 +85,10 @@ void CTask::Run() {
     for (CRunnableTenant* tenant : tenants) {
         tenant->Run();
     }
+
+    if (wdtTimeoutId >= 0) {
+        wdt_feed(watchdogDev, wdtTimeoutId);
+    }
+
     k_msleep(sleepTimeMs);
 }
