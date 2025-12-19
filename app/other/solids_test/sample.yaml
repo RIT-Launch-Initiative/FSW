@@ -4,6 +4,6 @@ sample:
 common:
   build_only: true
   platform_allow:
-    - grim_reefer
+    - solids_board
 tests:
   solids_test.default: {}
