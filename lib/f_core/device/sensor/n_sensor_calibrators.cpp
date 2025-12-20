@@ -39,6 +39,7 @@ bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
                                                 uint16_t nSamples,
                                                 GravityOrientation gravityOrientation) {
     if (!accelerometer.IsReady()) {
+        LOG_ERR("Accelerometer not ready");
         return false;
     }
 
@@ -65,9 +66,13 @@ bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
     int64_t sumY = 0;
     int64_t sumZ = 0;
 
+    // Sleep a bit to let things settle
+    k_msleep(5);
+
     for (uint16_t i = 0; i < nSamples; i++) {
         if (!accelerometer.UpdateSensorValue()) {
-            return false;
+            LOG_WRN_ONCE("Failed to update accelerometer sensor value during calibration");
+            continue;
         }
 
         sensor_value accels[3]{0};
