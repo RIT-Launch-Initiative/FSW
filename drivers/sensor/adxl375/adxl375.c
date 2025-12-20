@@ -20,18 +20,6 @@
 
 LOG_MODULE_REGISTER(ADXL375, CONFIG_SENSOR_LOG_LEVEL);
 
-enum adxl375_bw_bits {
-	ADXL375_BW_RATE_12_5HZ = 0x07,
-	ADXL375_BW_RATE_25HZ = 0x08,
-	ADXL375_BW_RATE_50HZ = 0x09,
-	ADXL375_BW_RATE_100HZ = 0x0A,
-	ADXL375_BW_RATE_200HZ = 0x0B,
-	ADXL375_BW_RATE_400HZ = 0x0C,
-	ADXL375_BW_RATE_800HZ = 0x0D,
-	ADXL375_BW_RATE_1600HZ = 0x0E,
-	ADXL375_BW_RATE_3200HZ = 0x0F,
-};
-
 static int adxl375_check_id(const struct device *dev)
 {
 	struct adxl375_data *data = dev->data;
@@ -57,6 +45,9 @@ static int adxl375_set_odr_and_lp(const struct device *dev, uint32_t data_rate,
 	if (low_power) {
 		data_rate |= 0x10;
 	}
+
+	printk("Setting ODR to 0x%02x\n", data_rate);
+	printk("Low power mode: %s\n", low_power ? "enabled" : "disabled");
 
 	return data->hw_tf->write_reg(dev, ADXL375_BW_RATE, data_rate);
 }
@@ -164,6 +155,7 @@ static int adxl375_channel_get(const struct device *dev, enum sensor_channel cha
 	return 0;
 }
 
+
 static int adxl375_attr_set(const struct device *dev, enum sensor_channel chan,
 							enum sensor_attribute attr, const struct sensor_value *val)
 {
@@ -173,36 +165,9 @@ static int adxl375_attr_set(const struct device *dev, enum sensor_channel chan,
 
 	uint32_t hz = val->val1;
 	uint8_t bw_rate_bits = 0;
-	switch (hz) {
-	case 12:
-		bw_rate_bits = ADXL375_BW_RATE_12_5HZ;
-		break;
-	case 25:
-		bw_rate_bits = ADXL375_BW_RATE_25HZ;
-		break;
-	case 50:
-		bw_rate_bits = ADXL375_BW_RATE_50HZ;
-		break;
-	case 100:
-		bw_rate_bits = ADXL375_BW_RATE_100HZ;
-		break;
-	case 200:
-		bw_rate_bits = ADXL375_BW_RATE_200HZ;
-		break;
-	case 400:
-		bw_rate_bits = ADXL375_BW_RATE_400HZ;
-		break;
-	case 800:
-		bw_rate_bits = ADXL375_BW_RATE_800HZ;
-		break;
-	case 1600:
-		bw_rate_bits = ADXL375_BW_RATE_1600HZ;
-		break;
-	case 3200:
-		bw_rate_bits = ADXL375_BW_RATE_3200HZ;
-		break;
-	default:
-		return -ENOTSUP;
+	int ret = adxl375_hz_to_bw_rate_bits(hz, &bw_rate_bits);
+	if (ret < 0) {
+		return ret;
 	}
 
 	return adxl375_set_odr_and_lp(dev, bw_rate_bits, /*low_power=*/false);
