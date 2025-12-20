@@ -1,6 +1,8 @@
 #ifndef N_CALIBRATORS_H
 #define N_CALIBRATORS_H
 
+#include <zephyr/device.h>
+
 namespace NSensorCalibrators {
     typedef enum {
         GRAVITY_ORIENTATION_POS_X,
@@ -11,7 +13,7 @@ namespace NSensorCalibrators {
         GRAVITY_ORIENTATION_NEG_Z
     } GravityOrientation;
 
-    bool CalibrateADXL375(const device &dev, uint16_t nSamples = 100, GravityOrientation orientation = GRAVITY_ORIENTATION_POS_Z);
+    bool CalibrateADXL375(const device &dev, uint16_t nSamples = 100, GravityOrientation gravityOrientation = GRAVITY_ORIENTATION_POS_Z);
 }
 
 #endif //N_CALIBRATORS_H
