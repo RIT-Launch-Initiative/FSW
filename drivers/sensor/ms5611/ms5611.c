@@ -313,7 +313,7 @@ static int ms5611_fetch_temp_and_press(const struct device *dev) {
     p = (((uint64_t)(raw_press * sens) >> 21) - off) >> 15;
 
     data->meas.temp = temp;
-    /* Stored as Pa */
+    /* 0.01 mBar is 1 Pa */
     data->meas.press = p;
 
     return 0;
@@ -341,8 +341,8 @@ static int ms5611_channel_get(const struct device *dev, enum sensor_channel chan
 
     switch (chan) {
         case SENSOR_CHAN_PRESS:
-            val->val1 = meas->press / 100;
-            val->val2 = meas->press % 100;
+            int64_t kpa_micro = (int64_t)meas->press * 1000;  // Pa -> micro-kPa
+            sensor_value_from_micro(val, kpa_micro);
             break;
 
         case SENSOR_CHAN_AMBIENT_TEMP:
