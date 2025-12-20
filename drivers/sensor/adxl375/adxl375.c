@@ -20,6 +20,18 @@
 
 LOG_MODULE_REGISTER(ADXL375, CONFIG_SENSOR_LOG_LEVEL);
 
+enum adxl375_bw_bits {
+	ADXL375_BW_RATE_12_5HZ = 0b1000,
+	ADXL375_BW_RATE_25HZ = 0b1000,
+	ADXL375_BW_RATE_50HZ = 0b1001,
+	ADXL375_BW_RATE_100HZ = 0b1010,
+	ADXL375_BW_RATE_200HZ = 0b1011,
+	ADXL375_BW_RATE_400HZ = 0b1100,
+	ADXL375_BW_RATE_800HZ = 0b1101,
+	ADXL375_BW_RATE_1600HZ = 0b1110,
+	ADXL375_BW_RATE_3200HZ = 0b1111,
+};
+
 static int adxl375_check_id(const struct device *dev)
 {
 	struct adxl375_data *data = dev->data;
@@ -154,8 +166,52 @@ static int adxl375_channel_get(const struct device *dev, enum sensor_channel cha
 	return 0;
 }
 
+static int adxl375_attr_set(const struct device *dev, enum sensor_channel chan,
+							enum sensor_attribute attr, const struct sensor_value *val)
+{
+	if (attr != SENSOR_ATTR_SAMPLING_FREQUENCY || chan != SENSOR_CHAN_ACCEL_XYZ) {
+		return -ENOTSUP;
+	}
+
+	uint32_t hz = val->val1;
+	uint8_t bw_rate_bits = 0;
+	switch (hz) {
+	case 12:
+		bw_rate_bits = ADXL375_BW_RATE_12_5HZ;
+		break;
+	case 25:
+		bw_rate_bits = ADXL375_BW_RATE_25HZ;
+		break;
+	case 50:
+		bw_rate_bits = ADXL375_BW_RATE_50HZ;
+		break;
+	case 100:
+		bw_rate_bits = ADXL375_BW_RATE_100HZ;
+		break;
+	case 200:
+		bw_rate_bits = ADXL375_BW_RATE_200HZ;
+		break;
+	case 400:
+		bw_rate_bits = ADXL375_BW_RATE_400HZ;
+		break;
+	case 800:
+		bw_rate_bits = ADXL375_BW_RATE_800HZ;
+		break;
+	case 1600:
+		bw_rate_bits = ADXL375_BW_RATE_1600HZ;
+		break;
+	case 3200:
+		bw_rate_bits = ADXL375_BW_RATE_3200HZ;
+		break;
+	default:
+		return -ENOTSUP;
+	}
+
+	return adxl375_set_odr_and_lp(dev, bw_rate_bits, /*low_power=*/false);
+}
+
 static const struct sensor_driver_api adxl375_api_funcs = {.channel_get = adxl375_channel_get,
-							   .sample_fetch = adxl375_sample_fetch};
+							   .sample_fetch = adxl375_sample_fetch, .attr_set = adxl375_attr_set};
 
 #if DT_NUM_INST_STATUS_OKAY(DT_DRV_COMPAT) == 0
 #warning "ADXL375 driver enabled without any devices"
