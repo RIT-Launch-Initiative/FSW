@@ -25,6 +25,7 @@ public:
      * See parent docs
      */
     int Send(const T& message, const k_timeout_t timeout) override {
+        mailbox.publish(message);
         return 0;
     }
 
@@ -32,6 +33,7 @@ public:
      * See parent docs
      */
     int Receive(T& message, const k_timeout_t timeout) override {
+        mailbox.read(message);
         return 0;
     }
 
@@ -39,6 +41,7 @@ public:
      * See parent docs
      */
     void Clear() override {
+        // noop
     }
 
     /**
