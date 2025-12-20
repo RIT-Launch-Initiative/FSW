@@ -75,8 +75,11 @@ void CSensingTenant::Run() {
         timestampedData.timestamp = tmpTimestamp;
     }
 
-    data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
-    data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+    // NOTE: Intentionally swapping ADXL375 X and Y axes
+    // to align with LSM6DSL and silkscreen.
+    // Also need to invert X axis to match right hand rule
+    data.Acceleration.X = -accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+    data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
 
     data.ImuAcceleration.X = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
