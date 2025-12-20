@@ -201,10 +201,6 @@
 #define ADXL375_FIFO_STATUS_FIFO_TRIG(x)     (((x) >> 7) & 0x1)
 #define ADXL375_FIFO_STATUS_ENTRIES(x)       ((x) & 0x7F)
 
-/* ADXL375 scale factors specified in page 3, table 1 of datasheet */
-/* Do micro-Gs per LSB to avoid floating point */
-#define ADXL375_UG_PER_LSB 49000
-
 enum adxl375_axis {
 	ADXL375_X_AXIS,
 	ADXL375_Y_AXIS,

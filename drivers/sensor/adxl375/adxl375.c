@@ -132,10 +132,10 @@ static int adxl375_sample_fetch(const struct device *dev, enum sensor_channel ch
 
 static void adxl375_accel_convert(struct sensor_value *val, int16_t raw)
 {
-	int64_t ug = (int64_t)raw * ADXL375_UG_PER_LSB;  // micro-g
-	sensor_ug_to_ms2(ug, val);
+	int64_t micro_ms2 = (int64_t)raw * SENSOR_G * 49;
+	micro_ms2 /= 1000;
+	sensor_value_from_micro(val, micro_ms2);
 }
-
 
 static int adxl375_channel_get(const struct device *dev, enum sensor_channel chan,
 			       struct sensor_value *val)
