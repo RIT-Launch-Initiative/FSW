@@ -61,7 +61,6 @@ void CSensingTenant::Run() {
     uint64_t uptime = k_uptime_get();
 
     CDetectionHandler::SensorWorkings sensor_states = {};
-    LOG_INF("Sampling");
     imuGyroscope.UpdateSensorValue();
     sensor_states.primaryAccOk = imuAccelerometer.UpdateSensorValue();
     sensor_states.primaryBarometerOk = primaryBarometer.UpdateSensorValue();
@@ -71,7 +70,6 @@ void CSensingTenant::Run() {
 #ifndef CONFIG_ARCH_POSIX
     magnetometer.UpdateSensorValue();
 #endif
-    LOG_INF("Finished");
 
     // Note that compilers don't accept references to packed struct fields
     uint32_t tmpTimestamp = 0;
