@@ -106,6 +106,10 @@ static int adxl375_sample_fetch(const struct device *dev, enum sensor_channel ch
 	uint8_t buff[6] = {0};
 
 	int ret = data->hw_tf->read_reg_multiple(dev, ADXL375_DATAX0, buff, 6);
+	if (ret < 0) {
+		LOG_ERR("Failed to read sample data");
+		return ret;
+	}
 
 	data->sample.x = (int16_t)((buff[1] << 8) | (buff[0]));
 	data->sample.y = (int16_t)((buff[3] << 8) | (buff[2]));
