@@ -21,15 +21,15 @@
 LOG_MODULE_REGISTER(ADXL375, CONFIG_SENSOR_LOG_LEVEL);
 
 enum adxl375_bw_bits {
-	ADXL375_BW_RATE_12_5HZ = 0b1000,
-	ADXL375_BW_RATE_25HZ = 0b1000,
-	ADXL375_BW_RATE_50HZ = 0b1001,
-	ADXL375_BW_RATE_100HZ = 0b1010,
-	ADXL375_BW_RATE_200HZ = 0b1011,
-	ADXL375_BW_RATE_400HZ = 0b1100,
-	ADXL375_BW_RATE_800HZ = 0b1101,
-	ADXL375_BW_RATE_1600HZ = 0b1110,
-	ADXL375_BW_RATE_3200HZ = 0b1111,
+	ADXL375_BW_RATE_12_5HZ = 0x07,
+	ADXL375_BW_RATE_25HZ = 0x08,
+	ADXL375_BW_RATE_50HZ = 0x09,
+	ADXL375_BW_RATE_100HZ = 0x0A,
+	ADXL375_BW_RATE_200HZ = 0x0B,
+	ADXL375_BW_RATE_400HZ = 0x0C,
+	ADXL375_BW_RATE_800HZ = 0x0D,
+	ADXL375_BW_RATE_1600HZ = 0x0E,
+	ADXL375_BW_RATE_3200HZ = 0x0F,
 };
 
 static int adxl375_check_id(const struct device *dev)
@@ -55,7 +55,7 @@ static int adxl375_set_odr_and_lp(const struct device *dev, uint32_t data_rate,
 {
 	struct adxl375_data *data = dev->data;
 	if (low_power) {
-		data_rate |= 0x8;
+		data_rate |= 0x10;
 	}
 
 	return data->hw_tf->write_reg(dev, ADXL375_BW_RATE, data_rate);
