@@ -181,23 +181,59 @@ static int adxl375_hz_to_rate_code(const struct sensor_value *val, uint8_t *code
 	}
 }
 
+static int adxl375_set_offset_reg(const struct device *dev, uint8_t reg, int32_t value)
+{
+	if (value < -128 || value > 127) {
+		return -EINVAL;
+	}
+	return ((struct adxl375_data *)dev->data)->hw_tf->write_reg(dev, reg, (uint8_t)value);
+}
+
 static int adxl375_attr_set(const struct device *dev,
 				enum sensor_channel chan,
 				enum sensor_attribute attr,
 				const struct sensor_value *val)
 {
-	if (chan != SENSOR_CHAN_ACCEL_XYZ || attr != SENSOR_ATTR_SAMPLING_FREQUENCY) {
-		return -ENOTSUP;
+	if (attr == SENSOR_ATTR_SAMPLING_FREQUENCY) {
+		if (chan != SENSOR_CHAN_ACCEL_XYZ) {
+			return -ENOTSUP;
+		}
+
+		uint8_t code = 0;
+		int ret = adxl375_hz_to_rate_code(val, &code);
+		if (ret < 0) {
+			return ret;
+		}
+
+		const struct adxl375_dev_config *cfg = dev->config;
+		return adxl375_set_odr_and_lp(dev, code, cfg->lp);
 	}
 
-	uint8_t code = 0;
-	int ret = adxl375_hz_to_rate_code(val, &code);
-	if (ret < 0) {
-		return ret;
+	if (attr == SENSOR_ATTR_OFFSET) {
+		switch (chan) {
+		case SENSOR_CHAN_ACCEL_X:
+			return adxl375_set_offset_reg(dev, ADXL375_OFFSET_X, val->val1);
+		case SENSOR_CHAN_ACCEL_Y:
+			return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Y, val->val1);
+		case SENSOR_CHAN_ACCEL_Z:
+			return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Z, val->val1);
+		case SENSOR_CHAN_ACCEL_XYZ: {
+			int ret = adxl375_set_offset_reg(dev, ADXL375_OFFSET_X, val[0].val1);
+			if (ret < 0) {
+				return ret;
+			}
+			ret = adxl375_set_offset_reg(dev, ADXL375_OFFSET_Y, val[1].val1);
+			if (ret < 0) {
+				return ret;
+			}
+			return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Z, val[2].val1);
+		}
+		default:
+			return -ENOTSUP;
+		}
 	}
 
-	const struct adxl375_dev_config *cfg = dev->config;
-	return adxl375_set_odr_and_lp(dev, code, cfg->lp);
+	return -ENOTSUP;
 }
 
 
