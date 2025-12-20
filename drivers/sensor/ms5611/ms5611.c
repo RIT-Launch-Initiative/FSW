@@ -193,9 +193,15 @@ static int ms5611_fetch_temp_and_press(const struct device *dev) {
     uint8_t temp_data[3], press_data[3];
     uint32_t raw_temp, raw_press;
     int ret;
-    int32_t dT, temp, t2, p;
+    int32_t dT;
+    int32_t temp;
+    int32_t t2;
+    int32_t p;
     uint8_t i2c_cmd;
-    int64_t off, off2, sens, sens2;
+    int64_t off;
+    int64_t off2;
+    int64_t sens;
+    int64_t sens2;
 
     /* Request temperature conversion */
     i2c_cmd = data->osr[MS5611_OSR_TEMP_IDX].read_cmd;
@@ -275,13 +281,19 @@ static int ms5611_fetch_temp_and_press(const struct device *dev) {
 
     /* Second order temperature compensation */
     if (temp < 2000) {
-        t2 = ((dT ^ 2) >> 31);
-        off2 = 5 * ((temp - 2000) ^ 2) / 2;
-        sens2 = 5 * (temp - 2000) ^ 2 / 4;
+        int64_t dt = dT;
+        int64_t t = temp - 2000;
+        int64_t t_sq = t * t;
+
+        t2   = (int32_t)((dt * dt) >> 31);
+        off2 = (5 * t_sq) >> 1;   // /2
+        sens2= 5 * t_sq >> 2;   // /4
 
         if (temp < -1500) {
-            off2 = off2 + (7 * (temp + 1500) ^ 2);
-            sens2 = sens2 + (11 * ((temp + 1500) ^ 2)) / 2;
+            int64_t t3 = temp + 1500;
+            int64_t t3_sq = t3 * t3;
+            off2  += 7 * t3_sq;
+            sens2 += (11 * t3_sq) >> 1;    // /2
         }
     } else {
         t2 = 0;
