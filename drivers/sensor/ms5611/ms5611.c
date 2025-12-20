@@ -196,7 +196,6 @@ static int ms5611_fetch_temp_and_press(const struct device* dev) {
     int32_t dT;
     int32_t temp;
     int32_t t2;
-    int32_t p;
     uint8_t i2c_cmd;
     int64_t off;
     int64_t off2;
@@ -310,7 +309,8 @@ static int ms5611_fetch_temp_and_press(const struct device* dev) {
     sens = ((int64_t)data->prom[1] << 15) + (((int64_t)data->prom[3] * dT) >> 8);
     sens = sens - sens2;
 
-    int64_t p_pa = (((raw_press * sens) >> 21) - off) >> 15; // Pa
+    int64_t raw = raw_press;
+    int64_t p_pa = (((raw * sens) >> 21) - off) >> 15;
 
     data->meas.temp = temp;
     data->meas.press = (p_pa > 0) ? (uint32_t)p_pa : 0;
