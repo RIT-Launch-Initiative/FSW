@@ -18,6 +18,8 @@ public:
         atomic_clear(&seq);
     }
 
+    ~CLatestMailbox() = default;
+
     /**
      * Write a value to the mailbox
      * @param val The value to publish to the mailbox
@@ -36,22 +38,7 @@ public:
      */
     T read() const {
         T out;
-        atomic_val_t a;
-        atomic_val_t b;
-        uint32_t spins = 0;
-        do {
-            a = atomic_get(&seq);
-            out = value;
-            b = atomic_get(&seq);
-            if ((a != b) || (a & 1)) {
-                if (spins++ > spinsBeforeYield) {
-                    spins = 0;
-                    k_yield();
-                }
-            } else {
-                break;
-            }
-        } while (true);
+        read(out);
         return out;
     }
 

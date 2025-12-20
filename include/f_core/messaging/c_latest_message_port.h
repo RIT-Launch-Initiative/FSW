@@ -18,7 +18,7 @@ public:
     /**
      * Destructor
      */
-    ~CLatestMessagePort() override {}
+    ~CLatestMessagePort() override = default;
 
     /**
      * See parent docs
