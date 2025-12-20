@@ -38,6 +38,11 @@ void CSensingTenant::Startup() {
         LOG_WRN("IMU Gyroscope ODR configuration failed. IMU gyroscope values will report 0.");
     }
 
+    const sensor_value ms5611PressureOsr{.val1 = 4096, .val2 = 0};
+    if (primaryBarometer.Configure(SENSOR_CHAN_PRESS, SENSOR_ATTR_OVERSAMPLING, &ms5611PressureOsr)) {
+        LOG_WRN("MS5611 pressure oversampling configuration failed. Pressure readings may be inaccurate.");
+    }
+
 #endif
 }
 
