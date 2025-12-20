@@ -106,5 +106,7 @@ bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
         LOG_WRN("Failed to set accelerometer Z offset during calibration: %d", ret);
     }
 
+    LOG_INF("Accelerometer calibration complete. Offsets set to X: %d, Y: %d, Z: %d", ofsRegX, ofsRegY, ofsRegZ);
+
     return true;
 };

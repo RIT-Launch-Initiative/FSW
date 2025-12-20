@@ -39,7 +39,14 @@ void CSensingTenant::Startup() {
         LOG_WRN("IMU Gyroscope ODR configuration failed. IMU gyroscope values will report 0.");
     }
 
-    NSensorCalibrators::CalibrateAccelerometer(&accelerometer, 200, NSensorCalibrators::GravityOrientation::PosZ);
+    LOG_INF("Starting accelerometer calibration");
+    bool ret = NSensorCalibrators::CalibrateAccelerometer(accelerometer, 200, NSensorCalibrators::GravityOrientation::PosZ);
+    if (ret) {
+        LOG_INF("Accelerometer calibration complete");
+    } else {
+        LOG_ERR("Accelerometer calibration failed");
+    }
+
 
 
 #endif
