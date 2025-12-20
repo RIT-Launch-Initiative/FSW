@@ -346,8 +346,8 @@ static int ms5611_channel_get(const struct device *dev, enum sensor_channel chan
             break;
 
         case SENSOR_CHAN_AMBIENT_TEMP:
-            val->val1 = meas->temp / 100;
-            val->val2 = meas->temp % 100;
+            int64_t c_micro = (int64_t)meas->temp * 10000; // 0.01C -> micro-C
+            sensor_value_from_micro(val, c_micro);
             break;
 
         default:
