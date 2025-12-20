@@ -81,10 +81,16 @@ bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
      * So do avgMg + ofsMg == targetMg  ->  ofsMg = targetMg - avgMg
      * Then: ofsReg = round(ofsMg / 196)
      */
-    int32_t ofsRegX = CLAMP(i32DivideAndRound((int64_t)(target.xMg - avgX), 196), INT8_MIN, INT8_MIN);
+    int32_t ofsRegX = i32DivideAndRound((int64_t)(target.xMg - avgX), 196);
 
-    int32_t ofsRegY = CLAMP(i32DivideAndRound((int64_t)(target.yMg - avgY), 196), INT8_MIN, INT8_MIN);
-    int32_t ofsRegZ = CLAMP(i32DivideAndRound((int64_t)(target.zMg - avgZ), 196), INT8_MIN, INT8_MIN);
+    int32_t ofsRegY = i32DivideAndRound((int64_t)(target.yMg - avgY), 196);
+    int32_t ofsRegZ = i32DivideAndRound((int64_t)(target.zMg - avgZ), 196);
+
+    LOG_INF("Pre-clamped offset registers: X=%d, Y=%d, Z=%d", ofsRegX, ofsRegY, ofsRegZ);
+
+    ofsRegX = CLAMP(ofsRegX, INT8_MIN, INT8_MAX);
+    ofsRegY = CLAMP(ofsRegY, INT8_MIN, INT8_MAX);
+    ofsRegZ = CLAMP(ofsRegZ, INT8_MIN, INT8_MAX);
 
     sensor_value offsetX{.val1 = ofsRegX};
     sensor_value offsetY{.val1 = ofsRegY};

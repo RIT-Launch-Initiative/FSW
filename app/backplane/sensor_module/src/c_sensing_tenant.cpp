@@ -47,8 +47,6 @@ void CSensingTenant::Startup() {
         LOG_ERR("Accelerometer calibration failed");
     }
 
-
-
 #endif
 }
 
