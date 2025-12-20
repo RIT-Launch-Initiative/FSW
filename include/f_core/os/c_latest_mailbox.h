@@ -14,7 +14,7 @@ class CLatestMailbox {
                   "LatestMailbox<T> requires T to be trivially copyable");
 
 public:
-    CLatestMailbox() {
+    CLatestMailbox(const uint32_t spinsBeforeYield = 64) : spinsBeforeYield(spinsBeforeYield) {
         atomic_clear(&seq);
     }
 
@@ -38,11 +38,20 @@ public:
         T out;
         atomic_val_t a;
         atomic_val_t b;
+        uint32_t spins = 0;
         do {
             a = atomic_get(&seq);
             out = value;
             b = atomic_get(&seq);
-        } while ((a != b) || (a & 1));
+            if ((a != b) || (a & 1)) {
+                if (spins++ > spinsBeforeYield) {
+                    spins = 0;
+                    k_yield();
+                }
+            } else {
+                break;
+            }
+        } while (true);
         return out;
     }
 
@@ -53,17 +62,27 @@ public:
     void read(T& out) const {
         atomic_val_t a;
         atomic_val_t b;
+        uint32_t spins = 0;
         do {
             a = atomic_get(&seq);
             out = value;
             b = atomic_get(&seq);
-        } while ((a != b) || (a & 1));
+            if ((a != b) || (a & 1)) {
+                if (spins++ > spinsBeforeYield) {
+                    spins = 0;
+                    k_yield();
+                }
+            } else {
+                break;
+            }
+        } while (true);
     }
 
 private:
     // mutable since atomic_t isn't const friendly
     mutable atomic_t seq{};
     T value{};
+    const uint32_t spinsBeforeYield;
 };
 
 

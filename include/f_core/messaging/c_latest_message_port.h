@@ -12,14 +12,13 @@ public:
     /**
      * Constructor
      */
-    explicit CLatestMessagePort() {
-    }
+    explicit CLatestMessagePort(const uint32_t spinsBeforeYield = 64)
+        : mailbox(spinsBeforeYield) {}
 
     /**
      * Destructor
      */
-    ~CLatestMessagePort() override {
-    }
+    ~CLatestMessagePort() override {}
 
     /**
      * See parent docs
@@ -53,7 +52,6 @@ public:
 
 private:
     CLatestMailbox<T> mailbox;
-
 };
 
 #endif //  C_LATEST_MESSAGE_PORT_H
