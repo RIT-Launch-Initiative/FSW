@@ -1,6 +1,11 @@
+#include "f_core/device/sensor/c_accelerometer.h"
 #include "f_core/device/sensor/n_sensor_calibrators.h"
 
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(NSensorCalibrators);
+
 
 struct TargetMg {
     int32_t xMg;
@@ -30,10 +35,10 @@ static TargetMg accelTargetFromOrientation(NSensorCalibrators::GravityOrientatio
     }
 }
 
-bool NSensorCalibrators::CalibrateADXL375(const device& dev,
-                                          uint16_t nSamples,
-                                          GravityOrientation gravityOrientation) {
-    if (!device_is_ready(&dev)) {
+bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
+                                                uint16_t nSamples,
+                                                GravityOrientation gravityOrientation) {
+    if (!accelerometer.IsReady()) {
         return false;
     }
 
@@ -43,14 +48,14 @@ bool NSensorCalibrators::CalibrateADXL375(const device& dev,
     int64_t sumZ = 0;
 
     for (uint16_t i = 0; i < nSamples; i++) {
-        if (sensor_sample_fetch(&dev) != 0) {
+        if (!accelerometer.UpdateSensorValue()) {
             return false;
         }
 
-        sensor_value accels[3];
-        if (sensor_channel_get(&dev, SENSOR_CHAN_ACCEL_XYZ, accels) != 0) {
-            return false;
-        }
+        sensor_value accels[3]{0};
+        accels[0] = accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_X);
+        accels[1] = accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Y);
+        accels[2] = accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Z);
 
         // Convert sensor_value to mg
         auto mps2_to_mg = [](const sensor_value& v) -> int32_t {
@@ -86,14 +91,19 @@ bool NSensorCalibrators::CalibrateADXL375(const device& dev,
     sensor_value offsetZ{.val1 = ofsRegZ};
 
     // Set the offsets
-    if (sensor_attr_set(&dev, SENSOR_CHAN_ACCEL_X, SENSOR_ATTR_OFFSET, &offsetX) != 0) {
-        return false;
+    int ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_X, SENSOR_ATTR_OFFSET, &offsetX);
+    if (ret != 0) {
+        LOG_WRN("Failed to set accelerometer X offset during calibration: %d", ret);
     }
-    if (sensor_attr_set(&dev, SENSOR_CHAN_ACCEL_Y, SENSOR_ATTR_OFFSET, &offsetY) != 0) {
-        return false;
+
+    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_Y, SENSOR_ATTR_OFFSET, &offsetY);
+    if (ret != 0) {
+        LOG_WRN("Failed to set accelerometer Y offset during calibration: %d", ret);
     }
-    if (sensor_attr_set(&dev, SENSOR_CHAN_ACCEL_Z, SENSOR_ATTR_OFFSET, &offsetZ) != 0) {
-        return false;
+
+    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_Z, SENSOR_ATTR_OFFSET, &offsetZ);
+    if (ret != 0) {
+        LOG_WRN("Failed to set accelerometer Z offset during calibration: %d", ret);
     }
 
     return true;

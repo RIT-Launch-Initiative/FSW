@@ -13,7 +13,8 @@ namespace NSensorCalibrators {
         NegZ
     } GravityOrientation;
 
-    bool CalibrateADXL375(const device& dev, uint16_t nSamples = 100, GravityOrientation gravityOrientation = POS_Z);
+    bool CalibrateAccelerometer(CAccelerometer& accelerometer, uint16_t nSamples = 100,
+                                GravityOrientation gravityOrientation = PosZ);
 }
 
 #endif //N_CALIBRATORS_H

@@ -7,6 +7,7 @@
 #include <f_core/device/sensor/c_gyroscope.h>
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <f_core/device/sensor/c_temperature_sensor.h>
+#include <f_core/device/sensor/n_sensor_calibrators.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CSensingTenant);
@@ -37,6 +38,9 @@ void CSensingTenant::Startup() {
     if (imuGyroscope.Configure(SENSOR_CHAN_GYRO_XYZ, SENSOR_ATTR_SAMPLING_FREQUENCY, &imuOdr)) {
         LOG_WRN("IMU Gyroscope ODR configuration failed. IMU gyroscope values will report 0.");
     }
+
+    NSensorCalibrators::CalibrateAccelerometer(&accelerometer, 200, NSensorCalibrators::GravityOrientation::PosZ);
+
 
 #endif
 }
