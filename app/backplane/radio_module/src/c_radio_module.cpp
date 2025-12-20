@@ -3,13 +3,13 @@
 // F-Core Tenant
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
+#include <f_core/messaging/c_latest_message_port.h>
 #include <zephyr/drivers/gnss.h>
 
 K_MSGQ_DEFINE(loraBroadcastQueue, sizeof(NTypes::LoRaBroadcastData), 10, 4);
-K_MSGQ_DEFINE(udpBroadcastQueue, sizeof(NTypes::LoRaBroadcastData), 10, 4);
-K_MSGQ_DEFINE(gnssDataLogQueue, sizeof(NTypes::GnssData), 10, 4);
 static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastData>(loraBroadcastQueue);
-static auto udpBroadcastMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastData>(udpBroadcastQueue);
+
+K_MSGQ_DEFINE(gnssDataLogQueue, sizeof(NTypes::GnssData), 10, 4);
 static auto gnssLogMsgQueue = CMsgqMessagePort<NTypes::GnssData>(gnssDataLogQueue);
 
 CRadioModule::CRadioModule() : CProjectConfiguration(),
@@ -17,7 +17,7 @@ CRadioModule::CRadioModule() : CProjectConfiguration(),
                                lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
 #endif
                                loraBroadcastMessagePort(loraBroadcastMsgQueue),
-                               udpBroadcastMessagePort(udpBroadcastMsgQueue), gnssDataLogMessagePort(gnssLogMsgQueue) {}
+                                gnssDataLogMessagePort(gnssLogMsgQueue) {}
 
 void CRadioModule::AddTenantsToTasks() {
     // Networking
