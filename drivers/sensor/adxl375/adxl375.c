@@ -118,11 +118,14 @@ static int adxl375_sample_fetch(const struct device *dev, enum sensor_channel ch
 	return ret;
 }
 
-static void adxl375_accel_convert(struct sensor_value *result, int16_t sample_val)
+static void adxl375_accel_convert(struct sensor_value *val, int16_t raw)
 {
-	result->val1 = (sample_val * SENSOR_G * ADXL375_MG2G_MULTIPLIER) / 1000000;
-	result->val2 = ((int16_t)(sample_val * SENSOR_G * ADXL375_MG2G_MULTIPLIER)) % 1000000;
+	int64_t micro_ms2 =
+		(int64_t)raw * SENSOR_G * (int64_t)ADXL375_MG2G_MULTIPLIER;
+
+	sensor_value_from_micro(val, micro_ms2);
 }
+
 
 static int adxl375_channel_get(const struct device *dev, enum sensor_channel chan,
 			       struct sensor_value *val)
