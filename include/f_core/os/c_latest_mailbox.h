@@ -6,6 +6,8 @@
 
 /**
  * Overwriteable mailbox for latest value of type T.
+ * A mailbox with no data published to it yet will return a zeroed value.
+ *
  * @param T Type of the value to be stored in the mailbox
  */
 template <typename T>
@@ -14,8 +16,14 @@ class CLatestMailbox {
                   "LatestMailbox<T> requires T to be trivially copyable");
 
 public:
+    /**
+     * Constructor
+     * NOTE: Latest value is memset to 0 on construction to avoid undefined state
+     * @param spinsBeforeYield Number of spins to do before yielding the thread
+     */
     CLatestMailbox(const uint32_t spinsBeforeYield = 64) : spinsBeforeYield(spinsBeforeYield) {
         atomic_clear(&seq);
+        memset(&value, 0, sizeof(T));
     }
 
     ~CLatestMailbox() = default;
@@ -67,6 +75,7 @@ public:
 
 private:
     // mutable since atomic_t isn't const friendly
+    // Zephyr's atomic functions for seq utilize sequential consistent memory order
     mutable atomic_t seq{};
     T value{};
     const uint32_t spinsBeforeYield;
