@@ -1,7 +1,9 @@
-#ifndef C_MSGQ_MESSAGE_PORT_H
-#define C_MSGQ_MESSAGE_PORT_H
+#ifndef C_LATEST_MESSAGE_PORT_H
+#define  C_LATEST_MESSAGE_PORT_H
 
-#include <f_core/messaging/c_message_port.h>
+#include "f_core/messaging/c_message_port.h"
+#include "f_core/os/c_latest_mailbox.h"
+
 #include <zephyr/kernel.h>
 
 template <typename T>
@@ -47,6 +49,8 @@ public:
     }
 
 private:
+    CLatestMailbox<T> mailbox;
+
 };
 
-#endif // C_MSGQ_MESSAGE_PORT_H
+#endif //  C_LATEST_MESSAGE_PORT_H
