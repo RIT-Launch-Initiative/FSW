@@ -8,16 +8,16 @@
 #include <f_core/messaging/c_latest_message_port.h>
 #include <f_core/utils/n_time_utils.h>
 
-static auto udpBroadcastPort = CLatestMessagePort<NTypes::SensorData>();
-static auto downlinkBroadcastPort = CLatestMessagePort<NTypes::LoRaBroadcastSensorData>();
+static auto telemetryBroadcastMessagePort = CLatestMessagePort<NTypes::SensorData>();
+static auto downlinkMessageMessagePort = CLatestMessagePort<NTypes::LoRaBroadcastSensorData>();
 
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::TimestampedSensorData), 512, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::TimestampedSensorData>(dataLogQueue);
 
 
-CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(udpBroadcastPort),
+CPowerModule::CPowerModule() : CProjectConfiguration(), sensorDataBroadcastMessagePort(telemetryBroadcastMessagePort),
                                sensorDataLogMessagePort(dataLogMsgQueue),
-                               sensorDataDownlinkMessagePort(downlinkBroadcastPort) {}
+                               sensorDataDownlinkMessagePort(downlinkMessageMessagePort) {}
 
 void CPowerModule::AddTenantsToTasks() {
     // Networking
