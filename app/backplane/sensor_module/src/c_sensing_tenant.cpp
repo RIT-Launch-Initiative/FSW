@@ -40,7 +40,7 @@ void CSensingTenant::Startup() {
     }
 
     LOG_INF("Starting accelerometer calibration");
-    bool ret = NSensorCalibrators::CalibrateAccelerometer(accelerometer, 200, NSensorCalibrators::GravityOrientation::PosZ);
+    bool ret = NSensorCalibrators::CalibrateADXL375(accelerometer, 200, NSensorCalibrators::GravityOrientation::PosZ);
     if (ret) {
         LOG_INF("Accelerometer calibration complete");
     } else {

@@ -35,7 +35,7 @@ static TargetMg accelTargetFromOrientation(NSensorCalibrators::GravityOrientatio
     }
 }
 
-bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
+bool NSensorCalibrators::CalibrateADXL375(CAccelerometer& accelerometer,
                                                 uint16_t nSamples,
                                                 GravityOrientation gravityOrientation) {
     if (!accelerometer.IsReady()) {
