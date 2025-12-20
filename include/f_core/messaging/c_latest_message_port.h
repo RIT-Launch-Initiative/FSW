@@ -54,4 +54,4 @@ private:
     CLatestMailbox<T> mailbox;
 };
 
-#endif //  C_LATEST_MESSAGE_PORT_H
+#endif //C_LATEST_MESSAGE_PORT_H
