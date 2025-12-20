@@ -5,15 +5,15 @@
 
 namespace NSensorCalibrators {
     typedef enum {
-        GRAVITY_ORIENTATION_POS_X,
-        GRAVITY_ORIENTATION_NEG_X,
-        GRAVITY_ORIENTATION_POS_Y,
-        GRAVITY_ORIENTATION_NEG_Y,
-        GRAVITY_ORIENTATION_POS_Z,
-        GRAVITY_ORIENTATION_NEG_Z
+        PosX,
+        NegX,
+        PosY,
+        NegY,
+        PosZ,
+        NegZ
     } GravityOrientation;
 
-    bool CalibrateADXL375(const device &dev, uint16_t nSamples = 100, GravityOrientation gravityOrientation = GRAVITY_ORIENTATION_POS_Z);
+    bool CalibrateADXL375(const device& dev, uint16_t nSamples = 100, GravityOrientation gravityOrientation = POS_Z);
 }
 
 #endif //N_CALIBRATORS_H
