@@ -42,6 +42,24 @@ bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
         return false;
     }
 
+    // Reset offsets to 0 before calibration
+    const sensor_value zeroOffset{.val1 = 0, .val2 = 0};
+    int ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_X, SENSOR_ATTR_OFFSET, &zeroOffset);
+    if (ret != 0) {
+        LOG_ERR("Failed to set accelerometer X offset to zero before calibration: %d", ret);
+        return false;
+    }
+    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_Y, SENSOR_ATTR_OFFSET, &zeroOffset);
+    if (ret != 0) {
+        LOG_ERR("Failed to set accelerometer Y offset to zero before calibration: %d", ret);
+        return false;
+    }
+    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_Z, SENSOR_ATTR_OFFSET, &zeroOffset);
+    if (ret != 0) {
+        LOG_ERR("Failed to set accelerometer Z offset to zero before calibration: %d", ret);
+        return false;
+    }
+
     // Gets scaled values (in m/s^2) and convert to mgs. Then does int64 sum average
     int64_t sumX = 0;
     int64_t sumY = 0;
@@ -73,6 +91,7 @@ bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
     int32_t avgX = i32DivideAndRound(sumX, nSamples);
     int32_t avgY = i32DivideAndRound(sumY, nSamples);
     int32_t avgZ = i32DivideAndRound(sumZ, nSamples);
+    LOG_INF("Accelerometer averages (mg): X=%d, Y=%d, Z=%d", avgX, avgY, avgZ);
 
     const TargetMg target = accelTargetFromOrientation(gravityOrientation);
 
@@ -97,7 +116,7 @@ bool NSensorCalibrators::CalibrateAccelerometer(CAccelerometer& accelerometer,
     sensor_value offsetZ{.val1 = ofsRegZ};
 
     // Set the offsets
-    int ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_X, SENSOR_ATTR_OFFSET, &offsetX);
+    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_X, SENSOR_ATTR_OFFSET, &offsetX);
     if (ret != 0) {
         LOG_WRN("Failed to set accelerometer X offset during calibration: %d", ret);
     }
