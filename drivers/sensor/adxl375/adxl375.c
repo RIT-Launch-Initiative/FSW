@@ -156,22 +156,50 @@ static int adxl375_channel_get(const struct device *dev, enum sensor_channel cha
 }
 
 
-static int adxl375_attr_set(const struct device *dev, enum sensor_channel chan,
-							enum sensor_attribute attr, const struct sensor_value *val)
+static int adxl375_hz_to_bw_rate_bits(const struct sensor_value *val, uint8_t *bits)
 {
-	if (attr != SENSOR_ATTR_SAMPLING_FREQUENCY || chan != SENSOR_CHAN_ACCEL_XYZ) {
+	const int32_t hz_i = val->val1;
+	const int32_t hz_u = val->val2;
+
+	// 12.5 Hz special case
+	if ((hz_i == 12 && hz_u == 5) || (hz_i == 12 && hz_u == 0)) {
+		*bits = 0x07; /* 12.5Hz */
+		return 0;
+	}
+
+	switch (hz_i) {
+	case 25:   *bits = 0x08; return 0;
+	case 50:   *bits = 0x09; return 0;
+	case 100:  *bits = 0x0A; return 0;
+	case 200:  *bits = 0x0B; return 0;
+	case 400:  *bits = 0x0C; return 0;
+	case 800:  *bits = 0x0D; return 0;
+	case 1600: *bits = 0x0E; return 0;
+	case 3200: *bits = 0x0F; return 0;
+	default:
+		return -ENOTSUP;
+	}
+}
+
+static int adxl375_attr_set(const struct device *dev,
+				enum sensor_channel chan,
+				enum sensor_attribute attr,
+				const struct sensor_value *val)
+{
+	if (chan != SENSOR_CHAN_ACCEL_XYZ || attr != SENSOR_ATTR_SAMPLING_FREQUENCY) {
 		return -ENOTSUP;
 	}
 
-	uint32_t hz = val->val1;
-	uint8_t bw_rate_bits = 0;
-	int ret = adxl375_hz_to_bw_rate_bits(hz, &bw_rate_bits);
+	uint8_t bw_rate_bits;
+	int ret = adxl375_hz_to_bw_rate_bits(val, &bw_rate_bits);
 	if (ret < 0) {
 		return ret;
 	}
 
-	return adxl375_set_odr_and_lp(dev, bw_rate_bits, /*low_power=*/false);
+	 const struct adxl375_dev_config *cfg = dev->config;
+	 return adxl375_set_odr_and_lp(dev, bw_rate_bits, cfg->lp);
 }
+
 
 static const struct sensor_driver_api adxl375_api_funcs = {.channel_get = adxl375_channel_get,
 							   .sample_fetch = adxl375_sample_fetch, .attr_set = adxl375_attr_set};
