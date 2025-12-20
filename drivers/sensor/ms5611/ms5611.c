@@ -304,17 +304,17 @@ static int ms5611_fetch_temp_and_press(const struct device *dev) {
     /* Calculate values with respect to offsets */
     temp = temp - t2;
 
-    off = (uint32_t)(data->prom[2] << 16) + (((int64_t) data->prom[4] * dT) >> 7);
+    off  = ((int64_t)data->prom[2] << 16) + (((int64_t)data->prom[4] * dT) >> 7);
     off = off - off2;
 
-    sens = (data->prom[1] << 15) + (((int64_t) data->prom[3] * dT) >> 8);
+    sens = ((int64_t)data->prom[1] << 15) + (((int64_t)data->prom[3] * dT) >> 8);
     sens = sens - sens2;
 
     p = (((uint64_t)(raw_press * sens) >> 21) - off) >> 15;
 
     data->meas.temp = temp;
-    /* 10mbar = 1kPa */
-    data->meas.press = p / 10;
+    /* Stored as Pa */
+    data->meas.press = p;
 
     return 0;
 }
