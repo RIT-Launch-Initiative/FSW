@@ -42,14 +42,13 @@ static int adxl375_set_odr_and_lp(const struct device *dev, uint32_t data_rate,
 				  const bool low_power)
 {
 	struct adxl375_data *data = dev->data;
+
+	uint8_t reg = (uint8_t)(data_rate & 0x0F);
 	if (low_power) {
-		data_rate |= 0x10;
+		reg |= 0x10;
 	}
 
-	printk("Setting ODR to 0x%02x\n", data_rate);
-	printk("Low power mode: %s\n", low_power ? "enabled" : "disabled");
-
-	return data->hw_tf->write_reg(dev, ADXL375_BW_RATE, data_rate);
+	return data->hw_tf->write_reg(dev, ADXL375_BW_RATE, reg);
 }
 
 static int adxl375_set_op_mode(const struct device *dev, enum adxl375_op_mode op_mode)
@@ -81,7 +80,8 @@ static int adxl375_init(const struct device *dev)
 		return ret;
 	}
 
-	ret = adxl375_set_odr_and_lp(dev, cfg->odr, cfg->lp);
+	uint8_t bw_rate = (uint8_t)(cfg->odr & 0x0F);
+	ret = adxl375_set_odr_and_lp(dev, bw_rate, cfg->lp);
 	if (ret < 0) {
 		LOG_ERR("Failed to set ODR and LP mode");
 		return ret;
@@ -155,27 +155,27 @@ static int adxl375_channel_get(const struct device *dev, enum sensor_channel cha
 	return 0;
 }
 
-
-static int adxl375_hz_to_bw_rate_bits(const struct sensor_value *val, uint8_t *bits)
+static int adxl375_hz_to_rate_code(const struct sensor_value *val, uint8_t *code)
 {
-	const int32_t hz_i = val->val1;
-	const int32_t hz_u = val->val2;
+	int32_t hz = val->val1;
+	int32_t u  = val->val2;
 
-	// 12.5 Hz special case
-	if ((hz_i == 12 && hz_u == 5) || (hz_i == 12 && hz_u == 0)) {
-		*bits = 0x07; /* 12.5Hz */
+	if ((hz == 12 && u == 5) || (hz == 12 && u == 0)) {
+		*code = 0x07;
 		return 0;
 	}
 
-	switch (hz_i) {
-	case 25:   *bits = 0x08; return 0;
-	case 50:   *bits = 0x09; return 0;
-	case 100:  *bits = 0x0A; return 0;
-	case 200:  *bits = 0x0B; return 0;
-	case 400:  *bits = 0x0C; return 0;
-	case 800:  *bits = 0x0D; return 0;
-	case 1600: *bits = 0x0E; return 0;
-	case 3200: *bits = 0x0F; return 0;
+	switch (hz) {
+	case 0:    *code = 0x00; return 0;
+	case 1:    *code = 0x03; return 0;
+	case 25:   *code = 0x08; return 0;
+	case 50:   *code = 0x09; return 0;
+	case 100:  *code = 0x0A; return 0;
+	case 200:  *code = 0x0B; return 0;
+	case 400:  *code = 0x0C; return 0;
+	case 800:  *code = 0x0D; return 0;
+	case 1600: *code = 0x0E; return 0;
+	case 3200: *code = 0x0F; return 0;
 	default:
 		return -ENOTSUP;
 	}
@@ -190,15 +190,16 @@ static int adxl375_attr_set(const struct device *dev,
 		return -ENOTSUP;
 	}
 
-	uint8_t bw_rate_bits;
-	int ret = adxl375_hz_to_bw_rate_bits(val, &bw_rate_bits);
+	uint8_t code = 0;
+	int ret = adxl375_hz_to_rate_code(val, &code);
 	if (ret < 0) {
 		return ret;
 	}
 
-	 const struct adxl375_dev_config *cfg = dev->config;
-	 return adxl375_set_odr_and_lp(dev, bw_rate_bits, cfg->lp);
+	const struct adxl375_dev_config *cfg = dev->config;
+	return adxl375_set_odr_and_lp(dev, code, cfg->lp);
 }
+
 
 
 static const struct sensor_driver_api adxl375_api_funcs = {.channel_get = adxl375_channel_get,
