@@ -5,13 +5,15 @@
 
 namespace NSensorCalibrators {
     typedef enum {
-        PosX,
+        PosX = 0,
         NegX,
         PosY,
         NegY,
         PosZ,
         NegZ
     } GravityOrientation;
+
+    bool DetermineGravityOrientation(CAccelerometer &accelerometer, GravityOrientation& gravityOrientation);
 
     bool CalibrateADXL375(CAccelerometer& accelerometer, uint16_t nSamples = 100,
                                 GravityOrientation gravityOrientation = PosZ);

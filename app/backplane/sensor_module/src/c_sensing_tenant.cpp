@@ -1,5 +1,7 @@
 #include "c_sensing_tenant.h"
 
+#include <math.h>
+
 #include "c_sensor_module.h"
 
 #include <f_core/device/sensor/c_accelerometer.h>
@@ -40,7 +42,15 @@ void CSensingTenant::Startup() {
     }
 
     LOG_INF("Starting accelerometer calibration");
-    bool ret = NSensorCalibrators::CalibrateADXL375(accelerometer, 200, NSensorCalibrators::GravityOrientation::PosZ);
+
+    NSensorCalibrators::GravityOrientation calibGravOrientation;
+    if (!NSensorCalibrators::DetermineGravityOrientation(accelerometer, calibGravOrientation)) {
+        LOG_ERR("Failed to determine gravity orientation for accelerometer calibration");
+    } else {
+        LOG_INF("Determined gravity orientation for accelerometer calibration: %d", static_cast<int>(calibGravOrientation));
+    }
+
+    bool ret = NSensorCalibrators::CalibrateADXL375(accelerometer, 200, calibGravOrientation);
     if (ret) {
         LOG_INF("Accelerometer calibration complete");
     } else {
