@@ -77,13 +77,9 @@ bool NSensorCalibrators::DetermineGravityOrientation(CAccelerometer& acceleromet
     accels[1] = accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Y);
     accels[2] = accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Z);
 
-    auto mps2_to_mg = [](const sensor_value& v) -> int32_t {
-        int64_t micro_mps2 = (int64_t)v.val1 * 1000000LL + (int64_t)v.val2;
-        return i32DivideAndRound(micro_mps2 * 1000LL, 9806650);
-    };
-
     // Take 50 samples average
-    for (int i = 0; i < 50; i++) {
+    static constexpr int numSamples = 50;
+    for (int i = 0; i < numSamples; i++) {
         if (!accelerometer.UpdateSensorValue()) {
             LOG_WRN_ONCE("Failed to update accelerometer sensor value during orientation determination");
             continue;
@@ -96,9 +92,9 @@ bool NSensorCalibrators::DetermineGravityOrientation(CAccelerometer& acceleromet
         k_msleep(5);
     }
 
-    int32_t avgX = i32DivideAndRound((int64_t)accels[0].val1, 50);
-    int32_t avgY = i32DivideAndRound((int64_t)accels[1].val1, 50);
-    int32_t avgZ = i32DivideAndRound((int64_t)accels[2].val1, 50);
+    int32_t avgX = i32DivideAndRound(accels[0].val1, numSamples);
+    int32_t avgY = i32DivideAndRound(accels[1].val1, numSamples);
+    int32_t avgZ = i32DivideAndRound(accels[2].val1, numSamples);
 
     LOG_INF("Determined accelerometer averages (mg): X=%d, Y=%d, Z=%d", avgX, avgY, avgZ);
 
