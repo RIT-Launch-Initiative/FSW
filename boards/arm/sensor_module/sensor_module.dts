@@ -228,7 +228,7 @@
 		odr = "100";
 		osr-press = <1>;
 		osr-temp = <1>;
-		iir-filter = <7>;
+		iir-filter = <1>;
 	};
 
 	ms5611: ms5611@77 {
