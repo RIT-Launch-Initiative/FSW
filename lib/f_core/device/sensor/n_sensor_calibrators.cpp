@@ -37,21 +37,17 @@ static TargetMg accelTargetFromOrientation(NSensorCalibrators::GravityOrientatio
 
 static bool resetAccelerometerOffsets(CAccelerometer& accelerometer) {
     const sensor_value zeroOffset{.val1 = 0, .val2 = 0};
-    int ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_X, SENSOR_ATTR_OFFSET, &zeroOffset);
+    const sensor_value xyzArray[] = {
+        zeroOffset,
+        zeroOffset,
+        zeroOffset
+    };
+    int ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_OFFSET, &xyzArray);
     if (ret != 0) {
-        LOG_ERR("Failed to set accelerometer X offset to zero: %d", ret);
+        LOG_ERR("Failed to set accelerometer offsets to zero: %d", ret);
         return false;
     }
-    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_Y, SENSOR_ATTR_OFFSET, &zeroOffset);
-    if (ret != 0) {
-        LOG_ERR("Failed to set accelerometer Y offset to zero: %d", ret);
-        return false;
-    }
-    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_Z, SENSOR_ATTR_OFFSET, &zeroOffset);
-    if (ret != 0) {
-        LOG_ERR("Failed to set accelerometer Z offset to zero: %d", ret);
-        return false;
-    }
+
     return true;
 }
 
@@ -187,21 +183,12 @@ bool NSensorCalibrators::CalibrateADXL375(CAccelerometer& accelerometer,
     sensor_value offsetX{.val1 = ofsRegX};
     sensor_value offsetY{.val1 = ofsRegY};
     sensor_value offsetZ{.val1 = ofsRegZ};
+    sensor_value offset[] = {offsetX, offsetY, offsetZ};
 
     // Set the offsets
-    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_X, SENSOR_ATTR_OFFSET, &offsetX);
+    bool ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_OFFSET, offset);
     if (ret != 0) {
-        LOG_WRN("Failed to set accelerometer X offset during calibration: %d", ret);
-    }
-
-    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_Y, SENSOR_ATTR_OFFSET, &offsetY);
-    if (ret != 0) {
-        LOG_WRN("Failed to set accelerometer Y offset during calibration: %d", ret);
-    }
-
-    ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_Z, SENSOR_ATTR_OFFSET, &offsetZ);
-    if (ret != 0) {
-        LOG_WRN("Failed to set accelerometer Z offset during calibration: %d", ret);
+        LOG_WRN("Failed to set accelerometer offsets during calibration: %d", ret);
     }
 
     LOG_INF("Accelerometer calibration complete. Offsets set to X: %d, Y: %d, Z: %d", ofsRegX, ofsRegY, ofsRegZ);
