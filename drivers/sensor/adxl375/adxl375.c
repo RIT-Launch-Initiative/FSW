@@ -38,15 +38,17 @@ static int adxl375_check_id(const struct device *dev)
 	return 0;
 }
 
-static int adxl375_set_odr_and_lp(const struct device *dev, uint32_t data_rate,
+static int adxl375_set_odr_and_lp(const struct device *dev, uint8_t data_rate,
 				  const bool low_power)
 {
 	struct adxl375_data *data = dev->data;
+
+	uint8_t reg = (uint8_t)(data_rate & 0x0F);
 	if (low_power) {
-		data_rate |= 0x8;
+		reg |= 0x10;
 	}
 
-	return data->hw_tf->write_reg(dev, ADXL375_BW_RATE, data_rate);
+	return data->hw_tf->write_reg(dev, ADXL375_BW_RATE, reg);
 }
 
 static int adxl375_set_op_mode(const struct device *dev, enum adxl375_op_mode op_mode)
@@ -78,7 +80,8 @@ static int adxl375_init(const struct device *dev)
 		return ret;
 	}
 
-	ret = adxl375_set_odr_and_lp(dev, cfg->odr, cfg->lp);
+	uint8_t bw_rate = cfg->odr & 0x0F;
+	ret = adxl375_set_odr_and_lp(dev, bw_rate, cfg->lp);
 	if (ret < 0) {
 		LOG_ERR("Failed to set ODR and LP mode");
 		return ret;
@@ -106,6 +109,10 @@ static int adxl375_sample_fetch(const struct device *dev, enum sensor_channel ch
 	uint8_t buff[6] = {0};
 
 	int ret = data->hw_tf->read_reg_multiple(dev, ADXL375_DATAX0, buff, 6);
+	if (ret < 0) {
+		LOG_ERR("Failed to read sample data");
+		return ret;
+	}
 
 	data->sample.x = (int16_t)((buff[1] << 8) | (buff[0]));
 	data->sample.y = (int16_t)((buff[3] << 8) | (buff[2]));
@@ -114,10 +121,11 @@ static int adxl375_sample_fetch(const struct device *dev, enum sensor_channel ch
 	return ret;
 }
 
-static void adxl375_accel_convert(struct sensor_value *result, int16_t sample_val)
+static void adxl375_accel_convert(struct sensor_value *val, int16_t raw)
 {
-	result->val1 = (sample_val * SENSOR_G * ADXL375_MG2G_MULTIPLIER) / 1000000;
-	result->val2 = ((int16_t)(sample_val * SENSOR_G * ADXL375_MG2G_MULTIPLIER)) % 1000000;
+	int64_t micro_ms2 = (int64_t)raw * SENSOR_G * 49;
+	micro_ms2 /= 1000;
+	sensor_value_from_micro(val, micro_ms2);
 }
 
 static int adxl375_channel_get(const struct device *dev, enum sensor_channel chan,
@@ -147,8 +155,75 @@ static int adxl375_channel_get(const struct device *dev, enum sensor_channel cha
 	return 0;
 }
 
+static int adxl375_hz_to_rate_code(const struct sensor_value *val, uint8_t *code)
+{
+	int32_t hz = val->val1;
+	int32_t u  = val->val2;
+
+	// Ignore the micro part, unless its 0 with multiple sub-hz frequencies
+	if (hz == 12) {
+		*code = 0x07;
+		return 0;
+	} else if (hz == 6) {
+		*code = 0x06;
+		return 0;
+	} else if (hz == 3) {
+		*code = 0x05;
+		return 0;
+	} else if (hz == 1) {
+		*code = 0x04;
+		return 0;
+	} else if (hz == 0 && u > 78) {
+		*code = 0x03;
+		return 0;
+	} else if (hz == 0 && u > 39) {
+		*code = 0x02;
+		return 0;
+	} else if (hz == 0 && u > 20) {
+		*code = 0x01;
+		return 0;
+	} else if (hz == 0 && u > 10) {
+		*code = 0x00;
+		return 0;
+	}
+
+	switch (hz) {
+	case 25:   *code = 0x08; return 0;
+	case 50:   *code = 0x09; return 0;
+	case 100:  *code = 0x0A; return 0;
+	case 200:  *code = 0x0B; return 0;
+	case 400:  *code = 0x0C; return 0;
+	case 800:  *code = 0x0D; return 0;
+	case 1600: *code = 0x0E; return 0;
+	case 3200: *code = 0x0F; return 0;
+	default:
+		return -ENOTSUP;
+	}
+}
+
+static int adxl375_attr_set(const struct device *dev,
+				enum sensor_channel chan,
+				enum sensor_attribute attr,
+				const struct sensor_value *val)
+{
+	if (chan != SENSOR_CHAN_ACCEL_XYZ || attr != SENSOR_ATTR_SAMPLING_FREQUENCY) {
+		return -ENOTSUP;
+	}
+
+	uint8_t code = 0;
+	int ret = adxl375_hz_to_rate_code(val, &code);
+	if (ret < 0) {
+		return ret;
+	}
+
+	const struct adxl375_dev_config *cfg = dev->config;
+	return adxl375_set_odr_and_lp(dev, code, cfg->lp);
+}
+
+
+
 static const struct sensor_driver_api adxl375_api_funcs = {.channel_get = adxl375_channel_get,
-							   .sample_fetch = adxl375_sample_fetch};
+							   .sample_fetch = adxl375_sample_fetch, .attr_set = adxl375_attr_set};
 
 #if DT_NUM_INST_STATUS_OKAY(DT_DRV_COMPAT) == 0
 #warning "ADXL375 driver enabled without any devices"
