@@ -13,8 +13,6 @@ namespace NSensorCalibrators {
         NegZ
     } GravityOrientation;
 
-    bool DetermineGravityOrientation(CAccelerometer &accelerometer, GravityOrientation& gravityOrientation);
-
     bool CalibrateADXL375(CAccelerometer& accelerometer, uint16_t nSamples = 100,
                                 GravityOrientation gravityOrientation = PosZ);
 }

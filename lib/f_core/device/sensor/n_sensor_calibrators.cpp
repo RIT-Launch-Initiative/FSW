@@ -42,69 +42,10 @@ static bool resetAccelerometerOffsets(CAccelerometer& accelerometer) {
         zeroOffset,
         zeroOffset
     };
-    int ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_OFFSET, &xyzArray);
+    int ret = accelerometer.Configure(SENSOR_CHAN_ACCEL_XYZ, SENSOR_ATTR_OFFSET, xyzArray);
     if (ret != 0) {
         LOG_ERR("Failed to set accelerometer offsets to zero: %d", ret);
         return false;
-    }
-
-    return true;
-}
-
-bool NSensorCalibrators::DetermineGravityOrientation(CAccelerometer& accelerometer,
-                                                     GravityOrientation& gravityOrientation) {
-    if (!accelerometer.IsReady()) {
-        LOG_ERR("Accelerometer not ready");
-        return false;
-    }
-
-    if (!resetAccelerometerOffsets(accelerometer)) {
-        LOG_ERR("Failed to reset accelerometer offsets before determining orientation");
-        return false;
-    }
-
-    if (!accelerometer.UpdateSensorValue()) {
-        LOG_ERR("Failed to update accelerometer sensor value");
-        return false;
-    }
-
-    sensor_value accels[3]{0};
-    accels[0] = accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_X);
-    accels[1] = accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Y);
-    accels[2] = accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Z);
-
-    // Take 50 samples average
-    static constexpr int numSamples = 50;
-    for (int i = 0; i < numSamples; i++) {
-        if (!accelerometer.UpdateSensorValue()) {
-            LOG_WRN_ONCE("Failed to update accelerometer sensor value during orientation determination");
-            continue;
-        }
-
-        accels[0].val1 += accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_X).val1;
-        accels[1].val1 += accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Y).val1;
-        accels[2].val1 += accelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Z).val1;
-
-        k_msleep(5);
-    }
-
-    int32_t avgX = i32DivideAndRound(accels[0].val1, numSamples);
-    int32_t avgY = i32DivideAndRound(accels[1].val1, numSamples);
-    int32_t avgZ = i32DivideAndRound(accels[2].val1, numSamples);
-
-    LOG_INF("Determined accelerometer averages (mg): X=%d, Y=%d, Z=%d", avgX, avgY, avgZ);
-
-    // Use largest absolute value to determine orientation
-    int32_t absX = (avgX >= 0) ? avgX : -avgX;
-    int32_t absY = (avgY >= 0) ? avgY : -avgY;
-    int32_t absZ = (avgZ >= 0) ? avgZ : -avgZ;
-
-    if ((absX >= absY) && (absX >= absZ)) {
-        gravityOrientation = (avgX >= 0) ? GravityOrientation::PosX : GravityOrientation::NegX;
-    } else if ((absY >= absX) && (absY >= absZ)) {
-        gravityOrientation = (avgY >= 0) ? GravityOrientation::PosY : GravityOrientation::NegY;
-    } else {
-        gravityOrientation = (avgZ >= 0) ? GravityOrientation::PosZ : GravityOrientation::NegZ;
     }
 
     return true;
