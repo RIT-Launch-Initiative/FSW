@@ -38,7 +38,7 @@ static int adxl375_check_id(const struct device *dev)
 	return 0;
 }
 
-static int adxl375_set_odr_and_lp(const struct device *dev, uint32_t data_rate,
+static int adxl375_set_odr_and_lp(const struct device *dev, uint8_t data_rate,
 				  const bool low_power)
 {
 	struct adxl375_data *data = dev->data;
@@ -80,7 +80,7 @@ static int adxl375_init(const struct device *dev)
 		return ret;
 	}
 
-	uint8_t bw_rate = (uint8_t)(cfg->odr & 0x0F);
+	uint8_t bw_rate = cfg->odr & 0x0F;
 	ret = adxl375_set_odr_and_lp(dev, bw_rate, cfg->lp);
 	if (ret < 0) {
 		LOG_ERR("Failed to set ODR and LP mode");
@@ -160,14 +160,34 @@ static int adxl375_hz_to_rate_code(const struct sensor_value *val, uint8_t *code
 	int32_t hz = val->val1;
 	int32_t u  = val->val2;
 
-	if ((hz == 12 && u == 5) || (hz == 12 && u == 0)) {
+	// Ignore the micro part, unless its 0 with multiple sub-hz frequencies
+	if (hz == 12) {
 		*code = 0x07;
+		return 0;
+	} else if (hz == 6) {
+		*code = 0x06;
+		return 0;
+	} else if (hz == 3) {
+		*code = 0x05;
+		return 0;
+	} else if (hz == 1) {
+		*code = 0x04;
+		return 0;
+	} else if (hz == 0 && u > 78) {
+		*code = 0x03;
+		return 0;
+	} else if (hz == 0 && u > 39) {
+		*code = 0x02;
+		return 0;
+	} else if (hz == 0 && u > 20) {
+		*code = 0x01;
+		return 0;
+	} else if (hz == 0 && u > 10) {
+		*code = 0x00;
 		return 0;
 	}
 
 	switch (hz) {
-	case 0:    *code = 0x00; return 0;
-	case 1:    *code = 0x03; return 0;
 	case 25:   *code = 0x08; return 0;
 	case 50:   *code = 0x09; return 0;
 	case 100:  *code = 0x0A; return 0;
