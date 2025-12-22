@@ -70,6 +70,48 @@ The container mounts three directories:
 #### Troubleshooting
 - Container logs can be viewed with: `make docker-logs`
 
+## Creating New Projects
+
+You can create a new Zephyr project from a template using the `create-project` west command.
+
+### Usage
+```bash
+west create-project <project-name> <location>
+```
+
+### Arguments
+- `<project-name>`: Name of the new project (e.g., `my_project`, `sensor_module`)
+- `<location>`: Location where the project should be created (e.g., `app/samples`, `app/backplane`)
+
+### Examples
+```bash
+# Create a new sample project
+west create-project my_sample app/samples
+
+# Create a new backplane module
+west create-project new_module app/backplane
+
+# Create a project with hyphens in the name
+west create-project my-cool-project app/samples
+```
+
+### What it does
+The command will:
+1. Copy the template project from `app/samples/.template-project`
+2. Customize the project files with your specified name
+3. Create the project in the specified location
+
+The generated project includes:
+- `CMakeLists.txt` - Build configuration
+- `prj.conf` - Project configuration
+- `Kconfig` - Kconfig settings
+- `sample.yaml` - Sample metadata
+- `src/main.cpp` - Main source file
+
+After creating the project, you can build it with:
+```bash
+west build -b <board> <location>/<project-name>
+```
 
 ## Ways to Compile FSW Applications
 There are 3 different ways to compile a project:
