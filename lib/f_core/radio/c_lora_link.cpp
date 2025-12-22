@@ -12,7 +12,7 @@
 LOG_MODULE_REGISTER(CLoraLink);
 
 extern "C" void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size,
-                           int16_t rssi, int8_t snr, void* userData) {
+                                   int16_t rssi, int8_t snr, void* userData) {
     if (userData == nullptr) {
         LOG_ERR("loraLinkRxCallback called with null userData");
         return;
@@ -52,7 +52,7 @@ int CLoraLink::Send(const LaunchLoraFrame& frame) {
         memcpy(&buffer.at(2), frame.Payload, frame.Size);
     }
 
-    const int ret = Send(buffer.data(), frame.Size + 2);
+    const int ret = send(buffer.data(), frame.Size + 2);
     if (ret == 0) {
         LOG_DBG("Successfully sent port %d size %d", frame.Port, frame.Size);
     }
@@ -80,7 +80,7 @@ int CLoraLink::send(const uint8_t* data, uint16_t len) {
 }
 
 
-int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t *rssi, int8_t *snr) {
+int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t* rssi, int8_t* snr) {
     ReceivedLoraRawFrame raw{};
 
     const int ret = rxQueue.Receive(raw, timeout);

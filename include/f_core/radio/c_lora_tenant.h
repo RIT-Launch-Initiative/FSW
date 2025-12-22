@@ -9,16 +9,14 @@
 #include <f_core/radio/c_lora_link.h>
 #include <f_core/radio/c_lora_router.h>
 
-class CLoraTenant : public CRunnableTenant, public CPadFlightLandedStateMachine
-{
+class CLoraTenant : public CRunnableTenant, public CPadFlightLandedStateMachine {
 public:
     /**
      * @brief Constructor
-     * @param radioLink  Protocol/framing layer over CLora.
-     * @param txPort     Message port for outgoing LoRaBroadcastData.
+     * @param lora Device to use for LoRa communication.
+     * @param txPort Message port for outgoing LoRaBroadcastData.
      */
-    CLoraTenant(CLoraLink& radioLink,
-                     CMessagePort<LaunchLoraFrame>& txPort);
+    CLoraTenant(CLora& lora, CMessagePort<LaunchLoraFrame>& txPort);
 
     void Startup() override;
 
@@ -34,7 +32,7 @@ private:
 
     void CacheDownlink(const LaunchLoraFrame& data);
 
-    CLoraLink&  link;
+    CLoraLink link;
     CLoraRouter router;
 
     CMessagePort<LaunchLoraFrame>& loraTransmitPort;

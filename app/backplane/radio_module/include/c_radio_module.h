@@ -72,8 +72,7 @@ private:
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
-    CLoraLink loraLink{lora};
-    CLoraTenant loraTenant{loraLink, loraBroadcastMessagePort};
+    CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
 #endif
     CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
     CStateMachineUpdater stateMachineUpdater;
