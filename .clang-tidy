@@ -38,7 +38,6 @@ HeaderFilterRegex: '.*'
 
 CheckOptions:
   # Naming conventions
-  
   # Classes must start with 'C'
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
