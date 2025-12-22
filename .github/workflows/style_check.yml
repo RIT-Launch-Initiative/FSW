@@ -1,0 +1,91 @@
+name: Style Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check clang-format version
+        run: clang-format --version
+
+      - name: Run clang-format check
+        run: |
+          # Determine which files to check
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            echo "Checking only changed files in this PR..."
+            # Get the list of changed C/C++ files in the PR
+            git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
+            FILES=$(git diff --name-only --diff-filter=ACM origin/${{ github.base_ref }}...HEAD | grep -E '\.(c|h|cpp|hpp)$' || true)
+          else
+            echo "Checking all tracked C/C++ files..."
+            # On main branch or push, check all files
+            FILES=$(git ls-files | grep -E '\.(c|h|cpp|hpp)$' || true)
+          fi
+          
+          if [ -z "$FILES" ]; then
+            echo "No C/C++ files found to check"
+            exit 0
+          fi
+          
+          echo "Files to check:"
+          echo "$FILES"
+          echo ""
+          echo "Running clang-format check using .clang-format configuration..."
+          echo ""
+          
+          # Create temporary file to store violations
+          VIOLATIONS_FILE=$(mktemp)
+          FAILED=0
+          
+          for file in $FILES; do
+            if [ -f "$file" ]; then
+              # Check if file needs formatting
+              if ! clang-format --dry-run --Werror "$file" 2>/dev/null; then
+                echo "$file" >> "$VIOLATIONS_FILE"
+                FAILED=1
+              fi
+            fi
+          done
+          
+          if [ $FAILED -eq 1 ]; then
+            echo "❌ Style check failed!"
+            echo ""
+            echo "The following files have style violations:"
+            cat "$VIOLATIONS_FILE"
+            echo ""
+            echo "To fix these issues locally, run:"
+            echo "  clang-format -i <file>"
+            echo ""
+            echo "To format all changed files at once:"
+            if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+              echo "  git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\\.(c|h|cpp|hpp)$' | xargs clang-format -i"
+            else
+              echo "  git ls-files | grep -E '\\.(c|h|cpp|hpp)$' | xargs clang-format -i"
+            fi
+            echo ""
+            echo "To see the differences for a specific file:"
+            echo "  clang-format <file> | diff -u <file> -"
+            rm -f "$VIOLATIONS_FILE"
+            exit 1
+          else
+            echo "✅ All checked files pass clang-format style check!"
+          fi
+          
+          rm -f "$VIOLATIONS_FILE"
