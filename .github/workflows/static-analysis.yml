@@ -10,6 +10,10 @@ on:
   schedule:
     - cron: "0 0 * * 1"
 
+# Limit permissions to read-only for security
+permissions:
+  contents: read
+
 env:
   # Only run on native_sim for sanitizer and analysis builds
   platforms: |
