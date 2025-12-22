@@ -1,5 +1,7 @@
 #include "c_sensing_tenant.h"
 
+#include <math.h>
+
 #include "c_sensor_module.h"
 
 #include <f_core/device/sensor/c_accelerometer.h>
@@ -7,6 +9,7 @@
 #include <f_core/device/sensor/c_gyroscope.h>
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <f_core/device/sensor/c_temperature_sensor.h>
+#include <f_core/device/sensor/n_sensor_calibrators.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CSensingTenant);
@@ -38,6 +41,14 @@ void CSensingTenant::Startup() {
         LOG_WRN("IMU Gyroscope ODR configuration failed. IMU gyroscope values will report 0.");
     }
 
+    const sensor_value ms5611PressureOsr{.val1 = 2048, .val2 = 0};
+    if (primaryBarometer.Configure(SENSOR_CHAN_PRESS, SENSOR_ATTR_OVERSAMPLING, &ms5611PressureOsr)) {
+        LOG_WRN("MS5611 pressure oversampling configuration failed. Pressure readings may be inaccurate.");
+    }
+
+    calibrateADXL375();
+  
+  
 #endif
 }
 
@@ -75,8 +86,11 @@ void CSensingTenant::Run() {
         timestampedData.timestamp = tmpTimestamp;
     }
 
-    data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
-    data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+    // NOTE: Intentionally swapping ADXL375 X and Y axes
+    // to align with LSM6DSL and silkscreen.
+    // Also need to invert X axis to match right hand rule
+    data.Acceleration.X = -accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+    data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
 
     data.ImuAcceleration.X = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
@@ -149,5 +163,66 @@ void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
     };
 
     dataToDownlink.Send(downlinkData, K_NO_WAIT);
+}
 
+void CSensingTenant::calibrateADXL375() {
+    LOG_INF("Starting accelerometer calibration");
+
+    // Use the LSM6DSL IMU accelerometer for calibration reference
+    if (!imuAccelerometer.UpdateSensorValue()) {
+        LOG_ERR("Failed to read IMU accelerometer for accelerometer calibration");
+        return;
+    }
+
+    NSensorCalibrators::GravityOrientation calibGravOrientation;
+
+    // Check which axis is aligned with gravity
+    sensor_value imuAccels[3]{0};
+    imuAccels[0] = imuAccelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_X);
+    imuAccels[1] = imuAccelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Y);
+    imuAccels[2] = imuAccelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Z);
+
+    // Convert to micro m/s^2 to compare against SENSOR_G
+    int32_t imuX = sensor_ms2_to_ug(&imuAccels[0]);
+    int32_t imuY = sensor_ms2_to_ug(&imuAccels[1]);
+    int32_t imuZ = sensor_ms2_to_ug(&imuAccels[2]);
+
+    int32_t xDiff = abs(abs(imuX) - SENSOR_G);
+    int32_t yDiff = abs(abs(imuY) - SENSOR_G);
+    int32_t zDiff = abs(abs(imuZ) - SENSOR_G);
+
+    if (xDiff < yDiff && xDiff < zDiff) {
+        calibGravOrientation = (imuX > 0) ? NSensorCalibrators::GravityOrientation::PosX : NSensorCalibrators::GravityOrientation::NegX;
+    } else if (yDiff < xDiff && yDiff < zDiff) {
+        calibGravOrientation = (imuY > 0) ? NSensorCalibrators::GravityOrientation::PosY : NSensorCalibrators::GravityOrientation::NegY;
+    } else {
+        calibGravOrientation = (imuZ > 0) ? NSensorCalibrators::GravityOrientation::PosZ : NSensorCalibrators::GravityOrientation::NegZ;
+    }
+
+    // Need to account for the mounting orientation difference between the IMU and the ADXL375
+    // Doing it separately from above to avoid confusion
+    LOG_INF("Calibration gravity orientation determined: %d", static_cast<int>(calibGravOrientation));
+    switch (calibGravOrientation) {
+        case NSensorCalibrators::GravityOrientation::PosX:
+            calibGravOrientation = NSensorCalibrators::GravityOrientation::NegY;
+            break;
+        case NSensorCalibrators::GravityOrientation::NegX:
+            calibGravOrientation = NSensorCalibrators::GravityOrientation::PosY;
+            break;
+        case NSensorCalibrators::GravityOrientation::PosY:
+            calibGravOrientation = NSensorCalibrators::GravityOrientation::PosX;
+            break;
+        case NSensorCalibrators::GravityOrientation::NegY:
+            calibGravOrientation = NSensorCalibrators::GravityOrientation::NegX;
+            break;
+        default:
+            break;
+    }
+
+    bool ret = NSensorCalibrators::CalibrateADXL375(accelerometer, 200, calibGravOrientation);
+    if (ret) {
+        LOG_INF("Accelerometer calibration complete");
+    } else {
+        LOG_ERR("Accelerometer calibration failed");
+    }
 }

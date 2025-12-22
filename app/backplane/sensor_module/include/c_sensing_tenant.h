@@ -47,6 +47,8 @@ class CSensingTenant : public CRunnableTenant {
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     void sendDownlinkData(const NTypes::SensorData &data);
+
+    void calibrateADXL375();
 };
 
 #endif // C_SENSING_TENANT_H
