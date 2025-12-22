@@ -46,7 +46,7 @@ public:
     static rtc_time lastGnssUpdateTime;
 
 private:
-    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID)).c_str();
+    std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID);
 
     static constexpr uint16_t powerModuleTelemetryPort = NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT;
     static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
@@ -66,14 +66,14 @@ private:
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort, &gnssDataLogMessagePort};
 
-    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr, sensorModuleTelemetryPort, &loraBroadcastMessagePort};
-    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr, powerModuleTelemetryPort, &loraBroadcastMessagePort};
-    CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(rtc, CIPv4(ipAddrStr));
-    CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
+    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr.c_str(), sensorModuleTelemetryPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr.c_str(), powerModuleTelemetryPort, &loraBroadcastMessagePort};
+    CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(rtc, CIPv4(ipAddrStr.c_str()));
+    CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
     CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr, radioModuleSourcePort};
+    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr.c_str(), radioModuleSourcePort};
 #endif
     CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
     CStateMachineUpdater stateMachineUpdater;

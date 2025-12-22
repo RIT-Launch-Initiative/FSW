@@ -44,9 +44,9 @@ public:
     void Cleanup();
 
 private:
-    const char* ipAddrStr = (CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID)).c_str();
+    std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::POWER_MODULE_IP_ADDR_BASE, 2, CONFIG_MODULE_ID);
     const char* sntpServerAddr = "10.2.1.1";
-    // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
+    // TODO: Maybe we should look into hostnames?
     static constexpr int telemetryBroadcastPort = NNetworkDefs::POWER_MODULE_INA_DATA_PORT;
     static constexpr int downlinkBroadcastPort = NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT;
 
@@ -63,16 +63,16 @@ private:
         "Sensing Tenant", sensorDataBroadcastMessagePort, sensorDataLogMessagePort, sensorDataDownlinkMessagePort
     };
     CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{
-        "Broadcast Tenant", ipAddrStr, telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort
+        "Broadcast Tenant", ipAddrStr.c_str(), telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort
     };
     CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkBroadcastTenant{
-        "Broadcast Tenant", ipAddrStr, downlinkBroadcastPort, downlinkBroadcastPort, sensorDataDownlinkMessagePort
+        "Broadcast Tenant", ipAddrStr.c_str(), downlinkBroadcastPort, downlinkBroadcastPort, sensorDataDownlinkMessagePort
     };
 
     CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{
         "Data Logger Tenant", "/lfs/sensor_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(60), 5
     };
-    CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr, NNetworkDefs::ALERT_PORT};
+    CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 
     // Tasks
