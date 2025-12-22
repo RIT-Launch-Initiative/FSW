@@ -188,6 +188,7 @@ jobs:
         run: |
           export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
           # Set Valgrind options to use our suppressions file
+          # VALGRIND_OPTS is used by Valgrind when invoked by twister
           export VALGRIND_OPTS="--suppressions=${{ github.workspace }}/FSW/.github/valgrind-zephyr.supp"
           function add_arglist () {
             echo "$2" | while read -r line; do
