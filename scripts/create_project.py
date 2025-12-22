@@ -42,7 +42,7 @@ Example usage:
         parser.add_argument(
             'name',
             help='Name of the new project (e.g., my_project)')
-        
+
         parser.add_argument(
             'location',
             help='Location where the project should be created (e.g., app/samples, app/backplane)')
@@ -60,7 +60,7 @@ Example usage:
 
         # Get the FSW root directory (workspace root)
         fsw_root = self.topdir
-        
+
         # Define template and target paths
         template_dir = Path(fsw_root) / 'app' / 'samples' / '.template-project'
         target_dir = Path(fsw_root) / location / project_name
@@ -98,7 +98,7 @@ Example usage:
         log.inf(f'Successfully created project at {target_dir}')
         log.inf(f'\nTo build your project, run:')
         log.inf(f'  west build -b <board> {location}/{project_name}')
-        
+
         return 0
 
     def _customize_project(self, project_dir, project_name):
@@ -117,7 +117,7 @@ Example usage:
         for file_path in files_to_update:
             if not file_path.exists():
                 continue
-                
+
             # Read file content
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
