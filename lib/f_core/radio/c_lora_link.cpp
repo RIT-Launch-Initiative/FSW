@@ -11,12 +11,27 @@
 
 LOG_MODULE_REGISTER(CLoraLink);
 
-static void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size,
+extern "C" void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size,
                            int16_t rssi, int8_t snr, void* userData) {
     if (userData == nullptr) {
         LOG_ERR("loraLinkRxCallback called with null userData");
         return;
     }
+
+    CLoraLink* loraLink = static_cast<CLoraLink*>(userData);
+    if (size < 2) {
+        LOG_WRN("RX too small for header (%d)", size);
+        return;
+    }
+
+    ReceivedLoraFrame msg{};
+    msg.frame.Port = static_cast<uint16_t>(data[0]) | (static_cast<uint16_t>(data[1]) << 8);
+    msg.frame.Size = static_cast<uint16_t>(size - 2);
+    memcpy(msg.frame.Payload, &data[2], msg.frame.Size);
+    msg.rssi = rssi;
+    msg.snr = snr;
+
+    loraLink->enqueueReceivedFrame(msg);
 }
 
 CLoraLink::CLoraLink(CLora& lora) : lora(lora) {
@@ -89,4 +104,11 @@ int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t *rss
     return frame.Size;
 }
 
+void CLoraLink::enqueueReceivedFrame(const ReceivedLoraFrame& receivedFrame) {
+    const int ret = rxQueue.Send(receivedFrame, K_NO_WAIT);
+    if (ret < 0) {
+        LOG_WRN("RX queue full, dropping packet");
+    }
+    (void)ret;
+}
 

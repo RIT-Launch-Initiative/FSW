@@ -24,6 +24,14 @@ typedef struct {
     int8_t snr;
 } ReceivedLoraFrame;
 
+// Forward declare the RX callback
+extern "C" void loraLinkRxCallback(const device* dev,
+                                  uint8_t* data,
+                                  uint16_t size,
+                                  int16_t rssi,
+                                  int8_t snr,
+                                  void* userData);
+
 class CLoraLink {
 public:
     explicit CLoraLink(CLora& lora);
@@ -61,6 +69,15 @@ private:
     char rxQueueBuffer[sizeof(ReceivedLoraFrame) * RX_QUEUE_BUFFER_LEN];
     k_msgq rxMsgq;
     CMsgqMessagePort<ReceivedLoraFrame> rxQueue = CMsgqMessagePort<ReceivedLoraFrame>(rxMsgq);
+
+     /**
+     * @brief Enqueue a received frame into the RX queue.
+     * @param[in] receivedFrame Frame to enqueue
+     */
+    void enqueueReceivedFrame(const ReceivedLoraFrame& receivedFrame);
+
+    friend void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size,
+                                   int16_t rssi, int8_t snr, void* userData);
 };
 
 #endif // C_LORA_LINK_H
