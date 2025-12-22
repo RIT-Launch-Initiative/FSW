@@ -3,7 +3,7 @@
 LOG_MODULE_REGISTER(CLoraTenant);
 
 CLoraTenant::CLoraTenant(CLoraLink& radioLink, CMessagePort<LaunchLoraFrame>& txPort) : CRunnableTenant("CLoraTenant"),
-    link(radioLink), router(CLoraRouter(radioLink)),
+    link(radioLink), router(radioLink),
     loraTransmitPort(txPort) {}
 
 void CLoraTenant::Startup() {
