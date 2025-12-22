@@ -3,8 +3,6 @@
 
 #include "c_gnss_tenant.h"
 #include "c_udp_listener_tenant.h"
-#include "c_lora_transmit_tenant.h"
-#include "c_lora_receive_tenant.h"
 #include "c_state_machine_updater.h"
 
 // F-Core Includes
