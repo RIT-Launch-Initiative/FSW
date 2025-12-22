@@ -9,7 +9,7 @@
 
 #include "f_core/messaging/c_msgq_message_port.h"
 
-static constexpr uint16_t RADIO_MAX_FRAME_SIZE = 256;
+static constexpr uint16_t RADIO_MAX_FRAME_SIZE = UINT8_MAX;
 
 // Launch standardized LoRa packet.
 typedef struct __attribute__((packed)) {

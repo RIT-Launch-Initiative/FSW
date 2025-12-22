@@ -97,7 +97,7 @@ int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t *rss
         return -EMSGSIZE;
     }
 
-    if (payloadLen > UINT8_MAX) {
+    if (payloadLen > RADIO_MAX_FRAME_SIZE) {
         LOG_WRN("RX payload too large for Size field (%u)", payloadLen);
         return -EMSGSIZE;
     }
