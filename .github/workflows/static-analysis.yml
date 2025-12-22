@@ -51,8 +51,6 @@ jobs:
         if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
         working-directory: FSW
         shell: bash
-        env:
-          EXTRA_CFLAGS: "-Wall -Wextra"
         run: |
           export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
           function add_arglist () {

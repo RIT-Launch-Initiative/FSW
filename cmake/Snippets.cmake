@@ -41,25 +41,13 @@ function(AddSimSnippets)
 endfunction()
 
 function(AddCompilerWarningsSnippets)
-    list(APPEND COMPILER_WARNINGS_SNIPPETS
-            "compiler-warnings"
-    )
-
-    AddSnippets(${COMPILER_WARNINGS_SNIPPETS})
+    AddSnippets("compiler-warnings")
 endfunction()
 
 function(AddAsanSnippets)
-    list(APPEND ASAN_SNIPPETS
-            "asan"
-    )
-
-    AddSnippets(${ASAN_SNIPPETS})
+    AddSnippets("asan")
 endfunction()
 
 function(AddUbsanSnippets)
-    list(APPEND UBSAN_SNIPPETS
-            "ubsan"
-    )
-
-    AddSnippets(${UBSAN_SNIPPETS})
+    AddSnippets("ubsan")
 endfunction()
