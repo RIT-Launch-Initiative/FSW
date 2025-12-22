@@ -48,6 +48,11 @@ int CLoraLink::Send(const LaunchLoraFrame& frame) {
     std::array<uint8_t, RADIO_MAX_FRAME_SIZE> buffer{};
     buffer.at(0) = static_cast<uint8_t>(frame.Port & 0xFF);
     buffer.at(1) = static_cast<uint8_t>((frame.Port >> 8) & 0xFF);
+
+    if (frame.Size > RADIO_MAX_FRAME_SIZE - 2) {
+        return -EMSGSIZE;
+    }
+
     if (frame.Size > 0) {
         memcpy(&buffer.at(2), frame.Payload, frame.Size);
     }
@@ -65,7 +70,7 @@ int CLoraLink::send(const uint8_t* data, uint16_t len) {
     lora.DisableAsynchronous();
 
 
-    if (len + 2 > RADIO_MAX_FRAME_SIZE) {
+    if (len > RADIO_MAX_FRAME_SIZE) {
         LOG_ERR("Payload too large (%u)", len);
         return -EMSGSIZE;
     }

@@ -16,7 +16,7 @@ CLora::CLora(const device& lora_dev, const lora_modem_config& config) : lora_dev
 
 int CLora::TransmitSynchronous(const void* data, const size_t len) {
     if (const int ret = setTxRx(TX); ret != 0) {
-        LOG_INF("Failed to set TX mode: %d", ret);
+        LOG_ERR("Failed to set TX mode: %d", ret);
         return ret;
     }
 

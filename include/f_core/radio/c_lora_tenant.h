@@ -14,29 +14,56 @@ public:
     /**
      * @brief Constructor
      * @param lora Device to use for LoRa communication.
-     * @param txPort Message port for outgoing LoRaBroadcastData.
+     * @param txPort Message port for outgoing LoRa frames.
      */
     CLoraTenant(CLora& lora, CMessagePort<LaunchLoraFrame>& txPort);
 
+    /**
+     * See parent docs
+     */
     void Startup() override;
 
+    /**
+     * See parent docs
+     */
     void PadRun() override;
+
+    /**
+     * See parent docs
+     */
     void FlightRun() override;
+
+    /**
+     * See parent docs
+     */
     void LandedRun() override;
+
+    /**
+     * See parent docs
+     */
     void GroundRun() override;
+
+    /**
+     * See parent docs
+     */
     void Run() override;
 
 private:
+    /**
+     * @brief Service transmit queue
+     */
     void serviceTx();
-    void serviceRx(const k_timeout_t timeout);
 
-    void CacheDownlink(const LaunchLoraFrame& data);
+    /**
+     * @brief Service receive queue
+     * @param timeout Timeout for receiving data
+     */
+    void serviceRx(const k_timeout_t timeout);
 
     CLoraLink link;
     CLoraRouter router;
 
     CMessagePort<LaunchLoraFrame>& loraTransmitPort;
-    CHashMap<uint16_t, LaunchLoraFrame> downlinkCache_;
 };
 
 #endif//C_LORA_TENANT_H

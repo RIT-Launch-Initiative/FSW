@@ -59,7 +59,6 @@ public:
 
 private:
     CLora& lora;
-    std::array<uint8_t, RADIO_MAX_FRAME_SIZE> rxBuffer;
 
     // Async Receive Queue
     static constexpr int RX_QUEUE_BUFFER_LEN = 10;
