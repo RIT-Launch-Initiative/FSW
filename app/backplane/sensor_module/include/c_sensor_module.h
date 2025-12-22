@@ -46,7 +46,7 @@ class CSensorModule : public CProjectConfiguration {
 
   private:
     std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID);
-    const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
+    const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames?
 
     static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
     static constexpr int telemetryDownlinkPort = NNetworkDefs::SENSOR_MODULE_DOWNLINK_DATA_PORT;
