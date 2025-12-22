@@ -54,6 +54,10 @@ Example usage:
         project_name = args.name
         location = args.location
 
+        # Validate location path
+        if not location.startswith('app/'):
+            log.wrn(f'Location "{location}" does not start with "app/". This may not be a standard project location.')
+
         # Get the FSW root directory (workspace root)
         fsw_root = self.topdir
         
@@ -115,7 +119,7 @@ Example usage:
                 continue
                 
             # Read file content
-            with open(file_path, 'r') as f:
+            with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             # Replace template placeholders
@@ -127,7 +131,7 @@ Example usage:
             content = content.replace('samples.template.default', f'samples.{project_name_underscore}.default')
 
             # Write updated content back
-            with open(file_path, 'w') as f:
+            with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
 
         log.dbg(f'Customized project files with name: {project_name}')
