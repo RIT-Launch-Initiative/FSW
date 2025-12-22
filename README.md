@@ -1,6 +1,15 @@
 # Launch Flight Software
 Current source code for Launch's custom flight hardware utilizing Zephyr RTOS. This includes but is not limited to the Backplane (modules), GRIM and POTATO.  
 
+## Test Reports
+
+View the latest test results and build reports on our [GitHub Pages](https://rit-launch-initiative.github.io/FSW/). The reports are automatically generated from the main branch builds and include:
+
+- **Build Samples**: Test results for sample applications and test suites
+- **Build Projects**: Test results for hardware project builds
+
+Reports are available in multiple formats (HTML, JSON, XML) for both human viewing and automated analysis.
+
 ## Installation
 
 ### All OSes
