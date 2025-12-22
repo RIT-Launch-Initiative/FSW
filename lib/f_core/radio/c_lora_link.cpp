@@ -41,7 +41,7 @@ extern "C" void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t si
 
 CLoraLink::CLoraLink(CLora& lora) : lora(lora) {
     k_msgq_init(&rxMsgq, rxQueueBuffer, sizeof(ReceivedLoraRawFrame), RX_QUEUE_BUFFER_LEN);
-    lora.ReceiveAsynchronous(loraLinkRxCallback, this);
+    lora.EnableAsynchronous(loraLinkRxCallback, this);
 }
 
 int CLoraLink::Send(const LaunchLoraFrame& frame) {
