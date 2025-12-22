@@ -5,7 +5,6 @@
 
 West extension command for creating new Zephyr projects from a template."""
 
-import os
 import shutil
 import argparse
 from pathlib import Path
