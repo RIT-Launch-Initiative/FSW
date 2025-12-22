@@ -47,7 +47,8 @@ void CLoraTenant::serviceTx() {
         return;
     }
 
-    ret = link.Send(msg.Port, msg.Payload, msg.Size);
+    LOG_INF("Sending LoRa broadcast on port %d, size %d", msg.Port, msg.Size);
+    ret = link.Send(msg);
     if (ret < 0) {
         LOG_ERR("TX broadcast failed (%d)", ret);
     }

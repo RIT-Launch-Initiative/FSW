@@ -24,13 +24,19 @@ public:
     explicit CLoraLink(CLora& lora) : lora(lora) {}
 
     /**
-     * @brief Format and send a broadcast message over LoRa.
-     * @param[in] port Port number to be the first two bytes of the message
+     * @brief Send a raw payload on a given port.
      * @param[in] data Pointer to the payload data
      * @param[in] len Length of the payload data
      * @return 0 on success, negative errno on error
      */
-    int Send(uint16_t port, const uint8_t* data, uint16_t len);
+    int Send(const uint8_t* data, uint16_t len);
+
+    /**
+     * @brief Send a LaunchLoraFrame.
+     * @param[in] frame Frame to send
+     * @return 0 on success, negative errno on error
+     */
+    int Send(const LaunchLoraFrame& frame);
 
 
     /**

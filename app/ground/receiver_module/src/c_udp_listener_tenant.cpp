@@ -26,6 +26,7 @@ void CUdpListenerTenant::Run() {
     radioBroadcastData.Port = listenPort;
     radioBroadcastData.Size = static_cast<uint8_t>(rcvResult);
 
+    LOG_INF("Sending data received on port %d to LoRa transmit queue", listenPort);
     if (loraTransmitPort.Send(radioBroadcastData) == -ENOMSG) {
         LOG_WRN_ONCE("Failed to send to broadcast queue");
         loraTransmitPort.Clear();
