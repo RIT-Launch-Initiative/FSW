@@ -51,6 +51,8 @@ jobs:
         if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
         working-directory: FSW
         shell: bash
+        env:
+          EXTRA_CFLAGS: "-Wall -Wextra"
         run: |
           export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
           function add_arglist () {
@@ -59,7 +61,7 @@ jobs:
               echo -n " $1 $line "
             done;
           }
-          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args=SNIPPET="compiler-warnings"
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args="SNIPPET=compiler-warnings"
 
   asan-build:
     name: Build and Test with Address Sanitizer (ASAN)
@@ -102,7 +104,7 @@ jobs:
               echo -n " $1 $line "
             done;
           }
-          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args=SNIPPET="asan"
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args="SNIPPET=asan"
 
   ubsan-build:
     name: Build and Test with Undefined Behavior Sanitizer (UBSAN)
@@ -145,7 +147,7 @@ jobs:
               echo -n " $1 $line "
             done;
           }
-          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args=SNIPPET="ubsan"
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args="SNIPPET=ubsan"
 
   valgrind-test:
     name: Run with Valgrind Memory Checker
@@ -193,5 +195,5 @@ jobs:
               echo -n " $1 $line "
             done;
           }
-          # Build without sanitizers for Valgrind (sanitizers and Valgrind don't mix well)
-          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --enable-valgrind --valgrind-suppressions="${GITHUB_WORKSPACE}/FSW/.github/valgrind-zephyr.supp"
+          # Build native_sim targets without sanitizers (sanitizers and Valgrind don't mix well)
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --enable-valgrind

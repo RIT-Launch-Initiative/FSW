@@ -8,6 +8,9 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(Backplane-Flight-Computer)
 
+# Enable strict compiler warnings for all builds
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerWarnings.cmake)
+
 zephyr_syscall_include_directories(include)
 
 zephyr_include_directories(include)
