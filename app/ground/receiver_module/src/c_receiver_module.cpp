@@ -20,6 +20,7 @@ void CReceiverModule::AddTenantsToTasks() {
     networkingTask.AddTenant(dataRequestListenerTenant);
 
     // LoRa
+    loraTenant.SetToGround();
     loraTask.AddTenant(loraTenant);
 }
 

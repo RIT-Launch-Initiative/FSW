@@ -23,6 +23,10 @@ void CLoraTenant::LandedRun() {
     serviceRx(K_MSEC(100));
 }
 
+void CLoraTenant::GroundRun() {
+    serviceRx(K_MSEC(10000));
+}
+
 void CLoraTenant::Run() {
     switch (state) {
         case State::PAD:

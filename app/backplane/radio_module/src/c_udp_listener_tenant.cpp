@@ -2,7 +2,7 @@
 #include "c_radio_module.h"
 
 #include <n_autocoder_types.h>
-#include <zephyr/logging/log.h>LoraFrame
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CUdpListenerTenant);
 
