@@ -61,7 +61,7 @@ int CLoraLink::Send(const LaunchLoraFrame& frame) {
 }
 
 
-int CLoraLink::Send(const uint8_t* data, uint16_t len) {
+int CLoraLink::send(const uint8_t* data, uint16_t len) {
     lora.DisableAsynchronous();
 
 

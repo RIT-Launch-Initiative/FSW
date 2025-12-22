@@ -42,14 +42,6 @@ public:
     explicit CLoraLink(CLora& lora);
 
     /**
-     * @brief Send a raw payload on a given port.
-     * @param[in] data Pointer to the payload data
-     * @param[in] len Length of the payload data
-     * @return 0 on success, negative errno on error
-     */
-    int Send(const uint8_t* data, uint16_t len);
-
-    /**
      * @brief Send a LaunchLoraFrame.
      * @param[in] frame Frame to send
      * @return 0 on success, negative errno on error
@@ -80,6 +72,15 @@ private:
      * @param[in] receivedFrame Frame to enqueue
      */
     void enqueueReceivedFrame(const ReceivedLoraRawFrame& receivedFrame);
+
+
+    /**
+     * @brief Send a raw payload on a given port.
+     * @param[in] data Pointer to the payload data
+     * @param[in] len Length of the payload data
+     * @return 0 on success, negative errno on error
+     */
+    int send(const uint8_t* data, uint16_t len);
 
     /**
      * Callback function for asynchronous LoRa RX
