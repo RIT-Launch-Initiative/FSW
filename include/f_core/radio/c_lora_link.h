@@ -35,6 +35,10 @@ extern "C" void loraLinkRxCallback(const device* dev,
 
 class CLoraLink {
 public:
+    /**
+     * @brief Constructor
+     * @param lora[in] LoRa device
+     */
     explicit CLoraLink(CLora& lora);
 
     /**
