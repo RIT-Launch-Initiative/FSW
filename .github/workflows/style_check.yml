@@ -11,6 +11,8 @@ on:
 jobs:
   clang-format:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
