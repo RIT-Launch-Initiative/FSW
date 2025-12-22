@@ -38,6 +38,9 @@ void CLoraTenant::Run() {
         case State::LANDED:
             LandedRun();
             break;
+        case State::GROUND:
+            GroundRun();
+            break;
         default:
             LOG_ERR("Unknown state in CLoraTenant");
             break;
