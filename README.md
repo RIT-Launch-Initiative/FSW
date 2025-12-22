@@ -215,4 +215,40 @@ Most modern IDEs and editors support clang-format integration:
 
 The project's `.clang-format` file will be automatically detected by these tools.
 
+## Code Quality and Static Analysis
+
+This project uses `clang-tidy` for static code analysis and to enforce naming conventions. A `.clang-tidy` configuration file is provided at the root of the repository.
+
+### Naming Conventions
+
+The project follows these naming conventions, enforced by clang-tidy:
+
+- **Classes**: Start with `C` and use CamelCase (e.g., `CTask`, `CSensor`)
+- **Namespaces**: Start with `N` and use CamelCase (e.g., `NTimeUtils`, `NAlerts`)
+- **Public Methods**: CamelCase with capitalized first letter (e.g., `Initialize()`, `GetValue()`)
+- **Private/Protected Methods**: camelBack with lowercase first letter (e.g., `doSomethingPrivate()`, `resetInternal()`)
+- **Member Variables**: camelBack (e.g., `logLevel`, `startTime`)
+- **C Functions**: Underscores allowed for Zephyr compatibility (e.g., `k_sleep()`, `device_init()`)
+
+### Running clang-tidy
+
+To run clang-tidy on your code:
+
+```bash
+# Check a specific file
+clang-tidy <file> -- -I./include -I./zephyr/include
+
+# Check with specific checks only (e.g., naming conventions)
+clang-tidy --checks=readability-identifier-naming <file> -- -std=c++17
+```
+
+Note: clang-tidy works best when you have a compilation database (`compile_commands.json`). This is automatically generated when you build the project with CMake.
+
+### IDE Integration
+
+Most modern IDEs support clang-tidy integration:
+- **VS Code**: Install the "clangd" extension for real-time clang-tidy diagnostics
+- **CLion**: Built-in support, enable in Settings → Editor → Inspections → C/C++ → General → Clang-Tidy
+- **Vim/Neovim**: Use LSP plugins with clangd
+
 
