@@ -49,6 +49,21 @@ Example usage:
 
         return parser
 
+    def _get_template_name(self, location):
+        """Determine which template to use based on location.
+        
+        Args:
+            location: Project location path (e.g., 'app/samples', 'app/backplane')
+            
+        Returns:
+            Template directory name
+        """
+        # Check the second path component (after 'app/')
+        location_parts = location.split('/')
+        if len(location_parts) >= 2 and location_parts[1] in ['backplane', 'payload']:
+            return '.template-project-backplane'
+        return '.template-project'
+
     def do_run(self, args, unknown_args):
         """Execute the create-project command."""
         project_name = args.name
@@ -80,12 +95,7 @@ Example usage:
             return 1
 
         # Determine which template to use based on location
-        # Check the second path component (after 'app/')
-        location_parts = location.split('/')
-        if len(location_parts) >= 2 and location_parts[1] in ['backplane', 'payload']:
-            template_name = '.template-project-backplane'
-        else:
-            template_name = '.template-project'
+        template_name = self._get_template_name(location)
         
         # Define template and target paths
         template_dir = fsw_root / 'app' / template_name
@@ -156,12 +166,13 @@ Example usage:
             # In sample.yaml: name: template -> name: project-name
             content = content.replace('name: template', f'name: {project_name_hyphen}')
             # In sample.yaml: samples.template.default -> samples.project_name.default or backplane.project_name.default
-            # Determine the location type based on the path structure
-            location_parts = location.split('/')
-            if len(location_parts) >= 2 and location_parts[1] == 'backplane':
-                content = content.replace('samples.template.default', f'backplane.{project_name_underscore}.default')
-            elif len(location_parts) >= 2 and location_parts[1] == 'payload':
-                content = content.replace('samples.template.default', f'payload.{project_name_underscore}.default')
+            # Use the helper method to determine the category
+            template_name = self._get_template_name(location)
+            if template_name == '.template-project-backplane':
+                # Determine if it's backplane or payload based on location
+                location_parts = location.split('/')
+                category = location_parts[1] if len(location_parts) >= 2 else 'samples'
+                content = content.replace('samples.template.default', f'{category}.{project_name_underscore}.default')
             else:
                 content = content.replace('samples.template.default', f'samples.{project_name_underscore}.default')
 
