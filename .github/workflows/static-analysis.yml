@@ -1,0 +1,197 @@
+name: Static Analysis and Sanitizer Builds
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+  schedule:
+    - cron: "0 0 * * 1"
+
+env:
+  # Only run on native_sim for sanitizer and analysis builds
+  platforms: |
+    native_sim
+
+jobs:
+  compiler-warnings:
+    name: Build with -Wall Compiler Warnings
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: FSW
+          fetch-depth: 2
+
+      - name: Run Starter Steps
+        uses: ./FSW/.github/actions/fsw-setup
+
+      - name: Set test_roots based on changes
+        id: set_test_roots
+        shell: bash
+        working-directory: FSW
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            # On main branch, run all test roots
+            python3 .github/scripts/determine_test_roots.py --map .github/hardware-roots.yaml --run-all > test_roots.txt
+          else
+            # On PR/branch, diff against main
+            git fetch origin main:refs/remotes/origin/main
+            git diff --name-only origin/main...HEAD > changed_files.txt
+            cat changed_files.txt | python3 .github/scripts/determine_test_roots.py --map .github/hardware-roots.yaml > test_roots.txt
+          fi
+          echo "test_roots<<EOF" >> $GITHUB_ENV
+          cat test_roots.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Build with compiler warnings
+        if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
+        working-directory: FSW
+        shell: bash
+        run: |
+          export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+          function add_arglist () {
+            echo "$2" | while read -r line; do
+              [ -z "$line" ] && continue
+              echo -n " $1 $line "
+            done;
+          }
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args=SNIPPET="compiler-warnings"
+
+  asan-build:
+    name: Build and Test with Address Sanitizer (ASAN)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: FSW
+          fetch-depth: 2
+
+      - name: Run Starter Steps
+        uses: ./FSW/.github/actions/fsw-setup
+
+      - name: Set test_roots based on changes
+        id: set_test_roots
+        shell: bash
+        working-directory: FSW
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            python3 .github/scripts/determine_test_roots.py --map .github/hardware-roots.yaml --run-all > test_roots.txt
+          else
+            git fetch origin main:refs/remotes/origin/main
+            git diff --name-only origin/main...HEAD > changed_files.txt
+            cat changed_files.txt | python3 .github/scripts/determine_test_roots.py --map .github/hardware-roots.yaml > test_roots.txt
+          fi
+          echo "test_roots<<EOF" >> $GITHUB_ENV
+          cat test_roots.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Build with ASAN
+        if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
+        working-directory: FSW
+        shell: bash
+        run: |
+          export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+          function add_arglist () {
+            echo "$2" | while read -r line; do
+              [ -z "$line" ] && continue
+              echo -n " $1 $line "
+            done;
+          }
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args=SNIPPET="asan"
+
+  ubsan-build:
+    name: Build and Test with Undefined Behavior Sanitizer (UBSAN)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: FSW
+          fetch-depth: 2
+
+      - name: Run Starter Steps
+        uses: ./FSW/.github/actions/fsw-setup
+
+      - name: Set test_roots based on changes
+        id: set_test_roots
+        shell: bash
+        working-directory: FSW
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            python3 .github/scripts/determine_test_roots.py --map .github/hardware-roots.yaml --run-all > test_roots.txt
+          else
+            git fetch origin main:refs/remotes/origin/main
+            git diff --name-only origin/main...HEAD > changed_files.txt
+            cat changed_files.txt | python3 .github/scripts/determine_test_roots.py --map .github/hardware-roots.yaml > test_roots.txt
+          fi
+          echo "test_roots<<EOF" >> $GITHUB_ENV
+          cat test_roots.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Build with UBSAN
+        if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
+        working-directory: FSW
+        shell: bash
+        run: |
+          export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+          function add_arglist () {
+            echo "$2" | while read -r line; do
+              [ -z "$line" ] && continue
+              echo -n " $1 $line "
+            done;
+          }
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --extra-args=SNIPPET="ubsan"
+
+  valgrind-test:
+    name: Run with Valgrind Memory Checker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: FSW
+          fetch-depth: 2
+
+      - name: Run Starter Steps
+        uses: ./FSW/.github/actions/fsw-setup
+
+      - name: Install Valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind
+
+      - name: Set test_roots based on changes
+        id: set_test_roots
+        shell: bash
+        working-directory: FSW
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            python3 .github/scripts/determine_test_roots.py --map .github/hardware-roots.yaml --run-all > test_roots.txt
+          else
+            git fetch origin main:refs/remotes/origin/main
+            git diff --name-only origin/main...HEAD > changed_files.txt
+            cat changed_files.txt | python3 .github/scripts/determine_test_roots.py --map .github/hardware-roots.yaml > test_roots.txt
+          fi
+          echo "test_roots<<EOF" >> $GITHUB_ENV
+          cat test_roots.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Build for Valgrind
+        if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
+        working-directory: FSW
+        shell: bash
+        run: |
+          export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+          function add_arglist () {
+            echo "$2" | while read -r line; do
+              [ -z "$line" ] && continue
+              echo -n " $1 $line "
+            done;
+          }
+          # Build without sanitizers for Valgrind (sanitizers and Valgrind don't mix well)
+          west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") -v --inline-logs --integration --enable-valgrind --valgrind-suppressions="${GITHUB_WORKSPACE}/FSW/.github/valgrind-zephyr.supp"
