@@ -58,16 +58,41 @@ Example usage:
         if not location.startswith('app/'):
             log.wrn(f'Location "{location}" does not start with "app/". This may not be a standard project location.')
 
-        # Get the FSW root directory (workspace root)
-        fsw_root = self.topdir
+        # Get the FSW root directory
+        # self.topdir is the west workspace root, we need to find the FSW repository
+        workspace_root = Path(self.topdir)
+        
+        # Try to find FSW directory - check common locations
+        fsw_root = None
+        possible_locations = [
+            workspace_root / 'FSW',  # Standard west workspace structure
+            workspace_root,  # Direct repository
+        ]
+        
+        for loc in possible_locations:
+            if (loc / 'app').exists() and (loc / 'west.yml').exists():
+                fsw_root = loc
+                break
+        
+        if fsw_root is None:
+            log.err(f'Could not find FSW repository in workspace at {workspace_root}')
+            log.err('Expected to find app/ directory and west.yml')
+            return 1
 
+        # Determine which template to use based on location
+        if 'backplane' in location or 'payload' in location:
+            template_name = '.template-project-backplane'
+        else:
+            template_name = '.template-project'
+        
         # Define template and target paths
-        template_dir = Path(fsw_root) / 'app' / 'samples' / '.template-project'
-        target_dir = Path(fsw_root) / location / project_name
+        template_dir = fsw_root / 'app' / template_name
+        target_dir = fsw_root / location / project_name
 
         # Validate template exists
         if not template_dir.exists():
             log.err(f'Template directory not found: {template_dir}')
+            log.err(f'Available templates should be in {fsw_root / "app"}/')
             return 1
 
         # Check if target directory already exists
@@ -80,6 +105,7 @@ Example usage:
 
         # Copy template to target location
         log.inf(f'Creating project "{project_name}" in {location}/')
+        log.inf(f'Using template: {template_name}')
         try:
             shutil.copytree(template_dir, target_dir)
         except Exception as e:
@@ -88,7 +114,7 @@ Example usage:
 
         # Replace template placeholders in files
         try:
-            self._customize_project(target_dir, project_name)
+            self._customize_project(target_dir, project_name, location)
         except Exception as e:
             log.err(f'Failed to customize project: {e}')
             # Clean up partially created project
@@ -101,7 +127,7 @@ Example usage:
 
         return 0
 
-    def _customize_project(self, project_dir, project_name):
+    def _customize_project(self, project_dir, project_name, location):
         """Replace template placeholders with actual project name."""
         # Convert project name to different formats
         # e.g., "my_project" -> "my-project", "my_project"
@@ -127,8 +153,13 @@ Example usage:
             content = content.replace('project(template', f'project({project_name_hyphen}')
             # In sample.yaml: name: template -> name: project-name
             content = content.replace('name: template', f'name: {project_name_hyphen}')
-            # In sample.yaml: samples.template.default -> samples.project_name.default
-            content = content.replace('samples.template.default', f'samples.{project_name_underscore}.default')
+            # In sample.yaml: samples.template.default -> samples.project_name.default or backplane.project_name.default
+            if 'backplane' in location:
+                content = content.replace('samples.template.default', f'backplane.{project_name_underscore}.default')
+            elif 'payload' in location:
+                content = content.replace('samples.template.default', f'payload.{project_name_underscore}.default')
+            else:
+                content = content.replace('samples.template.default', f'samples.{project_name_underscore}.default')
 
             # Write updated content back
             with open(file_path, 'w', encoding='utf-8') as f:

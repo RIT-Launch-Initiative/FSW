@@ -97,16 +97,23 @@ west create-project my-cool-project app/samples
 
 ### What it does
 The command will:
-1. Copy the template project from `app/samples/.template-project`
-2. Customize the project files with your specified name
-3. Create the project in the specified location
+1. Automatically select the appropriate template based on location:
+   - `app/.template-project` for samples and general projects
+   - `app/.template-project-backplane` for backplane and payload projects (includes autocoders, snippets, and conf files)
+2. Copy the template to the specified location
+3. Customize the project files with your specified name
 
 The generated project includes:
 - `CMakeLists.txt` - Build configuration
-- `prj.conf` - Project configuration
+- `prj.conf` or `core.conf` - Project configuration
 - `Kconfig` - Kconfig settings
 - `sample.yaml` - Sample metadata
 - `src/main.cpp` - Main source file
+
+**For backplane/payload projects, additional files include:**
+- `debug.conf`, `sim.conf` - Configuration files for different build modes
+- `ac/types.yaml` - Autocoder types configuration
+- `include/` - Header files directory
 
 After creating the project, you can build it with:
 ```bash
