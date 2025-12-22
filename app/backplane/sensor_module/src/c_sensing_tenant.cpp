@@ -41,8 +41,14 @@ void CSensingTenant::Startup() {
         LOG_WRN("IMU Gyroscope ODR configuration failed. IMU gyroscope values will report 0.");
     }
 
-    calibrateADXL375();
+    const sensor_value ms5611PressureOsr{.val1 = 2048, .val2 = 0};
+    if (primaryBarometer.Configure(SENSOR_CHAN_PRESS, SENSOR_ATTR_OVERSAMPLING, &ms5611PressureOsr)) {
+        LOG_WRN("MS5611 pressure oversampling configuration failed. Pressure readings may be inaccurate.");
+    }
 
+    calibrateADXL375();
+  
+  
 #endif
 }
 
@@ -80,8 +86,11 @@ void CSensingTenant::Run() {
         timestampedData.timestamp = tmpTimestamp;
     }
 
-    data.Acceleration.X = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
-    data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+    // NOTE: Intentionally swapping ADXL375 X and Y axes
+    // to align with LSM6DSL and silkscreen.
+    // Also need to invert X axis to match right hand rule
+    data.Acceleration.X = -accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Y);
+    data.Acceleration.Y = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);
     data.Acceleration.Z = accelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_Z);
 
     data.ImuAcceleration.X = imuAccelerometer.GetSensorValueFloat(SENSOR_CHAN_ACCEL_X);

@@ -107,9 +107,6 @@
 #define ADXL375_BW_RATE_LOW_POWER_MSK		BIT(4)
 #define ADXL375_BW_RATE_RATE_MSK		GENMASK(3, 0)
 
-#define ADXL375_BW_RATE_LOW_POWER_MODE(x)  (((x) & 0x1) << 4)
-#define ADXL375_BW_RATE_RATE_MODE(x)       (((x) & 0xF) << 0)
-
 /* ADXL375_POWER_CTL */
 #define ADXL375_POWER_CTL_LINK_MSK		BIT(5)
 #define ADXL375_POWER_CTL_AUTO_SLEEP_MSK	BIT(4)
@@ -232,19 +229,6 @@ enum adxl375_bandwidth {
     ADXL375_BW_1600HZ
 };
 
-enum adxl375_odr {
-	ADXL375_ODR_12_5HZ = 0x07,
-	ADXL375_ODR_25HZ   = 0x08,
-	ADXL375_ODR_50HZ   = 0x09,
-	ADXL375_ODR_100HZ  = 0x0A,
-	ADXL375_ODR_200HZ  = 0x0B,
-	ADXL375_ODR_400HZ  = 0x0C,
-	ADXL375_ODR_800HZ  = 0x0D,
-	ADXL375_ODR_1600HZ = 0x0E,
-	ADXL375_ODR_3200HZ = 0x0F,
-};
-;
-
 enum adxl375_fifo_format {
 	ADXL375_XYZ_FIFO,
 	ADXL375_X_FIFO,
@@ -326,7 +310,7 @@ struct adxl375_dev_config {
 	struct gpio_dt_spec interrupt;
 #endif
 
-	uint32_t odr;
+	uint8_t odr;
 
 	/* Device Settings */
 	bool autosleep;
