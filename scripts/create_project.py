@@ -80,7 +80,9 @@ Example usage:
             return 1
 
         # Determine which template to use based on location
-        if 'backplane' in location or 'payload' in location:
+        # Check the second path component (after 'app/')
+        location_parts = location.split('/')
+        if len(location_parts) >= 2 and location_parts[1] in ['backplane', 'payload']:
             template_name = '.template-project-backplane'
         else:
             template_name = '.template-project'
@@ -154,9 +156,11 @@ Example usage:
             # In sample.yaml: name: template -> name: project-name
             content = content.replace('name: template', f'name: {project_name_hyphen}')
             # In sample.yaml: samples.template.default -> samples.project_name.default or backplane.project_name.default
-            if 'backplane' in location:
+            # Determine the location type based on the path structure
+            location_parts = location.split('/')
+            if len(location_parts) >= 2 and location_parts[1] == 'backplane':
                 content = content.replace('samples.template.default', f'backplane.{project_name_underscore}.default')
-            elif 'payload' in location:
+            elif len(location_parts) >= 2 and location_parts[1] == 'payload':
                 content = content.replace('samples.template.default', f'payload.{project_name_underscore}.default')
             else:
                 content = content.replace('samples.template.default', f'samples.{project_name_underscore}.default')

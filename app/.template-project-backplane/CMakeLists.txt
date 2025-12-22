@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # Backplane Template Application
 #
-# Copyright (c) 2025 Launch Initiative
+# Copyright (c) 2025 RIT Launch Initiative
 # SPDX-License-Identifier: Apache-2.0
 
 set(FSW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
