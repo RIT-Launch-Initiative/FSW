@@ -120,4 +120,41 @@ also be a folder called flash where you can access data natively. Note that the 
 ## Running on Flight Hardware
 Connect to board and run west flash. You must first build the project so west knows what project you want to flash.
 
+## Code Style and Formatting
+
+This project uses `clang-format` to enforce consistent code style across all C/C++ source files. A `.clang-format` configuration file is provided at the root of the repository.
+
+### Checking Code Style
+
+The GitHub CI automatically checks for style violations in pull requests. To check your code locally before pushing:
+
+```bash
+# Check a specific file
+clang-format --dry-run --Werror <file>
+
+# Check all C/C++ files
+git ls-files | grep -E '\.(c|h|cpp|hpp)$' | xargs clang-format --dry-run --Werror
+```
+
+### Formatting Code
+
+To automatically format your code:
+
+```bash
+# Format a specific file
+clang-format -i <file>
+
+# Format all C/C++ files
+git ls-files | grep -E '\.(c|h|cpp|hpp)$' | xargs clang-format -i
+```
+
+### IDE Integration
+
+Most modern IDEs and editors support clang-format integration:
+- **VS Code**: Install the "C/C++" extension which includes clang-format support
+- **CLion**: Built-in support, go to Settings → Editor → Code Style → C/C++
+- **Vim/Neovim**: Use plugins like `vim-clang-format`
+
+The project's `.clang-format` file will be automatically detected by these tools.
+
 
