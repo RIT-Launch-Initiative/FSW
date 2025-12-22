@@ -185,10 +185,10 @@ jobs:
         if: steps.set_test_roots.outcome == 'success' && env.test_roots != ''
         working-directory: FSW
         shell: bash
-        env:
-          VALGRIND_SUPPRESSIONS: ${{ github.workspace }}/FSW/.github/valgrind-zephyr.supp
         run: |
           export PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
+          # Set Valgrind options to use our suppressions file
+          export VALGRIND_OPTS="--suppressions=${{ github.workspace }}/FSW/.github/valgrind-zephyr.supp"
           function add_arglist () {
             echo "$2" | while read -r line; do
               [ -z "$line" ] && continue
