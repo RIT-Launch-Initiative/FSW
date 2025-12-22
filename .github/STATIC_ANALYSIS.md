@@ -50,7 +50,7 @@ west build -b native_sim app/your-app -- -DSNIPPET=compiler-warnings
 
 ## Global Compiler Warnings
 
-All builds now include `-Wall` by default through the `cmake/CompilerWarnings.cmake` file.
+All builds now include `-Wall` by default through the root `CMakeLists.txt`.
 This ensures production code meets stricter quality standards.
 
 ## References
