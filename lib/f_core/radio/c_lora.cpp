@@ -39,12 +39,12 @@ int CLora::TransmitAsynchronous(const void* data, const size_t len, k_poll_signa
     return lora_send_async(lora_dev, static_cast<uint8_t*>(const_cast<void*>(data)), len, signal);
 }
 
-int CLora::ReceiveAsynchronous(const lora_recv_cb cb) {
+int CLora::ReceiveAsynchronous(const lora_recv_cb cb, void* userData) {
     if (const int ret = setTxRx(RX); ret != 0) {
         return ret;
     }
 
-    return lora_recv_async(lora_dev, cb, nullptr);
+    return lora_recv_async(lora_dev, cb, userData);
 }
 
 inline int CLora::setTxRx(const Direction transmitDirection) {

@@ -49,9 +49,10 @@ public:
     /**
      * Receive data asynchronously (non-blocking)
      * @param cb Callback to run when a packet is received
+     * @param userData User data to pass to the callback
      * @return Zephyr status code
      */
-    int ReceiveAsynchronous(lora_recv_cb cb);
+    int ReceiveAsynchronous(lora_recv_cb cb, void* userData = nullptr);
 
     /**
      * Set the LoRa bandwidth
