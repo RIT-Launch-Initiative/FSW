@@ -19,8 +19,8 @@ int CLoraLink::Send(const LaunchLoraFrame& frame) {
         memcpy(&buffer.at(2), frame.Payload, frame.Size);
     }
 
-    int ret = Send(buffer.data(), frame.Size + 2);
-    if (ret > 0) {
+    const int ret = Send(buffer.data(), frame.Size + 2);
+    if (ret == 0) {
         LOG_DBG("Successfully sent port %d size %d", frame.Port, frame.Size);
     }
 
