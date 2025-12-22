@@ -50,8 +50,7 @@ private:
     CMessagePort<LaunchLoraFrame>& udpBroadcastMessagePort;
 
     // Tenants
-    CLoraLink loraLink{lora};
-    CLoraTenant loraTenant{loraLink, loraBroadcastMessagePort};
+    CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
 
     CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr.c_str(), radioModuleCommandPort, &loraBroadcastMessagePort};
     CUdpListenerTenant dataRequestListenerTenant{"Radio Module Data Request Listener Tenant", ipAddrStr.c_str(), radioModuleDataRequestPort, &loraBroadcastMessagePort};
