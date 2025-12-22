@@ -25,6 +25,7 @@ public:
     void PadRun() override;
     void FlightRun() override;
     void LandedRun() override;
+    void Run() override;
 
 private:
     void serviceTx();

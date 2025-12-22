@@ -23,6 +23,23 @@ void CLoraTenant::LandedRun() {
     serviceRx(K_MSEC(100));
 }
 
+void CLoraTenant::Run() {
+    switch (state) {
+        case State::PAD:
+            PadRun();
+            break;
+        case State::FLIGHT:
+            FlightRun();
+            break;
+        case State::LANDED:
+            LandedRun();
+            break;
+        default:
+            LOG_ERR("Unknown state in CLoraTenant");
+            break;
+    }
+}
+
 void CLoraTenant::serviceTx() {
     LaunchLoraFrame msg{};
     int ret = loraTransmitPort.Receive(msg, K_NO_WAIT);

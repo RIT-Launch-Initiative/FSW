@@ -60,7 +60,7 @@ private:
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     // Message Ports
-    CMessagePort<NTypes::LoRaBroadcastData>& loraBroadcastMessagePort;
+    CMessagePort<LaunchLoraFrame>& loraBroadcastMessagePort;
     CMessagePort<NTypes::GnssData>& gnssDataLogMessagePort;
 
     // Tenants
@@ -72,8 +72,8 @@ private:
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
-    CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr.c_str(), radioModuleSourcePort};
+    CLoraLink loraLink{lora};
+    CLoraTenant loraTenant{loraLink, loraBroadcastMessagePort};
 #endif
     CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
     CStateMachineUpdater stateMachineUpdater;
