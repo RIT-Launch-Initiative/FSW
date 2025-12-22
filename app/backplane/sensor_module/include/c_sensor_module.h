@@ -74,7 +74,7 @@ class CSensorModule : public CProjectConfiguration {
     CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 64};
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 3072, 0};
+    CTask networkTask{"Networking Task", 15, 3072, 10};
     CTask sensingTask{"Sensing Task", 14, 4096, 10};
     CTask dataLogTask{"Data Logging Task", 13, 4096, 5};
 };

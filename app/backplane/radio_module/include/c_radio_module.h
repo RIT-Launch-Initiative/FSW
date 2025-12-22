@@ -60,7 +60,6 @@ private:
 
     // Message Ports
     CMessagePort<NTypes::LoRaBroadcastData>& loraBroadcastMessagePort;
-    CMessagePort<NTypes::LoRaBroadcastData>& udpBroadcastMessagePort;
     CMessagePort<NTypes::GnssData>& gnssDataLogMessagePort;
 
     // Tenants
