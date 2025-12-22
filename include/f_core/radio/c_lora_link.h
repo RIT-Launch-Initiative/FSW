@@ -19,10 +19,11 @@ typedef struct __attribute__((packed)) {
 } LaunchLoraFrame;
 
 typedef struct {
-    LaunchLoraFrame frame;
+    uint8_t data[RADIO_MAX_FRAME_SIZE];
+    uint16_t len;
     int16_t rssi;
     int8_t snr;
-} ReceivedLoraFrame;
+} ReceivedLoraRawFrame;
 
 // Forward declare the RX callback
 extern "C" void loraLinkRxCallback(const device* dev,
@@ -66,16 +67,20 @@ private:
 
     // Async Receive Queue
     static constexpr int RX_QUEUE_BUFFER_LEN = 10;
-    char rxQueueBuffer[sizeof(ReceivedLoraFrame) * RX_QUEUE_BUFFER_LEN];
+    char rxQueueBuffer[sizeof(ReceivedLoraRawFrame) * RX_QUEUE_BUFFER_LEN];
     k_msgq rxMsgq;
-    CMsgqMessagePort<ReceivedLoraFrame> rxQueue = CMsgqMessagePort<ReceivedLoraFrame>(rxMsgq);
+    CMsgqMessagePort<ReceivedLoraRawFrame> rxQueue = CMsgqMessagePort<ReceivedLoraRawFrame>(rxMsgq);
 
-     /**
+    /**
      * @brief Enqueue a received frame into the RX queue.
      * @param[in] receivedFrame Frame to enqueue
      */
-    void enqueueReceivedFrame(const ReceivedLoraFrame& receivedFrame);
+    void enqueueReceivedFrame(const ReceivedLoraRawFrame& receivedFrame);
 
+    /**
+     * Callback function for asynchronous LoRa RX
+     * See Zephyr docs for parameters
+     */
     friend void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size,
                                    int16_t rssi, int8_t snr, void* userData);
 };
