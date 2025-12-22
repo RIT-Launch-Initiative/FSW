@@ -62,6 +62,9 @@ int CLoraLink::Send(const LaunchLoraFrame& frame) {
 
 
 int CLoraLink::Send(const uint8_t* data, uint16_t len) {
+    lora.DisableAsynchronous();
+
+
     if (len + 2 > RADIO_MAX_FRAME_SIZE) {
         LOG_ERR("Payload too large (%u)", len);
         return -EMSGSIZE;
@@ -72,6 +75,7 @@ int CLoraLink::Send(const uint8_t* data, uint16_t len) {
         LOG_ERR("TX of size %d failed (%d)", len, ret);
     }
 
+    lora.EnableAsynchronous(loraLinkRxCallback, this);
     return ret;
 }
 
