@@ -73,3 +73,14 @@ jobs:
             done;
           }
           west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms }}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+
+      - name: Upload Twister Reports
+        if: runner.os == 'Linux' && steps.set_test_roots.outcome == 'success' && env.test_roots != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: twister-reports-projects
+          path: |
+            FSW/twister-out/twister.html
+            FSW/twister-out/twister.json
+            FSW/twister-out/twister.xml
+          if-no-files-found: warn
