@@ -11,6 +11,18 @@
 
 LOG_MODULE_REGISTER(CLoraLink);
 
+CLoraLink::CLoraLink(CLora& lora) : lora(lora) {
+    k_msgq_init(&rxMsgq, rxQueueBuffer, sizeof(ReceivedLoraFrame), RX_QUEUE_BUFFER_LEN);
+}
+
+static void loraLinkRxCallback(const uint8_t* data, const size_t len, int16_t rssi, int8_t snr, void* userData) {
+    if (userData == nullptr) {
+        LOG_ERR("loraLinkRxCallback called with null userData");
+        return;
+    }
+}
+
+
 int CLoraLink::Send(const LaunchLoraFrame& frame) {
     std::array<uint8_t, RADIO_MAX_FRAME_SIZE> buffer{};
     buffer.at(0) = static_cast<uint8_t>(frame.Port & 0xFF);

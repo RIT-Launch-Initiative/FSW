@@ -1,14 +1,13 @@
 #ifndef C_LORA_LINK_H
 #define C_LORA_LINK_H
 
-#include <cstddef>
 #include <array>
-#include <cstring>
 
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
 
 #include <f_core/radio/c_lora.h>
+
+#include "f_core/messaging/c_msgq_message_port.h"
 
 static constexpr uint16_t RADIO_MAX_FRAME_SIZE = 256;
 
@@ -19,9 +18,15 @@ typedef struct __attribute__((packed)) {
     uint8_t Payload[256 - sizeof(uint16_t)];
 } LaunchLoraFrame;
 
+typedef struct {
+    LaunchLoraFrame frame;
+    int16_t rssi;
+    int8_t snr;
+} ReceivedLoraFrame;
+
 class CLoraLink {
 public:
-    explicit CLoraLink(CLora& lora) : lora(lora) {}
+    explicit CLoraLink(CLora& lora);
 
     /**
      * @brief Send a raw payload on a given port.
@@ -45,11 +50,17 @@ public:
      * @param[in] timeout Timeout for receiving data
      * @return >=0 length received on success, negative errno on error
      */
-    int Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t *rssi = nullptr, int8_t *snr = nullptr);
+    int Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t* rssi = nullptr, int8_t* snr = nullptr);
 
 private:
     CLora& lora;
     std::array<uint8_t, RADIO_MAX_FRAME_SIZE> rxBuffer;
+
+    // Async Receive Queue
+    static constexpr int RX_QUEUE_BUFFER_LEN = 10;
+    char rxQueueBuffer[sizeof(ReceivedLoraFrame) * RX_QUEUE_BUFFER_LEN];
+    k_msgq rxMsgq;
+    CMsgqMessagePort<ReceivedLoraFrame> rxQueue = CMsgqMessagePort<ReceivedLoraFrame>(rxMsgq);
 };
 
 #endif // C_LORA_LINK_H

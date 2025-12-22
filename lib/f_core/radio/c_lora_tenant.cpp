@@ -2,21 +2,12 @@
 
 LOG_MODULE_REGISTER(CLoraTenant);
 
-static void asyncRxCallback(const device* dev, uint8_t* data, uint16_t size,
-                           int16_t rssi, int8_t snr, void* user_data) {
-    LOG_INF("LoRa Async RX: size %d RSSI %d SNR %d", size, rssi, snr);
-}
-
-
 CLoraTenant::CLoraTenant(CLoraLink& radioLink, CMessagePort<LaunchLoraFrame>& txPort) : CRunnableTenant("CLoraTenant"),
     link(radioLink), router(radioLink),
     loraTransmitPort(txPort) {}
 
 void CLoraTenant::Startup() {
-    int ret = lora_recv_async(DEVICE_DT_GET(DT_ALIAS(lora)), asyncRxCallback, nullptr);
-    if (ret < 0) {
-        LOG_ERR("Failed to start async receive (%d)", ret);
-    }
+
 }
 
 void CLoraTenant::PadRun() {
