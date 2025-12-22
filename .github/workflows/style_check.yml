@@ -27,16 +27,18 @@ jobs:
 
       - name: Run clang-format check
         run: |
+          # File extension pattern for C/C++ files
+          FILE_PATTERN='\.(c|h|cpp|hpp)$'
+          
           # Determine which files to check - always check only changed files
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             echo "Checking changed files in this PR..."
             # Get the list of changed C/C++ files in the PR
-            git fetch origin ${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
-            FILES=$(git diff --name-only --diff-filter=ACM origin/${{ github.base_ref }}...HEAD | grep -E '\.(c|h|cpp|hpp)$' || true)
+            FILES=$(git diff --name-only --diff-filter=ACM origin/${{ github.base_ref }}...HEAD | grep -E "$FILE_PATTERN" || true)
           else
             echo "Checking changed files in this push..."
             # On push to main, check files changed in the last commit
-            FILES=$(git diff --name-only --diff-filter=ACM HEAD~1..HEAD | grep -E '\.(c|h|cpp|hpp)$' || true)
+            FILES=$(git diff --name-only --diff-filter=ACM HEAD~1..HEAD | grep -E "$FILE_PATTERN" || true)
           fi
           
           if [ -z "$FILES" ]; then
@@ -75,9 +77,9 @@ jobs:
             echo ""
             echo "To format all changed files at once:"
             if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-              echo "  git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\\.(c|h|cpp|hpp)$' | xargs clang-format -i"
+              echo "  git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '$FILE_PATTERN' | xargs clang-format -i"
             else
-              echo "  git diff --name-only HEAD~1..HEAD | grep -E '\\.(c|h|cpp|hpp)$' | xargs clang-format -i"
+              echo "  git diff --name-only HEAD~1..HEAD | grep -E '$FILE_PATTERN' | xargs clang-format -i"
             fi
             echo ""
             echo "To see the differences for a specific file:"
