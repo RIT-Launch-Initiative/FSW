@@ -4,6 +4,8 @@
 #include "c_gnss_tenant.h"
 #include "c_udp_listener_tenant.h"
 #include "c_state_machine_updater.h"
+#include "c_remote_gpio_handler.h"
+#include "c_downlink_scheduler_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
