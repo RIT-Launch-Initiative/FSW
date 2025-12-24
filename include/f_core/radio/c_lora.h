@@ -133,6 +133,9 @@ private:
         .public_network = false,
     };
 
+    lora_recv_cb lastAsyncRxCallback = nullptr;
+    void* lastAsyncRxUserData = nullptr;
+
     enum Direction {
         RX = 0,
         TX
