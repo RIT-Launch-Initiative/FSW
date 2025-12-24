@@ -29,10 +29,14 @@ void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
     ackFrame.Port = ackPort;
     ackFrame.Size = 0; // No payload for acknowledgment
 
+    // TODO: Going to be changed to wait for another transmit from receiver, then ACK
+    k_msleep(1500);
+
     // Clear out the downlink message port before sending acknowledgment
     // Safe to do this since we can re-request telem if needed on pad/landing
     // And we shouldn't be changing frequency when the rocket is literally flying
     loraDownlinkMessagePort.Clear();
+
 
     const int sendRet = loraDownlinkMessagePort.Send(ackFrame, K_NO_WAIT);
     if (sendRet < 0) {

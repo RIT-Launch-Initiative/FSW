@@ -43,7 +43,6 @@ private:
     static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
     static constexpr uint16_t radioModuleCommandPort = NNetworkDefs::RADIO_MODULE_COMMAND_PORT;
     static constexpr uint16_t radioModuleDataRequestPort = NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT;
-    static constexpr uint16_t radioModuleCommandAckPort = NNetworkDefs::RADIO_MODULE_COMMAND_PORT + 1;
     static constexpr uint16_t radioModuleFrequencyCommandPort = NNetworkDefs::RADIO_MODULE_FREQUENCY_CHANGE_PORT;
     static constexpr uint16_t radioModuleFrequencyAckPort = NNetworkDefs::RADIO_MODULE_FREQUENCY_CHANGE_RESPONSE_PORT;
 

@@ -30,10 +30,6 @@ CLoraFreqRequestTenant::CLoraFreqRequestTenant(const char* ipStr,
 }
 
 void CLoraFreqRequestTenant::HandleFrame(const LaunchLoraFrame& frame) {
-    if (frame.Port != commandUdpPort) {
-        return;
-    }
-
     LOG_INF("Received LoRa frequency change ACK on port %d", frame.Port);
     ackTimer.StopTimer();
 }

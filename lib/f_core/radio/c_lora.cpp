@@ -41,8 +41,6 @@ int CLora::TransmitAsynchronous(const void* data, const size_t len, k_poll_signa
 }
 
 int CLora::EnableAsynchronous(const lora_recv_cb cb, void* userData) {
-    LOG_INF("Async enabled");
-
     if (const int ret = setTxRx(RX); ret != 0) {
         return ret;
     }
@@ -54,7 +52,6 @@ int CLora::EnableAsynchronous(const lora_recv_cb cb, void* userData) {
 }
 
 int CLora::DisableAsynchronous() {
-    LOG_INF("Async disabled");
     lastAsyncRxCallback = nullptr;
     lastAsyncRxUserData = nullptr;
     return lora_recv_async(lora_dev, nullptr, nullptr);
