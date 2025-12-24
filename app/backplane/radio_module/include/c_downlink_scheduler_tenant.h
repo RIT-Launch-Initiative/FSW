@@ -20,9 +20,7 @@ public:
 
 protected:
     void PadRun() override;
-    void FlightEntry() override;
     void FlightRun() override;
-    void LandedEntry() override;
     void LandedRun() override;
     void GroundRun() override;
 

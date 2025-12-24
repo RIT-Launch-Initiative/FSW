@@ -2,12 +2,15 @@
 
 #include <n_autocoder_network_defs.h>
 
+LOG_MODULE_REGISTER(CDownlinkSchedulerTenant);
+
 CDownlinkSchedulerTenant::CDownlinkSchedulerTenant(CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort,
                                                    const CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*>&
                                                    telemetryMessagePortMap,
                                                    CHashMap<uint16_t, k_timeout_t>& telemetryDownlinkTimes) :
     CRunnableTenant("Downlink Scheduler"), loraDownlinkMessagePort(loraDownlinkMessagePort),
     telemetryMessagePortMap(telemetryMessagePortMap) {
+
     // Construct and start the timers
     for (const auto& [port, timeout] : telemetryDownlinkTimes) {
         telemetryDownlinkTimers.Insert(port, CSoftTimer());

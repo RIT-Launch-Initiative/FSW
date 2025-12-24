@@ -104,8 +104,10 @@ private:
 
     CDownlinkSchedulerTenant downlinkSchedulerTenant{
         loraDownlinkMessagePort,
-        telemetryMessagePortMap
+        telemetryMessagePortMap,
+        telemetryDownlinkTimes
     };
+
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
