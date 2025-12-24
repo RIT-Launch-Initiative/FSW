@@ -64,10 +64,16 @@ private:
     // Message Ports
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
     CMessagePort<NTypes::GnssData>& gnssDataLogMessagePort;
-    CHashMap<uint16_t, CLatestMessagePort<LaunchLoraFrame>> telemetryMessagePortMap = {
-        {sensorModuleTelemetryPort, CLatestMessagePort<LaunchLoraFrame>()},
-        {powerModuleTelemetryPort, CLatestMessagePort<LaunchLoraFrame>()},
-        {gnssTelemetryPort, CLatestMessagePort<LaunchLoraFrame>()}
+    CLatestMessagePort<LaunchLoraFrame> sensorModuleTelemetryMessagePort;
+    CLatestMessagePort<LaunchLoraFrame> powerModuleTelemetryMessagePort;
+    CLatestMessagePort<LaunchLoraFrame> gnssTelemetryMessagePort;
+
+
+    // Build the hashamp here for passing into downlink scheduler tenant
+    CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap = {
+        {sensorModuleTelemetryPort, &sensorModuleTelemetryMessagePort},
+        {powerModuleTelemetryPort,  &powerModuleTelemetryMessagePort},
+        {gnssTelemetryPort,         &gnssTelemetryMessagePort}
     };
 
     // Tenants
@@ -77,13 +83,13 @@ private:
         "Sensor Module Listener Tenant",
         ipAddrStr.c_str(),
         sensorModuleTelemetryPort,
-        &telemetryMessagePortMap.Get(sensorModuleTelemetryPort).value()
+        &sensorModuleTelemetryMessagePort
     };
 
     CUdpListenerTenant powerModuleListenerTenant{
         "Power Module Listener Tenant", ipAddrStr.c_str(),
         powerModuleTelemetryPort,
-        &telemetryMessagePortMap.Get(powerModuleTelemetryPort).value()
+        &powerModuleTelemetryMessagePort
     };
 
     CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(rtc, CIPv4(ipAddrStr.c_str()));
