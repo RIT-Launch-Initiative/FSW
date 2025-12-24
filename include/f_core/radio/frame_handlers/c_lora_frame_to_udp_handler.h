@@ -12,7 +12,7 @@ public:
      * @param sock Socket to use for UDP transmission
      * @param srcPort Source port for UDP packets
      */
-    explicit CLoraFrameToUdpHandler(CUdpSocket sock, uint16_t srcPort);
+    explicit CLoraFrameToUdpHandler(const CUdpSocket& sock, const uint16_t srcPort);
 
 
     /**
