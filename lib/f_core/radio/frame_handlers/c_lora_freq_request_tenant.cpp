@@ -38,9 +38,23 @@ void CLoraFreqRequestTenant::HandleFrame(const LaunchLoraFrame& frame) {
 }
 
 void CLoraFreqRequestTenant::Run() {
+    // Executes if a revert frequency request is pending
     if (revertFrequencyRequested) {
         revertFrequencyRequested = false;
         revertFrequency();
+        return;
+    }
+
+    // Executes after queuing a frequency change and finishing a Run cycle
+    if (freqMhzRequested != 0.0f) {
+        if (lora.SetFrequency(freqMhzRequested) != 0) {
+            LOG_ERR("Local frequency change to %f MHz failed", static_cast<double>(freqMhz));
+        } else {
+            LOG_INF("Changed LoRa frequency to %f MHz, waiting for ACK...", static_cast<double>(freqMhz));
+            ackTimer.StartTimer(rxTimeout);
+        }
+
+        freqMhzRequested = 0.0f;
         return;
     }
 
@@ -71,13 +85,7 @@ void CLoraFreqRequestTenant::Run() {
         return;
     }
 
-    if (lora.SetFrequency(freqMhz) != 0) {
-        LOG_ERR("Local frequency change to %f MHz failed", static_cast<double>(freqMhz));
-        return;
-    }
-
-    LOG_INF("Changed LoRa frequency to %f MHz, waiting for ACK...", static_cast<double>(freqMhz));
-    ackTimer.StartTimer(rxTimeout);
+    freqMhzRequested = freqMhz;
 }
 
 void CLoraFreqRequestTenant::RequestRevertFrequency() {

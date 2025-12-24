@@ -62,10 +62,13 @@ private:
     CMessagePort<LaunchLoraFrame>& downlinkMessagePort;
 
     float prevFreqMhz = 0.0f;
+    float freqMhzRequested = 0.0f;
+
     const uint16_t commandUdpPort;
     const k_timeout_t rxTimeout;
     CSoftTimer ackTimer;
     bool revertFrequencyRequested = false;
+
 };
 
 #endif // C_LORA_FREQ_CHANGE_TENANT_H
