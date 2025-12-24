@@ -10,6 +10,7 @@
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
 #include <f_core/messaging/c_message_port.h>
+#include <f_core/messaging/c_latest_message_port.h>
 #include <f_core/net/application/c_sntp_server_tenant.h>
 #include <f_core/net/application/c_udp_alert_tenant.h>
 #include <f_core/os/c_task.h>
@@ -49,9 +50,10 @@ public:
 private:
     std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID);
 
-    static constexpr uint16_t powerModuleTelemetryPort = NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT;
     static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
+    static constexpr uint16_t powerModuleTelemetryPort = NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT;
     static constexpr uint16_t sensorModuleTelemetryPort = NNetworkDefs::SENSOR_MODULE_DOWNLINK_DATA_PORT;
+    static constexpr uint16_t gnssTelemetryPort = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT
 
     // Devices
 #ifndef CONFIG_ARCH_POSIX
@@ -62,7 +64,11 @@ private:
     // Message Ports
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
     CMessagePort<NTypes::GnssData>& gnssDataLogMessagePort;
-    CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>&> telemetryMessagePortMap;
+    CHashMap<uint16_t, CLatestMessagePort<LaunchLoraFrame>> telemetryMessagePortMap = {
+        {sensorModuleTelemetryPort, CLatestMessagePort<LaunchLoraFrame>()},
+        {powerModuleTelemetryPort, CLatestMessagePort<LaunchLoraFrame>()},
+        {gnssTelemetryPort, CLatestMessagePort<LaunchLoraFrame>()}
+    };
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &loraDownlinkMessagePort, &gnssDataLogMessagePort};
