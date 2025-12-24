@@ -50,6 +50,7 @@ void CDownlinkSchedulerTenant::HandleFrame(const LaunchLoraFrame& frame) {
 }
 
 void CDownlinkSchedulerTenant::Run() {
+    LOG_INF("Running");
     SetBoostDetected(NStateMachineGlobals::boostDetected);
     SetLandingDetected(NStateMachineGlobals::landingDetected);
     this->Clock();
