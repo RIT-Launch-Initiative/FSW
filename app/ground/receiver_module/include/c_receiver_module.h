@@ -2,6 +2,7 @@
 #define C_RECEIVER_MODULE_H
 
 #include "c_udp_listener_tenant.h"
+#include "c_lora_freq_change_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -42,6 +43,9 @@ private:
     static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
     static constexpr uint16_t radioModuleCommandPort = NNetworkDefs::RADIO_MODULE_COMMAND_PORT;
     static constexpr uint16_t radioModuleDataRequestPort = NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT;
+    static constexpr uint16_t radioModuleCommandAckPort = NNetworkDefs::RADIO_MODULE_COMMAND_PORT + 1;
+    static constexpr uint16_t radioModuleFrequencyCommandPort = NNetworkDefs::RADIO_MODULE_FREQUENCY_CHANGE_PORT;
+    static constexpr uint16_t radioModuleFrequencyAckPort = NNetworkDefs::RADIO_MODULE_FREQUENCY_CHANGE_RESPONSE_PORT;
 
     // Devices
     CLora lora;
@@ -52,6 +56,14 @@ private:
 
     // Tenants
     CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
+
+    CLoraFreqChangeTenant freqChangeTenant{
+        ipAddrStr.c_str(),
+        radioModuleFrequencyCommandPort,
+        radioModuleCommandAckPort,
+        loraBroadcastMessagePort,
+        lora,
+        5000};
 
     CUdpListenerTenant commandListenerTenant{
         "Radio Module Command Listener Tenant", ipAddrStr.c_str(), radioModuleCommandPort, &loraBroadcastMessagePort

@@ -13,7 +13,7 @@ void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
     float newFrequencyMhz = 0.0f;
     memcpy(&newFrequencyMhz, frame.Payload, sizeof(float));
 
-    LOG_INF("Changing frequency to %f Hz", newFrequencyMhz);
+    LOG_INF("Changing frequency to %f Hz", static_cast<double>(newFrequencyMhz));
     if (!lora.SetFrequency(newFrequencyMhz)) {
         LOG_ERR("Failed to set new frequency %f Hz", newFrequencyMhz);
         return;
