@@ -28,9 +28,24 @@ CLoraFreqChangeTenant::CLoraFreqChangeTenant(const char* ipStr,
     ackTimer.SetUserData(this);
 }
 
+void CLoraFreqChangeTenant::HandleFrame(const LaunchLoraFrame& frame) {
+    if (frame.Port != commandUdpPort) {
+        return;
+    }
+
+    LOG_INF("Received LoRa frequency change ACK on port %d", frame.Port);
+    ackTimer.StopTimer();
+}
+
 void CLoraFreqChangeTenant::Run() {
     float freqMhz = 0.0f;
     if (!receiveCommand(freqMhz)) {
+        return;
+    }
+
+    prevFreqMhz = lora.GetFrequencyMhz();
+    if (freqMhz == prevFreqMhz) {
+        LOG_INF("Received frequency %f MHz is the same as current frequency, no change needed", static_cast<double>(freqMhz));
         return;
     }
 
@@ -43,7 +58,6 @@ void CLoraFreqChangeTenant::Run() {
         return;
     }
 
-    prevFreqMhz = lora.GetFrequencyMhz();
     if (lora.SetFrequency(freqMhz) != 0) {
         LOG_ERR("Local frequency change to %f MHz failed", static_cast<double>(freqMhz));
         return;
