@@ -21,6 +21,7 @@ void CReceiverModule::AddTenantsToTasks() {
 
     // LoRa
     loraTenant.SetToGround();
+    loraTenant.RegisterDefaultFrameHandler(loraToUdpHandler);
     loraTask.AddTenant(loraTenant);
 }
 

@@ -38,6 +38,7 @@ public:
 
 private:
     std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::RADIO_MODULE_IP_ADDR_BASE, 1, 1);
+    static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
     static constexpr uint16_t radioModuleCommandPort = NNetworkDefs::RADIO_MODULE_COMMAND_PORT;
     static constexpr uint16_t radioModuleDataRequestPort = NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT;
 
@@ -53,6 +54,10 @@ private:
 
     CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr.c_str(), radioModuleCommandPort, &loraBroadcastMessagePort};
     CUdpListenerTenant dataRequestListenerTenant{"Radio Module Data Request Listener Tenant", ipAddrStr.c_str(), radioModuleDataRequestPort, &loraBroadcastMessagePort};
+
+    CLoraFrameToUdpHandler loraToUdpHandler{
+        CUdpSocket(CIPv4(ipAddrStr.c_str()), radioModuleSourcePort, radioModuleSourcePort),
+    };
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 4096, 0};

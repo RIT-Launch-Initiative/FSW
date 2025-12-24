@@ -124,7 +124,6 @@ private:
     CRemoteGpioHandler remoteGpioHandler;
     CLoraFrameToUdpHandler loraToUdpHandler{
         CUdpSocket(CIPv4(ipAddrStr.c_str()), radioModuleSourcePort, radioModuleSourcePort),
-        radioModuleSourcePort
     };
 
     // Tasks
