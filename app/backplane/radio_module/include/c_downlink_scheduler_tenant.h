@@ -4,9 +4,10 @@
 #include <f_core/radio/c_lora_frame_handler.h>
 #include <f_core/os/c_runnable_tenant.h>
 #include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
+#include <f_core/utils/c_hashmap.h>
+#include <f_core/utils/c_soft_timer.h>
 
-#include "f_core/utils/c_hashmap.h"
-#include "f_core/utils/c_soft_timer.h"
+#include <memory>
 
 class CDownlinkSchedulerTenant : public CRunnableTenant, public CPadFlightLandedStateMachine, public CLoraFrameHandler {
 public:
@@ -20,7 +21,6 @@ public:
 
 protected:
     void PadRun() override;
-    void FlightEntry() override;
     void FlightRun() override;
     void LandedRun() override;
     void GroundRun() override;
@@ -28,8 +28,7 @@ protected:
 private:
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
     CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap;
-    CHashMap<uint16_t, k_timeout_t> downlinkRateMap;
-    CHashMap<uint16_t, CSoftTimer> telemetryDownlinkTimers;
+    CHashMap<uint16_t, std::unique_ptr<CSoftTimer>> telemetryDownlinkTimers;
 
     bool gnssDownlinkAvailable = false;
 };

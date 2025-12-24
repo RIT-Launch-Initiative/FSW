@@ -11,14 +11,15 @@ CDownlinkSchedulerTenant::CDownlinkSchedulerTenant(CMessagePort<LaunchLoraFrame>
     CRunnableTenant("Downlink Scheduler"), loraDownlinkMessagePort(loraDownlinkMessagePort),
     telemetryMessagePortMap(telemetryMessagePortMap) {
 
-    // Construct and start the timers
+    // Fun C++ fuckery
     for (const auto& [port, timeout] : telemetryDownlinkTimes) {
-        telemetryDownlinkTimers.Insert(port, CSoftTimer());
-        telemetryDownlinkTimers.Get(port).value().StartTimer(timeout, K_NO_WAIT);
+        telemetryDownlinkTimers.Emplace(port, std::make_unique<CSoftTimer>());
+        telemetryDownlinkTimers.GetPtr(port)->get()->StartTimer(timeout);
     }
 
     gnssDownlinkAvailable = telemetryMessagePortMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).has_value() &&
-                           telemetryDownlinkTimers.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).has_value();
+    ([](auto* p) { return p && p->get(); }(
+        telemetryDownlinkTimers.GetPtr(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT)));
 }
 
 void CDownlinkSchedulerTenant::HandleFrame(const LaunchLoraFrame& frame) {
@@ -61,8 +62,8 @@ void CDownlinkSchedulerTenant::PadRun() {
 
 
 void CDownlinkSchedulerTenant::FlightRun() {
-    for (auto& [port, timer] : telemetryDownlinkTimers) {
-        if (timer.IsExpired()) {
+    for (auto const& [port, timer] : telemetryDownlinkTimers) {
+        if (timer->IsExpired()) {
             auto portMsgPortOpt = telemetryMessagePortMap.Get(port);
             if (!portMsgPortOpt.has_value()) {
                 continue;
@@ -90,9 +91,9 @@ void CDownlinkSchedulerTenant::LandedRun() {
     }
 
     auto gnssMessagePort = telemetryMessagePortMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).value();
-    auto gnssTimer = telemetryDownlinkTimers.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).value();
+    auto gnssTimer = telemetryDownlinkTimers.GetPtr(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT)->get();
 
-    if (gnssTimer.IsExpired()) {
+    if (gnssTimer->IsExpired()) {
         LaunchLoraFrame telemFrame{};
         int ret = gnssMessagePort->Receive(telemFrame, K_NO_WAIT);
         if (ret < 0) {

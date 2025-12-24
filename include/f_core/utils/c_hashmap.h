@@ -54,6 +54,22 @@ public:
         return false;
     }
 
+    bool Emplace(const KeyType& key, ValueType&& value) {
+        if (!isMainThreadCurrent()) {
+            if (!map.contains(key) && size > maxSizeReachedAtStartup) {
+                printk("Attempted to emplace more than the maximum size of the hashmap post-startup\n"); // LOG doesn't work well in templates
+#ifdef CONFIG_DEBUG
+                k_oops();
+#endif
+                return false;
+            }
+        }
+        if (++size > maxSizeReachedAtStartup) {
+            maxSizeReachedAtStartup = size;
+        }
+        return map.emplace(key, std::move(value)).second;
+    }
+
     bool Remove(const KeyType& key) {
         size--;
         return map.erase(key);
@@ -65,6 +81,14 @@ public:
         }
 
         return map.at(key);
+    }
+
+    ValueType* GetPtr(const KeyType& key) {
+        if (!map.contains(key)) {
+            return nullptr;
+        }
+
+        return &map.at(key);
     }
 
     bool Contains(KeyType key) const {
