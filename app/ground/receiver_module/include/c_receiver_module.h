@@ -8,6 +8,7 @@
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_task.h>
 #include <f_core/radio/c_lora.h>
+#include <f_core/radio/frame_handlers/c_lora_frame_to_udp_handler.h>
 
 #include <n_autocoder_network_defs.h>
 
@@ -52,11 +53,16 @@ private:
     // Tenants
     CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
 
-    CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr.c_str(), radioModuleCommandPort, &loraBroadcastMessagePort};
-    CUdpListenerTenant dataRequestListenerTenant{"Radio Module Data Request Listener Tenant", ipAddrStr.c_str(), radioModuleDataRequestPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant commandListenerTenant{
+        "Radio Module Command Listener Tenant", ipAddrStr.c_str(), radioModuleCommandPort, &loraBroadcastMessagePort
+    };
+    CUdpListenerTenant dataRequestListenerTenant{
+        "Radio Module Data Request Listener Tenant", ipAddrStr.c_str(), radioModuleDataRequestPort,
+        &loraBroadcastMessagePort
+    };
 
     CLoraFrameToUdpHandler loraToUdpHandler{
-        CUdpSocket(CIPv4(ipAddrStr.c_str()), radioModuleSourcePort, radioModuleSourcePort),
+        ipAddrStr.c_str(), radioModuleSourcePort,
     };
 
     // Tasks

@@ -123,7 +123,7 @@ private:
     // LoRa Handlers
     CRemoteGpioHandler remoteGpioHandler;
     CLoraFrameToUdpHandler loraToUdpHandler{
-        CUdpSocket(CIPv4(ipAddrStr.c_str()), radioModuleSourcePort, radioModuleSourcePort),
+        ipAddrStr.c_str(), radioModuleSourcePort,
     };
 
     // Tasks

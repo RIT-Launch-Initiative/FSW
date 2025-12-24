@@ -9,11 +9,10 @@ class CLoraFrameToUdpHandler : public CLoraFrameHandler {
 public:
     /**
      * @brief Constructor
-     * @param sock Socket to use for UDP transmission
-     * @param srcPort Source port for UDP packets
+     * @param ip IP address instance to bind to
+     * @param srcPort Source port to bind to
      */
-    explicit CLoraFrameToUdpHandler(const CUdpSocket& sock);
-
+    explicit CLoraFrameToUdpHandler(const char* ip, uint16_t srcPort);
 
     /**
      * See parent docs
