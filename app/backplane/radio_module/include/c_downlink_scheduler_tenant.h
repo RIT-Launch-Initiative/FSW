@@ -5,23 +5,28 @@
 #include <f_core/os/c_runnable_tenant.h>
 #include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
 
+#include "f_core/utils/c_hashmap.h"
+
 class CDownlinkSchedulerTenant : public CRunnableTenant, public CPadFlightLandedStateMachine, public CLoraFrameHandler {
 public:
-    explicit CDownlinkSchedulerTenant(const char* name)
-        : CRunnableTenant(name) {}
+    explicit CDownlinkSchedulerTenant(CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort,
+                                      CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap) :
+        CRunnableTenant("Downlink Scheduler"), loraDownlinkMessagePort(loraDownlinkMessagePort),
+        telemetryMessagePortMap(telemetryMessagePortMap) {}
 
     void HandleFrame(const LaunchLoraFrame& frame) override;
 
     void Run() override;
 
 protected:
+    CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
+    CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap;
     void PadRun() override;
     void FlightRun() override;
     void LandedRun() override;
     void GroundRun() override;
 
 private:
-
 };
 
 

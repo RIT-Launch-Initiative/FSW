@@ -72,12 +72,12 @@ private:
     // Build the hashamp here for passing into downlink scheduler tenant
     CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap = {
         {sensorModuleTelemetryPort, &sensorModuleTelemetryMessagePort},
-        {powerModuleTelemetryPort,  &powerModuleTelemetryMessagePort},
-        {gnssTelemetryPort,         &gnssTelemetryMessagePort}
+        {powerModuleTelemetryPort, &powerModuleTelemetryMessagePort},
+        {gnssTelemetryPort, &gnssTelemetryMessagePort}
     };
 
     // Tenants
-    CGnssTenant gnssTenant{"GNSS Tenant", &loraDownlinkMessagePort, &gnssDataLogMessagePort};
+    CGnssTenant gnssTenant{"GNSS Tenant", &gnssTelemetryMessagePort, &gnssDataLogMessagePort};
 
     CUdpListenerTenant sensorModuleListenerTenant{
         "Sensor Module Listener Tenant",
@@ -94,20 +94,29 @@ private:
 
     CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(rtc, CIPv4(ipAddrStr.c_str()));
 
+    CDownlinkSchedulerTenant downlinkSchedulerTenant{
+        loraDownlinkMessagePort,
+        telemetryMessagePortMap
+    };
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
     CLoraTenant loraTenant{lora, loraDownlinkMessagePort};
 #endif
-    CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
+    CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{
+        "Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5
+    };
+
     CStateMachineUpdater stateMachineUpdater;
+
+    // LoRa Handlers
+    CRemoteGpioHandler remoteGpioHandler;
 
     // Tasks
     CTask networkingTask{"Networking Task", 14, 3072, 5};
     CTask gnssTask{"GNSS Task", 15, 1024, 2000};
     CTask dataLoggingTask{"Data Logging Task", 15, 2048, 10};
     CTask loraTask{"LoRa Task", 14, 2048, 10};
-
 };
 
 #endif //C_RADIO_MODULE_H
