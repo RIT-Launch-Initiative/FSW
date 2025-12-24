@@ -26,6 +26,8 @@ void CRadioModule::AddTenantsToTasks() {
 #ifndef CONFIG_ARCH_POSIX
     // LoRa
     loraTenant.RegisterFrameHandler(NNetworkDefs::RADIO_MODULE_COMMAND_PORT, remoteGpioHandler);
+    loraTenant.RegisterFrameHandler(NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT, downlinkSchedulerTenant);
+    loraTenant.RegisterDefaultFrameHandler(loraToUdpHandler);
 
     loraTask.AddTenant(downlinkSchedulerTenant);
     loraTask.AddTenant(loraTenant);
