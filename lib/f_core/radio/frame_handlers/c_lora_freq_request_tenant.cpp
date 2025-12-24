@@ -52,6 +52,13 @@ void CLoraFreqRequestTenant::Run() {
     // Clear pending downlinks to prioritize the frequency change command
     downlinkMessagePort.Clear();
 
+    // Validate frequency range before sending command
+    bool within915 = (freqMhz >= 902.0f && freqMhz <= 928.0f);
+    bool within433 = (freqMhz >= 410.0f && freqMhz <= 525.0f);
+    if (!within915 && !within433) {
+        LOG_WRN("Requested frequency %f MHz is out of valid ranges (902-928 MHz or 410-525 MHz)", static_cast<double>(freqMhz));
+        return;
+    }
 
     if (!sendFrequencyCommand(freqMhz)) {
         LOG_WRN("Failed to queue LoRa frequency change command");
