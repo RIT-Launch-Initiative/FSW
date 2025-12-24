@@ -57,6 +57,14 @@ public:
         router.RegisterHandler(port, handler);
     }
 
+    /**
+     * @brief Register a default frame handler for frames with no specific handler
+     * @param handler Default handler to register
+     */
+    void RegisterDefaultFrameHandler(CLoraFrameHandler& handler) {
+        router.RegisterDefaultHandler(handler);
+    }
+
 private:
     /**
      * @brief Service transmit queue
