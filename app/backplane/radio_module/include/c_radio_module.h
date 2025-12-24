@@ -76,6 +76,12 @@ private:
         {gnssTelemetryPort, &gnssTelemetryMessagePort}
     };
 
+    CHashMap<uint16_t, k_timeout_t> telemetryDownlinkTimes = {
+        {sensorModuleTelemetryPort, K_SECONDS(2)},
+        {powerModuleTelemetryPort, K_SECONDS(10)},
+        {gnssTelemetryPort, K_SECONDS(5)}
+    };
+
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &gnssTelemetryMessagePort, &gnssDataLogMessagePort};
 

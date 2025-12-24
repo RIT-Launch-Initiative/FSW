@@ -6,27 +6,32 @@
 #include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
 
 #include "f_core/utils/c_hashmap.h"
+#include "f_core/utils/c_soft_timer.h"
 
 class CDownlinkSchedulerTenant : public CRunnableTenant, public CPadFlightLandedStateMachine, public CLoraFrameHandler {
 public:
     explicit CDownlinkSchedulerTenant(CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort,
-                                      CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap) :
-        CRunnableTenant("Downlink Scheduler"), loraDownlinkMessagePort(loraDownlinkMessagePort),
-        telemetryMessagePortMap(telemetryMessagePortMap) {}
+                                      const CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*>& telemetryMessagePortMap,
+                                      CHashMap<uint16_t, k_timeout_t>& telemetryDownlinkTimes);
 
     void HandleFrame(const LaunchLoraFrame& frame) override;
 
     void Run() override;
 
 protected:
-    CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
-    CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap;
     void PadRun() override;
+    void FlightEntry() override;
     void FlightRun() override;
+    void LandedEntry() override;
     void LandedRun() override;
     void GroundRun() override;
 
 private:
+    CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
+    CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap;
+    CHashMap<uint16_t, CSoftTimer> telemetryDownlinkTimers;
+
+    bool gnssDownlinkAvailable = false;
 };
 
 

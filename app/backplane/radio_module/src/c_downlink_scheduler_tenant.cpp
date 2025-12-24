@@ -1,9 +1,30 @@
 #include "c_downlink_scheduler_tenant.h"
 
+#include <n_autocoder_network_defs.h>
+
+CDownlinkSchedulerTenant::CDownlinkSchedulerTenant(CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort,
+                                                   const CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*>&
+                                                   telemetryMessagePortMap,
+                                                   CHashMap<uint16_t, k_timeout_t>& telemetryDownlinkTimes) :
+    CRunnableTenant("Downlink Scheduler"), loraDownlinkMessagePort(loraDownlinkMessagePort),
+    telemetryMessagePortMap(telemetryMessagePortMap) {
+    // Construct and start the timers
+    for (const auto& [port, timeout] : telemetryDownlinkTimes) {
+        telemetryDownlinkTimers.Insert(port, CSoftTimer());
+        telemetryDownlinkTimers.Get(port).value().StartTimer(timeout, K_NO_WAIT);
+    }
+
+    gnssDownlinkAvailable = telemetryMessagePortMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).has_value() &&
+                           telemetryDownlinkTimers.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).has_value();
+}
+
 void CDownlinkSchedulerTenant::HandleFrame(const LaunchLoraFrame& frame) {
-    if (this->state == State::PAD) {
+    if (this->state == State::PAD || this->state == State::LANDED) {
         for (size_t i = 0; i + 1 < frame.Size; i += 2) {
-            uint16_t port = (static_cast<uint16_t>(frame.Payload[i]) << 8) | static_cast<uint16_t>(frame.Payload[i + 1]);
+            uint16_t upper = frame.Payload[i] << 8;
+            uint16_t lower = frame.Payload[i + 1];
+            uint16_t port = upper | lower;
+
             auto portMsgPortOpt = telemetryMessagePortMap.Get(port);
             if (!portMsgPortOpt.has_value()) {
                 continue;
@@ -32,12 +53,55 @@ void CDownlinkSchedulerTenant::PadRun() {
     // HandleFrame handles this :)
     // Unless we want something like heartbeats or something
 }
+
+
 void CDownlinkSchedulerTenant::FlightRun() {
-    // TODO: Implement some sort of weighting. Right now just blast
+    for (auto& [port, timer] : telemetryDownlinkTimers) {
+        if (timer.IsExpired()) {
+            auto portMsgPortOpt = telemetryMessagePortMap.Get(port);
+            if (!portMsgPortOpt.has_value()) {
+                continue;
+            }
+
+            CMessagePort<LaunchLoraFrame>* portMsgPort = portMsgPortOpt.value();
+            LaunchLoraFrame telemFrame{};
+            int ret = portMsgPort->Receive(telemFrame, K_NO_WAIT);
+            if (ret < 0) {
+                LOG_ERR("Failed to receive telemetry frame on port %d", port);
+                continue;
+            }
+
+            ret = loraDownlinkMessagePort.Send(telemFrame, K_NO_WAIT);
+            if (ret < 0) {
+                LOG_ERR("Failed to send telemetry frame on port %d", port);
+            }
+        }
+    }
 }
+
 void CDownlinkSchedulerTenant::LandedRun() {
-    // Only transmit GPS every 5 seconds
+    if (!gnssDownlinkAvailable) {
+        return;
+    }
+
+    auto gnssMessagePort = telemetryMessagePortMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).value();
+    auto gnssTimer = telemetryDownlinkTimers.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).value();
+
+    if (gnssTimer.IsExpired()) {
+        LaunchLoraFrame telemFrame{};
+        int ret = gnssMessagePort->Receive(telemFrame, K_NO_WAIT);
+        if (ret < 0) {
+            LOG_ERR("Failed to receive GNSS telemetry frame");
+            return;
+        }
+
+        ret = loraDownlinkMessagePort.Send(telemFrame, K_NO_WAIT);
+        if (ret < 0) {
+            LOG_ERR("Failed to send GNSS telemetry frame");
+        }
+    }
 }
+
 void CDownlinkSchedulerTenant::GroundRun() {
     return;
 }
