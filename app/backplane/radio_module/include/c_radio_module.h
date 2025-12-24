@@ -126,6 +126,10 @@ private:
     CLoraFrameToUdpHandler loraToUdpHandler{
         ipAddrStr.c_str(), radioModuleSourcePort,
     };
+    CFrequencyChangeHandler frequencyChangeHandler{
+        lora, loraDownlinkMessagePort,
+        NNetworkDefs::RADIO_MODULE_FREQUENCY_CHANGE_RESPONSE_PORT
+    };
 
     // Tasks
     CTask networkingTask{"Networking Task", 14, 3072, 5};

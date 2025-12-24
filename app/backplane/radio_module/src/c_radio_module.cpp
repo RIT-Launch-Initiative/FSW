@@ -27,6 +27,7 @@ void CRadioModule::AddTenantsToTasks() {
     // LoRa
     loraTenant.RegisterFrameHandler(NNetworkDefs::RADIO_MODULE_COMMAND_PORT, remoteGpioHandler);
     loraTenant.RegisterFrameHandler(NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT, downlinkSchedulerTenant);
+    loraTenant.RegisterFrameHandler(NNetworkDefs::RADIO_MODULE_FREQUENCY_CHANGE_PORT, frequencyChangeHandler);
     loraTenant.RegisterDefaultFrameHandler(loraToUdpHandler);
 
     loraTask.AddTenant(downlinkSchedulerTenant);
