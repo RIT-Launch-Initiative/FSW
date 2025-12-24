@@ -20,6 +20,7 @@ public:
 
 protected:
     void PadRun() override;
+    void FlightEntry() override;
     void FlightRun() override;
     void LandedRun() override;
     void GroundRun() override;
@@ -27,6 +28,7 @@ protected:
 private:
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
     CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap;
+    CHashMap<uint16_t, k_timeout_t> downlinkRateMap;
     CHashMap<uint16_t, CSoftTimer> telemetryDownlinkTimers;
 
     bool gnssDownlinkAvailable = false;
