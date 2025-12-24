@@ -1,19 +1,27 @@
 #ifndef C_LORA_FRAME_TO_UDP_HANDLER_H
 #define C_LORA_FRAME_TO_UDP_HANDLER_H
 
-#include <stdint.h>
+#include "f_core/net/transport/c_udp_socket.h"
+#include "f_core/radio/c_lora_frame_handler.h"
 
 
 class CLoraFrameToUdpHandler : public CLoraFrameHandler {
 public:
+    /**
+     * @brief Constructor
+     * @param sock Socket to use for UDP transmission
+     * @param srcPort Source port for UDP packets
+     */
     explicit CLoraFrameToUdpHandler(CUdpSocket sock, uint16_t srcPort);
 
-    void HandleFrame(const uint8_t* payload, size_t size, const char* destIp, uint16_t destPort);
 
+    /**
+     * See parent docs
+     */
+    void HandleFrame(const LaunchLoraFrame& frame) override;
 private:
     CUdpSocket sock;
     const uint16_t srcPort;
-
 };
 
 
