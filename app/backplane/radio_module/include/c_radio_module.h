@@ -76,7 +76,7 @@ private:
         {gnssTelemetryPort, &gnssTelemetryMessagePort}
     };
 
-    // Build downlink timer here so easy to add new telemetry along with above hashmap,
+    // Build downlink timer map here so easy to add new telemetry along with above hashmap,
     // and have downlink scheduler figure out starting the timers itself
     CHashMap<uint16_t, k_timeout_t> telemetryDownlinkTimes = {
         {sensorModuleTelemetryPort, K_SECONDS(2)},
