@@ -41,6 +41,8 @@ int CLora::TransmitAsynchronous(const void* data, const size_t len, k_poll_signa
 }
 
 int CLora::EnableAsynchronous(const lora_recv_cb cb, void* userData) {
+    LOG_INF("Async enabled");
+
     if (const int ret = setTxRx(RX); ret != 0) {
         return ret;
     }
@@ -52,6 +54,7 @@ int CLora::EnableAsynchronous(const lora_recv_cb cb, void* userData) {
 }
 
 int CLora::DisableAsynchronous() {
+    LOG_INF("Async disabled");
     lastAsyncRxCallback = nullptr;
     lastAsyncRxUserData = nullptr;
     return lora_recv_async(lora_dev, nullptr, nullptr);
@@ -150,7 +153,9 @@ int CLora::SetConfiguration(const lora_modem_config& newConfig) {
 
 int CLora::updateSettings() {
     // Need to disable async reception before changing frequency
-    if (lastAsyncRxCallback != nullptr && lastAsyncRxUserData != nullptr) {
+    lora_recv_cb asyncRxCallback = lastAsyncRxCallback;
+    void* asyncRxUserData = lastAsyncRxUserData;
+    if (asyncRxCallback != nullptr) {
         if (const int ret = DisableAsynchronous(); ret != 0) {
             LOG_ERR("Failed to disable asynchronous reception before frequency change: %d", ret);
             return ret;
@@ -163,8 +168,8 @@ int CLora::updateSettings() {
     }
 
     // Re-enable async
-    if (lastAsyncRxCallback != nullptr && lastAsyncRxUserData != nullptr) {
-        if (const int ret = EnableAsynchronous(lastAsyncRxCallback, lastAsyncRxUserData); ret != 0) {
+    if (asyncRxUserData != nullptr) {
+        if (const int ret = EnableAsynchronous(asyncRxCallback, asyncRxUserData); ret != 0) {
             LOG_ERR("Failed to re-enable asynchronous reception after frequency change: %d", ret);
             return ret;
         }
