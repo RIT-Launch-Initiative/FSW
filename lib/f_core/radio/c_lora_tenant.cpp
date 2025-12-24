@@ -30,23 +30,7 @@ void CLoraTenant::GroundRun() {
 }
 
 void CLoraTenant::Run() {
-    switch (state) {
-        case State::PAD:
-            PadRun();
-            break;
-        case State::FLIGHT:
-            FlightRun();
-            break;
-        case State::LANDED:
-            LandedRun();
-            break;
-        case State::GROUND:
-            GroundRun();
-            break;
-        default:
-            LOG_ERR("Unknown state in CLoraTenant");
-            break;
-    }
+    this->Clock();
 }
 
 void CLoraTenant::serviceTx() {
