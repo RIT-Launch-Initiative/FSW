@@ -15,7 +15,7 @@ CRadioModule::CRadioModule() : CProjectConfiguration(),
 #ifndef CONFIG_ARCH_POSIX
                                lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
 #endif
-                               loraBroadcastMessagePort(loraBroadcastMsgQueue),
+                               loraDownlinkMessagePort(loraBroadcastMsgQueue),
                                 gnssDataLogMessagePort(gnssLogMsgQueue) {}
 
 void CRadioModule::AddTenantsToTasks() {

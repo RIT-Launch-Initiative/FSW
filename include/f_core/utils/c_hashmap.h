@@ -18,6 +18,12 @@ class CHashMap {
 public:
     CHashMap() = default;
 
+    CHashMap(std::initializer_list<std::pair<const KeyType, ValueType>> initList) {
+        for (const auto& pair : initList) {
+            Insert(pair.first, pair.second);
+        }
+    }
+
     bool Insert(const KeyType& key, const ValueType& value) {
         if (!isMainThreadCurrent()) {
             if (!map.contains(key) && size > maxSizeReachedAtStartup) {

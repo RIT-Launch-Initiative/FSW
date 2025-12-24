@@ -60,19 +60,20 @@ private:
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     // Message Ports
-    CMessagePort<LaunchLoraFrame>& loraBroadcastMessagePort;
+    CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
     CMessagePort<NTypes::GnssData>& gnssDataLogMessagePort;
+    CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>&> telemetryMessagePortMap;
 
     // Tenants
-    CGnssTenant gnssTenant{"GNSS Tenant", &loraBroadcastMessagePort, &gnssDataLogMessagePort};
+    CGnssTenant gnssTenant{"GNSS Tenant", &loraDownlinkMessagePort, &gnssDataLogMessagePort};
 
-    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr.c_str(), sensorModuleTelemetryPort, &loraBroadcastMessagePort};
-    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr.c_str(), powerModuleTelemetryPort, &loraBroadcastMessagePort};
+    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr.c_str(), sensorModuleTelemetryPort, &loraDownlinkMessagePort};
+    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr.c_str(), powerModuleTelemetryPort, &loraDownlinkMessagePort};
     CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(rtc, CIPv4(ipAddrStr.c_str()));
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
-    CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
+    CLoraTenant loraTenant{lora, loraDownlinkMessagePort};
 #endif
     CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
     CStateMachineUpdater stateMachineUpdater;
