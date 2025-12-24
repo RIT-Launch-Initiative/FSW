@@ -36,7 +36,7 @@ public:
      */
     void Run() override;
 
-    void RevertFrequency();
+    void RequestRevertFrequency();
 
 private:
     /**
@@ -53,6 +53,10 @@ private:
      */
     bool sendFrequencyCommand(float freqMhz);
 
+    void revertFrequency();
+
+
+
     CLora& lora;
     CUdpSocket udp;
     CMessagePort<LaunchLoraFrame>& downlinkMessagePort;
@@ -61,6 +65,7 @@ private:
     const uint16_t commandUdpPort;
     const k_timeout_t rxTimeout;
     CSoftTimer ackTimer;
+    bool revertFrequencyRequested = false;
 };
 
 #endif // C_LORA_FREQ_CHANGE_TENANT_H

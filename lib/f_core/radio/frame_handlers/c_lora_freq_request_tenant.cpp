@@ -9,7 +9,7 @@ LOG_MODULE_REGISTER(CLoraFreqChangeTenant);
 static void ackTimeoutCallback(struct k_timer* timer) {
     LOG_WRN("LoRa frequency change ACK not received within timeout");
     auto* tenant = static_cast<CLoraFreqRequestTenant*>(k_timer_user_data_get(timer));
-    tenant->RevertFrequency();
+    tenant->RequestRevertFrequency();
 }
 
 
@@ -38,6 +38,12 @@ void CLoraFreqRequestTenant::HandleFrame(const LaunchLoraFrame& frame) {
 }
 
 void CLoraFreqRequestTenant::Run() {
+    if (revertFrequencyRequested) {
+        revertFrequencyRequested = false;
+        revertFrequency();
+        return;
+    }
+
     float freqMhz = 0.0f;
     if (!receiveCommand(freqMhz)) {
         return;
@@ -74,6 +80,11 @@ void CLoraFreqRequestTenant::Run() {
     ackTimer.StartTimer(rxTimeout);
 }
 
+void CLoraFreqRequestTenant::RequestRevertFrequency() {
+    revertFrequencyRequested = true;
+    ackTimer.StopTimer();
+}
+
 bool CLoraFreqRequestTenant::receiveCommand(float& freqMhz) {
     uint32_t received = 0;
 
@@ -106,7 +117,7 @@ bool CLoraFreqRequestTenant::sendFrequencyCommand(const float freqMhz) {
     return ret == 0;
 }
 
-void CLoraFreqRequestTenant::RevertFrequency() {
+void CLoraFreqRequestTenant::revertFrequency() {
     if (prevFreqMhz == 0.0f) {
         LOG_WRN("No previous frequency to revert to");
         return;
