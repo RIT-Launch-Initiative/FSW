@@ -18,13 +18,13 @@ void CReceiverModule::AddTenantsToTasks() {
     // Networking
     networkingTask.AddTenant(commandListenerTenant);
     networkingTask.AddTenant(dataRequestListenerTenant);
-    networkingTask.AddTenant(freqChangeTenant);
 
     // LoRa
     loraTenant.SetToGround();
-    loraTenant.RegisterFrameHandler(radioModuleCommandAckPort, freqChangeTenant.AckHandler());
+    loraTenant.RegisterFrameHandler(radioModuleCommandAckPort, freqRequestTenant.AckHandler());
     loraTenant.RegisterDefaultFrameHandler(loraToUdpHandler);
     loraTask.AddTenant(loraTenant);
+    loraTask.AddTenant(freqRequestTenant);
 }
 
 void CReceiverModule::AddTasksToRtos() {

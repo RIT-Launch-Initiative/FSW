@@ -57,13 +57,9 @@ private:
     // Tenants
     CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
 
-    CLoraFreqRequestTenant freqChangeTenant{
-        ipAddrStr.c_str(),
-        radioModuleFrequencyCommandPort,
-        radioModuleCommandAckPort,
-        loraBroadcastMessagePort,
-        lora,
-        5000};
+    CLoraFreqRequestTenant freqRequestTenant{
+        ipAddrStr.c_str(), lora, radioModuleFrequencyCommandPort, loraBroadcastMessagePort, K_SECONDS(15)
+    };
 
     CUdpListenerTenant commandListenerTenant{
         "Radio Module Command Listener Tenant", ipAddrStr.c_str(), radioModuleCommandPort, &loraBroadcastMessagePort
