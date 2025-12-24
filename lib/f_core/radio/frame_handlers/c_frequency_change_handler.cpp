@@ -5,19 +5,17 @@
 LOG_MODULE_REGISTER(CFrequencyChangeHandler);
 
 void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
-    if (frame.Size != sizeof(uint32_t)) {
+    if (frame.Size != sizeof(float)) {
         LOG_WRN("Frequency change frame size invalid (%d)", frame.Size);
         return;
     }
 
-    uint32_t newFrequency = 0;
-    for (size_t i = 0; i < sizeof(uint32_t); ++i) {
-        newFrequency |= static_cast<uint32_t>(frame.Payload[i]) << (8 * i);
-    }
+    float newFrequencyMhz = 0.0f;
+    memcpy(&newFrequencyMhz, frame.Payload, sizeof(float));
 
-    LOG_INF("Changing frequency to %u Hz", newFrequency);
-    if (!lora.SetFrequency(newFrequency)) {
-        LOG_ERR("Failed to set new frequency %u Hz", newFrequency);
+    LOG_INF("Changing frequency to %f Hz", newFrequencyMhz);
+    if (!lora.SetFrequency(newFrequencyMhz)) {
+        LOG_ERR("Failed to set new frequency %f Hz", newFrequencyMhz);
         return;
     }
 
@@ -25,6 +23,14 @@ void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
     LaunchLoraFrame ackFrame{};
     ackFrame.Port = frame.Port;
     ackFrame.Size = 0; // No payload for acknowledgment
+
+    // Clear out the downlink message port before sending acknowledgment
+    // Safe to do this since we can re-request telem if needed on pad/landing
+    // And we shouldn't be changing frequency when the rocket is literally flying
+    loraDownlinkMessagePort.Clear();
+
+    // TODO: Should probably make the frequency persistent though...
+
     int ret = loraDownlinkMessagePort.Send(ackFrame, K_NO_WAIT);
     if (ret < 0) {
         LOG_ERR("Failed to send frequency change acknowledgment (%d)", ret);
