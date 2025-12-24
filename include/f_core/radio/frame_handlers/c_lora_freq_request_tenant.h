@@ -11,7 +11,7 @@
 
 #include "f_core/utils/c_soft_timer.h"
 
-class CLoraFreqChangeTenant : public CRunnableTenant, public CLoraFrameHandler {
+class CLoraFreqRequestTenant : public CRunnableTenant, public CLoraFrameHandler {
 public:
     /**
      * @param ipStr IP to bind the UDP socket
@@ -20,7 +20,7 @@ public:
      * @param downlinkMessagePort Message port used to queue LaunchLoraFrame for downlink
      * @param rxTimeout Timeout waiting for LoRa ACK in millis
      */
-    CLoraFreqChangeTenant(const char* ipStr,
+    CLoraFreqRequestTenant(const char* ipStr,
                           CLora& lora,
                           const uint16_t commandUdpPort,
                           CMessagePort<LaunchLoraFrame>& downlinkMessagePort,

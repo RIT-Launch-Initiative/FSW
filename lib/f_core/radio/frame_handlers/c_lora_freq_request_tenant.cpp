@@ -1,4 +1,4 @@
-#include "../../../../include/f_core/radio/frame_handlers/c_lora_freq_change_tenant.h"
+#include "../../../../include/f_core/radio/frame_handlers/c_lora_freq_request_tenant.h"
 
 #include <cerrno>
 #include <cstring>
@@ -8,12 +8,12 @@ LOG_MODULE_REGISTER(CLoraFreqChangeTenant);
 
 static void ackTimeoutCallback(struct k_timer* timer) {
     LOG_WRN("LoRa frequency change ACK not received within timeout");
-    auto* tenant = static_cast<CLoraFreqChangeTenant*>(k_timer_user_data_get(timer));
+    auto* tenant = static_cast<CLoraFreqRequestTenant*>(k_timer_user_data_get(timer));
     tenant->RevertFrequency();
 }
 
 
-CLoraFreqChangeTenant::CLoraFreqChangeTenant(const char* ipStr,
+CLoraFreqRequestTenant::CLoraFreqRequestTenant(const char* ipStr,
                                              CLora& lora,
                                              const uint16_t commandUdpPort,
                                              CMessagePort<LaunchLoraFrame>& loraDownlinkPort,
@@ -28,7 +28,7 @@ CLoraFreqChangeTenant::CLoraFreqChangeTenant(const char* ipStr,
     ackTimer.SetUserData(this);
 }
 
-void CLoraFreqChangeTenant::HandleFrame(const LaunchLoraFrame& frame) {
+void CLoraFreqRequestTenant::HandleFrame(const LaunchLoraFrame& frame) {
     if (frame.Port != commandUdpPort) {
         return;
     }
@@ -37,7 +37,7 @@ void CLoraFreqChangeTenant::HandleFrame(const LaunchLoraFrame& frame) {
     ackTimer.StopTimer();
 }
 
-void CLoraFreqChangeTenant::Run() {
+void CLoraFreqRequestTenant::Run() {
     float freqMhz = 0.0f;
     if (!receiveCommand(freqMhz)) {
         return;
@@ -67,7 +67,7 @@ void CLoraFreqChangeTenant::Run() {
     ackTimer.StartTimer(rxTimeout);
 }
 
-bool CLoraFreqChangeTenant::receiveCommand(float& freqMhz) {
+bool CLoraFreqRequestTenant::receiveCommand(float& freqMhz) {
     const int rcvResult = udp.ReceiveAsynchronous(&freqMhz, sizeof(float));
     if (rcvResult != sizeof(float)) {
         if (rcvResult > 0) {
@@ -78,7 +78,7 @@ bool CLoraFreqChangeTenant::receiveCommand(float& freqMhz) {
     return true;
 }
 
-bool CLoraFreqChangeTenant::sendFrequencyCommand(const float freqMhz) {
+bool CLoraFreqRequestTenant::sendFrequencyCommand(const float freqMhz) {
     LaunchLoraFrame frame{};
     frame.Port = commandUdpPort;
     frame.Size = sizeof(float);
@@ -93,7 +93,7 @@ bool CLoraFreqChangeTenant::sendFrequencyCommand(const float freqMhz) {
     return ret == 0;
 }
 
-void CLoraFreqChangeTenant::RevertFrequency() {
+void CLoraFreqRequestTenant::RevertFrequency() {
     if (prevFreqMhz == 0.0f) {
         LOG_WRN("No previous frequency to revert to");
         return;
