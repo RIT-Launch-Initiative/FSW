@@ -48,9 +48,9 @@ void CLoraFreqRequestTenant::Run() {
     // Executes after queuing a frequency change and finishing a Run cycle
     if (freqMhzRequested != 0.0f) {
         if (lora.SetFrequency(freqMhzRequested) != 0) {
-            LOG_ERR("Local frequency change to %f MHz failed", static_cast<double>(freqMhz));
+            LOG_ERR("Local frequency change to %f MHz failed", static_cast<double>(freqMhzRequested));
         } else {
-            LOG_INF("Changed LoRa frequency to %f MHz, waiting for ACK...", static_cast<double>(freqMhz));
+            LOG_INF("Changed LoRa frequency to %f MHz, waiting for ACK...", static_cast<double>(freqMhzRequested));
             ackTimer.StartTimer(rxTimeout);
         }
 
