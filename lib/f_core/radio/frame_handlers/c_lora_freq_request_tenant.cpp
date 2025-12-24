@@ -18,7 +18,7 @@ CLoraFreqRequestTenant::CLoraFreqRequestTenant(const char* ipStr,
                                              const uint16_t commandUdpPort,
                                              CMessagePort<LaunchLoraFrame>& loraDownlinkPort,
                                              const k_timeout_t rxTimeout)
-    : CRunnableTenant(name),
+    : CRunnableTenant("LoRa Frequency Request Tenant"),
       lora(lora),
       udp(CUdpSocket{CIPv4(ipStr), commandUdpPort, commandUdpPort}),
       downlinkMessagePort(loraDownlinkPort),
