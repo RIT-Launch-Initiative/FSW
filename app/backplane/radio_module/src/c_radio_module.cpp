@@ -25,6 +25,7 @@ void CRadioModule::AddTenantsToTasks() {
 
 #ifndef CONFIG_ARCH_POSIX
     // LoRa
+    loraTask.AddTenant(downlinkSchedulerTenant);
     loraTask.AddTenant(loraTenant);
 
 #endif
