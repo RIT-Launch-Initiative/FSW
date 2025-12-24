@@ -14,8 +14,16 @@ void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
     memcpy(&newFrequencyMhz, frame.Payload, sizeof(float));
 
     LOG_INF("Changing frequency to %f Hz", static_cast<double>(newFrequencyMhz));
-    if (!lora.SetFrequency(newFrequencyMhz)) {
-        LOG_ERR("Failed to set new frequency %f Hz", static_cast<double>(newFrequencyMhz));
+    int ret = lora.SetFrequency(newFrequencyMhz);
+
+    // TODO: Do below and avoid racing :)
+    // A -> B frequency change
+    // A -> B ACK
+    // B -> A ACK
+    k_msleep(3000);
+
+    if (ret != 0) {
+        LOG_ERR("Failed to set new frequency %f Hz (%d)", static_cast<double>(newFrequencyMhz), ret);
         return;
     }
 
@@ -30,8 +38,7 @@ void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
     loraDownlinkMessagePort.Clear();
 
     // TODO: Should probably make the frequency persistent though...
-
-    int ret = loraDownlinkMessagePort.Send(ackFrame, K_NO_WAIT);
+    ret = loraDownlinkMessagePort.Send(ackFrame, K_NO_WAIT);
     if (ret < 0) {
         LOG_ERR("Failed to send frequency change acknowledgment (%d)", ret);
     }
