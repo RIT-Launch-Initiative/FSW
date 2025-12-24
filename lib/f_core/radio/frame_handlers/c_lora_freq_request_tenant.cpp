@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(CLoraFreqChangeTenant);
+LOG_MODULE_REGISTER(CLoraFreqRequestTenant);
 
 static void ackTimeoutCallback(struct k_timer* timer) {
     LOG_WRN("LoRa frequency change ACK not received within timeout");

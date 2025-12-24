@@ -52,7 +52,7 @@ protected:
 
     virtual void FlightExit() {}
 
-    virtual void LandedEntry() {};
+    virtual void LandedEntry() {}
 
     virtual void LandedRun() = 0;
 

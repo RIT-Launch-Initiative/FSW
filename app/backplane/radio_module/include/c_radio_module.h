@@ -122,9 +122,9 @@ private:
     CStateMachineUpdater stateMachineUpdater;
 
     // LoRa Handlers
-    CRemoteGpioHandler remoteGpioHandler;
+    CRemoteGpioHandler remoteGpioHandler{loraDownlinkMessagePort};
     CLoraFrameToUdpHandler loraToUdpHandler{
-        ipAddrStr.c_str(), radioModuleSourcePort,
+        ipAddrStr.c_str(), radioModuleSourcePort
     };
     CFrequencyChangeHandler frequencyChangeHandler{
         lora, loraDownlinkMessagePort,

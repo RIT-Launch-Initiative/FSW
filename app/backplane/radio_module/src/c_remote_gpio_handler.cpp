@@ -39,6 +39,10 @@ void CRemoteGpioHandler::transmitStatus() const {
         .Size = sizeof(uint8_t),
     };
     statusFrame.Payload[0] = statusByte;
-    LOG_INF("Transmitted GPIO status byte: 0x%02X", statusByte);
-    // TODO: Send over message
+    const int ret = loraDownlinkMessagePort.Send(statusFrame, K_NO_WAIT);
+    if (ret < 0) {
+        LOG_ERR("Failed to send GPIO status frame (%d)", ret);
+    } else {
+        LOG_INF("Transmitted GPIO status byte: 0x%02X", statusByte);
+    }
 }

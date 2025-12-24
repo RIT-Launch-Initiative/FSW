@@ -70,7 +70,7 @@ private:
     };
 
     CLoraFrameToUdpHandler loraToUdpHandler{
-        ipAddrStr.c_str(), radioModuleSourcePort,
+        ipAddrStr.c_str(), radioModuleSourcePort
     };
 
     // Tasks

@@ -6,16 +6,14 @@
 
 class CFrequencyChangeHandler : public CLoraFrameHandler {
 public:
-    CFrequencyChangeHandler(CLora& lora, CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort,
-                            const uint16_t ackPort) :
-        lora(lora), loraDownlinkMessagePort(loraDownlinkMessagePort), ackPort(ackPort) {}
+    CFrequencyChangeHandler(CLora& lora, CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort) :
+        lora(lora), loraDownlinkMessagePort(loraDownlinkMessagePort) {}
 
     void HandleFrame(const LaunchLoraFrame& frame) override;
 
 private:
     CLora& lora;
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
-    const uint16_t ackPort;
 };
 
 #endif //C_FREQUENCY_CHANGE_HANDLER_H

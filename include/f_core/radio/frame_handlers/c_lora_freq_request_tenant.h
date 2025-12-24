@@ -1,5 +1,5 @@
-#ifndef C_LORA_FREQ_CHANGE_TENANT_H
-#define C_LORA_FREQ_CHANGE_TENANT_H
+#ifndef C_LORA_FREQ_REQUEST_TENANT_H
+#define C_LORA_FREQ_REQUEST_TENANT_H
 
 #include <f_core/os/c_runnable_tenant.h>
 #include <f_core/messaging/c_message_port.h>
@@ -72,5 +72,5 @@ private:
 
 };
 
-#endif // C_LORA_FREQ_CHANGE_TENANT_H
+#endif // C_LORA_FREQ_REQUEST_TENANT_H
 

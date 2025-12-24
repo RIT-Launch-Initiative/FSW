@@ -8,6 +8,9 @@
 
 class CRemoteGpioHandler : public CLoraFrameHandler {
 public:
+    explicit CRemoteGpioHandler(CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort)
+        : loraDownlinkMessagePort(loraDownlinkMessagePort) {}
+
     /**
      * Handle incoming GPIO command frame
      * @param frame Frame containing GPIO command
@@ -21,6 +24,8 @@ private:
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
         CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
     };
+
+    CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
 
     /**
      * Set GPIO states based on command byte
