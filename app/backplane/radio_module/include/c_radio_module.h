@@ -53,7 +53,7 @@ private:
     static constexpr uint16_t radioModuleSourcePort = NNetworkDefs::RADIO_BASE_PORT;
     static constexpr uint16_t powerModuleTelemetryPort = NNetworkDefs::POWER_MODULE_DOWNLINK_DATA_PORT;
     static constexpr uint16_t sensorModuleTelemetryPort = NNetworkDefs::SENSOR_MODULE_DOWNLINK_DATA_PORT;
-    static constexpr uint16_t gnssTelemetryPort = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT
+    static constexpr uint16_t gnssTelemetryPort = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
 
     // Devices
 #ifndef CONFIG_ARCH_POSIX
@@ -73,9 +73,21 @@ private:
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &loraDownlinkMessagePort, &gnssDataLogMessagePort};
 
-    CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr.c_str(), sensorModuleTelemetryPort, &loraDownlinkMessagePort};
-    CUdpListenerTenant powerModuleListenerTenant{"Power Module Listener Tenant", ipAddrStr.c_str(), powerModuleTelemetryPort, &loraDownlinkMessagePort};
+    CUdpListenerTenant sensorModuleListenerTenant{
+        "Sensor Module Listener Tenant",
+        ipAddrStr.c_str(),
+        sensorModuleTelemetryPort,
+        &telemetryMessagePortMap.Get(sensorModuleTelemetryPort).value()
+    };
+
+    CUdpListenerTenant powerModuleListenerTenant{
+        "Power Module Listener Tenant", ipAddrStr.c_str(),
+        powerModuleTelemetryPort,
+        &telemetryMessagePortMap.Get(powerModuleTelemetryPort).value()
+    };
+
     CSntpServerTenant sntpServerTenant = *CSntpServerTenant::GetInstance(rtc, CIPv4(ipAddrStr.c_str()));
+
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
