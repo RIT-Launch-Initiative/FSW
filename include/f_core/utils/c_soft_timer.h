@@ -13,6 +13,12 @@ public:
         k_timer_init(&timer, expirationFn, stopFn);
     }
 
+    // Make the timer non-copyable and non-movable
+    CSoftTimer(const CSoftTimer&) = delete;
+    CSoftTimer& operator=(const CSoftTimer&) = delete;
+    CSoftTimer(CSoftTimer&&) = delete;
+    CSoftTimer& operator=(CSoftTimer&&) = delete;
+
     /**
     * Destructor
     */
