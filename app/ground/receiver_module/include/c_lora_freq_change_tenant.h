@@ -9,6 +9,8 @@
 #include <f_core/net/transport/c_udp_socket.h>
 #include <zephyr/kernel.h>
 
+#include "f_core/utils/c_soft_timer.h"
+
 class CLoraFreqChangeTenant : public CRunnableTenant, public CLoraFrameHandler {
 public:
     /**
@@ -34,6 +36,8 @@ public:
      */
     void Run() override;
 
+    void RevertFrequency();
+
 private:
     bool receiveCommand(float& freqMhz);
     bool sendFrequencyCommand(float freqMhz);
@@ -45,6 +49,7 @@ private:
     float prevFreqMhz = 0.0f;
     const uint16_t commandUdpPort;
     const k_timeout_t rxTimeout;
+    CSoftTimer ackTimer;
 };
 
 #endif // C_LORA_FREQ_CHANGE_TENANT_H

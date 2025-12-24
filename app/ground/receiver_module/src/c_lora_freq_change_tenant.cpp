@@ -6,6 +6,13 @@
 
 LOG_MODULE_REGISTER(CLoraFreqChangeTenant);
 
+static void ackTimeoutCallback(struct k_timer* timer) {
+    LOG_WRN("LoRa frequency change ACK not received within timeout");
+    auto* tenant = static_cast<CLoraFreqChangeTenant*>(k_timer_user_data_get(timer));
+    tenant->RevertFrequency();
+}
+
+
 CLoraFreqChangeTenant::CLoraFreqChangeTenant(const char* ipStr,
                                              CLora& lora,
                                              const uint16_t commandUdpPort,
@@ -16,7 +23,10 @@ CLoraFreqChangeTenant::CLoraFreqChangeTenant(const char* ipStr,
       udp(CUdpSocket{CIPv4(ipStr), commandUdpPort, commandUdpPort}),
       downlinkMessagePort(loraDownlinkPort),
       commandUdpPort(commandUdpPort),
-      rxTimeout(rxTimeout) {}
+      rxTimeout(rxTimeout),
+      ackTimer(ackTimeoutCallback, nullptr) {
+    ackTimer.SetUserData(this);
+}
 
 void CLoraFreqChangeTenant::Run() {
     float freqMhz = 0.0f;
@@ -39,7 +49,8 @@ void CLoraFreqChangeTenant::Run() {
         return;
     }
 
-    // TODO: CSoftTimer + Callback
+    LOG_INF("Changed LoRa frequency to %f MHz, waiting for ACK...", static_cast<double>(freqMhz));
+    ackTimer.StartTimer(rxTimeout);
 }
 
 bool CLoraFreqChangeTenant::receiveCommand(float& freqMhz) {
@@ -68,4 +79,17 @@ bool CLoraFreqChangeTenant::sendFrequencyCommand(const float freqMhz) {
     return ret == 0;
 }
 
+void CLoraFreqChangeTenant::RevertFrequency() {
+    if (prevFreqMhz == 0.0f) {
+        LOG_WRN("No previous frequency to revert to");
+        return;
+    }
+
+    if (lora.SetFrequency(prevFreqMhz) != 0) {
+        LOG_ERR("Failed to revert to previous frequency %f MHz", static_cast<double>(prevFreqMhz));
+        return;
+    }
+
+    LOG_INF("Reverted to previous frequency %f MHz", static_cast<double>(prevFreqMhz));
+}
 
