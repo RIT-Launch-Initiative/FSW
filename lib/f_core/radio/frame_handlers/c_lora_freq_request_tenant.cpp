@@ -2,6 +2,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <arpa/inet.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CLoraFreqChangeTenant);
@@ -46,26 +47,30 @@ void CLoraFreqRequestTenant::Run() {
     }
 
     // Executes after queuing a frequency change and finishing a Run cycle
-    if (freqMhzRequested != 0.0f) {
-        if (lora.SetFrequency(freqMhzRequested) != 0) {
-            LOG_ERR("Local frequency change to %f MHz failed", static_cast<double>(freqMhzRequested));
+    if (freqHzRequested != 0) {
+        const float freqMhz = static_cast<float>(freqHzRequested) / 1'000'000.0f;
+        if (lora.SetFrequency(freqHzRequested) != 0) {
+            LOG_ERR("Local frequency change to %f MHz failed", static_cast<double>(freqMhz));
         } else {
-            LOG_INF("Changed LoRa frequency to %f MHz, waiting for ACK...", static_cast<double>(freqMhzRequested));
+            LOG_INF("Changed LoRa frequency to %f MHz, waiting for ACK", static_cast<double>(freqMhz));
             ackTimer.StartTimer(rxTimeout);
         }
 
-        freqMhzRequested = 0.0f;
+        freqHzRequested = 0;
         return;
     }
 
-    float freqMhz = 0.0f;
-    if (!receiveCommand(freqMhz)) {
+    uint32_t freqHz = 0;
+    if (!receiveCommand(freqHz)) {
         return;
     }
 
-    prevFreqMhz = lora.GetFrequencyMhz();
-    if (freqMhz == prevFreqMhz) {
-        LOG_INF("Received frequency %f MHz is the same as current frequency, no change needed", static_cast<double>(freqMhz));
+    prevFreqHz = lora.GetFrequencyHz();
+    prevFreqMhz = static_cast<float>(prevFreqHz) / 1'000'000.0f;
+
+    if (freqHz == prevFreqHz) {
+        LOG_INF("Received frequency %f MHz is the same as current frequency, no change needed",
+                static_cast<double>(prevFreqMhz));
         return;
     }
 
@@ -73,19 +78,21 @@ void CLoraFreqRequestTenant::Run() {
     downlinkMessagePort.Clear();
 
     // Validate frequency range before sending command
-    bool within915 = (freqMhz >= 902.0f && freqMhz <= 928.0f);
-    bool within433 = (freqMhz >= 410.0f && freqMhz <= 525.0f);
+    const bool within915 = (freqHz >= 902'000'000u && freqHz <= 928'000'000u);
+    const bool within433 = (freqHz >= 410'000'000u && freqHz <= 525'000'000u);
     if (!within915 && !within433) {
-        LOG_WRN("Requested frequency %f MHz is out of valid ranges (902-928 MHz or 410-525 MHz)", static_cast<double>(freqMhz));
+        const float freqMhz = static_cast<float>(freqHz) / 1'000'000.0f;
+        LOG_WRN("Requested frequency %f MHz is out of valid ranges (902-928 MHz or 410-525 MHz)",
+                static_cast<double>(freqMhz));
         return;
     }
 
-    if (!sendFrequencyCommand(freqMhz)) {
+    if (!sendFrequencyCommand(freqHz)) {
         LOG_WRN("Failed to queue LoRa frequency change command");
         return;
     }
 
-    freqMhzRequested = freqMhz;
+    freqHzRequested = freqHz;
 }
 
 void CLoraFreqRequestTenant::RequestRevertFrequency() {
@@ -93,28 +100,39 @@ void CLoraFreqRequestTenant::RequestRevertFrequency() {
     ackTimer.StopTimer();
 }
 
-bool CLoraFreqRequestTenant::receiveCommand(float& freqMhz) {
-    uint32_t received = 0;
+bool CLoraFreqRequestTenant::receiveCommand(uint32_t& freqHz) {
+    uint32_t networkOrder = 0;
 
-    const int rcv = udp.ReceiveAsynchronous(&received, sizeof(received));
-    if (rcv != sizeof(received)) {
+    const int rcv = udp.ReceiveAsynchronous(&networkOrder, sizeof(networkOrder));
+    if (rcv != sizeof(networkOrder)) {
         if (rcv > 0) {
-            LOG_WRN("Unexpected command size %d (expected %zu)", rcv, sizeof(received));
+            LOG_WRN("Unexpected command size %d (expected %zu)", rcv, sizeof(networkOrder));
         }
         return false;
     }
 
-    const uint32_t hostOrder = ntohl(received);
-    static_assert(sizeof(hostOrder) == sizeof(freqMhz));
+    const uint32_t hostOrder = ntohl(networkOrder);
+    float freqMhz = 0.0f;
     memcpy(&freqMhz, &hostOrder, sizeof(freqMhz));
+
+    if (freqMhz <= 0.0f) {
+        LOG_WRN("Received non-positive frequency %f MHz", static_cast<double>(freqMhz));
+        return false;
+    }
+
+    freqHz = static_cast<uint32_t>(freqMhz * 1'000'000.0f);
     return true;
 }
 
-bool CLoraFreqRequestTenant::sendFrequencyCommand(const float freqMhz) {
+bool CLoraFreqRequestTenant::sendFrequencyCommand(const uint32_t freqHz) {
+    const float freqMhz = static_cast<float>(freqHz) / 1'000'000.0f;
+
     LaunchLoraFrame frame{};
     frame.Port = commandUdpPort;
-    frame.Size = sizeof(float);
-    memcpy(frame.Payload, &freqMhz, sizeof(float));
+    frame.Size = sizeof(uint32_t);
+
+    const uint32_t networkOrder = htonl(freqHz);
+    memcpy(frame.Payload, &networkOrder, sizeof(networkOrder));
 
     const int ret = downlinkMessagePort.Send(frame, K_NO_WAIT);
     if (ret == -ENOMSG) {
@@ -122,20 +140,23 @@ bool CLoraFreqRequestTenant::sendFrequencyCommand(const float freqMhz) {
         downlinkMessagePort.Clear();
         return downlinkMessagePort.Send(frame, K_NO_WAIT) == 0;
     }
+    if (ret != 0) {
+        LOG_ERR("Failed to queue frequency command %f MHz (%d)", static_cast<double>(freqMhz), ret);
+    }
     return ret == 0;
 }
 
 void CLoraFreqRequestTenant::revertFrequency() {
-    if (prevFreqMhz == 0.0f) {
+    if (prevFreqHz == 0) {
         LOG_WRN("No previous frequency to revert to");
         return;
     }
 
-    if (lora.SetFrequency(prevFreqMhz) != 0) {
-        LOG_ERR("Failed to revert to previous frequency %f MHz", static_cast<double>(prevFreqMhz));
+    if (lora.SetFrequency(prevFreqHz) != 0) {
+        const float prevMhz = static_cast<float>(prevFreqHz) / 1'000'000.0f;
+        LOG_ERR("Failed to revert to previous frequency %f MHz", static_cast<double>(prevMhz));
         return;
     }
 
     LOG_INF("Reverted to previous frequency %f MHz", static_cast<double>(prevFreqMhz));
 }
-

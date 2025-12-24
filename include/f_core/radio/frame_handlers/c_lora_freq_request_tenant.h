@@ -41,17 +41,17 @@ public:
 private:
     /**
      * Receive a frequency change command over UDP
-     * @param freqMhz Reference to store received frequency in MHz
+     * @param freqHz Reference to store received frequency in Hz
      * @return True if a command was received, false otherwise
      */
-    bool receiveCommand(float& freqMhz);
+    bool receiveCommand(uint32_t& freqHz);
 
     /**
      * Transmit frequency change command over LoRa
-     * @param freqMhz Frequency in MHz to send command for
+     * @param freqHz Frequency in Hz to send command for
      * @return True if command was sent successfully, false otherwise
      */
-    bool sendFrequencyCommand(float freqMhz);
+    bool sendFrequencyCommand(uint32_t freqHz);
 
     void revertFrequency();
 
@@ -62,7 +62,8 @@ private:
     CMessagePort<LaunchLoraFrame>& downlinkMessagePort;
 
     float prevFreqMhz = 0.0f;
-    float freqMhzRequested = 0.0f;
+    uint32_t prevFreqHz = 0;
+    uint32_t freqHzRequested = 0;
 
     const uint16_t commandUdpPort;
     const k_timeout_t rxTimeout;

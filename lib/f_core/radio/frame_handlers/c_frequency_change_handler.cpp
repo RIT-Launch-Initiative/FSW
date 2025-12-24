@@ -1,35 +1,32 @@
 #include "f_core/radio/frame_handlers/c_frequency_change_handler.h"
 
 #include "zephyr/logging/log.h"
+#include <arpa/inet.h>
+#include <cstring>
 
 LOG_MODULE_REGISTER(CFrequencyChangeHandler);
 
 void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
-    if (frame.Size != sizeof(float)) {
+    if (frame.Size != sizeof(uint32_t)) {
         LOG_WRN("Frequency change frame size invalid (%d)", frame.Size);
         return;
     }
 
-    float newFrequencyMhz = 0.0f;
-    memcpy(&newFrequencyMhz, frame.Payload, sizeof(float));
+    uint32_t freqNetworkOrder = 0;
+    memcpy(&freqNetworkOrder, frame.Payload, sizeof(freqNetworkOrder));
+    const uint32_t freqHz = ntohl(freqNetworkOrder);
+    const float freqMhz = static_cast<float>(freqHz) / 1'000'000.0f;
 
-    LOG_INF("Changing frequency to %f Hz", static_cast<double>(newFrequencyMhz));
-    int ret = lora.SetFrequency(newFrequencyMhz);
-
-    // TODO: Do below and avoid racing :)
-    // A -> B frequency change
-    // A -> B ACK
-    // B -> A ACK
-    k_msleep(5000);
+    LOG_INF("Changing frequency to %f MHz", static_cast<double>(freqMhz));
+    const int ret = lora.SetFrequency(freqHz);
 
     if (ret != 0) {
-        LOG_ERR("Failed to set new frequency %f Hz (%d)", static_cast<double>(newFrequencyMhz), ret);
+        LOG_ERR("Failed to set new frequency %f MHz (%d)", static_cast<double>(freqMhz), ret);
         return;
     }
 
-    // Acknowledge frequency change
     LaunchLoraFrame ackFrame{};
-    ackFrame.Port = frame.Port;
+    ackFrame.Port = ackPort;
     ackFrame.Size = 0; // No payload for acknowledgment
 
     // Clear out the downlink message port before sending acknowledgment
@@ -37,9 +34,8 @@ void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
     // And we shouldn't be changing frequency when the rocket is literally flying
     loraDownlinkMessagePort.Clear();
 
-    // TODO: Should probably make the frequency persistent though...
-    ret = loraDownlinkMessagePort.Send(ackFrame, K_NO_WAIT);
-    if (ret < 0) {
-        LOG_ERR("Failed to send frequency change acknowledgment (%d)", ret);
+    const int sendRet = loraDownlinkMessagePort.Send(ackFrame, K_NO_WAIT);
+    if (sendRet < 0) {
+        LOG_ERR("Failed to send frequency change acknowledgment (%d)", sendRet);
     }
 }
