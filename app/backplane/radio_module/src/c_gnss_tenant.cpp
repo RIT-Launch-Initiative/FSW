@@ -81,7 +81,7 @@ void CGnssTenant::Run() {
 }
 
 void CGnssTenant::sendGnssToLora() const {
-    NTypes::LoRaBroadcastData broadcastData{0};
+    LaunchLoraFrame broadcastData{0};
     NTypes::GnssBroadcastPacket broadcastPacket {
         .Coordinates = gnssData.Coordinates,
         .SatelliteCount = gnssData.Info.SatelliteCount,

@@ -32,7 +32,7 @@ void CPadFlightLandedStateMachine::Clock() {
         state = State::GROUND;
         break;
     case State::GROUND:
-        // Do nothing or reset
+        GroundRun();
         break;
     }
 }

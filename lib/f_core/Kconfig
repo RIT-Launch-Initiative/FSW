@@ -39,6 +39,7 @@ config F_CORE_RADIO
     bool "Radio"
     help
       This option enables radio functionality for F-Core
+    select F_CORE_STATE_MACHINE
 
 config F_CORE_STATE_MACHINE
     bool "State Machine"

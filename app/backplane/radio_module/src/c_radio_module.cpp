@@ -3,11 +3,10 @@
 // F-Core Tenant
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
-#include <f_core/messaging/c_latest_message_port.h>
 #include <zephyr/drivers/gnss.h>
 
-K_MSGQ_DEFINE(loraBroadcastQueue, sizeof(NTypes::LoRaBroadcastData), 10, 4);
-static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastData>(loraBroadcastQueue);
+K_MSGQ_DEFINE(loraBroadcastQueue, sizeof(LaunchLoraFrame), 10, 4);
+static auto loraBroadcastMsgQueue = CMsgqMessagePort<LaunchLoraFrame>(loraBroadcastQueue);
 
 K_MSGQ_DEFINE(gnssDataLogQueue, sizeof(NTypes::GnssData), 10, 4);
 static auto gnssLogMsgQueue = CMsgqMessagePort<NTypes::GnssData>(gnssDataLogQueue);
@@ -26,8 +25,8 @@ void CRadioModule::AddTenantsToTasks() {
 
 #ifndef CONFIG_ARCH_POSIX
     // LoRa
-    loraTask.AddTenant(loraTransmitTenant);
-    loraTask.AddTenant(loraReceiveTenant);
+    loraTask.AddTenant(loraTenant);
+
 #endif
     // Data Logging
     dataLoggingTask.AddTenant(dataLoggerTenant);

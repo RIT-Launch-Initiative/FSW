@@ -21,6 +21,10 @@ public:
 
     CPadFlightLandedStateMachine();
 
+    void SetToGround() {
+        state = State::GROUND;
+    }
+
 protected:
     State state;
 
@@ -43,6 +47,8 @@ protected:
     virtual void FlightRun() = 0;
 
     virtual void LandedRun() = 0;
+
+    virtual void GroundRun() = 0;
 
 private:
     bool boostDetected;
