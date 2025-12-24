@@ -75,13 +75,19 @@ void CLoraFreqRequestTenant::Run() {
 }
 
 bool CLoraFreqRequestTenant::receiveCommand(float& freqMhz) {
-    const int rcvResult = udp.ReceiveAsynchronous(&freqMhz, sizeof(float));
-    if (rcvResult != sizeof(float)) {
-        if (rcvResult > 0) {
-            LOG_WRN("Unexpected command size %d (expected %zu)", rcvResult, sizeof(float));
+    uint32_t received = 0;
+
+    const int rcv = udp.ReceiveAsynchronous(&received, sizeof(received));
+    if (rcv != sizeof(received)) {
+        if (rcv > 0) {
+            LOG_WRN("Unexpected command size %d (expected %zu)", rcv, sizeof(received));
         }
         return false;
     }
+
+    const uint32_t hostOrder = ntohl(received);
+    static_assert(sizeof(hostOrder) == sizeof(freqMhz));
+    memcpy(&freqMhz, &hostOrder, sizeof(freqMhz));
     return true;
 }
 
