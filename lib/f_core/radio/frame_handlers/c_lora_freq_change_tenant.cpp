@@ -1,4 +1,4 @@
-#include "c_lora_freq_change_tenant.h"
+#include "../../../../include/f_core/radio/frame_handlers/c_lora_freq_change_tenant.h"
 
 #include <cerrno>
 #include <cstring>

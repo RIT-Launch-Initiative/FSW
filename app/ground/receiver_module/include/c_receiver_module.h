@@ -2,7 +2,7 @@
 #define C_RECEIVER_MODULE_H
 
 #include "c_udp_listener_tenant.h"
-#include "c_lora_freq_change_tenant.h"
+#include "../../../../include/f_core/radio/frame_handlers/c_lora_freq_change_tenant.h"
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>

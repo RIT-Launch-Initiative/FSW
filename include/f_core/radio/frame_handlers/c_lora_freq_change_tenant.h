@@ -39,7 +39,18 @@ public:
     void RevertFrequency();
 
 private:
+    /**
+     * Receive a frequency change command over UDP
+     * @param freqMhz Reference to store received frequency in MHz
+     * @return True if a command was received, false otherwise
+     */
     bool receiveCommand(float& freqMhz);
+
+    /**
+     * Transmit frequency change command over LoRa
+     * @param freqMhz Frequency in MHz to send command for
+     * @return True if command was sent successfully, false otherwise
+     */
     bool sendFrequencyCommand(float freqMhz);
 
     CLora& lora;
