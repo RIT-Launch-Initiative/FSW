@@ -63,6 +63,11 @@ void CDownlinkSchedulerTenant::PadRun() {
 
 
 void CDownlinkSchedulerTenant::FlightRun() {
+    // If we are nearing full, clear out the queue to make space for the most recent data
+    if (loraDownlinkMessagePort.AvailableSpace() <= telemetryMessagePortMap.Size()) {
+        loraDownlinkMessagePort.Clear();
+    }
+
     for (auto const& [port, timer] : telemetryDownlinkTimers) {
         if (timer->IsExpired()) {
             auto portMsgPortOpt = telemetryMessagePortMap.Get(port);
