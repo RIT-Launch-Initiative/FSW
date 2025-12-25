@@ -1,0 +1,12 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define SAMPLE_RATE 1000
+#define TEST_DURATION 10000 // ms
+#define MAX_TESTS 30
+
+#define STORAGE_THREAD_PRIORITY 1
+#define THREAD_START_DELAY 100
+#define SYS_INIT_PRIORITY 1
+
+#endif // CONFIG_H
