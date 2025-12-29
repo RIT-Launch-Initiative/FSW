@@ -21,14 +21,14 @@ void CLoraRouter::PollOnce(const k_timeout_t timeout) {
     if (len < 0) {
         return;
     }
-    LOG_INF("Received LoRa frame on port %u, size %d", frame.Port, len);
+    LOG_INF("Received LoRa frame on port %u, size %d", rxFrame.Frame.Port, len);
 
     CLoraFrameHandler* handler = handlers.Get(rxFrame.Frame.Port).value_or(defaultHandler);
 
     if (handler != nullptr) {
         handler->HandleFrame(rxFrame);
     } else {
-        LOG_WRN("no handler for port %u", frame.Port);
+        LOG_WRN("no handler for port %u", rxFrame.Frame.Port);
     }
 }
 

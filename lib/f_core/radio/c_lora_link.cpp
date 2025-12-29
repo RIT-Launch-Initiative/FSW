@@ -94,7 +94,7 @@ int CLoraLink::Receive(ReceivedLaunchLoraFrame& frame, k_timeout_t timeout) {
     }
 
     if (raw.Size < 2) {
-        LOG_WRN("RX too small for header (%u)", raw.len);
+        LOG_WRN("RX too small for header (%u)", raw.Size);
         return -EINVAL;
     }
 
