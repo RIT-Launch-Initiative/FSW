@@ -3,8 +3,6 @@
 
 #include "c_gnss_tenant.h"
 #include "c_udp_listener_tenant.h"
-#include "c_lora_transmit_tenant.h"
-#include "c_lora_receive_tenant.h"
 #include "c_state_machine_updater.h"
 
 // F-Core Includes
@@ -14,7 +12,7 @@
 #include <f_core/net/application/c_udp_alert_tenant.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
-#include <f_core/radio/c_lora.h>
+#include <f_core/radio/application/c_lora_tenant.h>
 #include <f_core/device/c_rtc.h>
 
 // Autocoder Includes
@@ -59,7 +57,7 @@ private:
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     // Message Ports
-    CMessagePort<NTypes::LoRaBroadcastData>& loraBroadcastMessagePort;
+    CMessagePort<LaunchLoraFrame>& loraBroadcastMessagePort;
     CMessagePort<NTypes::GnssData>& gnssDataLogMessagePort;
 
     // Tenants
@@ -71,8 +69,7 @@ private:
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
 #ifndef CONFIG_ARCH_POSIX
-    CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr.c_str(), radioModuleSourcePort};
+    CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
 #endif
     CDataLoggerTenant<NTypes::GnssData> dataLoggerTenant{"Data Logger Tenant", "/lfs/gps_data.bin", LogMode::Growing, 0, gnssDataLogMessagePort, K_SECONDS(15), 5};
     CStateMachineUpdater stateMachineUpdater;

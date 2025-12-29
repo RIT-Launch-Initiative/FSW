@@ -1,8 +1,6 @@
 #ifndef C_RECEIVER_MODULE_H
 #define C_RECEIVER_MODULE_H
 
-#include "c_lora_receive_tenant.h"
-#include "c_lora_transmit_tenant.h"
 #include "c_udp_listener_tenant.h"
 
 // F-Core Includes
@@ -12,6 +10,9 @@
 #include <f_core/radio/c_lora.h>
 
 #include <n_autocoder_network_defs.h>
+
+#include "f_core/radio/c_lora_link.h"
+#include "f_core/radio/application/c_lora_tenant.h"
 
 class CReceiverModule : public CProjectConfiguration {
 public:
@@ -44,15 +45,14 @@ private:
     CLora lora;
 
     // Message Ports
-    CMessagePort<NTypes::LoRaBroadcastData>& loraBroadcastMessagePort;
-    CMessagePort<NTypes::LoRaBroadcastData>& udpBroadcastMessagePort;
+    CMessagePort<LaunchLoraFrame>& loraBroadcastMessagePort;
+    CMessagePort<LaunchLoraFrame>& udpBroadcastMessagePort;
 
     // Tenants
-    CLoraTransmitTenant loraTransmitTenant{"LoRa Transmit Tenant", lora, &loraBroadcastMessagePort};
+    CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
+
     CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr.c_str(), radioModuleCommandPort, &loraBroadcastMessagePort};
     CUdpListenerTenant dataRequestListenerTenant{"Radio Module Data Request Listener Tenant", ipAddrStr.c_str(), radioModuleDataRequestPort, &loraBroadcastMessagePort};
-
-    CLoraReceiveTenant loraReceiveTenant{"LoRa Receive Tenant", loraTransmitTenant, ipAddrStr.c_str(), NNetworkDefs::RADIO_BASE_PORT};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 4096, 0};

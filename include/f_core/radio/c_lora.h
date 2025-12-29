@@ -47,11 +47,18 @@ public:
     int TransmitAsynchronous(const void* data, size_t len, k_poll_signal* signal);
 
     /**
-     * Receive data asynchronously (non-blocking)
+     * Enable asynchronous reception
      * @param cb Callback to run when a packet is received
+     * @param userData User data to pass to the callback
      * @return Zephyr status code
      */
-    int ReceiveAsynchronous(lora_recv_cb cb);
+    int EnableAsynchronous(lora_recv_cb cb, void* userData = nullptr);
+
+    /**
+     * Disable asynchronous reception
+     * @return Zephyr status code
+     */
+    int DisableAsynchronous();
 
     /**
      * Set the LoRa bandwidth
