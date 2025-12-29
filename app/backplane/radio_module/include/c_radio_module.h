@@ -15,10 +15,9 @@
 #include <f_core/net/application/c_udp_alert_tenant.h>
 #include <f_core/os/c_task.h>
 #include <f_core/os/tenants/c_datalogger_tenant.h>
-#include <f_core/radio/c_lora_router.h>
-#include <f_core/radio/c_lora_tenant.h>
 #include <f_core/radio/frame_handlers/c_frequency_change_handler.h>
 #include <f_core/radio/frame_handlers/c_lora_frame_to_udp_handler.h>
+#include <f_core/radio/application/c_lora_tenant.h>
 #include <f_core/device/c_rtc.h>
 
 // Autocoder Includes

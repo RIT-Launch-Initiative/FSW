@@ -15,7 +15,7 @@ static constexpr uint16_t RADIO_MAX_FRAME_SIZE = UINT8_MAX;
 typedef struct __attribute__((packed)) {
     uint16_t Port;
     uint8_t Size;
-    uint8_t Payload[256 - sizeof(uint16_t)];
+    uint8_t Payload[RADIO_MAX_FRAME_SIZE - sizeof(uint16_t)];
 } LaunchLoraFrame;
 
 typedef struct {

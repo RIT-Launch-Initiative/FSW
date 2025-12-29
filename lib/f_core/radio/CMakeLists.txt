@@ -3,6 +3,6 @@
 
 zephyr_library()
 add_subdirectory(frame_handlers)
-FILE(GLOB sources *.cpp)
+FILE(GLOB sources *.cpp application/*.cpp)
 zephyr_library_sources(${sources})
 
