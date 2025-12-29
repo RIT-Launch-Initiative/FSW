@@ -19,10 +19,10 @@ typedef struct __attribute__((packed)) {
 } LaunchLoraFrame;
 
 typedef struct {
-    uint8_t data[RADIO_MAX_FRAME_SIZE];
-    uint16_t len;
-    int16_t rssi;
-    int8_t snr;
+    uint8_t Payload[RADIO_MAX_FRAME_SIZE];
+    uint16_t Size;
+    int16_t ReceivedSignalStrength;
+    int8_t SignalToNoise;
 } ReceivedLoraRawFrame;
 
 // Forward declare the RX callback
