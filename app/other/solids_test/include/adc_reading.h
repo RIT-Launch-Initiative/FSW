@@ -8,7 +8,7 @@
  * @brief Struct to hold one ADC sample
  */
 struct adc_sample {
-    uint32_t timestamp; /** Timestamp the sample was recorded in ms */
+    uint32_t timestamp; /** Timestamp the sample was recorded in µs */
     int32_t value;      /** Value of the sample */
 };
 

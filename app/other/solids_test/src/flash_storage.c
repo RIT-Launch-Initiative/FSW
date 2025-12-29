@@ -205,7 +205,7 @@ void stop_flash_storage() {
 
 int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     if (test_index >= MAX_TESTS ){
-        shell_print(shell, "Pick a valid test [0-%u]", MAX_TESTS - 1); // %u or %d?
+        shell_print(shell, "Pick a valid test [0-%d]", MAX_TESTS - 1);
         return -1;
     }
     struct adc_sample sample;
@@ -222,15 +222,17 @@ int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     }
 
     char calib_name[CALIB_NAME_MAX_LEN];
+    char local_test_type[sizeof(test_type)];
+
     flash_read(flash_dev, block_addr, calib_name, sizeof(calib_name));
     block_addr += CALIB_NAME_MAX_LEN;
 
-    flash_read(flash_dev, block_addr, test_type, sizeof(test_type));
-    block_addr += sizeof(test_type);
+    flash_read(flash_dev, block_addr, local_test_type, sizeof(local_test_type));
+    block_addr += sizeof(local_test_type);
 
     shell_print(shell, "================================\nDumping Test #%d", test_index);
     shell_print(shell, "CALIBRATION: %s", calib_name);
-    shell_print(shell, "Test triggered by %s", test_type);
+    shell_print(shell, "Test triggered by %s", local_test_type);
     shell_print(shell, "timestamp, value\n================================");
 
     for (int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++) {
