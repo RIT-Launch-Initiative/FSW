@@ -85,7 +85,7 @@ int CLoraLink::send(const uint8_t* data, uint16_t len) {
 }
 
 
-int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t* rssi, int8_t* snr) {
+int CLoraLink::Receive(ReceivedLaunchLoraFrame& frame, k_timeout_t timeout) {
     ReceivedLoraRawFrame raw{};
 
     const int ret = rxQueue.Receive(raw, timeout);
@@ -101,7 +101,7 @@ int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t* rss
     const uint16_t port = static_cast<uint16_t>(raw.Payload[0]) | (static_cast<uint16_t>(raw.Payload[1]) << 8);
     const uint16_t payloadLen = static_cast<uint16_t>(raw.Size - 2);
 
-    if (payloadLen > sizeof(frame.Payload)) {
+    if (payloadLen > sizeof(frame.Frame.Payload)) {
         LOG_WRN("RX payload too large (%u)", payloadLen);
         return -EMSGSIZE;
     }
@@ -111,18 +111,14 @@ int CLoraLink::Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t* rss
         return -EMSGSIZE;
     }
 
-    frame.Port = port;
-    frame.Size = static_cast<uint8_t>(payloadLen);
+    frame.Frame.Port = port;
+    frame.Frame.Size = static_cast<uint8_t>(payloadLen);
     if (payloadLen > 0) {
-        memcpy(frame.Payload, &raw.Payload[2], payloadLen);
+        memcpy(frame.Frame.Payload, &raw.Payload[2], payloadLen);
     }
 
-    if (rssi != nullptr) {
-        *rssi = raw.ReceivedSignalStrength;
-    }
-    if (snr != nullptr) {
-        *snr = raw.SignalToNoise;
-    }
+    frame.ReceivedSignalStrength = raw.ReceivedSignalStrength;
+    frame.SignalToNoise = raw.SignalToNoise;
 
     return payloadLen;
 }
