@@ -47,7 +47,7 @@ public:
     int TransmitAsynchronous(const void* data, size_t len, k_poll_signal* signal);
 
     /**
-     * Enable receiving asynchronously. Should only be called once to start.
+     * Enable asynchronous reception
      * @param cb Callback to run when a packet is received
      * @param userData User data to pass to the callback
      * @return Zephyr status code
