@@ -38,7 +38,7 @@
         address = <1>;
         analog-clock-prescaler = <0>;
         boost-current-bias = <0>;
-        spi-max-frequency = <DT_FREQ_M(18)>;
+        spi-max-frequency = <DT_FREQ_M(20)>;
         irq-gpios = <&gpiob 14 GPIO_ACTIVE_LOW>;
         use-internal-clock;
 

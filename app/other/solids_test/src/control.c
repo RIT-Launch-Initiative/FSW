@@ -14,7 +14,7 @@
 LOG_MODULE_REGISTER(control, LOG_LEVEL_INF);
 
 static bool test_running = false;
-static char curr_name[32];
+static char curr_name[CALIB_NAME_MAX_LEN];
 
 void control_start_test(char calib_name[], bool terminal_test) {
     // If string is empty, get calibration name from last named test - name will stay until new one is passed in

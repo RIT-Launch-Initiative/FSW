@@ -20,7 +20,7 @@ int adc_init();
 
 /**
  * @brief Read one ADC sample
- * @param adc_val Pointer to value where sample will be written
+ * @param[out] adc_val Pointer to value where sample will be written
  */
 void adc_read_one(uint32_t *adc_val);
 
@@ -31,7 +31,7 @@ void adc_reading_task();
 
 /**
  * @brief Starts test
- * @param terminal_test Whether test was triggered by terminal cmd or meep
+ * @param[in] terminal_test Whether test was triggered by terminal cmd or meep
  *                      If test was triggered by terminal, ematch will NOT light
  */
 void adc_start_reading(bool terminal_test);

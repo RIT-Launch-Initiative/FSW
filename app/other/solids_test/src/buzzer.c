@@ -22,9 +22,16 @@ int buzzer_init() {
         LOG_ERR("Failed to conf buzzer pin :(");
         return -1;
     }
+
     ret = gpio_pin_configure_dt(&ldo_enable, GPIO_OUTPUT_INACTIVE);
     if (ret < 0) {
         LOG_ERR("Failed to conf ldo enable pin :(");
+        return -1;
+    }
+
+    ret = gpio_pin_configure_dt(&ematch, GPIO_OUTPUT_INACTIVE);
+    if (ret < 0) {
+        LOG_ERR("Failed to conf ematch pin :(");
         return -1;
     }
     
@@ -46,30 +53,23 @@ void set_ematch(int level) {
 
 void beep_full() {
     for (int i = 0; i < 10; i++) {
-        printk("BEEP ");
         set_buzz(1);
         k_msleep(1000);
         set_buzz(0);
         k_msleep(1000);
     }
-    printk("\n");
 }
 
 void test_start_beep() {
-    test_running = true;
     for (int i = 0; i < 3; i++) {
-        printk("BEEP ");
         set_buzz(1);
         k_msleep(100);
         set_buzz(0);
         k_msleep(100);
     }
-    printk("\n");
 }
 
 void test_end_beep() {
-    test_running = false;
-    printk("BEEEEEP\n");
     set_buzz(1);
     k_msleep(100);
     set_buzz(0);
@@ -80,7 +80,6 @@ void test_end_beep() {
 }
 
 void continuous_beep() {
-    printk("BEEEEEEEEEEEEEEEEEEEEEEEP\n");
     while (!test_running) {
         set_buzz(1);
         k_msleep(10);

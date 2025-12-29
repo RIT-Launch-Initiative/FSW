@@ -89,7 +89,7 @@ void key_switch_state(const struct device *dev, struct gpio_callback *cb, uint32
 }
 
 void buzzer_task() {
-    while (1) {
+    while (true) {
         if (buzzing && !control_get_test_status()) {
             continuous_beep();
         } else {

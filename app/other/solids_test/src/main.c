@@ -13,6 +13,8 @@ SYS_INIT(adc_init, APPLICATION, SYS_INIT_PRIORITY);
 SYS_INIT(buzzer_init, APPLICATION, SYS_INIT_PRIORITY);
 SYS_INIT(button_switch_init, APPLICATION, SYS_INIT_PRIORITY);
 
+// TODO: move all K_THREAD_DEFINE here, expose necessary function threads in header files
+
 int main(void) {
 	LOG_INF("Solids Test Start");
 	LOG_INF("Use 'test start [calibration name]' to begin test");

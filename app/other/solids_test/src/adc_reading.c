@@ -30,7 +30,7 @@ extern struct k_msgq adc_data_queue;
 static K_EVENT_DEFINE(adc_control_event);
 static K_TIMER_DEFINE(adc_timer, NULL, NULL);
 
-void adc_reading_task(void);
+void adc_reading_task(void*, void*, void*);
 
 K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, 15, 0, THREAD_START_DELAY);
 
@@ -72,7 +72,7 @@ void adc_read_one(uint32_t *adc_val) {
     }
 }
 
-void adc_reading_task() {
+void adc_reading_task(void*, void*, void*) {
     uint32_t adc_val = 0;
     struct adc_sample sample = {0};
     while (true) {
@@ -107,7 +107,7 @@ void adc_reading_task() {
             if (num_expiries == 0) { // timer still running
                 k_timer_status_sync(&adc_timer);
             } else { // timer expired
-                num_missed_expires += num_expiries -1;
+                num_missed_expires += num_expiries - 1;
             }
 
             // Only set off ematch if test is triggered by meep

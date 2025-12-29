@@ -1,5 +1,6 @@
 #include "adc_reading.h"
 #include "control.h"
+#include "config.h"
 #include "flash_storage.h"
 
 #include <stdint.h>
@@ -14,8 +15,7 @@ static int cmd_test_start(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
 
-    // If solids members need more than 32 characters then they need better naming standards
-    char calib_name[32] = "default"; // If no name arg, set to default. Name will be set to "Test [#]" in flash_storage
+    char calib_name[CALIB_NAME_MAX_LEN] = "default"; // If no name arg, set to default. Name will be set to "Test [#]" in flash_storage
     if (argc >= 2) {
         calib_name[0] = '\0'; // clear "default"
         for (int i = 1; i < argc; i++) {

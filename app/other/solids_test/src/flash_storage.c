@@ -39,7 +39,7 @@ static void flash_storage_thread_entry(void);
 
 K_THREAD_DEFINE(storage_thread, 2048, flash_storage_thread_entry, NULL, NULL, NULL, STORAGE_THREAD_PRIORITY, 0, 1000);
 
-static char calibration[32];
+static char calibration[CALIB_NAME_MAX_LEN];
 
 // Check if flash block is all 0xFF
 static bool flash_block_is_empty(off_t addr) {
@@ -132,8 +132,8 @@ static void flash_storage_thread_entry() {
         current_write_addr = test_block_addr;
 
         // Save calibration name and test type (terminal or meep)
-        flash_write(flash_dev, current_write_addr, calibration, 32);
-        current_write_addr += 32;
+        flash_write(flash_dev, current_write_addr, calibration, CALIB_NAME_MAX_LEN);
+        current_write_addr += CALIB_NAME_MAX_LEN;
 
         flash_write(flash_dev, current_write_addr, test_type, sizeof(test_type));
         current_write_addr += sizeof(test_type);
@@ -205,7 +205,7 @@ void stop_flash_storage() {
 
 int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     if (test_index >= MAX_TESTS ){
-        shell_print(shell, "Pick a valid test [0-29]");
+        shell_print(shell, "Pick a valid test [0-%u]", MAX_TESTS - 1); // %u or %d?
         return -1;
     }
     struct adc_sample sample;
@@ -221,9 +221,9 @@ int flash_dump_one(const struct shell *shell, uint32_t test_index) {
         return 0;
     }
 
-    char calib_name[32];
+    char calib_name[CALIB_NAME_MAX_LEN];
     flash_read(flash_dev, block_addr, calib_name, sizeof(calib_name));
-    block_addr += 32;
+    block_addr += CALIB_NAME_MAX_LEN;
 
     flash_read(flash_dev, block_addr, test_type, sizeof(test_type));
     block_addr += sizeof(test_type);
@@ -269,10 +269,10 @@ int flash_erase_all(const struct shell *shell) {
         off_t curr_add = get_test_block_addr(i);
         int ret = flash_erase(flash_dev, curr_add, SPI_FLASH_BLOCK_SIZE);
         if (ret < 0) {
-            shell_print(shell, "flash_erase failed: %d", ret);
+            shell_error(shell, "flash_erase failed: %d", ret);
             continue;
         } else {
-            shell_error(shell, "Flash block %d erased", i);
+            shell_print(shell, "Flash block %d erased", i);
         }
     }
 
