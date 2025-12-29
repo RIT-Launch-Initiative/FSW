@@ -13,9 +13,9 @@ public:
 
     /**
      * Handle incoming GPIO command frame
-     * @param frame Frame containing GPIO command
+     * @param rxFrame Frame containing GPIO command
      */
-    void HandleFrame(const LaunchLoraFrame& frame) override;
+    void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) override;
 
 private:
     CGpio gpios[4] = {

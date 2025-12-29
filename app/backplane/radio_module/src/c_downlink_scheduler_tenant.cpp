@@ -22,7 +22,8 @@ CDownlinkSchedulerTenant::CDownlinkSchedulerTenant(CMessagePort<LaunchLoraFrame>
         telemetryDownlinkTimers.GetPtr(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT)));
 }
 
-void CDownlinkSchedulerTenant::HandleFrame(const LaunchLoraFrame& frame) {
+void CDownlinkSchedulerTenant::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) {
+    const LaunchLoraFrame& frame = rxFrame.Frame;
     if (this->state == State::PAD || this->state == State::LANDED) {
         for (size_t i = 0; i + 1 < frame.Size; i += 2) {
             uint16_t upper = frame.Payload[i] << 8;

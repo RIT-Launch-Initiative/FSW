@@ -6,7 +6,8 @@
 
 LOG_MODULE_REGISTER(CRemoteGpioHandler);
 
-void CRemoteGpioHandler::HandleFrame(const LaunchLoraFrame& frame) {
+void CRemoteGpioHandler::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) {
+    const LaunchLoraFrame& frame = rxFrame.Frame;
     if (frame.Size != sizeof(uint8_t)) {
         LOG_WRN("Invalid GPIO frame size: %d", frame.Size);
         return;
