@@ -6,7 +6,7 @@
 
 #include "f_core/radio/c_lora_link.h"
 
-K_MSGQ_DEFINE(broadcastQueue, 256, 10, 4);
+K_MSGQ_DEFINE(broadcastQueue, sizeof(LaunchLoraFrame) , 10, 4);
 static auto loraBroadcastMsgQueue = CMsgqMessagePort<LaunchLoraFrame>(broadcastQueue);
 static auto udpBroadcastMsgQueue = CMsgqMessagePort<LaunchLoraFrame>(broadcastQueue);
 
