@@ -35,9 +35,7 @@ static uint32_t current_test_number = 0;
 static off_t current_write_addr = 0;
 static char test_type[] = "terminal";
 
-static void flash_storage_thread_entry(void);
-
-K_THREAD_DEFINE(storage_thread, 2048, flash_storage_thread_entry, NULL, NULL, NULL, STORAGE_THREAD_PRIORITY, 0, 1000);
+static void flash_storage_thread_entry(void*, void*, void*);
 
 static char calibration[CALIB_NAME_MAX_LEN];
 
@@ -98,7 +96,7 @@ static off_t get_test_block_addr(uint32_t test_index) {
     return (off_t) (SPI_FLASH_START_ADDR + (test_index * SPI_FLASH_BLOCK_SIZE));
 }
 
-static void flash_storage_thread_entry() {
+static void flash_storage_thread_entry(void*, void*, void*) {
     enum storage_event event;
 
     if (!device_is_ready(flash_dev)) {

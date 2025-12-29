@@ -27,7 +27,7 @@ void adc_read_one(uint32_t *adc_val);
 /**
  * @brief Waits for ADC reading event to start, then reads ADC samples for 10 seconds
  */
-void adc_reading_task();
+void adc_reading_task(void*, void*, void*);
 
 /**
  * @brief Starts test

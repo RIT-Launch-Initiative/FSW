@@ -30,6 +30,6 @@ void key_switch_state(const struct device *dev, struct gpio_callback *cb, uint32
 /**
  * @brief Thread to beep continuously if key switch is closed and test is not started
  */
-void buzzer_task();
+void buzzer_task(void*, void*, void*);
 
 #endif // BUTTON_H

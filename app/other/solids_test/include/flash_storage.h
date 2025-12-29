@@ -5,6 +5,11 @@
 #include <stdint.h>
 
 /**
+ * @brief Thread to save test data to flash storage
+ */
+static void flash_storage_thread_entry(void*, void*, void*);
+
+/**
  * @brief Begin flash storage event
  * @param[in] calib_name Name of calibration to store. Defaults to "Test [#]" if empty or default string passed in
  * @param[in] terminal_test Whether test was triggered by terminal cmd or meep

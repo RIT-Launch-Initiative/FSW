@@ -32,8 +32,6 @@ static K_TIMER_DEFINE(adc_timer, NULL, NULL);
 
 void adc_reading_task(void*, void*, void*);
 
-K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, 15, 0, THREAD_START_DELAY);
-
 static uint32_t adc_buffer;
 static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = sizeof(adc_buffer), .resolution = 24};
 static bool terminal = true;

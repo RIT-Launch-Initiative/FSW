@@ -17,13 +17,13 @@ LOG_MODULE_REGISTER(button, LOG_LEVEL_INF);
 static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET(BUTTON_NODE, gpios);
 static const struct gpio_dt_spec key_switch = GPIO_DT_SPEC_GET(SWITCH_NODE, gpios);
 
+void buzzer_task(void*, void*, void*);
+
 static struct gpio_callback button_cb_data;
 static struct gpio_callback switch_cb_data;
 
 static bool key_switched = false;
 static bool buzzing = false;
-
-K_THREAD_DEFINE(buzz_thread, 512, buzzer_task, NULL, NULL, NULL, 10, 0, 0);
 
 int button_switch_init() {
     int ret = gpio_pin_configure_dt(&key_switch, GPIO_INPUT);
@@ -88,7 +88,7 @@ void key_switch_state(const struct device *dev, struct gpio_callback *cb, uint32
     }
 }
 
-void buzzer_task() {
+void buzzer_task(void*, void*, void*) {
     while (true) {
         if (buzzing && !control_get_test_status()) {
             continuous_beep();
