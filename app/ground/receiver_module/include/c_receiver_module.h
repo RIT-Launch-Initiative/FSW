@@ -12,7 +12,7 @@
 #include <n_autocoder_network_defs.h>
 
 #include "f_core/radio/c_lora_link.h"
-#include "f_core/radio/c_lora_tenant.h"
+#include "f_core/radio/application/c_lora_tenant.h"
 
 class CReceiverModule : public CProjectConfiguration {
 public:

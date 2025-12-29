@@ -1,5 +1,5 @@
 
-#include "f_core/radio/c_lora_router.h"
+#include "../../../include/f_core/radio/c_lora_router.h"
 
 #include <cstdint>
 

@@ -1,4 +1,4 @@
-#include <f_core/radio/c_lora_tenant.h>
+#include <f_core/radio/application/c_lora_tenant.h>
 
 LOG_MODULE_REGISTER(CLoraTenant);
 
