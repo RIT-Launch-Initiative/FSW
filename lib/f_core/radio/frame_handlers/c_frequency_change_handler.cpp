@@ -6,7 +6,8 @@
 
 LOG_MODULE_REGISTER(CFrequencyChangeHandler);
 
-void CFrequencyChangeHandler::HandleFrame(const LaunchLoraFrame& frame) {
+void CFrequencyChangeHandler::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) {
+    LaunchLoraFrame frame = rxFrame.Frame;
     if (frame.Size != sizeof(uint32_t)) {
         LOG_WRN("Frequency change frame size invalid (%d)", frame.Size);
         return;

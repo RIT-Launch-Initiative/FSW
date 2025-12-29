@@ -17,7 +17,7 @@ public:
     /**
      * See parent docs
      */
-    void HandleFrame(const LaunchLoraFrame& frame) override;
+    void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) override;
 private:
     CUdpSocket sock;
 };

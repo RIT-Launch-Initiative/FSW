@@ -16,17 +16,17 @@ void CLoraRouter::RegisterHandler(const uint16_t port, CLoraFrameHandler& handle
 }
 
 void CLoraRouter::PollOnce(const k_timeout_t timeout) {
-    LaunchLoraFrame frame{};
-    const int len = link.Receive(frame, timeout);
+    ReceivedLaunchLoraFrame rxFrame{};
+    const int len = link.Receive(rxFrame, timeout);
     if (len < 0) {
         return;
     }
     LOG_INF("Received LoRa frame on port %u, size %d", frame.Port, len);
 
-    CLoraFrameHandler* handler = handlers.Get(frame.Port).value_or(defaultHandler);
+    CLoraFrameHandler* handler = handlers.Get(rxFrame.Frame.Port).value_or(defaultHandler);
 
     if (handler != nullptr) {
-        handler->HandleFrame(frame);
+        handler->HandleFrame(rxFrame);
     } else {
         LOG_WRN("no handler for port %u", frame.Port);
     }

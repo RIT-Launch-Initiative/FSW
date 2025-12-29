@@ -10,7 +10,7 @@ public:
                             const uint16_t ackPort) :
         lora(lora), loraDownlinkMessagePort(loraDownlinkMessagePort), ackPort(ackPort) {}
 
-    void HandleFrame(const LaunchLoraFrame& frame) override;
+    void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) override;
 
 private:
     CLora& lora;

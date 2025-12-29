@@ -29,7 +29,7 @@ CLoraFreqRequestTenant::CLoraFreqRequestTenant(const char* ipStr,
     ackTimer.SetUserData(this);
 }
 
-void CLoraFreqRequestTenant::HandleFrame(const LaunchLoraFrame& frame) {
+void CLoraFreqRequestTenant::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) {
     LOG_INF("Received LoRa frequency change ACK on port %d", frame.Port);
     ackTimer.StopTimer();
 }
