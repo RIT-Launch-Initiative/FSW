@@ -27,24 +27,24 @@ static const spi_config spi_slave_cfg = {
 };
 
 struct SpiArmCommandPacket {
-    uint8_t command_number;
-    float shoulder_yaw;
-    float shoulder_pitch;
-    float elbow_angle;
-    float wrist_angle;
-    uint8_t take_picture;
+    uint8_t commandNumber;
+    float shoulderYaw;
+    float shoulderPitch;
+    float elbowAngle;
+    float wristAngle;
+    uint8_t takePicture;
 } __attribute__((packed));
 
 struct SpiStatusPacket {
-    uint8_t fault_status;
-    float m1_commanded_speed;
-    float m2_commanded_speed;
-    float m3_commanded_speed;
-    float servo_commanded_angle;
-    float shoulder_yaw;
-    float shoulder_pitch;
-    float elbow_angle;
-    float shoulder_yaw_limit_switch;
+    uint8_t faultStatus;
+    float m1CommandedSpeed;
+    float m2CommandedSpeed;
+    float m3CommandedSpeed;
+    float servoCommandedAngle;
+    float shoulderYaw;
+    float shoulderPitch;
+    float elbowAngle;
+    float shoulderYawLimitSwitch;
     float temp1;
     float temp2;
 } __attribute__((packed));
@@ -61,30 +61,30 @@ static void spiSlaveInit(void) {
     LOG_INF("SPI slave initialized on SPI1");
 }
 
-static void printReceivedCommand(const SpiArmCommandPacket* cmd) {
+static void printReceivedCommand(const SpiArmCommandPacket& cmd) {
     LOG_INF("=== Received Command from Master ===");
-    LOG_INF("Command Number: %u", cmd->command_number);
-    LOG_INF("Shoulder Yaw: %.2f", cmd->shoulder_yaw);
-    LOG_INF("Shoulder Pitch: %.2f", cmd->shoulder_pitch);
-    LOG_INF("Elbow Angle: %.2f", cmd->elbow_angle);
-    LOG_INF("Wrist Angle: %.2f", cmd->wrist_angle);
-    LOG_INF("Take Picture: %u", cmd->take_picture);
+    LOG_INF("Command Number: %u", cmd.commandNumber);
+    LOG_INF("Shoulder Yaw: %.2f", cmd.shoulderYaw);
+    LOG_INF("Shoulder Pitch: %.2f", cmd.shoulderPitch);
+    LOG_INF("Elbow Angle: %.2f", cmd.elbowAngle);
+    LOG_INF("Wrist Angle: %.2f", cmd.wristAngle);
+    LOG_INF("Take Picture: %u", cmd.takePicture);
     LOG_INF("=====================================");
 }
 
-static void prepareStatusResponse(SpiStatusPacket* status) {
-    memset(status, 0, sizeof(SpiStatusPacket));
-    status->fault_status = 0;
-    status->m1_commanded_speed = 0.0f;
-    status->m2_commanded_speed = 0.0f;
-    status->m3_commanded_speed = 0.0f;
-    status->servo_commanded_angle = 0.0f;
-    status->shoulder_yaw = 0.0f;
-    status->shoulder_pitch = 0.0f;
-    status->elbow_angle = 0.0f;
-    status->shoulder_yaw_limit_switch = 0.0f;
-    status->temp1 = 25.0f;
-    status->temp2 = 25.0f;
+static void prepareStatusResponse(SpiStatusPacket& status) {
+    memset(&status, 0, sizeof(SpiStatusPacket));
+    status.faultStatus = 0;
+    status.m1CommandedSpeed = 0.0f;
+    status.m2CommandedSpeed = 0.0f;
+    status.m3CommandedSpeed = 0.0f;
+    status.servoCommandedAngle = 0.0f;
+    status.shoulderYaw = 0.0f;
+    status.shoulderPitch = 0.0f;
+    status.elbowAngle = 0.0f;
+    status.shoulderYawLimitSwitch = 0.0f;
+    status.temp1 = 25.0f;
+    status.temp2 = 25.0f;
 }
 
 static int spiSlaveListen() {
@@ -117,7 +117,7 @@ static int spiSlaveListen() {
     int result = 0;
     k_poll_signal_check(&spi_slave_done_sig, &signaled, &result);
     if (signaled != 0) {
-        SpiArmCommandPacket const* cmd = (struct SpiArmCommandPacket*)slaveRxBuffer;
+        const SpiArmCommandPacket& cmd = *reinterpret_cast<const SpiArmCommandPacket*>(slaveRxBuffer);
         printReceivedCommand(cmd);
         LOG_INF("Status response sent back to master");
         return 0;
@@ -132,12 +132,12 @@ int main() {
     LOG_INF("SPI Slave listening for commands from master");
 
     SpiStatusPacket status{0};
-    prepareStatusResponse(&status);
+    prepareStatusResponse(status);
     memcpy(slaveTxBuffer, &status, sizeof(SpiStatusPacket));
 
     while (true) {
         if (spiSlaveListen() == 0) {
-            prepareStatusResponse(&status);
+            prepareStatusResponse(status);
             memcpy(slaveTxBuffer, &status, sizeof(SpiStatusPacket));
         }
         k_msleep(100);
