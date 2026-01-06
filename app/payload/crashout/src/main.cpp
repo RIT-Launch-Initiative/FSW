@@ -48,8 +48,12 @@ struct SpiStatusPacket {
     float temp2;
 } __attribute__((packed));
 
-static uint8_t slaveTxBuffer[sizeof(SpiStatusPacket)];
-static uint8_t slaveRxBuffer[sizeof(SpiArmCommandPacket)];
+static constexpr size_t TRANSFER_LEN =
+    MAX(sizeof(SpiArmCommandPacket), sizeof(SpiStatusPacket));
+
+static uint8_t slaveTxBuffer[TRANSFER_LEN];
+static uint8_t slaveRxBuffer[TRANSFER_LEN];
+
 
 static K_THREAD_STACK_DEFINE(spiSlaveStack, 4096);
 static k_thread spiSlaveThread;
