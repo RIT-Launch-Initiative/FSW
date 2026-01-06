@@ -11,6 +11,8 @@ def parse_yaml_types(file_paths):
         with open(file_path, 'r') as stream:
             try:
                 data = yaml.safe_load(stream)
+                if data is None:
+                    continue
 
                 # 0th index of tuple is the name of the type
                 # 1st index of tuple is key-value with the description and information for each field
