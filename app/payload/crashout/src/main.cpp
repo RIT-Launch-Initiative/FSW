@@ -109,6 +109,7 @@ static int spiSlaveListen() {
         .count = 1
     };
 
+    // NOTE: ENOTSUP for spi_transceive_signal
     if (int error = spi_transceive(slaveDev, &slaveConfig, &txBuffSet, &rxBuffSet); error != 0) {
         LOG_ERR("SPI slave transceive error: %i", error);
         return error;
