@@ -59,16 +59,33 @@ static void spi_slave_init(void) {
     LOG_INF("SPI slave initialized on SPI1");
 }
 
-static void print_received_command(const struct SpiArmCommandPacket *cmd) {
-
+static void print_received_command(const SpiArmCommandPacket *cmd) {
+    LOG_INF("=== Received Command from Master ===");
+    LOG_INF("Command Number: %u", cmd->command_number);
+    LOG_INF("Shoulder Yaw: %.2f", cmd->shoulder_yaw);
+    LOG_INF("Shoulder Pitch: %.2f", cmd->shoulder_pitch);
+    LOG_INF("Elbow Angle: %.2f", cmd->elbow_angle);
+    LOG_INF("Wrist Angle: %.2f", cmd->wrist_angle);
+    LOG_INF("Take Picture: %u", cmd->take_picture);
+    LOG_INF("=====================================");
 }
 
-static void prepare_status_response(struct SpiStatusPacket *status) {
-
+static void prepare_status_response(SpiStatusPacket *status) {
+    memset(status, 0, sizeof(struct SpiStatusPacket));
+    status->fault_status = 0;
+    status->m1_commanded_speed = 0.0f;
+    status->m2_commanded_speed = 0.0f;
+    status->m3_commanded_speed = 0.0f;
+    status->servo_commanded_angle = 0.0f;
+    status->shoulder_yaw = 0.0f;
+    status->shoulder_pitch = 0.0f;
+    status->elbow_angle = 0.0f;
+    status->shoulder_yaw_limit_switch = 0.0f;
+    status->temp1 = 25.0f;
+    status->temp2 = 25.0f;
 }
 
 static int spi_slave_listen(void) {
-
 }
 
 int main() {
