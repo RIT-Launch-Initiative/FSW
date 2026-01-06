@@ -19,18 +19,17 @@ LOG_MODULE_REGISTER(main);
 const device* slaveDev;
 
 static const spi_config slaveConfig = {
-    .frequency = 4000000,
-    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB |
-    SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_SLAVE,
-    .slave = 0,
+    .frequency = 1000000,
+    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_SLAVE,
+    .slave = 1,
 };
 
 struct SpiArmCommandPacket {
-    uint8_t commandNumber;
-    float shoulderYaw;
-    float shoulderPitch;
-    float elbowAngle;
-    float wristAngle;
+    uint16_t commandNumber;
+    int16_t shoulderYaw;
+    int16_t shoulderPitch;
+    int16_t elbowAngle;
+    int16_t wristAngle;
     uint8_t takePicture;
 } __attribute__((packed));
 
@@ -64,6 +63,7 @@ static void spiSlaveInit(void) {
         LOG_ERR("SPI slave device not ready!");
         return;
     }
+
     LOG_INF("SPI slave initialized on SPI1");
 }
 
@@ -137,7 +137,6 @@ static void spiSlaveThreadEntry(void*, void*, void*) {
             prepareStatusResponse(status);
             memcpy(slaveTxBuffer, &status, sizeof(SpiStatusPacket));
         }
-        k_msleep(100);
     }
 }
 
