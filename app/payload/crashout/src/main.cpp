@@ -144,7 +144,7 @@ int main() {
     k_thread_create(&spiSlaveThread, spiSlaveStack,
                     K_THREAD_STACK_SIZEOF(spiSlaveStack),
                     spiSlaveThreadEntry, NULL, NULL, NULL,
-                    5, 0, K_NO_WAIT);
+                    15, 0, K_NO_WAIT);
 
     k_thread_name_set(&spiSlaveThread, "spi_slave");
 
