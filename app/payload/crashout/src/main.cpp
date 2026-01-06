@@ -17,9 +17,8 @@ LOG_MODULE_REGISTER(main);
 #define SPI_SLAVE_NODE DT_NODELABEL(spi1)
 
 const device* slaveDev;
-static k_poll_signal spi_slave_done_sig = K_POLL_SIGNAL_INITIALIZER(spi_slave_done_sig);
 
-static const spi_config spi_slave_cfg = {
+static const spi_config slaveConfig = {
     .frequency = 4000000,
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB |
     SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_SLAVE,
@@ -52,6 +51,9 @@ struct SpiStatusPacket {
 static uint8_t slaveTxBuffer[sizeof(SpiStatusPacket)];
 static uint8_t slaveRxBuffer[sizeof(SpiArmCommandPacket)];
 
+static K_THREAD_STACK_DEFINE(spiSlaveStack, 4096);
+static k_thread spiSlaveThread;
+
 static void spiSlaveInit(void) {
     slaveDev = DEVICE_DT_GET(SPI_SLAVE_NODE);
     if (!device_is_ready(slaveDev)) {
@@ -64,10 +66,11 @@ static void spiSlaveInit(void) {
 static void printReceivedCommand(const SpiArmCommandPacket& cmd) {
     LOG_INF("=== Received Command from Master ===");
     LOG_INF("Command Number: %u", cmd.commandNumber);
-    LOG_INF("Shoulder Yaw: %.2f", cmd.shoulderYaw);
-    LOG_INF("Shoulder Pitch: %.2f", cmd.shoulderPitch);
-    LOG_INF("Elbow Angle: %.2f", cmd.elbowAngle);
-    LOG_INF("Wrist Angle: %.2f", cmd.wristAngle);
+    // Cast to doubles for printing to avoid float format issues
+    LOG_INF("Shoulder Yaw: %.2f", static_cast<double>(cmd.shoulderYaw));
+    LOG_INF("Shoulder Pitch: %.2f", static_cast<double>(cmd.shoulderPitch));
+    LOG_INF("Elbow Angle: %.2f", static_cast<double>(cmd.elbowAngle));
+    LOG_INF("Wrist Angle: %.2f", static_cast<double>(cmd.wristAngle));
     LOG_INF("Take Picture: %u", cmd.takePicture);
     LOG_INF("=====================================");
 }
@@ -106,30 +109,19 @@ static int spiSlaveListen() {
         .count = 1
     };
 
-    k_poll_signal_reset(&spi_slave_done_sig);
-
-    if (int error = spi_transceive_signal(slaveDev, &spi_slave_cfg, &txBuffSet, &rxBuffSet, &spi_slave_done_sig); error != 0) {
+    if (int error = spi_transceive(slaveDev, &slaveConfig, &txBuffSet, &rxBuffSet); error != 0) {
         LOG_ERR("SPI slave transceive error: %i", error);
         return error;
     }
 
-    unsigned int signaled = 0;
-    int result = 0;
-    k_poll_signal_check(&spi_slave_done_sig, &signaled, &result);
-    if (signaled != 0) {
-        const SpiArmCommandPacket& cmd = *reinterpret_cast<const SpiArmCommandPacket*>(slaveRxBuffer);
-        printReceivedCommand(cmd);
-        LOG_INF("Status response sent back to master");
-        return 0;
-    }
-    return -1;
+    const SpiArmCommandPacket& cmd = *reinterpret_cast<const SpiArmCommandPacket*>(slaveRxBuffer);
+    printReceivedCommand(cmd);
+    LOG_INF("Status response sent back to master");
+    return 0;
 }
 
-int main() {
-    LOG_INF("Application started");
-
-    spiSlaveInit();
-    LOG_INF("SPI Slave listening for commands from master");
+static void spiSlaveThreadEntry(void*, void*, void*) {
+    LOG_INF("SPI Slave thread started");
 
     SpiStatusPacket status{0};
     prepareStatusResponse(status);
@@ -141,6 +133,22 @@ int main() {
             memcpy(slaveTxBuffer, &status, sizeof(SpiStatusPacket));
         }
         k_msleep(100);
+    }
+}
+
+int main() {
+    spiSlaveInit();
+    LOG_INF("SPI Slave listening for commands from master");
+
+    k_thread_create(&spiSlaveThread, spiSlaveStack,
+                    K_THREAD_STACK_SIZEOF(spiSlaveStack),
+                    spiSlaveThreadEntry, NULL, NULL, NULL,
+                    5, 0, K_NO_WAIT);
+
+    k_thread_name_set(&spiSlaveThread, "spi_slave");
+
+    while (true) {
+        k_msleep(1000);
     }
 
     return 0;
