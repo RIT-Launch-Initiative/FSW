@@ -50,7 +50,7 @@ struct SpiStatusPacket {
 } __attribute__((packed));
 
 static uint8_t slaveTxBuffer[sizeof(SpiStatusPacket)];
-static uint8_t slave_rx_buffer[sizeof(SpiArmCommandPacket)];
+static uint8_t slaveRxBuffer[sizeof(SpiArmCommandPacket)];
 
 static void spiSlaveInit(void) {
     slaveDev = DEVICE_DT_GET(SPI_SLAVE_NODE);
@@ -98,8 +98,8 @@ static int spiSlaveListen() {
     };
 
     spi_buf rxBuff = {
-        .buf = slave_rx_buffer,
-        .len = sizeof(slave_rx_buffer),
+        .buf = slaveRxBuffer,
+        .len = sizeof(slaveRxBuffer),
     };
     const spi_buf_set rxBuffSet = {
         .buffers = &rxBuff,
@@ -117,7 +117,7 @@ static int spiSlaveListen() {
     int result = 0;
     k_poll_signal_check(&spi_slave_done_sig, &signaled, &result);
     if (signaled != 0) {
-        SpiArmCommandPacket const* cmd = (struct SpiArmCommandPacket*)slave_rx_buffer;
+        SpiArmCommandPacket const* cmd = (struct SpiArmCommandPacket*)slaveRxBuffer;
         printReceivedCommand(cmd);
         LOG_INF("Status response sent back to master");
         return 0;
