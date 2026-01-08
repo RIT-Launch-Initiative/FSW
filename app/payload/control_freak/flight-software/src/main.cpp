@@ -24,7 +24,7 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_FREAK_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
 
-static constexpr float BATTERY_STOP_THRESH = 7.9;
+static constexpr float BATTERY_WARNING_THRESH = 7.9;
 float startup_voltage = 0;
 
 extern struct k_msgq flightlog_msgq;
@@ -89,7 +89,7 @@ int main() {
     if (ret != 0) {
         LOG_ERR("Couldn't read battery");
     }
-        if (startup_voltage < BATTERY_STOP_THRESH) {
+        if (startup_voltage < BATTERY_WARNING_THRESH) {
             buzzer_tell(BuzzCommand::BatteryWarning);
         }
 
@@ -159,7 +159,7 @@ int cmd_preflight(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Preflight Checklist");
     shell_print(shell, "Cameras on");
     shell_print(shell, "Startup Voltage: %.3f", (double) startup_voltage);
-    if (startup_voltage < BATTERY_STOP_THRESH) {
+    if (startup_voltage < BATTERY_WARNING_THRESH) {
         LOG_ERR("BATTERY LOW");
         buzzer_tell(BuzzCommand::BatteryWarning);
     }

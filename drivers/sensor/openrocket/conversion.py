@@ -415,7 +415,7 @@ def main():
     mapping = validate_vars(header, wanted_variables)
 
     data = read_data(lines)
-    filtered_data = collect_data(data, mapping, config)[::10]
+    filtered_data = collect_data(data, mapping, config)
     c_file = make_c_file(config.in_filename, events, filtered_data)
 
     try:

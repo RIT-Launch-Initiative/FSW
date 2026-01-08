@@ -5,5 +5,4 @@ menu "Drivers"
 rsource "sensor/Kconfig"
 rsource "adc/Kconfig"
 rsource "gnss/Kconfig"
-rsource "fs/gorbfs/Kconfig"
 endmenu

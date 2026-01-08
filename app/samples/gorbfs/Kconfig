@@ -1,7 +1,0 @@
-module = GFS_TEST
-module-str = GFS_TEST
-source "subsys/logging/Kconfig.template.log_config"
-
-
-
-source "Kconfig.zephyr"
