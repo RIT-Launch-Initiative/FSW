@@ -70,7 +70,7 @@ private:
     CLatestMessagePort<LaunchLoraFrame> gnssTelemetryMessagePort;
 
 
-    // Build the hashamp here for passing into downlink scheduler tenant
+    // Build the hashmap here for passing into downlink scheduler tenant
     CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap = {
         {sensorModuleTelemetryPort, &sensorModuleTelemetryMessagePort},
         {powerModuleTelemetryPort, &powerModuleTelemetryMessagePort},
