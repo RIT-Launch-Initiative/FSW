@@ -1,0 +1,13 @@
+source "Kconfig.zephyr"
+
+config STORAGE_THREAD_STACK_SIZE
+    int "Stack size for storage size"
+    default 512
+
+config STORAGE_THREAD_PRIORITY
+    int "Stack size for storage size"
+    default 10
+
+module = APP_AIRBRAKE
+module-str = APP_AIRBRAKE
+source "subsys/logging/Kconfig.template.log_config"
