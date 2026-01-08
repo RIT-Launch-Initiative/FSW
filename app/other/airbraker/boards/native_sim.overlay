@@ -4,9 +4,7 @@
 	};
 
 	aliases {
-		led0 = &led1; // a little broken: (
-		buzz = &buzzer;
-		ldo5v = &ldo5v_enable;
+		led0 = &led1;
 		imu = &imu;
 		barom = &barom;
 		ina-servo = &inaservo;
@@ -16,23 +14,7 @@
 		compatible = "gpio-leds";
 		led1: led1 {
 			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
-			label = "GPS LED";
-		};
-		servo_enable: servo-enable{
-			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
-			label = "Enable pin for the servo";
-		};
-		buzzer: buzzer{
-			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
-			label = "buzzer pin";
-		};
-		ldo5v_enable: ldo5v-enable{
-			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
-			label = "Enable pin for 5v ldo";
-		};
-		pump_enable: pump-enable{
-			gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
-			label = "Enable pin for pumps";
+			label = "LED";
 		};
 	};
 
@@ -63,11 +45,11 @@
 	};
 
 	inaservo: inaservo{
-        status = "okay";
-        compatible = "sim,simshunt";
-        simulated-voltage = <5000>;   // milliVolts
-        simulated-current = <100>;    // milliAmps
-    };
+        	status = "okay";
+        	compatible = "sim,simshunt";
+        	simulated-voltage = <5000>;   // milliVolts
+        	simulated-current = <100>;    // milliAmps
+	};
 
 };
 

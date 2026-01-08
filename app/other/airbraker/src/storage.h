@@ -1,6 +1,5 @@
-// entry point for storage thread (will in the future be setup to handle more data)
-int storage_thread_entry(void *, void *, void *);
+extern "C" int storage_init();
 
-struct Partitions {
-    const struct device *superfast_dev;
-};
+namespace Storage{
+    
+}

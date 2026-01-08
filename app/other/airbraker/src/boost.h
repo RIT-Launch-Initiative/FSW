@@ -1,13 +1,7 @@
-#ifndef CONTROL_FREAK_BOOST_H
-#define CONTROL_FREAK_BOOST_H
+#include "n_autocoder_types.h"
 
-#include "common.h"
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <zephyr/kernel.h>
-
-bool feed_boost_acc(k_ticks_t ts_ticks, const NTypes::AccelerometerData&);
-bool feed_boost_barom(int64_t ts_us, float temp, float press);
-
-#endif
+namespace Boost{
+    void feed_accel(const NTypes::AccelerometerData &data);
+    bool is_detected();
+    // note: barometer based boost detection is not implemented as it would incur too much of a delay for the airbrakes to do anything 
+}

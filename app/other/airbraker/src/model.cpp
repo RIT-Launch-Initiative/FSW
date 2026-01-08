@@ -1,137 +1,21 @@
-#include "model.hpp"
+#include "n_autocoder_types.h"
 
-#include "algebra.h"
-#include "model_data.inc"
+namespace Model {
 
-//constexpr float GROUND_LEVEL = ABCDEF;
-#define V4(x, y, z, w)                                                                                                 \
-    {                                                                                                                  \
-        .s = { x, y, z, w }                                                                                            \
-    }
-constexpr float dt = 0.01;
-// kalman state matrix
-constexpr struct mat4 F = {
-    .vs =
-        {
-            V4(1, dt, dt *dt / 2, 0),
-            V4(0, 1, dt, 0),
-            V4(0, 0, 1, 0),
-            V4(0, 0, 0, 1),
-        },
-};
-const struct mat4 F_T = transpose_m4(&F);
-// kalman state covariance
-constexpr struct mat4 Q = {
-    .vs =
-        {
-            V4(1e-4, 0, 0, 0),
-            V4(0, 1e-4, 0, 0),
-            V4(0, 0, 20, 0),
-            V4(0, 0, 0, 1),
-        },
-};
-constexpr struct mat2x4 H = {
-    .vs =
-        {
-            V4(1, 0, 0, 0),
-            V4(0, 0, 1, 1),
-        },
+struct KalmanModelOutputs {
+    float altitude;
+    float velocity;
 };
 
-constexpr struct mat2 R = {
-    .vs =
-        {
-            {.s = {0.23193856, 0.0}},
-            {.s = {0.0, 0.0008}},
-        },
+KalmanModelOutputs feed_sensors(uint64_t us_since_boot, const NTypes::AccelerometerData &acc,
+                                const NTypes::BarometerData &barom);
+
+struct OrientationModelOutputs {
+    float angle_off_initial;
+    float angle_uncertainty;
 };
 
-constexpr struct mat4 eye_m4 = {
-    .vs =
-        {
-            V4(1, 0, 0, 0),
-            V4(0, 1, 0, 0),
-            V4(0, 0, 1, 0),
-            V4(0, 0, 0, 1),
-        },
-};
-
-static struct vec4 state_x = V4(0, 0, 0, 0);
-static struct mat4 state_P = eye_m4;
-
-void update_filter(float acc_meas, float barom_meas) {
-
-    const struct vec2 measurement = {.s = {barom_meas, acc_meas}};
-    const struct vec4 x_prior = mul_m4_v4(&F, &state_x);
-    
-    const struct mat4 interm = mul_m4_m4(&F, &state_P);
-    const struct mat4 P_prior = mul_m4_m4(&interm, &F_T);
-
-}
-
-struct index_parts {
-    size_t whole;   // The index of the LUT value just before this value
-    float fraction; // How far between LUT[whole] and LUT[whole+1] we are for interpolating
-};
-
-struct index_parts gen_index_parts(float value) {
-    if (value < LUT_MINIMUM_X) {
-        return {0, 0};
-    }
-    if (value > LUT_MAXIMUM_X) {
-        // to keep common code path below, if we would be at the point of last element and element off the end of the array
-        // this will return second to last, 1 which causes the lerping to calculate the last element in its entirety
-        return {LUT_SIZE - 2, 1};
-    }
-
-    float float_index = (LUT_SIZE - 1) * (value - LUT_MINIMUM_X) / (LUT_MAXIMUM_X - LUT_MINIMUM_X);
-
-    float whole_part = 0;
-    float fractional_part = modff(float_index, &whole_part);
-
-    if (whole_part >= LUT_SIZE - 1) {
-        // to keep common code path below, if we would be at the point of last element and element off the end of the array
-        // this will return second to last, 1 which causes the lerping to calculate the last element in its entirety
-        return {LUT_SIZE - 2, 1};
-    }
-
-    return {(size_t) whole_part, fractional_part};
-}
-
-float pressure_altitude(float pressure) {
-    float alt = (1 - powf(pressure / 101325.0f, 0.190284f)) * 145366.45f * 0.3048f;
-    return alt;
-}
-/**
- * Linearly interpolate between from and to
- * @param amt value between 0 and 1 inclusive. How far between the two values
- * @returns linearly interpolated between from and to depending on amt
- * @returns from if amt = 0
- * @returns to if amt = 1
- * This does not do bounds checking, it is your responsibility to not pass in
- * any value of amount outside of the suggested range (or be prepared to face the consequences)
- */
-float lerp(float amount, float from, float to) { return from * (1 - amount) + to * amount; }
-
-void bounds_lut(float altitude_est, float *lower, float *upper) {
-    struct index_parts index = gen_index_parts(altitude_est);
-    float lowerPrevious = lower_bounds_lut[index.whole];
-    float lowerNext = lower_bounds_lut[index.whole + 1];
-    float upperPrevious = upper_bounds_lut[index.whole];
-    float upperNext = upper_bounds_lut[index.whole + 1];
-    *lower = lerp(index.fraction, lowerPrevious, lowerNext);
-    *upper = lerp(index.fraction, upperPrevious, upperNext);
-}
-
-float actuator_effort_lut(float altitude_est, float velocity_est) {
-    float z_hat_min = 0;
-    float z_hat_max = 0;
-    bounds_lut(altitude_est, &z_hat_min, &z_hat_max);
-    float Q = (velocity_est - z_hat_min) / (z_hat_max - z_hat_min);
-    if (Q > 1) {
-        return 1;
-    } else if (Q < 0) {
-        return 0;
-    }
-    return Q;
-}
+// vector pointing in the direction of the nose of the rocket
+void set_gyro_initial_orientation(float x, float y, float z);
+OrientationModelOutputs feed_gyro(uint64_t us_since_boot, const NTypes::GyroscopeData &gyro);
+} // namespace Model
