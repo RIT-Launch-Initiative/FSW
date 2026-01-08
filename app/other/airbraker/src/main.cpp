@@ -10,5 +10,5 @@ SYS_INIT(servo_init, APPLICATION, 1);
 SYS_INIT(storage_init, APPLICATION, 2);
 
 int main() {
-    printk("Time to break air\n")
+    printk("Time to break air\n");
 }
