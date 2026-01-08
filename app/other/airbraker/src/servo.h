@@ -1,7 +1,8 @@
 #include <stdint.h>
 
 /* 
- *   Call once to initialize the servo subsystem
+ *  Call once to initialize the servo subsystem
+ *  Intended for use in SYS_INIT
  */
 extern "C" int servo_init();
 
