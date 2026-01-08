@@ -75,7 +75,8 @@ void CLoraFreqRequestTenant::Run() {
 
     // Validate frequency range before sending command
     const bool within915 = (freqHz >= 902'000'000u && freqHz <= 928'000'000u);
-    const bool within433 = (freqHz >= 410'000'000u && freqHz <= 525'000'000u);
+    // 450 is the max so we are law abiding citizens
+    const bool within433 = (freqHz >= 410'000'000u && freqHz <= 450'000'000u);
     if (!within915 && !within433) {
         const float freqMhz = static_cast<float>(freqHz) / 1'000'000.0f;
         LOG_WRN("Requested frequency %f MHz is out of valid ranges (902-928 MHz or 410-525 MHz)",
@@ -132,7 +133,7 @@ bool CLoraFreqRequestTenant::sendFrequencyCommand(const uint32_t freqHz) {
 
     const int ret = downlinkMessagePort.Send(frame, K_NO_WAIT);
     if (ret == -ENOMSG) {
-        LOG_WRN_ONCE("Downlink queue full, clearing and retrying");
+        LOG_WRN("Downlink queue full, clearing and retrying");
         downlinkMessagePort.Clear();
         return downlinkMessagePort.Send(frame, K_NO_WAIT) == 0;
     }
