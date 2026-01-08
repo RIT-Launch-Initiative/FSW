@@ -21,6 +21,9 @@ void CReceiverModule::AddTenantsToTasks() {
 
     // LoRa
     loraTenant.SetToGround();
+    loraTenant.RegisterFrameHandler(radioModuleFrequencyAckPort, freqRequestTenant);
+    loraTenant.RegisterDefaultFrameHandler(loraToUdpHandler);
+    loraTask.AddTenant(freqRequestTenant);
     loraTask.AddTenant(loraTenant);
 }
 

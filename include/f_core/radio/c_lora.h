@@ -103,6 +103,16 @@ public:
     int SetFrequency(float frequencyMHz);
 
     /**
+     * Get the current configured LoRa frequency (Hz).
+     */
+    uint32_t GetFrequencyHz() const { return config.frequency; }
+
+    /**
+     * Get the current configured LoRa frequency (MHz).
+     */
+    float GetFrequencyMhz() const { return static_cast<float>(config.frequency) / 1'000'000.0f; }
+
+    /**
      * Set the entire LoRa modem configuration
      * @param newConfig New LoRa modem configuration
      * @return Zephyr status code
@@ -122,6 +132,9 @@ private:
         .iq_inverted = false,
         .public_network = false,
     };
+
+    lora_recv_cb lastAsyncRxCallback = nullptr;
+    void* lastAsyncRxUserData = nullptr;
 
     enum Direction {
         RX = 0,

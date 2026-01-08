@@ -12,7 +12,7 @@ void CLoraTenant::Startup() {
 
 void CLoraTenant::PadRun() {
     serviceTx();
-    serviceRx(K_MSEC(3000));
+    serviceRx(K_MSEC(2000));
 }
 
 void CLoraTenant::FlightRun() {
@@ -21,12 +21,12 @@ void CLoraTenant::FlightRun() {
 
 void CLoraTenant::LandedRun() {
     serviceTx();
-    serviceRx(K_MSEC(100));
+    serviceRx(K_MSEC(1000));
 }
 
 void CLoraTenant::GroundRun() {
     serviceTx();
-    serviceRx(K_MSEC(3000));
+    serviceRx(K_MSEC(1000));
 }
 
 void CLoraTenant::Run() {

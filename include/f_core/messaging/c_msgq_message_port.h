@@ -47,7 +47,7 @@ public:
     /**
      * See parent docs
      */
-    int AvailableSpace() override {
+    size_t AvailableSpace() override {
         return k_msgq_num_free_get(queue);
     }
 

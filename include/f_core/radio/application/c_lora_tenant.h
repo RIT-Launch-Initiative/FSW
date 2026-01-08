@@ -48,6 +48,23 @@ public:
      */
     void Run() override;
 
+    /**
+     * @brief Register a frame handler for a specific port
+     * @param port Port to register handler for
+     * @param handler Handler to register
+     */
+    void RegisterFrameHandler(uint16_t port, CLoraFrameHandler& handler) {
+        router.RegisterHandler(port, handler);
+    }
+
+    /**
+     * @brief Register a default frame handler for frames with no specific handler
+     * @param handler Default handler to register
+     */
+    void RegisterDefaultFrameHandler(CLoraFrameHandler& handler) {
+        router.RegisterDefaultHandler(handler);
+    }
+
 private:
     /**
      * @brief Service transmit queue

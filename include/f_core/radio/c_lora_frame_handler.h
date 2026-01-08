@@ -12,9 +12,9 @@ public:
 
     /**
      * Handle an incoming radio frame.
-     * @param frame The received radio frame
+     * @param rxFrame The received radio frame
      */
-    virtual void HandleFrame(const LaunchLoraFrame& frame) = 0;
+    virtual void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) = 0;
 };
 
 #endif //C_LORA_FRAME_HANDLER_H

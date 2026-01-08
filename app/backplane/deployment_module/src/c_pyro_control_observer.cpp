@@ -16,9 +16,8 @@ static void chargeDisableTimerCallback(k_timer* timer) {
     NRtos::ResumeTask("Networking Task");
 }
 
-CPyroControlObserver::CPyroControlObserver() {
+CPyroControlObserver::CPyroControlObserver() : chargeDisableTimer(chargeDisableTimerCallback) {
     // flightLog.Write("Pyro Controller Observer initialized");
-    chargeDisableTimer = CSoftTimer(chargeDisableTimerCallback);
     chargeDisableTimer.SetUserData(this);
 }
 
