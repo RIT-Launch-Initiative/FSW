@@ -75,8 +75,7 @@ static void load_metadata() {
 }
 
 static void save_metadata() {
-    int ret;
-    ret = flash_erase(flash_dev, FLASH_METADATA_ADDR, FLASH_METADATA_SIZE);
+    int ret = flash_erase(flash_dev, FLASH_METADATA_ADDR, FLASH_METADATA_SIZE);
 
     if (ret < 0) {
         LOG_ERR("flash_erase(metadata) failed: %d", ret);
@@ -106,7 +105,7 @@ static void flash_storage_thread_entry(void*, void*, void*) {
 
     load_metadata();
 
-    while (1) {
+    while (true) {
         // Wait for start command
         k_msgq_get(&storage_control_queue, &event, K_FOREVER);
         if (event != BEGIN_STORAGE) continue;
@@ -140,7 +139,7 @@ static void flash_storage_thread_entry(void*, void*, void*) {
         size_t i = 0;
         size_t pages = 0;
 
-        while (1) {
+        while (true) {
             if (k_msgq_get(&storage_control_queue, &event, K_NO_WAIT) == 0 && event == END_STORAGE) {
                 LOG_INF("Test %d complete", current_test_number);
                 current_test_number++;

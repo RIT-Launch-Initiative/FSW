@@ -12,22 +12,6 @@
 int button_switch_init();
 
 /**
- * @brief Interrupt handler that starts a test when TX pin is pulled high
- * @param[in] dev GPIO device
- * @param[in] cb Callback structure pointer
- * @param[in] pins Interrupt pins
- */
-void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
-
-/**
- * @brief Interrupt handler that sets ematch when key switch is open and manages warning buzzer state
- * @param[in] dev GPIO device
- * @param[in] cb Callback structure pointer
- * @param[in] pins Interrupt pins
- */
-void key_switch_state(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
-
-/**
  * @brief Thread to beep continuously if key switch is closed and test is not started
  */
 void buzzer_task(void*, void*, void*);
