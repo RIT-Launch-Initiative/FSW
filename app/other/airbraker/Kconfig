@@ -1,0 +1,5 @@
+source "Kconfig.zephyr"
+
+module = APP_AIRBRAKE
+module-str = APP_AIRBRAKE
+source "subsys/logging/Kconfig.template.log_config"
