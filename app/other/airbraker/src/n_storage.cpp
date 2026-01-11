@@ -1,4 +1,4 @@
-#include "storage.h"
+#include "n_storage.h"
 
 extern "C" int storage_init(){
     return 0;

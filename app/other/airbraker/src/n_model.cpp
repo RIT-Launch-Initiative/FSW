@@ -1,6 +1,6 @@
 #include "n_autocoder_types.h"
 
-namespace Model {
+namespace NModel {
 
 struct KalmanModelOutputs {
     float altitude;

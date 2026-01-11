@@ -1,6 +1,6 @@
 #include "ac_types.h"
 
-namespace Model {
+namespace MModel {
 
 void feed_sensors(const NTypes::AccelerometerData &data, const NTypes::BarometerData &data);
 
