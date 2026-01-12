@@ -1,0 +1,10 @@
+sample:
+  description:
+  name: airbrake_ctrler
+common:
+  build_only: true
+  platform_allow:
+    - control_freak
+    - native_sim
+tests:
+  airbrake_ctrler.flight.default: {}
