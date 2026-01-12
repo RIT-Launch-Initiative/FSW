@@ -42,7 +42,7 @@ public:
     /**
      * Get available space left in the message port
      */
-    virtual int AvailableSpace() = 0;
+    virtual size_t AvailableSpace() = 0;
 };
 
 

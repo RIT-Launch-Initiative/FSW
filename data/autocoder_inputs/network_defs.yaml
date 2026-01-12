@@ -22,6 +22,10 @@ modules:
         port_number: 1
       command_response:
         port_number: 2
+      frequency_change:
+        port_number: 3
+      frequency_change_response:
+        port_number: 4
       gnss_data:
         port_number: 5
       lora_rx_stats:

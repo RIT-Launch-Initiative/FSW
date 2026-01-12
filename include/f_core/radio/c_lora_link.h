@@ -19,11 +19,17 @@ typedef struct {
 } LaunchLoraFrame;
 
 typedef struct {
-    uint8_t data[RADIO_MAX_FRAME_SIZE];
-    uint16_t len;
-    int16_t rssi;
-    int8_t snr;
+    uint16_t Size;
+    int16_t ReceivedSignalStrength;
+    int8_t SignalToNoise;
+    uint8_t Payload[RADIO_MAX_FRAME_SIZE];
 } ReceivedLoraRawFrame;
+
+typedef struct {
+    LaunchLoraFrame Frame;
+    int16_t ReceivedSignalStrength;
+    int8_t SignalToNoise;
+} ReceivedLaunchLoraFrame;
 
 // Forward declare the RX callback
 extern "C" void loraLinkRxCallback(const device* dev,
@@ -55,7 +61,7 @@ public:
      * @param[in] timeout Timeout for receiving data
      * @return >=0 length received on success, negative errno on error
      */
-    int Receive(LaunchLoraFrame& frame, k_timeout_t timeout, int16_t* rssi = nullptr, int8_t* snr = nullptr);
+    int Receive(ReceivedLaunchLoraFrame& frame, k_timeout_t timeout);
 
 private:
     CLora& lora;

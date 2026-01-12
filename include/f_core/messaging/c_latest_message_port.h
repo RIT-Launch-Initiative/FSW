@@ -46,7 +46,7 @@ public:
     /**
      * See parent docs
      */
-    int AvailableSpace() override {
+    size_t AvailableSpace() override {
         return 1;
     }
 

@@ -15,7 +15,7 @@ CRadioModule::CRadioModule() : CProjectConfiguration(),
 #ifndef CONFIG_ARCH_POSIX
                                lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
 #endif
-                               loraBroadcastMessagePort(loraBroadcastMsgQueue),
+                               loraDownlinkMessagePort(loraBroadcastMsgQueue),
                                 gnssDataLogMessagePort(gnssLogMsgQueue) {}
 
 void CRadioModule::AddTenantsToTasks() {
@@ -25,6 +25,12 @@ void CRadioModule::AddTenantsToTasks() {
 
 #ifndef CONFIG_ARCH_POSIX
     // LoRa
+    loraTenant.RegisterFrameHandler(NNetworkDefs::RADIO_MODULE_COMMAND_PORT, remoteGpioHandler);
+    loraTenant.RegisterFrameHandler(NNetworkDefs::RADIO_MODULE_DATA_REQUEST_PORT, downlinkSchedulerTenant);
+    loraTenant.RegisterFrameHandler(NNetworkDefs::RADIO_MODULE_FREQUENCY_CHANGE_PORT, frequencyChangeHandler);
+    loraTenant.RegisterDefaultFrameHandler(loraToUdpHandler);
+
+    loraTask.AddTenant(downlinkSchedulerTenant);
     loraTask.AddTenant(loraTenant);
 
 #endif
