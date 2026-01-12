@@ -1,0 +1,3 @@
+[submodule "app/other/airbraker/quaternions"]
+	path = app/other/airbraker/quaternions
+	url = https://github.com/ferd36/quaternions.git
