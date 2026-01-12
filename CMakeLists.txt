@@ -11,6 +11,9 @@ project(Backplane-Flight-Computer)
 zephyr_syscall_include_directories(include)
 
 zephyr_include_directories(include)
+
+# Enable strict compiler warnings for all builds
+zephyr_compile_options(-Wall)
         
 add_subdirectory(drivers)
 add_subdirectory(lib)
