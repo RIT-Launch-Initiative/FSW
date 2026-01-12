@@ -1,8 +1,8 @@
 #include "f_core/radio/frame_handlers/c_lora_freq_request_tenant.h"
 
+#include <arpa/inet.h>
 #include <cerrno>
 #include <cstring>
-#include <arpa/inet.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CLoraFreqRequestTenant);
@@ -13,19 +13,12 @@ static void ackTimeoutCallback(struct k_timer* timer) {
     tenant->RequestRevertFrequency();
 }
 
-
-CLoraFreqRequestTenant::CLoraFreqRequestTenant(const char* ipStr,
-                                             CLora& lora,
-                                             const uint16_t commandUdpPort,
-                                             CMessagePort<LaunchLoraFrame>& loraDownlinkPort,
-                                             const k_timeout_t rxTimeout)
-    : CRunnableTenant("LoRa Frequency Request Tenant"),
-      lora(lora),
-      udp(CUdpSocket{CIPv4(ipStr), commandUdpPort, commandUdpPort}),
-      downlinkMessagePort(loraDownlinkPort),
-      commandUdpPort(commandUdpPort),
-      rxTimeout(rxTimeout),
-      ackTimer(ackTimeoutCallback, nullptr) {
+CLoraFreqRequestTenant::CLoraFreqRequestTenant(const char* ipStr, CLora& lora, const uint16_t commandUdpPort,
+                                               CMessagePort<LaunchLoraFrame>& loraDownlinkPort,
+                                               const k_timeout_t rxTimeout)
+    : CRunnableTenant("LoRa Frequency Request Tenant"), lora(lora),
+      udp(CUdpSocket{CIPv4(ipStr), commandUdpPort, commandUdpPort}), downlinkMessagePort(loraDownlinkPort),
+      commandUdpPort(commandUdpPort), rxTimeout(rxTimeout), ackTimer(ackTimeoutCallback, nullptr) {
     ackTimer.SetUserData(this);
 }
 
@@ -79,7 +72,7 @@ void CLoraFreqRequestTenant::Run() {
     const bool within433 = (freqHz >= 410'000'000u && freqHz <= 450'000'000u);
     if (!within915 && !within433) {
         const float freqMhz = static_cast<float>(freqHz) / 1'000'000.0f;
-        LOG_WRN("Requested frequency %f MHz is out of valid ranges (902-928 MHz or 410-525 MHz)",
+        LOG_WRN("Requested frequency %f MHz is out of valid ranges (902-928 MHz or 410-450 MHz)",
                 static_cast<double>(freqMhz));
         return;
     }
