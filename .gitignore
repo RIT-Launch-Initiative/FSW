@@ -84,3 +84,4 @@ __pycache__
 
 flash/
 app/payload/control_freak/flight-software/ramreport
+_codeql_detected_source_root
