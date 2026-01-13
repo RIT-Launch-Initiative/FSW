@@ -72,14 +72,18 @@ int main() {
     if (ret != 0) {
         printk("Error setting acc sampling freq: %d\n", ret);
     }
+    k_msleep(1000);
+
     printk("Calibrating\n");
 
     double offset[3] = {0};
     const int calib_len = 100;
     for (int i = 0; i < calib_len; i++) {
         std::array<double, 3> euler_angles{2};
+        sensor_sample_fetch_chan(imu_dev, SENSOR_CHAN_ACCEL_XYZ);
         sensor_sample_fetch_chan(imu_dev, SENSOR_CHAN_GYRO_XYZ);
         ret = gyro_to_euler(euler_angles);
+        printk("%.5f, %.5f, %.5f\n", euler_angles[0], euler_angles[1], euler_angles[2]);
         if (ret != 0) {
             printk("Error reading: %d\n", ret);
             continue;
@@ -111,6 +115,11 @@ int main() {
         last_reading = k_uptime_get();
 // 
         ret = gyro_to_euler(euler_angles);
+
+        euler_angles[0] -= offset[0];
+        euler_angles[1] -= offset[1];
+        euler_angles[2] -= offset[2];
+
         if (ret != 0) {
             printk("Error reading: %d\n", ret);
             continue;
@@ -120,13 +129,13 @@ int main() {
 
         orientation = orientation * delta;
 
-        if (frame % 10) {
+        if (frame % 10 == 0) {
             auto norm = normalize(orientation);
             auto vec = to_euler(norm);
-            // printk("%.5f, %.5f, %.5f\n", vec[0], vec[1], vec[2]);
+            // printk("%.5f, %.5f, %.5f\n", euler_angles[0], euler_angles[1], euler_angles[2]);
             printk("%llu, %.5f, %.5f, %.5f, %.5f\n", last_reading, norm.a(), norm.b(), norm.c(), norm.d());
         }
 
-        k_msleep(100);
+        k_msleep(10);
     }
 }
