@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   format:
@@ -43,11 +44,24 @@ jobs:
             echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit and push changes
+      - name: Create or update branch with changes
         if: steps.check_changes.outputs.changes == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Apply clang-format formatting"
-          git push
+          git push origin HEAD:refs/heads/automated/clang-format --force
+
+      - name: Create or update pull request
+        if: steps.check_changes.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Apply clang-format formatting"
+          title: "CI: Apply clang-format formatting"
+          body: |
+            Automated code formatting using clang-format.
+          branch: automated/clang-format
+          base: main
+          delete-branch: true
