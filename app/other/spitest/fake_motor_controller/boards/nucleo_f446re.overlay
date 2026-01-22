@@ -4,12 +4,21 @@
 
 		cs_spi: cs_spi {
 			label = "CS for spi peripheral";
-			gpios = <&gpiob 6 GPIO_ACTIVE_LOW>;
+			gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
 			zephyr,code = <INPUT_KEY_0>;
 		};
 	};
 };
 
+&dma2{
+	status = "okay";
+};
+
 &arduino_spi {
 	status = "okay";
+
+	dmas = <&dma2 5 3 0x20440 0x03>,
+		   <&dma2 2 3 0x20440 0x03>;
+	dma-names = "tx", "rx";
+
 };
