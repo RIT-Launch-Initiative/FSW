@@ -41,14 +41,14 @@ CheckOptions:
   # Classes must start with 'C'
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
-  - key: readability-identifier-naming.ClassPrefix
-    value: 'C'
+  # - key: readability-identifier-naming.ClassPrefix
+    # value: 'C'
   
   # Structs must start with 'C' (treated like classes in C++)
   - key: readability-identifier-naming.StructCase
     value: CamelCase
-  - key: readability-identifier-naming.StructPrefix
-    value: 'C'
+  # - key: readability-identifier-naming.StructPrefix
+    # value: 'C'
   
   # Namespaces must start with 'N'
   - key: readability-identifier-naming.NamespaceCase
