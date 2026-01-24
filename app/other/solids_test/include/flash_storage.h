@@ -7,7 +7,7 @@
 /**
  * @brief Thread to save test data to flash storage
  */
-static void flash_storage_thread_entry(void*, void*, void*);
+void flash_storage_thread_entry(void*, void*, void*);
 
 /**
  * @brief Begin flash storage event

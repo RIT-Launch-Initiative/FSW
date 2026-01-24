@@ -18,6 +18,8 @@ static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET(BUTTON_NODE, gpios);
 static const struct gpio_dt_spec key_switch = GPIO_DT_SPEC_GET(SWITCH_NODE, gpios);
 
 void buzzer_task(void*, void*, void*);
+void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
+void key_switch_state(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
 
 static struct gpio_callback button_cb_data;
 static struct gpio_callback switch_cb_data;
