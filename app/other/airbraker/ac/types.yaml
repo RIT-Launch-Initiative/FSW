@@ -1,0 +1,30 @@
+FastPacketItem:
+  description: Preboost, Boost, and Coast datapacket
+  fields:
+    - name: Timestamp
+      type: uint32_t
+    - name: AxisAccel
+      type: float
+    - name: BaromData
+      type: BarometerData
+    - name: AltitudeEst
+      type: float
+    - name: VelocityEst
+      type: float
+    - name: AccelEst
+      type: float  
+    - name: ServoEffort
+      type: uint8_t
+    - name: ServoCurrent
+      type: uint8_t
+    - name: Voltage
+      type: uint8_t
+    - name: PlaceHolder
+      type: uint8_t
+
+FastPacket:
+  description: collection of FastPacketItems to make a page
+  fields:
+    - name: items
+      type: FastPacketItem
+      array_size: 8
