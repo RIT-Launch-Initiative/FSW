@@ -1,3 +1,4 @@
+#pragma once
 #ifdef CONFIG_CMSIS_DSP_MATRIX
 #include "c_cmsismatrix.hpp"
 
