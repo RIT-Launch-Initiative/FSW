@@ -28,7 +28,7 @@ const Matrix<4, 2> kalman_gain{{
 
 // clang-format on
 
-Matrix<4, 1> kalmanPredictAndUpdate(const StateT &state, const float altitude, const float acceleration) {
+Matrix<4, 1> kalmanPredictAndUpdate(const Matrix<4, 1> &state, const float altitude, const float acceleration) {
     Matrix<2, 1> sensor_in = Matrix<2, 1>::Column({altitude, acceleration});
 
     // change via physics model
