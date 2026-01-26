@@ -1,6 +1,5 @@
 #pragma once
 #include "n_autocoder_types.h"
-#include "math/matrix.hpp"
 
 namespace NModel {
 
