@@ -20,4 +20,4 @@
  */
 int l_check_device(const struct device *const dev);
 
-#endif // L_DEVICE_UTILS_H
+

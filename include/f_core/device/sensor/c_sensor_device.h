@@ -107,4 +107,4 @@ private:
     bool isInitialized;
 };
 
-#endif //C_SENSOR_DEVICE_H
+

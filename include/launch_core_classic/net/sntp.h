@@ -11,4 +11,4 @@
  */
 void l_sntp_start_client_thread(const char *server_ip, uint64_t timeout_ms);
 
-#endif // L_SNTP_UTILS_H
+

@@ -21,4 +21,4 @@ namespace NAlerts {
 
     typedef std::array<uint8_t, ALERT_PACKET_SIZE> AlertPacket;
 }
-#endif //N_ALERTS_H
+

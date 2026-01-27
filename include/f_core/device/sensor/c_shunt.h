@@ -32,4 +32,4 @@ class CShunt : public CSensorDevice {
     SShuntData shuntData;
 };
 
-#endif //C_ACCELEROMETER_DEVICE_H
+

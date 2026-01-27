@@ -16,4 +16,3 @@ public:
     virtual void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) = 0;
 };
 
-#endif //C_LORA_FRAME_HANDLER_H

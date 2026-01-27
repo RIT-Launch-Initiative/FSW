@@ -37,4 +37,4 @@ private:
     CLoraFrameHandler *defaultHandler = nullptr;
 };
 
-#endif // C_LORA_ROUTER_H
+

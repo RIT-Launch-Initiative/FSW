@@ -42,4 +42,4 @@ private:
     const gpio_dt_spec* gpioDev;
 };
 
-#endif // C_GPIO_DEVICE
+

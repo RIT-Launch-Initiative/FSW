@@ -16,4 +16,4 @@ namespace NSensorCalibrators {
                                 GravityOrientation gravityOrientation = PosZ);
 }
 
-#endif //N_CALIBRATORS_H
+

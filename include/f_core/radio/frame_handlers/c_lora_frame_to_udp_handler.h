@@ -22,4 +22,3 @@ private:
 };
 
 
-#endif //C_LORA_FRAME_TO_UDP_HANDLER_H

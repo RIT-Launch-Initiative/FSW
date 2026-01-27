@@ -27,4 +27,4 @@ void l_init_time(uint32_t time_of_day_ms);
  */
 uint32_t l_get_time_of_day_ms(uint32_t current_uptime_ms);
 
-#endif // L_TIME_H
+

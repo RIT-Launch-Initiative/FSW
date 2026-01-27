@@ -36,4 +36,3 @@
  */
 int l_create_ip_str(char *ip_str, int a, int b, int c, int d);
 
-#endif // L_NET_UTILS_H_

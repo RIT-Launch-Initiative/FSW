@@ -23,4 +23,4 @@ namespace NGnssUtils {
     }
 };
 
-#endif // N_GNSS_UTILS_H
+

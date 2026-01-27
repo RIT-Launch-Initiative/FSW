@@ -39,4 +39,4 @@ private:
 };
 
 
-#endif //C_MAGNETOMETER_H
+

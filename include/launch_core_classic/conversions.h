@@ -18,4 +18,3 @@
 */
 double l_altitude_conversion(double pressure_kpa, double temperature_c);
 
-#endif //CONVERSIONS_H

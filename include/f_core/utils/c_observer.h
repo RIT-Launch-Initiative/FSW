@@ -12,4 +12,4 @@ public:
     virtual void Notify(void *ctx) = 0;
 };
 
-#endif //C_OBSERVER_H
+

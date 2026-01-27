@@ -118,4 +118,4 @@ int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_
  */
 int l_get_shunt_data_float(const struct device *const dev, l_shunt_data_t *p_shunt_data);
 
-#endif // L_SENSOR_UTILS_H
+

@@ -32,4 +32,4 @@ private:
     sensor_value temperature{};
 };
 
-#endif //C_TEMPERATURE_SENSOR_H
+

@@ -54,4 +54,4 @@ private:
     k_msgq *queue;
 };
 
-#endif // C_MSGQ_MESSAGE_PORT_H
+

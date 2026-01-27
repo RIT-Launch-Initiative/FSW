@@ -108,4 +108,3 @@ int l_lora_set_preamble_len(const struct device *dev, uint16_t preamble_len);
  */
 int l_lora_set_tx_power(const struct device *dev, int8_t tx_power);
 
-#endif // L_LORA_UTILS_H_

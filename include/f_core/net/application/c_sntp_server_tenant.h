@@ -170,4 +170,4 @@ private:
     void setupRtcTime();
 };
 
-#endif // C_SNTP_SERVER_H
+
