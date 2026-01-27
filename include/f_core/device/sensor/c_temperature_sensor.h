@@ -1,5 +1,4 @@
-#ifndef C_TEMPERATURE_SENSOR_H
-#define C_TEMPERATURE_SENSOR_H
+#pragma once
 
 #include "c_sensor_device.h"
 #include <zephyr/device.h>

@@ -7,7 +7,6 @@
  */
 
 #ifndef EXTENSION_BOARDS_H
-#define EXTENSION_BOARDS_H
 
 #include <stdint.h>
 

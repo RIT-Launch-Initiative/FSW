@@ -1,5 +1,4 @@
-#ifndef N_ALERTS_H
-#define N_ALERTS_H
+#pragma once
 
 #include <array>
 #include <cstdint>

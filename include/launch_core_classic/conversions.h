@@ -5,7 +5,6 @@
  */
 
 #ifndef CONVERSIONS_H
-#define CONVERSIONS_H
 
 #ifndef _MATH_H
 #include <math.h>

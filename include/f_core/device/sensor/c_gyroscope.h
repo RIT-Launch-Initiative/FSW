@@ -1,5 +1,4 @@
-#ifndef C_GYROSCOPE_H
-#define C_GYROSCOPE_H
+#pragma once
 
 #include "c_sensor_device.h"
 

@@ -1,10 +1,8 @@
-#ifndef L_SNTP_UTILS_H
-#define L_SNTP_UTILS_H
+#pragma once
 
 #include <stdint.h>
 #include <zephyr/kernel.h>
 
-#define SNTP_CLIENT_STACK_SIZE 1024
 
 /**
  * Start an SNTP client thread that will stop once the time has been updated

@@ -1,5 +1,4 @@
-#ifndef C_FREQUENCY_CHANGE_HANDLER_H
-#define C_FREQUENCY_CHANGE_HANDLER_H
+#pragma once
 
 #include "f_core/radio/c_lora.h"
 #include "f_core/radio/c_lora_frame_handler.h"

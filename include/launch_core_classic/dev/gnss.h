@@ -5,7 +5,6 @@
  */
 
 #ifndef L_GNSS_H
-#define L_GNSS_H
 
 #include <zephyr/drivers/gnss.h>
 

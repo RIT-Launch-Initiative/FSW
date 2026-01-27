@@ -1,5 +1,4 @@
-#ifndef L_EVENT_MONITOR_H
-#define L_EVENT_MONITOR_H
+#pragma once
 
 #include <stdint.h>
 

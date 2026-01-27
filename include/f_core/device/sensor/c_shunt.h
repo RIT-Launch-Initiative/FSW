@@ -1,5 +1,4 @@
-#ifndef C_SHUNT_DEVICE_H
-#define C_SHUNT_DEVICE_H
+#pragma once
 
 #include "c_sensor_device.h"
 

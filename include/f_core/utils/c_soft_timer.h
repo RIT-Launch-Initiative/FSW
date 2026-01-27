@@ -1,5 +1,4 @@
-#ifndef C_SOFT_TIMER_H
-#define C_SOFT_TIMER_H
+#pragma once
 #include <zephyr/kernel.h>
 
 class CSoftTimer {

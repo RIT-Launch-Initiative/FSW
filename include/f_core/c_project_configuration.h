@@ -1,5 +1,4 @@
-#ifndef C_PROJECT_CONFIGURATION_H
-#define C_PROJECT_CONFIGURATION_H
+#pragma once
 
 class CProjectConfiguration {
 public:

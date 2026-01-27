@@ -1,9 +1,7 @@
-#ifndef L_SENSOR_DATA_TYPES_H
-#define L_SENSOR_DATA_TYPES_H
+#pragma once
 
 #include <stdint.h>
 
-#define FLOAT_ERROR_VALUE FLT_MIN
 
 /****** Primitive Data Types ******/
 // TODO: See if we can support __fp16 in GSW first

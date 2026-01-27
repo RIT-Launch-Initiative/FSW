@@ -1,5 +1,4 @@
-#ifndef C_LATEST_MESSAGE_PORT_H
-#define C_LATEST_MESSAGE_PORT_H
+#pragma once
 
 #include "f_core/messaging/c_message_port.h"
 #include "f_core/os/c_latest_mailbox.h"

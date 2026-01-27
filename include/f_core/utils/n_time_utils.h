@@ -1,5 +1,4 @@
-#ifndef N_TIME_UTILS_H
-#define N_TIME_UTILS_H
+#pragma once
 
 #include <zephyr/drivers/rtc.h>
 #include <zephyr/net/sntp.h>

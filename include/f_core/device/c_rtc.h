@@ -1,5 +1,4 @@
-#ifndef C_RTC_H
-#define C_RTC_H
+#pragma once
 
 #include <time.h>
 #include <zephyr/device.h>

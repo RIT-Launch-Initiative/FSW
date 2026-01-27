@@ -1,5 +1,4 @@
-#ifndef C_BAROMETER_DEVICE_H
-#define C_BAROMETER_DEVICE_H
+#pragma once
 
 #include "c_sensor_device.h"
 #include <zephyr/device.h>

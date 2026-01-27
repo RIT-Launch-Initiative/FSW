@@ -1,5 +1,4 @@
-#ifndef L_UART_H_
-#define L_UART_H_
+#pragma once
 
 #include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>

@@ -1,5 +1,4 @@
-#ifndef C_LORA_LINK_H
-#define C_LORA_LINK_H
+#pragma once
 
 #include <array>
 

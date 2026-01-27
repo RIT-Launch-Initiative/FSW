@@ -1,5 +1,4 @@
-#ifndef C_OBSERVER_H
-#define C_OBSERVER_H
+#pragma once
 
 class CObserver {
 public:

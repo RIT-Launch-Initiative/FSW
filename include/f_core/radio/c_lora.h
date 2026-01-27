@@ -1,5 +1,4 @@
-#ifndef C_LORA_H
-#define C_LORA_H
+#pragma once
 
 #include <zephyr/drivers/lora.h>
 

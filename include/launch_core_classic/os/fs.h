@@ -1,13 +1,10 @@
-#ifndef L_LOGGER_H
-#define L_LOGGER_H
+#pragma once
 
 #include <zephyr/kernel.h>
 #include <zephyr/fs/fs.h>
 #include <zephyr/logging/log.h>
 
-#define ENOTINIT 200 // device not initialized
 
-#define L_FS_CREATE_FILE(name, filename, sample_width, n_samples, mode) \
     l_fs_file_t name = { \
         .fname = #filename, \
         .width = sample_width, \

@@ -1,5 +1,4 @@
-#ifndef N_GNSS_UTILS_H
-#define N_GNSS_UTILS_H
+#pragma once
 
 #include <zephyr/drivers/gnss.h>
 

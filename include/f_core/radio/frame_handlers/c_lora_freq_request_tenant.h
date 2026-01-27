@@ -1,5 +1,4 @@
-#ifndef C_LORA_FREQ_REQUEST_TENANT_H
-#define C_LORA_FREQ_REQUEST_TENANT_H
+#pragma once
 
 #include <f_core/os/c_runnable_tenant.h>
 #include <f_core/messaging/c_message_port.h>

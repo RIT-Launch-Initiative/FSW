@@ -1,5 +1,4 @@
-#ifndef C_GPIO_DEVICE
-#define C_GPIO_DEVICE
+#pragma once
 
 #include <zephyr/drivers/gpio.h>
 
