@@ -3,22 +3,21 @@
 
 namespace NModel {
 
-
 struct KalmanState {
     float estAltitude;
     float estVelocity;
     float estAcceleration;
 };
 
-void FeedKalman(uint64_t usSinceBoot, const NTypes::AccelerometerData &adata, const NTypes::BarometerData &bdata);
+void FeedKalman(uint64_t usSinceBoot, float verticalAccelerationMS2, float altitude_feet);
 KalmanState LastKalmanState();
 
-struct GyroState{
+struct GyroState {
     float angleOffInitial;
     float angleUncertainty;
 };
 
 void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro);
-float CalculateEffort(const KalmanState &state);
 
+float CalcActuatorEffort(float altitude, float velocity);
 } // namespace NModel
