@@ -29,7 +29,7 @@ namespace NTimeUtils {
      * @param retryDelay Delay between retries in milliseconds
      */
      // void SetupSntpSynchronizationCallback(CRtc& rtc, const int interval, const char* serverAddress, const int maxRetries, const k_timeout_t retryDelay = K_MSEC(100));
-
+#endif
 
 
 }

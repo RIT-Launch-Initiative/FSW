@@ -30,7 +30,7 @@ public:
 // Only fatal in debug mode. Unlikely to occur in an actual flight, and in the off-chance it does we shouldn't fatal the entire system over it
 #ifdef CONFIG_DEBUG
                 k_oops();
-
+#endif
 
                 return false;
             }
@@ -59,7 +59,7 @@ public:
                 printk("Attempted to emplace more than the maximum size of the hashmap post-startup\n"); // LOG doesn't work well in templates
 #ifdef CONFIG_DEBUG
                 k_oops();
-
+#endif
                 return false;
             }
         }
