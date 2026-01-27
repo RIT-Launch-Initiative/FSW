@@ -5,6 +5,11 @@
 template <std::size_t R, std::size_t C>
 using Matrix = CMSISMatrix<R, C>;
 
+
+// #include "c_manualmatrix.hpp"
+// template <std::size_t R, std::size_t C>
+// using Matrix = ManualMatrix<R, C, double>;
+
 #else
 
 #include "c_manualmatrix.hpp"

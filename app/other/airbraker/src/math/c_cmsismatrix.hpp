@@ -3,7 +3,6 @@
 
 #include <array>
 #include <cstdint>
-#include <zephyr/kernel.h>
 
 template <std::size_t R, std::size_t C>
 class CMSISMatrix {
@@ -12,7 +11,6 @@ class CMSISMatrix {
 
     CMSISMatrix() { arm_mat_init_f32(&inst, R, C, data); }
     CMSISMatrix(Scalar (&arr)[R * C]) {
-        printk("New cmsis\n");
         for (std::size_t i = 0; i < R * C; i++) {
             data[i] = arr[i];
         }
