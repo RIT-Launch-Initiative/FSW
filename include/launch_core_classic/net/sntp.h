@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <zephyr/kernel.h>
 
-
+#define SNTP_CLIENT_STACK_SIZE 1024
 /**
  * Start an SNTP client thread that will stop once the time has been updated
  * @param server_ip - IP address of the (S)NTP server

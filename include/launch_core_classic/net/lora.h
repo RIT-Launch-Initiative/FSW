@@ -8,8 +8,7 @@
 * Utility functions for dealing with Zephyr's LoRa library
 */
 
-#ifndef L_LORA_UTILS_H_
-#define L_LORA_UTILS_H_
+#pragma once
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/lora.h>

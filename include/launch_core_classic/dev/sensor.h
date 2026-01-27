@@ -8,8 +8,7 @@
  * Utility functions for dealing with the Zephyr sensor API
  */
 
-#ifndef L_SENSOR_UTILS_H
-#define L_SENSOR_UTILS_H
+#pragma once
 
 #include <float.h>
 #include <launch_core_classic/types.h>
@@ -117,5 +116,3 @@ int l_get_gyroscope_data_float(const struct device *const dev, l_gyroscope_data_
  * @return Bitfield of failed retrievals
  */
 int l_get_shunt_data_float(const struct device *const dev, l_shunt_data_t *p_shunt_data);
-
-

@@ -4,18 +4,11 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/logging/log.h>
 
-
-    l_fs_file_t name = { \
-        .fname = #filename, \
-        .width = sample_width, \
-        .mode = mode, \
-        .size = sample_width * n_samples, \
-        .initialized = false, \
-        .file = {0}, \
-        .dirent = {0}, \
-        .vfs = {0}, \
-        .wpos = 0 \
-    }
+#define ENOTINIT 200 // device not initialized
+#define L_FS_CREATE_FILE(name, filename, sample_width, n_samples, mode) l_fs_file_t name = {.fname = #filename,
+.width = sample_width, .mode = mode, .size = sample_width * n_samples, .initialized = false, .file = {0}, .dirent = {0},
+    .vfs = {0}, .wpos = 0
+}
 
 typedef enum {
     SLOG_ONCE,

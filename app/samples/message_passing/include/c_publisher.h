@@ -35,5 +35,3 @@ private:
     Message message;
 };
 
-#endif //PRINTCOUNT_H
-

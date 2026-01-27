@@ -2,17 +2,19 @@
 
 #include "f_core/device/c_rtc.h"
 
-#include <n_autocoder_types.h>
-
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_runnable_tenant.h>
 #include <f_core/utils/c_observer.h>
 #include <f_core/utils/c_soft_timer.h>
+#include <n_autocoder_types.h>
 
 class CSensingTenant : public CRunnableTenant, public CObserver {
-public:
-    explicit CSensingTenant(const char* name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
-        : CRunnableTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(dataToDownlink) {}
+  public:
+    explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast,
+                            CMessagePort<NTypes::TimestampedSensorData> &dataToLog,
+                            CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink)
+        : CRunnableTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog),
+          dataToDownlink(dataToDownlink) {}
 
     ~CSensingTenant() override = default;
 
@@ -24,7 +26,7 @@ public:
 
     void Notify(void *ctx) override;
 
-private:
+  private:
     CMessagePort<NTypes::SensorData> &dataToBroadcast;
     CMessagePort<NTypes::TimestampedSensorData> &dataToLog;
     CMessagePort<NTypes::LoRaBroadcastSensorData> &dataToDownlink;
@@ -33,6 +35,3 @@ private:
 
     void sendDownlinkData(const NTypes::SensorData &data);
 };
-
-
-

@@ -3,13 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#pragma once
 
 /**
  * Utility functions for dealing with Zephyr ADC devices
  */
-
-#ifndef L_ADC_UTILS_H
-#define L_ADC_UTILS_H
 
 #include <zephyr/drivers/adc.h>
 

@@ -8,8 +8,7 @@
  * Common utility functions for dealing with Zephyr networking libraries
  */
 
-#ifndef L_NET_UTILS_H_
-#define L_NET_UTILS_H_
+#pragma once
 
 #include <stdint.h>
 

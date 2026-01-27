@@ -30,6 +30,3 @@ private:
 
     int* count;
 };
-
-#endif //PRINTCOUNT_H
-

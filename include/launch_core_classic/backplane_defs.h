@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef BACKPLANE_DEFS_H
-
+#pragma once
 /**
  * Definitions for all backplane related constants
  */

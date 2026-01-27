@@ -8,8 +8,7 @@
  * Utility functions for handling UDP networking
  */
 
-#ifndef L_UDP_UTILS_H_
-#define L_UDP_UTILS_H_
+#pragma once
 
 #include <stdint.h>
 #include <stddef.h>

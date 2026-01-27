@@ -9,8 +9,7 @@
  */
 
 
-#ifndef L_TIME_H
-#define L_TIME_H
+#pragma once
 
 #include <stdint.h>
 

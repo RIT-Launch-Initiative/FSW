@@ -5,6 +5,7 @@
 // Use buzzer or led for status
 
 // Use short timers so you don't get bored
+#define SHORT_FLIGHT
 
 // Use to .5 G for boost detect if directional
 // doesnt effect non directional bc that can be shaken to trigger even at 5G

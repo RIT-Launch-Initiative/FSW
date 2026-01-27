@@ -6,8 +6,7 @@
  * Define extension board constants and functionality for interactions
  */
 
-#ifndef EXTENSION_BOARDS_H
-
+#pragma once
 #include <stdint.h>
 
 #include <zephyr/device.h>
