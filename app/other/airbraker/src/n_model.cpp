@@ -29,16 +29,16 @@ const Matrix<4, 2> kalman_gain{{
 // clang-format on
 
 Matrix<4, 1> kalmanPredictAndUpdate(const Matrix<4, 1> &state, const float altitude, const float acceleration) {
-    Matrix<2, 1> sensor_in = Matrix<2, 1>::Column({altitude, acceleration});
+    Matrix<2, 1> sensorIn = Matrix<2, 1>::Column({altitude, acceleration});
 
     // change via physics model
-    Matrix<4, 1> f_x = state_transition_matrix * state;
+    Matrix<4, 1> fx = state_transition_matrix * state;
 
     // change via sensors
-    Matrix<2, 1> innovation = sensor_in - (kalman_output_matrix * f_x);
+    Matrix<2, 1> innovation = sensorIn - (kalman_output_matrix * fx);
     Matrix<4, 1> correction = kalman_gain * innovation;
 
-    return f_x + correction;
+    return fx + correction;
 }
 
 } // namespace NModel
