@@ -1,5 +1,4 @@
-#ifndef PRINTCOUNT_H
-#define PRINTCOUNT_H
+#pragma once
 
 #include "message.h"
 

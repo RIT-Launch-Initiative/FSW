@@ -71,5 +71,3 @@ private:
 
 };
 
-#endif // C_LORA_FREQ_REQUEST_TENANT_H
-

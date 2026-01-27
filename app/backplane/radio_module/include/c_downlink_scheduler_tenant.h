@@ -1,5 +1,4 @@
-#ifndef RADIO_MODULE_C_DOWNLINK_SCHEDULER_TENANT_H
-#define RADIO_MODULE_C_DOWNLINK_SCHEDULER_TENANT_H
+#pragma once
 
 #include <f_core/radio/c_lora_frame_handler.h>
 #include <f_core/os/c_runnable_tenant.h>
@@ -62,4 +61,4 @@ private:
 };
 
 
-#endif //RADIO_MODULE_C_DOWNLINK_SCHEDULER_TENANT_H
+

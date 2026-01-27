@@ -1,5 +1,4 @@
-#ifndef C_SENSING_TENANT_H
-#define C_SENSING_TENANT_H
+#pragma once
 
 #include "f_core/device/c_rtc.h"
 
@@ -36,4 +35,4 @@ private:
 };
 
 
-#endif //C_SENSING_TENANT_H
+

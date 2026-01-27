@@ -1,13 +1,10 @@
-#ifndef REEFER_INCLUDE_CONFIG_H
-#define REEFER_INCLUDE_CONFIG_H
+#pragma once
 
 #include <zephyr/kernel.h>
 
 // Use buzzer or led for status
-#define BUZZER_USE_LED
 
 // Use short timers so you don't get bored
-#define SHORT_FLIGHT
 
 // Use to .5 G for boost detect if directional
 // doesnt effect non directional bc that can be shaken to trigger even at 5G
@@ -73,4 +70,4 @@
 #define PRELAUNCH_ACCEL_FILENAME "/lfs/pre_imu.bin"
 #define PRELAUNCH_ALT_FILENAME   "/lfs/pre_altitude.bin"
 
-#endif
+

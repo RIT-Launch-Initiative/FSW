@@ -1,9 +1,7 @@
-#ifndef MESSAGE_H
-#define MESSAGE_H
+#pragma once
 
 struct Message {
     int count;
     char message[32];
 };
 
-#endif //MESSAGE_H
