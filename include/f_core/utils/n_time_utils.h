@@ -32,7 +32,7 @@ namespace NTimeUtils {
      // void SetupSntpSynchronizationCallback(CRtc& rtc, const int interval, const char* serverAddress, const int maxRetries, const k_timeout_t retryDelay = K_MSEC(100));
 
 
-#endif
+
 }
 
 #endif //N_TIME_UTILS_H

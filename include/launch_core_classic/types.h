@@ -74,4 +74,4 @@ typedef struct __attribute__((packed)) {
 
 typedef l_temperature_data_t sensor_module_ten_hz_telemetry_t;
 
-#endif
+

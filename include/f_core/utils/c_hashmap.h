@@ -1,5 +1,4 @@
-#ifndef C_HASHMAP_H
-#define C_HASHMAP_H
+#pragma once
 
 #include <optional>
 #include <unordered_map>
@@ -31,7 +30,7 @@ public:
 // Only fatal in debug mode. Unlikely to occur in an actual flight, and in the off-chance it does we shouldn't fatal the entire system over it
 #ifdef CONFIG_DEBUG
                 k_oops();
-#endif
+
 
                 return false;
             }
@@ -60,7 +59,7 @@ public:
                 printk("Attempted to emplace more than the maximum size of the hashmap post-startup\n"); // LOG doesn't work well in templates
 #ifdef CONFIG_DEBUG
                 k_oops();
-#endif
+
                 return false;
             }
         }
@@ -121,6 +120,3 @@ private:
         return strncmp(k_thread_name_get(k_current_get()), "main", 4) == 0;
     }
 };
-
-
-#endif //C_HASHMAP_H

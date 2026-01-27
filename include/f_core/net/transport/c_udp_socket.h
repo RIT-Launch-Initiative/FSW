@@ -1,5 +1,4 @@
-#ifndef C_UDP_SOCKET_H
-#define C_UDP_SOCKET_H
+#pragma once
 
 #include "zephyr/posix/poll.h"
 
@@ -106,7 +105,7 @@ private:
     static constexpr char BROADCAST_IP[] = "127.0.0.1";
 #else
     static constexpr char BROADCAST_IP[] = "255.255.255.255";
-#endif
+
 
     int dstPort = -1;
 

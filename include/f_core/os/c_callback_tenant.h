@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef C_CALLBACK_TENANT_H
-#define C_CALLBACK_TENANT_H
+#pragma once
 
 #include "f_core/os/c_tenant.h"
 

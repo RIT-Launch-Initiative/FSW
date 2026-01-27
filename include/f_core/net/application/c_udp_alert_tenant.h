@@ -1,5 +1,4 @@
-#ifndef C_UDP_ALERT_TENANT_H
-#define C_UDP_ALERT_TENANT_H
+#pragma once
 
 #include "f_core/n_alerts.h"
 #include "f_core/net/network/c_ipv4.h"

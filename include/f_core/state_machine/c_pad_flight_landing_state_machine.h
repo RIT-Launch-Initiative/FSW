@@ -1,5 +1,4 @@
-#ifndef PADFLIGHTSTATEMACHINE_H
-#define PADFLIGHTSTATEMACHINE_H
+#pragma once
 
 #include <zephyr/kernel.h>
 

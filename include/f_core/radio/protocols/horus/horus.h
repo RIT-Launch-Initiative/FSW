@@ -1,7 +1,7 @@
 #pragma once
 #ifdef __cplusplus
 extern "C" {
-#endif
+
 // Unless otherwise noted, code from https://github.com/mikaelnousiainen/RS41ng/tree/main
 
 #include <stdbool.h>
@@ -69,8 +69,8 @@ bool horusv2_checksum_verify(const struct horus_packet_v2 *input_packet);
  * @param[out] the packet to decode into
  */
 void horusv2_decode(const horus_packet_v2_encoded_buffer_t *input_buffer, struct horus_packet_v2 *output_packet);
-#endif
+
 
 #ifdef __cplusplus
 }
-#endif
+
