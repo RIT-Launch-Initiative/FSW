@@ -1,3 +1,4 @@
+#pragma once
 #include "n_autocoder_types.h"
 
 namespace NBoost{
