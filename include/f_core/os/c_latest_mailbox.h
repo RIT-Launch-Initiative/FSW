@@ -1,5 +1,4 @@
-#ifndef C_LATEST_MAILBOX_H
-#define C_LATEST_MAILBOX_H
+#pragma once
 
 #include <type_traits>
 #include <zephyr/sys/atomic.h>
@@ -80,7 +79,3 @@ private:
     T value{};
     const uint32_t spinsBeforeYield;
 };
-
-
-
-#endif //C_LATEST_MAILBOX_H

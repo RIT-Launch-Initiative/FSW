@@ -1,5 +1,4 @@
-#ifndef RADIO_MODULE_C_REMOTE_GPIO_HANDLER_H
-#define RADIO_MODULE_C_REMOTE_GPIO_HANDLER_H
+#pragma once
 
 #include <f_core/radio/c_lora_frame_handler.h>
 #include <f_core/device/c_gpio.h>
@@ -40,4 +39,4 @@ private:
 };
 
 
-#endif //RADIO_MODULE_C_REMOTE_GPIO_HANDLER_H
+

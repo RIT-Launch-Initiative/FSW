@@ -1,5 +1,4 @@
-#ifndef C_GPIO_DEVICE
-#define C_GPIO_DEVICE
+#pragma once
 
 #include <zephyr/drivers/gpio.h>
 
@@ -43,4 +42,4 @@ private:
     const gpio_dt_spec* gpioDev;
 };
 
-#endif // C_GPIO_DEVICE
+

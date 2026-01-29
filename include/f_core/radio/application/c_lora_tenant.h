@@ -1,5 +1,4 @@
-#ifndef C_LORA_TENANT_H
-#define C_LORA_TENANT_H
+#pragma once
 
 #include <zephyr/kernel.h>
 
@@ -83,4 +82,3 @@ private:
     CMessagePort<LaunchLoraFrame>& loraTransmitPort;
 };
 
-#endif//C_LORA_TENANT_H

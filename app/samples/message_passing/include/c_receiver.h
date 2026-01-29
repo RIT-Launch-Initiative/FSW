@@ -1,5 +1,4 @@
-#ifndef HELLOTENANT_H
-#define HELLOTENANT_H
+#pragma once
 
 #include "message.h"
 
@@ -31,4 +30,4 @@ private:
     int messageCountToReceive;
 };
 
-#endif //HELLOTENANT_H
+

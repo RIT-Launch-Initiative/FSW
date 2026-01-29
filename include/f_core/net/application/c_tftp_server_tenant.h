@@ -1,5 +1,4 @@
-#ifndef C_TFTP_SERVER_H
-#define C_TFTP_SERVER_H
+#pragma once
 
 #include "f_core/os/c_tenant.h"
 #include "f_core/net/network/c_ipv4.h"
@@ -112,4 +111,4 @@ private:
     int generateTree();
 };
 
-#endif // C_TFTP_SERVER_H
+

@@ -2,6 +2,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 // Unless otherwise noted, code from https://github.com/mikaelnousiainen/RS41ng/tree/main
 
 #include <stdbool.h>
@@ -74,3 +75,4 @@ void horusv2_decode(const horus_packet_v2_encoded_buffer_t *input_buffer, struct
 #ifdef __cplusplus
 }
 #endif
+

@@ -1,5 +1,4 @@
-#ifndef C_LORA_LINK_H
-#define C_LORA_LINK_H
+#pragma once
 
 #include <array>
 
@@ -95,4 +94,4 @@ private:
                                    int16_t rssi, int8_t snr, void* userData);
 };
 
-#endif // C_LORA_LINK_H
+

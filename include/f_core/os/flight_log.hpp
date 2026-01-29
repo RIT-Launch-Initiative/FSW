@@ -1,5 +1,5 @@
-#ifndef F_CORE_FLIGHT_FLIGHT_LOG_H
-#define F_CORE_FLIGHT_FLIGHT_LOG_H
+#pragma once
+
 #include <stdint.h>
 #include <string.h>
 #include <string>
@@ -87,5 +87,3 @@ class CFlightLog {
 
     fs_file_t file;
 };
-
-#endif

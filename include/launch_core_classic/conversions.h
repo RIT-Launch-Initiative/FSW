@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef CONVERSIONS_H
-#define CONVERSIONS_H
+#pragma once
 
 #ifndef _MATH_H
 #include <math.h>
@@ -18,5 +17,3 @@
  * @return The altitude in meters
 */
 double l_altitude_conversion(double pressure_kpa, double temperature_c);
-
-#endif //CONVERSIONS_H

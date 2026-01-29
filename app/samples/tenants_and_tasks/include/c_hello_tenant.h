@@ -1,5 +1,4 @@
-#ifndef HELLOTENANT_H
-#define HELLOTENANT_H
+#pragma once
 
 // F-Core Includes
 #include <f_core/os/c_runnable_tenant.h>
@@ -21,4 +20,4 @@ public:
     void Run() override;
 };
 
-#endif //HELLOTENANT_H
+

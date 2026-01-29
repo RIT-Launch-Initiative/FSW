@@ -1,5 +1,4 @@
-#ifndef N_CALIBRATORS_H
-#define N_CALIBRATORS_H
+#pragma once
 
 #include <zephyr/device.h>
 
@@ -17,4 +16,4 @@ namespace NSensorCalibrators {
                                 GravityOrientation gravityOrientation = PosZ);
 }
 
-#endif //N_CALIBRATORS_H
+
