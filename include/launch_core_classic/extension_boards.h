@@ -6,9 +6,7 @@
  * Define extension board constants and functionality for interactions
  */
 
-#ifndef EXTENSION_BOARDS_H
-#define EXTENSION_BOARDS_H
-
+#pragma once
 #include <stdint.h>
 
 #include <zephyr/device.h>
@@ -50,4 +48,4 @@ int initiate_arbitration(l_extension_board_id_t id, uint32_t timeout_ms);
  */
 void receive_potato_data(void *data, size_t len);
 
-#endif
+

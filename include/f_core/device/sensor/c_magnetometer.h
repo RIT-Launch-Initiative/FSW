@@ -1,5 +1,4 @@
-#ifndef C_MAGNETOMETER_H
-#define C_MAGNETOMETER_H
+#pragma once
 
 #include "c_sensor_device.h"
 #include <zephyr/device.h>
@@ -40,4 +39,4 @@ private:
 };
 
 
-#endif //C_MAGNETOMETER_H
+

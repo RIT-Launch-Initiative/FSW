@@ -1,5 +1,4 @@
-#ifndef PHASE_DETECTION_FLIGHT_H_
-#define PHASE_DETECTION_FLIGHT_H_
+#pragma once
 #include <array>
 #include <cstdint>
 #include <f_core/flight/c_phase_controller.h>
@@ -126,4 +125,4 @@ inline constexpr std::array<Controller::DecisionFunc, Events::NumEvents> decider
     return arr;
 }();
 
-#endif
+

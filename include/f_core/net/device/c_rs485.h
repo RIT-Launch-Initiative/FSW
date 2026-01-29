@@ -1,5 +1,4 @@
-#ifndef C_RS485_H
-#define C_RS485_H
+#pragma once
 
 // F-Core Includes
 #include <f_core/net/c_transciever.h>
@@ -62,4 +61,4 @@ private:
 };
 
 
-#endif //C_RS485_H
+

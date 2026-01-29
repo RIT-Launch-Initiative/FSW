@@ -1,5 +1,4 @@
-#ifndef REEFER_INLCUDE_BUZZER_H
-#define REEFER_INLCUDE_BUZZER_H
+#pragma once
 
 #include <zephyr/drivers/gpio.h>
 
@@ -28,4 +27,3 @@ void buzzer_tell(enum buzzer_cond cond);
 */
 void begin_buzzer_thread(const struct gpio_dt_spec *buzzer_pin);
 
-#endif

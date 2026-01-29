@@ -8,8 +8,7 @@
  * Utility functions for handling UDP networking
  */
 
-#ifndef L_UDP_UTILS_H_
-#define L_UDP_UTILS_H_
+#pragma once
 
 #include <stdint.h>
 #include <stddef.h>
@@ -126,4 +125,3 @@ int l_remove_port_handler(uint16_t port);
 
 
 
-#endif // L_UDP_UTILS_H_

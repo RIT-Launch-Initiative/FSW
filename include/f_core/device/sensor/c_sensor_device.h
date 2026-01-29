@@ -1,5 +1,4 @@
-#ifndef C_SENSOR_DEVICE_H
-#define C_SENSOR_DEVICE_H
+#pragma once
 
 #include <zephyr/drivers/sensor.h>
 
@@ -108,4 +107,4 @@ private:
     bool isInitialized;
 };
 
-#endif //C_SENSOR_DEVICE_H
+

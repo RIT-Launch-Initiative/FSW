@@ -1,5 +1,4 @@
-#ifndef F_CORE_UTIL_CIRCULAR_BUFFER
-#define F_CORE_UTIL_CIRCULAR_BUFFER
+#pragma once
 
 #include <array>
 
@@ -42,5 +41,3 @@ class CCircularBuffer {
     std::size_t oldest_index = 0;
     std::array<value_type, size_> underlying;
 };
-
-#endif

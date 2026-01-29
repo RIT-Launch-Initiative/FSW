@@ -1,5 +1,4 @@
-#ifndef FREAK_FLIGHT_H
-#define FREAK_FLIGHT_H
+#pragma once
 #include "f_core/flight/c_phase_controller.h"
 
 #include <array>
@@ -81,4 +80,3 @@ inline constexpr std::array<FreakFlightController::DecisionFunc, Events::NumEven
     return arr;
 }();
 
-#endif

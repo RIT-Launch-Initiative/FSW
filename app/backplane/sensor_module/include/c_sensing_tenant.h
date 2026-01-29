@@ -1,5 +1,4 @@
-#ifndef C_SENSING_TENANT_H
-#define C_SENSING_TENANT_H
+#pragma once 
 
 #include "c_detection_handler.h"
 #include "f_core/device/c_rtc.h"
@@ -50,5 +49,3 @@ class CSensingTenant : public CRunnableTenant {
 
     void calibrateADXL375();
 };
-
-#endif // C_SENSING_TENANT_H

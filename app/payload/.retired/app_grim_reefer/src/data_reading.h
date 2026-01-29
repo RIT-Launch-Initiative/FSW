@@ -1,5 +1,4 @@
-#ifndef REEFER_INLCUDE_DATA_READING_H
-#define REEFER_INLCUDE_DATA_READING_H
+#pragma once
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/adc.h>
@@ -34,4 +33,3 @@ void start_data_reading(const struct data_devices* devs);
  */
 void stop_data_reading();
 
-#endif

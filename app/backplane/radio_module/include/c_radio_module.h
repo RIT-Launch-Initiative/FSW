@@ -1,5 +1,4 @@
-#ifndef C_RADIO_MODULE_H
-#define C_RADIO_MODULE_H
+#pragma once
 
 #include "c_gnss_tenant.h"
 #include "c_udp_listener_tenant.h"
@@ -137,4 +136,4 @@ private:
     CTask loraTask{"LoRa Task", 14, 2048, 10};
 };
 
-#endif //C_RADIO_MODULE_H
+

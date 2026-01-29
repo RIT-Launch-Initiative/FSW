@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef C_TENANT_H
-#define C_TENANT_H
+#pragma once
 
 /**
  * Base class for all tenants - Ideally applications should not inherit from this class directly
@@ -40,5 +39,3 @@ public:
 protected:
     const char *name;
 };
-
-#endif //C_TENANT_H
