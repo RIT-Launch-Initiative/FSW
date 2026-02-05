@@ -12,11 +12,11 @@
 
     leds: leds {
         button: button{ // TX
-            gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpioa 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
             label = "Button";
         };
         key_switch: key_switch{ // RX
-            gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;
+            gpios = <&gpioa 1 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
             label = "Key Switch";
         };
     };
