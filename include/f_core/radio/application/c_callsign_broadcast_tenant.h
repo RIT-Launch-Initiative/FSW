@@ -8,10 +8,23 @@
 
 class CCallsignBroadcastTenant : CCallbackTenant {
 public:
+    /**
+     *
+     * @param callsign Callsign to broadcast
+     * @param transmitFrequency How often to broadcast the callsign
+     * @param txPort Message port to send the callsign frame to for transmission over LoRa
+     */
     CCallsignBroadcastTenant(const std::string& callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort);
 
+    /**
+     * See parent docs
+     */
     void Register() override;
 
+
+    /**
+     * See parent docs
+     */
     void Callback() override;
 
 private:
