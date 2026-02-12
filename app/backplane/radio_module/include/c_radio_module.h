@@ -87,6 +87,11 @@ private:
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &gnssTelemetryMessagePort, &gnssDataLogMessagePort};
+    CCallsignBroadcastTenant callsignBroadcastTenant{
+        "KD2YIE", // TODO: Settings
+        K_SECONDS(300), // Every 5 minutes to be safe
+        loraDownlinkMessagePort
+    };
 
     CUdpListenerTenant sensorModuleListenerTenant{
         "Sensor Module Listener Tenant",

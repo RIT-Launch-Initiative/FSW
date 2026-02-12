@@ -9,13 +9,13 @@ static void broadcastTimerCallbackFunction(k_timer *timer) {
 }
 
 CCallsignBroadcastTenant::CCallsignBroadcastTenant(const std::string& callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort)
-    : CCallbackTenant("CCallsignBroadcastTenant"), txPort(txPort), broadcastTimer(broadcastTimerCallbackFunction), callsign(callsign) {
-    broadcastTimer.SetUserData(this);
-    broadcastTimer.StartTimer(transmitFrequency);
+    : CCallbackTenant("CCallsignBroadcastTenant"), txPort(txPort),
+      broadcastTimer(broadcastTimerCallbackFunction), transmitFrequency(transmitFrequency), callsign(callsign) {
 }
 
 void CCallsignBroadcastTenant::Register() {
-    // Nothing to do here
+    broadcastTimer.SetUserData(this);
+    broadcastTimer.StartTimer(transmitFrequency);
 }
 
 void CCallsignBroadcastTenant::Callback() {

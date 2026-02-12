@@ -8,14 +8,15 @@
 
 class CCallsignBroadcastTenant : CCallbackTenant {
 public:
+    CCallsignBroadcastTenant(const std::string& callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort);
+
     void Register() override;
 
     void Callback() override;
 
 private:
-    CCallsignBroadcastTenant(const std::string& callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort);
-
     CMessagePort<LaunchLoraFrame>& txPort;
     CSoftTimer broadcastTimer;
+    const k_timeout_t transmitFrequency;
     const std::string_view callsign;
 };
