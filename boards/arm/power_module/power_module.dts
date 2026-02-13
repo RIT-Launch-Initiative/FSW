@@ -27,6 +27,7 @@
         ina5v0 = &ina2;
         vin = &adc1;
         rtc = &rtc;
+		watchdog = &iwdg;
     };
 
     leds: leds {
@@ -252,4 +253,8 @@
             reg = <0x00060000 DT_SIZE_K(128)>;
         };
     };
+};
+
+&iwdg {
+	status = "okay";
 };

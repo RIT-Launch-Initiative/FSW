@@ -24,6 +24,7 @@
 	aliases {
 		led0 = &red_led_1;
 		led1 = &red_led_2;
+		watchdog = &iwdg;
 	};
 
 	leds: leds {
@@ -286,4 +287,8 @@
 			reg = <0x00060000 DT_SIZE_K(128)>;
 		};
 	};
+};
+
+&iwdg {
+	status = "okay";
 };
