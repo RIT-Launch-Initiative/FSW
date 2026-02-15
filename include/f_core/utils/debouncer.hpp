@@ -1,5 +1,5 @@
-#ifndef F_CORE_UTIL_DEBOUNCER_
-#define F_CORE_UTIL_DEBOUNCER_
+#pragma once
+
 #include <stdint.h>
 enum class ThresholdDirection {
     Over,
@@ -44,5 +44,3 @@ class CDebouncer {
     Timestamp firstTimePassed = NOT_PASSED;
     Timestamp lastTimePassed = NOT_PASSED;
 };
-
-#endif

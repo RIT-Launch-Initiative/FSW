@@ -1,5 +1,4 @@
-#ifndef PRINTCOUNT_H
-#define PRINTCOUNT_H
+#pragma once
 
 // F-Core Includes
 #include <f_core/os/c_runnable_tenant.h>
@@ -31,6 +30,3 @@ private:
 
     int* count;
 };
-
-#endif //PRINTCOUNT_H
-

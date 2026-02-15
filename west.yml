@@ -12,10 +12,11 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: v4.2.0
+      revision: v4.3.0
       import:
         name-allowlist:
           - cmsis_6
+          - cmsis-dsp
           - hal_st
           - hal_stm32
           - hal_nxp

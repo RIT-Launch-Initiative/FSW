@@ -1,5 +1,4 @@
-#ifndef C_IPV4_H
-#define C_IPV4_H
+#pragma once
 
 #include <zephyr/posix/arpa/inet.h>
 
@@ -63,4 +62,4 @@ private:
     int initialize();
 };
 
-#endif
+

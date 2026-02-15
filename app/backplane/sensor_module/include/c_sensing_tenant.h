@@ -1,5 +1,4 @@
-#ifndef C_SENSING_TENANT_H
-#define C_SENSING_TENANT_H
+#pragma once 
 
 #include "c_detection_handler.h"
 #include "f_core/device/c_rtc.h"
@@ -47,6 +46,6 @@ class CSensingTenant : public CRunnableTenant {
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
 
     void sendDownlinkData(const NTypes::SensorData &data);
-};
 
-#endif // C_SENSING_TENANT_H
+    void calibrateADXL375();
+};

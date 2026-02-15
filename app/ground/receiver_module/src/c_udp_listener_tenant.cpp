@@ -14,7 +14,7 @@ void CUdpListenerTenant::PostStartup() {
 }
 
 void CUdpListenerTenant::Run() {
-    NTypes::LoRaBroadcastData radioBroadcastData{0};
+    LaunchLoraFrame radioBroadcastData{0};
 
     // Note len argument is the size of the data buffer, not how much data to receive!
     // rcvResult will contain the actual amount of data received or -1 on error
@@ -26,6 +26,7 @@ void CUdpListenerTenant::Run() {
     radioBroadcastData.Port = listenPort;
     radioBroadcastData.Size = static_cast<uint8_t>(rcvResult);
 
+    LOG_INF("Sending data received on port %d to LoRa transmit queue", listenPort);
     if (loraTransmitPort.Send(radioBroadcastData) == -ENOMSG) {
         LOG_WRN_ONCE("Failed to send to broadcast queue");
         loraTransmitPort.Clear();

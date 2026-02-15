@@ -153,4 +153,3 @@ int CRtc::SetUnixTime(time_t unixTimestamp) {
     return SetTime(*reinterpret_cast<rtc_time*>(tmTime));
 }
 
-

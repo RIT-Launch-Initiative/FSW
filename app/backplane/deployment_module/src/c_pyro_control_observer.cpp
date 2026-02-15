@@ -16,9 +16,8 @@ static void chargeDisableTimerCallback(k_timer* timer) {
     NRtos::ResumeTask("Networking Task");
 }
 
-CPyroControlObserver::CPyroControlObserver() {
+CPyroControlObserver::CPyroControlObserver() : chargeDisableTimer(chargeDisableTimerCallback) {
     // flightLog.Write("Pyro Controller Observer initialized");
-    chargeDisableTimer = CSoftTimer(chargeDisableTimerCallback);
     chargeDisableTimer.SetUserData(this);
 }
 
@@ -32,7 +31,6 @@ void CPyroControlObserver::Notify(void* ctx) {
             LOG_INF("Noseover detected. Deploying charges in one second.");
             // flightLog.Write("Noseover detected. Deploying charges in one second.");
             // TODO: Settings library for handling deployment timing
-            k_sleep(K_SECONDS(1));
 
             for (auto& [sense, ctrl, led] : pyroTrios) {
                 // if (sense.GetPin() == 1) {

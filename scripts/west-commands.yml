@@ -4,3 +4,8 @@ west-commands:
       - name: example-west-command
         class: ExampleWestCommand
         help: an example west extension command
+  - file: scripts/create_project.py
+    commands:
+      - name: create-project
+        class: CreateProjectCommand
+        help: create a new Zephyr project from template

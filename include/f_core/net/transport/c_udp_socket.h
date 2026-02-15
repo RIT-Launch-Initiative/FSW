@@ -1,5 +1,6 @@
-#ifndef C_UDP_SOCKET_H
-#define C_UDP_SOCKET_H
+#pragma once
+
+#include "zephyr/posix/poll.h"
 
 #include <cstdint>
 #include <f_core/net/c_transciever.h>
@@ -10,13 +11,18 @@ class CIPv4;
 
 class CUdpSocket {
 public:
+    struct SocketServiceUserData {
+        CUdpSocket* socket;
+        void* userData;
+    };
+
     /**
      * Constructor
-     * @param ipv4 IP address instance to bind to
-     * @param srcPort Source port to bind to
-     * @param dstPort Destination port to send to
+     * @param[in] ipv4 IP address instance to bind to
+     * @param[in] srcPort Source port to bind to
+     * @param[in] dstPort Destination port to send to
      */
-    CUdpSocket(const CIPv4 &ipv4, uint16_t srcPort, uint16_t dstPort);
+    CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort);
 
     /**
      * Destructor
@@ -25,66 +31,73 @@ public:
 
     /**
      * Transmit data synchronously
-     * @param data Data to transmit
-     * @param len Length of data to transmit
+     * @param[in] data Data to transmit
+     * @param[in] len Length of data to transmit
      * @return Number of bytes transmitted or negative error code
      */
-    int TransmitSynchronous(const void *data, size_t len);
+    int TransmitSynchronous(const void* data, size_t len);
 
     /**
      * Receive data synchronously
-     * @param data Buffer to store received data
-     * @param len Size of the buffer
-     * @param srcAddr Optional source address
-     * @param srcAddrLen Optional source address length
+     * @param[out] data Buffer to store received data
+     * @param[in] len Size of the buffer
+     * @param[in] srcAddr Optional source address
+     * @param[in] srcAddrLen Optional source address length
      * @return Number of bytes received or negative error code
      */
-    int ReceiveSynchronous(void *data, size_t len, sockaddr *srcAddr = nullptr, socklen_t *srcAddrLen = nullptr);
+    int ReceiveSynchronous(void* data, size_t len, sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
 
     /**
      * Transmit data asynchronously
-     * @param data Data to transmit
-     * @param len Length of data to transmit
+     * @param[in] data Data to transmit
+     * @param[in] len Length of data to transmit
      * @return Number of bytes transmitted or negative error code
      */
-    int TransmitAsynchronous(const void *data, size_t len);
+    int TransmitAsynchronous(const void* data, size_t len);
 
     /**
      * Receive data asynchronously
-     * @param data Buffer to store received data
-     * @param len Size of the buffer
-     * @param srcAddr Optional source address
-     * @param srcAddrLen Optional source address length
+     * @param[out] data Buffer to store received data
+     * @param[in] len Size of the buffer
+     * @param[in] srcAddr Optional source address
+     * @param[in] srcAddrLen Optional source address length
      * @return Number of bytes received or negative error code
      */
-    int TransmitAsynchronous(const void *data, size_t len, uint16_t dstPort);
+    int TransmitAsynchronous(const void* data, size_t len, uint16_t dstPort);
 
     /**
      * See parent docs
      */
-    int ReceiveAsynchronous(void *data, size_t len, sockaddr *srcAddr = nullptr, socklen_t *srcAddrLen = nullptr);
+    int ReceiveAsynchronous(void* data, size_t len, sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
 
     /**
      * Set transmit timeout
-     * @param timeoutMillis Timeout in milliseconds
+     * @param[in] timeoutMillis Timeout in milliseconds
      * @return 0 on success, negative error code otherwise
      */
     int SetTxTimeout(int timeoutMillis);
 
     /**
      * Set receive timeout
-     * @param timeoutMillis Timeout in milliseconds
+     * @param[in] timeoutMillis Timeout in milliseconds
      * @return 0 on success, negative error code otherwise
      */
     int SetRxTimeout(int timeoutMillis);
 
     /**
      * Set destination port
-     * @param port Destination port
+     * @param[in] port Destination port
      */
     void SetDstPort(const int port) {
         dstPort = port;
     }
+
+    /**
+     * Register the socket service descriptor
+     * @param[in] desc Descriptor for the socket service
+     * @param[in] userData User data to pass to the service handler
+     */
+    int RegisterSocketService(net_socket_service_desc* desc, void* userData);
 
 private:
     // CONFIG_ARCH_POSIX uses loopback for broadcast
@@ -94,8 +107,14 @@ private:
     static constexpr char BROADCAST_IP[] = "255.255.255.255";
 #endif
 
-    int sock = -1;
     int dstPort = -1;
+
+    net_socket_service_desc* serviceDesc = nullptr;
+    zsock_pollfd sockfd = {
+        .fd = -1,
+        .events = POLLIN,
+        .revents = 0
+    };
 };
 
-#endif //C_UDP_SOCKET_H
+

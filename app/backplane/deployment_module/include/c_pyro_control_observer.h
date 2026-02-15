@@ -1,5 +1,4 @@
-#ifndef C_PYRO_CONTROL_OBSERVER_H
-#define C_PYRO_CONTROL_OBSERVER_H
+#pragma once
 
 #include <array>
 #include <f_core/device/c_gpio.h>
@@ -70,4 +69,4 @@ private:
 };
 
 
-#endif //C_PYRO_CONTROL_OBSERVER_H
+

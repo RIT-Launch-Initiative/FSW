@@ -1,5 +1,4 @@
-#ifndef C_FILE_H
-#define C_FILE_H
+#pragma once
 
 #include <sys/types.h>
 #include <zephyr/fs/fs_interface.h>
@@ -62,5 +61,3 @@ private:
     const int flags;
     int initStatus = -1;
 };
-
-#endif //C_FILE_H

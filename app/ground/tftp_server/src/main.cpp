@@ -16,10 +16,11 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 int main() {
     CIPv4 ip("10.0.0.1");
     CTftpServerTenant *tftpServer = CTftpServerTenant::GetInstance(ip);
+    tftpServer->Register();
 
     while (true) {
-        tftpServer->Run();
-        k_msleep(100);
+        // Keep the main thread alive
+        k_msleep(10000);
     }
 
     return 0;

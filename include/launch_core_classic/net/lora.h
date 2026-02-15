@@ -8,8 +8,7 @@
 * Utility functions for dealing with Zephyr's LoRa library
 */
 
-#ifndef L_LORA_UTILS_H_
-#define L_LORA_UTILS_H_
+#pragma once
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/lora.h>
@@ -108,4 +107,3 @@ int l_lora_set_preamble_len(const struct device *dev, uint16_t preamble_len);
  */
 int l_lora_set_tx_power(const struct device *dev, int8_t tx_power);
 
-#endif // L_LORA_UTILS_H_

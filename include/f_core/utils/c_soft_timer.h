@@ -1,5 +1,4 @@
-#ifndef C_SOFT_TIMER_H
-#define C_SOFT_TIMER_H
+#pragma once
 #include <zephyr/kernel.h>
 
 class CSoftTimer {
@@ -12,6 +11,12 @@ public:
     explicit CSoftTimer(k_timer_expiry_t expirationFn = nullptr, k_timer_stop_t stopFn = nullptr) {
         k_timer_init(&timer, expirationFn, stopFn);
     }
+
+    // Make the timer non-copyable and non-movable
+    CSoftTimer(const CSoftTimer&) = delete;
+    CSoftTimer& operator=(const CSoftTimer&) = delete;
+    CSoftTimer(CSoftTimer&&) = delete;
+    CSoftTimer& operator=(CSoftTimer&&) = delete;
 
     /**
     * Destructor
@@ -143,4 +148,4 @@ private:
 };
 
 
-#endif //C_SOFT_TIMER_H
+
