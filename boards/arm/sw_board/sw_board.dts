@@ -286,7 +286,8 @@ zephyr_udc0: &usbotg_fs {
 
 	// MS5607
 	ms5607: ms5607@76 {
-		compatible = "meas,ms5607";
+		status = "okay";
+		compatible = "meas,lms5607";
 		reg = <0x76>;
 	};
 

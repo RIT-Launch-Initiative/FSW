@@ -1,0 +1,155 @@
+/*
+ * Copyright (c) 2019 Thomas Schmid <tom@lfence.de>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
+#include <string.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/kernel.h>
+#include <zephyr/sys/byteorder.h>
+#include "ms56xx.h"
+
+#define LOG_LEVEL CONFIG_SENSOR_LOG_LEVEL
+#include <zephyr/logging/log.h>
+LOG_MODULE_DECLARE(ms56xx);
+
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5611, spi)
+
+static int ms56xx_spi_raw_cmd(const struct ms56xx_config *config, uint8_t cmd)
+{
+	const struct spi_buf buf = {
+		.buf = &cmd,
+		.len = 1,
+	};
+
+	const struct spi_buf_set buf_set = {
+		.buffers = &buf,
+		.count = 1,
+	};
+
+	return spi_write_dt(&config->bus_cfg.spi, &buf_set);
+}
+
+static int ms56xx_spi_reset(const struct ms56xx_config *config)
+{
+	int err = ms56xx_spi_raw_cmd(config, MS56XX_CMD_RESET);
+
+	if (err < 0) {
+		return err;
+	}
+
+	k_sleep(K_MSEC(3));
+	return 0;
+}
+
+static int ms56xx_spi_read_prom(const struct ms56xx_config *config, uint8_t cmd, uint16_t *val)
+{
+	int err;
+
+	uint8_t tx[3] = {cmd, 0, 0};
+	const struct spi_buf tx_buf = {
+		.buf = tx,
+		.len = 3,
+	};
+
+	union {
+		struct {
+			uint8_t pad;
+			uint16_t prom_value;
+		} __packed;
+		uint8_t rx[3];
+	} rx;
+
+	const struct spi_buf rx_buf = {
+		.buf = &rx,
+		.len = 3,
+	};
+
+	const struct spi_buf_set rx_buf_set = {
+		.buffers = &rx_buf,
+		.count = 1,
+	};
+
+	const struct spi_buf_set tx_buf_set = {
+		.buffers = &tx_buf,
+		.count = 1,
+	};
+
+	err = spi_transceive_dt(&config->bus_cfg.spi, &tx_buf_set, &rx_buf_set);
+	if (err < 0) {
+		return err;
+	}
+
+	*val = sys_be16_to_cpu(rx.prom_value);
+
+	return 0;
+}
+
+static int ms56xx_spi_start_conversion(const struct ms56xx_config *config, uint8_t cmd)
+{
+	return ms56xx_spi_raw_cmd(config, cmd);
+}
+
+static int ms56xx_spi_read_adc(const struct ms56xx_config *config, uint32_t *val)
+{
+	int err;
+
+	uint8_t tx[4] = {MS56XX_CMD_CONV_READ_ADC, 0, 0, 0};
+	const struct spi_buf tx_buf = {
+		.buf = tx,
+		.len = 4,
+	};
+
+	union {
+		struct {
+			uint32_t adc_value;
+		} __packed;
+		uint8_t rx[4];
+	} rx;
+
+	const struct spi_buf rx_buf = {
+		.buf = &rx,
+		.len = 4,
+	};
+
+	const struct spi_buf_set rx_buf_set = {
+		.buffers = &rx_buf,
+		.count = 1,
+	};
+
+	const struct spi_buf_set tx_buf_set = {
+		.buffers = &tx_buf,
+		.count = 1,
+	};
+
+	err = spi_transceive_dt(&config->bus_cfg.spi, &tx_buf_set, &rx_buf_set);
+	if (err < 0) {
+		return err;
+	}
+
+	rx.rx[0] = 0;
+	*val = sys_be32_to_cpu(rx.adc_value);
+	return 0;
+}
+
+static int ms56xx_spi_check(const struct ms56xx_config *config)
+{
+	if (!spi_is_ready_dt(&config->bus_cfg.spi)) {
+		LOG_DBG("SPI bus not ready");
+		return -ENODEV;
+	}
+
+	return 0;
+}
+
+const struct ms56xx_transfer_function ms56xx_spi_transfer_function = {
+	.bus_check = ms56xx_spi_check,
+	.reset = ms56xx_spi_reset,
+	.read_prom = ms56xx_spi_read_prom,
+	.start_conversion = ms56xx_spi_start_conversion,
+	.read_adc = ms56xx_spi_read_adc,
+};
+
+#endif
