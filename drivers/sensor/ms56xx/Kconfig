@@ -6,6 +6,8 @@
 menuconfig MS56XX
 	bool "MS5607/MS5611 pressure and temperature sensor"
 	default y
+	depends on DT_HAS_LAUNCH_MS5611_ENABLED || DT_HAS_LAUNCH_MS5607_ENABLED
+
 	select I2C if $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5607),i2c) || \
 		     	  $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5611),i2c)
 	select SPI if $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5607),spi) || \
