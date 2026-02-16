@@ -13,7 +13,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(ms56xx);
 
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5611, i2c)
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, i2c)
 
 static int ms56xx_i2c_raw_cmd(const struct ms56xx_config *config, uint8_t cmd)
 {

@@ -6,10 +6,10 @@
 menuconfig MS56XX
 	bool "MS5607/MS5611 pressure and temperature sensor"
 	default y
-	select I2C if $(dt_compat_on_bus,$(DT_COMPAT_MEAS_LMS5607),i2c) || \
-		     	  $(dt_compat_on_bus,$(DT_COMPAT_MEAS_LMS5611),i2c)
-	select SPI if $(dt_compat_on_bus,$(DT_COMPAT_MEAS_LMS5607),spi) || \
-		          $(dt_compat_on_bus,$(DT_COMPAT_MEAS_LMS5611),spi)
+	select I2C if $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5607),i2c) || \
+		     	  $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5611),i2c)
+	select SPI if $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5607),spi) || \
+		          $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5611),spi)
 	help
 	  Enable driver for the MS5607/MS5611 pressure and temperature sensor.
 

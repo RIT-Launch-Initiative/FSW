@@ -10,12 +10,12 @@
 #include <zephyr/device.h>
 #include <zephyr/types.h>
 
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5611, i2c)
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, i2c)
 #include <zephyr/drivers/i2c.h>
-#endif /* DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5611, i2c) */
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_ms5607, spi)
+#endif /* DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, i2c) */
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi)
 #include <zephyr/drivers/spi.h>
-#endif /* DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_ms5607, spi) */
+#endif /* DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) */
 
 #define MS56XX_CMD_RESET       0x1E
 #define MS56XX_CMD_CONV_P_256  0x40
@@ -102,11 +102,11 @@ struct ms56xx_transfer_function {
     int (*read_adc)(const struct ms56xx_config *cfg, uint32_t *val);
 };
 
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5611, i2c)
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, i2c)
 extern const struct ms56xx_transfer_function ms56xx_i2c_transfer_function;
 #endif
 
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_ms5607, spi)
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi)
 extern const struct ms56xx_transfer_function ms56xx_spi_transfer_function;
 #endif
 
@@ -131,10 +131,10 @@ struct ms56xx_config {
     const struct ms56xx_transfer_function *tf;
     struct ms56xx_chip_calc_coefficients calc_coefficients;
     union {
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5611, i2c)
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, i2c)
         struct i2c_dt_spec i2c;
 #endif
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(meas_lms5611, spi)
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, spi)
         struct spi_dt_spec spi;
 #endif
     } bus_cfg;
