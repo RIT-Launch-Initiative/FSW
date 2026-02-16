@@ -22,9 +22,9 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 SYS_INIT(servo_init, APPLICATION, 1);
 SYS_INIT(storage_init, APPLICATION, 2);
 
-const gpio_dt_spec restart_calib = GPIO_DT_SPEC_GET(DT_NODELABEL(button1), gpios);
+// const gpio_dt_spec restart_calib = GPIO_DT_SPEC_GET(DT_NODELABEL(button1), gpios);
 
-#define IMU_NODE DT_NODELABEL(lsm6dv)
+#define IMU_NODE DT_NODELABEL(lsm6dsv)
 const struct device* imu_dev = DEVICE_DT_GET(IMU_NODE);
 
 int gyro_to_euler(std::array<double, 3>& angles) {
@@ -77,10 +77,10 @@ int main() {
         printk("Error setting acc sampling freq: %d\n", ret);
     }
 
-    ret = gpio_pin_configure_dt(&restart_calib, GPIO_INPUT | GPIO_ACTIVE_HIGH);
-    if (ret != 0) {
-        printk("Error gpio button: %d\n", ret);
-    }
+    // ret = gpio_pin_configure_dt(&restart_calib, GPIO_INPUT | GPIO_ACTIVE_HIGH);
+    // if (ret != 0) {
+    //     printk("Error gpio button: %d\n", ret);
+    // }
 
     struct sensor_value gyro_fs;
     sensor_value_from_float(&gyro_fs, 34.906585);
@@ -129,10 +129,10 @@ int main() {
         std::array<double, 3> last_remapped{0};
 
         while (true) {
-            bool is_pressed = gpio_pin_get_dt(&restart_calib);
-            if (is_pressed) {
-                break;
-            }
+            // bool is_pressed = gpio_pin_get_dt(&restart_calib);
+            // if (is_pressed) {
+            //     break;
+            // }
             // printk("frame; %d\n", frame);
             frame++;
 

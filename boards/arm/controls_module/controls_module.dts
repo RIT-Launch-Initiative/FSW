@@ -112,8 +112,8 @@
 			#size-cells = <0x0>;
 
 			// DMA needs testing
-			dmas = <&dma2 7 3 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
-			dma-names = "quadspi";
+			// dmas = <&dma2 7 3 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+			// dma-names = "quadspi";
 	
 			w25q128: qspi-nor-flash@90000000 {
 				compatible = "st,stm32-qspi-nor";
@@ -235,13 +235,16 @@
 		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
 	dma-names = "tx", "rx";
 
-
-	lsm6dsl: lsm6dsltr@0 {
-		compatible = "st,lsm6dsl";
+	// LSM6DSVETR (the altium/schematic is wrong lol)
+	lsm6dsv: lsm6dsv@0 {
+		// Even though this isn't the exact same compatible string, it works for the LSM6DSVETR
+		// See link for more info: https: //github.com/zephyrproject-rtos/zephyr/discussions/72902
+		compatible = "st,lsm6dsv16x";
 		reg = <0>;
-		status = "okay";
 		spi-max-frequency = <DT_FREQ_M(10)>;
-		irq-gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>, <&gpioa 10 GPIO_ACTIVE_HIGH>;
+
+		int1-gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
+		int2-gpios = <&gpioa 10 GPIO_ACTIVE_HIGH>;
 	};
 
 	ms5611: ms5611@1{
