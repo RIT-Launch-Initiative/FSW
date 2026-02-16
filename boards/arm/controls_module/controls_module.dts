@@ -110,6 +110,10 @@
 			status = "okay";
 			#address-cells = <0x1>;
 			#size-cells = <0x0>;
+
+			// DMA needs testing
+			dmas = <&dma2 7 3 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+			dma-names = "quadspi";
 	
 			w25q128: qspi-nor-flash@90000000 {
 				compatible = "st,stm32-qspi-nor";
@@ -146,7 +150,7 @@
 };
 
 &timers3{
-	// for Servo 2
+	// for Servo 2/Buzzer tone generation
 	pwm3: pwm {
 		status = "okay";
 		pinctrl-0 = <&tim3_ch4_pb1>;
@@ -203,6 +207,11 @@
 	pinctrl-names = "default";
 	status = "okay";
 
+    dmas = <&dma2 5 3 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+           <&dma2 2 3 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+    dma-names = "tx", "rx";
+
+
 	w5500: w5500@0 {
 		compatible = "wiznet,w5500";
 		reg = <0x0>;
@@ -212,8 +221,6 @@
 		zephyr,random-mac-address;
 	};
 };
-
-
 
 
 &spi2 {
@@ -234,7 +241,7 @@
 		reg = <0>;
 		status = "okay";
 		spi-max-frequency = <DT_FREQ_M(10)>;
-
+		irq-gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>, <&gpioa 10 GPIO_ACTIVE_HIGH>;
 	};
 
 	ms5611: ms5611@1{
@@ -244,9 +251,4 @@
 		spi-max-frequency = <DT_FREQ_M(20)>;
 	};
 
-};
-
-
-&backup_sram {
-	status = "okay";
 };
