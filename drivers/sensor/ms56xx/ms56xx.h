@@ -13,7 +13,7 @@
 #if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, i2c)
 #include <zephyr/drivers/i2c.h>
 #endif /* DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, i2c) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, i2c) */
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi)
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, spi)
 #include <zephyr/drivers/spi.h>
 #endif /* DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) */
 
@@ -106,7 +106,7 @@ struct ms56xx_transfer_function {
 extern const struct ms56xx_transfer_function ms56xx_i2c_transfer_function;
 #endif
 
-#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi)
+#if DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5607, spi) || DT_HAS_COMPAT_ON_BUS_STATUS_OKAY(launch_ms5611, spi)
 extern const struct ms56xx_transfer_function ms56xx_spi_transfer_function;
 #endif
 

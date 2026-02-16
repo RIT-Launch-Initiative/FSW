@@ -229,15 +229,16 @@
 	dma-names = "tx", "rx";
 
 
-
 	lsm6dsl: lsm6dsltr@0 {
+		compatible = "st,lsm6dsl";
 		reg = <0>;
 		status = "okay";
+		spi-max-frequency = <DT_FREQ_M(10)>;
 
 	};
 
 	ms5611: ms5611@1{
-		compatible = "meas,ms5611";
+		compatible = "launch,ms5611";
 		reg = <1>;
 		status = "okay";
 		spi-max-frequency = <DT_FREQ_M(20)>;
