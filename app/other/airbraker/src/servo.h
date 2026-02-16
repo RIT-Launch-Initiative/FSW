@@ -1,4 +1,3 @@
-#pragma once
 #include <stdint.h>
 
 /* 
@@ -12,4 +11,4 @@ extern "C" int servo_init();
  *  mapping to real servo positions will be handled by the implementation per board
  * note this should only be called from one thread
  */
-int SetServoEffort(float effort);
+int set_servo_effort(float effort);

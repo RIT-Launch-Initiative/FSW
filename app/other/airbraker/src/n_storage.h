@@ -1,4 +1,3 @@
-#pragma once
 /* 
  *  Call once to initialize the storage subsystem
  *  Intended for use in SYS_INIT

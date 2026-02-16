@@ -10,6 +10,7 @@ project(airbrake_flight_software LANGUAGES CXX)
 target_compile_options(app PRIVATE -Wall -Wno-unused-parameter -Wno-unused-function -Wno-ignored-qualifiers)
 FILE(GLOB app_sources src/*.cpp src/*.c)
 target_sources(app PRIVATE ${app_sources})
+target_include_directories(app PRIVATE quaternions/include)
 
 AutocodeTypes(${CMAKE_SOURCE_DIR}/ac/types.yaml)
 AutocodeNetworkDefinitions()
