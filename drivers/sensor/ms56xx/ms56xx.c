@@ -294,7 +294,7 @@ static const struct sensor_driver_api ms56xx_api_funcs = {
 #define MS56XX_CONFIG_SPI(nodeid, coeffs_num)                                                                            \
     {                                                                                                                  \
         .tf = &ms56xx_spi_transfer_function,                                                                           \
-        .bus_cfg.spi = SPI_DT_SPEC_GET(nodeid, MS56XX_SPI_OPERATION, 0),                                            \
+        .bus_cfg.spi = SPI_DT_SPEC_GET(nodeid, MS56XX_SPI_OPERATION),                                            \
         .calc_coefficients = MS56XX_CONFIG_##coeffs_num##_COEFFICIENTS,                                                                \
     }
 
