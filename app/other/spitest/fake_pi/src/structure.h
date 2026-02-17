@@ -9,11 +9,10 @@ struct exposed_state {
     uint8_t motor_fault;
 
     // things that the pi sets
-
-    uint8_t commanded_joint1_angle; // motor: Shoulder yaw
-    uint8_t commanded_joint2_angle; // motor: Shoulder pitch
-    uint8_t commanded_joint3_angle; // motor: Elbow pitch
-    uint8_t commanded_joint4_angle; // servo: Wrist pitch
+    int8_t commanded_joint1_angle; // motor: Shoulder yaw
+    int8_t commanded_joint2_angle; // motor: Shoulder pitch
+    int8_t commanded_joint3_angle; // motor: Elbow pitch
+    int8_t commanded_joint4_angle; // servo: Wrist pitch
 
     int16_t base_accel_x;
     int16_t base_accel_y;
@@ -48,10 +47,35 @@ enum Command {
     // internal use
     RunClockTick, // not emitted by spi interface, but sent down the same channel to make the main loop do things
     //
-    SetJointTargets, // set joint target angles (j1, j2, j3, j4 uint8)
+    Start,
+    Stop,
+    
+    ReadStatusAndFault,
+    ReadStatus,
+    ReadSFault,
+    ReadMFault,
 
-    ReadMotorPower, // returns all 3 motors voltages and currents (m1v, m1c, m2v, m2c, m3v, m3c)
-    ReadM1Power,    // Returns m1 voltage and current
-    ReadM2Power,    // Returns m2 voltage and current
-    ReadM3Power,    // Returns m3 voltage and current
+    SetJointTargets, // set joint target angles (j1, j2, j3, j4 uint8)
+    SetBaseAccel,
+
+    ReadMotorPower = 0b00, // returns all 3 motors voltages and currents (m1v, m1c, m2v, m2c, m3v, m3c)
+    ReadM1Power = 0b01,    // Returns m1 voltage and current
+    ReadM2Power = 0b10,    // Returns m2 voltage and current
+    ReadM3Power = 0b11,    // Returns m3 voltage and current
+
+    ReadBaseAccel,
+    ReadLink1Accel,
+    ReadLink2Accel,
+    ReadBaseAccelUpdateTime,
+
+    ReadJointTargets = 0b100, // get joint target angles (j1, j2, j3, j4 uint8)
+    ReadJ1Target,
+    ReadJ2Target,
+    ReadJ3Target,
+    ReadJ4Target,
+
+    SetMotorOCP,
+    SetMotor1OCP,
+    SetMotor2OCP,
+    SetMotor3OCP,
 };
