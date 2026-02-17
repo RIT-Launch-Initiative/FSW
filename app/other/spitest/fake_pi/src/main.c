@@ -14,13 +14,20 @@
 
 /* The devicetree node identifier for the "led0" alias. */
 
-const struct device *spi_periph_dev = DEVICE_DT_GET(DT_NODELABEL(arduino_spi));
+// const struct device *spi_periph_dev = DEVICE_DT_GET(DT_NODELABEL(arduino_spi));
 
-static const struct spi_config spi_periph_cfg = {
-    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_MASTER,
-    .frequency = 375000,
-    .slave = 0,
-};
+
+#define SPI_OPERATION (SPI_OP_MODE_MASTER | SPI_WORD_SET(8) |	\
+			      SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_TRANSFER_MSB)
+const struct spi_dt_spec spidt = SPI_DT_SPEC_GET(DT_ALIAS(mc), SPI_OPERATION);
+
+// static const struct spi_config spi_periph_cfg = SPI_CONFIG_DT();
+//  {
+//     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_MASTER,
+//     .frequency = 375000,
+//     .cs = 
+//     .slave = 0,
+// };
 
 /*
  * A build error on this line means your board is unsupported.
@@ -35,9 +42,8 @@ static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios, {
 int main(void) {
 
     int ret;
-    bool led_state = true;
 
-    if (!device_is_ready(spi_periph_dev)) {
+    if (!device_is_ready(spidt.bus)) {
         printk("Spi not ready\n");
         return 0;
     }
@@ -74,7 +80,7 @@ int main(void) {
         printk("transceiveing\n");
 
         // printk("transceiveing\n");
-        ret = spi_transceive(spi_periph_dev, &spi_periph_cfg, &tx_bufs, &rx_bufs);
+        ret = spi_transceive_dt(&spidt, &tx_bufs, &rx_bufs);
         if (ret != 0) {
             printk("Ret: %d\n", ret);
         }
