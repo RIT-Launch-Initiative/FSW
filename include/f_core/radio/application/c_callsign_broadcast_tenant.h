@@ -13,8 +13,9 @@ public:
      * @param callsign Callsign to broadcast
      * @param transmitFrequency How often to broadcast the callsign
      * @param txPort Message port to send the callsign frame to for transmission over LoRa
+     * @param loraBroadcastPort LoRa port to broadcast the callsign on
      */
-    CCallsignBroadcastTenant(const char* callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort);
+    CCallsignBroadcastTenant(const char* callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort, const uint8_t loraBroadcastPort);
 
     /**
      * See parent docs

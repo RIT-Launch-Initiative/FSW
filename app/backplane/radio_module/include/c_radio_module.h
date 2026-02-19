@@ -90,7 +90,8 @@ private:
     CCallsignBroadcastTenant callsignBroadcastTenant{
         "KD2YIE", // TODO: Settings
         K_SECONDS(300), // Every 5 minutes to be safe
-        loraDownlinkMessagePort
+        loraDownlinkMessagePort,
+        0
     };
 
     CUdpListenerTenant sensorModuleListenerTenant{
