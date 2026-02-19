@@ -17,6 +17,7 @@
 #include <f_core/radio/frame_handlers/c_frequency_change_handler.h>
 #include <f_core/radio/frame_handlers/c_lora_frame_to_udp_handler.h>
 #include <f_core/radio/application/c_lora_tenant.h>
+#include <f_core/radio/application/c_callsign_broadcast_tenant.h>
 #include <f_core/device/c_rtc.h>
 
 // Autocoder Includes
@@ -86,6 +87,12 @@ private:
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &gnssTelemetryMessagePort, &gnssDataLogMessagePort};
+    CCallsignBroadcastTenant callsignBroadcastTenant{
+        "KD2YIE", // TODO: Settings
+        K_SECONDS(300), // Every 5 minutes to be safe
+        loraDownlinkMessagePort,
+        0
+    };
 
     CUdpListenerTenant sensorModuleListenerTenant{
         "Sensor Module Listener Tenant",

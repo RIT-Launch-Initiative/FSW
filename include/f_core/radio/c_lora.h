@@ -118,6 +118,14 @@ public:
      */
     int SetConfiguration(const lora_modem_config& newConfig);
 
+    /**
+     * Check if the current frequency is within the licensed frequency range (410-450 MHz)
+     * @return True if the current frequency is within the licensed frequency range (410-450 MHz), false otherwise
+     */
+    bool IsLicensedFrequency() const {
+        return (config.frequency >= 410'000'000u && config.frequency <= 450'000'000u);
+    }
+
 private:
     const device* lora_dev;
     lora_modem_config config = {
