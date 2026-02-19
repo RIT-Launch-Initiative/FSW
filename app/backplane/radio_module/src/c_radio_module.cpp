@@ -57,4 +57,6 @@ void CRadioModule::SetupCallbacks() {
     alertTenant.Subscribe(&stateMachineUpdater);
     sntpServerTenant.Register();
     alertTenant.Register();
+
+    callsignBroadcastTenant.Register();
 }

@@ -54,8 +54,6 @@ private:
 
     void revertFrequency();
 
-
-
     CLora& lora;
     CUdpSocket udp;
     CMessagePort<LaunchLoraFrame>& downlinkMessagePort;
