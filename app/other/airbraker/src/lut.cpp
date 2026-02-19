@@ -13,7 +13,7 @@ struct IndexParts {
     float fraction;    // How far between LUT[whole] and LUT[whole+1] we are for interpolating
 };
 
-IndexParts gen_index_parts(float value) {
+IndexParts genIndexParts(float value) {
     if (value < LUT_MINIMUM_X) {
         return {0, 0};
     }
@@ -43,13 +43,13 @@ IndexParts gen_index_parts(float value) {
  * @returns linearly interpolated between from and to depending on amt
  * @returns from if amt = 0
  * @returns to if amt = 1
- * This does not do bounds checking, it is your responsibility to not pass in
+ * This does not do bounds checking (it extrapolates), it is your responsibility to not pass in
  * any value of amount outside of the suggested range (or be prepared to face the consequences)
  */
 float lerp(float amount, float from, float to) { return (from * (1 - amount)) + (to * amount); }
 
-void bounds_lut(float altitude_est, float *lower, float *upper) {
-    struct IndexParts index = gen_index_parts(altitude_est);
+void boundsLUT(float altitude_est, float *lower, float *upper) {
+    struct IndexParts index = genIndexParts(altitude_est);
     float lowerPrevious = lower_bounds_lut[index.whole];
     float lowerNext = lower_bounds_lut[index.whole + 1];
     float upperPrevious = upper_bounds_lut[index.whole];
@@ -61,7 +61,7 @@ void bounds_lut(float altitude_est, float *lower, float *upper) {
 float CalcActuatorEffort(float altitude, float velocity) {
     float z_hat_min = 0;
     float z_hat_max = 0;
-    bounds_lut(altitude, &z_hat_min, &z_hat_max);
+    boundsLUT(altitude, &z_hat_min, &z_hat_max);
     float Q = (velocity - z_hat_min) / (z_hat_max - z_hat_min);
     if (Q > 1) {
         return 1;
