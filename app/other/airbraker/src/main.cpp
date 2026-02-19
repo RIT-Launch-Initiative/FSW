@@ -5,8 +5,6 @@
 #include <zephyr/init.h>
 #include <zephyr/logging/log.h>
 
-#include "math/n_benchmark.hpp"
-
 LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
 SYS_INIT(servo_init, APPLICATION, 1);
@@ -15,5 +13,6 @@ SYS_INIT(storage_init, APPLICATION, 2);
 int main() {
     printk("Time to break air\n");
 
-    NBenchMark::benchmark();
+    float effort = NModel::CalcActuatorEffort(1039.0475, 270.98915);
+    printk("Effort: %f\n", (double)effort);
 }
