@@ -6,7 +6,7 @@
 #include "f_core/radio/c_lora_link.h"
 #include "f_core/utils/c_soft_timer.h"
 
-class CCallsignBroadcastTenant : CCallbackTenant {
+class CCallsignBroadcastTenant : public CCallbackTenant {
 public:
     /**
      *
@@ -14,7 +14,7 @@ public:
      * @param transmitFrequency How often to broadcast the callsign
      * @param txPort Message port to send the callsign frame to for transmission over LoRa
      */
-    CCallsignBroadcastTenant(const std::string& callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort);
+    CCallsignBroadcastTenant(const char* callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort);
 
     /**
      * See parent docs
@@ -31,5 +31,6 @@ private:
     CMessagePort<LaunchLoraFrame>& txPort;
     CSoftTimer broadcastTimer;
     const k_timeout_t transmitFrequency;
-    const std::string_view callsign;
+    const std::string callsign;
+    const uint8_t loraBroadcastPort;
 };

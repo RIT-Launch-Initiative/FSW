@@ -8,9 +8,9 @@ static void broadcastTimerCallbackFunction(k_timer *timer) {
     }
 }
 
-CCallsignBroadcastTenant::CCallsignBroadcastTenant(const std::string& callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort)
+CCallsignBroadcastTenant::CCallsignBroadcastTenant(const char* callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort, const uint8_t loraBroadcastPort)
     : CCallbackTenant("CCallsignBroadcastTenant"), txPort(txPort),
-      broadcastTimer(broadcastTimerCallbackFunction), transmitFrequency(transmitFrequency), callsign(callsign) {
+      broadcastTimer(broadcastTimerCallbackFunction), transmitFrequency(transmitFrequency), callsign(callsign), loraBroadcastPort(loraBroadcastPort) {
 }
 
 void CCallsignBroadcastTenant::Register() {
@@ -20,7 +20,7 @@ void CCallsignBroadcastTenant::Register() {
 
 void CCallsignBroadcastTenant::Callback() {
     LaunchLoraFrame frame = {};
-    frame.Port = 1;
+    frame.Port = loraBroadcastPort;
     frame.Size = static_cast<uint8_t>(callsign.size());
     memcpy(frame.Payload, callsign.data(), frame.Size);
     txPort.Send(frame, K_NO_WAIT);
