@@ -1,5 +1,4 @@
-#ifndef C_SENSING_TENANT_H
-#define C_SENSING_TENANT_H
+#pragma once
 
 #include <n_autocoder_types.h>
 
@@ -33,4 +32,4 @@ private:
     void sendGnssToLora() const;
 };
 
-#endif //C_SENSING_TENANT_H
+

@@ -1,5 +1,4 @@
-#ifndef C_LORA_FRAME_TO_UDP_HANDLER_H
-#define C_LORA_FRAME_TO_UDP_HANDLER_H
+#pragma once
 
 #include "f_core/net/transport/c_udp_socket.h"
 #include "f_core/radio/c_lora_frame_handler.h"
@@ -23,4 +22,3 @@ private:
 };
 
 
-#endif //C_LORA_FRAME_TO_UDP_HANDLER_H

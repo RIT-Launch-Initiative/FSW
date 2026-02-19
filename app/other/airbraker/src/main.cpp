@@ -5,6 +5,8 @@
 #include <zephyr/init.h>
 #include <zephyr/logging/log.h>
 
+#include "math/n_benchmark.hpp"
+
 LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
 SYS_INIT(servo_init, APPLICATION, 1);
@@ -36,14 +38,6 @@ int main() {
     k_msleep(1000);
 
     printk("Time to break air\n");
-    printk("Alt Meas: %f, Acc Meas: %.f\n", (double) alt_m, (double) accel_v);
-    printk("Alt Est: %f, Vel Est: %f, Acc Est: %.f\n", (double) state.estAltitude, (double) state.estVelocity,
-           (double) state.estAcceleration);
-    printk("Effort: %f\n", (double) effort);
-    printk("=====================================\n");
-    printk("Update: %lld cycles (%d us)\n", updateDelta, k_cyc_to_us_near32(updateDelta));
-    printk("Get:    %lld cycles (%d us)\n", getDelta, k_cyc_to_us_near32(getDelta));
-    printk("LUT:    %lld cycles (%d us)\n", effortDelta, k_cyc_to_us_near32(effortDelta));
-    printk("Total:  %lld cycles (%d us)\n", fullDelta, k_cyc_to_us_near32(fullDelta));
 
+    NBenchMark::benchmark();
 }

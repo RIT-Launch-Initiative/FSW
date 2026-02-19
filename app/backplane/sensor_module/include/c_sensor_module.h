@@ -1,5 +1,4 @@
-#ifndef C_SENSOR_MODULE_H
-#define C_SENSOR_MODULE_H
+#pragma once
 
 #include "c_sensing_tenant.h"
 #include "flight.hpp"
@@ -78,5 +77,3 @@ class CSensorModule : public CProjectConfiguration {
     CTask sensingTask{"Sensing Task", 14, 4096, 10};
     CTask dataLogTask{"Data Logging Task", 13, 4096, 5};
 };
-
-#endif //C_SENSOR_MODULE_H

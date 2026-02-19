@@ -1,5 +1,4 @@
-#ifndef C_MSGQ_MESSAGE_PORT_H
-#define C_MSGQ_MESSAGE_PORT_H
+#pragma once
 
 #include <f_core/messaging/c_message_port.h>
 #include <zephyr/kernel.h>
@@ -55,4 +54,4 @@ private:
     k_msgq *queue;
 };
 
-#endif // C_MSGQ_MESSAGE_PORT_H
+

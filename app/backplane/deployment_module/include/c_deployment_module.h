@@ -1,5 +1,4 @@
-#ifndef C_DEPLOYMENT_MODULE_H
-#define C_DEPLOYMENT_MODULE_H
+#pragma once
 
 // F-Core Includes
 #include <c_pyro_control_observer.h>
@@ -52,4 +51,4 @@ class CDeploymentModule : public CProjectConfiguration {
     CPyroControlObserver pyroControlObserver;
 };
 
-#endif //C_DEPLOYMENT_MODULE_H
+

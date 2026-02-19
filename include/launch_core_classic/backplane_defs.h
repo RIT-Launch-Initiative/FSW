@@ -4,9 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef BACKPLANE_DEFS_H
-#define BACKPLANE_DEFS_H
-
+#pragma once
 /**
  * Definitions for all backplane related constants
  */
@@ -52,4 +50,4 @@ typedef enum {
     SENSOR_MODULE_HUNDRED_HZ_DATA_PORT = 100,
 } l_sensor_module_port_offset_t;
 
-#endif //BACKPLANE_DEFS_H
+

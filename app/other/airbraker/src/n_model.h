@@ -1,5 +1,7 @@
 #pragma once
 #include "n_autocoder_types.h"
+#pragma once
+#include "n_autocoder_types.h"
 
 namespace NModel {
 

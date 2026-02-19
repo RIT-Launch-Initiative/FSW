@@ -1,5 +1,4 @@
-#ifndef C_LORA_FRAME_HANDLER_H
-#define C_LORA_FRAME_HANDLER_H
+#pragma once
 
 #include "f_core/radio/c_lora_link.h"
 
@@ -17,4 +16,3 @@ public:
     virtual void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) = 0;
 };
 
-#endif //C_LORA_FRAME_HANDLER_H

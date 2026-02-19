@@ -1,6 +1,9 @@
 #include "n_model.h"
 
 #include "math/matrix.hpp"
+#include "n_model.h"
+
+#include "math/matrix.hpp"
 #include "n_autocoder_types.h"
 
 namespace NModel {
