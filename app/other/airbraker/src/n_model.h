@@ -1,9 +1,24 @@
-#include "ac_types.h"
+#pragma once
+#include "n_autocoder_types.h"
 
-namespace MModel {
+namespace NModel {
 
-void feed_sensors(const NTypes::AccelerometerData &data, const NTypes::BarometerData &data);
 
-void feed_gyro(const NTypes::GyroscopeData &gyro);
+struct KalmanState {
+    float estAltitude;
+    float estVelocity;
+    float estAcceleration;
+};
 
-} // namespace Model
+void FeedKalman(uint64_t usSinceBoot, const NTypes::AccelerometerData &adata, const NTypes::BarometerData &bdata);
+KalmanState LastKalmanState();
+
+struct GyroState{
+    float angleOffInitial;
+    float angleUncertainty;
+};
+
+void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro);
+float CalculateEffort(const KalmanState &state);
+
+} // namespace NModel
