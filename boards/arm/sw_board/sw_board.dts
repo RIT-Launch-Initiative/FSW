@@ -298,6 +298,7 @@ zephyr_udc0: &usbotg_fs {
 		reg = <0x6b>;
 		int1-gpios = <&gpioc 10 GPIO_ACTIVE_HIGH>;
 		int2-gpios = <&gpiod 3 GPIO_ACTIVE_HIGH>;
+
 	};
 	ina219_3v3: ina219-3v3@45 {
 		// 3.3 Logic line - expect 3.3V
