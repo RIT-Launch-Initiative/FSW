@@ -1,0 +1,5 @@
+&servo1{
+	pulse-period = <PWM_USEC(3000)>;
+	min-pulse = <PWM_USEC(500)>;
+	max-pulse = <PWM_USEC(2500)>;
+};

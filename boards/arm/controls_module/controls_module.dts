@@ -87,17 +87,23 @@
 	servo1: servo1 {
 		compatible = "pwm-servo";
 		// STM-GPIO-A3, Backplane-GPIO-5, Connector-28
-		pwms = <&pwm2 4 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
-		min-pulse = <PWM_USEC(700)>;
-		max-pulse = <PWM_USEC(2500)>;
+		pwms = <&pwm2 4>;
+		// defautlts of super cheap hobby servos
+		pulse-period = <PWM_MSEC(20)>; 
+		pwm-polarity = <PWM_POLARITY_NORMAL>;
+		min-pulse = <PWM_MSEC(1)>;
+		max-pulse = <PWM_MSEC(2)>;
 	};
 
 	servo2: servo2 {
 		// STM-GPIO-B1, Backplane-GPIO-7, Connector-30
 		compatible = "pwm-servo";
-		pwms = <&pwm3 4 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
-		min-pulse = <PWM_USEC(700)>;
-		max-pulse = <PWM_USEC(2500)>;
+		pwms = <&pwm3 4>;
+		// defautlts of super cheap hobby servos
+		pulse-period = <PWM_MSEC(20)>; 
+		pwm-polarity = <PWM_POLARITY_NORMAL>;
+		min-pulse = <PWM_MSEC(1)>;
+		max-pulse = <PWM_MSEC(2)>;
 	};
 
 	soc {
@@ -186,7 +192,7 @@
 	clocks = <&pll>;
 	clock-frequency = <DT_FREQ_M(90)>;
 	ahb-prescaler = <1>;
-	apb1-prescaler = <4>;
+	apb1-prescaler = <16>;
 	apb2-prescaler = <2>;
 };
 
