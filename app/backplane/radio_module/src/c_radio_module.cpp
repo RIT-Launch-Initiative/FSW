@@ -58,7 +58,5 @@ void CRadioModule::SetupCallbacks() {
     sntpServerTenant.Register();
     alertTenant.Register();
 
-    if (lora.IsLicensedFrequency()) {
-        callsignBroadcastTenant.Register();
-    }
+    callsignBroadcastTenant.Register();
 }
