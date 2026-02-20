@@ -125,7 +125,7 @@
 			w25q128: qspi-nor-flash@90000000 {
 				compatible = "st,stm32-qspi-nor";
 				reg = <0x90000000 0x10000000>; /* 128 Mbits */
-				status = "okay";
+				status = "disabled";
 
 				size = <DT_SIZE_M(128)>; /* 128 Mbits */
 				qspi-max-frequency = <DT_FREQ_M(50)>;
@@ -226,7 +226,7 @@
 		spi-max-frequency = <DT_FREQ_M(80)>;
 		int-gpios = <&gpiob 0 GPIO_ACTIVE_LOW>;
 		reset-gpios = <&gpioc 5 GPIO_ACTIVE_LOW>;
-		// zephyr,random-mac-address;
+		zephyr,random-mac-address;
 	};
 };
 
