@@ -1,20 +1,31 @@
 #include <st/l4/stm32l452r(c-e)tx-pinctrl.dtsi>
 
 / {
+	chosen{
+		zephyr,console = &usart1;
+		zephyr,shell-uart = &usart1;
+	};
+	aliases {
+		mc = &fake_mc;
+	};
+};
 
+&usart1{
+	status = "okay";
 };
 
 &arduino_spi {
 	status = "okay";
-	pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
-	&spi1_miso_pa6 &spi1_mosi_pa7>;
+	pinctrl-0 = < &spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
 
-	cs-gpios = <&gpiob 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+	// cs-gpios = <&gpioa 4 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+	cs-gpios = <&gpiob 8 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 
 
 	fake_mc: fake_mc@0 {
-		compatible = "spi-device";
+		compatible = "launch,fake_mc";
 		reg = <0>;
 		status = "okay";
+		spi-max-frequency = <375000>;
 	};
 };
