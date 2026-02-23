@@ -5,7 +5,7 @@
 #include <cstdint>
 
 // time for burnout and decellerating under .8 mach after start of boost
-constexpr uint32_t LOCKOUT_MS = 0 * 1000;
+constexpr uint32_t LOCKOUT_MS = 3 * 1000;
 constexpr uint32_t FLIGHT_TIME_MS = 1 * 60 * 1000;
 constexpr uint32_t NUM_FLIGHT_PACKETS = FLIGHT_TIME_MS / 10; // 100 a sec, 1 every 10ms
 
