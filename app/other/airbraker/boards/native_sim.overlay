@@ -28,7 +28,7 @@
 		vertical-axis = "OPENROCKET_AXIS_Z";
 		vertical-axis-invert;
 		lateral-axis = "OPENROCKET_AXIS_X";
-		lag-time-us = <2>; // 2 ms delay 
+		lag-time-us = <2>; // 2 ms delay
 		sampling-period-us = <10>;// 100 hz
 
 		roll-axis = "OPENROCKET_AXIS_Z";
@@ -89,9 +89,9 @@
 			};
 
 
-			bootcount_partition: bootcount_partition@100000 {
+			fast_partition: fastpartition@100000 {
 				label = "superfast-storage";
-				reg = <0x100000 DT_SIZE_K(2)>;
+				reg = <0x100000 DT_SIZE_M(128)>;
 			};
 		};
 	};

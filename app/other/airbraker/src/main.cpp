@@ -43,11 +43,12 @@ int main() {
 
     NBoost::FeedDetector(packet.accelRaw);
 
+    // not as real as it should be. in reality this should be averaged over startup time
     float offset = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw);
 
+    // servo not allowed until after under mach. disable to save power
     DisableServo();
 
-    // boost detect time
     while (!NBoost::IsDetected()) {
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
@@ -59,12 +60,6 @@ int main() {
 
         packet.kalmanState = NModel::LastKalmanState();
         packet.effort = 0; // no fun until after burnout
-        if (counter % divisor == 0) {
-            // printk("Meas: %f, %f\n", altMeters, packet.accelRaw);
-            printk("SE, %u, %f, %f, %f, %f, %f\n", packet.timestamp, (double) packet.kalmanState.estAltitude,
-                   (double) packet.kalmanState.estVelocity, (double) packet.kalmanState.estAcceleration,
-                   (double) packet.kalmanState.estBias, (double) packet.effort);
-        }
 
         NPreBoost::SubmitPreBoostPacket(packet);
         counter++;
@@ -99,12 +94,7 @@ int main() {
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
 
-        if (counter % divisor == 0) {
-            // printk("Meas: %f, %f\n", altMeters, packet.accelRaw);
-            printk("SE, %u, %f, %f, %f, %f, %f\n", packet.timestamp, (double) packet.kalmanState.estAltitude,
-                   (double) packet.kalmanState.estVelocity, (double) packet.kalmanState.estAcceleration,
-                   (double) packet.kalmanState.estBias, (double) packet.effort);
-        }
+
         if (packet.timestamp > (liftoffTimeMs + LOCKOUT_MS)) {
             if (wentOutOfBounds) {
                 SetServoEffort(0);
