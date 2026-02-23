@@ -38,7 +38,7 @@ CCircularBuffer<Packet, NUM_STORED_PREBOOST_PACKETS> preboostPackets{zeroPacket}
 void SubmitPreBoostPacket(const Packet &packet) {
     // newest sample for gyro bias
     preboostPackets.AddSample(packet);
-    Packet *newestSampleForGyroBias = &preboostPackets[NUM_SAMPLES_FOR_GYRO_BIAS - 1];
+    Packet *newestSampleForGyroBias = &preboostPackets.OldestSample();
     gyroBiasAverager.Feed({newestSampleForGyroBias->gyro});
 }
 
