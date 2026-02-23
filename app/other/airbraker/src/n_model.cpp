@@ -1,8 +1,8 @@
-#include "n_model.h"
+#include "n_model.hpp"
 
 #include "math/matrix.hpp"
 #include "n_autocoder_types.h"
-#include "n_model.h"
+#include "n_model.hpp"
 
 #include <cmath>
 

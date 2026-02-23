@@ -1,5 +1,5 @@
 #include "common.hpp"
-#include "n_boost.h"
+#include "n_boost.hpp"
 namespace NPreBoost {
 
 /**

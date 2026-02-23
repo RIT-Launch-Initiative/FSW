@@ -56,9 +56,12 @@ int MeasureSensors(float &tempC, float &pressureKPa, float &accelMs2, NTypes::Gy
     } 
 
     if (iret == 0) {
-        struct sensor_value acc_z;
-        sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_Z, &acc_z);
-        accelMs2 = sensor_value_to_float(&acc_z);
+        struct sensor_value accZ;
+        sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_Z, &accZ);
+        accelMs2 = sensor_value_to_float(&accZ);
+        #ifdef CONFIG_BOARD_SW_BOARD
+        // accelMs2 *= -1;
+        #endif
 
         struct sensor_value gyro[3];
         sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, gyro);
@@ -86,7 +89,7 @@ int init_barom() {
     }
 
 #ifdef CONFIG_MS56XX
-    const sensor_value odr{.val1 = 1024, .val2 = 0};
+    const sensor_value odr{.val1 = 4096, .val2 = 0};
     int ret = sensor_attr_set(barom_dev, SENSOR_CHAN_PRESS, SENSOR_ATTR_OVERSAMPLING, &odr);
     if (ret < 0) {
         LOG_WRN("Barometer pressure oversampling configuration failed. Pressure readings may be inaccurate.");

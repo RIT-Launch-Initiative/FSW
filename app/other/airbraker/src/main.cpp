@@ -1,8 +1,8 @@
-#include "n_boost.h"
-#include "n_model.h"
+#include "n_boost.hpp"
+#include "n_model.hpp"
 #include "n_preboost.hpp"
 #include "n_sensing.hpp"
-#include "n_storage.h"
+#include "n_storage.hpp"
 #include "servo.h"
 
 #include <zephyr/init.h>
@@ -22,8 +22,11 @@ uint32_t packet_timestamp() {
 }
 
 int main() {
+    LOG_INF("In Main");
     NSensing::init_sensors();
     k_timer_start(&measurement_timer, K_MSEC(10), K_MSEC(10));
+    size_t counter = 0;
+    size_t divisor = 10;
 
     Packet packet{
         .timestamp = 0,
@@ -56,9 +59,15 @@ int main() {
 
         packet.kalmanState = NModel::LastKalmanState();
         packet.effort = 0; // no fun until after burnout
-        printk("SE, %u, %f, %f, %f, %f, %f\n", packet.timestamp, (double) packet.kalmanState.estAltitude, (double) packet.kalmanState.estVelocity, (double) packet.kalmanState.estAcceleration, (double) packet.kalmanState.estBias, (double)packet.effort);
+        if (counter % divisor == 0) {
+            // printk("Meas: %f, %f\n", altMeters, packet.accelRaw);
+            printk("SE, %u, %f, %f, %f, %f, %f\n", packet.timestamp, (double) packet.kalmanState.estAltitude,
+                   (double) packet.kalmanState.estVelocity, (double) packet.kalmanState.estAcceleration,
+                   (double) packet.kalmanState.estBias, (double) packet.effort);
+        }
 
         NPreBoost::SubmitPreBoostPacket(packet);
+        counter++;
         k_timer_status_sync(&measurement_timer);
     }
     LOG_INF("Boost Detected");
@@ -80,7 +89,8 @@ int main() {
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - offset;
 
         NModel::FeedGyro(packet.timestamp, packet.gyro);
-        if (NModel::GyroOutOfBounds()) { // todo maybe make this NModel::GyroEverWentOutOfBounds and have the bool live over there
+        if (NModel::
+                GyroOutOfBounds()) { // todo maybe make this NModel::GyroEverWentOutOfBounds and have the bool live over there
             wentOutOfBounds = true;
         }
 
@@ -88,7 +98,13 @@ int main() {
         packet.kalmanState = NModel::LastKalmanState();
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
-        printk("SE, %u, %f, %f, %f, %f, %f\n", packet.timestamp, (double) packet.kalmanState.estAltitude, (double) packet.kalmanState.estVelocity, (double) packet.kalmanState.estAcceleration, (double) packet.kalmanState.estBias, (double)packet.effort);
+
+        if (counter % divisor == 0) {
+            // printk("Meas: %f, %f\n", altMeters, packet.accelRaw);
+            printk("SE, %u, %f, %f, %f, %f, %f\n", packet.timestamp, (double) packet.kalmanState.estAltitude,
+                   (double) packet.kalmanState.estVelocity, (double) packet.kalmanState.estAcceleration,
+                   (double) packet.kalmanState.estBias, (double) packet.effort);
+        }
 
         if (packet.timestamp > (liftoffTimeMs + LOCKOUT_MS)) {
 
@@ -98,7 +114,7 @@ int main() {
                 SetServoEffort(packet.effort);
             }
         }
-
+        counter++;
         k_timer_status_sync(&measurement_timer);
     }
     LOG_INF("Flight over");

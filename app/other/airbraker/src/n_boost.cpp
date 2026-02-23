@@ -1,4 +1,4 @@
-#include "n_boost.h"
+#include "n_boost.hpp"
 #include <zephyr/kernel.h>
 #include "common.hpp"
 #include "f_core/utils/circular_buffer.hpp"
