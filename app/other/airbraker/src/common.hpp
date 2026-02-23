@@ -17,6 +17,8 @@ constexpr size_t NUM_STORED_PREBOOST_PACKETS = 50;
 constexpr size_t NUM_SAMPLES_FOR_GYRO_BIAS = 200;
 // number of samples that are required to exceed boost threshold before we decide boost is decided
 constexpr size_t NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED = 25;
+// thershold to exceed to start counting towards boost detect
+constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 10;
 
 struct KalmanState {
     float estAltitude;
