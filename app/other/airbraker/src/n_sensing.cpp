@@ -15,19 +15,17 @@ namespace NSensing {
 const device *imu_dev = DEVICE_DT_GET(IMU_NODE);
 const device *barom_dev = DEVICE_DT_GET(BAROM_NODE);
 
-int init_imu();
-int init_barom();
-int read_barom(float *tempC, float *pressureKPa);
-int read_imu(float *accelMs2, float *gyroDps);
+int initIMU();
+int initBarom();
 
 int InitSensors() {
-    int ret = init_imu();
+    int ret = initIMU();
     if (ret < 0) {
         LOG_ERR("Failed to initialize IMU. You're doomed");
         return ret;
     }
 
-    ret = init_barom();
+    ret = initBarom();
     if (ret < 0) {
         LOG_ERR("Failed to initialize Barometer. You're doomed");
         return ret;
@@ -72,14 +70,14 @@ int MeasureSensors(float &tempC, float &pressureKPa, float &accelMs2, NTypes::Gy
     return 0;
 }
 
-int init_imu() {
+int initIMU() {
     if (!device_is_ready(imu_dev)) {
         LOG_ERR("IMU NOT READY");
         return -1;
     }
     return 0;
 }
-int init_barom() {
+int initBarom() {
     if (!device_is_ready(barom_dev)) {
         LOG_ERR("IMU NOT READY");
         return -1;
