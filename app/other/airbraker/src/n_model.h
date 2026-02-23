@@ -1,15 +1,11 @@
 #pragma once
-#include "n_autocoder_types.h"
+#include "common.hpp"
 
 namespace NModel {
 
-struct KalmanState {
-    float estAltitude;
-    float estVelocity;
-    float estAcceleration;
-};
+float AltitudeMetersFromPressureKPa(float kPa);
 
-void FeedKalman(uint64_t usSinceBoot, float verticalAccelerationMS2, float altitude_feet);
+void FeedKalman(uint64_t usSinceBoot, float verticalAccelerationMS2, float altitudeMeters);
 KalmanState LastKalmanState();
 
 struct GyroState {
@@ -18,6 +14,8 @@ struct GyroState {
 };
 
 void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro);
+int GetOrientation();
+bool GyroOutOfBounds();
 
 float CalcActuatorEffort(float altitude, float velocity);
 } // namespace NModel

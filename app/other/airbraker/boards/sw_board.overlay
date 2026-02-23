@@ -1,0 +1,35 @@
+#include <zephyr/dt-bindings/sensor/lsm6dsv16x.h>
+#include <st/f4/stm32f446v(c-e)tx-pinctrl.dtsi>
+
+/{ 
+    aliases {
+        imu = &lsm6dv;
+        barom = &ms5607;
+        servo = &servo1;
+        servo-en = &servo1_pwr;
+    };
+
+    servo1: servo1 {
+        status = "okay";
+        compatible = "pwm-servo";
+        pwms = <&pwm2 1 PWM_USEC(3000) PWM_POLARITY_NORMAL>;
+        min-pulse = <PWM_USEC(500)>;
+        max-pulse = <PWM_USEC(2500)>;
+    };
+
+};
+&lsm6dv{
+    accel-range = <16>;
+    accel-odr = <LSM6DSV16X_DT_ODR_HA02_AT_100Hz>;
+    gyro-range = <LSM6DSV16X_DT_FS_4000DPS>;
+    gyro-odr = <LSM6DSV16X_DT_ODR_HA02_AT_100Hz>;
+};
+
+&timers2{
+    st,prescaler = <1000>;
+    pwm2: pwm {
+        status = "okay";
+        pinctrl-0 = <&tim2_ch1_pa15>;
+        pinctrl-names = "default";
+    };
+};
