@@ -20,7 +20,7 @@ int init_barom();
 int read_barom(float *tempC, float *pressureKPa);
 int read_imu(float *accelMs2, float *gyroDps);
 
-int init_sensors() {
+int InitSensors() {
     int ret = init_imu();
     if (ret < 0) {
         LOG_ERR("Failed to initialize IMU. You're doomed");
@@ -47,29 +47,26 @@ int MeasureSensors(float &tempC, float &pressureKPa, float &accelMs2, NTypes::Gy
     }
 
     if (bret == 0) {
-        struct sensor_value press;
+        sensor_value press = {0};
         sensor_channel_get(barom_dev, SENSOR_CHAN_PRESS, &press);
         pressureKPa = sensor_value_to_float(&press);
-        struct sensor_value temp;
+        sensor_value temp = {0};
         sensor_channel_get(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, &temp);
         tempC = sensor_value_to_float(&temp);
-    } 
+    }
 
     if (iret == 0) {
-        struct sensor_value accZ;
+        sensor_value accZ = {0};
         sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_Z, &accZ);
         accelMs2 = sensor_value_to_float(&accZ);
-        #ifdef CONFIG_BOARD_SW_BOARD
-        // accelMs2 *= -1;
-        #endif
 
-        struct sensor_value gyro[3];
+        sensor_value gyro[3] = {0};
         sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, gyro);
         gyroDps.X = sensor_value_to_float(&gyro[0]);
         gyroDps.Y = sensor_value_to_float(&gyro[1]);
         gyroDps.Z = sensor_value_to_float(&gyro[2]);
     }
-    if (bret != 0){
+    if (bret != 0) {
         return bret;
     }
     return 0;
@@ -99,8 +96,5 @@ int init_barom() {
 
     return 0;
 }
-
-int read_barom(float *tempC, float *pressureKPa) { return 0; }
-int read_imu(float *accelMs2, float *gyroDps) { return 0; }
 
 } // namespace NSensing

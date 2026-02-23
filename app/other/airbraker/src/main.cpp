@@ -23,10 +23,8 @@ uint32_t packet_timestamp() {
 
 int main() {
     LOG_INF("In Main");
-    NSensing::init_sensors();
+    NSensing::InitSensors();
     k_timer_start(&measurement_timer, K_MSEC(10), K_MSEC(10));
-    size_t counter = 0;
-    size_t divisor = 10;
 
     Packet packet{
         .timestamp = 0,
@@ -62,7 +60,6 @@ int main() {
         packet.effort = 0; // no fun until after burnout
 
         NPreBoost::SubmitPreBoostPacket(packet);
-        counter++;
         k_timer_status_sync(&measurement_timer);
     }
     LOG_INF("Boost Detected");
@@ -102,7 +99,6 @@ int main() {
                 SetServoEffort(packet.effort);
             }
         }
-        counter++;
         k_timer_status_sync(&measurement_timer);
     }
     LOG_INF("Flight over");
