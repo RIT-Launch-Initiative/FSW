@@ -26,6 +26,8 @@ extern "C" int servo_init() {
         LOG_ERR("Airbrake actuator device '%s' is not ready\n", servo.dev->name);
         return -1;
     }
+#endif
+
     if (!gpio_is_ready_dt(&servo_enable)) {
         LOG_ERR("Airbrake actuator device enable pin is not ready");
         return -1;
@@ -35,11 +37,11 @@ extern "C" int servo_init() {
         LOG_ERR("Failed to configure airbrakes actuator enable pin");
         return ret;
     }
+    
     return 0;
-#endif
 }
 
-int EnableServo() { return gpio_pin_set_dt(&servo_enable, 0); }
+int EnableServo() { return gpio_pin_set_dt(&servo_enable, 1); }
 int DisableServo() {
 #ifdef CONFIG_PWM
     int ret = pwm_set_pulse_dt(&servo, 0);
@@ -48,7 +50,7 @@ int DisableServo() {
         return ret;
     }
 #endif
-    return gpio_pin_set_dt(&servo_enable, 1);
+    return gpio_pin_set_dt(&servo_enable, 0);
 }
 
 int SetServoEffort(float effort) {
@@ -61,7 +63,6 @@ int SetServoEffort(float effort) {
 #else
 
     uint32_t pulse = (uint32_t) (effort * (max_pulse - min_pulse)) + min_pulse;
-
     return pwm_set_pulse_dt(&servo, pulse);
 #endif
 }

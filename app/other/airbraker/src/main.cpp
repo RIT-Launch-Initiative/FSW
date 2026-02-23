@@ -73,7 +73,7 @@ int main() {
     LOG_INF("Boost Detected");
 
     // behind schedule bc of boost detect lag
-    uint32_t liftoffTimeMs = packet.timestamp - (NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED * 10'000);
+    uint32_t liftoffTimeMs = packet.timestamp - (NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED * 10);
     NTypes::GyroscopeData bias = NPreBoost::GetGyroBias();
 
     EnableServo();
@@ -89,8 +89,8 @@ int main() {
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - offset;
 
         NModel::FeedGyro(packet.timestamp, packet.gyro);
-        if (NModel::
-                GyroOutOfBounds()) { // todo maybe make this NModel::GyroEverWentOutOfBounds and have the bool live over there
+        if (NModel::GyroOutOfBounds()) {
+            // todo maybe make this NModel::GyroEverWentOutOfBounds and have the bool live over there
             wentOutOfBounds = true;
         }
 
@@ -105,9 +105,7 @@ int main() {
                    (double) packet.kalmanState.estVelocity, (double) packet.kalmanState.estAcceleration,
                    (double) packet.kalmanState.estBias, (double) packet.effort);
         }
-
         if (packet.timestamp > (liftoffTimeMs + LOCKOUT_MS)) {
-
             if (wentOutOfBounds) {
                 SetServoEffort(0);
             } else {
