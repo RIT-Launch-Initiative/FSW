@@ -80,8 +80,6 @@ int main() {
 
         NModel::FeedGyro(packet.timestamp, packet.gyro);
 
-        // todo maybe make this NModel::GyroEverWentOutOfBounds and have the bool live over there
-        
         NModel::FeedKalman(packet.timestamp, altMeters, packet.accelRaw);
         packet.kalmanState = NModel::LastKalmanState();
 
