@@ -2,6 +2,8 @@
 #include "common.hpp"
 
 namespace NModel {
+// Return static string built into LUT definition from matlab
+const char *GetMatlabLUTName();
 
 float AltitudeMetersFromPressureKPa(float kPa);
 

@@ -41,3 +41,8 @@ struct Packet {
 };
 
 static_assert(sizeof(Packet) == 64, "Check size of packet");
+
+
+
+void CancelFlight();
+bool IsFlightCancelled();

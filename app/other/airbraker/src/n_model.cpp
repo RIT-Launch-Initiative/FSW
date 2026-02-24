@@ -7,6 +7,9 @@
 #include <cmath>
 
 namespace NModel {
+const char *GetMatlabLUTName(){
+    return "AUTOGEN-FROM-MATLAB";
+}
 
 using StateTransitionT = Matrix<4, 4>;
 
