@@ -19,9 +19,7 @@ static const uint32_t max_pulse = DT_PROP(SERVO_NODE, max_pulse);
 static const struct gpio_dt_spec servo_enable = GPIO_DT_SPEC_GET(SERVO_ENABLE_NODE, gpios);
 
 extern "C" int servo_init() {
-#ifndef CONFIG_PWM
-    return 0; // silly native sim
-#else
+#ifdef CONFIG_PWM
     if (!pwm_is_ready_dt(&servo)) {
         LOG_ERR("Airbrake actuator device '%s' is not ready\n", servo.dev->name);
         return -1;
@@ -37,11 +35,12 @@ extern "C" int servo_init() {
         LOG_ERR("Failed to configure airbrakes actuator enable pin");
         return ret;
     }
-    
+
     return 0;
 }
 
 int EnableServo() { return gpio_pin_set_dt(&servo_enable, 1); }
+
 int DisableServo() {
 #ifdef CONFIG_PWM
     int ret = pwm_set_pulse_dt(&servo, 0);
