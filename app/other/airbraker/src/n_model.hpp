@@ -15,7 +15,7 @@ struct GyroState {
 
 void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro);
 int GetOrientation();
-bool GyroOutOfBounds();
+bool EverWentOutOfBounds();
 
 float CalcActuatorEffort(float altitude, float velocity);
 } // namespace NModel

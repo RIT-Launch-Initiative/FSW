@@ -30,7 +30,8 @@ const Matrix<4, 2> kalman_gain{{
     -1.82817311684447,   0.032260907861791
 }};
 
-Matrix<4, 1> kalman_state({0, 0,  0,  9.8});
+static Matrix<4, 1> kalman_state({0, 0,  0,  9.8});
+static bool everWentOutOfBounds = false;
 
 // clang-format on
 
@@ -69,6 +70,7 @@ float AltitudeMetersFromPressureKPa(float pressure_kpa) {
 
 void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro) {}
 int GetOrientation() { return 0; }
-bool GyroOutOfBounds() { return false; }
+bool gyroOutOfBounds() { return false; }
+bool EverWentOutOfBounds() { return everWentOutOfBounds;}
 
 } // namespace NModel

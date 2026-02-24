@@ -72,7 +72,6 @@ int main() {
     LOG_INF("Gyro Bias Estimate: %f %f %f", (double) bias.X, (double) bias.Y, (double) bias.Z);
 
     // normal flight time
-    bool wentOutOfBounds = false;
     for (uint32_t i = 0; i < NUM_FLIGHT_PACKETS; i++) {
         packet.timestamp = packet_timestamp();
 
@@ -82,15 +81,14 @@ int main() {
         NModel::FeedGyro(packet.timestamp, packet.gyro);
 
         // todo maybe make this NModel::GyroEverWentOutOfBounds and have the bool live over there
-        wentOutOfBounds |= NModel::GyroOutOfBounds();
-
+        
         NModel::FeedKalman(packet.timestamp, altMeters, packet.accelRaw);
         packet.kalmanState = NModel::LastKalmanState();
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
 
         if (packet.timestamp > (liftoffTimeMs + LOCKOUT_MS)) {
-            if (wentOutOfBounds) {
+            if (NModel::EverWentOutOfBounds()) {
                 SetServoEffort(0);
             } else {
                 SetServoEffort(packet.effort);
