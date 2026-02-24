@@ -19,6 +19,10 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(ms56xx);
 
+#define MS56XX_PROM_SIZE    8
+#define MS56XX_PROM_CRC_IDX (MS56XX_PROM_SIZE - 1)
+#define MS56XX_PROM_BYTES   (MS56XX_PROM_SIZE * 2)
+
 static void ms56xx_compensate(struct ms56xx_data *data, const struct ms56xx_chip_calc_coefficients *const coefficients,
                               const int32_t adc_temperature, const int32_t adc_pressure) {
     int64_t dT;
@@ -81,6 +85,57 @@ static int ms56xx_read_prom(const struct ms56xx_config *config, uint8_t cmd, uin
     return 0;
 }
 
+static uint8_t ms56xx_calculate_crc4(uint16_t prom[MS56XX_PROM_SIZE]) {
+    int cnt;
+    unsigned int n_rem = 0;
+    unsigned int crc_read;
+    unsigned char n_bit;
+
+    crc_read = prom[MS56XX_PROM_CRC_IDX];
+
+    prom[MS56XX_PROM_CRC_IDX] = (0xFF00 & prom[MS56XX_PROM_CRC_IDX]);
+
+    for (cnt = 0; cnt < MS56XX_PROM_BYTES; cnt++) {
+        if (cnt % 2 == 1) {
+            n_rem ^= (uint8_t) (prom[cnt >> 1] & 0x00FF);
+        } else {
+            n_rem ^= (uint8_t) (prom[cnt >> 1] >> 8);
+        }
+
+        for (n_bit = 8; n_bit > 0; n_bit--) {
+            if (n_rem & 0x8000) {
+                n_rem = (n_rem << 1) ^ 0x3000;
+            } else {
+                n_rem = (n_rem << 1);
+            }
+        }
+    }
+
+    n_rem = (0x000F & (n_rem >> 12));
+    prom[MS56XX_PROM_CRC_IDX] = crc_read;
+    return (uint8_t) (n_rem ^ 0x00);
+}
+
+static int ms56xx_check_prom_crc(const struct ms56xx_config *config) {
+    uint16_t prom[MS56XX_PROM_SIZE];
+
+    for (uint8_t i = 0; i < MS56XX_PROM_SIZE; i++) {
+        int err = ms56xx_read_prom(config, (uint8_t) (0xA0 + (i << 1)), &prom[i]);
+        if (err < 0) {
+            return err;
+        }
+    }
+
+    uint8_t crc_stored = (uint8_t) (prom[MS56XX_PROM_CRC_IDX] & 0x000F);
+    uint8_t crc_calc = ms56xx_calculate_crc4(prom);
+
+    if (crc_calc != crc_stored) {
+        return -EIO;
+    }
+
+    return 0;
+}
+
 static int ms56xx_get_measurement(const struct ms56xx_config *config, uint32_t *val, uint8_t cmd, uint8_t delay) {
     int err;
 
@@ -113,13 +168,21 @@ static int ms56xx_sample_fetch(const struct device *dev, enum sensor_channel cha
     if (err < 0) {
         return err;
     }
+    if (adc_pressure == 0U) {
+        LOG_DBG("Invalid pressure data obtained");
+        return -EIO;
+    }
 
     err = ms56xx_get_measurement(config, &adc_temperature, data->temperature_conv_cmd, data->temperature_conv_delay);
     if (err < 0) {
         return err;
     }
+    if (adc_temperature == 0U) {
+        LOG_DBG("Invalid temperature data obtained");
+        return -EIO;
+    }
 
-    ms56xx_compensate(data, &config->calc_coefficients, adc_temperature, adc_pressure);
+    ms56xx_compensate(data, &config->calc_coefficients, (int32_t) adc_temperature, (int32_t) adc_pressure);
     return 0;
 }
 
@@ -127,14 +190,18 @@ static int ms56xx_channel_get(const struct device *dev, enum sensor_channel chan
     const struct ms56xx_data *data = dev->data;
 
     switch (chan) {
-        case SENSOR_CHAN_AMBIENT_TEMP:
-            val->val1 = data->temperature / 100;
-            val->val2 = data->temperature % 100 * 10000;
+        case SENSOR_CHAN_PRESS: {
+            int64_t kpa_micro = (int64_t) data->pressure * 1000; /* Pa -> micro-kPa */
+            sensor_value_from_micro(val, kpa_micro);
             break;
-        case SENSOR_CHAN_PRESS:
-            val->val1 = data->pressure / 100;
-            val->val2 = data->pressure % 100 * 10000;
+        }
+
+        case SENSOR_CHAN_AMBIENT_TEMP: {
+            int64_t c_micro = (int64_t) data->temperature * 10000; /* 0.01C -> micro-C */
+            sensor_value_from_micro(val, c_micro);
             break;
+        }
+
         default:
             return -ENOTSUP;
     }
@@ -235,7 +302,13 @@ static int ms56xx_init(const struct device *dev) {
         return err;
     }
 
-    k_sleep(K_MSEC(2));
+    k_msleep(3);
+
+    err = ms56xx_check_prom_crc(config);
+    if (err < 0) {
+        LOG_ERR("Check of ms56xx coefficients failed");
+        return err;
+    }
 
     err = ms56xx_read_prom(config, MS56XX_CMD_CONV_READ_OFF_T1, &data->off_t1);
     if (err < 0) {
@@ -291,19 +364,19 @@ static const struct sensor_driver_api ms56xx_api_funcs = {
 #define MS56XX_SPI_OPERATION (SPI_OP_MODE_MASTER | SPI_WORD_SET(8) | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_TRANSFER_MSB)
 
 /* Initializes a struct ms56xx_config for an ms56xx on a SPI bus. */
-#define MS56XX_CONFIG_SPI(nodeid, coeffs_num)                                                                            \
+#define MS56XX_CONFIG_SPI(nodeid, coeffs_num)                                                                          \
     {                                                                                                                  \
         .tf = &ms56xx_spi_transfer_function,                                                                           \
-        .bus_cfg.spi = SPI_DT_SPEC_GET(nodeid, MS56XX_SPI_OPERATION),                                            \
-        .calc_coefficients = MS56XX_CONFIG_##coeffs_num##_COEFFICIENTS,                                                                \
+        .bus_cfg.spi = SPI_DT_SPEC_GET(nodeid, MS56XX_SPI_OPERATION),                                                  \
+        .calc_coefficients = MS56XX_CONFIG_##coeffs_num##_COEFFICIENTS,                                                \
     }
 
 /* Initializes a struct ms56xx_config for an ms56xx on a I2C bus. */
-#define MS56XX_CONFIG_I2C(nodeid, coeffs_num)                                                                            \
+#define MS56XX_CONFIG_I2C(nodeid, coeffs_num)                                                                          \
     {                                                                                                                  \
         .tf = &ms56xx_i2c_transfer_function,                                                                           \
-        .bus_cfg.i2c = I2C_DT_SPEC_GET(nodeid),                                                                     \
-        .calc_coefficients = MS56XX_CONFIG_##coeffs_num##_COEFFICIENTS,                                                                \
+        .bus_cfg.i2c = I2C_DT_SPEC_GET(nodeid),                                                                        \
+        .calc_coefficients = MS56XX_CONFIG_##coeffs_num##_COEFFICIENTS,                                                \
     }
 
 /* Initializes calculation coefficients based on chip version. */
@@ -338,13 +411,13 @@ static const struct sensor_driver_api ms56xx_api_funcs = {
  * Main instantiation macro, which selects the correct bus-specific
  * instantiation macros for the instance.
  */
-#define MS56XX_DEFINE(nodeid, coeffs)                                                                                    \
-    static struct ms56xx_data ms56xx_data_##nodeid = {};                                                                 \
-    static const struct ms56xx_config ms56xx_config_##nodeid =                                                           \
-        COND_CODE_1(DT_ON_BUS(nodeid, spi), (MS56XX_CONFIG_SPI(nodeid, coeffs)), (MS56XX_CONFIG_I2C(nodeid, coeffs)));  \
+#define MS56XX_DEFINE(nodeid, coeffs)                                                                                  \
+    static struct ms56xx_data ms56xx_data_##nodeid = {};                                                               \
+    static const struct ms56xx_config ms56xx_config_##nodeid =                                                         \
+        COND_CODE_1(DT_ON_BUS(nodeid, spi), (MS56XX_CONFIG_SPI(nodeid, coeffs)), (MS56XX_CONFIG_I2C(nodeid, coeffs))); \
                                                                                                                        \
-    SENSOR_DEVICE_DT_DEFINE(nodeid, ms56xx_init, NULL, &ms56xx_data_##nodeid, &ms56xx_config_##nodeid, POST_KERNEL,     \
-                                 CONFIG_SENSOR_INIT_PRIORITY, &ms56xx_api_funcs);
+    SENSOR_DEVICE_DT_DEFINE(nodeid, ms56xx_init, NULL, &ms56xx_data_##nodeid, &ms56xx_config_##nodeid, POST_KERNEL,    \
+                            CONFIG_SENSOR_INIT_PRIORITY, &ms56xx_api_funcs);
 
 #define MS5607_DEFINE(nodeid) MS56XX_DEFINE(nodeid, 07)
 #define MS5611_DEFINE(nodeid) MS56XX_DEFINE(nodeid, 11)
