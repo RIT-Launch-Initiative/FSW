@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "n_model.hpp"
 #include "servo.hpp"
+
 #include <cmath>
 #include <zephyr/shell/shell.h>
 
@@ -13,7 +14,7 @@
 static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argc);
     ARG_UNUSED(argv);
-    if (IsFlightCancelled()){
+    if (IsFlightCancelled()) {
         shell_info(shell, "Flight already cancelled");
         return 0;
     }
@@ -119,29 +120,56 @@ static int cmd_servo_wave(const struct shell *shell, size_t argc, char **argv) {
 
     long periodMS = 0; // time for in and out = periodMS
     long cycleNum = 0; // number of cycles to repeat for
-    if (!parse_long(argv[1], &periodMS)){
+    if (!parse_long(argv[1], &periodMS)) {
         shell_error(shell, "failed to parse periodMS. need integer number of milliseconds");
         return -1;
     }
-    if (!parse_long(argv[2], &cycleNum)){
+    if (!parse_long(argv[2], &cycleNum)) {
         shell_error(shell, "failed to parse num_cycles. need integer number of cycles");
         return -1;
     }
 
     EnableServo();
 
-    for (long i = 0; i < cycleNum; i++){
-        for (long j = 0; j < periodMS; j++){
-            float t = (float)j / (float)periodMS;
-            float effort = (1-cosf(2 * (float)M_PI *t))/2;
+    for (long i = 0; i < cycleNum; i++) {
+        for (long j = 0; j < periodMS; j++) {
+            float t = (float) j / (float) periodMS;
+            float effort = (1 - cosf(2 * (float) M_PI * t)) / 2;
             SetServoEffort(effort);
             k_msleep(1);
         }
     }
 
-
     DisableServo();
 
+    return 0;
+}
+
+static int cmd_servo_goto(const struct shell *shell, size_t argc, char **argv) {
+
+    BAILOUT_IF_NOT_CANCELLED(shell);
+
+    if (argc != 2) {
+        shell_error(shell, "Usage: test servo_goto effort. Make the servo go to 'effort'"
+                           "effort is value [0,1000]");
+        return -1;
+    }
+    long effort = 0;
+    if (!parse_long(argv[1], &effort) || effort > 1000) {
+        shell_error(shell, "failed to parse effort. need integer [0,1000]");
+        return -1;
+    }
+
+    EnableServo();
+    SetServoEffort((float)effort/(float)1000);
+    return 0;
+}
+
+static int cmd_servo_stop(const struct shell *shell, size_t argc, char **argv) {
+    ARG_UNUSED(argc);
+    ARG_UNUSED(argv);
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    DisableServo();
     return 0;
 }
 
@@ -153,6 +181,8 @@ SHELL_CMD_REGISTER(airbrake, &subcmds, "Airbrake Control Commands", NULL);
 SHELL_STATIC_SUBCMD_SET_CREATE(test_cmds,
                                SHELL_CMD(servo_wave, NULL, "Make a sine wave with the servo", cmd_servo_wave),
                                SHELL_CMD(servo_step, NULL, "Do a step function on the servo", cmd_servo_step),
+                               SHELL_CMD(servo_goto, NULL, "Move servo to a certain position and hold", cmd_servo_goto),
+                               SHELL_CMD(servo_stop, NULL, "Disable servo", cmd_servo_stop),
                                SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(test, &test_cmds, "Airbrake Test Commands", NULL);
