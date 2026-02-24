@@ -22,7 +22,6 @@ uint32_t packet_timestamp() {
 }
 
 int main() {
-    LOG_INF("In Main");
     NSensing::InitSensors();
     k_timer_start(&measurement_timer, K_MSEC(10), K_MSEC(10));
 
