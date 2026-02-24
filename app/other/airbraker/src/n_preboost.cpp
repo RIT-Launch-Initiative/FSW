@@ -23,10 +23,10 @@ struct GyroAxes {
     }
     GyroAxes operator/(float rhs) const {
         return {.internal = {
-            .X = this->internal.X / rhs,
-            .Y = this->internal.Y / rhs,
-            .Z = this->internal.Z / rhs,
-        }};
+                    .X = this->internal.X / rhs,
+                    .Y = this->internal.Y / rhs,
+                    .Z = this->internal.Z / rhs,
+                }};
     }
 };
 Packet zeroPacket = Packet{0};

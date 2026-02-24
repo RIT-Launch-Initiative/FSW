@@ -81,16 +81,14 @@ int main() {
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - offset;
 
         NModel::FeedGyro(packet.timestamp, packet.gyro);
-        if (NModel::GyroOutOfBounds()) {
-            // todo maybe make this NModel::GyroEverWentOutOfBounds and have the bool live over there
-            wentOutOfBounds = true;
-        }
+
+        // todo maybe make this NModel::GyroEverWentOutOfBounds and have the bool live over there
+        wentOutOfBounds |= NModel::GyroOutOfBounds();
 
         NModel::FeedKalman(packet.timestamp, altMeters, packet.accelRaw);
         packet.kalmanState = NModel::LastKalmanState();
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
-
 
         if (packet.timestamp > (liftoffTimeMs + LOCKOUT_MS)) {
             if (wentOutOfBounds) {
