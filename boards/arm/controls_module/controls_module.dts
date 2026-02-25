@@ -84,24 +84,6 @@
 		label = "Pyro Channel 1";
 	};
 
-	servo1: servo1 {
-		compatible = "pwm-servo";
-		// STM-GPIO-A3, Backplane-GPIO-5, 30-pin-Connector-28
-		// defaults of super cheap hobby servos
-		pwms = <&pwm2 4 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
-		min-pulse = <PWM_MSEC(1)>;
-		max-pulse = <PWM_MSEC(2)>;
-	};
-
-	servo2: servo2 {
-		// STM-GPIO-B1, Backplane-GPIO-7, 30-pin-Connector-30
-		compatible = "pwm-servo";
-		// defaults of super cheap hobby servos
-		pwms = <&pwm3 4 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
-		min-pulse = <PWM_MSEC(1)>;
-		max-pulse = <PWM_MSEC(2)>;
-	};
-
 	soc {
 		quadspi: spi@a0001000 {
 			compatible = "st,stm32-qspi";
@@ -149,6 +131,9 @@
 
 &timers2{
 	// for Servo 1
+	// STM-GPIO-A3, Backplane-GPIO-5, 30-pin-Connector-28
+	// pwms = <&pwm2 4 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+	
 	pwm2: pwm {
 		status = "okay";
 		pinctrl-0 = <&tim2_ch4_pa3>;
@@ -157,7 +142,10 @@
 };
 
 &timers3{
-	// for Servo 2/Buzzer tone generation
+	// for Servo 2
+	// STM-GPIO-B1, Backplane-GPIO-7, 30-pin-Connector-30
+	// pwms = <&pwm3 4 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+
 	pwm3: pwm {
 		status = "okay";
 		pinctrl-0 = <&tim3_ch4_pb1>;
