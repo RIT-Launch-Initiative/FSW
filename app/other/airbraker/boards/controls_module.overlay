@@ -1,0 +1,17 @@
+/{ 
+    aliases {
+        imu = &lsm6dsv;
+        barom = &ms5611;
+        servo = &servo1;
+        servo-en = &servo5ven;
+    };
+
+    servo1: servo1 {
+        status = "okay";
+        compatible = "pwm-servo";
+        pwms = <&pwm2 4 PWM_USEC(3000) PWM_POLARITY_NORMAL>;
+        min-pulse = <PWM_USEC(500)>;
+        max-pulse = <PWM_USEC(2500)>;
+    };
+
+};
