@@ -1,7 +1,6 @@
-#include <f_core/utils/circular_buffer.hpp>
-
 #include <array>
 #include <cstddef>
+#include <f_core/utils/circular_buffer.hpp>
 
 template <typename T, std::size_t len>
 class CRollingSum {
@@ -46,7 +45,7 @@ class CMovingAverage {
     constexpr CMovingAverage(value_type start) : rolling_sum(start) {}
 
     constexpr void Feed(value_type value) { rolling_sum.Feed(value); }
-    constexpr value_type Avg() { return rolling_sum.Sum() / (value_type) len; }
+    constexpr value_type Avg() { return rolling_sum.Sum() / len; }
     constexpr void Fill(const T &start) { rolling_sum.Fill(start); }
 
   private:
