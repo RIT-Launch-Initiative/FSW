@@ -7,7 +7,7 @@
 		led0 = &led1;
 		imu = &imu;
 		barom = &barom;
-		ina-servo = &inaservo;
+		servo-en = &servo_en;
 	};
 
 	leds {
@@ -16,16 +16,20 @@
 			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
 			label = "LED";
 		};
+		servo_en: servo_en {
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "Servo Enable";
+		};
 	};
 
 	imu: imu {
 		status = "okay";
 		compatible = "openrocket,imu";
-		vertical-axis = "OPENROCKET_AXIS_X";
+		vertical-axis = "OPENROCKET_AXIS_Z";
 		vertical-axis-invert;
-		lateral-axis = "OPENROCKET_AXIS_Z";
-		lag-time-us = <2000>; // 2 ms delay 
-		sampling-period-us = <600>;// 1666 hz
+		lateral-axis = "OPENROCKET_AXIS_X";
+		lag-time-us = <2>; // 2 ms delay
+		sampling-period-us = <10>;// 100 hz
 
 		roll-axis = "OPENROCKET_AXIS_Z";
 		pitch-axis = "OPENROCKET_AXIS_Y";
@@ -38,17 +42,10 @@
 	barom: barom {
 		status = "okay";
 		compatible = "openrocket,barometer";
-		lag-time-us = <1000>;
+		lag-time-us = <2>;
 		sampling-period-us = <10>;
-		temp-noise = <420>; // millicelsius - everett
+		temp-noise = <0>; // millicelsius - everett
 		pressure-noise = <0>; // pascals
-	};
-
-	inaservo: inaservo{
-        	status = "okay";
-        	compatible = "sim,simshunt";
-        	simulated-voltage = <5000>;   // milliVolts
-        	simulated-current = <100>;    // milliAmps
 	};
 
 };
