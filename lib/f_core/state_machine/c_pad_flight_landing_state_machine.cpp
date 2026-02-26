@@ -19,20 +19,34 @@ void CPadFlightLandedStateMachine::Clock() {
         PadRun();
         if (boostDetected) {
             state = State::FLIGHT;
+            stateEntryFunctionHandled = false;
+            PadExit();
         }
         break;
     case State::FLIGHT:
+        if (!stateEntryFunctionHandled) {
+            FlightEntry();
+            stateEntryFunctionHandled = true;
+        }
+
         FlightRun();
         if (landingDetected) {
             state = State::LANDED;
+            stateEntryFunctionHandled = false;
+            FlightExit();
         }
         break;
     case State::LANDED:
+        if (!stateEntryFunctionHandled) {
+            LandedEntry();
+            stateEntryFunctionHandled = true;
+        }
+
         LandedRun();
         state = State::GROUND;
         break;
     case State::GROUND:
-        // Do nothing or reset
+        GroundRun();
         break;
     }
 }

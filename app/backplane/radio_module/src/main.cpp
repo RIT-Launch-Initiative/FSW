@@ -6,7 +6,6 @@
 
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
-#include <zephyr/drivers/gpio.h>
 
 #include "c_radio_module.h"
 

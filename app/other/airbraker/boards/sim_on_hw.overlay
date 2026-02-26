@@ -1,0 +1,35 @@
+/ {
+
+	aliases {
+		led0 = &led1;
+		imu = &sim_imu;
+		barom = &sim_barom;
+	};
+
+    sim_imu: sim_imu {
+		status = "okay";
+		compatible = "openrocket,imu";
+		vertical-axis = "OPENROCKET_AXIS_Z";
+		vertical-axis-invert;
+		lateral-axis = "OPENROCKET_AXIS_X";
+		lag-time-us = <2>; // 2 ms delay 
+		sampling-period-us = <10>;// 100 hz
+
+		roll-axis = "OPENROCKET_AXIS_Z";
+		pitch-axis = "OPENROCKET_AXIS_Y";
+		yaw-axis = "OPENROCKET_AXIS_X";
+
+		accel-noise = <0>;
+		gyro-noise = <0>;
+	};
+
+	sim_barom: sim_barom {
+		status = "okay";
+		compatible = "openrocket,barometer";
+		lag-time-us = <2>;
+		sampling-period-us = <10>;
+		temp-noise = <0>; // millicelsius - everett
+		pressure-noise = <0>; // pascals
+	};
+
+};

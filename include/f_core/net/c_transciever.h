@@ -1,6 +1,4 @@
-#ifndef C_TRANSCIEVER_H
-#define C_TRANSCIEVER_H
-
+#pragma once
 #include <cstddef>
 
 class CTransceiver {
@@ -57,6 +55,3 @@ protected:
     virtual ~CTransceiver() = default;
 };
 
-
-
-#endif //C_TRANSCIEVER_H

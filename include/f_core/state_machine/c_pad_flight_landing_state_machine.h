@@ -1,5 +1,4 @@
-#ifndef PADFLIGHTSTATEMACHINE_H
-#define PADFLIGHTSTATEMACHINE_H
+#pragma once
 
 #include <zephyr/kernel.h>
 
@@ -21,6 +20,10 @@ public:
 
     CPadFlightLandedStateMachine();
 
+    void SetToGround() {
+        state = State::GROUND;
+    }
+
 protected:
     State state;
 
@@ -40,13 +43,26 @@ protected:
 
     virtual void PadRun() = 0;
 
+    virtual void PadExit() {}
+
+    virtual void FlightEntry() {}
+
     virtual void FlightRun() = 0;
 
+    virtual void FlightExit() {}
+
+    virtual void LandedEntry() {}
+
     virtual void LandedRun() = 0;
+
+    virtual void LandedExit() {}
+
+    virtual void GroundRun() = 0;
 
 private:
     bool boostDetected;
     bool landingDetected;
+    bool stateEntryFunctionHandled = false;
 };
 
-#endif //PADFLIGHTSTATEMACHINE_H
+

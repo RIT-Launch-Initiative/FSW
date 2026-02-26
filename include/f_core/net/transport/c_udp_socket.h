@@ -1,5 +1,4 @@
-#ifndef C_UDP_SOCKET_H
-#define C_UDP_SOCKET_H
+#pragma once
 
 #include "zephyr/posix/poll.h"
 
@@ -118,4 +117,4 @@ private:
     };
 };
 
-#endif //C_UDP_SOCKET_H
+

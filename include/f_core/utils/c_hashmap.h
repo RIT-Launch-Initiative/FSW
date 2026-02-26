@@ -1,5 +1,4 @@
-#ifndef C_HASHMAP_H
-#define C_HASHMAP_H
+#pragma once
 
 #include <optional>
 #include <unordered_map>
@@ -17,6 +16,12 @@ template <typename KeyType, typename ValueType>
 class CHashMap {
 public:
     CHashMap() = default;
+
+    CHashMap(std::initializer_list<std::pair<const KeyType, ValueType>> initList) {
+        for (const auto& pair : initList) {
+            Insert(pair.first, pair.second);
+        }
+    }
 
     bool Insert(const KeyType& key, const ValueType& value) {
         if (!isMainThreadCurrent()) {
@@ -48,6 +53,22 @@ public:
         return false;
     }
 
+    bool Emplace(const KeyType& key, ValueType&& value) {
+        if (!isMainThreadCurrent()) {
+            if (!map.contains(key) && size > maxSizeReachedAtStartup) {
+                printk("Attempted to emplace more than the maximum size of the hashmap post-startup\n"); // LOG doesn't work well in templates
+#ifdef CONFIG_DEBUG
+                k_oops();
+#endif
+                return false;
+            }
+        }
+        if (++size > maxSizeReachedAtStartup) {
+            maxSizeReachedAtStartup = size;
+        }
+        return map.emplace(key, std::move(value)).second;
+    }
+
     bool Remove(const KeyType& key) {
         size--;
         return map.erase(key);
@@ -59,6 +80,14 @@ public:
         }
 
         return map.at(key);
+    }
+
+    ValueType* GetPtr(const KeyType& key) {
+        if (!map.contains(key)) {
+            return nullptr;
+        }
+
+        return &map.at(key);
     }
 
     bool Contains(KeyType key) const {
@@ -91,6 +120,3 @@ private:
         return strncmp(k_thread_name_get(k_current_get()), "main", 4) == 0;
     }
 };
-
-
-#endif //C_HASHMAP_H

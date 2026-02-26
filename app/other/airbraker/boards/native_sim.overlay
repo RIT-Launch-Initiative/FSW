@@ -1,0 +1,98 @@
+/ {
+	chosen {
+		storage = &flash0;
+	};
+
+	aliases {
+		led0 = &led1;
+		imu = &imu;
+		barom = &barom;
+		servo-en = &servo_en;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led1: led1 {
+			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			label = "LED";
+		};
+		servo_en: servo_en {
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "Servo Enable";
+		};
+	};
+
+	imu: imu {
+		status = "okay";
+		compatible = "openrocket,imu";
+		vertical-axis = "OPENROCKET_AXIS_Z";
+		vertical-axis-invert;
+		lateral-axis = "OPENROCKET_AXIS_X";
+		lag-time-us = <2>; // 2 ms delay
+		sampling-period-us = <10>;// 100 hz
+
+		roll-axis = "OPENROCKET_AXIS_Z";
+		pitch-axis = "OPENROCKET_AXIS_Y";
+		yaw-axis = "OPENROCKET_AXIS_X";
+
+		accel-noise = <0>;
+		gyro-noise = <0>;
+	};
+
+	barom: barom {
+		status = "okay";
+		compatible = "openrocket,barometer";
+		lag-time-us = <2>;
+		sampling-period-us = <10>;
+		temp-noise = <0>; // millicelsius - everett
+		pressure-noise = <0>; // pascals
+	};
+
+};
+
+&flashcontroller0 {
+	status = "okay";
+	compatible = "zephyr,sim-flash";
+	reg = <0x00000000 DT_SIZE_M(129)>;
+
+	#address-cells = <1>;
+	#size-cells = <1>;
+	erase-value = <0xff>;
+
+	flash0: flash@0 {
+		status = "okay";
+		compatible = "soc-nv-flash";
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		reg = <0x00000000 DT_SIZE_M(129)>; // builtin stuff + external flash simulation
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x00000000 0x0000C000>;
+			};
+			slot0_partition: partition@c000 {
+				label = "image-0";
+				reg = <0x0000C000 0x00069000>;
+			};
+			slot1_partition: partition@75000 {
+				label = "image-1";
+				reg = <0x00075000 0x00069000>;
+			};
+			scratch_partition: partition@de000 {
+				label = "image-scratch";
+				reg = <0x000de000 0x0001e000>;
+			};
+
+
+			fast_partition: fastpartition@100000 {
+				label = "superfast-storage";
+				reg = <0x100000 DT_SIZE_M(128)>;
+			};
+		};
+	};
+};

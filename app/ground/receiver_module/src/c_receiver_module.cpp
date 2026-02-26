@@ -4,9 +4,11 @@
 #include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
 
-K_MSGQ_DEFINE(broadcastQueue, 256, 10, 4);
-static auto loraBroadcastMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastData>(broadcastQueue);
-static auto udpBroadcastMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastData>(broadcastQueue);
+#include "f_core/radio/c_lora_link.h"
+
+K_MSGQ_DEFINE(broadcastQueue, sizeof(LaunchLoraFrame) , 10, 4);
+static auto loraBroadcastMsgQueue = CMsgqMessagePort<LaunchLoraFrame>(broadcastQueue);
+static auto udpBroadcastMsgQueue = CMsgqMessagePort<LaunchLoraFrame>(broadcastQueue);
 
 CReceiverModule::CReceiverModule() : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
                                loraBroadcastMessagePort(loraBroadcastMsgQueue), udpBroadcastMessagePort(udpBroadcastMsgQueue) {
@@ -18,8 +20,11 @@ void CReceiverModule::AddTenantsToTasks() {
     networkingTask.AddTenant(dataRequestListenerTenant);
 
     // LoRa
-    loraTask.AddTenant(loraTransmitTenant);
-    loraTask.AddTenant(loraReceiveTenant);
+    loraTenant.SetToGround();
+    loraTenant.RegisterFrameHandler(radioModuleFrequencyAckPort, freqRequestTenant);
+    loraTenant.RegisterDefaultFrameHandler(loraToUdpHandler);
+    loraTask.AddTenant(freqRequestTenant);
+    loraTask.AddTenant(loraTenant);
 }
 
 void CReceiverModule::AddTasksToRtos() {

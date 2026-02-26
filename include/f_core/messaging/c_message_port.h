@@ -1,5 +1,4 @@
-#ifndef CMESSAGEPORT_H
-#define CMESSAGEPORT_H
+#pragma once
 
 #include <zephyr/kernel.h>
 
@@ -42,9 +41,9 @@ public:
     /**
      * Get available space left in the message port
      */
-    virtual int AvailableSpace() = 0;
+    virtual size_t AvailableSpace() = 0;
 };
 
 
 
-#endif //CMESSAGEPORT_H
+

@@ -62,10 +62,17 @@ twister-out*/
 *cmake-*
 # IDE Files
 .vscode/
-**/.idea/workspace.xml
-**/.idea/tasks.xml
-**/.idea/dtsSettings.xml
-**/.idea/copilot*
+
+# JetBrains ignore all keep shared run configs and code styles
+**/.idea/*
+!**/.idea/runConfigurations/
+!**/.idea/runConfigurations/*
+!**/.idea/codeStyles/
+!**/.idea/codeStyles/*
+!**/.idea/inspectionProfiles/
+!**/.idea/inspectionProfiles/*
+!**/.idea/.gitignore
+!**/.idea/cmake.xml
 
 .cache/
 zephyr-windows.code-workspace

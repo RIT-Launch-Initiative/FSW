@@ -3,13 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#pragma once
 
 /**
  * Utility functions for dealing with Zephyr ADC devices
  */
-
-#ifndef L_ADC_UTILS_H
-#define L_ADC_UTILS_H
 
 #include <zephyr/drivers/adc.h>
 
@@ -48,4 +46,3 @@ int l_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *
  */
 int l_async_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val);
 
-#endif // L_ADC_UTILS_H

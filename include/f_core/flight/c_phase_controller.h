@@ -1,5 +1,4 @@
-#ifndef F_CORE_FLIGHT_C_PHASE_CONTROLLER_H
-#define F_CORE_FLIGHT_C_PHASE_CONTROLLER_H
+#pragma once
 
 #include <array>
 #include <cstdint>
@@ -218,5 +217,3 @@ const std::array<DecisionFunc, num_events> &deciders;
 // function to call on event or null
 NotificationFunction notification_func;
 };
-
-#endif
