@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "n_model.hpp"
 #include "servo.hpp"
+#include <numbers>
 
 #include <cmath>
 #include <zephyr/shell/shell.h>
@@ -134,7 +135,7 @@ static int cmd_servo_wave(const struct shell *shell, size_t argc, char **argv) {
     for (long i = 0; i < cycleNum; i++) {
         for (long j = 0; j < periodMS; j++) {
             float t = (float) j / (float) periodMS;
-            float effort = (1 - cosf(2 * (float) M_PI * t)) / 2;
+            float effort = (1 - cosf(2 * (float) std::numbers::pi * t)) / 2;
             SetServoEffort(effort);
             k_msleep(1);
         }
@@ -150,7 +151,7 @@ static int cmd_servo_goto(const struct shell *shell, size_t argc, char **argv) {
     BAILOUT_IF_NOT_CANCELLED(shell);
 
     if (argc != 2) {
-        shell_error(shell, "Usage: test servo_goto effort. Make the servo go to 'effort'"
+        shell_error(shell, "Usage: test servo_goto effort\nMake the servo go to 'effort'"
                            "effort is value [0,1000]");
         return -1;
     }
