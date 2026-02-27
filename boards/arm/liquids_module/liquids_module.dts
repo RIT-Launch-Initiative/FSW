@@ -11,12 +11,10 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 
-		zephyr,console = &uart4;
-        zephyr,shell-uart = &uart4;
-		zephyr,uart-pipe = &uart4;
+		zephyr,console = &cdc_acm_uart0;
+		zephyr,shell_uart = &cdc_acm_uart0;
 
 		storage = &w25q512;
-		logfs = &lfs1;
 
 		rtc = &rtc;
 	};
@@ -39,34 +37,34 @@
 			label = "User LED2";
 		};
 
-		wiz_led: wiz_led {
-			gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
-			label = "Wiznet LED";
-		};
+		// wiz_led: wiz_led {
+		// 	gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
+		// 	label = "Wiznet LED";
+		// };
 
-		de_hack: de_hack {
-			gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
-			label = "DE HACK";
-		};
+		// de_hack: de_hack {
+		// 	gpios = <&gpioc 11 GPIO_ACTIVE_HIGH>;
+		// 	label = "DE HACK";
+		// };
 
 	};
 
-	fstab {
-		compatible = "zephyr,fstab";
+	// fstab {
+	// 	compatible = "zephyr,fstab";
 
-		lfs1: lfs1 {
-			compatible = "zephyr,fstab,littlefs";
-			mount-point = "/lfs";
-			partition = <&external_storage_partition>;
-			automount;
+	// 	lfs1: lfs1 {
+	// 		compatible = "zephyr,fstab,littlefs";
+	// 		mount-point = "/lfs";
+	// 		partition = <&external_storage_partition>;
+	// 		automount;
 
-			read-size = <256>;
-			prog-size = <256>;
-			cache-size = <512>;
-			lookahead-size = <128>;
-			block-cycles = <(90 * 1000)>;
-		};
-	};
+	// 		read-size = <256>;
+	// 		prog-size = <256>;
+	// 		cache-size = <512>;
+	// 		lookahead-size = <128>;
+	// 		block-cycles = <(90 * 1000)>;
+	// 	};
+	// };
 
 
 };
@@ -75,7 +73,7 @@
 	status = "okay";
 };
 
-&clk_hsi {
+&clk_hse {
 	clock-frequency = <DT_FREQ_M(16)>;
 	status = "okay";
 };
@@ -86,7 +84,7 @@
 	div-p = <2>;
 	div-q = <2>;
 	div-r = <2>;
-	clocks = <&clk_hsi>;
+	clocks = <&clk_hse>;
 	status = "okay";
 };
 
@@ -96,6 +94,18 @@
 	ahb-prescaler = <1>;
 	apb1-prescaler = <2>;
 	apb2-prescaler = <2>;
+};
+
+zephyr_udc0: &usbotg_fs {
+	pinctrl-0 = <&usb_otg_fs_dm_pa11 &usb_otg_fs_dp_pa12>;
+	pinctrl-names = "default";
+	maximum-speed = "full-speed";
+	status = "okay";
+
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+		label = "USB CDC-ACM";
+	};
 };
 
 &uart4 {
@@ -178,112 +188,8 @@
 	};
 };
 
-&i2c3 {
-	pinctrl-0 = <&i2c3_scl_pa8 &i2c3_sda_pc9>;
-	pinctrl-names = "default";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
-
-	lis3mdl: lis3mdl@1c {
-		compatible = "st,lis3mdl-magn";
-		reg = <0x1c>;
-		status = "okay";
-
-		irq-gpios = <&gpioa 9 GPIO_ACTIVE_LOW>, <&gpioa 10 GPIO_ACTIVE_LOW>;
-	};
-
-	adxl375: adxl375@1d {
-		compatible = "adi,adxl375";
-		reg = <0x1D>;
-		status = "okay";
-	};
-
-	tmp117: tmp117@48 {
-		compatible = "ti,tmp11x";
-		reg = <0x48>;
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		eeprom: ti_tmp116_eeprom@0 {
-			compatible = "ti,tmp11x-eeprom";
-			reg = <0x0>;
-			read-only;
-		};
-	};
-
-	lsm6dsl: lsm6dsl@6b {
-		compatible = "st,lsm6dsl";
-		reg = <0x6b>;
-		status = "okay";
-
-		irq-gpios = <&gpiob 10 GPIO_ACTIVE_LOW>, <&gpiob 12 GPIO_ACTIVE_LOW>;
-	};
-
-	bmp388: bmp388@76 {
-		compatible = "bosch,bmp388";
-		reg = <0x76>;
-		status = "okay";
-
-		int-gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
-		odr = "100";
-		osr-press = <1>;
-		osr-temp = <1>;
-		iir-filter = <1>;
-	};
-
-	ms5611: ms5611@77 {
-		compatible = "meas,ms5611";
-		reg = <0x77>;
-		status = "okay";
-	};
-
-};
-
 &rtc {
 	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
 			 <&rcc STM32_SRC_LSI RTC_SEL(2)>;
 	status = "okay";
-};
-
-&backup_sram {
-	status = "okay";
-};
-
-&flash0 {
-	partitions {
-		compatible = "fixed-partitions";
-		#address-cells = <1>;
-		#size-cells = <1>;
-
-		boot_partition: partition@0 {
-			label = "mcuboot";
-			reg = <0x00000000 DT_SIZE_K(64)>;
-			read-only;
-		};
-
-		/*
-		 * The flash starting at 0x00010000 and ending at
-		 * 0x0001ffff (sectors 16-31) is reserved for use
-		 * by the application.
-		 */
-		storage_partition: partition@10000 {
-			label = "storage";
-			reg = <0x00010000 DT_SIZE_K(64)>;
-		};
-
-		slot0_partition: partition@20000 {
-			label = "image-0";
-			reg = <0x00020000 DT_SIZE_K(128)>;
-		};
-
-		slot1_partition: partition@40000 {
-			label = "image-1";
-			reg = <0x00040000 DT_SIZE_K(128)>;
-		};
-
-		scratch_partition: partition@60000 {
-			label = "image-scratch";
-			reg = <0x00060000 DT_SIZE_K(128)>;
-		};
-	};
 };
