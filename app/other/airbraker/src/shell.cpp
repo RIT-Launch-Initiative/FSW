@@ -49,10 +49,9 @@ bool parse_long(const char *str, long *out) {
     long val = shell_strtol(str, 10, endptr);
     if (endptr != nullptr) {
         return false;
-    } else {
-        *out = val;
-        return true;
     }
+    *out = val;
+    return true;
 }
 
 static int cmd_servo_step(const struct shell *shell, size_t argc, char **argv) {
