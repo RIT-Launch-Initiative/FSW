@@ -1,9 +1,9 @@
 #include "common.hpp"
 #include "n_model.hpp"
 #include "servo.hpp"
-#include <numbers>
 
 #include <cmath>
+#include <numbers>
 #include <zephyr/shell/shell.h>
 
 #define BAILOUT_IF_NOT_CANCELLED(shell)                                                                                \
@@ -12,9 +12,7 @@
         return -1;                                                                                                     \
     }
 
-static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
-    ARG_UNUSED(argc);
-    ARG_UNUSED(argv);
+static int cmd_nogo(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     if (IsFlightCancelled()) {
         shell_info(shell, "Flight already cancelled");
         return 0;
@@ -26,10 +24,7 @@ static int cmd_nogo(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
-static int cmd_describe_params(const struct shell *shell, size_t argc, char **argv) {
-    ARG_UNUSED(argc);
-    ARG_UNUSED(argv);
-
+static int cmd_describe_params(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     shell_print(shell, "Airbrakes - " CONFIG_BOARD " - %s %s", __DATE__, __TIME__);
     shell_print(shell, "Model Version: %s", NModel::GetMatlabLUTName());
     shell_print(shell, "Flight: =================================");
@@ -162,13 +157,11 @@ static int cmd_servo_goto(const struct shell *shell, size_t argc, char **argv) {
     }
 
     EnableServo();
-    SetServoEffort((float)effort/(float)1000);
+    SetServoEffort((float) effort / (float) 1000);
     return 0;
 }
 
-static int cmd_servo_stop(const struct shell *shell, size_t argc, char **argv) {
-    ARG_UNUSED(argc);
-    ARG_UNUSED(argv);
+static int cmd_servo_stop(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     BAILOUT_IF_NOT_CANCELLED(shell);
     DisableServo();
     return 0;
@@ -183,7 +176,6 @@ SHELL_STATIC_SUBCMD_SET_CREATE(test_cmds,
                                SHELL_CMD(servo_wave, NULL, "Make a sine wave with the servo", cmd_servo_wave),
                                SHELL_CMD(servo_step, NULL, "Do a step function on the servo", cmd_servo_step),
                                SHELL_CMD(servo_goto, NULL, "Move servo to a certain position and hold", cmd_servo_goto),
-                               SHELL_CMD(servo_stop, NULL, "Disable servo", cmd_servo_stop),
-                               SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(servo_stop, NULL, "Disable servo", cmd_servo_stop), SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(test, &test_cmds, "Airbrake Test Commands", NULL);

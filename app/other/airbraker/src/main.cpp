@@ -108,7 +108,7 @@ int main() {
     DisableServo();
 }
 
-atomic_t flightCancelled = ATOMIC_INIT(0);
+static atomic_t flightCancelled = ATOMIC_INIT(0);
 void CancelFlight() {
     atomic_t prev = atomic_set(&flightCancelled, ATOMIC_INIT(1));
     if (prev != ATOMIC_INIT(1)) {
