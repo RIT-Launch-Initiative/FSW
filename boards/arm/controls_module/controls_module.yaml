@@ -1,0 +1,15 @@
+identifier: controls_module
+name: Controls Module
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+supported:
+  - gpio
+  - spi
+  - spi
+  - sensor
+ram: 96
+flash: 512
+vendor: launch

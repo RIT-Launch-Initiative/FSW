@@ -1,0 +1,246 @@
+/dts-v1/;
+#include <st/f4/stm32f446Xe.dtsi>
+#include <st/f4/stm32f446r(c-e)tx-pinctrl.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "Controls Module";
+	compatible = "st,stm32f446xx";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+
+		zephyr,console = &uart5;
+        zephyr,shell-uart = &uart5;
+		zephyr,uart-pipe = &uart5;
+
+		storage = &w25q128;
+	};
+
+	aliases {
+		led0 = &led0;
+		buzz = &buzzer;
+	};
+
+	leds: leds {
+		compatible = "gpio-leds";
+
+		led0: led0 {
+			gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>;
+			label = "USER LED0";
+		};
+
+		led1: led1 {
+			gpios = <&gpiob 9 GPIO_ACTIVE_HIGH>;
+			label = "User LED1";
+		};
+
+		led2: led2 {
+			gpios = <&gpioa 11 GPIO_ACTIVE_HIGH>;
+			label = "User LED2";
+		};
+
+		led3: led3 {
+			gpios = <&gpioa 12 GPIO_ACTIVE_HIGH>;
+			label = "User LED3";
+		};
+	};
+
+	outputs: outputs {
+		compatible = "gpio-leds";
+
+		servo5ven: servo5ven {
+			// becomes SERVO-PWR on Backplane-GPIO-6
+			gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
+			label = "USER LED0";
+		};
+
+		buzzer: buzzer {
+			// arguably timer, need to check what buzzers got soldered
+			// tim3 ch1
+			gpios = <&gpiob 4 GPIO_ACTIVE_HIGH>;
+			label = "Buzzer";	
+		};
+
+		wiz_led_en: wiz-led-en {
+			// wiznet will only drive its leds if this is high
+			gpios = <&gpiob 4 GPIO_ACTIVE_HIGH>;
+			label = "Buzzer";
+		};
+	};
+
+
+	pyro_ch0: pyro-ch0 {
+		// ch #1 (0) (named weird in schematic)
+		control-gpios = <&gpioc 1 GPIO_ACTIVE_HIGH>;
+		sense-gpios = <&gpioc 0 GPIO_ACTIVE_HIGH>;
+		label = "Pyro Channel 0";
+	};
+	pyro_ch1: pyro-ch1 {
+		// ch1 #2 (1) (named weird in schematic)
+		control-gpios = <&gpioa 2 GPIO_ACTIVE_HIGH>;
+		sense-gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;
+		label = "Pyro Channel 1";
+	};
+
+	soc {
+		quadspi: spi@a0001000 {
+			compatible = "st,stm32-qspi";
+			pinctrl-names = "default";
+			
+			pinctrl-0 = <&quadspi_clk_pb2 &quadspi_bk1_ncs_pb6
+			&quadspi_bk1_io0_pc9 &quadspi_bk1_io1_pc10>;
+
+			reg = <0xa0001000 0x400>, <0x90000000 DT_SIZE_M(128)>;
+			interrupts = <92 0>;
+			clocks = <&rcc STM32_CLOCK(AHB3, 1U)>;
+			flash-id = <1>;
+			status = "okay";
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+
+	
+			w25q128: qspi-nor-flash@90000000 {
+				compatible = "st,stm32-qspi-nor";
+				reg = <0x90000000 0x10000000>; /* 128 Mbits */
+				status = "okay";
+
+				size = <DT_SIZE_M(128)>; /* 128 Mbits */
+				qspi-max-frequency = <DT_FREQ_M(50)>;
+				spi-bus-width = <2>;
+
+				jedec-id = [ ef 40 18  ];
+				page-size = <256>;
+				requires-ulbpr;
+	
+				partitions {
+					compatible = "fixed-partitions";
+					#address-cells = <1>;
+					#size-cells = <1>;
+				};
+			};
+		};
+	};
+	
+};
+
+
+&timers2{
+	// for Servo 1
+	// STM-GPIO-A3, Backplane-GPIO-5, 30-pin-Connector-28
+	pwm2: pwm {
+		status = "okay";
+		pinctrl-0 = <&tim2_ch4_pa3>;
+		pinctrl-names = "default";
+	};
+};
+
+&timers3{
+	// for Servo 2/Buzzer tone generation
+	// STM-GPIO-B1, Backplane-GPIO-7, 30-pin-Connector-30
+	pwm3: pwm {
+		status = "okay";
+		pinctrl-0 = <&tim3_ch4_pb1>;
+		pinctrl-names = "default";
+	};
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&clk_hsi {
+	clock-frequency = <DT_FREQ_M(16)>;
+	status = "okay";
+};
+
+&pll {
+	div-m = <8>;
+	mul-n = <90>;
+	div-p = <2>;
+	div-q = <2>;
+	div-r = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(90)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <16>;
+	apb2-prescaler = <2>;
+};
+
+&uart5 {
+	pinctrl-0 = <&uart5_tx_pc12 &uart5_rx_pd2>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&dma1 {
+	status = "okay";
+};
+
+&dma2 {
+	status = "okay";
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
+	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
+
+	pinctrl-names = "default";
+	status = "okay";
+
+    dmas = <&dma2 5 3 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+           <&dma2 2 3 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+    dma-names = "tx", "rx";
+
+
+	w5500: w5500@0 {
+		compatible = "wiznet,w5500";
+		status = "okay";
+		reg = <0x0>;
+		spi-max-frequency = <DT_FREQ_M(80)>;
+		int-gpios = <&gpiob 0 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioc 5 GPIO_ACTIVE_LOW>;
+		zephyr,random-mac-address;
+	};
+};
+
+
+&spi2 {
+	pinctrl-0 = <&spi2_sck_pc7 &spi2_miso_pb14 &spi2_mosi_pb15>;
+	
+	cs-gpios =  <&gpiob 13 GPIO_ACTIVE_LOW>, // LSM6DSLTR;
+				<&gpiob 12 GPIO_ACTIVE_LOW>; // MS5611
+	pinctrl-names = "default";
+	status = "okay";
+
+	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+	dma-names = "tx", "rx";
+
+	// LSM6DSVETR (the altium/schematic is wrong lol)
+	lsm6dsv: lsm6dsv@0 {
+		// Even though this isn't the exact same compatible string, it works for the LSM6DSVETR
+		// See link for more info: https: //github.com/zephyrproject-rtos/zephyr/discussions/72902
+		compatible = "st,lsm6dsv16x";
+		reg = <0>;
+		spi-max-frequency = <DT_FREQ_M(10)>;
+
+		int1-gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
+		int2-gpios = <&gpioa 10 GPIO_ACTIVE_HIGH>;
+	};
+
+	ms5611: ms5611@1{
+		compatible = "launch,ms5611";
+		reg = <1>;
+		status = "okay";
+		spi-max-frequency = <DT_FREQ_M(20)>;
+	};
+
+};
