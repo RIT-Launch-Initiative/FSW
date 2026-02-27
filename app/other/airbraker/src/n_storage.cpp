@@ -137,6 +137,3 @@ extern "C" int storage_init() {
     handleBootcount();
     return 0;
 }
-
-// read the first block of each partition and check if they have been filled in
-int find_unused_partition() { return 0; }
