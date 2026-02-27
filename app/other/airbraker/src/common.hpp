@@ -41,3 +41,17 @@ struct Packet {
 };
 
 static_assert(sizeof(Packet) == 64, "Check size of packet");
+
+
+/**
+ * Cancel flight from anywhere at anytime. 
+ * Will stop the main mission to let you test or dump data
+ * thread safe and cool
+ */
+void CancelFlight();
+
+/**
+ * Check if the flight has been cancelled
+ * @return true if the flight has been cancelled. False otherwise
+ */
+bool IsFlightCancelled();

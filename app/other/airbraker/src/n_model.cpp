@@ -2,11 +2,11 @@
 
 #include "math/matrix.hpp"
 #include "n_autocoder_types.h"
-#include "n_model.hpp"
 
 #include <cmath>
 
 namespace NModel {
+const char *GetMatlabLUTName() { return "AUTOGEN-FROM-MATLAB"; }
 
 using StateTransitionT = Matrix<4, 4>;
 
@@ -71,6 +71,6 @@ float AltitudeMetersFromPressureKPa(float pressure_kpa) {
 void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro) {}
 int GetOrientation() { return 0; }
 bool gyroOutOfBounds() { return false; }
-bool EverWentOutOfBounds() { return everWentOutOfBounds;}
+bool EverWentOutOfBounds() { return everWentOutOfBounds; }
 
 } // namespace NModel

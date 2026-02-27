@@ -2,10 +2,12 @@
 #include "common.hpp"
 
 namespace NModel {
+// Return static string built into LUT definition from matlab
+const char *GetMatlabLUTName();
 
 float AltitudeMetersFromPressureKPa(float kPa);
 
-void FeedKalman(uint64_t usSinceBoot, float verticalAccelerationMS2, float altitudeMeters);
+void FeedKalman(uint64_t usSinceBoot, float altitudeMeters, float verticalAccelerationMS2);
 KalmanState LastKalmanState();
 
 struct GyroState {

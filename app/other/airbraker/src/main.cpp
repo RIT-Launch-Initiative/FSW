@@ -3,11 +3,12 @@
 #include "n_preboost.hpp"
 #include "n_sensing.hpp"
 #include "n_storage.hpp"
-#include "servo.h"
+#include "servo.hpp"
 
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/atomic.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
@@ -20,6 +21,12 @@ uint32_t packet_timestamp() {
     int64_t ms = k_uptime_get();
     return (uint32_t) ms;
 }
+
+// helper to return from main early if the main mission is cancelled via shell
+#define RETURN0_IF_CANCELLED                                                                                           \
+    if (IsFlightCancelled()) {                                                                                         \
+        return 0;                                                                                                      \
+    }
 
 int main() {
     NSensing::InitSensors();
@@ -47,6 +54,7 @@ int main() {
     DisableServo();
 
     while (!NBoost::IsDetected()) {
+        RETURN0_IF_CANCELLED;
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
 
@@ -61,6 +69,7 @@ int main() {
         NPreBoost::SubmitPreBoostPacket(packet);
         k_timer_status_sync(&measurement_timer);
     }
+    RETURN0_IF_CANCELLED;
     LOG_INF("Boost Detected");
 
     // behind schedule bc of boost detect lag
@@ -73,6 +82,7 @@ int main() {
 
     // normal flight time
     for (uint32_t i = 0; i < NUM_FLIGHT_PACKETS; i++) {
+        RETURN0_IF_CANCELLED;
         packet.timestamp = packet_timestamp();
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
@@ -95,4 +105,14 @@ int main() {
         k_timer_status_sync(&measurement_timer);
     }
     LOG_INF("Flight over");
+    DisableServo();
 }
+
+static atomic_t flightCancelled = ATOMIC_INIT(0);
+void CancelFlight() {
+    atomic_t prev = atomic_set(&flightCancelled, ATOMIC_INIT(1));
+    if (prev != ATOMIC_INIT(1)) {
+        LOG_INF("Cancelled flight");
+    }
+}
+bool IsFlightCancelled() { return atomic_get(&flightCancelled) == 1; }
