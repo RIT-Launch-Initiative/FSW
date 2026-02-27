@@ -7,7 +7,6 @@
 
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
-#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/atomic.h>
 
@@ -24,7 +23,7 @@ uint32_t packet_timestamp() {
 }
 
 // helper to return from main early if the main mission is cancelled via shell
-#define RETURN0_IF_CANCELLED                                                                                         \
+#define RETURN0_IF_CANCELLED                                                                                           \
     if (IsFlightCancelled()) {                                                                                         \
         return 0;                                                                                                      \
     }
@@ -106,16 +105,14 @@ int main() {
         k_timer_status_sync(&measurement_timer);
     }
     LOG_INF("Flight over");
+    DisableServo();
 }
-
 
 atomic_t flightCancelled = ATOMIC_INIT(0);
 void CancelFlight() {
     atomic_t prev = atomic_set(&flightCancelled, ATOMIC_INIT(1));
-    if (prev != ATOMIC_INIT(1)){
+    if (prev != ATOMIC_INIT(1)) {
         LOG_INF("Cancelled flight");
     }
 }
-bool IsFlightCancelled() {
-    return atomic_get(&flightCancelled) == 1; 
-}
+bool IsFlightCancelled() { return atomic_get(&flightCancelled) == 1; }
