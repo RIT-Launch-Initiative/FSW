@@ -37,8 +37,6 @@ GyroAxes zeroAxes = {0};
 CMovingAverage<GyroAxes, NUM_SAMPLES_FOR_GYRO_BIAS> gyroBiasAverager{zeroAxes};
 CCircularBuffer<Packet, NUM_STORED_PREBOOST_PACKETS> preboostPackets{zeroPacket};
 float groundLevelPressure = 0;
-
-float groundLevelPressure = 0; // pressure reading at our most current idea of before launch
 float groundLevelASL = 0;      // altitude from pressure reading at our most current idea of before launch
 
 void SubmitPreBoostPacket(const Packet &packet) {
