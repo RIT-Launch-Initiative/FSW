@@ -24,7 +24,7 @@ const struct device* flashDevice = DEVICE_DT_GET(DT_GPARENT(FLIGHT_PARTITION));
 // Smallest erasable size
 #define SECTOR_SIZE 4096
 // Largest erasable size (w/o erasing entire chip)
-#define BIG_SECTOR_SIZE (64*1024)
+#define BIG_SECTOR_SIZE (64 * 1024)
 
 constexpr off_t BOOTCOUNT_PARTITION_OFFSET = DT_REG_ADDR(BOOTCOUNT_PARTITION);
 constexpr off_t PARAM_PARTITION_OFFSET = DT_REG_ADDR(PARAM_PARTITION);
@@ -41,12 +41,10 @@ static_assert(PARAM_PARTITION_SIZE == SECTOR_SIZE && IS_ALIGNED(PARAM_PARTITION_
 static_assert(IS_ALIGNED(FLIGHT_PARTITION_SIZE, BIG_SECTOR_SIZE),
               "Invalid place parameter partition. Needs 64KB Alignment");
 
-
 static_assert(NUM_FLIGHT_PACKETS * sizeof(Packet) < FLIGHT_PARTITION_SIZE);
 static_assert(FLIGHT_PARTITION_SIZE % sizeof(Packet) == 0, "Can't write across page boundaries (currently)");
 
 static uint32_t thisBootcount = 0;
-
 
 struct BootcountPartitionData {
     static constexpr uint8_t MAGIC1[4] = {'A', 'I', 'R', 'B'};
@@ -137,3 +135,7 @@ extern "C" int storage_init() {
     handleBootcount();
     return 0;
 }
+
+namespace NStorage {
+uint32_t GetBootcount() { return thisBootcount; }
+} // namespace Storage

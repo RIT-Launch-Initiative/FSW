@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 /* 
  *  Call once to initialize the storage subsystem
  *  Intended for use in SYS_INIT
@@ -20,4 +21,8 @@ enum StorageCommand {
     ErasePartitionD,
 
 };
+
+uint32_t GetBootcount();
+
+
 }
