@@ -12,7 +12,7 @@ LOG_MODULE_REGISTER(storage);
 #define BOOTCOUNT_PARTITION DT_NODE_BY_FIXED_PARTITION_LABEL(bootcount_storage)
 // storage for singly-stored parameters such as gyro bias and ground level pressure
 #define PARAM_PARTITION DT_NODE_BY_FIXED_PARTITION_LABEL(parameter_storage)
-// full of Packets
+// full of Packets (first N are preboost packets and then flight packets. sorted by timestamp)
 #define FLIGHT_PARTITION DT_NODE_BY_FIXED_PARTITION_LABEL(flight_storage)
 
 #ifdef CONFIG_BOARD_NATIVE_SIM
@@ -21,18 +21,32 @@ const struct device* flashDevice = DEVICE_DT_GET_ONE(zephyr_sim_flash);
 const struct device* flashDevice = DEVICE_DT_GET(DT_GPARENT(FLIGHT_PARTITION));
 #endif
 
+// Smallest erasable size
 #define SECTOR_SIZE 4096
+// Largest erasable size (w/o erasing entire chip)
+#define BIG_SECTOR_SIZE (64*1024)
 
-constexpr off_t bootcount_offset = DT_REG_ADDR(BOOTCOUNT_PARTITION);
-constexpr off_t param_offset = DT_REG_ADDR(PARAM_PARTITION);
-constexpr off_t flight_offset = DT_REG_ADDR(FLIGHT_PARTITION);
+constexpr off_t BOOTCOUNT_PARTITION_OFFSET = DT_REG_ADDR(BOOTCOUNT_PARTITION);
+constexpr off_t PARAM_PARTITION_OFFSET = DT_REG_ADDR(PARAM_PARTITION);
+constexpr off_t FLIGHT_PARTITION_OFFSET = DT_REG_ADDR(FLIGHT_PARTITION);
 
-constexpr off_t bootcount_size = DT_REG_SIZE(BOOTCOUNT_PARTITION);
-constexpr off_t param_size = DT_REG_SIZE(PARAM_PARTITION);
-constexpr off_t flight_size = DT_REG_SIZE(FLIGHT_PARTITION);
+constexpr off_t BOOTCOUNT_PARTITION_SIZE = DT_REG_SIZE(BOOTCOUNT_PARTITION);
+constexpr off_t PARAM_PARTITION_SIZE = DT_REG_SIZE(PARAM_PARTITION);
+constexpr off_t FLIGHT_PARTITION_SIZE = DT_REG_SIZE(FLIGHT_PARTITION);
 
-static_assert(NUM_FLIGHT_PACKETS * sizeof(Packet) < flight_size);
-static_assert(flight_size % sizeof(Packet) == 0, "Can't write across page boundaries (currently)");
+static_assert(BOOTCOUNT_PARTITION_SIZE >= 2 * SECTOR_SIZE && IS_ALIGNED(BOOTCOUNT_PARTITION_OFFSET, SECTOR_SIZE),
+              "Invalid place or size for bootcount partition. Needs 4KB Alignment");
+static_assert(PARAM_PARTITION_SIZE == SECTOR_SIZE && IS_ALIGNED(PARAM_PARTITION_OFFSET, SECTOR_SIZE),
+              "Invalid place or size for parameter partition. Needs 4KB Alignment");
+static_assert(IS_ALIGNED(FLIGHT_PARTITION_SIZE, BIG_SECTOR_SIZE),
+              "Invalid place parameter partition. Needs 64KB Alignment");
+
+
+static_assert(NUM_FLIGHT_PACKETS * sizeof(Packet) < FLIGHT_PARTITION_SIZE);
+static_assert(FLIGHT_PARTITION_SIZE % sizeof(Packet) == 0, "Can't write across page boundaries (currently)");
+
+static uint32_t thisBootcount = 0;
+
 
 struct BootcountPartitionData {
     static constexpr uint8_t MAGIC1[4] = {'A', 'I', 'R', 'B'};
@@ -53,10 +67,10 @@ struct BootcountPartitionData {
     }
 };
 
-int handle_bootcount() {
+int handleBootcount() {
     // read bootcount sectors, calculate bootcount, writeback bootcount
-    constexpr off_t a_addr = bootcount_offset;
-    constexpr off_t b_addr = bootcount_offset + SECTOR_SIZE;
+    constexpr off_t a_addr = BOOTCOUNT_PARTITION_OFFSET;
+    constexpr off_t b_addr = BOOTCOUNT_PARTITION_OFFSET + SECTOR_SIZE;
     BootcountPartitionData a = {0};
     BootcountPartitionData b = {0};
     int aret = flash_read(flashDevice, a_addr, &a, sizeof(a));
@@ -115,11 +129,12 @@ int handle_bootcount() {
             LOG_ERR("Failed to write partition B (%d). Bootcount may be corrupted", ret);
         }
     }
-    LOG_INF("Bootcount %d", lastBootcount + 1);
+    thisBootcount = lastBootcount + 1;
+    LOG_INF("Bootcount %d", thisBootcount);
     return 0;
 }
 extern "C" int storage_init() {
-    handle_bootcount();
+    handleBootcount();
     return 0;
 }
 
