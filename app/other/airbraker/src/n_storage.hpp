@@ -14,12 +14,8 @@ enum StorageCommand {
     // mark that main is done modifying preflight data (flight has begun). storage handler can begin accessing it with the assumption that it doesn't change
     PreflightDataDone,
 
-    // erase specified partitions
-    ErasePartitionA,
-    ErasePartitionB,
-    ErasePartitionC,
-    ErasePartitionD,
-
+    // erase flight data
+    EraseFlightPartition,
 };
 
 uint32_t GetBootcount();
