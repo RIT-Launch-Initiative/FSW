@@ -18,6 +18,12 @@ void SubmitPreBoostPacket(const Packet &packet);
 NTypes::GyroscopeData GetGyroBias();
 
 /**
+ * Return the altitude we found at ground level before launch
+ * @return meters over sea level
+ */
+float GetGroundLevelASL();
+
+/**
  * Get PreBoostPacket for later storage or just looking
  * @param[in] index of packet to get
  * @param[out] packetOut out parameter of packet that will be filled in
