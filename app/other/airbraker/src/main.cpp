@@ -80,14 +80,14 @@ int main() {
 
     LOG_INF("Gyro Bias Estimate: %f %f %f", (double) bias.X, (double) bias.Y, (double) bias.Z);
 
-    float groundLevelASL = NPreBoost::GetGroundLevelASL();
+    float groundLevelASLMeters = NPreBoost::GetGroundLevelASL();
     // normal flight time
     for (uint32_t i = 0; i < NUM_FLIGHT_PACKETS; i++) {
         RETURN0_IF_CANCELLED;
         packet.timestamp = packet_timestamp();
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-        float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASL;
+        float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
 
         NModel::FeedGyro(packet.timestamp, packet.gyro);
 
