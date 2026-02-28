@@ -69,7 +69,6 @@ int main() {
         NPreBoost::SubmitPreBoostPacket(packet);
         k_timer_status_sync(&measurement_timer);
     }
-    
     RETURN0_IF_CANCELLED;
     LOG_INF("Boost Detected");
 
