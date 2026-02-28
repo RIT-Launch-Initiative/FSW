@@ -129,6 +129,7 @@
 &timers2{
 	// for Servo 1
 	// STM-GPIO-A3, Backplane-GPIO-5, 30-pin-Connector-28
+	st,prescaler = <1000>;
 	pwm2: pwm {
 		status = "okay";
 		pinctrl-0 = <&tim2_ch4_pa3>;
@@ -139,6 +140,7 @@
 &timers3{
 	// for Servo 2/Buzzer tone generation
 	// STM-GPIO-B1, Backplane-GPIO-7, 30-pin-Connector-30
+	st,prescaler = <1000>;
 	pwm3: pwm {
 		status = "okay";
 		pinctrl-0 = <&tim3_ch4_pb1>;
@@ -169,8 +171,8 @@
 	clocks = <&pll>;
 	clock-frequency = <DT_FREQ_M(90)>;
 	ahb-prescaler = <1>;
-	apb1-prescaler = <16>;
-	apb2-prescaler = <2>;
+	apb1-prescaler = <2>;
+	apb2-prescaler = <1>;
 };
 
 &uart5 {

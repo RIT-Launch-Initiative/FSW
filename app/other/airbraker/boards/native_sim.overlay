@@ -64,34 +64,24 @@
 		compatible = "soc-nv-flash";
 		erase-block-size = <4096>;
 		write-block-size = <1>;
-		reg = <0x00000000 DT_SIZE_M(129)>; // builtin stuff + external flash simulation
+		reg = <0x00000000 DT_SIZE_M(17)>; // builtin stuff + external flash simulation
 
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			boot_partition: partition@0 {
-				label = "mcuboot";
-				reg = <0x00000000 0x0000C000>;
+			bootcount_storage@10000{
+				reg = <0x10000 DT_SIZE_K(8)>; // two pages
+				label = "bootcount_storage";
 			};
-			slot0_partition: partition@c000 {
-				label = "image-0";
-				reg = <0x0000C000 0x00069000>;
+			parameter_storage@12000{
+				reg = <0x12000 DT_SIZE_K(4)>; // 1 page
+				label = "parameter_storage";
 			};
-			slot1_partition: partition@75000 {
-				label = "image-1";
-				reg = <0x00075000 0x00069000>;
-			};
-			scratch_partition: partition@de000 {
-				label = "image-scratch";
-				reg = <0x000de000 0x0001e000>;
-			};
-
-
-			fast_partition: fastpartition@100000 {
-				label = "superfast-storage";
-				reg = <0x100000 DT_SIZE_M(128)>;
+			flight_storage@20000{
+				reg = <0x20000 DT_SIZE_M(2)>; 
+				label = "flight_storage";
 			};
 		};
 	};

@@ -1,5 +1,7 @@
 #include "n_preboost.hpp"
 
+#include "n_model.hpp"
+
 #include <f_core/utils/linear_fit.hpp>
 namespace NPreBoost {
 
@@ -35,6 +37,7 @@ GyroAxes zeroAxes = {0};
 CMovingAverage<GyroAxes, NUM_SAMPLES_FOR_GYRO_BIAS> gyroBiasAverager{zeroAxes};
 CCircularBuffer<Packet, NUM_STORED_PREBOOST_PACKETS> preboostPackets{zeroPacket};
 float groundLevelPressure = 0;
+float groundLevelASLMeters = 0;      // altitude from pressure reading at our most current idea of before launch
 
 void SubmitPreBoostPacket(const Packet &packet) {
     // newest sample for gyro bias
@@ -50,6 +53,8 @@ void SubmitPreBoostPacket(const Packet &packet) {
 }
 
 NTypes::GyroscopeData GetGyroBias() { return gyroBiasAverager.Avg().internal; }
+
+float GetGroundLevelASL() { return groundLevelASLMeters; }
 
 void GetPreBoostPacket(size_t index, Packet &packetOut) { packetOut = preboostPackets[index]; }
 

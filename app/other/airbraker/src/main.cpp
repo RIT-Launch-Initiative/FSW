@@ -47,8 +47,8 @@ int main() {
 
     NBoost::FeedDetector(packet.accelRaw);
 
-    // not as real as it should be. in reality this should be averaged over startup time
-    float offset = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw);
+    // submit initial preboost packet (will almost certainly be overwritten but we want to get everything going before feeding the filter)
+    NPreBoost::SubmitPreBoostPacket(packet);
 
     // servo not allowed until after under mach. disable to save power
     DisableServo();
@@ -60,7 +60,7 @@ int main() {
 
         NBoost::FeedDetector(packet.accelRaw);
 
-        float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - offset;
+        float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - NPreBoost::GetGroundLevelASL();
         NModel::FeedKalman(packet.timestamp, altMeters, packet.accelRaw);
 
         packet.kalmanState = NModel::LastKalmanState();
@@ -80,13 +80,14 @@ int main() {
 
     LOG_INF("Gyro Bias Estimate: %f %f %f", (double) bias.X, (double) bias.Y, (double) bias.Z);
 
+    float groundLevelASLMeters = NPreBoost::GetGroundLevelASL();
     // normal flight time
     for (uint32_t i = 0; i < NUM_FLIGHT_PACKETS; i++) {
         RETURN0_IF_CANCELLED;
         packet.timestamp = packet_timestamp();
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-        float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - offset;
+        float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
 
         NModel::FeedGyro(packet.timestamp, packet.gyro);
 
