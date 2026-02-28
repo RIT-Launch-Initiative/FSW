@@ -24,10 +24,26 @@ NTypes::GyroscopeData GetGyroBias();
 float GetGroundLevelASL();
 
 /**
+ * Return the pressure in kPa we found at ground level before launch
+ * @return pressure value in kPa
+ */
+float GetGroundLevelPressure();
+
+/**
  * Get PreBoostPacket for later storage or just looking
  * @param[in] index of packet to get
  * @param[out] packetOut out parameter of packet that will be filled in
  */
 void GetPreBoostPacket(size_t index, Packet &packetOut);
+
+/**
+ * Get a pointer to a preboost packet
+ * @param index index of preboost packet (0 is oldest)
+ * @return pointer into circular buffer. 
+ * Data at pointer will be constantly overwritten while new data is fed in. 
+ * Don't expect the data at the end of this pointer to hold constant data until you stop giving preboost packets
+ * Don't do anything thread unsafe with this
+ */
+Packet *GetPreBoostPacketPtr(size_t index);
 
 } // namespace NPreBoost

@@ -30,6 +30,15 @@ uint32_t packet_timestamp() {
 
 int main() {
     NSensing::InitSensors();
+
+    if (NStorage::HasStoredFlight()) {
+        CancelFlight();
+        LOG_WRN("NOT FLYING");
+        LOG_WRN("NOT FLYING");
+        LOG_WRN("NOT FLYING");
+        return 0;
+    }
+
     k_timer_start(&measurement_timer, K_MSEC(10), K_MSEC(10));
 
     Packet packet{
@@ -42,6 +51,9 @@ int main() {
         .orientationQuat = {1, 0, 0, 0},
         .effort = 0,
     };
+
+    Parameters params{};
+    params.bootcount = NStorage::GetBootcount();
 
     NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
 
@@ -75,12 +87,17 @@ int main() {
     // behind schedule bc of boost detect lag
     uint32_t liftoffTimeMs = packet.timestamp - (NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED * 10);
     NTypes::GyroscopeData bias = NPreBoost::GetGyroBias();
+    float groundLevelASLMeters = NPreBoost::GetGroundLevelASL();
 
+    params.timestampOfBoost = packet.timestamp;
+    params.gyroBias = bias;
+    params.preBoostPressure = NPreBoost::GetGroundLevelPressure();
+    NStorage::WriteParameters(&params);
     EnableServo();
 
     LOG_INF("Gyro Bias Estimate: %f %f %f", (double) bias.X, (double) bias.Y, (double) bias.Z);
+    uint32_t preboostWriteHead = 0;
 
-    float groundLevelASLMeters = NPreBoost::GetGroundLevelASL();
     // normal flight time
     for (uint32_t i = 0; i < NUM_FLIGHT_PACKETS; i++) {
         RETURN0_IF_CANCELLED;
@@ -103,6 +120,15 @@ int main() {
                 SetServoEffort(packet.effort);
             }
         }
+
+        NStorage::WriteFlightPacket(i, &packet);
+
+        // Write preboost if needed
+        if (preboostWriteHead < NUM_STORED_PREBOOST_PACKETS){
+            NStorage::WritePreboostPacket(preboostWriteHead, NPreBoost::GetPreBoostPacketPtr(preboostWriteHead));
+            preboostWriteHead++;
+        }
+
         k_timer_status_sync(&measurement_timer);
     }
     LOG_INF("Flight over");

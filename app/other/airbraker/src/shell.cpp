@@ -1,10 +1,14 @@
 #include "common.hpp"
 #include "n_model.hpp"
+#include "n_storage.hpp"
 #include "servo.hpp"
 
 #include <cmath>
 #include <numbers>
 #include <zephyr/shell/shell.h>
+
+#define PARSER_HEADER_MAGIC_START "----++++//[[("
+#define PARSER_HEADER_MAGIC_END   ")]]\\\\++++----"
 
 #define BAILOUT_IF_NOT_CANCELLED(shell)                                                                                \
     if (!IsFlightCancelled()) {                                                                                        \
@@ -40,7 +44,96 @@ static int cmd_describe_params(const struct shell *shell, size_t /*argc*/, char 
     shell_print(shell, "Threshold:          %.2f m/s² (%.2f g)", (double) BOOST_DETECT_THRESHOLD_MS2,
                 (double) (BOOST_DETECT_THRESHOLD_MS2) / 9.8);
     shell_print(shell, "Count:              %u samples", NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED);
+    return 0;
+}
 
+static int cmd_read_params64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    shell_print(shell, PARSER_HEADER_MAGIC_START " params start " PARSER_HEADER_MAGIC_END);
+    shell_print(shell, PARSER_HEADER_MAGIC_START " params end " PARSER_HEADER_MAGIC_END);
+    return 0;
+}
+
+static int cmd_read_data64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    shell_print(shell, PARSER_HEADER_MAGIC_START " data start " PARSER_HEADER_MAGIC_END);
+    shell_print(shell, PARSER_HEADER_MAGIC_START " data end " PARSER_HEADER_MAGIC_END);
+    return 0;
+}
+
+static int cmd_read_data(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    shell_error(shell, "not implemented yet");
+    return 0;
+}
+
+
+static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    Parameters p{};
+    int ret = NStorage::ReadStoredParameters(&p);
+    if (ret < -1) {
+        shell_error(shell, "Failed to read stored parameters");
+        return -1;
+    }
+    if (ret == -1) {
+        shell_error(shell, "No magic. Either nothing written or corrupted. Use flash shell to check");
+        return -1;
+    }
+    shell_print(shell, "Readings ======================================");
+    shell_print(shell, "Timestamp of Boost:       %d (ms)", p.timestampOfBoost);
+    shell_print(shell, "Preboost Pressure:        %f (kPa)", (double) p.preBoostPressure);
+    shell_print(shell, "Gyro Bias X:              %f (dps)", (double) p.gyroBias.X);
+    shell_print(shell, "Gyro Bias Y:              %f (dps)", (double) p.gyroBias.Y);
+    shell_print(shell, "Gyro Bias Z:              %f (dps)", (double) p.gyroBias.Z);
+
+    shell_print(shell, "Constants =====================================");
+    shell_print(shell, "Lockout Time:             %d (ms)", p.lockoutMs);
+    shell_print(shell, "Flight Length:            %d (pkts)", p.numFlightPackets);
+    shell_print(shell, "Preboost Length:          %d (pkts)", p.numPreboostPackets);
+    shell_print(shell, "Gyro Bias Length:         %d (samples)", p.numSamplesForGyroBias);
+    shell_print(shell, "ControllerHash:           0x%08x", p.controllerHash);
+
+    return 0;
+}
+
+static int cmd_bootcount(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    shell_print(shell, "Bootcount: %u", NStorage::GetBootcount());
+    return 0;
+}
+static int cmd_erase(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    size_t numRead = 0;
+    uint8_t buf;
+    bool doErase = false;
+
+    /* dummy read to clear any pending input */
+    (void) shell->iface->api->read(shell->iface, &buf, 1, &numRead);
+
+    shell_error(shell, "Erasing Flight Partition. Press y to continue. Or anything else to cancel. Timeout (2s)");
+    int64_t start = k_uptime_get();
+    while (k_uptime_get() < start + 2000) {
+        (void) shell->iface->api->read(shell->iface, &buf, 1, &numRead);
+        if (numRead > 0) {
+            doErase = (buf == 'y');
+            break;
+        }
+        k_msleep(50);
+    }
+    if (!doErase) {
+        shell_warn(shell, "Erase Cancelled");
+        return 0;
+    }
+    shell_warn(shell, "Erasing Parameters");
+    NStorage::EraseParameters();
+
+    shell_warn(shell, "Erasing Data");
+    // Note: This is a little nasty but if a lambda captures it can't be a function pointer
+    // By keeping sh and cb in this small scope, its impossible to use sh without initializing it
+    static const struct shell *sh = shell;
+    auto cb = [](uint32_t i, uint32_t num) { shell_fprintf_normal(sh, "\rErased %d / %d", (i + 1), num); };
+    NStorage::EraseData(cb);
+    shell_print(shell, ""); // newline at end
     return 0;
 }
 
@@ -167,7 +260,13 @@ static int cmd_servo_stop(const struct shell *shell, size_t /*argc*/, char ** /*
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(subcmds, SHELL_CMD(nogo, NULL, "Cancel main mission", cmd_nogo),
-                               SHELL_CMD(info, NULL, "Program Information", cmd_describe_params), SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(info, NULL, "Program Information", cmd_describe_params),
+                               SHELL_CMD(erase, NULL, "Erase Flight Data (DANGER DANGER DANGER)", cmd_erase),
+                               SHELL_CMD(read_params, NULL, "Read Params Block for humans", cmd_read_params),
+                               SHELL_CMD(read_params64, NULL, "Read Params Block for robots", cmd_read_params64),
+                               SHELL_CMD(read_data, NULL, "Read single data packet for humans who are debugging", cmd_read_data),
+                               SHELL_CMD(read_data64, NULL, "Read all Data for robots", cmd_read_data64),
+                               SHELL_CMD(bootcount, NULL, "Bootcount", cmd_bootcount), SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(airbrake, &subcmds, "Airbrake Control Commands", NULL);
 
