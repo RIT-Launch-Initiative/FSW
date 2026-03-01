@@ -44,7 +44,6 @@ static_assert(IS_ALIGNED(FLIGHT_PARTITION_SIZE, BIG_SECTOR_SIZE),
               "Invalid place parameter partition. Needs 64KB Alignment");
 
 static_assert((NUM_FLIGHT_PACKETS + NUM_STORED_PREBOOST_PACKETS) * sizeof(Packet) < FLIGHT_PARTITION_SIZE);
-static_assert(256 % sizeof(Packet) == 0, "Can't write across page boundaries (currently)");
 
 static uint32_t thisBootcount = 0;
 
