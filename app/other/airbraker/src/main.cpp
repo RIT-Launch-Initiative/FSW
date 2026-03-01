@@ -67,6 +67,7 @@ int main() {
 
     while (!NBoost::IsDetected()) {
         RETURN0_IF_CANCELLED;
+        k_timer_status_sync(&measurement_timer);
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
 
@@ -79,7 +80,6 @@ int main() {
         packet.effort = 0; // no fun until after burnout
 
         NPreBoost::SubmitPreBoostPacket(packet);
-        k_timer_status_sync(&measurement_timer);
     }
     RETURN0_IF_CANCELLED;
     LOG_INF("Boost Detected");
@@ -101,6 +101,8 @@ int main() {
     // normal flight time
     for (uint32_t i = 0; i < NUM_FLIGHT_PACKETS; i++) {
         RETURN0_IF_CANCELLED;
+        k_timer_status_sync(&measurement_timer);
+
         packet.timestamp = packet_timestamp();
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
@@ -124,12 +126,10 @@ int main() {
         NStorage::WriteFlightPacket(i, &packet);
 
         // Write preboost if needed
-        if (preboostWriteHead < NUM_STORED_PREBOOST_PACKETS){
+        if (preboostWriteHead < NUM_STORED_PREBOOST_PACKETS) {
             NStorage::WritePreboostPacket(preboostWriteHead, NPreBoost::GetPreBoostPacketPtr(preboostWriteHead));
             preboostWriteHead++;
         }
-
-        k_timer_status_sync(&measurement_timer);
     }
     LOG_INF("Flight over");
     DisableServo();
