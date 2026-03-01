@@ -36,7 +36,7 @@ int ReadStoredParameters(Parameters *params);
 int WritePreboostPacket(uint32_t index, Packet *packet);
 
 int ReadStoredSinglePacket(size_t index, Packet *packet);
-int WriteFlightPacket(uint32_t index, Packet *params);
+int WriteFlightPacket(uint32_t index, Packet *packet);
 
 /**
  * Return address in flash of the parameter partition

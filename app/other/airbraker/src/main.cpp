@@ -46,8 +46,8 @@ int main() {
         .tempRaw = 0,
         .pressureRaw = 0,
         .accelRaw = 0,
-        .kalmanState = {0},
         .gyro = {0},
+        .kalmanState = {0},
         .orientationQuat = {1, 0, 0, 0},
         .effort = 0,
     };

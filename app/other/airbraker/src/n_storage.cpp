@@ -220,9 +220,9 @@ int WriteFlightPacket(uint32_t index, Packet *packet) {
 
 int ReadStoredSinglePacket(size_t index, Packet *packet) {
     uint32_t addr = FLIGHT_PARTITION_OFFSET + (index * sizeof(Packet));
-    int ret = flash_write(flashDevice, addr, packet, sizeof(Packet));
+    int ret = flash_read(flashDevice, addr, packet, sizeof(Packet));
     if (ret < 0) {
-        LOG_ERR("Failed to write preboost packet %u to flash: %d", index, ret);
+        LOG_ERR("Failed to read packet %u from flash: %d", index, ret);
         return ret;
     }
 

@@ -36,10 +36,10 @@ struct Parameters {
     NTypes::GyroscopeData gyroBias = {0};
     uint32_t bootcount = {0};
     // constants so you don't accidentally misinterpret the data thats there if you've flashed since
-    uint32_t lockoutMs = {0};
-    uint32_t numFlightPackets = {0};
-    uint32_t numPreboostPackets = {0};
-    uint32_t numSamplesForGyroBias = {0};
+    uint32_t lockoutMs = LOCKOUT_MS;
+    uint32_t numFlightPackets = NUM_FLIGHT_PACKETS;
+    uint32_t numPreboostPackets = NUM_STORED_PREBOOST_PACKETS;
+    uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
     uint32_t controllerHash = {0}; // TODO: hash of CSV of LUT that ran this flight
 };
 
@@ -48,10 +48,10 @@ struct Packet {
     float tempRaw;
     float pressureRaw;
     float accelRaw;
+    NTypes::GyroscopeData gyro;
 
     KalmanState kalmanState;
 
-    NTypes::GyroscopeData gyro;
     float orientationQuat[4];
     float effort;
 };
