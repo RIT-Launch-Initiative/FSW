@@ -6,6 +6,8 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/flash.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
+
 LOG_MODULE_REGISTER(storage);
 
 // 2 pages so we can flip flop and always have one valid page
@@ -16,9 +18,9 @@ LOG_MODULE_REGISTER(storage);
 #define FLIGHT_PARTITION DT_NODE_BY_FIXED_PARTITION_LABEL(flight_storage)
 
 #ifdef CONFIG_BOARD_NATIVE_SIM
-const struct device* flashDevice = DEVICE_DT_GET_ONE(zephyr_sim_flash);
+const struct device *flashDevice = DEVICE_DT_GET_ONE(zephyr_sim_flash);
 #else
-const struct device* flashDevice = DEVICE_DT_GET(DT_GPARENT(FLIGHT_PARTITION));
+const struct device *flashDevice = DEVICE_DT_GET(DT_GPARENT(FLIGHT_PARTITION));
 #endif
 
 // Smallest erasable size
@@ -26,13 +28,13 @@ const struct device* flashDevice = DEVICE_DT_GET(DT_GPARENT(FLIGHT_PARTITION));
 // Largest erasable size (w/o erasing entire chip)
 #define BIG_SECTOR_SIZE (64 * 1024)
 
-constexpr off_t BOOTCOUNT_PARTITION_OFFSET = DT_REG_ADDR(BOOTCOUNT_PARTITION);
-constexpr off_t PARAM_PARTITION_OFFSET = DT_REG_ADDR(PARAM_PARTITION);
-constexpr off_t FLIGHT_PARTITION_OFFSET = DT_REG_ADDR(FLIGHT_PARTITION);
+constexpr uint32_t BOOTCOUNT_PARTITION_OFFSET = DT_REG_ADDR(BOOTCOUNT_PARTITION);
+constexpr uint32_t PARAM_PARTITION_OFFSET = DT_REG_ADDR(PARAM_PARTITION);
+constexpr uint32_t FLIGHT_PARTITION_OFFSET = DT_REG_ADDR(FLIGHT_PARTITION);
 
-constexpr off_t BOOTCOUNT_PARTITION_SIZE = DT_REG_SIZE(BOOTCOUNT_PARTITION);
-constexpr off_t PARAM_PARTITION_SIZE = DT_REG_SIZE(PARAM_PARTITION);
-constexpr off_t FLIGHT_PARTITION_SIZE = DT_REG_SIZE(FLIGHT_PARTITION);
+constexpr uint32_t BOOTCOUNT_PARTITION_SIZE = DT_REG_SIZE(BOOTCOUNT_PARTITION);
+constexpr uint32_t PARAM_PARTITION_SIZE = DT_REG_SIZE(PARAM_PARTITION);
+constexpr uint32_t FLIGHT_PARTITION_SIZE = DT_REG_SIZE(FLIGHT_PARTITION);
 
 static_assert(BOOTCOUNT_PARTITION_SIZE >= 2 * SECTOR_SIZE && IS_ALIGNED(BOOTCOUNT_PARTITION_OFFSET, SECTOR_SIZE),
               "Invalid place or size for bootcount partition. Needs 4KB Alignment");
@@ -41,8 +43,7 @@ static_assert(PARAM_PARTITION_SIZE == SECTOR_SIZE && IS_ALIGNED(PARAM_PARTITION_
 static_assert(IS_ALIGNED(FLIGHT_PARTITION_SIZE, BIG_SECTOR_SIZE),
               "Invalid place parameter partition. Needs 64KB Alignment");
 
-static_assert(NUM_FLIGHT_PACKETS * sizeof(Packet) < FLIGHT_PARTITION_SIZE);
-static_assert(FLIGHT_PARTITION_SIZE % sizeof(Packet) == 0, "Can't write across page boundaries (currently)");
+static_assert((NUM_FLIGHT_PACKETS + NUM_STORED_PREBOOST_PACKETS) * sizeof(Packet) < FLIGHT_PARTITION_SIZE);
 
 static uint32_t thisBootcount = 0;
 
@@ -137,5 +138,102 @@ extern "C" int storage_init() {
 }
 
 namespace NStorage {
+
+void EraseParameters() {
+    int ret = flash_erase(flashDevice, PARAM_PARTITION_OFFSET, PARAM_PARTITION_OFFSET);
+    if (ret != 0) {
+        LOG_ERR("Failed to erase parameter partition (%d)", ret);
+    }
+}
+void EraseData(EraseProgressFn callback) {
+    constexpr uint32_t numSectors = FLIGHT_PARTITION_SIZE / BIG_SECTOR_SIZE;
+    for (uint32_t i = 0; i < numSectors; i++) {
+        uint32_t addr = FLIGHT_PARTITION_OFFSET + (i * BIG_SECTOR_SIZE);
+        int ret = flash_erase(flashDevice, addr, BIG_SECTOR_SIZE);
+        if (ret != 0) {
+            LOG_ERR("Failed to erase flight partition (%d)", ret);
+        } else {
+            callback(i, numSectors);
+        }
+    }
+}
+
+bool HasStoredFlight() {
+    uint32_t magic = 0;
+    int ret = flash_read(flashDevice, PARAM_PARTITION_OFFSET, &magic, sizeof(magic));
+    if (ret != 0) {
+        LOG_ERR("Couldnt read flash to check magic: %d", ret);
+    }
+    return magic == Parameters::MAGIC;
+}
+int ReadStoredParameters(Parameters *params) {
+    int ret = flash_read(flashDevice, PARAM_PARTITION_OFFSET, params, sizeof(Parameters));
+    if (ret < 0) {
+        LOG_ERR("Failed to read parameters: %d", ret);
+        return ret;
+    }
+    if (params->magic != Parameters::MAGIC) {
+        return -1;
+    }
+    return 0;
+}
+
+int WriteParameters(Parameters *params) {
+    int ret = flash_write(flashDevice, PARAM_PARTITION_OFFSET, params, sizeof(Parameters));
+    if (ret < 0) {
+        LOG_ERR("Failed to write parameters to flash: %d", ret);
+        return ret;
+    }
+    return 0;
+}
+
+int WritePreboostPacket(uint32_t index, Packet *packet) {
+    if (index > NUM_STORED_PREBOOST_PACKETS) {
+        LOG_WRN_ONCE("Tried to write too many preboost packets. Discarding");
+        return -1;
+    }
+    uint32_t addr = FLIGHT_PARTITION_OFFSET + (index * sizeof(Packet));
+    int ret = flash_write(flashDevice, addr, packet, sizeof(Packet));
+    if (ret < 0) {
+        LOG_ERR("Failed to write preboost packet %u to flash: %d", index, ret);
+        return ret;
+    }
+
+    return 0;
+}
+
+int WriteFlightPacket(uint32_t index, Packet *packet) {
+    if (index > NUM_FLIGHT_PACKETS) {
+        LOG_WRN_ONCE("Tried to write too many flight packets. Discarding");
+        return -1;
+    }
+
+    uint32_t addr = FLIGHT_PARTITION_OFFSET + ((NUM_STORED_PREBOOST_PACKETS + index) * sizeof(Packet));
+    int ret = flash_write(flashDevice, addr, packet, sizeof(Packet));
+    if (ret < 0) {
+        LOG_ERR("Failed to write preboost packet %u to flash: %d", index, ret);
+        return ret;
+    }
+    return 0;
+}
+
+int ReadStoredSinglePacket(size_t index, Packet *packet) {
+    uint32_t addr = FLIGHT_PARTITION_OFFSET + (index * sizeof(Packet));
+    int ret = flash_read(flashDevice, addr, packet, sizeof(Packet));
+    if (ret < 0) {
+        LOG_ERR("Failed to read packet %u from flash: %d", index, ret);
+        return ret;
+    }
+
+    return 0;
+}
+
 uint32_t GetBootcount() { return thisBootcount; }
-} // namespace Storage
+
+uint32_t GetParamPartitionAddress() { return PARAM_PARTITION_OFFSET; }
+uint32_t GetDataPartitionAddress() { return FLIGHT_PARTITION_OFFSET; }
+
+uint32_t GetParamPartitionSize() { return PARAM_PARTITION_SIZE; }
+uint32_t GetDataPartitionSize() { return FLIGHT_PARTITION_SIZE; }
+
+} // namespace NStorage

@@ -27,21 +27,36 @@ struct KalmanState {
     float estBias;
 };
 
+struct Parameters {
+    static constexpr uint32_t MAGIC = 2'435'220'000; // the number that louis told me
+    uint32_t magic = MAGIC;                          // if equal to MAGIC, a flight has happened
+    // measurments that need to be saved
+    uint32_t timestampOfBoost = {0};
+    float preBoostPressure = {0};
+    NTypes::GyroscopeData gyroBias = {0};
+    uint32_t bootcount = {0};
+    // constants so you don't accidentally misinterpret the data thats there if you've flashed since
+    uint32_t lockoutMs = LOCKOUT_MS;
+    uint32_t numFlightPackets = NUM_FLIGHT_PACKETS;
+    uint32_t numPreboostPackets = NUM_STORED_PREBOOST_PACKETS;
+    uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
+    uint32_t controllerHash = {0}; // TODO: hash of CSV of LUT that ran this flight
+};
+
 struct Packet {
     uint32_t timestamp;
     float tempRaw;
     float pressureRaw;
     float accelRaw;
+    NTypes::GyroscopeData gyro;
 
     KalmanState kalmanState;
 
-    NTypes::GyroscopeData gyro;
     float orientationQuat[4];
     float effort;
 };
 
 static_assert(sizeof(Packet) == 64, "Check size of packet");
-
 
 /**
  * Cancel flight from anywhere at anytime. 

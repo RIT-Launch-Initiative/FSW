@@ -1,16 +1,30 @@
 #include "common.hpp"
 #include "n_model.hpp"
+#include "n_storage.hpp"
 #include "servo.hpp"
 
 #include <cmath>
 #include <numbers>
 #include <zephyr/shell/shell.h>
 
+#define PARSER_HEADER_MAGIC_START "----++++//[[("
+#define PARSER_HEADER_MAGIC_END   ")]]\\\\++++----"
+
 #define BAILOUT_IF_NOT_CANCELLED(shell)                                                                                \
     if (!IsFlightCancelled()) {                                                                                        \
         shell_error(shell, "MUST CANCEL FLIGHT BEFORE EXECUTING THIS FUNCTION");                                       \
         return -1;                                                                                                     \
     }
+
+bool parse_long(const char *str, long *out) {
+    int *endptr = nullptr;
+    long val = shell_strtol(str, 10, endptr);
+    if (endptr != nullptr) {
+        return false;
+    }
+    *out = val;
+    return true;
+}
 
 static int cmd_nogo(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     if (IsFlightCancelled()) {
@@ -40,18 +54,153 @@ static int cmd_describe_params(const struct shell *shell, size_t /*argc*/, char 
     shell_print(shell, "Threshold:          %.2f m/s² (%.2f g)", (double) BOOST_DETECT_THRESHOLD_MS2,
                 (double) (BOOST_DETECT_THRESHOLD_MS2) / 9.8);
     shell_print(shell, "Count:              %u samples", NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED);
+    return 0;
+}
+
+static int cmd_read_params64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    shell_print(shell, PARSER_HEADER_MAGIC_START " params start " PARSER_HEADER_MAGIC_END);
+    shell_print(shell, PARSER_HEADER_MAGIC_START " params end " PARSER_HEADER_MAGIC_END);
+    return 0;
+}
+
+static int cmd_read_data64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    shell_print(shell, PARSER_HEADER_MAGIC_START " data start " PARSER_HEADER_MAGIC_END);
+    shell_print(shell, PARSER_HEADER_MAGIC_START " data end " PARSER_HEADER_MAGIC_END);
+    return 0;
+}
+
+static int cmd_read_data(const struct shell *shell, size_t argc, char **argv) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    if (argc != 2) {
+        shell_error(shell, "read_data packet_index");
+        return -1;
+    }
+    long index = 0;
+    bool parsed = parse_long(argv[1], &index);
+    if (!parsed) {
+        shell_error(shell, "Failed to parse packet index.");
+        return -1;
+    }
+
+    Parameters params{};
+    int ret = NStorage::ReadStoredParameters(&params);
+    if (ret < 0) {
+        shell_error(shell, "Failed to read stored parameters to verify data read (%d)");
+        return ret;
+    }
+    uint32_t totalPackets = params.numFlightPackets + params.numPreboostPackets;
+
+    if (index < 0 || (uint32_t) index > totalPackets) {
+        shell_error(shell, "index out of range. Max %u", (NUM_STORED_PREBOOST_PACKETS + NUM_FLIGHT_PACKETS));
+        return -1;
+    }
+
+    if ((size_t) index < params.numPreboostPackets) {
+        shell_print(shell, "Preboost Packet ======================");
+    } else {
+        shell_print(shell, "Flight Packet ========================");
+    }
+
+    Packet packet{};
+    ret = NStorage::ReadStoredSinglePacket(index, &packet);
+    if (ret < 0) {
+        shell_error(shell, "Failed to read single packet (%d)", ret);
+        return -1;
+    }
+
+    shell_print(shell, "Timestamp:           %d (ms)", packet.timestamp);
+    shell_print(shell, "Sensors ===========================");
+    shell_print(shell, "Temperature:         %f (C)", (double) packet.tempRaw);
+    shell_print(shell, "Pressure:            %f (kPa)", (double) packet.pressureRaw);
+    shell_print(shell, "Acceleration:        %f (m/s²)", (double) packet.accelRaw);
+    shell_print(shell, "Gyro X:              %f (dps)", (double) packet.gyro.X);
+    shell_print(shell, "Gyro Y:              %f (dps)", (double) packet.gyro.Y);
+    shell_print(shell, "Gyro Z:              %f (dps)", (double) packet.gyro.Z);
+    shell_print(shell, "Kalman State ===========================");
+    shell_print(shell, "Est. Altitude:       %f (m)", (double) packet.kalmanState.estAltitude);
+    shell_print(shell, "Est. Velocity:       %f (m/s)", (double) packet.kalmanState.estVelocity);
+    shell_print(shell, "Est. Acceleration:   %f (m/s²)", (double) packet.kalmanState.estAcceleration);
+    shell_print(shell, "Est. Bias:           %f (m/s²)", (double) packet.kalmanState.estBias);
+    shell_print(shell, "Orientation ============================");
+    shell_print(shell, "Quat A:              %f", (double) packet.orientationQuat[0]);
+    shell_print(shell, "Quat B:              %f", (double) packet.orientationQuat[1]);
+    shell_print(shell, "Quat C:              %f", (double) packet.orientationQuat[2]);
+    shell_print(shell, "Quat D:              %f", (double) packet.orientationQuat[3]);
+    shell_print(shell, "Output =================================");
+    shell_print(shell, "Effort:              %f", (double) packet.effort);
 
     return 0;
 }
 
-bool parse_long(const char *str, long *out) {
-    int *endptr = nullptr;
-    long val = shell_strtol(str, 10, endptr);
-    if (endptr != nullptr) {
-        return false;
+static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    Parameters p{};
+    int ret = NStorage::ReadStoredParameters(&p);
+    if (ret < -1) {
+        shell_error(shell, "Failed to read stored parameters");
+        return -1;
     }
-    *out = val;
-    return true;
+    if (ret == -1) {
+        shell_error(shell, "No magic. Either nothing written or corrupted. Use flash shell to check");
+        return -1;
+    }
+    shell_print(shell, "Readings ======================================");
+    shell_print(shell, "Timestamp of Boost:       %d (ms)", p.timestampOfBoost);
+    shell_print(shell, "Preboost Pressure:        %f (kPa)", (double) p.preBoostPressure);
+    shell_print(shell, "Gyro Bias X:              %f (dps)", (double) p.gyroBias.X);
+    shell_print(shell, "Gyro Bias Y:              %f (dps)", (double) p.gyroBias.Y);
+    shell_print(shell, "Gyro Bias Z:              %f (dps)", (double) p.gyroBias.Z);
+
+    shell_print(shell, "Constants =====================================");
+    shell_print(shell, "Lockout Time:             %d (ms)", p.lockoutMs);
+    shell_print(shell, "Flight Length:            %d (pkts)", p.numFlightPackets);
+    shell_print(shell, "Preboost Length:          %d (pkts)", p.numPreboostPackets);
+    shell_print(shell, "Gyro Bias Length:         %d (samples)", p.numSamplesForGyroBias);
+    shell_print(shell, "ControllerHash:           0x%08x", p.controllerHash);
+
+    return 0;
+}
+
+static int cmd_bootcount(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    shell_print(shell, "Bootcount: %u", NStorage::GetBootcount());
+    return 0;
+}
+static int cmd_erase(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    size_t numRead = 0;
+    uint8_t buf;
+    bool doErase = false;
+
+    /* dummy read to clear any pending input */
+    (void) shell->iface->api->read(shell->iface, &buf, 1, &numRead);
+
+    shell_error(shell, "Erasing Flight Partition. Press y to continue. Or anything else to cancel. Timeout (2s)");
+    int64_t start = k_uptime_get();
+    while (k_uptime_get() < start + 2000) {
+        (void) shell->iface->api->read(shell->iface, &buf, 1, &numRead);
+        if (numRead > 0) {
+            doErase = (buf == 'y');
+            break;
+        }
+        k_msleep(50);
+    }
+    if (!doErase) {
+        shell_warn(shell, "Erase Cancelled");
+        return 0;
+    }
+    shell_warn(shell, "Erasing Parameters");
+    NStorage::EraseParameters();
+
+    shell_warn(shell, "Erasing Data");
+    // Note: This is a little nasty but if a lambda captures it can't be a function pointer
+    // By keeping sh and cb in this small scope, its impossible to use sh without initializing it
+    static const struct shell *sh = shell;
+    auto cb = [](uint32_t i, uint32_t num) { shell_fprintf_normal(sh, "\rErased %d / %d", (i + 1), num); };
+    NStorage::EraseData(cb);
+    shell_print(shell, ""); // newline at end
+    return 0;
 }
 
 static int cmd_servo_step(const struct shell *shell, size_t argc, char **argv) {
@@ -167,7 +316,14 @@ static int cmd_servo_stop(const struct shell *shell, size_t /*argc*/, char ** /*
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(subcmds, SHELL_CMD(nogo, NULL, "Cancel main mission", cmd_nogo),
-                               SHELL_CMD(info, NULL, "Program Information", cmd_describe_params), SHELL_SUBCMD_SET_END);
+                               SHELL_CMD(info, NULL, "Program Information", cmd_describe_params),
+                               SHELL_CMD(erase, NULL, "Erase Flight Data (DANGER DANGER DANGER)", cmd_erase),
+                               SHELL_CMD(read_params, NULL, "Read Params Block for humans", cmd_read_params),
+                               SHELL_CMD(read_params64, NULL, "Read Params Block for robots", cmd_read_params64),
+                               SHELL_CMD(read_data, NULL, "Read single data packet for humans who are debugging",
+                                         cmd_read_data),
+                               SHELL_CMD(read_data64, NULL, "Read all Data for robots", cmd_read_data64),
+                               SHELL_CMD(bootcount, NULL, "Bootcount", cmd_bootcount), SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(airbrake, &subcmds, "Airbrake Control Commands", NULL);
 
