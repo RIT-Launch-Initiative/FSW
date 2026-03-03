@@ -2,8 +2,8 @@
 
 / {
 	chosen{
-		zephyr,console = &usart1;
-		zephyr,shell-uart = &usart1;
+		// zephyr,console = &usart1;
+		// zephyr,shell-uart = &usart1;
 	};
 	aliases {
 		mc = &fake_mc;
@@ -14,6 +14,10 @@
 	status = "okay";
 };
 
+&dma2{
+	status = "okay";
+};
+
 &arduino_spi {
 	status = "okay";
 	pinctrl-0 = < &spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
@@ -21,11 +25,17 @@
 	// cs-gpios = <&gpioa 4 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 	cs-gpios = <&gpiob 8 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 
+	// dmas = <&dma2 4 3 0x20440 0x03>,
+		//    <&dma2 3 3 0x20440 0x03>;
+	// dma-names = "tx", "rx";
 
 	fake_mc: fake_mc@0 {
 		compatible = "launch,fake_mc";
 		reg = <0>;
 		status = "okay";
 		spi-max-frequency = <375000>;
+		spi-cs-setup-delay-ns = <2000>;
+		spi-cpha;
+		spi-cpol;
 	};
 };

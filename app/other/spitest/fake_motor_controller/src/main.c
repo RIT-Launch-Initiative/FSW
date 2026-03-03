@@ -25,31 +25,9 @@ K_SEM_DEFINE(spi_sem, 0, 1);
 
 static const struct spi_config spi_periph_cfg = {
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_SLAVE,
-    .frequency = 375000,
-    .slave = 0,
+    .frequency = 10000000,
+    .slave = 0, // address
 };
-
-static const struct gpio_dt_spec button = GPIO_DT_SPEC_GET(DT_NODELABEL(cs_spi), gpios);
-static struct gpio_callback button_cb_data;
-
-#define LED0_NODE DT_ALIAS(led0)
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
-
-void button_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins) {
-    // gpio_pin_set_dt(&led, true);
-    // k_sem_give(&spi_sem);
-    // gpio_pin_set_dt(&led, false);
-
-    // if (ret < 0) {
-    // printk("Error reading spi: %d\n", ret);
-    // } else {
-    // printk("Read %d bytes from spi: ", ret);
-    // for (int i = 0; i < ret; i++) {
-    // printk("%02x ", in_buf[i]);
-    // }
-    // printk("\n");
-    // }
-}
 
 int main(void) {
     // k_poll_signal_init(&spi_periph_done_sig);
@@ -58,51 +36,74 @@ int main(void) {
         printk("SPI periph device not ready!\n");
     }
 
-    int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
-    if (ret < 0) {
-        printk("Error %d: failed to configure led pin \n", ret);
-        return 0;
-    }
-    printk("Setup LED\n");
+    // int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    // if (ret < 0) {
+        // printk("Error %d: failed to configure led pin \n", ret);
+        // return 0;
+    // }
+    // printk("Setup LED\n");
 
-    ret = gpio_pin_configure_dt(&button, GPIO_INPUT);
-    if (ret != 0) {
-        printk("Error %d: failed to configure %s pin %d\n", ret, button.port->name, button.pin);
-        return 0;
-    }
 
-    ret = gpio_pin_interrupt_configure_dt(&button, GPIO_INT_EDGE_TO_ACTIVE);
-    if (ret != 0) {
-        printk("Error %d: failed to configure interrupt on %s pin %d\n", ret, button.port->name, button.pin);
-        return 0;
+
+    int i = 0;
+    while (i < 1) {
+        i++;
+        printk("Waiting for gpio\n");
+        k_msleep(1000);
     }
 
-    gpio_init_callback(&button_cb_data, button_pressed, BIT(button.pin));
-    gpio_add_callback(button.port, &button_cb_data);
-    printk("Set up button at %s pin %d\n", button.port->name, button.pin);
+    // return 0;
 
-    printk("Waiting for gpio\n");
+
+
     while (1) {
         // k_poll(events, 1, K_FOREVER);
         // k_sem_take(&spi_sem, K_FOREVER);
         // gpio_pin_set_dt(&led, true);
         // ret = gpio_pin_set_dt(&led, true);
-        uint8_t in_buf[1];
+        // 0xa3 10100011
+        // 0x6c 01011100
+        uint8_t out_buf[4] = {0x00, 0x12, 0x34, 0x00};
+        
+        struct spi_buf tx_buf = {
+            .buf = out_buf,
+            .len = sizeof(out_buf),
+        };
+        struct spi_buf_set tx_bufs = {.buffers = &tx_buf, .count = 1};
+
+        uint8_t in_buf[4] = {0};
         struct spi_buf rx_buf = {
             .buf = in_buf,
             .len = sizeof(in_buf),
         };
         struct spi_buf_set rx_bufs = {.buffers = &rx_buf, .count = 1};
         printk("waiting\n");
-        int ret = spi_read(spi_periph_dev, &spi_periph_cfg, &rx_bufs);
-        gpio_pin_set_dt(&led, true);
 
-        if (ret < 0) {
+        int sret = spi_transceive(spi_periph_dev, &spi_periph_cfg, &tx_bufs, &rx_bufs);
+
+
+        // int ret = spi_read(spi_periph_dev, &spi_periph_cfg, &rx_bufs);
+        // gpio_pin_set_dt(&led, true);
+
+        // int sret = spi_write(spi_periph_dev, &spi_periph_cfg, &tx_bufs);
+
+        if (sret < 0) {
             printk("f\n");
         } else {
-            printk("b: %02x\n", in_buf[0]);
+            printk("Uptime: %lld\n", k_uptime_get());
+            printk("STXed: %02x %02x %02x %02x\n", out_buf[0], out_buf[1], out_buf[2], out_buf[3]);
+            printk("SRXed: %02x %02x %02x %02x\n", in_buf[0], in_buf[1], in_buf[2], in_buf[3]);
         }
-        gpio_pin_set_dt(&led, false);
+        k_usleep(0);
+
+        // if (sret < 0){
+            // printk("txf\n");
+        // } else {
+            // printk("txed\n");
+        // }
+        // k_msleep(10);
+        // gpio_pin_set_dt(&led, false);
+        // k_msleep(10);
         // k_busy_wait(k_ms_to_ticks_near32(10));
         // k_poll_signal_reset(&spi_periph_done_sig);
         // printk("tick\n");

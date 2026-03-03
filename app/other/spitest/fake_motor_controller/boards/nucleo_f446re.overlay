@@ -17,8 +17,8 @@
 &arduino_spi {
 	status = "okay";
 
-	dmas = <&dma2 5 3 0x20440 0x03>,
-		   <&dma2 2 3 0x20440 0x03>;
-	dma-names = "tx", "rx";
+	// dmas = <&dma2 5 3 0x20440 0x03>,
+	// 	   <&dma2 2 3 0x20440 0x03>;
+	// dma-names = "tx", "rx";
 
 };
