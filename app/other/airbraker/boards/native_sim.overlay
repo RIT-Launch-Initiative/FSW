@@ -8,6 +8,7 @@
 		imu = &imu;
 		barom = &barom;
 		servo-en = &servo_en;
+		buzzer = &buzzer;
 	};
 
 	leds {
@@ -19,6 +20,10 @@
 		servo_en: servo_en {
 			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
 			label = "Servo Enable";
+		};
+		buzzer: buzzer {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "Buzzer";
 		};
 	};
 

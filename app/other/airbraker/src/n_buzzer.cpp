@@ -19,6 +19,9 @@ extern "C" int buzzer_init() {
 }
 
 namespace NBuzzer {
+static atomic_t alarmSilenced = ATOMIC_INIT(0);
+void SilenceAlarm() { atomic_set(&alarmSilenced, ATOMIC_INIT(1)); }
+bool ShouldStopAlarm() { return atomic_get(&alarmSilenced) == 1; }
 
 void SetBuzzer(bool buzz) { gpio_pin_set_dt(&buzzer, buzz); }
 constexpr uint32_t morse_unit = 50;
@@ -51,32 +54,43 @@ void MorseBlocking(uint32_t size, const char *str) {
             case ' ':
                 BetweenLetter();
                 break;
+            default:
+                break;
         }
         BetweenElement();
     }
 }
 
 void NotFlying() {
-    for (int i = 0; i < 20; i++) {
-        SetBuzzer(true);
-        k_msleep(50);
-        SetBuzzer(false);
-        k_msleep(50);
-    }
-    const char help[] = "..-. .-.. .- ... .... / ..-. ..- .-.. .-..";
-    NBuzzer::MorseBlocking(sizeof(help), help);
+    while (true) {
+        for (int i = 0; i < 20; i++) {
+            if (ShouldStopAlarm()) {
+                return;
+            }
+            SetBuzzer(true);
+            k_msleep(50);
+            SetBuzzer(false);
+            k_msleep(50);
+        }
 
-    for (int i = 0; i < 20; i++) {
-        SetBuzzer(true);
-        k_msleep(50);
-        SetBuzzer(false);
-        k_msleep(50);
+        const char help[] = "..-. .-.. .- ... .... / ..-. ..- .-.. .-..";
+        NBuzzer::MorseBlocking(sizeof(help), help);
+
+        for (int i = 0; i < 20; i++) {
+            if (ShouldStopAlarm()) {
+                return;
+            }
+            SetBuzzer(true);
+            k_msleep(50);
+            SetBuzzer(false);
+            k_msleep(50);
+        }
     }
 }
 
-void NogoBlocking() {
-    const char nogo[] = "-. --- --. ---";
-    NBuzzer::MorseBlocking(sizeof(nogo), nogo);
+void GoodToGoBlocking() {
+    const char good[] = "--. --- --- -..";
+    NBuzzer::MorseBlocking(sizeof(good), good);
 }
 
 } // namespace NBuzzer

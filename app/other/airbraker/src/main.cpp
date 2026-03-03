@@ -67,12 +67,7 @@ int main() {
 
     // servo not allowed until after under mach. disable to save power
     DisableServo();
-    // NBuzzer::MorseBlocking(sizeof(e), e);
 
-
-
-
-    NBuzzer::NogoBlocking();
 
     while (!NBoost::IsDetected()) {
         RETURN0_IF_CANCELLED;
