@@ -4,6 +4,7 @@
         barom = &ms5611;
         servo = &servo1;
         servo-en = &servo5ven;
+        buzzer = &buzzer;
     };
 
     servo1: servo1 {
