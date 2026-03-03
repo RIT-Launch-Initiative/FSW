@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "structure.h"
+
 #include <stdio.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
@@ -11,22 +13,44 @@
 #include <zephyr/irq.h>
 #include <zephyr/kernel.h>
 
-// #include <zephyr/kernel.h>
-
 const struct device *spi_periph_dev = DEVICE_DT_GET(DT_NODELABEL(arduino_spi));
-
-// static struct k_poll_signal spi_periph_done_sig = K_POLL_SIGNAL_INITIALIZER(spi_periph_done_sig);
-
-// struct k_poll_event events[1] = {
-// K_POLL_EVENT_INITIALIZER(K_POLL_TYPE_SIGNAL, K_POLL_MODE_NOTIFY_ONLY, &spi_periph_done_sig),
-// };
 
 K_SEM_DEFINE(spi_sem, 0, 1);
 
 static const struct spi_config spi_periph_cfg = {
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_SLAVE,
-    .frequency = 10000000,
+    .frequency = 20000000,
     .slave = 0, // address
+};
+
+static struct exposed_state st = {
+    .uptime_ms = 1234,
+    .status = 0,
+    .system_fault = 0,
+    .motor_fault = 0,
+    .commanded_joint1_angle = 0, // motor: Shoulder yaw
+    .commanded_joint2_angle = 0, // motor: Shoulder pitch
+    .commanded_joint3_angle = 0, // motor: Elbow pitch
+    .commanded_joint4_angle = 0, // servo: Wrist pitch
+    .base_accel_x = 0,
+    .base_accel_y = 0,
+    .base_accel_z = 0,
+    .current_joint1_angle = 0, // motor: Shoulder yaw
+    .current_joint2_angle = 0, // motor: Shoulder pitch
+    .current_joint3_angle = 0, // motor: Elbow pitch
+    .accel1_x = 123,
+    .accel1_y = 0,
+    .accel1_z = 0,
+    .accel2_y = 0,
+    .accel2_x = 0,
+    .accel2_z = 0,
+    .m1_voltage = 0,
+    .m1_current = 0,
+    .m2_voltage = 0,
+    .m2_current = 0,
+    .m3_voltage = 0,
+    .m3_current = 0,
+    .uptime_of_last_base_accel_write = 0,
 };
 
 int main(void) {
@@ -38,12 +62,10 @@ int main(void) {
 
     // int ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
     // if (ret < 0) {
-        // printk("Error %d: failed to configure led pin \n", ret);
-        // return 0;
+    // printk("Error %d: failed to configure led pin \n", ret);
+    // return 0;
     // }
     // printk("Setup LED\n");
-
-
 
     int i = 0;
     while (i < 1) {
@@ -54,8 +76,6 @@ int main(void) {
 
     // return 0;
 
-
-
     while (1) {
         // k_poll(events, 1, K_FOREVER);
         // k_sem_take(&spi_sem, K_FOREVER);
@@ -63,11 +83,10 @@ int main(void) {
         // ret = gpio_pin_set_dt(&led, true);
         // 0xa3 10100011
         // 0x6c 01011100
-        uint8_t out_buf[4] = {0x00, 0x12, 0x34, 0x00};
-        
+
         struct spi_buf tx_buf = {
-            .buf = out_buf,
-            .len = sizeof(out_buf),
+            .buf = &st,
+            .len = sizeof(struct exposed_state),
         };
         struct spi_buf_set tx_bufs = {.buffers = &tx_buf, .count = 1};
 
@@ -81,7 +100,6 @@ int main(void) {
 
         int sret = spi_transceive(spi_periph_dev, &spi_periph_cfg, &tx_bufs, &rx_bufs);
 
-
         // int ret = spi_read(spi_periph_dev, &spi_periph_cfg, &rx_bufs);
         // gpio_pin_set_dt(&led, true);
 
@@ -91,15 +109,15 @@ int main(void) {
             printk("f\n");
         } else {
             printk("Uptime: %lld\n", k_uptime_get());
-            printk("STXed: %02x %02x %02x %02x\n", out_buf[0], out_buf[1], out_buf[2], out_buf[3]);
+            // printk("STXed: %02x %02x %02x %02x\n", out_buf[0], out_buf[1], out_buf[2], out_buf[3]);
             printk("SRXed: %02x %02x %02x %02x\n", in_buf[0], in_buf[1], in_buf[2], in_buf[3]);
         }
         k_usleep(0);
 
         // if (sret < 0){
-            // printk("txf\n");
+        // printk("txf\n");
         // } else {
-            // printk("txed\n");
+        // printk("txed\n");
         // }
         // k_msleep(10);
         // gpio_pin_set_dt(&led, false);
