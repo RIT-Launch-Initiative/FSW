@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "n_buzzer.hpp"
 #include "n_model.hpp"
 #include "n_storage.hpp"
 #include "servo.hpp"
@@ -31,6 +32,7 @@ static int cmd_nogo(const struct shell *shell, size_t /*argc*/, char ** /*argv*/
         shell_info(shell, "Flight already cancelled");
         return 0;
     }
+    NBuzzer::NogoBlocking();
     shell_error(shell, "Cancelling flight. MUST REBOOT TO START DETECTION AGAIN");
     shell_error(shell, "To Reboot: cycle power or execute 'kernel reboot'");
     CancelFlight();
@@ -87,7 +89,7 @@ static int cmd_read_data(const struct shell *shell, size_t argc, char **argv) {
     Parameters params{};
     int ret = NStorage::ReadStoredParameters(&params);
     if (ret < 0) {
-        shell_error(shell, "Failed to read stored parameters to verify data read (%d)");
+        shell_error(shell, "Failed to read stored parameters to verify data read (%d)", ret);
         return ret;
     }
     uint32_t totalPackets = params.numFlightPackets + params.numPreboostPackets;

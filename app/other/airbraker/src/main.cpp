@@ -3,6 +3,7 @@
 #include "n_preboost.hpp"
 #include "n_sensing.hpp"
 #include "n_storage.hpp"
+#include "n_buzzer.hpp"
 #include "servo.hpp"
 
 #include <zephyr/init.h>
@@ -14,6 +15,8 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
 SYS_INIT(servo_init, APPLICATION, 1);
 SYS_INIT(storage_init, APPLICATION, 2);
+SYS_INIT(buzzer_init, APPLICATION, 2);
+
 
 K_TIMER_DEFINE(measurement_timer, NULL, NULL);
 
@@ -29,6 +32,7 @@ uint32_t packet_timestamp() {
     }
 
 int main() {
+    // NBuzzer::SetBuzzer(true);
     NSensing::InitSensors();
 
     if (NStorage::HasStoredFlight()) {
@@ -64,6 +68,12 @@ int main() {
 
     // servo not allowed until after under mach. disable to save power
     DisableServo();
+    // NBuzzer::MorseBlocking(sizeof(e), e);
+
+
+
+
+    NBuzzer::NogoBlocking();
 
     while (!NBoost::IsDetected()) {
         RETURN0_IF_CANCELLED;
