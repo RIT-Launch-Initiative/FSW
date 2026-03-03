@@ -72,7 +72,6 @@ void NotFlying() {
         SetBuzzer(false);
         k_msleep(50);
     }
-
 }
 
 void NogoBlocking() {
