@@ -6,5 +6,5 @@ void MorseBlocking(uint32_t size, const char *str);
 void SetBuzzer(bool buzz);
 
 void NogoBlocking();
-
+void NotFlying();
 } // namespace NBuzzer

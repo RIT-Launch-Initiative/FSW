@@ -21,7 +21,7 @@ extern "C" int buzzer_init() {
 namespace NBuzzer {
 
 void SetBuzzer(bool buzz) { gpio_pin_set_dt(&buzzer, buzz); }
-constexpr uint32_t morse_unit = 40;
+constexpr uint32_t morse_unit = 50;
 void Dot() {
     SetBuzzer(true);
     k_msleep(morse_unit);
@@ -34,6 +34,7 @@ void Dash() {
 }
 void BetweenLetter() { k_msleep(morse_unit * 3); }
 void BetweenWord() { k_msleep(morse_unit * 7); }
+void BetweenElement() { k_msleep(morse_unit); }
 
 void MorseBlocking(uint32_t size, const char *str) {
     for (uint32_t i = 0; i < size; i++) {
@@ -44,22 +45,39 @@ void MorseBlocking(uint32_t size, const char *str) {
             case '-':
                 Dash();
                 break;
-            case ' ':
+            case '/':
                 BetweenWord();
                 break;
+            case ' ':
+                BetweenLetter();
+                break;
         }
-        BetweenLetter();
+        BetweenElement();
     }
 }
+
+void NotFlying() {
+    for (int i = 0; i < 20; i++) {
+        SetBuzzer(true);
+        k_msleep(50);
+        SetBuzzer(false);
+        k_msleep(50);
+    }
+    const char help[] = "..-. .-.. .- ... .... / ..-. ..- .-.. .-..";
+    NBuzzer::MorseBlocking(sizeof(help), help);
+
+    for (int i = 0; i < 20; i++) {
+        SetBuzzer(true);
+        k_msleep(50);
+        SetBuzzer(false);
+        k_msleep(50);
+    }
+
+}
+
 void NogoBlocking() {
     const char nogo[] = "-. --- --. ---";
     NBuzzer::MorseBlocking(sizeof(nogo), nogo);
 }
-
-    // const char e[] = ". . .";
-    // const char sos[] = "... --- ...";
-    // const char help[] = ".... . .-.. .--. / ... --- -- . - .... .. -. --. / .... .- ... / --. --- -. . / .-- .-. --- -. --.";
-    // NBuzzer::MorseBlocking(sizeof(sos), sos);
-
 
 } // namespace NBuzzer

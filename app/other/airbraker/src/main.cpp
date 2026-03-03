@@ -38,8 +38,7 @@ int main() {
     if (NStorage::HasStoredFlight()) {
         CancelFlight();
         LOG_WRN("NOT FLYING");
-        LOG_WRN("NOT FLYING");
-        LOG_WRN("NOT FLYING");
+        NBuzzer::NotFlying();
         return 0;
     }
 
