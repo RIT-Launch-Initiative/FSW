@@ -32,6 +32,7 @@ uint32_t packet_timestamp() {
     }
 
 int main() {
+    // NBuzzer::SetBuzzer(true);
     NSensing::InitSensors();
 
     if (NStorage::HasStoredFlight()) {
@@ -67,6 +68,12 @@ int main() {
 
     // servo not allowed until after under mach. disable to save power
     DisableServo();
+    // NBuzzer::MorseBlocking(sizeof(e), e);
+
+
+
+
+    NBuzzer::NogoBlocking();
 
 
     while (!NBoost::IsDetected()) {
