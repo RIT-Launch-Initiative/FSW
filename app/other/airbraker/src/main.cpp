@@ -1,3 +1,4 @@
+#include "math/matrix.hpp"
 #include "n_boost.hpp"
 #include "n_buzzer.hpp"
 #include "n_model.hpp"
@@ -30,9 +31,30 @@ uint32_t packet_timestamp() {
         return 0;                                                                                                      \
     }
 
+volatile float zro = 0;
+volatile float one = 1;
+volatile float two = 2;
+volatile float thr = 3;
+
+void print3x3(const Matrix<3, 3> &mat) {
+    printk("%+.4f  %+.4f  %+.4f\n", (double) mat.Get(0, 0), (double) mat.Get(0, 1), (double) mat.Get(0, 2));
+    printk("%+.4f  %+.4f  %+.4f\n", (double) mat.Get(1, 0), (double) mat.Get(1, 1), (double) mat.Get(1, 2));
+    printk("%+.4f  %+.4f  %+.4f\n", (double) mat.Get(2, 0), (double) mat.Get(2, 1), (double) mat.Get(2, 2));
+}
+// 
 int main() {
     // NBuzzer::SetBuzzer(true);
     NSensing::InitSensors();
+
+    const float arr[] = {zro, one, two, one, zro, thr, two, thr, zro};
+
+    Matrix<3, 3> At{arr};
+    Matrix<3, 3> res = matrixExp(At, 15);
+
+    printk("At:\n");
+    print3x3(At);
+    printk("e^At:\n");
+    print3x3(res);
 
     if (NStorage::HasStoredFlight()) {
         CancelFlight();
@@ -66,11 +88,16 @@ int main() {
 
     // servo not allowed until after under mach. disable to save power
     DisableServo();
+    int64_t elapsed_total_sum = 0;
+    int64_t elapsed_calc_sum = 0;
+    int i = 0;
     while (!NBoost::IsDetected()) {
         RETURN0_IF_CANCELLED;
         k_timer_status_sync(&measurement_timer);
+        int64_t total_start = k_cycle_get_64();
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
+        int64_t think_start = k_cycle_get_64();
         float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
 
         NBoost::FeedDetector(vertical);
@@ -82,6 +109,19 @@ int main() {
         packet.effort = 0; // no fun until after burnout
 
         NPreBoost::SubmitPreBoostPacket(packet);
+        int64_t end = k_cycle_get_64();
+        int64_t total_elapsed = end - total_start;
+        int64_t think_elapsed = end - think_start;
+        int total_us_elapsed = k_cyc_to_us_near32(total_elapsed);
+        int think_us_elapsed = k_cyc_to_us_near32(think_elapsed);
+        elapsed_total_sum += total_us_elapsed;
+        elapsed_calc_sum += think_us_elapsed;
+        i++;
+        if (i % 20 == 0) {
+            // LOG_INF("Took %d - %d for cals", (int)(elapsed_total_sum / 20), (int)(elapsed_calc_sum/20));
+            elapsed_total_sum = 0;
+            elapsed_calc_sum = 0;
+        }
     }
     RETURN0_IF_CANCELLED;
     LOG_INF("Boost Detected");

@@ -73,8 +73,15 @@ class CMSISMatrix {
         return outp;
     }
 
+    CMSISMatrix<R, C> operator*(const float &rhs) const {
+        CMSISMatrix<R, C> outp = CMSISMatrix<R, C>::Zeros();
+        arm_mat_scale_f32(&this->inst, rhs, &outp.inst);
+        return outp;
+    }
+
+
     void Set(std::size_t r, std::size_t c, Scalar value) { data[r * C + c] = value; }
-    Scalar Get(std::size_t r, std::size_t c) { return data[r * C + c]; }
+    Scalar Get(std::size_t r, std::size_t c) const { return data[r * C + c]; }
 
     arm_matrix_instance_f32 inst = {};
     float32_t data[R * C] = {0};
