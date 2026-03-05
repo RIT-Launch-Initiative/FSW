@@ -199,6 +199,7 @@ static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /
     shell_print(shell, "Preboost Length:          %d (pkts)", p.numPreboostPackets);
     shell_print(shell, "Gyro Bias Length:         %d (samples)", p.numSamplesForGyroBias);
     shell_print(shell, "ControllerHash:           0x%08x", p.controllerHash);
+    shell_print(shell, "UpAxis Enum:              %d", (int)p.upAxis);
 
     return 0;
 }

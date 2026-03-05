@@ -23,12 +23,35 @@ DEND='----++++//[[( data end )]]\\\\++++----'
 
 
 
-param_fmt = 'IIffffIIIIII'
-param_fields = ['magic', 'timstamp_ms', 'pressure_kpa','bias_x_dps', 'bias_y_dps', 'bias_z_dps', 'bootcount', 'lockout_ms', 'num_flight_packets', 'num_preboost_packets', 'num_gyro_bias_packets', 'controller_hash']
+param_fmt = 'IIffffIIIIIIbbbb'
+param_fields = ['magic', 'timstamp_ms', 'pressure_kpa','bias_x_dps', 'bias_y_dps', 'bias_z_dps', 'bootcount', 'lockout_ms', 'num_flight_packets', 'num_preboost_packets', 'num_gyro_bias_packets', 'controller_hash', 'up_axis', 'd1', 'd2', 'd3']
 
-data_fmt = 'Ifffffffffffffff'
+
+up_axis_mapping_l = [
+    "PosX",
+    "NegX",
+
+    "PosY",
+    "NegY",
+
+    "PosZ",
+    "NegZ",
+
+    "PosXPosY",
+    "PosXNegY",
+
+    "NegXPosY",
+    "NegXNegY",
+]
+
+def map_up_axis(b):
+	if b >= len(up_axis_mapping_l):
+		raise 'bad up axis mapping error'
+	return up_axis_mapping_l
+
+data_fmt = 'Ifffffffffffffffff'
 data_size = struct.calcsize(data_fmt)
-data_fields = ['timestamp_ms', 'temp_c', 'pressure_kpa', 'accel_m_s2', 'gyro_x', 'gyro_y', 'gyro_z','e_alt_m', 'e_vel_m_s', 'e_acc_m_s2', 'e_bias', 'qa', 'qb', 'qc', 'qd', 'effort']
+data_fields = ['timestamp_ms', 'temp_c', 'pressure_kpa', 'accel_x_m_s2', 'accel_y_m_s2', 'accel_z_m_s2', 'gyro_x_dps', 'gyro_y_dps', 'gyro_z_dps','e_alt_m', 'e_vel_m_s', 'e_acc_m_s2', 'e_bias', 'qa', 'qb', 'qc', 'qd', 'effort']
 
 if len(param_fmt) != len(param_fields):
 	print("Param packet and labels mismatch", file=sys.stderr)
