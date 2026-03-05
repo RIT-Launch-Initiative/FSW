@@ -211,24 +211,28 @@ static int cmd_bootcount(const struct shell *shell, size_t /*argc*/, char ** /*a
 
 static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     BAILOUT_IF_NOT_CANCELLED(shell);
-    Packet p = {0};
-    int ret = NSensing::MeasureSensors(p.tempRaw, p.pressureRaw, p.accelRaw, p.gyro);
+    Packet packet = {0};
+    int ret = NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
     if (ret < 0) {
         shell_error(shell, "Failed to read sensors: %d", ret);
         return ret;
     }
-    shell_info(shell, "Temp:       %f C", (double) p.pressureRaw);
-    shell_info(shell, "Press:      %f kPa", (double) p.tempRaw);
+    // cbprintf for shell needs doubles but static_cast makes 
+    // the line rather long when including the padding
+    auto sd = [](const float &f) {return static_cast<double>(f);};
 
-    shell_info(shell, "Accel X:    %f m/s2", (double) p.accelRaw.X);
-    shell_info(shell, "Accel Y:    %f m/s2", (double) p.accelRaw.Y);
-    shell_info(shell, "Accel Z:    %f m/s2", (double) p.accelRaw.Z);
+    shell_info(shell, "Temp:       %f C", sd(packet.pressureRaw));
+    shell_info(shell, "Press:      %f kPa", sd(packet.tempRaw));
 
-    shell_info(shell, "Accel Up:   %f m/s2", (double) UpAxisFrom(UP_AXIS, p.accelRaw));
+    shell_info(shell, "Accel X:    %f m/s2", sd(packet.accelRaw.X));
+    shell_info(shell, "Accel Y:    %f m/s2", sd(packet.accelRaw.Y));
+    shell_info(shell, "Accel Z:    %f m/s2", sd(packet.accelRaw.Z));
 
-    shell_info(shell, "Gyro X:     %f dps", (double) p.gyro.X);
-    shell_info(shell, "Gyro Y:     %f dps", (double) p.gyro.Y);
-    shell_info(shell, "Gyro Z:     %f dps", (double) p.gyro.Z);
+    shell_info(shell, "Accel Up:   %f m/s2", sd(UpAxisFrom(UP_AXIS, packet.accelRaw)));
+
+    shell_info(shell, "Gyro X:     %f dps", sd(packet.gyro.X));
+    shell_info(shell, "Gyro Y:     %f dps", sd(packet.gyro.Y));
+    shell_info(shell, "Gyro Z:     %f dps", sd(packet.gyro.Z));
 
     return 0;
 }
