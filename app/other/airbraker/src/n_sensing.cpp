@@ -86,12 +86,20 @@ int initBarom() {
     }
 
 #ifdef CONFIG_MS56XX
-    const sensor_value odr{.val1 = 4096, .val2 = 0};
+    const sensor_value odr{.val1 = 2048, .val2 = 0};
     int ret = sensor_attr_set(barom_dev, SENSOR_CHAN_PRESS, SENSOR_ATTR_OVERSAMPLING, &odr);
     if (ret < 0) {
         LOG_WRN("Barometer pressure oversampling configuration failed. Pressure readings may be inaccurate.");
         return ret;
     }
+    
+    odr.val1 = 1024;
+    ret = sensor_attr_set(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, SENSOR_ATTR_OVERSAMPLING, &odr);
+    if (ret < 0) {
+        LOG_WRN("Barometer temperature oversampling configuration failed. Pressure readings may be inaccurate.");
+        return ret;
+    }
+
 #endif
 
     return 0;
