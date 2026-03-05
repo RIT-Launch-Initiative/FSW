@@ -44,6 +44,7 @@ float speed_rpm(uint8_t speed, int32_t w_scale) {
 #define RC_STATUS3  0x3
 #define REG_STATUS1 0x4
 #define REG_STATUS2 0x5
+#define REG_STATUS3 0x6
 
 #define CONFIG0_REG 0x9
 #define CONFIG1_REG 0xa
@@ -51,8 +52,9 @@ float speed_rpm(uint8_t speed, int32_t w_scale) {
 #define CONFIG3_REG 0xc
 #define CONFIG4_REG 0xd
 
-#define REG_CTRL_0_REG 0xe
-#define REG_CTRL_1_REG 0xf
+#define REG_CTRL0_REG 0xe
+#define REG_CTRL1_REG 0xf
+#define REG_CTRL2_REG 0x10
 
 #define RC_CTRL0_REG 0x11
 #define RC_CTRL1_REG 0x12
@@ -62,6 +64,7 @@ float speed_rpm(uint8_t speed, int32_t w_scale) {
 #define RC_CTRL5_REG 0x16
 #define RC_CTRL6_REG 0x17
 #define RC_CTRL7_REG 0x18
+#define RC_CTRL8_REG 0x19
 
 
 void set_voltage(float volts) {
@@ -71,7 +74,7 @@ void set_voltage(float volts) {
     }
     float val = (volts / 38.f) * 227;
     uint8_t regval = (uint8_t) (val + .5f);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_1_REG, regval);
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL1_REG, regval);
 }
 void turnOn(){
     uint8_t flt = 0;
@@ -83,10 +86,11 @@ void turnOn(){
 
     gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
 
-    uint8_t reg_ctrl_0 = 0b00100111;
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL0_REG, 0b11100010);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_0_REG, reg_ctrl_0);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_1_REG, 0x03);
+    uint8_t rc_ctrl0_reg = 0b11100010;
+    uint8_t reg_ctrl_0 = 0b00110111;
+    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL0_REG, rc_ctrl0_reg);
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, reg_ctrl_0);
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL1_REG, 0x03);
     motorOn = true;
 }
 void clearRippleCount(){
@@ -95,8 +99,8 @@ void clearRippleCount(){
     gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
     uint8_t reg_ctrl_0 = 0b00100111;
     i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL0_REG, 0b11100010);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_0_REG, reg_ctrl_0);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_1_REG, 0x03); 
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, reg_ctrl_0);
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL1_REG, 0x03); 
 }
 void setSpeedMode(){
 }
@@ -162,7 +166,7 @@ void spin(uint8_t dir){
 
         i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
 
-        k_msleep(4000);
+        k_msleep(40);
     }
     i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34);
 }
