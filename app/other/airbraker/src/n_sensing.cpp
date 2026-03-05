@@ -77,9 +77,6 @@ int initIMU() {
         LOG_ERR("IMU NOT READY");
         return -1;
     }
-
-    
-
     return 0;
 }
 int initBarom() {
