@@ -67,7 +67,6 @@ void NotFlying() {
             if (ShouldStopAlarm()) {
                 return;
             }
-
             SetBuzzer(true);
             k_msleep(500);
             SetBuzzer(false);
@@ -76,16 +75,6 @@ void NotFlying() {
 
         const char help[] = "..-. .-.. .- ... .... / ..-. ..- .-.. .-..";
         NBuzzer::MorseBlocking(sizeof(help), help);
-
-        for (int i = 0; i < 20; i++) {
-            if (ShouldStopAlarm()) {
-                return;
-            }
-            SetBuzzer(true);
-            k_msleep(500);
-            SetBuzzer(false);
-            k_msleep(250);
-        }
     }
 }
 
