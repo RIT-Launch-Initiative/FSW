@@ -28,6 +28,7 @@ class CMSISMatrix {
             return *this;
         }
         memcpy(data, cpy.data, sizeof(data));
+        arm_mat_init_f32(&inst, R, C, data);
         return *this;
     }
 

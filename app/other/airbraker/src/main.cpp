@@ -37,11 +37,11 @@ volatile float two = 2;
 volatile float thr = 3;
 
 void print3x3(const Matrix<3, 3> &mat) {
-    printk("%+.4f  %+.4f  %+.4f\n", (double) mat.Get(0, 0), (double) mat.Get(0, 1), (double) mat.Get(0, 2));
-    printk("%+.4f  %+.4f  %+.4f\n", (double) mat.Get(1, 0), (double) mat.Get(1, 1), (double) mat.Get(1, 2));
-    printk("%+.4f  %+.4f  %+.4f\n", (double) mat.Get(2, 0), (double) mat.Get(2, 1), (double) mat.Get(2, 2));
+    printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(0, 0), (double) mat.Get(0, 1), (double) mat.Get(0, 2));
+    printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(1, 0), (double) mat.Get(1, 1), (double) mat.Get(1, 2));
+    printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(2, 0), (double) mat.Get(2, 1), (double) mat.Get(2, 2));
 }
-// 
+//
 int main() {
     // NBuzzer::SetBuzzer(true);
     NSensing::InitSensors();
@@ -49,12 +49,16 @@ int main() {
     const float arr[] = {zro, one, two, one, zro, thr, two, thr, zro};
 
     Matrix<3, 3> At{arr};
-    Matrix<3, 3> res = matrixExp(At, 15);
 
-    printk("At:\n");
-    print3x3(At);
-    printk("e^At:\n");
-    print3x3(res);
+    {
+        int64_t start = k_cycle_get_64();
+        Matrix<3, 3> res = matrixExpPowSeries(At, 10);
+        int64_t elapsed_cyc = k_cycle_get_64() - start;
+        int elapsed_us = k_cyc_to_us_ceil32(elapsed_cyc);
+        printk("matrix exp took %d us\n", elapsed_us);
+        printk("e^At:\n");
+        print3x3(res);
+    }
 
     if (NStorage::HasStoredFlight()) {
         CancelFlight();
