@@ -59,7 +59,7 @@ int main(void) {
         return 0;
     }
 
-    uint8_t tx[4] = {0xa3, 0x00, 0x00, 0x00};
+    uint8_t tx[4] = {0x12, 0x34, 0x12, 0x34};
     uint8_t rx[4] = {0};
     struct spi_buf tx_buf = {.buf = tx, .len = sizeof(tx)};
     struct spi_buf rx_buf = {.buf = rx, .len = sizeof(rx)};
@@ -78,12 +78,28 @@ int main(void) {
             k_msleep(10);
         }
         printk("transceiveing\n");
-
+        
         // printk("transceiveing\n");
+        // ret = spi_write_dt(&spidt, &tx_bufs);
+        // k_usleep(400);
+        // int ret2 = spi_read_dt(&spidt, &rx_bufs);
+        uint8_t b = k_uptime_get() % 256;
+        tx[0] = b;
+        tx[1] = b;
+        tx[2] = b;
+        tx[3] = 0;
         ret = spi_transceive_dt(&spidt, &tx_bufs, &rx_bufs);
         if (ret != 0) {
             printk("Ret: %d\n", ret);
+        } else {
+            printk("Uptime: %lld\n", k_uptime_get());
+            printk("Txed: %02x %02x %02x %02x\n", tx[0], tx[1], tx[2], tx[3]);
+            printk("Rxed: %02x %02x %02x %02x\n", rx[0], rx[1], rx[2], rx[3]);
         }
+        // if (ret2 != 0) {
+            // printk("Ret2: %d\n", ret);
+        // } else {
+        // }
         // ret = gpio_pin_set_dt(&led, false);
 
         k_msleep(50);
