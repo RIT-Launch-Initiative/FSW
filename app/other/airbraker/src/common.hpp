@@ -67,7 +67,12 @@ constexpr size_t NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED = 25;
 // thershold to exceed to start counting towards boost detect
 constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 10;
 
+#ifdef CONFIG_OPENROCKET_SENSORS
+constexpr UpAxis UP_AXIS = UpAxis::PosZ;
+#else
 constexpr UpAxis UP_AXIS = UpAxis::NegXNegY;
+#endif
+
 
 struct KalmanState {
     float estAltitude;

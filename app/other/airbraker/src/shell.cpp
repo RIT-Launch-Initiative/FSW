@@ -35,7 +35,6 @@ static int cmd_nogo(const struct shell *shell, size_t /*argc*/, char ** /*argv*/
         shell_info(shell, "Flight already cancelled");
         return 0;
     }
-    NBuzzer::NogoBlocking();
     shell_error(shell, "Cancelling flight. MUST REBOOT TO START DETECTION AGAIN");
     shell_error(shell, "To Reboot: cycle power or execute 'kernel reboot'");
     CancelFlight();
