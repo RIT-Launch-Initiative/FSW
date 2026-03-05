@@ -63,14 +63,15 @@ void MorseBlocking(uint32_t size, const char *str) {
 
 void NotFlying() {
     while (true) {
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 10; i++) {
             if (ShouldStopAlarm()) {
                 return;
             }
+
             SetBuzzer(true);
-            k_msleep(50);
+            k_msleep(500);
             SetBuzzer(false);
-            k_msleep(50);
+            k_msleep(250);
         }
 
         const char help[] = "..-. .-.. .- ... .... / ..-. ..- .-.. .-..";
@@ -81,9 +82,9 @@ void NotFlying() {
                 return;
             }
             SetBuzzer(true);
-            k_msleep(50);
+            k_msleep(500);
             SetBuzzer(false);
-            k_msleep(50);
+            k_msleep(250);
         }
     }
 }

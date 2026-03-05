@@ -60,4 +60,7 @@ uint32_t GetParamPartitionSize();
  */
 uint32_t GetDataPartitionSize();
 
+
+
+int ReadDataBlock(uint32_t addr, uint32_t size, uint8_t*data);
 } // namespace NStorage

@@ -1,12 +1,14 @@
 #include "common.hpp"
 #include "n_buzzer.hpp"
 #include "n_model.hpp"
+#include "n_sensing.hpp"
 #include "n_storage.hpp"
 #include "servo.hpp"
 
 #include <cmath>
 #include <numbers>
 #include <zephyr/shell/shell.h>
+#include <zephyr/sys/base64.h>
 
 #define PARSER_HEADER_MAGIC_START "----++++//[[("
 #define PARSER_HEADER_MAGIC_END   ")]]\\\\++++----"
@@ -40,7 +42,7 @@ static int cmd_nogo(const struct shell *shell, size_t /*argc*/, char ** /*argv*/
     return 0;
 }
 
-static int cmd_describe_params(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+static int cmd_read_info(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     shell_print(shell, "Airbrakes - " CONFIG_BOARD " - %s %s", __DATE__, __TIME__);
     shell_print(shell, "Model Version: %s", NModel::GetMatlabLUTName());
     shell_print(shell, "Flight: =================================");
@@ -58,18 +60,52 @@ static int cmd_describe_params(const struct shell *shell, size_t /*argc*/, char 
     shell_print(shell, "Count:              %u samples", NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED);
     return 0;
 }
-
 static int cmd_read_params64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+
     BAILOUT_IF_NOT_CANCELLED(shell);
+    Parameters p{};
+    static uint8_t buf[sizeof(Parameters) * 2] = {0}; // plenty of room for a null terminator
+    int ret = NStorage::ReadStoredParameters(&p);
+    if (ret < -1) {
+        shell_error(shell, "Failed to read stored parameters");
+        return -1;
+    }
+    if (ret == -1) {
+        shell_error(shell, "No magic. Either nothing written or corrupted. Use flash shell to check");
+        return -1;
+    }
+    size_t written = 0;
+    ret = base64_encode(buf, sizeof(buf), &written, (uint8_t *) &p, sizeof(Parameters));
+    if (ret < 0) {
+        shell_error(shell, "Couldn't base64 encode: %d", ret);
+        return -1;
+    }
+
     shell_print(shell, PARSER_HEADER_MAGIC_START " params start " PARSER_HEADER_MAGIC_END);
+    shell_print(shell, "%s", buf);
     shell_print(shell, PARSER_HEADER_MAGIC_START " params end " PARSER_HEADER_MAGIC_END);
     return 0;
 }
 
 static int cmd_read_data64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     BAILOUT_IF_NOT_CANCELLED(shell);
+    static uint8_t dataBuf[48];
+    static uint8_t buf64[65];
+
     shell_print(shell, PARSER_HEADER_MAGIC_START " data start " PARSER_HEADER_MAGIC_END);
+
+    for (uint32_t addr = 0; addr < sizeof(Packet) * (NUM_FLIGHT_PACKETS + NUM_STORED_PREBOOST_PACKETS);
+         addr += sizeof(dataBuf)) {
+        int ret = NStorage::ReadDataBlock(addr, sizeof(dataBuf), dataBuf);
+        if (ret < 0) {
+            shell_print(shell, PARSER_HEADER_MAGIC_START " data err " PARSER_HEADER_MAGIC_END);
+        }
+        uint32_t written = 0;
+        base64_encode(buf64, sizeof(buf64), &written, dataBuf, sizeof(dataBuf));
+        shell_print(shell, "%s", buf64);
+    }
     shell_print(shell, PARSER_HEADER_MAGIC_START " data end " PARSER_HEADER_MAGIC_END);
+
     return 0;
 }
 
@@ -116,7 +152,9 @@ static int cmd_read_data(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Sensors ===========================");
     shell_print(shell, "Temperature:         %f (C)", (double) packet.tempRaw);
     shell_print(shell, "Pressure:            %f (kPa)", (double) packet.pressureRaw);
-    shell_print(shell, "Acceleration:        %f (m/s²)", (double) packet.accelRaw);
+    shell_print(shell, "Acceleration X:        %f (m/s²)", (double) packet.accelRaw.X);
+    shell_print(shell, "Acceleration Y:        %f (m/s²)", (double) packet.accelRaw.Y);
+    shell_print(shell, "Acceleration Z:        %f (m/s²)", (double) packet.accelRaw.Z);
     shell_print(shell, "Gyro X:              %f (dps)", (double) packet.gyro.X);
     shell_print(shell, "Gyro Y:              %f (dps)", (double) packet.gyro.Y);
     shell_print(shell, "Gyro Z:              %f (dps)", (double) packet.gyro.Z);
@@ -167,6 +205,31 @@ static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /
 
 static int cmd_bootcount(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     shell_print(shell, "Bootcount: %u", NStorage::GetBootcount());
+    return 0;
+}
+
+static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
+    BAILOUT_IF_NOT_CANCELLED(shell);
+    Packet p = {0};
+    int ret = NSensing::MeasureSensors(p.tempRaw, p.pressureRaw, p.accelRaw, p.gyro);
+    if (ret < 0) {
+        shell_error(shell, "Failed to read sensors: %d", ret);
+        return ret;
+    }
+    shell_info(shell, "Temp:       %f C", (double) p.pressureRaw);
+    shell_info(shell, "Press:      %f kPa", (double) p.tempRaw);
+
+    shell_info(shell, "Accel X:    %f m/s2", (double) p.accelRaw.X);
+    shell_info(shell, "Accel Y:    %f m/s2", (double) p.accelRaw.Y);
+    shell_info(shell, "Accel Z:    %f m/s2", (double) p.accelRaw.Z);
+
+    shell_info(shell, "Accel Up:   %f m/s2", (double) UpAxisFrom(UP_AXIS, p.accelRaw));
+
+
+    shell_info(shell, "Gyro X:     %f dps", (double) p.gyro.X);
+    shell_info(shell, "Gyro Y:     %f dps", (double) p.gyro.Y);
+    shell_info(shell, "Gyro Z:     %f dps", (double) p.gyro.Z);
+
     return 0;
 }
 static int cmd_erase(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
@@ -318,7 +381,8 @@ static int cmd_servo_stop(const struct shell *shell, size_t /*argc*/, char ** /*
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(subcmds, SHELL_CMD(nogo, NULL, "Cancel main mission", cmd_nogo),
-                               SHELL_CMD(info, NULL, "Program Information", cmd_describe_params),
+                               SHELL_CMD(info, NULL, "Program Information", cmd_read_info),
+                               SHELL_CMD(sample, NULL, "Sample a single sample", cmd_sampleone),
                                SHELL_CMD(erase, NULL, "Erase Flight Data (DANGER DANGER DANGER)", cmd_erase),
                                SHELL_CMD(read_params, NULL, "Read Params Block for humans", cmd_read_params),
                                SHELL_CMD(read_params64, NULL, "Read Params Block for robots", cmd_read_params64),

@@ -32,7 +32,6 @@ uint32_t packet_timestamp() {
     }
 
 int main() {
-    // NBuzzer::SetBuzzer(true);
     NSensing::InitSensors();
 
     if (NStorage::HasStoredFlight()) {
@@ -57,10 +56,11 @@ int main() {
 
     Parameters params{};
     params.bootcount = NStorage::GetBootcount();
-
     NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
+    float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
 
-    NBoost::FeedDetector(packet.accelRaw);
+
+    NBoost::FeedDetector(vertical);
 
     // submit initial preboost packet (will almost certainly be overwritten but we want to get everything going before feeding the filter)
     NPreBoost::SubmitPreBoostPacket(packet);
@@ -74,11 +74,12 @@ int main() {
         k_timer_status_sync(&measurement_timer);
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
+        float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
 
-        NBoost::FeedDetector(packet.accelRaw);
+        NBoost::FeedDetector(vertical);
 
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - NPreBoost::GetGroundLevelASL();
-        NModel::FeedKalman(packet.timestamp, altMeters, packet.accelRaw);
+        NModel::FeedKalman(packet.timestamp, altMeters, vertical);
 
         packet.kalmanState = NModel::LastKalmanState();
         packet.effort = 0; // no fun until after burnout
@@ -111,10 +112,11 @@ int main() {
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
+        float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
 
         NModel::FeedGyro(packet.timestamp, packet.gyro);
 
-        NModel::FeedKalman(packet.timestamp, altMeters, packet.accelRaw);
+        NModel::FeedKalman(packet.timestamp, altMeters, vertical);
         packet.kalmanState = NModel::LastKalmanState();
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
