@@ -226,7 +226,6 @@ static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*a
 
     shell_info(shell, "Accel Up:   %f m/s2", (double) UpAxisFrom(UP_AXIS, p.accelRaw));
 
-
     shell_info(shell, "Gyro X:     %f dps", (double) p.gyro.X);
     shell_info(shell, "Gyro Y:     %f dps", (double) p.gyro.Y);
     shell_info(shell, "Gyro Z:     %f dps", (double) p.gyro.Z);
