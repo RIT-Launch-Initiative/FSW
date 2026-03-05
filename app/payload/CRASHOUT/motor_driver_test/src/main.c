@@ -83,20 +83,20 @@ void turnOn(){
 
     gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
 
-    uint8_t reg_ctrl_0 = 0b00110111;
+    uint8_t reg_ctrl_0 = 0b00100111;
     i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL0_REG, 0b11100010);
     i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_0_REG, reg_ctrl_0);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_1_REG, 0xFF);
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_1_REG, 0x03);
     motorOn = true;
 }
 void clearRippleCount(){
     gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_INACTIVE);
     k_msleep(10);
     gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
-    uint8_t reg_ctrl_0 = 0b00110111;
+    uint8_t reg_ctrl_0 = 0b00100111;
     i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL0_REG, 0b11100010);
     i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_0_REG, reg_ctrl_0);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_1_REG, 0xFF);
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL_1_REG, 0x03); 
 }
 void setSpeedMode(){
 }
@@ -112,7 +112,7 @@ void spin(uint8_t dir){
     uint32_t w_scale_value = 16;
 
     printk("Initted i2c dev\n");
-    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34);
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34); // 0011, 0100 
     i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
     printk("Fault 34: %02x\n", flt);
     
@@ -129,7 +129,7 @@ void spin(uint8_t dir){
 
     // set_voltage(11.0);
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++){
         ret = gpio_pin_toggle_dt(&led);
         if (ret < 0) {
             return 0;
@@ -162,7 +162,7 @@ void spin(uint8_t dir){
 
         i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
 
-        k_msleep(40);
+        k_msleep(4000);
     }
     i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34);
 }
@@ -183,8 +183,8 @@ int main(void) {
     k_msleep(1000);
     turnOn();
     
-    static const uint8_t inv_r_scale = 0b01;
-    static const uint8_t inv_r = 64;
+    static const uint8_t inv_r_scale = 0b10;
+    static const uint8_t inv_r = 42;
 
     static const uint8_t kmc_scale = 0b01;
     static const uint8_t kmc = 139;
@@ -197,21 +197,21 @@ int main(void) {
     i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL3_REG, rc_ctrl_3);
     i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL4_REG, rc_ctrl_4);
 
-    spin(0x36);
-    k_msleep(1000);
-    clearRippleCount();
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL2_REG, rc_ctrl_2);
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL3_REG, rc_ctrl_3);
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL4_REG, rc_ctrl_4);
-
     spin(0x37);
-    k_msleep(1000);
-    clearRippleCount();
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL2_REG, rc_ctrl_2);
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL3_REG, rc_ctrl_3);
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL4_REG, rc_ctrl_4);
+    // k_msleep(1000);
+    // clearRippleCount();
+    // i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL2_REG, rc_ctrl_2);
+    // i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL3_REG, rc_ctrl_3);
+    // i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL4_REG, rc_ctrl_4);
 
-    spin(0x36);
+    // spin(0x37);
+    // k_msleep(1000);
+    // clearRippleCount();
+    // i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL2_REG, rc_ctrl_2);
+    // i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL3_REG, rc_ctrl_3);
+    // i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL4_REG, rc_ctrl_4);
+
+    // spin(0x36);
 
     return 0;
 }
