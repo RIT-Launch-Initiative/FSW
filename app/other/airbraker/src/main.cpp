@@ -11,6 +11,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/atomic.h>
+#include <cmath>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
@@ -41,23 +42,64 @@ void print3x3(const Matrix<3, 3> &mat) {
     printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(1, 0), (double) mat.Get(1, 1), (double) mat.Get(1, 2));
     printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(2, 0), (double) mat.Get(2, 1), (double) mat.Get(2, 2));
 }
-//
+
+Matrix<3, 3> expGyro(float ω₁, float ω₂, float ω₃, float t) {
+    float ω₁² = ω₁ * ω₁;
+    float ω₂² = ω₂ * ω₂;
+    float ω₃² = ω₃ * ω₃;
+    float ω₁ω₂ = ω₁ * ω₂;
+    float ω₁ω₃ = ω₁ * ω₃;
+    float ω₂ω₃ = ω₂ * ω₃;
+    // clang-format off
+    Matrix<3,3> A{{
+         0,    -ω₃,    ω₂, 
+         ω₃,    0,    -ω₁, 
+        -ω₂,    ω₁,     0,
+    }};
+    Matrix<3,3> A²{{
+        -(ω₂² + ω₃²),   ω₁ω₂,           ω₁ω₃,
+         ω₁ω₂,         -(ω₁²+ω₃²),    ω₂ω₃,
+         ω₁ω₃,          ω₂ω₃,         -(ω₁²+ω₂²),
+    }};
+
+    // clang-format on
+    float norm_sqred = ω₁² + ω₂² + ω₃²;
+    float norm = std::sqrt(norm_sqred);
+    float normt = norm * t;
+
+    float s = std::sin(normt) / norm;
+    float c = (1 - std::cos(normt)) / (norm_sqred);
+
+    Matrix<3, 3> I = Matrix<3, 3>::Identity();
+
+    auto eᴬᵗ = I + A * s + A² * c;
+    return eᴬᵗ;
+}
+
 int main() {
     // NBuzzer::SetBuzzer(true);
     NSensing::InitSensors();
 
-    const float arr[] = {zro, one, two, one, zro, thr, two, thr, zro};
+    const float arr[] = {zro, -thr, two, thr, zro, -one, -two, one, zro};
 
     Matrix<3, 3> At{arr};
 
     {
         int64_t start = k_cycle_get_64();
-        Matrix<3, 3> res = matrixExpPowSeries(At, 10);
+        Matrix<3, 3> res = matrixExpPowSeries(At, 40);
         int64_t elapsed_cyc = k_cycle_get_64() - start;
         int elapsed_us = k_cyc_to_us_ceil32(elapsed_cyc);
         printk("matrix exp took %d us\n", elapsed_us);
-        printk("e^At:\n");
+        printk("e^At:           %d us\n", elapsed_us);
         print3x3(res);
+
+        start = k_cycle_get_64();
+        Matrix<3, 3> res2 = expGyro(one, two, thr, one);
+        elapsed_cyc = k_cycle_get_64() - start;
+        elapsed_us = k_cyc_to_us_ceil32(elapsed_cyc);
+        printk("e^At (cool):    %d us\n", elapsed_us);
+        print3x3(res2);
+
     }
 
     if (NStorage::HasStoredFlight()) {
