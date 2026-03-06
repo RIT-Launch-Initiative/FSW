@@ -1,0 +1,63 @@
+# MS56XX pressure sensor configuration options
+
+# Copyright (c) 2019 Thomas Schmid <tom@lfence.de>
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig MS56XX
+	bool "MS5607/MS5611 pressure and temperature sensor"
+	default y
+	depends on DT_HAS_LAUNCH_MS5611_ENABLED || DT_HAS_LAUNCH_MS5607_ENABLED
+
+	select I2C if $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5607),i2c) || \
+		     	  $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5611),i2c)
+	select SPI if $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5607),spi) || \
+		          $(dt_compat_on_bus,$(DT_COMPAT_LAUNCH_MS5611),spi)
+	help
+	  Enable driver for the MS5607/MS5611 pressure and temperature sensor.
+
+if MS56XX
+
+choice
+	prompt "Pressure oversampling."
+	default MS56XX_PRES_OVER_2048X
+
+config MS56XX_PRES_OVER_256X
+	bool "x256"
+
+config MS56XX_PRES_OVER_512X
+	bool "x512"
+
+config MS56XX_PRES_OVER_1024X
+	bool "x1024"
+
+config MS56XX_PRES_OVER_2048X
+	bool "x2048"
+
+config MS56XX_PRES_OVER_4096X
+	bool "x4096"
+
+endchoice
+
+
+choice
+	prompt "Temperature oversampling."
+	default MS56XX_TEMP_OVER_2048X
+
+config MS56XX_TEMP_OVER_256X
+	bool "x256"
+
+config MS56XX_TEMP_OVER_512X
+	bool "x512"
+
+config MS56XX_TEMP_OVER_1024X
+	bool "x1024"
+
+config MS56XX_TEMP_OVER_2048X
+	bool "x2048"
+
+config MS56XX_TEMP_OVER_4096X
+	bool "x4096"
+
+endchoice
+
+endif # MS56XX

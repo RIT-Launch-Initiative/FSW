@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <zephyr/kernel.h>
 
 template <std::size_t R, std::size_t C>
 class CMSISMatrix {
@@ -15,6 +16,19 @@ class CMSISMatrix {
             data[i] = arr[i];
         }
         arm_mat_init_f32(&inst, R, C, data);
+    }
+    CMSISMatrix(const CMSISMatrix &cpy) {
+        *this = CMSISMatrix{};
+        memcpy(data, cpy.data, sizeof(data));
+    }
+
+    CMSISMatrix &operator=(const CMSISMatrix &cpy) {
+        if (this == &cpy){
+            // if bufs are at the same point then __restrict isnt honored and memcpy could blow up
+            return *this;
+        }
+        memcpy(data, cpy.data, sizeof(data));
+        return *this;
     }
 
     static CMSISMatrix Zeros() { return CMSISMatrix{}; }
