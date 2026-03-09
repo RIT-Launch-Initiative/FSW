@@ -1,3 +1,5 @@
+#include <zephyr/dt-bindings/sensor/lsm6dsv16x.h>
+
 /{ 
     aliases {
         imu = &lsm6dsv;
@@ -17,6 +19,12 @@
 
 };
 
+&lsm6dsv{
+    accel-range = <16>;
+    accel-odr = <LSM6DSV16X_DT_ODR_HA02_AT_100Hz>;
+    gyro-range = <LSM6DSV16X_DT_FS_4000DPS>;
+    gyro-odr = <LSM6DSV16X_DT_ODR_HA02_AT_100Hz>;
+};
 
 &w25q128{
     partitions {

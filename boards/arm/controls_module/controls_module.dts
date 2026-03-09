@@ -65,8 +65,8 @@
 
 		wiz_led_en: wiz-led-en {
 			// wiznet will only drive its leds if this is high
-			gpios = <&gpiob 4 GPIO_ACTIVE_HIGH>;
-			label = "Buzzer";
+			gpios = <&gpioa 4 GPIO_ACTIVE_HIGH>;
+			label = "Wiznet LED Enable";
 		};
 	};
 
