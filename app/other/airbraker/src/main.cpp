@@ -1,6 +1,7 @@
 #include "math/matrix.hpp"
 #include "n_boost.hpp"
 #include "n_buzzer.hpp"
+#include "n_buzzer.hpp"
 #include "n_model.hpp"
 #include "n_preboost.hpp"
 #include "n_sensing.hpp"
@@ -53,6 +54,7 @@ int main() {
         CancelFlight();
         LOG_WRN("NOT FLYING");
         NBuzzer::NotFlying();
+        NBuzzer::NotFlying();
         return 0;
     }
 
@@ -73,8 +75,9 @@ int main() {
     Parameters params{};
     params.bootcount = NStorage::GetBootcount();
     NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-    float vertical = GetUpAxis(packet.accelRaw);
+    float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
 
+    NBoost::FeedDetector(vertical);
     NBoost::FeedDetector(vertical);
 
     // submit initial preboost packet (will almost certainly be overwritten but we want to get everything going before feeding the filter)
@@ -87,12 +90,12 @@ int main() {
         k_timer_status_sync(&measurement_timer);
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-        
-        float vertical = GetUpAxis(packet.accelRaw);
+        float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
 
         NBoost::FeedDetector(vertical);
 
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - NPreBoost::GetGroundLevelASL();
+        NModel::FeedKalman(packet.timestamp, altMeters, vertical);
         NModel::FeedKalman(packet.timestamp, altMeters, vertical);
 
         packet.kalmanState = NModel::LastKalmanState();
@@ -126,14 +129,14 @@ int main() {
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
-        float vertical = GetUpAxis(packet.accelRaw);
-
+        float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
 
         NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
         NModel::FeedGyro(packet.timestamp, unbiasedGyro);
         NModel::FillPacketWithKalmanInnovation(packet.kalmanInnovation);
         NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
 
+        NModel::FeedKalman(packet.timestamp, altMeters, vertical);
         NModel::FeedKalman(packet.timestamp, altMeters, vertical);
         packet.kalmanState = NModel::LastKalmanState();
 

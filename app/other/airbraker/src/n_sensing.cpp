@@ -34,6 +34,7 @@ int InitSensors() {
 }
 
 int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2, NTypes::GyroscopeData &gyroDps) {
+int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2, NTypes::GyroscopeData &gyroDps) {
     // todo, can make this less noisy by kicking off fetch, then doing other stuff, then reading
     int bret = sensor_sample_fetch(barom_dev);
     if (bret < 0) {
@@ -59,6 +60,11 @@ int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &
         accelMs2.X = sensor_value_to_float(&acc[0]);
         accelMs2.Y = sensor_value_to_float(&acc[1]);
         accelMs2.Z = sensor_value_to_float(&acc[2]);
+        sensor_value acc[3] = {0};
+        sensor_channel_get(imu_dev, SENSOR_CHAN_ACCEL_XYZ, acc);
+        accelMs2.X = sensor_value_to_float(&acc[0]);
+        accelMs2.Y = sensor_value_to_float(&acc[1]);
+        accelMs2.Z = sensor_value_to_float(&acc[2]);
 
         sensor_value gyro[3] = {0};
         sensor_channel_get(imu_dev, SENSOR_CHAN_GYRO_XYZ, gyro);
@@ -69,6 +75,7 @@ int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &
     if (bret != 0) {
         return bret;
     }
+    return iret;
     return iret;
 }
 
@@ -87,12 +94,13 @@ int initBarom() {
 
 #ifdef CONFIG_MS56XX
     sensor_value odr{.val1 = 2048, .val2 = 0};
+    sensor_value odr{.val1 = 2048, .val2 = 0};
     int ret = sensor_attr_set(barom_dev, SENSOR_CHAN_PRESS, SENSOR_ATTR_OVERSAMPLING, &odr);
     if (ret < 0) {
         LOG_WRN("Barometer pressure oversampling configuration failed. Pressure readings may be inaccurate.");
         return ret;
     }
-
+    
     odr.val1 = 1024;
     ret = sensor_attr_set(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, SENSOR_ATTR_OVERSAMPLING, &odr);
     if (ret < 0) {
