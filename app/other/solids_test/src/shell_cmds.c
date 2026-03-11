@@ -92,6 +92,19 @@ static int cmd_test_estop(const struct shell *shell, size_t argc, char **argv) {
     return 0;
 }
 
+static int cmd_test_set_channel(const struct shell *shell, size_t argc, char **argv) {
+    if (argc != 2){
+        shell_error(shell, "usage: test set_channel X. 0 = double ended, 1 = single ended");
+        return -1;
+    }
+    uint32_t channel = atoi(argv[1]);
+    if (channel > 2){
+        shell_error(shell, "Only two channels supported");
+    }
+    flash_set_channel(channel);
+    return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_test, SHELL_CMD(start, NULL, "Start test. Arg [calibration name]", cmd_test_start),
                                SHELL_CMD(stop, NULL, "Stop test preemptively", cmd_test_stop),
                                SHELL_CMD(dump, NULL, "Dump flash data. Optional arg [test #]", cmd_test_dump),
@@ -99,6 +112,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_test, SHELL_CMD(start, NULL, "Start test. Arg
                                SHELL_CMD(read, NULL, "Read one (or more) samples", cmd_test_print_one),
                                SHELL_CMD(ematch, NULL, "Set ematch high", cmd_test_ematch),
                                SHELL_CMD(estop, NULL, "Set ematch low", cmd_test_estop),
+                               SHELL_CMD(set_channel, NULL, "Set the ADC channel", cmd_test_set_channel),
                                SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(test, &sub_test, "Solids Test Board control commands", NULL);

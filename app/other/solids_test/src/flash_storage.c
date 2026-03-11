@@ -295,3 +295,12 @@ int flash_erase_all(const struct shell *shell) {
 uint8_t flash_get_metadata_channel(){
     return metadata.channel_num;
 }
+int flash_set_channel(uint8_t channel_num){
+    if (channel_num >= 2){
+        return -1;
+    }
+
+    metadata.channel_num = channel_num;
+    save_metadata();
+    return 0;
+}
