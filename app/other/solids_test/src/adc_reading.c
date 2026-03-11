@@ -41,19 +41,23 @@ static bool terminal = true;
 static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
 
+BUILD_ASSERT(sizeof(adc_channels)/sizeof(struct adc_dt_spec) == 2, "needs two of those");
+
 int adc_init() {
-    if (!adc_is_ready_dt(&adc_channels[0])) {
-        LOG_ERR("ADC controller device %s not ready\n", adc_channels[0].dev->name);
+    const struct adc_dt_spec *selected_channel = &adc_channels[0];
+
+    if (!adc_is_ready_dt(selected_channel)) {
+        LOG_ERR("ADC controller device %s not ready\n", selected_channel->dev->name);
         return -1;
     }
 
-    int err = adc_channel_setup_dt(&adc_channels[0]);
+    int err = adc_channel_setup_dt(selected_channel);
     if (err < 0) {
         LOG_ERR("Could not setup channel (%d)\n", err);
         return -1;
     }
 
-    (void) adc_sequence_init_dt(&adc_channels[0], &sequence);
+    (void) adc_sequence_init_dt(selected_channel, &sequence);
 
     LOG_INF("ADC initialized");
     return 0;
