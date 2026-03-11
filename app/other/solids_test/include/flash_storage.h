@@ -44,6 +44,11 @@ int flash_dump_all(const struct shell *shell);
  */
 int flash_erase_all(const struct shell *shell);
 
+/**
+ * @brief Get the channel number stored in flash
+ * @return the index of the ADC channel that this device was configured with
+ */
+uint8_t flash_get_metadata_channel();
 extern struct k_msgq storage_control_queue;
 
 #endif // FLASH_STORAGE_H

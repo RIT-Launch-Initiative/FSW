@@ -24,14 +24,20 @@ LOG_MODULE_REGISTER(flash_storage, LOG_LEVEL_INF);
 #define FLASH_METADATA_SIZE  (4 * 1024)  // 4KB
 #define SPI_FLASH_START_ADDR (FLASH_METADATA_ADDR + FLASH_METADATA_SIZE)
 
-enum storage_event { BEGIN_STORAGE, END_STORAGE };
+enum storage_event { SET_CHANNEL_0, SET_CHANNEL_1, BEGIN_STORAGE, END_STORAGE };
 
 K_MSGQ_DEFINE(storage_control_queue, sizeof(enum storage_event), 5, 1);
 
 K_MSGQ_DEFINE(adc_data_queue, sizeof(struct adc_sample), 1000, alignof(struct adc_sample));
 
+struct Metadata{
+    uint32_t current_test_number;
+    uint8_t channel_num;
+    uint8_t dummy[3];
+};
+
 static const struct device *flash_dev = DEVICE_DT_GET(DT_ALIAS(storage));
-static uint32_t current_test_number = 0;
+static struct Metadata metadata = {0};
 static off_t current_write_addr = 0;
 static char test_type[] = "terminal";
 
@@ -57,21 +63,26 @@ static bool flash_block_is_empty(off_t addr) {
 
 // Get and update current test number
 static void load_metadata() {
-    uint8_t buf[4];
-    if (flash_read(flash_dev, FLASH_METADATA_ADDR, buf, sizeof(buf)) < 0) {
+    struct Metadata meta = {0};
+    
+    if (flash_read(flash_dev, FLASH_METADATA_ADDR, &meta, sizeof(struct Metadata)) < 0) {
         LOG_ERR("Failed to read metadata");
-        current_test_number = 0;
+        // load defaults
+        metadata.current_test_number = meta.current_test_number;
+        metadata.channel_num = meta.channel_num;
         return;
     }
 
-    // If all are erased (0xFF), assume no tests yet
-    if (buf[0] == 0xFF && buf[1] == 0xFF && buf[2] == 0xFF && buf[3] == 0xFF) {
-        current_test_number = 0;
+    // If all are erased (0xFF), assume no tests yet and channel 0
+    if (meta.current_test_number == 0xFFFFFFFF && meta.channel_num == 0xFF && meta.dummy[0] == 0xFF && meta.dummy[1] == 0xFF && meta.dummy[2] == 0xFF) {
+        // load defaults
+        metadata.current_test_number = 0;
+        metadata.channel_num = 0;
     } else {
-        memcpy(&current_test_number, buf, sizeof(current_test_number));
+        metadata = meta;
     }
 
-    LOG_INF("Next test: %d", current_test_number);
+    LOG_INF("Next test: %d - Channel: %d", metadata.current_test_number, metadata.channel_num);
 }
 
 static void save_metadata() {
@@ -82,13 +93,13 @@ static void save_metadata() {
         return;
     }
 
-    ret = flash_write(flash_dev, FLASH_METADATA_ADDR, &current_test_number, sizeof(current_test_number));
+    ret = flash_write(flash_dev, FLASH_METADATA_ADDR, &metadata, sizeof(metadata));
 
     if (ret < 0) {
         LOG_ERR("flash_write(metadata) failed: %d", ret);
     }
 
-    LOG_INF("Next test: %d", current_test_number);
+    LOG_INF("Next test: %d - Channel: %d", metadata.current_test_number, metadata.channel_num);
 }
 
 static off_t get_test_block_addr(uint32_t test_index) {
@@ -110,14 +121,14 @@ void flash_storage_thread_entry(void*, void*, void*) {
         k_msgq_get(&storage_control_queue, &event, K_FOREVER);
         if (event != BEGIN_STORAGE) continue;
 
-        if (current_test_number >= MAX_TESTS) {
+        if (metadata.current_test_number >= MAX_TESTS) {
             LOG_ERR("Maximum number of tests reached!");
             beep_full();
             continue;
         }
 
-        off_t test_block_addr = get_test_block_addr(current_test_number);
-        LOG_INF("Starting test %u at addr 0x%08lx", current_test_number, (long) test_block_addr);
+        off_t test_block_addr = get_test_block_addr(metadata.current_test_number);
+        LOG_INF("Starting test %u at addr 0x%08lx", metadata.current_test_number, (long) test_block_addr);
 
         // Erase block
         int ret = flash_erase(flash_dev, test_block_addr, SPI_FLASH_BLOCK_SIZE);
@@ -141,8 +152,8 @@ void flash_storage_thread_entry(void*, void*, void*) {
 
         while (true) {
             if (k_msgq_get(&storage_control_queue, &event, K_NO_WAIT) == 0 && event == END_STORAGE) {
-                LOG_INF("Test %d complete", current_test_number);
-                current_test_number++;
+                LOG_INF("Test %d complete", metadata.current_test_number);
+                metadata.current_test_number++;
                 save_metadata();
                 break;
             }
@@ -182,7 +193,7 @@ int start_flash_storage(char calib_name[], bool terminal_test) {
     int res1 = strcmp(calib_name, "default");
     int res2 = strcmp(calib_name, "");
     if (res1 == 0 || res2 == 0) {
-        snprintf(calibration, sizeof(calibration), "Test %u", current_test_number);
+        snprintf(calibration, sizeof(calibration), "Test %u", metadata.current_test_number);
     } else {
         snprintf(calibration, sizeof(calibration), "%s", calib_name);
     }
@@ -275,8 +286,12 @@ int flash_erase_all(const struct shell *shell) {
         }
     }
 
-    current_test_number = 0;
+    metadata.current_test_number = 0;
     save_metadata();
 
     return 0;
+}
+
+uint8_t flash_get_metadata_channel(){
+    return metadata.channel_num;
 }

@@ -1,12 +1,13 @@
 #include "adc_reading.h"
+
 #include "buzzer.h"
 #include "config.h"
-#include "flash_storage.h"
 #include "control.h"
+#include "flash_storage.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/kernel.h>
@@ -30,7 +31,7 @@ extern struct k_msgq adc_data_queue;
 static K_EVENT_DEFINE(adc_control_event);
 static K_TIMER_DEFINE(adc_timer, NULL, NULL);
 
-void adc_reading_task(void*, void*, void*);
+void adc_reading_task(void *, void *, void *);
 
 static uint32_t adc_buffer;
 static struct adc_sequence sequence = {.buffer = &adc_buffer, .buffer_size = sizeof(adc_buffer), .resolution = 24};
@@ -41,10 +42,14 @@ static bool terminal = true;
 static const struct adc_dt_spec adc_channels[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
 
-BUILD_ASSERT(sizeof(adc_channels)/sizeof(struct adc_dt_spec) == 2, "needs two of those");
+static const uint32_t num_channels = sizeof(adc_channels) / sizeof(struct adc_dt_spec);
 
-int adc_init() {
-    const struct adc_dt_spec *selected_channel = &adc_channels[0];
+int adc_init(uint8_t channel_num) {
+    if (channel_num >= num_channels){
+        LOG_ERR("Invalid channel");
+        return -1;
+    }
+    const struct adc_dt_spec *selected_channel = &adc_channels[channel_num];
 
     if (!adc_is_ready_dt(selected_channel)) {
         LOG_ERR("ADC controller device %s not ready\n", selected_channel->dev->name);
@@ -74,7 +79,7 @@ void adc_read_one(uint32_t *adc_val) {
     }
 }
 
-void adc_reading_task(void*, void*, void*) {
+void adc_reading_task(void *, void *, void *) {
     uint32_t adc_val = 0;
     struct adc_sample sample = {0};
     while (true) {
@@ -82,6 +87,9 @@ void adc_reading_task(void*, void*, void*) {
 
         // Wait for start event
         k_event_wait(&adc_control_event, BEGIN_READING_EVENT, true, K_FOREVER);
+
+        uint8_t channel = flash_get_metadata_channel();
+        adc_init(channel);
         LOG_INF("ADC reading started");
         set_ldo(1);
         // Delay test 2 seconds, beep when test actually starts
@@ -96,7 +104,7 @@ void adc_reading_task(void*, void*, void*) {
         uint64_t total_loop_ticks = 0;
         uint32_t num_missed_expires = 0;
         uint64_t start_time_ticks = k_uptime_ticks();
-        
+
         while (true) {
             uint32_t start_loop_ticks = k_uptime_ticks();
             uint32_t events =
@@ -128,7 +136,7 @@ void adc_reading_task(void*, void*, void*) {
 
             sample.timestamp = k_ticks_to_us_near32(k_uptime_ticks() - start_time_ticks);
             sample.value = adc_val;
-            
+
             if (k_msgq_put(&adc_data_queue, &sample, K_NO_WAIT) != 0) {
                 dropped_samples++;
             }
@@ -144,18 +152,18 @@ void adc_reading_task(void*, void*, void*) {
 
         set_ldo(0);
         k_timer_stop(&adc_timer);
-        LOG_INF(
-            "number of samples: %d, %u missed, %u dropped, read time %llu, ms per = %.2f, loop time: %llu, loop time ticks: %llu",
-            x, num_missed_expires, dropped_samples, k_ticks_to_ms_near64(total_adc_ticks),
-            (double) k_ticks_to_ms_near64(total_adc_ticks) / (double) x, k_ticks_to_ms_near64(total_loop_ticks),
-            total_loop_ticks);
+        LOG_INF("number of samples: %d, %u missed, %u dropped, read time %llu, ms per = %.2f, loop time: %llu, loop "
+                "time ticks: %llu",
+                x, num_missed_expires, dropped_samples, k_ticks_to_ms_near64(total_adc_ticks),
+                (double) k_ticks_to_ms_near64(total_adc_ticks) / (double) x, k_ticks_to_ms_near64(total_loop_ticks),
+                total_loop_ticks);
         test_end_beep();
     }
 }
 
-void adc_start_reading(bool terminal_test) { 
+void adc_start_reading(bool terminal_test) {
     terminal = terminal_test; // Whether test was triggered by terminal command or meep
-    k_event_set(&adc_control_event, BEGIN_READING_EVENT); 
+    k_event_set(&adc_control_event, BEGIN_READING_EVENT);
 }
 
 void adc_stop_recording() { k_event_set(&adc_control_event, STOP_READING_EVENT); }

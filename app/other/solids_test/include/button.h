@@ -11,9 +11,4 @@
  */
 int button_switch_init();
 
-/**
- * @brief Thread to beep continuously if key switch is closed and test is not started
- */
-void buzzer_task(void*, void*, void*);
-
 #endif // BUTTON_H

@@ -10,12 +10,10 @@
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 // APPLICATION: Executed just before application code (main)
-SYS_INIT(adc_init, APPLICATION, SYS_INIT_PRIORITY);
 SYS_INIT(buzzer_init, APPLICATION, SYS_INIT_PRIORITY);
 SYS_INIT(button_switch_init, APPLICATION, SYS_INIT_PRIORITY);
 
 K_THREAD_DEFINE(adc_thread, 1024, adc_reading_task, NULL, NULL, NULL, 15, 0, THREAD_START_DELAY);
-K_THREAD_DEFINE(buzz_thread, 512, buzzer_task, NULL, NULL, NULL, 10, 0, 0);
 K_THREAD_DEFINE(storage_thread, 2048, flash_storage_thread_entry, NULL, NULL, NULL, STORAGE_THREAD_PRIORITY, 0, 1000);
 
 int main(void) {

@@ -13,12 +13,6 @@ struct adc_sample {
 };
 
 /**
- * @brief Initialize the ADC device and channel
- * @return 0 if successful
- */
-int adc_init();
-
-/**
  * @brief Read one ADC sample
  * @param[out] adc_val Pointer to value where sample will be written
  */
