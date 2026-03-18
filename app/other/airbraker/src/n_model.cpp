@@ -23,6 +23,8 @@ const Matrix<4, 2> kalman_gain{{
 }};
 
 static Matrix<4, 1> kalman_state({KALMAN_INITIAL_STATE_INITIALIZER});
+
+static Matrix<3,3> gyroOrientation = Matrix<3,3>::Identity();
 static bool everWentOutOfBounds = false;
 
 
@@ -59,9 +61,62 @@ float AltitudeMetersFromPressureKPa(float pressure_kpa) {
     return altitude;
 }
 
-void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro) {}
+Matrix<3, 3> expGyro(float w_1, float w_2, float w_3, float t) {
+    float w_1² = w_1 * w_1;
+    float w_2² = w_2 * w_2;
+    float w_3² = w_3 * w_3;
+    float w_1w_2 = w_1 * w_2;
+    float w_1w_3 = w_1 * w_3;
+    float w_2w_3 = w_2 * w_3;
+    // clang-format off
+    Matrix<3,3> A{{
+         0,    -w_3,    w_2, 
+         w_3,    0,    -w_1, 
+        -w_2,    w_1,     0,
+    }};
+    Matrix<3,3> A²{{
+        -(w_2² + w_3²),    w_1w_2,           w_1w_3,
+          w_1w_2,         -(w_1²+w_3²),       w_2w_3,
+          w_1w_3,           w_2w_3,         -(w_1²+w_2²),
+    }};
+
+    // clang-format on
+    float norm_sqred = w_1² + w_2² + w_3²;
+    float norm = std::sqrt(norm_sqred);
+    float normt = norm * t;
+
+    float s = std::sin(normt) / norm;
+    float c = (1 - std::cos(normt)) / (norm_sqred);
+
+    Matrix<3, 3> I = Matrix<3, 3>::Identity();
+
+    auto eᴬᵗ = I + A * s + A² * c;
+    return eᴬᵗ;
+}
+
+
+float deg2rad(float d){
+    return d / 180.0F * 3.14159F;
+}
+void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro) {
+    const float t = 0.01;
+    Matrix<3,3> eAT = expGyro(gyro.X, gyro.Y, gyro.Z, t);
+    gyroOrientation = gyroOrientation * eAT;
+
+    // initial and startAxis are dependent on orientation_quat of imu
+    Matrix<3,1> initial{{0,0,1}};
+    Matrix<3,1> now = gyroOrientation * initial;
+
+    // pre transposed
+    Matrix<1,3> startAxis{{0,0,1}};
+
+    
+    float offStart = acos((startAxis * now).Get(0,0));
+    bool outOfBounds = offStart > deg2rad(30);
+    everWentOutOfBounds |= outOfBounds;
+}
+
 int GetOrientation() { return 0; }
-bool gyroOutOfBounds() { return false; }
 bool EverWentOutOfBounds() { return everWentOutOfBounds; }
 
 } // namespace NModel

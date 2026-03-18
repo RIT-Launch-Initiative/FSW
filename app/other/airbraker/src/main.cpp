@@ -32,75 +32,17 @@ uint32_t packet_timestamp() {
         return 0;                                                                                                      \
     }
 
-volatile float zro = 0;
-volatile float one = 1;
-volatile float two = 2;
-volatile float thr = 3;
-
-void print3x3(const Matrix<3, 3> &mat) {
-    printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(0, 0), (double) mat.Get(0, 1), (double) mat.Get(0, 2));
-    printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(1, 0), (double) mat.Get(1, 1), (double) mat.Get(1, 2));
-    printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(2, 0), (double) mat.Get(2, 1), (double) mat.Get(2, 2));
-}
-
-Matrix<3, 3> expGyro(float w_1, float w_2, float w_3, float t) {
-    float w_1² = w_1 * w_1;
-    float w_2² = w_2 * w_2;
-    float w_3² = w_3 * w_3;
-    float w_1w_2 = w_1 * w_2;
-    float w_1w_3 = w_1 * w_3;
-    float w_2w_3 = w_2 * w_3;
-    // clang-format off
-    Matrix<3,3> A{{
-         0,    -w_3,    w_2, 
-         w_3,    0,    -w_1, 
-        -w_2,    w_1,     0,
-    }};
-    Matrix<3,3> A²{{
-        -(w_2² + w_3²),    w_1w_2,           w_1w_3,
-          w_1w_2,         -(w_1²+w_3²),       w_2w_3,
-          w_1w_3,           w_2w_3,         -(w_1²+w_2²),
-    }};
-
-    // clang-format on
-    float norm_sqred = w_1² + w_2² + w_3²;
-    float norm = std::sqrt(norm_sqred);
-    float normt = norm * t;
-
-    float s = std::sin(normt) / norm;
-    float c = (1 - std::cos(normt)) / (norm_sqred);
-
-    Matrix<3, 3> I = Matrix<3, 3>::Identity();
-
-    auto eᴬᵗ = I + A * s + A² * c;
-    return eᴬᵗ;
+NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes::GyroscopeData &bias){
+    return {
+        .X = data.X - bias.X,
+        .Y = data.Y - bias.Y,
+        .Z = data.Z - bias.Z
+    };
 }
 
 int main() {
     // NBuzzer::SetBuzzer(true);
     NSensing::InitSensors();
-
-    const float arr[] = {zro, -thr, two, thr, zro, -one, -two, one, zro};
-
-    Matrix<3, 3> At{arr};
-
-    {
-        int64_t start = k_cycle_get_64();
-        Matrix<3, 3> res = matrixExpPowSeries(At, 40);
-        int64_t elapsed_cyc = k_cycle_get_64() - start;
-        int elapsed_us = k_cyc_to_us_ceil32(elapsed_cyc);
-        printk("matrix exp took %d us\n", elapsed_us);
-        printk("e^At:           %d us\n", elapsed_us);
-        print3x3(res);
-
-        start = k_cycle_get_64();
-        Matrix<3, 3> res2 = expGyro(one, two, thr, one);
-        elapsed_cyc = k_cycle_get_64() - start;
-        elapsed_us = k_cyc_to_us_ceil32(elapsed_cyc);
-        printk("e^At (cool):    %d us\n", elapsed_us);
-        print3x3(res2);
-
-    }
 
     if (NStorage::HasStoredFlight()) {
         CancelFlight();
@@ -134,16 +76,12 @@ int main() {
 
     // servo not allowed until after under mach. disable to save power
     DisableServo();
-    int64_t elapsed_total_sum = 0;
-    int64_t elapsed_calc_sum = 0;
-    int i = 0;
     while (!NBoost::IsDetected()) {
         RETURN0_IF_CANCELLED;
         k_timer_status_sync(&measurement_timer);
-        int64_t total_start = k_cycle_get_64();
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-        int64_t think_start = k_cycle_get_64();
+
         float vertical = packet.accelRaw.Z; //UpAxisFrom(UP_AXIS, packet.accelRaw);
 
         NBoost::FeedDetector(vertical);
@@ -155,19 +93,6 @@ int main() {
         packet.effort = 0; // no fun until after burnout
 
         NPreBoost::SubmitPreBoostPacket(packet);
-        int64_t end = k_cycle_get_64();
-        int64_t total_elapsed = end - total_start;
-        int64_t think_elapsed = end - think_start;
-        int total_us_elapsed = k_cyc_to_us_near32(total_elapsed);
-        int think_us_elapsed = k_cyc_to_us_near32(think_elapsed);
-        elapsed_total_sum += total_us_elapsed;
-        elapsed_calc_sum += think_us_elapsed;
-        i++;
-        if (i % 20 == 0) {
-            // LOG_INF("Took %d - %d for cals", (int)(elapsed_total_sum / 20), (int)(elapsed_calc_sum/20));
-            elapsed_total_sum = 0;
-            elapsed_calc_sum = 0;
-        }
     }
     RETURN0_IF_CANCELLED;
     LOG_INF("Boost Detected");
@@ -197,7 +122,9 @@ int main() {
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
         float vertical = packet.accelRaw.Z; // UpAxisFrom(UP_AXIS, packet.accelRaw);
 
-        NModel::FeedGyro(packet.timestamp, packet.gyro);
+
+        NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
+        NModel::FeedGyro(packet.timestamp, unbiasedGyro);
 
         NModel::FeedKalman(packet.timestamp, altMeters, vertical);
         packet.kalmanState = NModel::LastKalmanState();
