@@ -43,27 +43,27 @@ void print3x3(const Matrix<3, 3> &mat) {
     printk("%+.8f  %+.8f  %+.8f\n", (double) mat.Get(2, 0), (double) mat.Get(2, 1), (double) mat.Get(2, 2));
 }
 
-Matrix<3, 3> expGyro(float ω₁, float ω₂, float ω₃, float t) {
-    float ω₁² = ω₁ * ω₁;
-    float ω₂² = ω₂ * ω₂;
-    float ω₃² = ω₃ * ω₃;
-    float ω₁ω₂ = ω₁ * ω₂;
-    float ω₁ω₃ = ω₁ * ω₃;
-    float ω₂ω₃ = ω₂ * ω₃;
+Matrix<3, 3> expGyro(float w_1, float w_2, float w_3, float t) {
+    float w_1² = w_1 * w_1;
+    float w_2² = w_2 * w_2;
+    float w_3² = w_3 * w_3;
+    float w_1w_2 = w_1 * w_2;
+    float w_1w_3 = w_1 * w_3;
+    float w_2w_3 = w_2 * w_3;
     // clang-format off
     Matrix<3,3> A{{
-         0,    -ω₃,    ω₂, 
-         ω₃,    0,    -ω₁, 
-        -ω₂,    ω₁,     0,
+         0,    -w_3,    w_2, 
+         w_3,    0,    -w_1, 
+        -w_2,    w_1,     0,
     }};
     Matrix<3,3> A²{{
-        -(ω₂² + ω₃²),   ω₁ω₂,           ω₁ω₃,
-         ω₁ω₂,         -(ω₁²+ω₃²),    ω₂ω₃,
-         ω₁ω₃,          ω₂ω₃,         -(ω₁²+ω₂²),
+        -(w_2² + w_3²),    w_1w_2,           w_1w_3,
+          w_1w_2,         -(w_1²+w_3²),       w_2w_3,
+          w_1w_3,           w_2w_3,         -(w_1²+w_2²),
     }};
 
     // clang-format on
-    float norm_sqred = ω₁² + ω₂² + ω₃²;
+    float norm_sqred = w_1² + w_2² + w_3²;
     float norm = std::sqrt(norm_sqred);
     float normt = norm * t;
 
@@ -125,7 +125,7 @@ int main() {
     Parameters params{};
     params.bootcount = NStorage::GetBootcount();
     NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-    float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
+    float vertical = packet.accelRaw.Z; // UpAxisFrom(UP_AXIS, packet.accelRaw);
 
     NBoost::FeedDetector(vertical);
 
@@ -144,7 +144,7 @@ int main() {
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         int64_t think_start = k_cycle_get_64();
-        float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
+        float vertical = packet.accelRaw.Z; //UpAxisFrom(UP_AXIS, packet.accelRaw);
 
         NBoost::FeedDetector(vertical);
 
@@ -195,7 +195,7 @@ int main() {
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
-        float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
+        float vertical = packet.accelRaw.Z; // UpAxisFrom(UP_AXIS, packet.accelRaw);
 
         NModel::FeedGyro(packet.timestamp, packet.gyro);
 

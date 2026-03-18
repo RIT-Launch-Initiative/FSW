@@ -4,6 +4,7 @@
 namespace NModel {
 // Return static string built into LUT definition from matlab
 const char *GetMatlabLUTName();
+const char *GetMatlabLUTDate();
 
 float AltitudeMetersFromPressureKPa(float kPa);
 

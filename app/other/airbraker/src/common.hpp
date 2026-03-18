@@ -1,5 +1,6 @@
 #pragma once
 #include "n_autocoder_types.h"
+#include "quantile_lut_data.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -68,9 +69,9 @@ constexpr size_t NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED = 25;
 constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 10;
 
 #ifdef CONFIG_OPENROCKET_SENSORS
-constexpr UpAxis UP_AXIS = UpAxis::PosZ;
+constexpr float UP_AXIS_QUAT[4] = {1,0,0,0};
 #else
-constexpr UpAxis UP_AXIS = UpAxis::NegXNegY;
+constexpr float UP_AXIS_QUAT[4] = {KALMAN_UP_AXIS_QUAT_INITIALIZER};
 #endif
 
 
@@ -94,12 +95,11 @@ struct Parameters {
     uint32_t numFlightPackets = NUM_FLIGHT_PACKETS;
     uint32_t numPreboostPackets = NUM_STORED_PREBOOST_PACKETS;
     uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
-    uint32_t controllerHash = {0}; // TODO: hash of CSV of LUT that ran this flight
-    UpAxis upAxis;
-    uint8_t dummy[3];
+    uint8_t controllerHash[LUT_MD5SUM_ARRAY_LEN] = {LUT_MD5SUM_INITIALIZER};
+    float upAxisQuaternion[4];
 };
 
-static_assert(sizeof(Parameters) == 52, "Check size of parameters");
+static_assert(sizeof(Parameters) == 76, "Check size of parameters");
 
 struct Packet {
     uint32_t timestamp;

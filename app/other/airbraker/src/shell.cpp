@@ -44,7 +44,9 @@ static int cmd_nogo(const struct shell *shell, size_t /*argc*/, char ** /*argv*/
 
 static int cmd_read_info(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     shell_print(shell, "Airbrakes - " CONFIG_BOARD " - %s %s", __DATE__, __TIME__);
-    shell_print(shell, "Model Version: %s", NModel::GetMatlabLUTName());
+    shell_print(shell, "Model Name: %s", NModel::GetMatlabLUTName());
+    shell_print(shell, "Model Date: %s", NModel::GetMatlabLUTDate());
+    shell_print(shell, "Model Hash: %s", LUT_MD5SUM_STR);
     shell_print(shell, "Flight: =================================");
     shell_print(shell, "Lockout:            %u ms", LOCKOUT_MS);
     shell_print(shell, "Flight Time:        %u s", FLIGHT_TIME_MS);
@@ -198,8 +200,13 @@ static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /
     shell_print(shell, "Flight Length:            %d (pkts)", p.numFlightPackets);
     shell_print(shell, "Preboost Length:          %d (pkts)", p.numPreboostPackets);
     shell_print(shell, "Gyro Bias Length:         %d (samples)", p.numSamplesForGyroBias);
-    shell_print(shell, "ControllerHash:           0x%08x", p.controllerHash);
-    shell_print(shell, "UpAxis Enum:              %d", (int)p.upAxis);
+    shell_fprintf_normal(shell, "ControllerHash:  ");
+    shell_hexdump(shell, p.controllerHash, LUT_MD5SUM_ARRAY_LEN);
+    shell_print(shell, "UpAxis Quaternion:");
+    shell_print(shell, "    A:                    %f", (double)UP_AXIS_QUAT[0]);
+    shell_print(shell, "    B:                    %f", (double)UP_AXIS_QUAT[1]);
+    shell_print(shell, "    C:                    %f", (double)UP_AXIS_QUAT[2]);
+    shell_print(shell, "    D:                    %f", (double)UP_AXIS_QUAT[3]);
 
     return 0;
 }
@@ -224,7 +231,7 @@ static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*a
     shell_info(shell, "Accel Y:    %f m/s2", (double) p.accelRaw.Y);
     shell_info(shell, "Accel Z:    %f m/s2", (double) p.accelRaw.Z);
 
-    shell_info(shell, "Accel Up:   %f m/s2", (double) UpAxisFrom(UP_AXIS, p.accelRaw));
+    // shell_info(shell, "Accel Up:   %f m/s2", (double) UpAxisFrom(UP_AXIS, p.accelRaw));
 
     shell_info(shell, "Gyro X:     %f dps", (double) p.gyro.X);
     shell_info(shell, "Gyro Y:     %f dps", (double) p.gyro.Y);
