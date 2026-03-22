@@ -1,7 +1,5 @@
 #include "c_sensing_tenant.h"
 
-#include <math.h>
-
 #include "c_sensor_module.h"
 
 #include <f_core/device/sensor/c_accelerometer.h>
@@ -10,13 +8,16 @@
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <f_core/device/sensor/c_temperature_sensor.h>
 #include <f_core/device/sensor/n_sensor_calibrators.h>
+#include <math.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
+CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
+                               CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
                                CMessagePort<NTypes::TimestampedSensorData>& dataToLog, CDetectionHandler& handler)
-    : CRunnableTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
+    : CRunnableTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog),
+      dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
@@ -47,8 +48,7 @@ void CSensingTenant::Startup() {
     }
 
     calibrateADXL375();
-  
-  
+
 #endif
 }
 
@@ -58,11 +58,8 @@ void CSensingTenant::Run() {
     if (!detectionHandler.ContinueCollecting()) {
         return;
     }
-    NTypes::TimestampedSensorData timestampedData{
-        .timestamp = 0,
-        .data = {0}
-    };
-    NTypes::SensorData &data = timestampedData.data;
+    NTypes::TimestampedSensorData timestampedData{.timestamp = 0, .data = {0}};
+    NTypes::SensorData& data = timestampedData.data;
 
     uint64_t uptime = k_uptime_get();
 
@@ -146,20 +143,23 @@ void CSensingTenant::Run() {
 
 void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
     NTypes::LoRaBroadcastSensorData downlinkData{
-        .Barometer = {
-            .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
-            .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
-        },
-        .Acceleration = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
-        },
-        .Gyroscope = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
-        },
+        .Barometer =
+            {
+                .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
+                .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
+            },
+        .Acceleration =
+            {
+                .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.X)),
+                .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Y)),
+                .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
+            },
+        .Gyroscope =
+            {
+                .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
+                .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
+                .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
+            },
     };
 
     dataToDownlink.Send(downlinkData, K_NO_WAIT);
@@ -192,11 +192,14 @@ void CSensingTenant::calibrateADXL375() {
     int32_t zDiff = abs(abs(imuZ) - SENSOR_G);
 
     if (xDiff < yDiff && xDiff < zDiff) {
-        calibGravOrientation = (imuX > 0) ? NSensorCalibrators::GravityOrientation::PosX : NSensorCalibrators::GravityOrientation::NegX;
+        calibGravOrientation =
+            (imuX > 0) ? NSensorCalibrators::GravityOrientation::PosX : NSensorCalibrators::GravityOrientation::NegX;
     } else if (yDiff < xDiff && yDiff < zDiff) {
-        calibGravOrientation = (imuY > 0) ? NSensorCalibrators::GravityOrientation::PosY : NSensorCalibrators::GravityOrientation::NegY;
+        calibGravOrientation =
+            (imuY > 0) ? NSensorCalibrators::GravityOrientation::PosY : NSensorCalibrators::GravityOrientation::NegY;
     } else {
-        calibGravOrientation = (imuZ > 0) ? NSensorCalibrators::GravityOrientation::PosZ : NSensorCalibrators::GravityOrientation::NegZ;
+        calibGravOrientation =
+            (imuZ > 0) ? NSensorCalibrators::GravityOrientation::PosZ : NSensorCalibrators::GravityOrientation::NegZ;
     }
 
     // Need to account for the mounting orientation difference between the IMU and the ADXL375

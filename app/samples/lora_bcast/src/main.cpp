@@ -11,10 +11,10 @@
 #include <f_core/radio/c_lora.h>
 
 // Zephyr Includes
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/drivers/lora.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
 
@@ -29,12 +29,10 @@ int main() {
 #ifdef CONFIG_RECEIVER
         if (receiveFinished) {
             LOG_INF("Attempting to receive");
-            lora.ReceiveAsynchronous(
-                [](const device*, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr) {
-                    LOG_INF("Async Received: %s\tRSSI: %d\t SNR:%d", data, rssi, snr);
-                    receiveFinished = true;
-                }
-                );
+            lora.ReceiveAsynchronous([](const device*, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr) {
+                LOG_INF("Async Received: %s\tRSSI: %d\t SNR:%d", data, rssi, snr);
+                receiveFinished = true;
+            });
 
             receiveFinished = false;
         }

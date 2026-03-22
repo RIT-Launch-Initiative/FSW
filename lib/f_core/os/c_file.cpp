@@ -64,5 +64,3 @@ int CFile::Write(const void* data, const size_t len) {
 
     return fs_write(&file, data, len);
 }
-
-

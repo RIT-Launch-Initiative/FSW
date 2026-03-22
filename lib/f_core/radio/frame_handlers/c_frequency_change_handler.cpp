@@ -1,6 +1,7 @@
 #include "f_core/radio/frame_handlers/c_frequency_change_handler.h"
 
 #include "zephyr/logging/log.h"
+
 #include <arpa/inet.h>
 #include <cstring>
 
@@ -37,7 +38,6 @@ void CFrequencyChangeHandler::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame
     // Safe to do this since we can re-request telem if needed on pad/landing
     // And we shouldn't be changing frequency when the rocket is literally flying
     loraDownlinkMessagePort.Clear();
-
 
     const int sendRet = loraDownlinkMessagePort.Send(ackFrame, K_NO_WAIT);
     if (sendRet < 0) {

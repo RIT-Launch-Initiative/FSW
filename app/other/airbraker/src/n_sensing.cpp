@@ -33,7 +33,8 @@ int InitSensors() {
     return 0;
 }
 
-int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2, NTypes::GyroscopeData &gyroDps) {
+int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2,
+                   NTypes::GyroscopeData &gyroDps) {
     // todo, can make this less noisy by kicking off fetch, then doing other stuff, then reading
     int bret = sensor_sample_fetch(barom_dev);
     if (bret < 0) {
@@ -92,7 +93,7 @@ int initBarom() {
         LOG_WRN("Barometer pressure oversampling configuration failed. Pressure readings may be inaccurate.");
         return ret;
     }
-    
+
     odr.val1 = 1024;
     ret = sensor_attr_set(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, SENSOR_ATTR_OVERSAMPLING, &odr);
     if (ret < 0) {

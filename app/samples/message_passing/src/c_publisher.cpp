@@ -4,8 +4,8 @@
 
 LOG_MODULE_REGISTER(Publisher);
 
-CPublisher::CPublisher(CMessagePort<Message> &messagePort) : CRunnableTenant("Publisher"), messagePort(messagePort), message({})  {
-}
+CPublisher::CPublisher(CMessagePort<Message> &messagePort)
+    : CRunnableTenant("Publisher"), messagePort(messagePort), message({}) {}
 
 void CPublisher::Startup() {
     CBase::Startup();
@@ -18,5 +18,3 @@ void CPublisher::Run() {
     message.count++;
     messagePort.Send(message, K_NO_WAIT);
 }
-
-

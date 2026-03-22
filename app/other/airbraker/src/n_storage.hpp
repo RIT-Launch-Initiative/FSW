@@ -60,7 +60,6 @@ uint32_t GetParamPartitionSize();
  */
 uint32_t GetDataPartitionSize();
 
-
 /**
  * Read a block of data from the data partition at addr of size size into data
  * @param addr the address at which to read (in bytes, not packets)
@@ -68,5 +67,5 @@ uint32_t GetDataPartitionSize();
  * @param data[out] buffer to read into
  * @return 0 if success, negative error code if problem
  */
-int ReadDataBlock(uint32_t addr, uint32_t size, uint8_t*data);
+int ReadDataBlock(uint32_t addr, uint32_t size, uint8_t *data);
 } // namespace NStorage

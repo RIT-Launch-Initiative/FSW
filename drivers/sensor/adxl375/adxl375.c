@@ -6,271 +6,273 @@
 
 #define DT_DRV_COMPAT adi_adxl375
 
-#include <zephyr/drivers/sensor.h>
-#include <zephyr/kernel.h>
-#include <zephyr/device.h>
-#include <string.h>
-#include <zephyr/init.h>
-#include <zephyr/sys/printk.h>
-#include <zephyr/sys/__assert.h>
-#include <stdlib.h>
-#include <zephyr/logging/log.h>
-
 #include "adxl375.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/init.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/sys/__assert.h>
+#include <zephyr/sys/printk.h>
 
 LOG_MODULE_REGISTER(ADXL375, CONFIG_SENSOR_LOG_LEVEL);
 
-static int adxl375_check_id(const struct device *dev)
-{
-	struct adxl375_data *data = dev->data;
-	uint8_t device_id = 0;
+static int adxl375_check_id(const struct device *dev) {
+    struct adxl375_data *data = dev->data;
+    uint8_t device_id = 0;
 
-	int ret = data->hw_tf->read_reg(dev, ADXL375_DEVID, &device_id);
+    int ret = data->hw_tf->read_reg(dev, ADXL375_DEVID, &device_id);
 
-	if (ret != 0) {
-		return ret;
-	}
+    if (ret != 0) {
+        return ret;
+    }
 
-	if (ADXL375_DEVID_VAL != device_id) {
-		return -ENODEV;
-	}
+    if (ADXL375_DEVID_VAL != device_id) {
+        return -ENODEV;
+    }
 
-	return 0;
+    return 0;
 }
 
-static int adxl375_set_odr_and_lp(const struct device *dev, uint8_t data_rate,
-				  const bool low_power)
-{
-	struct adxl375_data *data = dev->data;
+static int adxl375_set_odr_and_lp(const struct device *dev, uint8_t data_rate, const bool low_power) {
+    struct adxl375_data *data = dev->data;
 
-	uint8_t reg = (uint8_t)(data_rate & 0x0F);
-	if (low_power) {
-		reg |= 0x10;
-	}
+    uint8_t reg = (uint8_t) (data_rate & 0x0F);
+    if (low_power) {
+        reg |= 0x10;
+    }
 
-	return data->hw_tf->write_reg(dev, ADXL375_BW_RATE, reg);
+    return data->hw_tf->write_reg(dev, ADXL375_BW_RATE, reg);
 }
 
-static int adxl375_set_op_mode(const struct device *dev, enum adxl375_op_mode op_mode)
-{
-	struct adxl375_data *data = dev->data;
-	return data->hw_tf->write_reg(dev, ADXL375_POWER_CTL, op_mode);
+static int adxl375_set_op_mode(const struct device *dev, enum adxl375_op_mode op_mode) {
+    struct adxl375_data *data = dev->data;
+    return data->hw_tf->write_reg(dev, ADXL375_POWER_CTL, op_mode);
 }
 
-static int adxl375_set_data_format(const struct device *dev, uint8_t val)
-{
-	struct adxl375_data *data = dev->data;
-	return data->hw_tf->write_reg(dev, ADXL375_DATA_FORMAT, val);
+static int adxl375_set_data_format(const struct device *dev, uint8_t val) {
+    struct adxl375_data *data = dev->data;
+    return data->hw_tf->write_reg(dev, ADXL375_DATA_FORMAT, val);
 }
 
-static int adxl375_init(const struct device *dev)
-{
-	int ret;
-	const struct adxl375_dev_config *cfg = dev->config;
+static int adxl375_init(const struct device *dev) {
+    int ret;
+    const struct adxl375_dev_config *cfg = dev->config;
 
-	ret = cfg->bus_init(dev);
-	if (ret < 0) {
-		LOG_ERR("Failed to initialize sensor bus.");
-		return ret;
-	}
+    ret = cfg->bus_init(dev);
+    if (ret < 0) {
+        LOG_ERR("Failed to initialize sensor bus.");
+        return ret;
+    }
 
-	ret = adxl375_check_id(dev);
-	if (ret < 0) {
-		LOG_ERR("Failed to get valid device ID.");
-		return ret;
-	}
+    ret = adxl375_check_id(dev);
+    if (ret < 0) {
+        LOG_ERR("Failed to get valid device ID.");
+        return ret;
+    }
 
-	uint8_t bw_rate = cfg->odr & 0x0F;
-	ret = adxl375_set_odr_and_lp(dev, bw_rate, cfg->lp);
-	if (ret < 0) {
-		LOG_ERR("Failed to set ODR and LP mode");
-		return ret;
-	}
+    uint8_t bw_rate = cfg->odr & 0x0F;
+    ret = adxl375_set_odr_and_lp(dev, bw_rate, cfg->lp);
+    if (ret < 0) {
+        LOG_ERR("Failed to set ODR and LP mode");
+        return ret;
+    }
 
-	// Need to force bits 3, 1 and 0 to set since the register defaults to 0
-	// See datasheet pages 20 and 24
-	ret = adxl375_set_data_format(dev, 0b00001011);
-	if (ret < 0) {
-		LOG_ERR("Failed to initialize data format");
-		return ret;
-	}
+    // Need to force bits 3, 1 and 0 to set since the register defaults to 0
+    // See datasheet pages 20 and 24
+    ret = adxl375_set_data_format(dev, 0b00001011);
+    if (ret < 0) {
+        LOG_ERR("Failed to initialize data format");
+        return ret;
+    }
 
-	ret = adxl375_set_op_mode(dev, ADXL375_MEASUREMENT);
-	if (ret < 0) {
-		LOG_ERR("Failed to put in standby mode");
-	}
+    ret = adxl375_set_op_mode(dev, ADXL375_MEASUREMENT);
+    if (ret < 0) {
+        LOG_ERR("Failed to put in standby mode");
+    }
 
-	return ret;
+    return ret;
 }
 
-static int adxl375_sample_fetch(const struct device *dev, enum sensor_channel chan)
-{
-	struct adxl375_data *data = dev->data;
-	uint8_t buff[6] = {0};
+static int adxl375_sample_fetch(const struct device *dev, enum sensor_channel chan) {
+    struct adxl375_data *data = dev->data;
+    uint8_t buff[6] = {0};
 
-	int ret = data->hw_tf->read_reg_multiple(dev, ADXL375_DATAX0, buff, 6);
-	if (ret < 0) {
-		LOG_ERR("Failed to read sample data");
-		return ret;
-	}
+    int ret = data->hw_tf->read_reg_multiple(dev, ADXL375_DATAX0, buff, 6);
+    if (ret < 0) {
+        LOG_ERR("Failed to read sample data");
+        return ret;
+    }
 
-	data->sample.x = (int16_t)((buff[1] << 8) | (buff[0]));
-	data->sample.y = (int16_t)((buff[3] << 8) | (buff[2]));
-	data->sample.z = (int16_t)((buff[5] << 8) | (buff[4]));
+    data->sample.x = (int16_t) ((buff[1] << 8) | (buff[0]));
+    data->sample.y = (int16_t) ((buff[3] << 8) | (buff[2]));
+    data->sample.z = (int16_t) ((buff[5] << 8) | (buff[4]));
 
-	return ret;
+    return ret;
 }
 
-static void adxl375_accel_convert(struct sensor_value *val, int16_t raw)
-{
-	int64_t micro_ms2 = (int64_t)raw * SENSOR_G * 49;
-	micro_ms2 /= 1000;
-	sensor_value_from_micro(val, micro_ms2);
+static void adxl375_accel_convert(struct sensor_value *val, int16_t raw) {
+    int64_t micro_ms2 = (int64_t) raw * SENSOR_G * 49;
+    micro_ms2 /= 1000;
+    sensor_value_from_micro(val, micro_ms2);
 }
 
-static int adxl375_channel_get(const struct device *dev, enum sensor_channel chan,
-			       struct sensor_value *val)
-{
-	struct adxl375_data *data = dev->data;
+static int adxl375_channel_get(const struct device *dev, enum sensor_channel chan, struct sensor_value *val) {
+    struct adxl375_data *data = dev->data;
 
-	switch (chan) {
-	case SENSOR_CHAN_ACCEL_X:
-		adxl375_accel_convert(val, data->sample.x);
-		break;
-	case SENSOR_CHAN_ACCEL_Y:
-		adxl375_accel_convert(val, data->sample.y);
-		break;
-	case SENSOR_CHAN_ACCEL_Z:
-		adxl375_accel_convert(val, data->sample.z);
-		break;
-	case SENSOR_CHAN_ACCEL_XYZ:
-		adxl375_accel_convert(val++, data->sample.x);
-		adxl375_accel_convert(val++, data->sample.y);
-		adxl375_accel_convert(val, data->sample.z);
-		break;
-	default:
-		return -ENOTSUP;
-	}
+    switch (chan) {
+        case SENSOR_CHAN_ACCEL_X:
+            adxl375_accel_convert(val, data->sample.x);
+            break;
+        case SENSOR_CHAN_ACCEL_Y:
+            adxl375_accel_convert(val, data->sample.y);
+            break;
+        case SENSOR_CHAN_ACCEL_Z:
+            adxl375_accel_convert(val, data->sample.z);
+            break;
+        case SENSOR_CHAN_ACCEL_XYZ:
+            adxl375_accel_convert(val++, data->sample.x);
+            adxl375_accel_convert(val++, data->sample.y);
+            adxl375_accel_convert(val, data->sample.z);
+            break;
+        default:
+            return -ENOTSUP;
+    }
 
-	return 0;
+    return 0;
 }
 
-static int adxl375_hz_to_rate_code(const struct sensor_value *val, uint8_t *code)
-{
-	int32_t hz = val->val1;
-	int32_t u  = val->val2;
+static int adxl375_hz_to_rate_code(const struct sensor_value *val, uint8_t *code) {
+    int32_t hz = val->val1;
+    int32_t u = val->val2;
 
-	// Ignore the micro part, unless its 0 with multiple sub-hz frequencies
-	if (hz == 12) {
-		*code = 0x07;
-		return 0;
-	} else if (hz == 6) {
-		*code = 0x06;
-		return 0;
-	} else if (hz == 3) {
-		*code = 0x05;
-		return 0;
-	} else if (hz == 1) {
-		*code = 0x04;
-		return 0;
-	} else if (hz == 0 && u > 78) {
-		*code = 0x03;
-		return 0;
-	} else if (hz == 0 && u > 39) {
-		*code = 0x02;
-		return 0;
-	} else if (hz == 0 && u > 20) {
-		*code = 0x01;
-		return 0;
-	} else if (hz == 0 && u > 10) {
-		*code = 0x00;
-		return 0;
-	}
+    // Ignore the micro part, unless its 0 with multiple sub-hz frequencies
+    if (hz == 12) {
+        *code = 0x07;
+        return 0;
+    } else if (hz == 6) {
+        *code = 0x06;
+        return 0;
+    } else if (hz == 3) {
+        *code = 0x05;
+        return 0;
+    } else if (hz == 1) {
+        *code = 0x04;
+        return 0;
+    } else if (hz == 0 && u > 78) {
+        *code = 0x03;
+        return 0;
+    } else if (hz == 0 && u > 39) {
+        *code = 0x02;
+        return 0;
+    } else if (hz == 0 && u > 20) {
+        *code = 0x01;
+        return 0;
+    } else if (hz == 0 && u > 10) {
+        *code = 0x00;
+        return 0;
+    }
 
-	switch (hz) {
-	case 0:    *code = 0x00; return 0;
-	case 1:    *code = 0x03; return 0;
-	case 25:   *code = 0x08; return 0;
-	case 50:   *code = 0x09; return 0;
-	case 100:  *code = 0x0A; return 0;
-	case 200:  *code = 0x0B; return 0;
-	case 400:  *code = 0x0C; return 0;
-	case 800:  *code = 0x0D; return 0;
-	case 1600: *code = 0x0E; return 0;
-	case 3200: *code = 0x0F; return 0;
-	default:
-		return -ENOTSUP;
-	}
+    switch (hz) {
+        case 0:
+            *code = 0x00;
+            return 0;
+        case 1:
+            *code = 0x03;
+            return 0;
+        case 25:
+            *code = 0x08;
+            return 0;
+        case 50:
+            *code = 0x09;
+            return 0;
+        case 100:
+            *code = 0x0A;
+            return 0;
+        case 200:
+            *code = 0x0B;
+            return 0;
+        case 400:
+            *code = 0x0C;
+            return 0;
+        case 800:
+            *code = 0x0D;
+            return 0;
+        case 1600:
+            *code = 0x0E;
+            return 0;
+        case 3200:
+            *code = 0x0F;
+            return 0;
+        default:
+            return -ENOTSUP;
+    }
 }
 
-static int adxl375_set_offset_reg(const struct device *dev, uint8_t reg, int32_t value)
-{
-	if (value < -128 || value > 127) {
-		return -EINVAL;
-	}
-	return ((struct adxl375_data *)dev->data)->hw_tf->write_reg(dev, reg, (uint8_t)value);
+static int adxl375_set_offset_reg(const struct device *dev, uint8_t reg, int32_t value) {
+    if (value < -128 || value > 127) {
+        return -EINVAL;
+    }
+    return ((struct adxl375_data *) dev->data)->hw_tf->write_reg(dev, reg, (uint8_t) value);
 }
 
-static int adxl375_attr_set(const struct device *dev,
-				enum sensor_channel chan,
-				enum sensor_attribute attr,
-				const struct sensor_value *val)
-{
-	if (attr == SENSOR_ATTR_SAMPLING_FREQUENCY) {
-		if (chan != SENSOR_CHAN_ACCEL_XYZ) {
-			return -ENOTSUP;
-		}
+static int adxl375_attr_set(const struct device *dev, enum sensor_channel chan, enum sensor_attribute attr,
+                            const struct sensor_value *val) {
+    if (attr == SENSOR_ATTR_SAMPLING_FREQUENCY) {
+        if (chan != SENSOR_CHAN_ACCEL_XYZ) {
+            return -ENOTSUP;
+        }
 
-		uint8_t code = 0;
-		int ret = adxl375_hz_to_rate_code(val, &code);
-		if (ret < 0) {
-			return ret;
-		}
+        uint8_t code = 0;
+        int ret = adxl375_hz_to_rate_code(val, &code);
+        if (ret < 0) {
+            return ret;
+        }
 
-		const struct adxl375_dev_config *cfg = dev->config;
-		return adxl375_set_odr_and_lp(dev, code, cfg->lp);
-	}
+        const struct adxl375_dev_config *cfg = dev->config;
+        return adxl375_set_odr_and_lp(dev, code, cfg->lp);
+    }
 
-	if (attr == SENSOR_ATTR_OFFSET) {
-		switch (chan) {
-		case SENSOR_CHAN_ACCEL_X:
-			return adxl375_set_offset_reg(dev, ADXL375_OFFSET_X, val->val1);
-		case SENSOR_CHAN_ACCEL_Y:
-			return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Y, val->val1);
-		case SENSOR_CHAN_ACCEL_Z:
-			return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Z, val->val1);
-		case SENSOR_CHAN_ACCEL_XYZ: {
-			int ret = adxl375_set_offset_reg(dev, ADXL375_OFFSET_X, val[0].val1);
-			if (ret < 0) {
-				return ret;
-			}
-			ret = adxl375_set_offset_reg(dev, ADXL375_OFFSET_Y, val[1].val1);
-			if (ret < 0) {
-				return ret;
-			}
-			return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Z, val[2].val1);
-		}
-		default:
-			return -ENOTSUP;
-		}
-	}
+    if (attr == SENSOR_ATTR_OFFSET) {
+        switch (chan) {
+            case SENSOR_CHAN_ACCEL_X:
+                return adxl375_set_offset_reg(dev, ADXL375_OFFSET_X, val->val1);
+            case SENSOR_CHAN_ACCEL_Y:
+                return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Y, val->val1);
+            case SENSOR_CHAN_ACCEL_Z:
+                return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Z, val->val1);
+            case SENSOR_CHAN_ACCEL_XYZ: {
+                int ret = adxl375_set_offset_reg(dev, ADXL375_OFFSET_X, val[0].val1);
+                if (ret < 0) {
+                    return ret;
+                }
+                ret = adxl375_set_offset_reg(dev, ADXL375_OFFSET_Y, val[1].val1);
+                if (ret < 0) {
+                    return ret;
+                }
+                return adxl375_set_offset_reg(dev, ADXL375_OFFSET_Z, val[2].val1);
+            }
+            default:
+                return -ENOTSUP;
+        }
+    }
 
-	return -ENOTSUP;
+    return -ENOTSUP;
 }
 
-
-
-static const struct sensor_driver_api adxl375_api_funcs = {.channel_get = adxl375_channel_get,
-							   .sample_fetch = adxl375_sample_fetch, .attr_set = adxl375_attr_set};
+static const struct sensor_driver_api adxl375_api_funcs = {
+    .channel_get = adxl375_channel_get, .sample_fetch = adxl375_sample_fetch, .attr_set = adxl375_attr_set};
 
 #if DT_NUM_INST_STATUS_OKAY(DT_DRV_COMPAT) == 0
 #warning "ADXL375 driver enabled without any devices"
 #endif
 
-#define ADXL375_DEVICE_INIT(inst)                                                                  \
-	SENSOR_DEVICE_DT_INST_DEFINE(inst, adxl375_init, NULL, &adxl375_data_##inst,               \
-				     &adxl375_config_##inst, POST_KERNEL,                          \
-				     CONFIG_SENSOR_INIT_PRIORITY, &adxl375_api_funcs);
+#define ADXL375_DEVICE_INIT(inst)                                                                                      \
+    SENSOR_DEVICE_DT_INST_DEFINE(inst, adxl375_init, NULL, &adxl375_data_##inst, &adxl375_config_##inst, POST_KERNEL,  \
+                                 CONFIG_SENSOR_INIT_PRIORITY, &adxl375_api_funcs);
 
 /*
  * Instantiation macros used when a device is on a SPI bus.
@@ -282,44 +284,37 @@ static const struct sensor_driver_api adxl375_api_funcs = {.channel_get = adxl37
 #define ADXL375_CFG_IRQ(inst)
 #endif /* CONFIG_ADXL375_TRIGGER */
 
-#define ADXL375_CONFIG(inst)                                                                       \
-	.odr = DT_INST_PROP(inst, odr), .lp = DT_INST_PROP(inst, lp), .op_mode = ADXL375_STANDBY
+#define ADXL375_CONFIG(inst) .odr = DT_INST_PROP(inst, odr), .lp = DT_INST_PROP(inst, lp), .op_mode = ADXL375_STANDBY
 
-#define ADXL375_CONFIG_SPI(inst)                                                                   \
-	{                                                                                          \
-		.bus_init = adxl375_spi_init,                                                      \
-		.spi = SPI_DT_SPEC_INST_GET(inst, SPI_WORD_SET(8) | SPI_TRANSFER_MSB, 0),          \
-		ADXL375_CONFIG(inst) COND_CODE_1(DT_INST_NODE_HAS_PROP(inst, int1_gpios),          \
-						 (ADXL375_CFG_IRQ(inst)), ())                      \
-	}
+#define ADXL375_CONFIG_SPI(inst)                                                                                       \
+    {.bus_init = adxl375_spi_init,                                                                                     \
+     .spi = SPI_DT_SPEC_INST_GET(inst, SPI_WORD_SET(8) | SPI_TRANSFER_MSB, 0),                                         \
+     ADXL375_CONFIG(inst) COND_CODE_1(DT_INST_NODE_HAS_PROP(inst, int1_gpios), (ADXL375_CFG_IRQ(inst)), ())}
 
-#define ADXL375_DEFINE_SPI(inst)                                                                   \
-	static struct adxl375_data adxl375_data_##inst;                                            \
-	static const struct adxl375_dev_config adxl375_config_##inst = ADXL375_CONFIG_SPI(inst);   \
-	ADXL375_DEVICE_INIT(inst)
+#define ADXL375_DEFINE_SPI(inst)                                                                                       \
+    static struct adxl375_data adxl375_data_##inst;                                                                    \
+    static const struct adxl375_dev_config adxl375_config_##inst = ADXL375_CONFIG_SPI(inst);                           \
+    ADXL375_DEVICE_INIT(inst)
 
 /*
  * Instantiation macros used when a device is on an I2C bus.
  */
 
-#define ADXL375_CONFIG_I2C(inst)                                                                   \
-	{                                                                                          \
-		.bus_init = adxl375_i2c_init, .i2c = I2C_DT_SPEC_INST_GET(inst),                   \
-		ADXL375_CONFIG(inst) COND_CODE_1(DT_INST_NODE_HAS_PROP(inst, int1_gpios),          \
-						 (ADXL375_CFG_IRQ(inst)), ())                      \
-	}
+#define ADXL375_CONFIG_I2C(inst)                                                                                       \
+    {.bus_init = adxl375_i2c_init,                                                                                     \
+     .i2c = I2C_DT_SPEC_INST_GET(inst),                                                                                \
+     ADXL375_CONFIG(inst) COND_CODE_1(DT_INST_NODE_HAS_PROP(inst, int1_gpios), (ADXL375_CFG_IRQ(inst)), ())}
 
-#define ADXL375_DEFINE_I2C(inst)                                                                   \
-	static struct adxl375_data adxl375_data_##inst;                                            \
-	static const struct adxl375_dev_config adxl375_config_##inst = ADXL375_CONFIG_I2C(inst);   \
-	ADXL375_DEVICE_INIT(inst)
+#define ADXL375_DEFINE_I2C(inst)                                                                                       \
+    static struct adxl375_data adxl375_data_##inst;                                                                    \
+    static const struct adxl375_dev_config adxl375_config_##inst = ADXL375_CONFIG_I2C(inst);                           \
+    ADXL375_DEVICE_INIT(inst)
 /*
  * Main instantiation macro. Use of COND_CODE_1() selects the right
  * bus-specific macro at preprocessor time.
  */
 
-#define ADXL375_DEFINE(inst)                                                                       \
-	COND_CODE_1(DT_INST_ON_BUS(inst, spi), (ADXL375_DEFINE_SPI(inst)),                         \
-		    (ADXL375_DEFINE_I2C(inst)))
+#define ADXL375_DEFINE(inst)                                                                                           \
+    COND_CODE_1(DT_INST_ON_BUS(inst, spi), (ADXL375_DEFINE_SPI(inst)), (ADXL375_DEFINE_I2C(inst)))
 
 DT_INST_FOREACH_STATUS_OKAY(ADXL375_DEFINE)

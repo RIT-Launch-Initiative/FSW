@@ -5,9 +5,7 @@
 
 LOG_MODULE_REGISTER(CLora);
 
-CLora::CLora(const device& lora_dev) : lora_dev(&lora_dev) {
-    updateSettings();
-}
+CLora::CLora(const device& lora_dev) : lora_dev(&lora_dev) { updateSettings(); }
 
 CLora::CLora(const device& lora_dev, const lora_modem_config& config) : lora_dev(&lora_dev) {
     memcpy(&this->config, &config, sizeof(lora_modem_config));
@@ -31,7 +29,6 @@ int CLora::ReceiveSynchronous(void* data, const size_t len, int16_t* const rssi,
 
     return lora_recv(lora_dev, static_cast<uint8_t*>(data), len, timeout, rssi, snr);
 }
-
 
 int CLora::TransmitAsynchronous(const void* data, const size_t len, k_poll_signal* signal) {
     if (const int ret = setTxRx(TX); ret != 0) {
@@ -93,7 +90,8 @@ int CLora::SetSpreadingFactor(const lora_datarate spreadingFactor) {
 int CLora::SetCodingRate(const lora_coding_rate codingRate) {
     const lora_coding_rate originalCodingRate = config.coding_rate;
     config.coding_rate = codingRate;
-    if (updateSettings() != 0) {;
+    if (updateSettings() != 0) {
+        ;
         config.coding_rate = originalCodingRate;
         return updateSettings();
     }

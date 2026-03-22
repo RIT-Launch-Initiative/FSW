@@ -5,14 +5,16 @@
  */
 
 #include "f_core/utils/n_time_utils.h"
-#include <tuple>
+
 #include <f_core/device/c_rtc.h>
 #include <f_core/utils/c_soft_timer.h>
+#include <tuple>
 
 LOG_MODULE_REGISTER(NTimeUtils);
 
 #ifdef CONFIG_SNTP
-int NTimeUtils::SntpSynchronize(CRtc& rtc, const char* serverAddress, const int maxRetries, const k_timeout_t retryDelay) {
+int NTimeUtils::SntpSynchronize(CRtc& rtc, const char* serverAddress, const int maxRetries,
+                                const k_timeout_t retryDelay) {
     int retryCount = 0;
     sntp_time ts{0};
 

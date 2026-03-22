@@ -6,7 +6,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-
 LOG_MODULE_REGISTER(CRs485);
 
 CRs485::CRs485(const device& uart, const gpio_dt_spec& rs485_enable) : uart(uart), rs485_enable(rs485_enable) {}
@@ -24,7 +23,6 @@ int CRs485::TransmitSynchronous(const void* data, size_t len) {
     return 0;
 }
 
-
 int CRs485::ReceiveSynchronous(void* data, size_t len) {
     if (setTxRx(enableRx) == false) {
         return -1;
@@ -41,7 +39,6 @@ int CRs485::ReceiveSynchronous(void* data, size_t len) {
 
     return 0;
 }
-
 
 int CRs485::TransmitAsynchronous(const void* data, size_t len) {
     LOG_ERR("TransmitAsynchronous not implemented");

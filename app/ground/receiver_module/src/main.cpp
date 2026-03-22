@@ -4,12 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "c_receiver_module.h"
+
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
 #include <zephyr/drivers/gpio.h>
-
-#include "c_receiver_module.h"
-
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
@@ -32,4 +31,3 @@ int main() {
 
     return 0;
 }
-

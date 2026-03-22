@@ -1,12 +1,11 @@
 #pragma once
 
-#include <f_core/radio/c_lora_frame_handler.h>
 #include <f_core/device/c_gpio.h>
-
+#include <f_core/radio/c_lora_frame_handler.h>
 #include <zephyr/drivers/gpio.h>
 
 class CRemoteGpioHandler : public CLoraFrameHandler {
-public:
+  public:
     explicit CRemoteGpioHandler(CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort)
         : loraDownlinkMessagePort(loraDownlinkMessagePort) {}
 
@@ -16,13 +15,9 @@ public:
      */
     void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) override;
 
-private:
-    CGpio gpios[4] = {
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
-        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))
-    };
+  private:
+    CGpio gpios[4] = {CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)), CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
+                      CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)), CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))};
 
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
 
@@ -37,6 +32,3 @@ private:
      */
     void transmitStatus() const;
 };
-
-
-

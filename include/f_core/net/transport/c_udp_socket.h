@@ -10,7 +10,7 @@
 class CIPv4;
 
 class CUdpSocket {
-public:
+  public:
     struct SocketServiceUserData {
         CUdpSocket* socket;
         void* userData;
@@ -88,9 +88,7 @@ public:
      * Set destination port
      * @param[in] port Destination port
      */
-    void SetDstPort(const int port) {
-        dstPort = port;
-    }
+    void SetDstPort(const int port) { dstPort = port; }
 
     /**
      * Register the socket service descriptor
@@ -99,7 +97,7 @@ public:
      */
     int RegisterSocketService(net_socket_service_desc* desc, void* userData);
 
-private:
+  private:
     // CONFIG_ARCH_POSIX uses loopback for broadcast
 #if defined(CONFIG_ARCH_POSIX) && defined(CONFIG_NET_NATIVE_OFFLOADED_SOCKETS)
     static constexpr char BROADCAST_IP[] = "127.0.0.1";
@@ -110,11 +108,5 @@ private:
     int dstPort = -1;
 
     net_socket_service_desc* serviceDesc = nullptr;
-    zsock_pollfd sockfd = {
-        .fd = -1,
-        .events = POLLIN,
-        .revents = 0
-    };
+    zsock_pollfd sockfd = {.fd = -1, .events = POLLIN, .revents = 0};
 };
-
-

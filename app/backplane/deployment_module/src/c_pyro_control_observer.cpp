@@ -4,8 +4,8 @@
 
 #include <cstdio>
 #include <f_core/n_alerts.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/drivers/rtc.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CPyroControlObserver);
 
@@ -21,7 +21,6 @@ CPyroControlObserver::CPyroControlObserver() : chargeDisableTimer(chargeDisableT
     chargeDisableTimer.SetUserData(this);
 }
 
-
 void CPyroControlObserver::Notify(void* ctx) {
     uint8_t pyroCount = 0;
     LOG_INF("Notified");
@@ -34,9 +33,9 @@ void CPyroControlObserver::Notify(void* ctx) {
 
             for (auto& [sense, ctrl, led] : pyroTrios) {
                 // if (sense.GetPin() == 1) {
-                    ctrl.SetPin(1);
-                    led.SetPin(1);
-                    LOG_INF("Deployed charge %d", pyroCount);
+                ctrl.SetPin(1);
+                led.SetPin(1);
+                LOG_INF("Deployed charge %d", pyroCount);
                 // }
                 pyroCount++;
             }
@@ -49,7 +48,6 @@ void CPyroControlObserver::Notify(void* ctx) {
         default:
             break;
     }
-
 
     // flightLog.Sync();
 }

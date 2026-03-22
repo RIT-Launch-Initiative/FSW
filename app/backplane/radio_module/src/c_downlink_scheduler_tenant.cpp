@@ -4,12 +4,12 @@
 
 LOG_MODULE_REGISTER(CDownlinkSchedulerTenant);
 
-CDownlinkSchedulerTenant::CDownlinkSchedulerTenant(CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort,
-                                                   const CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*>&
-                                                   telemetryMessagePortMap,
-                                                   CHashMap<uint16_t, k_timeout_t>& telemetryDownlinkTimes) :
-    CRunnableTenant("Downlink Scheduler"), loraDownlinkMessagePort(loraDownlinkMessagePort),
-    telemetryMessagePortMap(telemetryMessagePortMap) {
+CDownlinkSchedulerTenant::CDownlinkSchedulerTenant(
+    CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort,
+    const CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*>& telemetryMessagePortMap,
+    CHashMap<uint16_t, k_timeout_t>& telemetryDownlinkTimes)
+    : CRunnableTenant("Downlink Scheduler"), loraDownlinkMessagePort(loraDownlinkMessagePort),
+      telemetryMessagePortMap(telemetryMessagePortMap) {
 
     // Fun C++ fuckery
     for (const auto& [port, timeout] : telemetryDownlinkTimes) {
@@ -17,9 +17,10 @@ CDownlinkSchedulerTenant::CDownlinkSchedulerTenant(CMessagePort<LaunchLoraFrame>
         telemetryDownlinkTimers.GetPtr(port)->get()->StartTimer(timeout);
     }
 
-    gnssDownlinkAvailable = telemetryMessagePortMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).has_value() &&
-    ([](auto* p) { return p && p->get(); }(
-        telemetryDownlinkTimers.GetPtr(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT)));
+    gnssDownlinkAvailable =
+        telemetryMessagePortMap.Get(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT).has_value() && ([](auto* p) {
+            return p && p->get();
+        }(telemetryDownlinkTimers.GetPtr(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT)));
 }
 
 void CDownlinkSchedulerTenant::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) {
@@ -60,7 +61,6 @@ void CDownlinkSchedulerTenant::PadRun() {
     // HandleFrame handles this :)
     // Unless we want something like heartbeats or something
 }
-
 
 void CDownlinkSchedulerTenant::FlightRun() {
     // If we are nearing full, clear out the queue to make space for the most recent data
@@ -114,6 +114,4 @@ void CDownlinkSchedulerTenant::LandedRun() {
     }
 }
 
-void CDownlinkSchedulerTenant::GroundRun() {
-    return;
-}
+void CDownlinkSchedulerTenant::GroundRun() { return; }

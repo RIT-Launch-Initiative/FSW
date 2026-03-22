@@ -3,22 +3,18 @@
 #include <zephyr/drivers/sensor.h>
 
 class CSensorDevice {
-public:
+  public:
     /**
      * Constructor
      * @param[in] device Zephyr device structure
      */
-    CSensorDevice(const device &device) : dev(device) {
-        isInitialized = device_is_ready(&dev);
-    }
+    CSensorDevice(const device &device) : dev(device) { isInitialized = device_is_ready(&dev); }
 
     /**
      * First part of updating sensor data. Subclasses should call this and then update its own state
      * @return true if fetching the sensor value was successful, false otherwise
      */
-    virtual bool UpdateSensorValue() {
-        return (isInitialized && 0 == sensor_sample_fetch(&dev));
-    }
+    virtual bool UpdateSensorValue() { return (isInitialized && 0 == sensor_sample_fetch(&dev)); }
 
     /**
      * Get a sensor value from a specific channel
@@ -65,37 +61,29 @@ public:
      * Get whether the device is ready or not
      * @return true if the device is ready, false otherwise
      */
-    bool IsReady() const {
-        return isInitialized;
-    }
+    bool IsReady() const { return isInitialized; }
 
     /**
      * Get the name of the device
      * @return name of the device
      */
-    const char *GetName() const {
-        return dev.name;
-    }
+    const char *GetName() const { return dev.name; }
 
     /**
      * Convert a value to milli-units
      * @param value Value to convert
      * @return Input value in milli-units
      */
-    static constexpr float ToMilliUnits(float value) {
-        return value * 1000.0f;
-    }
+    static constexpr float ToMilliUnits(float value) { return value * 1000.0f; }
 
     /**
      * Convert a value to micro-units
      * @param value Value to convert
      * @return Input value in micro-units
      */
-    static constexpr float ToMicroUnits(float value) {
-        return value * 1000000.0f;
-    }
+    static constexpr float ToMicroUnits(float value) { return value * 1000000.0f; }
 
-protected:
+  protected:
     const device &dev;
 
     /**
@@ -103,8 +91,6 @@ protected:
      */
     ~CSensorDevice() = default;
 
-private:
+  private:
     bool isInitialized;
 };
-
-

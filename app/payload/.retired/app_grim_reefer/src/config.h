@@ -70,5 +70,3 @@
 
 #define PRELAUNCH_ACCEL_FILENAME "/lfs/pre_imu.bin"
 #define PRELAUNCH_ALT_FILENAME   "/lfs/pre_altitude.bin"
-
-
