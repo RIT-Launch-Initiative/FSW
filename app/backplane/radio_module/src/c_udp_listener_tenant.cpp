@@ -1,4 +1,5 @@
 #include "c_udp_listener_tenant.h"
+
 #include "c_radio_module.h"
 
 #include <n_autocoder_types.h>
@@ -6,13 +7,9 @@
 
 LOG_MODULE_REGISTER(CUdpListenerTenant);
 
-void CUdpListenerTenant::Startup() {
-    LOG_INF("Listening on port %d", listenPort);
-}
+void CUdpListenerTenant::Startup() { LOG_INF("Listening on port %d", listenPort); }
 
-void CUdpListenerTenant::PostStartup() {
-    udp.SetRxTimeout(10);
-}
+void CUdpListenerTenant::PostStartup() { udp.SetRxTimeout(10); }
 
 void CUdpListenerTenant::Run() {
     LaunchLoraFrame radioBroadcastData{0};

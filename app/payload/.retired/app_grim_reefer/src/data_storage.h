@@ -41,4 +41,3 @@ int start_data_storage_thread();
  * @brief Stop accepting new data and save everything to disk
  */
 void finish_data_storage();
-

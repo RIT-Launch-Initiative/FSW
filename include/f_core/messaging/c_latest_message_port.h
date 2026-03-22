@@ -7,12 +7,11 @@
 
 template <typename T>
 class CLatestMessagePort : public CMessagePort<T> {
-public:
+  public:
     /**
      * Constructor
      */
-    explicit CLatestMessagePort(const uint32_t spinsBeforeYield = 64)
-        : mailbox(spinsBeforeYield) {}
+    explicit CLatestMessagePort(const uint32_t spinsBeforeYield = 64) : mailbox(spinsBeforeYield) {}
 
     /**
      * Destructor
@@ -45,12 +44,8 @@ public:
     /**
      * See parent docs
      */
-    size_t AvailableSpace() override {
-        return 1;
-    }
+    size_t AvailableSpace() override { return 1; }
 
-private:
+  private:
     CLatestMailbox<T> mailbox;
 };
-
-

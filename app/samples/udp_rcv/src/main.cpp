@@ -5,9 +5,9 @@
  */
 
 // F-Core Includes
-#include <f_core/net/transport/c_udp_socket.h>
-#include <f_core/net/network/c_ipv4.h>
 #include <f_core/messaging/c_msgq_message_port.h>
+#include <f_core/net/network/c_ipv4.h>
+#include <f_core/net/transport/c_udp_socket.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>
@@ -22,11 +22,9 @@ int main() {
     static constexpr int udpPort = 10000;
     static auto messagePort = CMsgqMessagePort<char[32]>(receiveQueue);
 
-
     while (true) {
         k_msleep(10000);
     }
-
 
     return 0;
 }

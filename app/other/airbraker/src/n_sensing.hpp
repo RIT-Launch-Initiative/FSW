@@ -7,6 +7,7 @@ int InitSensors();
  * @param[out] accelMs2 vertical acceleration from chosen IMU (TODO)
  * @param[out] gyroDps 3axis gyroscope reading from chosen IMU
  */
-int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2, NTypes::GyroscopeData &gyroDps);
+int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2,
+                   NTypes::GyroscopeData &gyroDps);
 
 }; // namespace NSensing

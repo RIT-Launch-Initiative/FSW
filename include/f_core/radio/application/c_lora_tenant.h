@@ -1,15 +1,14 @@
 #pragma once
 
-#include <zephyr/kernel.h>
-
-#include <f_core/os/c_runnable_tenant.h>
-#include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
 #include <f_core/messaging/c_message_port.h>
+#include <f_core/os/c_runnable_tenant.h>
 #include <f_core/radio/c_lora_link.h>
 #include <f_core/radio/c_lora_router.h>
+#include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
+#include <zephyr/kernel.h>
 
 class CLoraTenant : public CRunnableTenant, public CPadFlightLandedStateMachine {
-public:
+  public:
     /**
      * @brief Constructor
      * @param lora Device to use for LoRa communication.
@@ -52,19 +51,15 @@ public:
      * @param port Port to register handler for
      * @param handler Handler to register
      */
-    void RegisterFrameHandler(uint16_t port, CLoraFrameHandler& handler) {
-        router.RegisterHandler(port, handler);
-    }
+    void RegisterFrameHandler(uint16_t port, CLoraFrameHandler& handler) { router.RegisterHandler(port, handler); }
 
     /**
      * @brief Register a default frame handler for frames with no specific handler
      * @param handler Default handler to register
      */
-    void RegisterDefaultFrameHandler(CLoraFrameHandler& handler) {
-        router.RegisterDefaultHandler(handler);
-    }
+    void RegisterDefaultFrameHandler(CLoraFrameHandler& handler) { router.RegisterDefaultHandler(handler); }
 
-private:
+  private:
     /**
      * @brief Service transmit queue
      */
@@ -81,4 +76,3 @@ private:
 
     CMessagePort<LaunchLoraFrame>& loraTransmitPort;
 };
-

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "f_core/os/c_tenant.h"
 #include "f_core/net/network/c_ipv4.h"
 #include "f_core/net/transport/c_udp_socket.h"
 #include "f_core/os/c_callback_tenant.h"
+#include "f_core/os/c_tenant.h"
 
 class CTftpServerTenant : public CCallbackTenant {
-public:
+  public:
     static constexpr uint16_t TFTP_DEFAULT_PORT = 69;
     inline static CTftpServerTenant *instance = nullptr;
 
@@ -35,7 +35,7 @@ public:
      */
     void Callback() override;
 
-private:
+  private:
     // The control socket bound to port 69 (or specified port)
     CUdpSocket sock;
     CIPv4 ip; // Store to create new sockets for data transfers
@@ -49,11 +49,11 @@ private:
     } TftpMode;
 
     typedef enum {
-        RRQ = 1,   // Read request
-        WRQ = 2,   // Write request
-        DATA = 3,  // Data packet
-        ACK = 4,   // Acknowledgement
-        ERROR = 5  // Error packet
+        RRQ = 1,  // Read request
+        WRQ = 2,  // Write request
+        DATA = 3, // Data packet
+        ACK = 4,  // Acknowledgement
+        ERROR = 5 // Error packet
     } TftpOpcode;
 
     typedef enum {
@@ -73,11 +73,7 @@ private:
     // Assumes file path is less than  bytes (512 - 2 (zero terminator) - 2 (opcode) - strlen(TftpMode))
     static constexpr int rwRequestPacketSize = 512;
 
-    static constexpr const char *tftpModeStrings[NUM_MODES] = {
-        "netascii",
-        "octet",
-        "mail"
-    };
+    static constexpr const char *tftpModeStrings[NUM_MODES] = {"netascii", "octet", "mail"};
 
     /**
      *
@@ -110,5 +106,3 @@ private:
      */
     int generateTree();
 };
-
-

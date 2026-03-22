@@ -9,8 +9,9 @@
 #include <vector>
 
 class CUdpAlertTenant : public CCallbackTenant {
-public:
-    explicit CUdpAlertTenant(const char* name, const char* ipAddrStr, const uint16_t port) : CCallbackTenant(name), sock(CUdpSocket(CIPv4(ipAddrStr), port, port)) {};
+  public:
+    explicit CUdpAlertTenant(const char* name, const char* ipAddrStr, const uint16_t port)
+        : CCallbackTenant(name), sock(CUdpSocket(CIPv4(ipAddrStr), port, port)) {};
 
     /**
      * See parent docs
@@ -32,12 +33,9 @@ public:
      * Process a (potential) alert packet
      * @param packet Packet to process
      */
-    void ProcessPacket(const NAlerts::AlertPacket & packet);
-private:
+    void ProcessPacket(const NAlerts::AlertPacket& packet);
+
+  private:
     CUdpSocket sock;
     std::vector<CObserver*> observers;
 };
-
-
-
-

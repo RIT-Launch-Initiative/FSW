@@ -6,7 +6,7 @@
 class CRtc;
 namespace NTimeUtils {
 #ifdef CONFIG_SNTP
-	/**
+/**
 	 * Synchronize the time with an SNTP server
 	 *
 	 * @param[in] rtc The RTC device to set the time on
@@ -16,9 +16,9 @@ namespace NTimeUtils {
 	 *
 	 * @return 0 on success, -1 on failure
 	 */
-    int SntpSynchronize(CRtc& rtc, const char *serverAddress, int maxRetries, k_timeout_t retryDelay = K_MSEC(100));
+int SntpSynchronize(CRtc& rtc, const char* serverAddress, int maxRetries, k_timeout_t retryDelay = K_MSEC(100));
 
-    /**
+/**
      * Set up a callback to synchronize the RTC with an SNTP server at regular intervals
      * NOTE: Be smart about the max retries. 100ms delay per
      *
@@ -28,10 +28,7 @@ namespace NTimeUtils {
      * @param serverAddress Address of the SNTP server
      * @param retryDelay Delay between retries in milliseconds
      */
-     // void SetupSntpSynchronizationCallback(CRtc& rtc, const int interval, const char* serverAddress, const int maxRetries, const k_timeout_t retryDelay = K_MSEC(100));
+// void SetupSntpSynchronizationCallback(CRtc& rtc, const int interval, const char* serverAddress, const int maxRetries, const k_timeout_t retryDelay = K_MSEC(100));
 #endif
 
-
-}
-
-
+} // namespace NTimeUtils

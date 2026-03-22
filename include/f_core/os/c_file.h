@@ -4,7 +4,7 @@
 #include <zephyr/fs/fs_interface.h>
 
 class CFile {
-public:
+  public:
     typedef enum {
         READ_FLAG = 0x01,
         WRITE_FLAG = 0x02,
@@ -55,7 +55,7 @@ public:
      */
     int GetInitStatus() const { return initStatus; }
 
-private:
+  private:
     fs_file_t file;
     const char *path;
     const int flags;

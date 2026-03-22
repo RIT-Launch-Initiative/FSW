@@ -18,7 +18,6 @@ struct Servo {
 
     bool was_fully_open() const;
     bool was_fully_closed() const;
-
 };
 
 struct vec3 {

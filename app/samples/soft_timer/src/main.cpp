@@ -3,25 +3,21 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include <zephyr/kernel.h>
 #include <f_core/os/n_rtos.h>
 #include <f_core/utils/c_soft_timer.h>
-
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
 
 volatile int interruptCount = 0;
 
-
 static void timerExpirationFn(k_timer*) {
     LOG_INF("Timer expired");
     interruptCount++;
 }
 
-static void timerStopFn(k_timer*) {
-    LOG_INF("Timer stopped");
-}
+static void timerStopFn(k_timer*) { LOG_INF("Timer stopped"); }
 
 int main() {
     CSoftTimer timer(timerExpirationFn, timerStopFn);

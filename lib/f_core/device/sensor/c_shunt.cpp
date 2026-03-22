@@ -3,9 +3,7 @@
 
 LOG_MODULE_REGISTER(CShunt);
 
-CShunt::CShunt(const device& dev)
-    : CSensorDevice(dev) {
-}
+CShunt::CShunt(const device& dev) : CSensorDevice(dev) {}
 
 bool CShunt::UpdateSensorValue() {
     sensor_value voltage{};

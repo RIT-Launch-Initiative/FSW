@@ -18,5 +18,3 @@
  * @return Zephyr status code (0 if device is ready, -ENODEV otherwise)
  */
 int l_check_device(const struct device *const dev);
-
-

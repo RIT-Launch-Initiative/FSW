@@ -32,6 +32,7 @@ jobs:
             -not -path "*/zephyr/*" \
             -not -path "*/.git/*" \
             -not -path "*/CMakeFiles/*" \
+            -not -path "*/tools/autocoders/templates/*" \
             -exec clang-format-18 -i {} \;
 
       - name: Check for changes

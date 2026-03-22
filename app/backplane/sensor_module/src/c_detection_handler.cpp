@@ -26,8 +26,7 @@ CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller,
       primaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
       secondaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
       primaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
-      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
-      alertMessagePort(alertMessagePort) {}
+      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold}, alertMessagePort(alertMessagePort) {}
 
 bool CDetectionHandler::ContinueCollecting() { return !controller.HasEventOccurred(Events::GroundHit); }
 
