@@ -71,8 +71,8 @@ class CPowerModule : public CProjectConfiguration {
     CUdpAlertTenant alertTenant{"Alert Tenant", ipAddrStr.c_str(), NNetworkDefs::ALERT_PORT};
 
     // Tasks
-    static constexpr int ina219SampleTimeMillis =
-        69; // 68.1 ms based on our devicetree configuration, and we don't need to sample that quickly
+    // 68.1 ms based on our devicetree configuration, and we don't need to sample that quickly
+    static constexpr int ina219SampleTimeMillis = 69;
 
     CTask networkTask{"Networking Task", 15, 3072, ina219SampleTimeMillis};
     CTask sensingTask{"Sensing Task", 15, 2048, ina219SampleTimeMillis};

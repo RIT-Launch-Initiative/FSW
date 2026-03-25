@@ -16,8 +16,12 @@ class CRemoteGpioHandler : public CLoraFrameHandler {
     void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) override;
 
   private:
-    CGpio gpios[4] = {CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)), CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
-                      CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)), CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios))};
+    CGpio gpios[4] = {
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio0), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio1), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio2), gpios)),
+        CGpio(GPIO_DT_SPEC_GET(DT_ALIAS(gpio3), gpios)),
+    };
 
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
 

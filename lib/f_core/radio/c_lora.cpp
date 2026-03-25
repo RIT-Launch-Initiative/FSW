@@ -91,7 +91,6 @@ int CLora::SetCodingRate(const lora_coding_rate codingRate) {
     const lora_coding_rate originalCodingRate = config.coding_rate;
     config.coding_rate = codingRate;
     if (updateSettings() != 0) {
-        ;
         config.coding_rate = originalCodingRate;
         return updateSettings();
     }
