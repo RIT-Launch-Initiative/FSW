@@ -1,11 +1,11 @@
 #pragma once
 
 #include "c_sensor_device.h"
+
 #include <zephyr/device.h>
 
 class CTemperatureSensor : public CSensorDevice {
-public:
-
+  public:
     /**
      * Constructor
      * @param[in] dev Zephyr device structure
@@ -27,9 +27,7 @@ public:
      */
     sensor_value GetSensorValue(sensor_channel chan) const override;
 
-private:
+  private:
     using CBase = CSensorDevice;
     sensor_value temperature{};
 };
-
-

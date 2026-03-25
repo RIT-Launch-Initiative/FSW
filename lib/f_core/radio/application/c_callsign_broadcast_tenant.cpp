@@ -4,17 +4,18 @@
 
 LOG_MODULE_REGISTER(CCallsignBroadcastTenant);
 
-static void broadcastTimerCallbackFunction(k_timer *timer) {
-    auto *tenant = static_cast<CCallsignBroadcastTenant*>(k_timer_user_data_get(timer));
+static void broadcastTimerCallbackFunction(k_timer* timer) {
+    auto* tenant = static_cast<CCallsignBroadcastTenant*>(k_timer_user_data_get(timer));
     if (tenant) {
         tenant->Callback();
     }
 }
 
-CCallsignBroadcastTenant::CCallsignBroadcastTenant(const char* callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort, const uint8_t loraBroadcastPort)
-    : CCallbackTenant("CCallsignBroadcastTenant"), txPort(txPort),
-      broadcastTimer(broadcastTimerCallbackFunction), transmitFrequency(transmitFrequency), callsign(callsign), loraBroadcastPort(loraBroadcastPort) {
-}
+CCallsignBroadcastTenant::CCallsignBroadcastTenant(const char* callsign, k_timeout_t transmitFrequency,
+                                                   CMessagePort<LaunchLoraFrame>& txPort,
+                                                   const uint8_t loraBroadcastPort)
+    : CCallbackTenant("CCallsignBroadcastTenant"), txPort(txPort), broadcastTimer(broadcastTimerCallbackFunction),
+      transmitFrequency(transmitFrequency), callsign(callsign), loraBroadcastPort(loraBroadcastPort) {}
 
 void CCallsignBroadcastTenant::Register() {
     broadcastTimer.SetUserData(this);

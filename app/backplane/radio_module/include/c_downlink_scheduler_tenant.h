@@ -1,15 +1,14 @@
 #pragma once
 
-#include <f_core/radio/c_lora_frame_handler.h>
 #include <f_core/os/c_runnable_tenant.h>
+#include <f_core/radio/c_lora_frame_handler.h>
 #include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
 #include <f_core/utils/c_hashmap.h>
 #include <f_core/utils/c_soft_timer.h>
-
 #include <memory>
 
 class CDownlinkSchedulerTenant : public CRunnableTenant, public CPadFlightLandedStateMachine, public CLoraFrameHandler {
-public:
+  public:
     /**
      * Constructor
      * @param loraDownlinkMessagePort The message port to send downlink frames to
@@ -30,8 +29,7 @@ public:
      */
     void Run() override;
 
-protected:
-
+  protected:
     /**
      * See parent docs
      */
@@ -52,13 +50,10 @@ protected:
      */
     void GroundRun() override;
 
-private:
+  private:
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
     CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap;
     CHashMap<uint16_t, std::unique_ptr<CSoftTimer>> telemetryDownlinkTimers;
 
     bool gnssDownlinkAvailable = false;
 };
-
-
-

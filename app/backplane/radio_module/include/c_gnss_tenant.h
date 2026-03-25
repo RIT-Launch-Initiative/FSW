@@ -1,20 +1,17 @@
 #pragma once
 
-#include <n_autocoder_types.h>
+#include "f_core/radio/c_lora_link.h"
 
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/os/c_runnable_tenant.h>
 #include <f_core/utils/c_soft_timer.h>
-
-#include "f_core/radio/c_lora_link.h"
-
+#include <n_autocoder_types.h>
 
 class CGnssTenant : public CRunnableTenant {
-public:
-    explicit CGnssTenant(const char* name, CMessagePort<LaunchLoraFrame>* loraTransmitPort, CMessagePort<NTypes::GnssData>* dataLoggingPort)
-        : CRunnableTenant(name), loraTransmitPort(*loraTransmitPort), dataLoggingPort(*dataLoggingPort)
-    {
-    }
+  public:
+    explicit CGnssTenant(const char* name, CMessagePort<LaunchLoraFrame>* loraTransmitPort,
+                         CMessagePort<NTypes::GnssData>* dataLoggingPort)
+        : CRunnableTenant(name), loraTransmitPort(*loraTransmitPort), dataLoggingPort(*dataLoggingPort) {}
 
     ~CGnssTenant() override = default;
 
@@ -24,12 +21,10 @@ public:
 
     void Run() override;
 
-private:
+  private:
     CSoftTimer transmitTimer{};
     CMessagePort<LaunchLoraFrame>& loraTransmitPort;
     CMessagePort<NTypes::GnssData>& dataLoggingPort;
 
     void sendGnssToLora() const;
 };
-
-

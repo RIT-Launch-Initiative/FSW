@@ -97,8 +97,7 @@ void CSntpServerTenant::Callback() {
     }
 
     uint8_t li = LI_NO_WARNING;
-    if (rtc.GetUnixTime(txPacketSecondsTimestamp) ||
-        getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds)) {
+    if (rtc.GetUnixTime(txPacketSecondsTimestamp) || getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds)) {
         li = LI_ALARM_CONDITION;
         // Keep going. The packet will be sent with the alarm condition signaling we are desynchronized
     }
@@ -139,7 +138,6 @@ void CSntpServerTenant::Callback() {
     }
 }
 
-
 int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     rtc_time time{0};
     if (int ret = GetLastUpdatedTime(time, K_NO_WAIT); ret != 0) {
@@ -147,14 +145,12 @@ int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     }
 
     // Calculate seconds since epoch properly with all time components
-    struct tm timeinfo = {
-        .tm_sec = time.tm_sec,
-        .tm_min = time.tm_min,
-        .tm_hour = time.tm_hour,
-        .tm_mday = time.tm_mday,
-        .tm_mon = time.tm_mon - 1,
-        .tm_year = time.tm_year
-    };
+    struct tm timeinfo = {.tm_sec = time.tm_sec,
+                          .tm_min = time.tm_min,
+                          .tm_hour = time.tm_hour,
+                          .tm_mday = time.tm_mday,
+                          .tm_mon = time.tm_mon - 1,
+                          .tm_year = time.tm_year};
     seconds = mktime(&timeinfo);
     return 0;
 }

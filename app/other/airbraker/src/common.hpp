@@ -75,7 +75,6 @@ constexpr UpAxis UP_AXIS = UpAxis::PosZ;
 constexpr UpAxis UP_AXIS = UpAxis::NegXNegY;
 #endif
 
-
 struct KalmanState {
     float estAltitude;
     float estVelocity;

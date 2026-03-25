@@ -7,10 +7,7 @@
 
 LOG_MODULE_REGISTER(CIPv4);
 
-
-CIPv4::CIPv4(const char* ip, net_if *net_iface) : ip(ip), netIface(*net_iface) {
-    initialize();
-};
+CIPv4::CIPv4(const char* ip, net_if* net_iface) : ip(ip), netIface(*net_iface) { initialize(); };
 
 CIPv4::CIPv4(const char* ip) : CIPv4(ip, net_if_get_default()) {};
 
@@ -31,7 +28,7 @@ int CIPv4::initialize() {
         return -ENODEV;
     }
 
-    err = z_impl_net_addr_pton(AF_INET,  CLASS_A_NETMASK, &subnet);
+    err = z_impl_net_addr_pton(AF_INET, CLASS_A_NETMASK, &subnet);
     if (err < 0) {
         LOG_ERR("Invalid subnet mask");
         return err;

@@ -26,7 +26,8 @@ int l_init_adc_channel(const struct adc_dt_spec *const channel, struct adc_seque
  * @param num_channels - Number of channels to initialize
  * @return Zephyr status code
  */
-int l_init_adc_channels(const struct adc_dt_spec *const channels, struct adc_sequence *const sequences, const int num_channels);
+int l_init_adc_channels(const struct adc_dt_spec *const channels, struct adc_sequence *const sequences,
+                        const int num_channels);
 
 /**
  * Read the value of an ADC channel in millivolts synchronously
@@ -45,4 +46,3 @@ int l_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *
  * @return Zephyr status code
  */
 int l_async_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *const sequence, int32_t *val);
-

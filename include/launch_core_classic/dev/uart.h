@@ -10,6 +10,3 @@
  * @return Zephyr status code
  */
 int l_uart_init_rs485(const struct device *dev);
-
-
-

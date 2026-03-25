@@ -1,8 +1,8 @@
 #include "c_radio_module.h"
 
 // F-Core Tenant
-#include <f_core/os/n_rtos.h>
 #include <f_core/messaging/c_msgq_message_port.h>
+#include <f_core/os/n_rtos.h>
 #include <zephyr/drivers/gnss.h>
 
 K_MSGQ_DEFINE(loraBroadcastQueue, sizeof(LaunchLoraFrame), 10, 4);
@@ -11,12 +11,13 @@ static auto loraBroadcastMsgQueue = CMsgqMessagePort<LaunchLoraFrame>(loraBroadc
 K_MSGQ_DEFINE(gnssDataLogQueue, sizeof(NTypes::GnssData), 10, 4);
 static auto gnssLogMsgQueue = CMsgqMessagePort<NTypes::GnssData>(gnssDataLogQueue);
 
-CRadioModule::CRadioModule() : CProjectConfiguration(),
+CRadioModule::CRadioModule()
+    : CProjectConfiguration(),
 #ifndef CONFIG_ARCH_POSIX
-                               lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
+      lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
 #endif
-                               loraDownlinkMessagePort(loraBroadcastMsgQueue),
-                                gnssDataLogMessagePort(gnssLogMsgQueue) {}
+      loraDownlinkMessagePort(loraBroadcastMsgQueue), gnssDataLogMessagePort(gnssLogMsgQueue) {
+}
 
 void CRadioModule::AddTenantsToTasks() {
     // Networking

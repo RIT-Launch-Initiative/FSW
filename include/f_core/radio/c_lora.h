@@ -3,7 +3,7 @@
 #include <zephyr/drivers/lora.h>
 
 class CLora {
-public:
+  public:
     /**
      * Constructor
      * @param lora_dev[in] The LoRa device to use
@@ -122,11 +122,9 @@ public:
      * Check if the current frequency is within the licensed frequency range (410-450 MHz)
      * @return True if the current frequency is within the licensed frequency range (410-450 MHz), false otherwise
      */
-    bool IsLicensedFrequency() const {
-        return (config.frequency >= 410'000'000u && config.frequency <= 450'000'000u);
-    }
+    bool IsLicensedFrequency() const { return (config.frequency >= 410'000'000u && config.frequency <= 450'000'000u); }
 
-private:
+  private:
     const device* lora_dev;
     lora_modem_config config = {
         .frequency = 906900000,
@@ -143,10 +141,7 @@ private:
     lora_recv_cb lastAsyncRxCallback = nullptr;
     void* lastAsyncRxUserData = nullptr;
 
-    enum Direction {
-        RX = 0,
-        TX
-    };
+    enum Direction { RX = 0, TX };
 
     /**
      * Set the LoRa modem to transmit or receive mode
@@ -157,6 +152,3 @@ private:
 
     int updateSettings();
 };
-
-
-
