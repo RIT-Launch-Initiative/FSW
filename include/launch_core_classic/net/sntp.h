@@ -10,5 +10,3 @@
  * @param timeout_ms - Timeout per SNTP request in milliseconds
  */
 void l_sntp_start_client_thread(const char *server_ip, uint64_t timeout_ms);
-
-

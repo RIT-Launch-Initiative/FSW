@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "c_radio_module.h"
+
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
-
-#include "c_radio_module.h"
 
 LOG_MODULE_REGISTER(main);
 
@@ -30,4 +30,3 @@ int main() {
 
     return 0;
 }
-

@@ -5,27 +5,23 @@
  */
 
 #include <launch_core_classic/net/lora.h>
-
+#include <memory.h>
 #include <zephyr/drivers/lora.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#include <memory.h>
-
 LOG_MODULE_REGISTER(lora);
 
 // Cached configuration. Currently under the assumption that we will only have one LoRa device in use
-static struct lora_modem_config config = {
-        .frequency = 915000000,
-        .bandwidth = BW_125_KHZ,
-        .datarate = SF_12,
-        .preamble_len = 8,
-        .coding_rate = CR_4_5,
-        .tx_power = 13,
-        .iq_inverted = false,
-        .public_network = false,
-        .tx = true
-};
+static struct lora_modem_config config = {.frequency = 915000000,
+                                          .bandwidth = BW_125_KHZ,
+                                          .datarate = SF_12,
+                                          .preamble_len = 8,
+                                          .coding_rate = CR_4_5,
+                                          .tx_power = 13,
+                                          .iq_inverted = false,
+                                          .public_network = false,
+                                          .tx = true};
 
 void l_lora_debug_recv_cb(const struct device *dev, uint8_t *data, uint16_t size, int16_t rssi, int8_t snr) {
     if (size != 0) {

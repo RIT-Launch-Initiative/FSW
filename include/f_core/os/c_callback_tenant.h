@@ -12,7 +12,7 @@
  * This tenant should not block under any circumstance when executing
  */
 class CCallbackTenant : public CTenant {
-public:
+  public:
     /**
      * Constructor
      * @param name Name of the tenant
@@ -34,5 +34,3 @@ public:
      */
     virtual void Callback() = 0;
 };
-
-

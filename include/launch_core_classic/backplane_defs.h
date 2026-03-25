@@ -23,7 +23,7 @@ typedef enum {
 } l_event_notification_t;
 
 /********** POWER MODULE **********/
-#define POWER_MODULE_ID 1
+#define POWER_MODULE_ID        1
 #define POWER_MODULE_BASE_PORT 11000
 
 typedef enum {
@@ -31,23 +31,17 @@ typedef enum {
     POWER_MODULE_ADC_DATA_PORT = 50,
 } l_power_module_port_offset_t;
 
-
 /********** RADIO MODULE **********/
-#define RADIO_MODULE_ID 2
+#define RADIO_MODULE_ID        2
 #define RADIO_MODULE_BASE_PORT 12000
 
-typedef enum {
-    RADIO_MODULE_GNSS_DATA_PORT = 1
-} l_radio_module_port_offset_t;
-
+typedef enum { RADIO_MODULE_GNSS_DATA_PORT = 1 } l_radio_module_port_offset_t;
 
 /********** SENSOR MODULE **********/
-#define SENSOR_MODULE_ID 3
+#define SENSOR_MODULE_ID        3
 #define SENSOR_MODULE_BASE_PORT 13000
 
 typedef enum {
     SENSOR_MODULE_TEN_HZ_DATA_PORT = 10,
     SENSOR_MODULE_HUNDRED_HZ_DATA_PORT = 100,
 } l_sensor_module_port_offset_t;
-
-

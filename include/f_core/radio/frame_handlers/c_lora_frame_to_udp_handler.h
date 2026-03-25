@@ -3,9 +3,8 @@
 #include "f_core/net/transport/c_udp_socket.h"
 #include "f_core/radio/c_lora_frame_handler.h"
 
-
 class CLoraFrameToUdpHandler : public CLoraFrameHandler {
-public:
+  public:
     /**
      * @brief Constructor
      * @param ip IP address instance to bind to
@@ -17,8 +16,7 @@ public:
      * See parent docs
      */
     void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) override;
-private:
+
+  private:
     CUdpSocket sock;
 };
-
-

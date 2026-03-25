@@ -183,37 +183,37 @@ class CPhaseController {
         TimerEvent event;             //< information about the event
     };
 
-/**
+    /**
      * Callback function for timer events. 
      * 'this' is stored in the InternalTimerEvent data
      * @param timer the timer containing that is calling this callback. Contains user data
      */
-constexpr static auto timer_expiry_cb = [](struct k_timer *timer) {
-    void *data = k_timer_user_data_get(timer);
-    InternalTimerEvent event_info = *static_cast<InternalTimerEvent *>(data);
-    event_info.controller->SubmitEvent(event_info.event.source, event_info.event.event);
-};
+    constexpr static auto timer_expiry_cb = [](struct k_timer *timer) {
+        void *data = k_timer_user_data_get(timer);
+        InternalTimerEvent event_info = *static_cast<InternalTimerEvent *>(data);
+        event_info.controller->SubmitEvent(event_info.event.source, event_info.event.event);
+    };
 
-// Current State of the system
+    // Current State of the system
 
-/// state of events per source
-std::array<SourceStates, num_events> sourceStates = {false};
-/// the state of events that have been agreed to have happened based on deciders and per-source states
-std::array<bool, num_events> eventStates = {false};
+    /// state of events per source
+    std::array<SourceStates, num_events> sourceStates = {false};
+    /// the state of events that have been agreed to have happened based on deciders and per-source states
+    std::array<bool, num_events> eventStates = {false};
 
-// Timer handling
-std::array<struct k_timer, num_timers> timers = {0};
-std::array<InternalTimerEvent, num_timers> timerUserdata = {0};
+    // Timer handling
+    std::array<struct k_timer, num_timers> timers = {0};
+    std::array<InternalTimerEvent, num_timers> timerUserdata = {0};
 
-// OS events for handling synchronization
-k_event osEvents;
+    // OS events for handling synchronization
+    k_event osEvents;
 
-// consts for logging and deciding. These will not change after construction
-const std::array<const char *, num_sources> &sourceNames;
-const std::array<const char *, num_events> &eventNames;
+    // consts for logging and deciding. These will not change after construction
+    const std::array<const char *, num_sources> &sourceNames;
+    const std::array<const char *, num_events> &eventNames;
 
-const std::array<DecisionFunc, num_events> &deciders;
+    const std::array<DecisionFunc, num_events> &deciders;
 
-// function to call on event or null
-NotificationFunction notification_func;
+    // function to call on event or null
+    NotificationFunction notification_func;
 };

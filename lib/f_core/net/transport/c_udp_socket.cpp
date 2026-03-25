@@ -1,9 +1,7 @@
-#include <f_core/net/transport/c_udp_socket.h>
 #include <f_core/net/network/c_ipv4.h>
-
-#include <zephyr/net/socket.h>
-
+#include <f_core/net/transport/c_udp_socket.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket.h>
 #include <zephyr/net/socket_service.h>
 #include <zephyr/posix/fcntl.h>
 
@@ -70,13 +68,11 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
     return ret;
 }
 
-int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr *srcAddr, socklen_t *srcAddrLen) {
+int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr* srcAddr, socklen_t* srcAddrLen) {
     return zsock_recvfrom(sockfd.fd, data, len, 0, srcAddr, srcAddrLen);
 }
 
-int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
-    return TransmitAsynchronous(data, len, dstPort);
-}
+int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) { return TransmitAsynchronous(data, len, dstPort); }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstPort) {
     const sockaddr_in addr{
@@ -106,7 +102,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstP
     return ret;
 }
 
-int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr *srcAddr, socklen_t *srcAddrLen) {
+int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr* srcAddr, socklen_t* srcAddrLen) {
     int flags = zsock_fcntl(sockfd.fd, F_GETFL, 0);
     if (flags < 0) {
         LOG_ERR("Failed to get socket flags (%d)", flags);
@@ -161,7 +157,6 @@ int CUdpSocket::RegisterSocketService(net_socket_service_desc* desc, void* userD
 
     return 0;
 }
-
 
 int CUdpSocket::SetTxTimeout(const int timeoutMillis) {
     return zsock_setsockopt(sockfd.fd, SOL_SOCKET, SO_SNDTIMEO, &timeoutMillis, sizeof(timeoutMillis));
