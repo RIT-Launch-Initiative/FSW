@@ -66,7 +66,40 @@
 	// 	};
 	// };
 
+	soc {
+		quadspi: spi@a0001000 {
+			compatible = "st,stm32-qspi";
+			pinctrl-names = "default";
+			pinctrl-0 = <&quadspi_clk_pb2 &quadspi_bk1_ncs_pb6
+			&quadspi_bk1_io0_pc9 &quadspi_bk1_io1_pc10>;
+			reg = <0xa0001000 0x400>, <0x90000000 DT_SIZE_M(128)>;
+			interrupts = <92 0>;
+			clocks = <&rcc STM32_CLOCK(AHB3, 1U)>;
+			flash-id = <1>;
+			status = "okay";
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
 
+			w25q512: qspi-nor-flash@90000000 {
+				compatible = "st,stm32-qspi-nor";
+				reg = <0x90000000 0x10000000>; /* 128 Mbits */
+				size = <DT_SIZE_M(128)>; /* 128 Mbits */
+				qspi-max-frequency = <DT_FREQ_M(50)>;
+				status = "okay";
+				spi-bus-width = <4>;
+				jedec-id = [ ef 40 18  ];
+				page-size = <256>;
+				writeoc = "PP_1_1_4";
+				requires-ulbpr;
+
+				partitions {
+					compatible = "fixed-partitions";
+					#address-cells = <1>;
+					#size-cells = <1>;
+				};
+			};
+		};
+	};
 };
 
 &clk_lsi {
@@ -80,9 +113,9 @@
 
 &pll {
 	div-m = <8>;
-	mul-n = <90>;
+	mul-n = <72>;
 	div-p = <2>;
-	div-q = <2>;
+	div-q = <3>;
 	div-r = <2>;
 	clocks = <&clk_hse>;
 	status = "okay";
@@ -93,7 +126,7 @@
 	clock-frequency = <DT_FREQ_M(90)>;
 	ahb-prescaler = <1>;
 	apb1-prescaler = <2>;
-	apb2-prescaler = <2>;
+	apb2-prescaler = <1>;
 };
 
 zephyr_udc0: &usbotg_fs {
@@ -130,63 +163,63 @@ zephyr_udc0: &usbotg_fs {
 	status = "okay";
 };
 
-&spi1 {
-	pinctrl-0 = <&spi1_sck_pa5
-				 &spi1_miso_pa6 &spi1_mosi_pa7>;
-	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
+// &spi1 {
+// 	pinctrl-0 = <&spi1_sck_pa5
+// 				 &spi1_miso_pa6 &spi1_mosi_pa7>;
+// 	cs-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
 
-	pinctrl-names = "default";
-	status = "okay";
+// 	pinctrl-names = "default";
+// 	status = "okay";
 
-	w5500: w5500@0 {
-		compatible = "wiznet,w5500";
-		reg = <0x0>;
-		spi-max-frequency = <DT_FREQ_M(80)>;
-		int-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
-		reset-gpios = <&gpioa 3 GPIO_ACTIVE_LOW>;
-		zephyr,random-mac-address;
-	};
-};
+// 	w5500: w5500@0 {
+// 		compatible = "wiznet,w5500";
+// 		reg = <0x0>;
+// 		spi-max-frequency = <DT_FREQ_M(80)>;
+// 		int-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+// 		reset-gpios = <&gpioa 3 GPIO_ACTIVE_LOW>;
+// 		zephyr,random-mac-address;
+// 	};
+// };
 
-&spi2 {
-	pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
-	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
+// &spi2 {
+// 	pinctrl-0 = <&spi2_sck_pb13 &spi2_miso_pc2 &spi2_mosi_pc1>;
+// 	cs-gpios = <&gpioc 0 GPIO_ACTIVE_LOW>;
 
-	pinctrl-names = "default";
-	status = "okay";
+// 	pinctrl-names = "default";
+// 	status = "okay";
 
-	// dma identifier
-	// dma stream
-	// dma channel
-	// config flags
-	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
-		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
-	dma-names = "tx", "rx";
+// 	// dma identifier
+// 	// dma stream
+// 	// dma channel
+// 	// config flags
+// 	dmas = <&dma1 4 0 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>,
+// 		   <&dma1 3 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x1>;
+// 	dma-names = "tx", "rx";
 
-	w25q512: w25q512jv@0 {
-		compatible = "jedec,spi-nor";
-		reg = <0>;
+// 	w25q512: w25q512jv@0 {
+// 		compatible = "jedec,spi-nor";
+// 		reg = <0>;
 
-		spi-max-frequency = <DT_FREQ_M(104)>;
-		size = <DT_SIZE_M(512)>;
-		jedec-id = [ef 40 20];
+// 		spi-max-frequency = <DT_FREQ_M(104)>;
+// 		size = <DT_SIZE_M(512)>;
+// 		jedec-id = [ef 40 20];
 
-		has-dpd;
-		t-enter-dpd = <(3 * 1000)>;
-		t-exit-dpd = <(3 * 1000)>;
+// 		has-dpd;
+// 		t-enter-dpd = <(3 * 1000)>;
+// 		t-exit-dpd = <(3 * 1000)>;
 
-		partitions {
-			compatible = "fixed-partitions";
-			#address-cells = <1>;
-			#size-cells = <1>;
+// 		partitions {
+// 			compatible = "fixed-partitions";
+// 			#address-cells = <1>;
+// 			#size-cells = <1>;
 
-			external_storage_partition: partition@0 {
-				label = "w25q-storage";
-				reg = <0 DT_SIZE_M(64)>;
-			};
-		};
-	};
-};
+// 			external_storage_partition: partition@0 {
+// 				label = "w25q-storage";
+// 				reg = <0 DT_SIZE_M(64)>;
+// 			};
+// 		};
+// 	};
+// };
 
 &rtc {
 	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x10000000>,
