@@ -1,5 +1,4 @@
-#ifndef PRINTCOUNT_H
-#define PRINTCOUNT_H
+#pragma once
 
 #include "message.h"
 
@@ -35,6 +34,4 @@ private:
     CMessagePort<Message> &messagePort;
     Message message;
 };
-
-#endif //PRINTCOUNT_H
 

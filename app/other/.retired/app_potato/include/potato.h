@@ -1,5 +1,4 @@
-#ifndef POTATO_H
-#define POTATO_H
+#pragma once
 
 #include <launch_core_classic/types.h>
 #include <stdint.h>
@@ -55,4 +54,4 @@ typedef struct __attribute__((packed)) {
  */
 uint8_t get_event_from_serial();
 
-#endif //POTATO_H
+

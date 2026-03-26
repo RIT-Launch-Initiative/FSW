@@ -3,11 +3,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#pragma once
 
 #include "f_core/os/c_tenant.h"
-
-#ifndef C_RUNNABLE_TENANT_H
-#define C_RUNNABLE_TENANT_H
 
 /**
  * Tenant designed to be executed in a superloop or task periodically
@@ -44,5 +42,3 @@ public:
      */
     virtual void Run() = 0;
 };
-
-#endif //C_RUNNABLE_TENANT_H

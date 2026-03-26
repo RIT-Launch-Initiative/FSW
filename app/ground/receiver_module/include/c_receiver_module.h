@@ -1,5 +1,4 @@
-#ifndef C_RECEIVER_MODULE_H
-#define C_RECEIVER_MODULE_H
+#pragma once
 
 #include "c_udp_listener_tenant.h"
 #include "f_core/radio/frame_handlers/c_lora_freq_request_tenant.h"
@@ -77,4 +76,4 @@ private:
     CTask loraTask{"LoRa Task", 15, 4096, 0};
 };
 
-#endif //C_RECEIVER_MODULE_H
+

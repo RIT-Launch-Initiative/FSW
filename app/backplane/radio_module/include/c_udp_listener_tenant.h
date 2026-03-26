@@ -1,5 +1,4 @@
-#ifndef C_UDP_LISTENER_TENANT_H
-#define C_UDP_LISTENER_TENANT_H
+#pragma once
 
 
 #include <f_core/messaging/c_message_port.h>
@@ -31,4 +30,4 @@ private:
     const uint16_t listenPort;
 };
 
-#endif //C_UDP_LISTENER_TENANT_H
+

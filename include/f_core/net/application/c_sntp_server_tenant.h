@@ -1,5 +1,4 @@
-#ifndef C_SNTP_SERVER_H
-#define C_SNTP_SERVER_H
+#pragma once
 
 #include <f_core/device/c_rtc.h>
 
@@ -171,4 +170,4 @@ private:
     void setupRtcTime();
 };
 
-#endif // C_SNTP_SERVER_H
+

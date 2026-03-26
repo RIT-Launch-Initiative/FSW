@@ -1,5 +1,4 @@
-#ifndef C_DATALOGGER_TENANT_H
-#define C_DATALOGGER_TENANT_H
+#pragma once
 
 #include "f_core/os/n_rtos.h"
 
@@ -67,4 +66,3 @@ private:
     int syncOnCount;
 };
 
-#endif //C_DATALOGGER_TENANT_H

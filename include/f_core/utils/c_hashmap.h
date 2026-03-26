@@ -1,5 +1,4 @@
-#ifndef C_HASHMAP_H
-#define C_HASHMAP_H
+#pragma once
 
 #include <optional>
 #include <unordered_map>
@@ -121,6 +120,3 @@ private:
         return strncmp(k_thread_name_get(k_current_get()), "main", 4) == 0;
     }
 };
-
-
-#endif //C_HASHMAP_H

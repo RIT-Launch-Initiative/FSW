@@ -3,8 +3,7 @@
 *
 * SPDX-License-Identifier: Apache-2.0
 */
-#ifndef C_TASK_H
-#define C_TASK_H
+#pragma once
 
 #include <vector>
 
@@ -80,5 +79,3 @@ private:
 
     std::vector<CRunnableTenant*> tenants;
 };
-
-#endif //C_TASK_H

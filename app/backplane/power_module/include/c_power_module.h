@@ -1,5 +1,4 @@
-#ifndef C_SENSOR_MODULE_H
-#define C_SENSOR_MODULE_H
+#pragma once
 
 #include "c_sensing_tenant.h"
 
@@ -84,4 +83,4 @@ private:
 };
 
 
-#endif //C_SENSOR_MODULE_H
+

@@ -1,5 +1,4 @@
-#ifndef C_DATALOGGER_H
-#define C_DATALOGGER_H
+#pragma once
 
 #include <cstdint>
 #include <type_traits>
@@ -82,5 +81,3 @@ class CDataLogger {
   private:
     detail::datalogger internal;
 };
-
-#endif

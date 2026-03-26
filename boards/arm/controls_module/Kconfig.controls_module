@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_CONTROLS_MODULE
+	select SOC_STM32F446XX

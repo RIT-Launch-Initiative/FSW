@@ -1,5 +1,4 @@
-#ifndef N_ALERTS_H
-#define N_ALERTS_H
+#pragma once
 
 #include <array>
 #include <cstdint>
@@ -22,4 +21,4 @@ namespace NAlerts {
 
     typedef std::array<uint8_t, ALERT_PACKET_SIZE> AlertPacket;
 }
-#endif //N_ALERTS_H
+

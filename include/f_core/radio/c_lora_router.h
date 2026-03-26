@@ -1,5 +1,4 @@
-#ifndef C_LORA_ROUTER_H
-#define C_LORA_ROUTER_H
+#pragma once
 
 #include "f_core/radio/c_lora_link.h"
 #include "f_core/radio/c_lora_frame_handler.h"
@@ -38,4 +37,4 @@ private:
     CLoraFrameHandler *defaultHandler = nullptr;
 };
 
-#endif // C_LORA_ROUTER_H
+

@@ -8,8 +8,7 @@
  * Shared utility functions for dealing with all Zephyr devices
  */
 
-#ifndef L_DEVICE_UTILS_H
-#define L_DEVICE_UTILS_H
+#pragma once
 
 #include <zephyr/device.h>
 
@@ -20,4 +19,4 @@
  */
 int l_check_device(const struct device *const dev);
 
-#endif // L_DEVICE_UTILS_H
+
