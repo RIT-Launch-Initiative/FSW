@@ -28,8 +28,23 @@ static const char* event_to_str(enum or_event_t e);
 
 static void or_event_thread_handler(void);
 
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+K_THREAD_DEFINE(or_event_thread, 1024, or_event_thread_handler, NULL, NULL, NULL, 0, 0, 0);
+#else
 K_THREAD_DEFINE(or_event_thread, 1024, or_event_thread_handler, NULL, NULL, NULL, 0, 0,
                 CONFIG_OPENROCKET_MS_BEFORE_LAUNCH);
+#endif
+#endif
+
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+K_SEM_DEFINE(or_launch_sem, 0, 1);
+static volatile int64_t or_launch_time_us = -1;
+
+void or_trigger_launch(void) {
+    or_launch_time_us = k_ticks_to_us_near64(k_uptime_ticks());
+    LOG_INF("OpenRocket launch triggered at uptime %lld us", or_launch_time_us);
+    k_sem_give(&or_launch_sem);
+}
 #endif
 
 int sensor_value_from_or_scalar(struct sensor_value* val, or_scalar_t inp) {
@@ -51,7 +66,15 @@ or_scalar_t or_get_time(const struct or_common_params* cfg) {
         us = (us / cfg->sampling_period_us) * cfg->sampling_period_us;
     }
     us -= cfg->lag_time_us;
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    int64_t launch_us = or_launch_time_us;
+    if (launch_us < 0) {
+        return -1.0;
+    }
+    us -= launch_us;
+#else
     us -= CONFIG_OPENROCKET_MS_BEFORE_LAUNCH * 1000;
+#endif
     return ((or_scalar_t) (us)) / 1000000.0;
 }
 
@@ -113,7 +136,11 @@ static const char* event_to_str(enum or_event_t e) {
     return names[e];
 }
 static void or_event_thread_handler(void) {
-    // This thread starts at T=0 via the zephyr thread startup time
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    LOG_INF("OpenRocket event thread waiting for launch trigger...");
+    k_sem_take(&or_launch_sem, K_FOREVER);
+    LOG_INF("OpenRocket launch triggered, starting event log");
+#endif
     or_scalar_t time = 0;
     unsigned int i = 0;
     while (i < or_events_size - 1) {

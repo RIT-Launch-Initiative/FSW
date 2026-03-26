@@ -50,6 +50,10 @@ class CSensorModule : public CProjectConfiguration {
     static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
     static constexpr int telemetryDownlinkPort = NNetworkDefs::SENSOR_MODULE_DOWNLINK_DATA_PORT;
     static constexpr int alertPort = NNetworkDefs::ALERT_PORT;
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+#include "c_ork_launch_trigger_tenant.h"
+    static constexpr int orkLaunchTriggerPort = NNetworkDefs::SENSOR_MODULE_ORK_LAUNCH_TRIGGER_PORT;
+#endif
 
     // Devices
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
@@ -82,6 +86,10 @@ class CSensorModule : public CProjectConfiguration {
                                                                       sensorDataLogMessagePort,
                                                                       K_SECONDS(3),
                                                                       64};
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    COrkLaunchTriggerTenant orkLaunchTriggerTenant{"Ork Launch Trigger Tenant", ipAddrStr.c_str(),
+                                                   orkLaunchTriggerPort};
+#endif
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 3072, 10};
