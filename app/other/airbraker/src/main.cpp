@@ -13,6 +13,8 @@
 #include <zephyr/sys/atomic.h>
 #include <cmath>
 
+#include <zsl/orientation/quaternions.h>
+
 LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
 SYS_INIT(servo_init, APPLICATION, 1);
@@ -67,7 +69,7 @@ int main() {
     Parameters params{};
     params.bootcount = NStorage::GetBootcount();
     NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-    float vertical = packet.accelRaw.Z; // UpAxisFrom(UP_AXIS, packet.accelRaw);
+    float vertical = GetUpAxis(packet.accelRaw);
 
     NBoost::FeedDetector(vertical);
 
@@ -82,7 +84,7 @@ int main() {
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
 
-        float vertical = packet.accelRaw.Z; //UpAxisFrom(UP_AXIS, packet.accelRaw);
+        float vertical = GetUpAxis(packet.accelRaw);
 
         NBoost::FeedDetector(vertical);
 
@@ -120,7 +122,7 @@ int main() {
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
-        float vertical = packet.accelRaw.Z; // UpAxisFrom(UP_AXIS, packet.accelRaw);
+        float vertical = GetUpAxis(packet.accelRaw);
 
 
         NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
@@ -159,3 +161,26 @@ void CancelFlight() {
     }
 }
 bool IsFlightCancelled() { return atomic_get(&flightCancelled) == 1; }
+
+
+float GetUpAxis(const NTypes::AccelerometerData &xyz){
+    NTypes::AccelerometerData out{0,0,0};
+    RotateIMUVectorToRocketVector(xyz, out);
+    return out.Z;
+}
+void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out){
+    zsl_quat q = {.r = UP_AXIS_QUAT[0], .i = UP_AXIS_QUAT[1], .j = UP_AXIS_QUAT[2], .k = UP_AXIS_QUAT[3]};
+    zsl_quat q_conj = {1,0,0,0};
+    zsl_quat_conj(&q, &q_conj);
+
+    zsl_quat p{.r = 0, .i = xyz.X, .j = xyz.Y, .k = xyz.Z};
+
+    zsl_quat intermediate;
+    zsl_quat_mult(&q, &p, &intermediate);
+
+    zsl_quat output;
+    zsl_quat_mult(&intermediate, &q_conj, &output);
+    out.X = output.i;
+    out.Y = output.j;
+    out.Z = output.k;
+}

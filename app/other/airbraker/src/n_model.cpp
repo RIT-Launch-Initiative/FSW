@@ -54,12 +54,27 @@ KalmanState LastKalmanState() {
         .estBias = kalman_state.Get(3, 0),
     };
 }
-
+#define CUSTOM_ATMOSPHERE 1
+#ifdef CUSTOM_ATMOSPHERE
+float AltitudeMetersFromPressureKPa(float kPa){
+    float x = kPa * 1000;
+    float sum = 0;
+    float xn = x;
+    for (size_t i = 1; i < AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS; i++){
+        const float coeff = ATMOSPHERE[i];
+        sum += coeff * xn;
+        xn *= x;
+    }
+    return sum + ATMOSPHERE[0];
+}
+#else
 float AltitudeMetersFromPressureKPa(float pressure_kpa) {
     float pressure = pressure_kpa * 10;
     float altitude = (1 - powf(pressure / 1013.25F, 0.190284F)) * (float) (145366.45 * 0.3048);
     return altitude;
 }
+#endif
+
 
 Matrix<3, 3> expGyro(float w_1, float w_2, float w_3, float t) {
     float w_1² = w_1 * w_1;

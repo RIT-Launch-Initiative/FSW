@@ -219,7 +219,7 @@ static int cmd_bootcount(const struct shell *shell, size_t /*argc*/, char ** /*a
 static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     BAILOUT_IF_NOT_CANCELLED(shell);
     Packet p = {0};
-    int ret = NSensing::MeasureSensors(p.tempRaw, p.pressureRaw, p.accelRaw, p.gyro);
+    int ret = NSensing::MeasureSensors(p.pressureRaw, p.tempRaw, p.accelRaw, p.gyro);
     if (ret < 0) {
         shell_error(shell, "Failed to read sensors: %d", ret);
         return ret;
@@ -231,11 +231,20 @@ static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*a
     shell_info(shell, "Accel Y:    %f m/s2", (double) p.accelRaw.Y);
     shell_info(shell, "Accel Z:    %f m/s2", (double) p.accelRaw.Z);
 
-    // shell_info(shell, "Accel Up:   %f m/s2", (double) UpAxisFrom(UP_AXIS, p.accelRaw));
 
     shell_info(shell, "Gyro X:     %f dps", (double) p.gyro.X);
     shell_info(shell, "Gyro Y:     %f dps", (double) p.gyro.Y);
     shell_info(shell, "Gyro Z:     %f dps", (double) p.gyro.Z);
+
+    shell_info(shell, "\nSecondary Products =========\n");
+    shell_info(shell, "Altitude:   %f m", (double) NModel::AltitudeMetersFromPressureKPa(p.tempRaw));
+
+    NTypes::AccelerometerData rocket{0,0,0};
+    RotateIMUVectorToRocketVector(p.accelRaw, rocket);
+
+    shell_info(shell, "Rocket X:   %f m/s2", (double) rocket.X);
+    shell_info(shell, "Rocket Y:   %f m/s2", (double) rocket.Y);
+    shell_info(shell, "Rocket Z:   %f m/s2", (double) rocket.Z);
 
     return 0;
 }

@@ -18,7 +18,7 @@ Usage:
 '''
 
 
-def generate_h(name: str, date_str: str, md5sum: bytes, controller: Controller, orientation_quat: List[float], xMin: float, xMax: float, lower_bounds: List[float], upper_bounds: List[float]) -> str:
+def generate_h(name: str, date_str: str, md5sum: bytes, flightTimeMs: int, lockoutMs: int, atmosphere: List[float], controller: Controller, orientation_quat: List[float], xMin: float, xMax: float, lower_bounds: List[float], upper_bounds: List[float]) -> str:
     comma_separate_floats = lambda lst : ', '.join([str(v) for v in lst])
     return f'''
 
@@ -42,6 +42,12 @@ def generate_h(name: str, date_str: str, md5sum: bytes, controller: Controller, 
 
 #define KALMAN_UP_AXIS_QUAT_INITIALIZER {comma_separate_floats(orientation_quat)}
 
+#define AUTOGEN_ATMOSPHERE_COEFFICIENTS {comma_separate_floats(atmosphere)}
+#define AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS {len(atmosphere)}
+
+#define AUTOGEN_LOCKOUT_MS {lockoutMs}
+#define AUTOGEN_FLIGHT_TIME_MS {flightTimeMs}
+
 #define LUT_MD5SUM_ARRAY_LEN {len(md5sum)}
 #define LUT_MD5SUM_INITIALIZER {', '.join([hex(b) for b in md5sum])}
 #define LUT_MD5SUM_STR "{md5sum.hex()}"
@@ -60,6 +66,12 @@ schema = {
         "date": {
             "type": "string",
             "format": "date-time"
+        },
+        "flight_time_ms": {
+            "type": "number"
+        },
+        "lockout_ms": {
+            "type": "number"
         },
         "orientation_quat": {
             "type": "array",
@@ -117,6 +129,14 @@ schema = {
             "initial_state"
         ]
         },
+        "atmosphere": {
+            "type": "array",
+            "items": {
+                "type": "number"
+            },
+            "minItems": 6,
+            "maxItems": 6
+        },
         "quantile_lut": {
         "type": "object",
         "properties": {
@@ -151,8 +171,11 @@ schema = {
   "required": [
     "name",
     "date",
+    "flight_time_ms",
+    "lockout_ms",
     "orientation_quat",
     "controller",
+    "atmosphere",
     "quantile_lut"
   ]
 }
@@ -203,12 +226,15 @@ def main():
          exit(1)
 
     kalman = controller_desc["controller"]
+    flightTimeMs = controller_desc["flight_time_ms"]
+    lockoutMs = controller_desc["lockout_ms"]
+    atmosphere = controller_desc["atmosphere"]
     controller = Controller(kalman["state_transition_matrix"], kalman["kalman_gain"], kalman["kalman_output"], kalman["initial_state"])
     orientation = controller_desc["orientation_quat"]
 
     xMin, xMax = min(x), max(x)
 
-    print(generate_h(name, date, md5sum, controller, orientation, xMin, xMax, lower, upper))
+    print(generate_h(name, date, md5sum, flightTimeMs, lockoutMs, atmosphere, controller, orientation, xMin, xMax, lower, upper))
 
 if __name__ == '__main__':
     main()
