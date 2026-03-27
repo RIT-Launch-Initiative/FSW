@@ -20,6 +20,7 @@ Usage:
 
 def generate_h(name: str, date_str: str, md5sum: bytes, flightTimeMs: int, lockoutMs: int, atmosphere: List[float], controller: Controller, orientation_quat: List[float], xMin: float, xMax: float, lower_bounds: List[float], upper_bounds: List[float]) -> str:
     comma_separate_floats = lambda lst : ', '.join([str(v) for v in lst])
+    orientation_quat_conjugate = [orientation_quat[0], -orientation_quat[1], -orientation_quat[2], -orientation_quat[3]]
     return f'''
 
 #define LUT_NAME "{name}"
@@ -40,7 +41,8 @@ def generate_h(name: str, date_str: str, md5sum: bytes, flightTimeMs: int, locko
 #define KALMAN_GAIN_INITIALIZER {comma_separate_floats(controller.kalman_gain)}
 #define KALMAN_INITIAL_STATE_INITIALIZER {comma_separate_floats(controller.initial_state)}
 
-#define KALMAN_UP_AXIS_QUAT_INITIALIZER {comma_separate_floats(orientation_quat)}
+#define AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER {comma_separate_floats(orientation_quat)}
+#define AUTOGEN_IMU_TO_ROCKET_QUAT_CONJUGATED_INITIALIZER {comma_separate_floats(orientation_quat_conjugate)}
 
 #define AUTOGEN_ATMOSPHERE_COEFFICIENTS {comma_separate_floats(atmosphere)}
 #define AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS {len(atmosphere)}

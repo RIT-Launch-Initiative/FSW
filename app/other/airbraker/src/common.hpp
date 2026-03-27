@@ -1,6 +1,7 @@
 #pragma once
 #include "n_autocoder_types.h"
 #include "quantile_lut_data.h"
+#include <zsl/orientation/quaternions.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -26,7 +27,11 @@ constexpr float ATMOSPHERE[] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
 #ifdef CONFIG_OPENROCKET_SENSORS
 constexpr float UP_AXIS_QUAT[4] = {1,0,0,0};
 #else
-constexpr float UP_AXIS_QUAT[4] = {KALMAN_UP_AXIS_QUAT_INITIALIZER};
+// linkers hate this one weird trick
+// zsl_quat_mult doesnt take const parameters so just like dont modify these
+inline zsl_quat IMU_TO_ROCKET_QUAT{AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
+inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{AUTOGEN_IMU_TO_ROCKET_QUAT_CONJUGATED_INITIALIZER};
+ 
 #endif
 
 
@@ -51,7 +56,7 @@ struct Parameters {
     uint32_t numPreboostPackets = NUM_STORED_PREBOOST_PACKETS;
     uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
     uint8_t controllerHash[LUT_MD5SUM_ARRAY_LEN] = {LUT_MD5SUM_INITIALIZER};
-    float upAxisQuaternion[4] = {KALMAN_UP_AXIS_QUAT_INITIALIZER};
+    float upAxisQuaternion[4] = {AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
     float atmosphere[AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
 };
 

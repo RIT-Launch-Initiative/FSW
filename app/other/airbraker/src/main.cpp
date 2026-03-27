@@ -78,7 +78,12 @@ int main() {
 
     // servo not allowed until after under mach. disable to save power
     DisableServo();
+    int i = 0; 
     while (!NBoost::IsDetected()) {
+        i ++;
+        if (i > 100){
+            break;
+        }
         RETURN0_IF_CANCELLED;
         k_timer_status_sync(&measurement_timer);
         packet.timestamp = packet_timestamp();
@@ -143,6 +148,10 @@ int main() {
 
         NStorage::WriteFlightPacket(i, &packet);
 
+
+        LOG_INF("[0 0 1]-> [%f %f %f]", (double) bias.X, (double) bias.Y, (double) bias.Z);
+
+
         // Write preboost if needed
         if (preboostWriteHead < NUM_STORED_PREBOOST_PACKETS) {
             NStorage::WritePreboostPacket(preboostWriteHead, NPreBoost::GetPreBoostPacketPtr(preboostWriteHead));
@@ -169,17 +178,14 @@ float GetUpAxis(const NTypes::AccelerometerData &xyz){
     return out.Z;
 }
 void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out){
-    zsl_quat q = {.r = UP_AXIS_QUAT[0], .i = UP_AXIS_QUAT[1], .j = UP_AXIS_QUAT[2], .k = UP_AXIS_QUAT[3]};
-    zsl_quat q_conj = {1,0,0,0};
-    zsl_quat_conj(&q, &q_conj);
-
     zsl_quat p{.r = 0, .i = xyz.X, .j = xyz.Y, .k = xyz.Z};
 
+    // q p q*
     zsl_quat intermediate;
-    zsl_quat_mult(&q, &p, &intermediate);
+    zsl_quat_mult(&IMU_TO_ROCKET_QUAT, &p, &intermediate);
 
     zsl_quat output;
-    zsl_quat_mult(&intermediate, &q_conj, &output);
+    zsl_quat_mult(&intermediate, &IMU_TO_ROCKET_QUAT_CONJUGATE, &output);
     out.X = output.i;
     out.Y = output.j;
     out.Z = output.k;

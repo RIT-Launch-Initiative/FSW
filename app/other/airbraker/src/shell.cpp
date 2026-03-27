@@ -203,10 +203,10 @@ static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /
     shell_fprintf_normal(shell, "ControllerHash:  ");
     shell_hexdump(shell, p.controllerHash, LUT_MD5SUM_ARRAY_LEN);
     shell_print(shell, "UpAxis Quaternion:");
-    shell_print(shell, "    A:                    %f", (double)UP_AXIS_QUAT[0]);
-    shell_print(shell, "    B:                    %f", (double)UP_AXIS_QUAT[1]);
-    shell_print(shell, "    C:                    %f", (double)UP_AXIS_QUAT[2]);
-    shell_print(shell, "    D:                    %f", (double)UP_AXIS_QUAT[3]);
+    shell_print(shell, "    A:                    %f", (double)IMU_TO_ROCKET_QUAT.i);
+    shell_print(shell, "    B:                    %f", (double)IMU_TO_ROCKET_QUAT.j);
+    shell_print(shell, "    C:                    %f", (double)IMU_TO_ROCKET_QUAT.k);
+    shell_print(shell, "    D:                    %f", (double)IMU_TO_ROCKET_QUAT.j);
 
     return 0;
 }
