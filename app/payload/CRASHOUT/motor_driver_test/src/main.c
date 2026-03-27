@@ -62,6 +62,7 @@ uint32_t w_scale_value = 16;
 
 /**
  * Sets the voltage of the motor driver by writing to the appropriate register.
+ * <<< Doesn't actually work lol >>>
  */
 void set_voltage(float volts) {
     if (volts > 38) {
@@ -125,6 +126,43 @@ void clearRippleCount(){
 }
 
 /**
+ * Sets the motor driver to speed control mode
+ */
+void setToSpeedControlMode(){
+    uint8_t reg_ctrl_0;
+    i2c_reg_read_byte_dt(&i2c_dev, REG_CTRL0_REG, &reg_ctrl_0);
+
+    // set bits 4,3 to 10 to set speed control mode (page 30 of datasheet)
+    reg_ctrl_0 &= 0b11100111;
+    reg_ctrl_0 |= 0b00010000;
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, reg_ctrl_0);
+
+    // set duty ctrl to 0
+    uint8_t config0;
+    i2c_reg_read_byte_dt(&i2c_dev, CONFIG0_REG, &config0);
+    config0 &= 0b11111110;
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG0_REG, config0);
+}
+
+/**
+ * Sets the motor driver to voltage control mode
+ */
+void setToVoltageControlMode(){
+    uint8_t reg_ctrl_0;
+    i2c_reg_read_byte_dt(&i2c_dev, REG_CTRL0_REG, &reg_ctrl_0);
+
+    // set bits 4,3 to 11 to set voltage control mode (page 30 of datasheet)
+    reg_ctrl_0 |= 0b00011000;
+    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, reg_ctrl_0);
+
+    // set duty ctrl to 0
+    uint8_t config0;
+    i2c_reg_read_byte_dt(&i2c_dev, CONFIG0_REG, &config0);
+    config0 &= 0b11111110;
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG0_REG, config0);
+}
+
+/**
  * Reads and prints the voltage, speed, ripple count, and direction from the motor driver.
  */
 void print_info(){
@@ -162,47 +200,10 @@ void print_info(){
 }
 
 /**
- * Tests running the motor by controlling the voltage sent to it
+ * Tests running the motor by directly controlling the speed
+ * @param dir the direction to run the motor in, 0x36 for clockwise and 0x37 for counterclockwise
  */
-void voltage_control_test(uint8_t dir){
-    if(!motorOn){
-        printk("Motor is off, cannot spin\n");
-        return;
-    }
-
-    printk("Initted i2c dev\n");
-    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34); // 0011, 0100 
-    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
-    printk("Fault 34: %02x\n", flt);
-    
-    i2c_reg_write_byte_dt(&i2c_dev, CONFIG0_REG, 0xe0);
-    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
-    printk("Fault e0: %02x\n", flt);
-
-    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, dir); // 0x36 one dir, 0x37 other dir
-    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
-    printk("Fault 36: %02x\n", flt);
-
-    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
-    printk("Fault: %02x\n", flt);
-
-    for (int i = 0; i < 100; i++){
-        print_info();
-        i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
-        k_msleep(40);
-    }
-    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34);
-}
-
-int main(void) {
-    if (!device_is_ready(i2c_bus)) {
-        printk("No i2c ready");
-        return 0;
-    }
-    
-    k_msleep(1000);
-    turnOn();
-    
+void speed_control_test(uint8_t dir){
     static const uint8_t inv_r_scale = 0b10;
     static const uint8_t inv_r = 42;
 
@@ -217,7 +218,102 @@ int main(void) {
     i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL3_REG, rc_ctrl_3);
     i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL4_REG, rc_ctrl_4);
 
-    voltage_control_test(0x37);
+    setToSpeedControlMode();
+
+    if(!motorOn){
+        printk("Motor is off, cannot spin\n");
+        return;
+    }
+
+    printk("Initted i2c dev\n");
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34); // 0011, 0100 
+    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    printk("Fault 34: %02x\n", flt);
+    
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG0_REG, 0xe0);
+    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    printk("Fault e0: %02x\n", flt);
+
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, dir); // 0x36 counterclockwise, 0x37 clockwise
+    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    printk("Fault 36: %02x\n", flt);
+
+    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    printk("Fault: %02x\n", flt);
+
+    for (int i = 0; i < 20; i++){
+        print_info();
+        i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+        k_msleep(200);
+    }
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34);
+}
+
+/**
+ * Tests running the motor by controlling the voltage sent to it
+ * @param dir the direction to run the motor in, 0x36 for clockwise and 0x37 for counterclockwise
+ */
+void voltage_control_test(uint8_t dir){
+    static const uint8_t inv_r_scale = 0b10;
+    static const uint8_t inv_r = 42;
+
+    static const uint8_t kmc_scale = 0b01;
+    static const uint8_t kmc = 139;
+
+    uint8_t rc_ctrl_2 = (inv_r_scale << 6) | (kmc_scale << 4) | (3 << 2) | 3;
+    uint8_t rc_ctrl_3 = inv_r;
+    uint8_t rc_ctrl_4 = kmc;
+
+    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL2_REG, rc_ctrl_2);
+    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL3_REG, rc_ctrl_3);
+    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL4_REG, rc_ctrl_4);
+
+    setToVoltageControlMode();
+
+    if(!motorOn){
+        printk("Motor is off, cannot spin\n");
+        return;
+    }
+
+    printk("Initted i2c dev\n");
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34); // 0011, 0100 
+    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    printk("Fault 34: %02x\n", flt);
+    
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG0_REG, 0xe0);
+    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    printk("Fault e0: %02x\n", flt);
+
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, dir);
+    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    printk("Fault 36: %02x\n", flt);
+
+    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    printk("Fault: %02x\n", flt);
+
+    for (int i = 0; i < 20; i++){
+        print_info();
+        i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+        k_msleep(200);
+    }
+    i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34);
+}
+
+int main(void) {
+    if (!device_is_ready(i2c_bus)) {
+        printk("No i2c ready");
+        return 0;
+    }
+    
+    k_msleep(1000);
+
+    turnOn();
+
+    setToVoltageControlMode();
+    set_voltage(6);
+    voltage_control_test(0x37); // counter clockwise
+    set_voltage(12);
+    voltage_control_test(0x36); // clockwise
 
     return 0;
 }
