@@ -18,7 +18,8 @@ void SilenceAlarm();
  * after SilenceAlarm is called, this will return so make sure you know what happens after it returns
  */
 void NotFlying();
-
+// do it from the outside world
+void SetBuzzer(bool set);
 /**
  * Play happy sound saying the board is on
  */

@@ -14,7 +14,6 @@ using Matrix = ManualMatrix<R, C, float>;
 #endif
 #include <zephyr/kernel.h>
 
-void print3x3(const Matrix<3, 3> &mat);
 template<std::size_t R, std::size_t C>
 Matrix<R,C> matrixExpPowSeries(const Matrix<R,C> &At, std::size_t iterations){
 

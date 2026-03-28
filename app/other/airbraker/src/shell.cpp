@@ -166,10 +166,9 @@ static int cmd_read_data(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Est. Acceleration:   %f (m/s²)", (double) packet.kalmanState.estAcceleration);
     shell_print(shell, "Est. Bias:           %f (m/s²)", (double) packet.kalmanState.estBias);
     shell_print(shell, "Orientation ============================");
-    shell_print(shell, "Quat A:              %f", (double) packet.orientationQuat[0]);
-    shell_print(shell, "Quat B:              %f", (double) packet.orientationQuat[1]);
-    shell_print(shell, "Quat C:              %f", (double) packet.orientationQuat[2]);
-    shell_print(shell, "Quat D:              %f", (double) packet.orientationQuat[3]);
+    shell_print(shell, "Mat r1:              %f  %f  %f", (double) packet.orientationMatrix[0], (double) packet.orientationMatrix[1], (double) packet.orientationMatrix[2]);
+    shell_print(shell, "Mat r2:              %f  %f  %f", (double) packet.orientationMatrix[3], (double) packet.orientationMatrix[4], (double) packet.orientationMatrix[5]);
+    shell_print(shell, "Mat r3:              %f  %f  %f", (double) packet.orientationMatrix[6], (double) packet.orientationMatrix[7], (double) packet.orientationMatrix[8]);
     shell_print(shell, "Output =================================");
     shell_print(shell, "Effort:              %f", (double) packet.effort);
 

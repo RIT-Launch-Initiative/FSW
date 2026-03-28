@@ -25,7 +25,8 @@ constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 10;
 constexpr float ATMOSPHERE[] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
 
 #ifdef CONFIG_OPENROCKET_SENSORS
-constexpr float UP_AXIS_QUAT[4] = {1,0,0,0};
+inline zsl_quat IMU_TO_ROCKET_QUAT{1,0,0,0};
+inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{1,0,0,0};
 #else
 // linkers hate this one weird trick
 // zsl_quat_mult doesnt take const parameters so just like dont modify these
@@ -71,11 +72,11 @@ struct Packet {
 
     KalmanState kalmanState;
 
-    float orientationQuat[4];
+    float orientationMatrix[9];
     float effort;
 };
 
-static_assert(sizeof(Packet) == 72, "Check size of packet");
+static_assert(sizeof(Packet) == 92, "Check size of packet");
 
 /**
  * Cancel flight from anywhere at anytime. 
@@ -92,3 +93,5 @@ bool IsFlightCancelled();
 
 float GetUpAxis(const NTypes::AccelerometerData &xyz);
 void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out);
+
+void RotateRocketVectorToIMUVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out);

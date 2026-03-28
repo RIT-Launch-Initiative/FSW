@@ -17,6 +17,7 @@ struct GyroState {
 };
 
 void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro);
+void FillPacketWithOrientationMatrix(float *arr);
 int GetOrientation();
 bool EverWentOutOfBounds();
 

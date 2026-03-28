@@ -43,7 +43,6 @@ NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes
 }
 
 int main() {
-    // NBuzzer::SetBuzzer(true);
     NSensing::InitSensors();
 
     if (NStorage::HasStoredFlight()) {
@@ -62,7 +61,7 @@ int main() {
         .accelRaw = 0,
         .gyro = {0},
         .kalmanState = {0},
-        .orientationQuat = {1, 0, 0, 0},
+        .orientationMatrix = {1, 0, 0, 0, 1, 0, 0, 0, 1},
         .effort = 0,
     };
 
@@ -78,17 +77,12 @@ int main() {
 
     // servo not allowed until after under mach. disable to save power
     DisableServo();
-    int i = 0; 
     while (!NBoost::IsDetected()) {
-        i ++;
-        if (i > 100){
-            break;
-        }
         RETURN0_IF_CANCELLED;
         k_timer_status_sync(&measurement_timer);
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-
+        
         float vertical = GetUpAxis(packet.accelRaw);
 
         NBoost::FeedDetector(vertical);
@@ -103,6 +97,7 @@ int main() {
     }
     RETURN0_IF_CANCELLED;
     LOG_INF("Boost Detected");
+    // NBuzzer::SetBuzzer(true);
 
     // behind schedule bc of boost detect lag
     uint32_t liftoffTimeMs = packet.timestamp - (NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED * 10);
@@ -132,6 +127,7 @@ int main() {
 
         NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
         NModel::FeedGyro(packet.timestamp, unbiasedGyro);
+        NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
 
         NModel::FeedKalman(packet.timestamp, altMeters, vertical);
         packet.kalmanState = NModel::LastKalmanState();
@@ -149,17 +145,18 @@ int main() {
         NStorage::WriteFlightPacket(i, &packet);
 
 
-        LOG_INF("[0 0 1]-> [%f %f %f]", (double) bias.X, (double) bias.Y, (double) bias.Z);
-
 
         // Write preboost if needed
         if (preboostWriteHead < NUM_STORED_PREBOOST_PACKETS) {
             NStorage::WritePreboostPacket(preboostWriteHead, NPreBoost::GetPreBoostPacketPtr(preboostWriteHead));
             preboostWriteHead++;
+        } else {
+            // NBuzzer::SetBuzzer(false);
         }
     }
     LOG_INF("Flight over");
     DisableServo();
+    CancelFlight();
 }
 
 static atomic_t flightCancelled = ATOMIC_INIT(0);
@@ -186,6 +183,20 @@ void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes:
 
     zsl_quat output;
     zsl_quat_mult(&intermediate, &IMU_TO_ROCKET_QUAT_CONJUGATE, &output);
+    out.X = output.i;
+    out.Y = output.j;
+    out.Z = output.k;
+}
+
+void RotateRocketVectorToIMUVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out){
+    zsl_quat p{.r = 0, .i = xyz.X, .j = xyz.Y, .k = xyz.Z};
+
+    // q p q*
+    zsl_quat intermediate;
+    zsl_quat_mult(&IMU_TO_ROCKET_QUAT_CONJUGATE, &p, &intermediate);
+
+    zsl_quat output;
+    zsl_quat_mult(&intermediate, &IMU_TO_ROCKET_QUAT, &output);
     out.X = output.i;
     out.Y = output.j;
     out.Z = output.k;
