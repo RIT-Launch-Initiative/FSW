@@ -43,6 +43,10 @@ NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes
 }
 
 int main() {
+    NBuzzer::SetBuzzer(true);
+    k_msleep(100);
+    NBuzzer::SetBuzzer(false);
+
     NSensing::InitSensors();
 
     if (NStorage::HasStoredFlight()) {
@@ -98,7 +102,6 @@ int main() {
     }
     RETURN0_IF_CANCELLED;
     LOG_INF("Boost Detected");
-    // NBuzzer::SetBuzzer(true);
 
     // behind schedule bc of boost detect lag
     uint32_t liftoffTimeMs = packet.timestamp - (NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED * 10);

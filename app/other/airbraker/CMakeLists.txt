@@ -18,7 +18,7 @@ add_dependencies(app ac_types)
 # Options for LUT Generator
 set(LUT_SCRIPT_PATH ${CMAKE_SOURCE_DIR}/tools/lut_to_c.py)
 set(LUT_DEFS_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/lut_generated/quantile_lut_data.h)
-set(LUT_INPUT_PATH ${CMAKE_SOURCE_DIR}/data/controller_descriptions/omen.json)
+set(LUT_INPUT_PATH ${CMAKE_SOURCE_DIR}/data/controller_descriptions/emmas_l1_2026-03-28T09-57-11.json)
 
 
 # LUT Generator implementation
