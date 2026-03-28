@@ -159,6 +159,18 @@ int main() {
     LOG_INF("Flight over");
     DisableServo();
     CancelFlight();
+
+    // happy beep for reco team
+    while(true){
+        NBuzzer::SetBuzzer(true);
+        k_msleep(200);
+        NBuzzer::SetBuzzer(false);
+        k_msleep(50);
+        NBuzzer::SetBuzzer(true);
+        k_msleep(100);
+        NBuzzer::SetBuzzer(false);
+        k_msleep(50);
+    }
 }
 
 static atomic_t flightCancelled = ATOMIC_INIT(0);
