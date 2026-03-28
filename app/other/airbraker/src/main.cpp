@@ -61,6 +61,7 @@ int main() {
         .accelRaw = 0,
         .gyro = {0},
         .kalmanState = {0},
+        .kalmanInnovation = {0, 0},
         .orientationMatrix = {1, 0, 0, 0, 1, 0, 0, 0, 1},
         .effort = 0,
     };
@@ -104,7 +105,7 @@ int main() {
     NTypes::GyroscopeData bias = NPreBoost::GetGyroBias();
     float groundLevelASLMeters = NPreBoost::GetGroundLevelASL();
 
-    params.timestampOfBoost = packet.timestamp;
+    params.timestampOfBoostDetect = packet.timestamp;
     params.gyroBias = bias;
     params.preBoostPressure = NPreBoost::GetGroundLevelPressure();
     NStorage::WriteParameters(&params);
@@ -127,6 +128,7 @@ int main() {
 
         NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
         NModel::FeedGyro(packet.timestamp, unbiasedGyro);
+        NModel::FillPacketWithKalmanInnovation(packet.kalmanInnovation);
         NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
 
         NModel::FeedKalman(packet.timestamp, altMeters, vertical);

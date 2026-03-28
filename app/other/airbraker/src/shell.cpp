@@ -3,6 +3,7 @@
 #include "n_model.hpp"
 #include "n_sensing.hpp"
 #include "n_storage.hpp"
+#include "n_boost.hpp"
 #include "servo.hpp"
 
 #include <cmath>
@@ -166,9 +167,12 @@ static int cmd_read_data(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Est. Acceleration:   %f (m/s²)", (double) packet.kalmanState.estAcceleration);
     shell_print(shell, "Est. Bias:           %f (m/s²)", (double) packet.kalmanState.estBias);
     shell_print(shell, "Orientation ============================");
-    shell_print(shell, "Mat r1:              %f  %f  %f", (double) packet.orientationMatrix[0], (double) packet.orientationMatrix[1], (double) packet.orientationMatrix[2]);
-    shell_print(shell, "Mat r2:              %f  %f  %f", (double) packet.orientationMatrix[3], (double) packet.orientationMatrix[4], (double) packet.orientationMatrix[5]);
-    shell_print(shell, "Mat r3:              %f  %f  %f", (double) packet.orientationMatrix[6], (double) packet.orientationMatrix[7], (double) packet.orientationMatrix[8]);
+    shell_print(shell, "Mat r1:              %f  %f  %f", (double) packet.orientationMatrix[0],
+                (double) packet.orientationMatrix[1], (double) packet.orientationMatrix[2]);
+    shell_print(shell, "Mat r2:              %f  %f  %f", (double) packet.orientationMatrix[3],
+                (double) packet.orientationMatrix[4], (double) packet.orientationMatrix[5]);
+    shell_print(shell, "Mat r3:              %f  %f  %f", (double) packet.orientationMatrix[6],
+                (double) packet.orientationMatrix[7], (double) packet.orientationMatrix[8]);
     shell_print(shell, "Output =================================");
     shell_print(shell, "Effort:              %f", (double) packet.effort);
 
@@ -188,7 +192,7 @@ static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /
         return -1;
     }
     shell_print(shell, "Readings ======================================");
-    shell_print(shell, "Timestamp of Boost:       %d (ms)", p.timestampOfBoost);
+    shell_print(shell, "Timestamp of Boost:       %d (ms)", p.timestampOfBoostDetect);
     shell_print(shell, "Preboost Pressure:        %f (kPa)", (double) p.preBoostPressure);
     shell_print(shell, "Gyro Bias X:              %f (dps)", (double) p.gyroBias.X);
     shell_print(shell, "Gyro Bias Y:              %f (dps)", (double) p.gyroBias.Y);
@@ -202,10 +206,10 @@ static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /
     shell_fprintf_normal(shell, "ControllerHash:  ");
     shell_hexdump(shell, p.controllerHash, LUT_MD5SUM_ARRAY_LEN);
     shell_print(shell, "UpAxis Quaternion:");
-    shell_print(shell, "    A:                    %f", (double)IMU_TO_ROCKET_QUAT.i);
-    shell_print(shell, "    B:                    %f", (double)IMU_TO_ROCKET_QUAT.j);
-    shell_print(shell, "    C:                    %f", (double)IMU_TO_ROCKET_QUAT.k);
-    shell_print(shell, "    D:                    %f", (double)IMU_TO_ROCKET_QUAT.j);
+    shell_print(shell, "    A:                    %f", (double) IMU_TO_ROCKET_QUAT.i);
+    shell_print(shell, "    B:                    %f", (double) IMU_TO_ROCKET_QUAT.j);
+    shell_print(shell, "    C:                    %f", (double) IMU_TO_ROCKET_QUAT.k);
+    shell_print(shell, "    D:                    %f", (double) IMU_TO_ROCKET_QUAT.j);
 
     return 0;
 }
@@ -230,7 +234,6 @@ static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*a
     shell_info(shell, "Accel Y:    %f m/s2", (double) p.accelRaw.Y);
     shell_info(shell, "Accel Z:    %f m/s2", (double) p.accelRaw.Z);
 
-
     shell_info(shell, "Gyro X:     %f dps", (double) p.gyro.X);
     shell_info(shell, "Gyro Y:     %f dps", (double) p.gyro.Y);
     shell_info(shell, "Gyro Z:     %f dps", (double) p.gyro.Z);
@@ -238,7 +241,7 @@ static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*a
     shell_info(shell, "\nSecondary Products =========\n");
     shell_info(shell, "Altitude:   %f m", (double) NModel::AltitudeMetersFromPressureKPa(p.tempRaw));
 
-    NTypes::AccelerometerData rocket{0,0,0};
+    NTypes::AccelerometerData rocket{0, 0, 0};
     RotateIMUVectorToRocketVector(p.accelRaw, rocket);
 
     shell_info(shell, "Rocket X:   %f m/s2", (double) rocket.X);
@@ -395,8 +398,37 @@ static int cmd_servo_stop(const struct shell *shell, size_t /*argc*/, char ** /*
     return 0;
 }
 
+static int cmd_fakeboost(const struct shell *shell, size_t argc, char **argv) {
+    if (IsFlightCancelled()) {
+        shell_error(shell, "Can't start a flight after its cancelled. Reboot to do that");
+        return -1;
+    }
+    if (argc != 2) {
+        shell_error(shell, "Need argument of how many seconds to wait for");
+        return -1;
+    }
+    long seconds = 0;
+    bool parsed = parse_long(argv[1], &seconds);
+    if (!parsed){
+        shell_error(shell, "Invalid number of seconds to wait for");
+    }
+
+    shell_info(shell, "Waiting for %ld seconds", seconds);
+    k_msleep(seconds * 1000);
+    shell_info(shell, "Beeping");
+    NBuzzer::SetBuzzer(true);
+    k_msleep(1000);
+    NBuzzer::SetBuzzer(false);
+    shell_info(shell, "5 seconds till flight");
+    k_msleep(5000);
+    NBoost::FakeBoost();
+
+    return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(subcmds, SHELL_CMD(nogo, NULL, "Cancel main mission", cmd_nogo),
                                SHELL_CMD(info, NULL, "Program Information", cmd_read_info),
+                               SHELL_CMD(fakeboost, NULL, "Fake boost for testing.", cmd_fakeboost),
                                SHELL_CMD(sample, NULL, "Sample a single sample", cmd_sampleone),
                                SHELL_CMD(erase, NULL, "Erase Flight Data (DANGER DANGER DANGER)", cmd_erase),
                                SHELL_CMD(read_params, NULL, "Read Params Block for humans", cmd_read_params),

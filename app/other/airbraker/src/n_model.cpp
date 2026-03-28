@@ -22,6 +22,7 @@ const Matrix<4, 2> kalman_gain{{KALMAN_GAIN_INITIALIZER}};
 
 static Matrix<4, 1> kalman_state({KALMAN_INITIAL_STATE_INITIALIZER});
 
+static Matrix<2, 1> lastInnovation{{0,0}};
 static Matrix<3, 3> gyroOrientation = Matrix<3, 3>::Identity();
 static bool everWentOutOfBounds = false;
 
@@ -34,6 +35,8 @@ Matrix<4, 1> kalmanPredictAndUpdate(const Matrix<4, 1> &state, const float altit
 
     // change via sensors
     Matrix<2, 1> innovation = sensorIn - (kalman_output_matrix * fx);
+    lastInnovation = innovation;
+
     Matrix<4, 1> correction = kalman_gain * innovation;
 
     return fx + correction;
@@ -147,6 +150,12 @@ void FillPacketWithOrientationMatrix(float *arr){
         arr[i] = gyroOrientation.Get(i / 3, i % 3);
     }
 }
+
+void FillPacketWithKalmanInnovation(float *inno){
+    inno[0] = lastInnovation.Get(0,0);
+    inno[1] = lastInnovation.Get(1,0);
+}
+
 
 
 } // namespace NModel

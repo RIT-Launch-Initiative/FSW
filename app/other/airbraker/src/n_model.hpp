@@ -18,6 +18,8 @@ struct GyroState {
 
 void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro);
 void FillPacketWithOrientationMatrix(float *arr);
+void FillPacketWithKalmanInnovation(float *inno);
+
 int GetOrientation();
 bool EverWentOutOfBounds();
 

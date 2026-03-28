@@ -47,7 +47,7 @@ struct Parameters {
     static constexpr uint32_t MAGIC = 2'435'220'000; // the number that louis told me
     uint32_t magic = MAGIC;                          // if equal to MAGIC, a flight has happened
     // measurments that need to be saved
-    uint32_t timestampOfBoost = {0};
+    uint32_t timestampOfBoostDetect = {0};
     float preBoostPressure = {0};
     NTypes::GyroscopeData gyroBias = {0};
     uint32_t bootcount = {0};
@@ -72,11 +72,12 @@ struct Packet {
 
     KalmanState kalmanState;
 
+    float kalmanInnovation[2];
     float orientationMatrix[9];
     float effort;
 };
 
-static_assert(sizeof(Packet) == 92, "Check size of packet");
+static_assert(sizeof(Packet) == 100, "Check size of packet");
 
 /**
  * Cancel flight from anywhere at anytime. 
