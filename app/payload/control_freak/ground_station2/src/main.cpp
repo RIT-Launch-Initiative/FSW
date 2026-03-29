@@ -47,15 +47,9 @@ const char *state_name(uint8_t b) {
 }
 
 int main() {
-    struct lora_modem_config cfg{
-        .frequency = carrier,
-        .bandwidth = BW_250_KHZ,
-        .datarate = SF_12,
-        .coding_rate = CR_4_8,
-        .preamble_len = 8,
-        .tx_power = 20,
-        .tx = false,
-        .public_network = false,
+    struct lora_modem_config cfg {
+        .frequency = carrier, .bandwidth = BW_250_KHZ, .datarate = SF_12, .coding_rate = CR_4_8, .preamble_len = 8,
+        .tx_power = 20, .tx = false, .public_network = false,
     };
 
     int ret = lora_config(radio, &cfg);

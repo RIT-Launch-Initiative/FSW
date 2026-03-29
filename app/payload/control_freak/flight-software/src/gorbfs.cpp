@@ -44,17 +44,15 @@ static int gorbfs_init(const struct device *dev) { return 0; }
                                                                                                                        \
     K_MSGQ_DEFINE(partition_name##_msgq, sizeof(void *), buf_size, alignof(void *));                                   \
                                                                                                                        \
-    const struct gorbfs_partition_config gorbfs_partition_config_##partition_name{                                     \
+    const struct gorbfs_partition_config gorbfs_partition_config_##partition_name {                                    \
         .flash_dev = GORBFS_GET_FLASH_DEV(partition_name),                                                             \
         .partition_addr = DT_REG_ADDR(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)),                               \
         .partition_size = DT_REG_SIZE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)),                               \
         .num_pages = DT_REG_SIZE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name)) / PAGE_SIZE,                        \
         .circle_size_pages = circ_size,                                                                                \
     };                                                                                                                 \
-    struct gorbfs_partition_data gorbfs_partition_data_##partition_name{                                               \
-        .page_index = 0,                                                                                               \
-        .msgq = &partition_name##_msgq,                                                                                \
-        .slab = &partition_name##_slab,                                                                                \
+    struct gorbfs_partition_data gorbfs_partition_data_##partition_name {                                              \
+        .page_index = 0, .msgq = &partition_name##_msgq, .slab = &partition_name##_slab,                               \
         .start_index = UNSET_START_INDEX,                                                                              \
     };                                                                                                                 \
     DEVICE_DT_DEFINE(DT_NODE_BY_FIXED_PARTITION_LABEL(partition_name), gorbfs_init, NULL,                              \

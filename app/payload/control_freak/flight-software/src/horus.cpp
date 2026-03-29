@@ -381,15 +381,9 @@ void make_and_transmit_horus(int power) {
 }
 
 void make_and_transmit_lora() {
-    struct lora_modem_config cfg{
-        .frequency = carrier,
-        .bandwidth = BW_250_KHZ,
-        .datarate = SF_12,
-        .coding_rate = CR_4_8,
-        .preamble_len = 8,
-        .tx_power = 25,
-        .tx = true,
-        .public_network = false,
+    struct lora_modem_config cfg {
+        .frequency = carrier, .bandwidth = BW_250_KHZ, .datarate = SF_12, .coding_rate = CR_4_8, .preamble_len = 8,
+        .tx_power = 25, .tx = true, .public_network = false,
     };
 
     int ret = lora_config(radio, &cfg);
