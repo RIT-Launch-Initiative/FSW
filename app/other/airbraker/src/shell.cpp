@@ -2,7 +2,6 @@
 #include "n_buzzer.hpp"
 #include "n_model.hpp"
 #include "n_sensing.hpp"
-#include "n_sensing.hpp"
 #include "n_storage.hpp"
 #include "n_boost.hpp"
 #include "servo.hpp"
@@ -10,7 +9,6 @@
 #include <cmath>
 #include <numbers>
 #include <zephyr/shell/shell.h>
-#include <zephyr/sys/base64.h>
 #include <zephyr/sys/base64.h>
 
 #define PARSER_HEADER_MAGIC_START "----++++//[[("
@@ -34,7 +32,6 @@ bool parse_long(const char *str, long *out) {
 
 static int cmd_nogo(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     NBuzzer::SilenceAlarm();
-    NBuzzer::SilenceAlarm();
     if (IsFlightCancelled()) {
         shell_info(shell, "Flight already cancelled");
         return 0;
@@ -46,7 +43,6 @@ static int cmd_nogo(const struct shell *shell, size_t /*argc*/, char ** /*argv*/
     return 0;
 }
 
-static int cmd_read_info(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
 static int cmd_read_info(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     shell_print(shell, "Airbrakes - " CONFIG_BOARD " - %s %s", __DATE__, __TIME__);
     shell_print(shell, "Model Name: %s", NModel::GetMatlabLUTName());
@@ -69,26 +65,7 @@ static int cmd_read_info(const struct shell *shell, size_t /*argc*/, char ** /*a
 }
 static int cmd_read_params64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
 
-
     BAILOUT_IF_NOT_CANCELLED(shell);
-    Parameters p{};
-    static uint8_t buf[sizeof(Parameters) * 2] = {0}; // plenty of room for a null terminator
-    int ret = NStorage::ReadStoredParameters(&p);
-    if (ret < -1) {
-        shell_error(shell, "Failed to read stored parameters");
-        return -1;
-    }
-    if (ret == -1) {
-        shell_error(shell, "No magic. Either nothing written or corrupted. Use flash shell to check");
-        return -1;
-    }
-    size_t written = 0;
-    ret = base64_encode(buf, sizeof(buf), &written, (uint8_t *) &p, sizeof(Parameters));
-    if (ret < 0) {
-        shell_error(shell, "Couldn't base64 encode: %d", ret);
-        return -1;
-    }
-
     Parameters p{};
     static uint8_t buf[sizeof(Parameters) * 2] = {0}; // plenty of room for a null terminator
     int ret = NStorage::ReadStoredParameters(&p);
@@ -109,16 +86,12 @@ static int cmd_read_params64(const struct shell *shell, size_t /*argc*/, char **
 
     shell_print(shell, PARSER_HEADER_MAGIC_START " params start " PARSER_HEADER_MAGIC_END);
     shell_print(shell, "%s", buf);
-    shell_print(shell, "%s", buf);
     shell_print(shell, PARSER_HEADER_MAGIC_START " params end " PARSER_HEADER_MAGIC_END);
     return 0;
 }
 
 static int cmd_read_data64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     BAILOUT_IF_NOT_CANCELLED(shell);
-    static uint8_t dataBuf[48];
-    static uint8_t buf64[65];
-
     static uint8_t dataBuf[48];
     static uint8_t buf64[65];
 
@@ -134,19 +107,7 @@ static int cmd_read_data64(const struct shell *shell, size_t /*argc*/, char ** /
         base64_encode(buf64, sizeof(buf64), &written, dataBuf, sizeof(dataBuf));
         shell_print(shell, "%s", buf64);
     }
-
-    for (uint32_t addr = 0; addr < sizeof(Packet) * (NUM_FLIGHT_PACKETS + NUM_STORED_PREBOOST_PACKETS);
-         addr += sizeof(dataBuf)) {
-        int ret = NStorage::ReadDataBlock(addr, sizeof(dataBuf), dataBuf);
-        if (ret < 0) {
-            shell_print(shell, PARSER_HEADER_MAGIC_START " data err " PARSER_HEADER_MAGIC_END);
-        }
-        uint32_t written = 0;
-        base64_encode(buf64, sizeof(buf64), &written, dataBuf, sizeof(dataBuf));
-        shell_print(shell, "%s", buf64);
-    }
     shell_print(shell, PARSER_HEADER_MAGIC_START " data end " PARSER_HEADER_MAGIC_END);
-
 
     return 0;
 }
@@ -197,9 +158,6 @@ static int cmd_read_data(const struct shell *shell, size_t argc, char **argv) {
     shell_print(shell, "Acceleration X:        %f (m/s²)", (double) packet.accelRaw.X);
     shell_print(shell, "Acceleration Y:        %f (m/s²)", (double) packet.accelRaw.Y);
     shell_print(shell, "Acceleration Z:        %f (m/s²)", (double) packet.accelRaw.Z);
-    shell_print(shell, "Acceleration X:        %f (m/s²)", (double) packet.accelRaw.X);
-    shell_print(shell, "Acceleration Y:        %f (m/s²)", (double) packet.accelRaw.Y);
-    shell_print(shell, "Acceleration Z:        %f (m/s²)", (double) packet.accelRaw.Z);
     shell_print(shell, "Gyro X:              %f (dps)", (double) packet.gyro.X);
     shell_print(shell, "Gyro Y:              %f (dps)", (double) packet.gyro.Y);
     shell_print(shell, "Gyro Z:              %f (dps)", (double) packet.gyro.Z);
@@ -245,8 +203,13 @@ static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /
     shell_print(shell, "Flight Length:            %d (pkts)", p.numFlightPackets);
     shell_print(shell, "Preboost Length:          %d (pkts)", p.numPreboostPackets);
     shell_print(shell, "Gyro Bias Length:         %d (samples)", p.numSamplesForGyroBias);
-    shell_print(shell, "ControllerHash:           0x%08x", p.controllerHash);
-    shell_print(shell, "UpAxis Enum:              %d", (int) p.upAxis);
+    shell_fprintf_normal(shell, "ControllerHash:  ");
+    shell_hexdump(shell, p.controllerHash, LUT_MD5SUM_ARRAY_LEN);
+    shell_print(shell, "UpAxis Quaternion:");
+    shell_print(shell, "    A:                    %f", (double) IMU_TO_ROCKET_QUAT.i);
+    shell_print(shell, "    B:                    %f", (double) IMU_TO_ROCKET_QUAT.j);
+    shell_print(shell, "    C:                    %f", (double) IMU_TO_ROCKET_QUAT.k);
+    shell_print(shell, "    D:                    %f", (double) IMU_TO_ROCKET_QUAT.j);
 
     return 0;
 }
@@ -258,25 +221,32 @@ static int cmd_bootcount(const struct shell *shell, size_t /*argc*/, char ** /*a
 
 static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     BAILOUT_IF_NOT_CANCELLED(shell);
-    Packet packet = {0};
-    int ret = NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
+    Packet p = {0};
+    int ret = NSensing::MeasureSensors(p.pressureRaw, p.tempRaw, p.accelRaw, p.gyro);
     if (ret < 0) {
         shell_error(shell, "Failed to read sensors: %d", ret);
         return ret;
     }
+    shell_info(shell, "Temp:       %f C", (double) p.pressureRaw);
+    shell_info(shell, "Press:      %f kPa", (double) p.tempRaw);
 
-    shell_info(shell, "Temp:       %f C", static_cast<double>(packet.pressureRaw));
-    shell_info(shell, "Press:      %f kPa", static_cast<double>(packet.tempRaw));
+    shell_info(shell, "Accel X:    %f m/s2", (double) p.accelRaw.X);
+    shell_info(shell, "Accel Y:    %f m/s2", (double) p.accelRaw.Y);
+    shell_info(shell, "Accel Z:    %f m/s2", (double) p.accelRaw.Z);
 
-    shell_info(shell, "Accel X:    %f m/s2", static_cast<double>(packet.accelRaw.X));
-    shell_info(shell, "Accel Y:    %f m/s2", static_cast<double>(packet.accelRaw.Y));
-    shell_info(shell, "Accel Z:    %f m/s2", static_cast<double>(packet.accelRaw.Z));
+    shell_info(shell, "Gyro X:     %f dps", (double) p.gyro.X);
+    shell_info(shell, "Gyro Y:     %f dps", (double) p.gyro.Y);
+    shell_info(shell, "Gyro Z:     %f dps", (double) p.gyro.Z);
 
-    shell_info(shell, "Accel Up:   %f m/s2", static_cast<double>(UpAxisFrom(UP_AXIS, packet.accelRaw)));
+    shell_info(shell, "\nSecondary Products =========\n");
+    shell_info(shell, "Altitude:   %f m", (double) NModel::AltitudeMetersFromPressureKPa(p.tempRaw));
 
-    shell_info(shell, "Gyro X:     %f dps", static_cast<double>(packet.gyro.X));
-    shell_info(shell, "Gyro Y:     %f dps", static_cast<double>(packet.gyro.Y));
-    shell_info(shell, "Gyro Z:     %f dps", static_cast<double>(packet.gyro.Z));
+    NTypes::AccelerometerData rocket{0, 0, 0};
+    RotateIMUVectorToRocketVector(p.accelRaw, rocket);
+
+    shell_info(shell, "Rocket X:   %f m/s2", (double) rocket.X);
+    shell_info(shell, "Rocket Y:   %f m/s2", (double) rocket.Y);
+    shell_info(shell, "Rocket Z:   %f m/s2", (double) rocket.Z);
 
     return 0;
 }
@@ -458,6 +428,7 @@ static int cmd_fakeboost(const struct shell *shell, size_t argc, char **argv) {
 
 SHELL_STATIC_SUBCMD_SET_CREATE(subcmds, SHELL_CMD(nogo, NULL, "Cancel main mission", cmd_nogo),
                                SHELL_CMD(info, NULL, "Program Information", cmd_read_info),
+                               SHELL_CMD(fakeboost, NULL, "Fake boost for testing.", cmd_fakeboost),
                                SHELL_CMD(sample, NULL, "Sample a single sample", cmd_sampleone),
                                SHELL_CMD(erase, NULL, "Erase Flight Data (DANGER DANGER DANGER)", cmd_erase),
                                SHELL_CMD(read_params, NULL, "Read Params Block for humans", cmd_read_params),

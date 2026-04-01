@@ -23,7 +23,7 @@ class CMSISMatrix {
     }
 
     CMSISMatrix &operator=(const CMSISMatrix &cpy) {
-        if (this == &cpy) {
+        if (this == &cpy){
             // if bufs are at the same point then __restrict isnt honored and memcpy could blow up
             return *this;
         }

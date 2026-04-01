@@ -236,8 +236,9 @@ uint32_t GetDataPartitionAddress() { return FLIGHT_PARTITION_OFFSET; }
 uint32_t GetParamPartitionSize() { return PARAM_PARTITION_SIZE; }
 uint32_t GetDataPartitionSize() { return FLIGHT_PARTITION_SIZE; }
 
-int ReadDataBlock(uint32_t dataAddr, uint32_t size, uint8_t *data) {
-    if (dataAddr > FLIGHT_PARTITION_SIZE) {
+
+int ReadDataBlock(uint32_t dataAddr, uint32_t size, uint8_t*data){
+    if (dataAddr > FLIGHT_PARTITION_SIZE){
         // out of bounds
         return -1;
     }
