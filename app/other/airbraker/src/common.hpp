@@ -6,6 +6,53 @@
 #include <cstddef>
 #include <cstdint>
 
+enum class UpAxis : uint8_t {
+    PosX = 0b000,
+    NegX = 0b001,
+
+    PosY = 0b010,
+    NegY = 0b011,
+
+    PosZ = 0b100,
+    NegZ = 0b101,
+
+    PosXPosY = 0b110,
+    PosXNegY = 0b111,
+
+    NegXPosY = 0b1000,
+    NegXNegY = 0b1001,
+};
+
+constexpr float UpAxisFrom(UpAxis axis, const NTypes::AccelerometerData &acc) {
+    constexpr float inv_sqrt2 = 0.7071067811865475;
+    switch (axis) {
+        case UpAxis::PosX:
+            return acc.X;
+        case UpAxis::PosY:
+            return acc.Y;
+        case UpAxis::PosZ:
+            return acc.Z;
+        case UpAxis::NegX:
+            return -acc.X;
+        case UpAxis::NegY:
+            return -acc.Y;
+        case UpAxis::NegZ:
+            return -acc.Z;
+
+        case UpAxis::PosXPosY:
+            return (acc.X + acc.Y) * inv_sqrt2;
+        case UpAxis::PosXNegY:
+            return (acc.X - acc.Y) * inv_sqrt2;
+        case UpAxis::NegXPosY:
+            return (-acc.X + acc.Y) * inv_sqrt2;
+        case UpAxis::NegXNegY:
+            return -(acc.X + acc.Y) * inv_sqrt2;
+
+        default:
+            return 0;
+    }
+}
+
 // time for burnout and decellerating under .8 mach after start of boost
 constexpr uint32_t LOCKOUT_MS = AUTOGEN_LOCKOUT_MS;
 // from boost to ground hit time

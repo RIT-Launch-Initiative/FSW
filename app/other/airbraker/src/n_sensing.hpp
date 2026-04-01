@@ -9,4 +9,5 @@ int InitSensors();
  */
 int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2, NTypes::GyroscopeData &gyroDps);
 
+
 }; // namespace NSensing

@@ -87,7 +87,6 @@ int main() {
         k_timer_status_sync(&measurement_timer);
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-        
         float vertical = GetUpAxis(packet.accelRaw);
 
         NBoost::FeedDetector(vertical);
