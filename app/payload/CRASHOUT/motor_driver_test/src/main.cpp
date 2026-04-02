@@ -56,6 +56,8 @@ static const struct gpio_dt_spec nSleep = GPIO_DT_SPEC_GET(NSLEEP_NODE, gpios);
 #define RC_CTRL8_REG 0x19
 
 class Motor {
+    public:
+
     /* Global variables */
     struct i2c_dt_spec motor;
     uint8_t flt = 0;
@@ -68,7 +70,7 @@ class Motor {
     /**
      * Contructs an instance of the Motor class with the given i2c device specification.
      */
-    void Motor(struct i2c_dt_spec motor_spec){
+    Motor(struct i2c_dt_spec motor_spec){
         motor = motor_spec;
     }
 
@@ -322,6 +324,8 @@ class Motor {
         setSpinMode(2); // brake mode to start
         printFault();
         
+        set_speed(0);
+
         enableSpin();
         printFault();
 
@@ -355,6 +359,8 @@ class Motor {
         setSpinMode(2); // brake mode to start
         printFault();
         
+        set_speed(0);
+
         enableSpin();
         printFault();
 
@@ -383,12 +389,13 @@ class Motor {
         setToSpeedControlMode();
         setupRippleCounting();
         setSpinMode(2); // default to brake mode
+        return 1;
     }
 
     /**
      * Sets up the motor driver to run in voltage control mode
      */
-    int initSpeedControl(){
+    int initVoltageControl(){
         if (!device_is_ready(i2c_bus)) {
             printk("No i2c ready");
             return 0;
@@ -398,15 +405,22 @@ class Motor {
         setToVoltageControlMode();
         setupRippleCounting();
         setSpinMode(2); // default to brake mode
+        return 1;
     }
-}
+};
 
 int main(void) { 
     Motor motor1(motor1_i2c);
     Motor motor2(motor2_i2c);
 
-    motor1.initSpeedControl();
-    motor2.initSpeedControl();
+    if (!motor1.initSpeedControl()){
+        printk("Failed to initialize motor 1");
+        return 0;
+    }
+    if (!motor2.initSpeedControl()){
+        printk("Failed to initialize motor 2");
+        return 0;
+    }
 
     motor1.speedControlTest(0);
     k_msleep(2000);
