@@ -63,7 +63,7 @@
 				size = <DT_SIZE_M(128)>; /* 128 Mbits */
 				qspi-max-frequency = <DT_FREQ_M(50)>;
 				status = "okay";
-				spi-bus-width = <4>;
+				spi-bus-width = <2>;
 				jedec-id = [ ef 40 18  ];
 				page-size = <256>;
 				writeoc = "PP_1_1_4";
