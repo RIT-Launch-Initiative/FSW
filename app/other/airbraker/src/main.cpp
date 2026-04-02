@@ -130,11 +130,11 @@ int main() {
 
         NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
         NModel::FeedGyro(packet.timestamp, unbiasedGyro);
-        NModel::FillPacketWithKalmanInnovation(packet.kalmanInnovation);
         NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
 
         NModel::FeedKalman(packet.timestamp, altMeters, vertical);
         packet.kalmanState = NModel::LastKalmanState();
+        NModel::FillPacketWithKalmanInnovation(packet.kalmanInnovation);
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
 
@@ -154,8 +154,6 @@ int main() {
         if (preboostWriteHead < NUM_STORED_PREBOOST_PACKETS) {
             NStorage::WritePreboostPacket(preboostWriteHead, NPreBoost::GetPreBoostPacketPtr(preboostWriteHead));
             preboostWriteHead++;
-        } else {
-            // NBuzzer::SetBuzzer(false);
         }
     }
     LOG_INF("Flight over");

@@ -29,7 +29,7 @@ class CRollingSum {
     }
     constexpr value_type Sum() const { return total; }
 
-//   private:
+  private:
     static constexpr std::size_t size = len;
 
     value_type total;

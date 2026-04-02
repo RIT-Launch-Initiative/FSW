@@ -102,8 +102,9 @@ Matrix<3, 3> expGyro(float w_1, float w_2, float w_3, float t) {
     float norm_sqred = w_1² + w_2² + w_3²;
     float norm = std::sqrt(norm_sqred);
 
-    float s = std::sin(norm) / norm;
-    float c = (1 - std::cos(norm)) / (norm_sqred);
+    // proof via desmos, this is what happens. (sinx/x = 1   (1-cosx)/x = 0 )
+    float s = (norm == 0) ? 1 : (std::sin(norm) / norm);
+    float c = (norm == 0) ? 0 : ((1 - std::cos(norm)) / (norm_sqred));
 
     Matrix<3, 3> I = Matrix<3, 3>::Identity();
 
