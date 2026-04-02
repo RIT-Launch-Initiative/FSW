@@ -133,7 +133,7 @@ void or_get_presim(struct or_data_t* packet);
  * Records the current uptime as t=0 for sensor interpolation and unblocks
  * the event log thread. Safe to call from any context.
  */
-void or_trigger_launch(void);
+int or_trigger_launch(void);
 #endif
 
 /**

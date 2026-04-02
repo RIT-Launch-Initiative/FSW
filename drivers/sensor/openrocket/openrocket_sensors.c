@@ -1,6 +1,7 @@
 #include "openrocket_sensors.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -40,10 +41,15 @@ K_THREAD_DEFINE(or_event_thread, 1024, or_event_thread_handler, NULL, NULL, NULL
 K_SEM_DEFINE(or_launch_sem, 0, 1);
 static volatile int64_t or_launch_time_us = -1;
 
-void or_trigger_launch(void) {
+int or_trigger_launch(void) {
+    if (or_launch_time_us >= 0) {
+        return -EALREADY;
+    }
+
     or_launch_time_us = k_ticks_to_us_near64(k_uptime_ticks());
     LOG_INF("OpenRocket launch triggered at uptime %lld us", or_launch_time_us);
     k_sem_give(&or_launch_sem);
+    return 0;
 }
 #endif
 
