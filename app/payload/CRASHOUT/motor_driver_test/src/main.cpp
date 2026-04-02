@@ -18,8 +18,8 @@
 /* The devicetree node identifiers*/
 #define NSLEEP_NODE DT_NODELABEL(nsleep)
 const struct device* const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(arduino_i2c));
-const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x32};
-const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x30};
+const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
+const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
 
 /*
  * A build error on this line means your board is unsupported.
@@ -75,9 +75,9 @@ class Motor {
     }
 
     /**
-    * Sets the voltage of the motor driver by writing to the appropriate register.
-    */
-    void set_voltage(float volts) {
+     * Sets the voltage of the motor driver by writing to the appropriate register.
+     */
+    void setVoltage(float volts) {
         if (volts > 38) {
             printk("invalid volts");
             return;
@@ -89,9 +89,9 @@ class Motor {
     }
 
     /**
-    * Sets the w_scale value of the motor driver by writing to the appropriate register 
-    * if w_scale given is valid (16, 32, 64, or 128).
-    */
+     * Sets the w_scale value of the motor driver by writing to the appropriate register 
+     * if w_scale given is valid (16, 32, 64, or 128).
+     */
     void set_w_scale_value(uint32_t w_scale){
         uint8_t regval;
         i2c_reg_read_byte_dt(&motor, REG_CTRL0_REG, &regval);
@@ -121,10 +121,10 @@ class Motor {
     }
 
     /**
-    * Sets the speed of the motor driver by writing to the appropriate register.
-    * @param radps the speed to set the motor to in Rad/s
-    */
-    void set_speed(uint16_t radps) {
+     * Sets the speed of the motor driver by writing to the appropriate register.
+     * @param radps the speed to set the motor to in Rad/s
+     */
+    void setSpeed(uint16_t radps) {
         if (radps < 4080){
             set_w_scale_value(16);
         } else if (radps < 8160){
@@ -142,14 +142,14 @@ class Motor {
     }
 
     /**
-    * Converts the voltage value read from the motor driver to volts.
-    * The value 228 is the maximum value that can be read from the motor driver and corresponds to 38 volts (Page 45 of datasheet).
-    */
+     * Converts the voltage value read from the motor driver to volts.
+     * The value 228 is the maximum value that can be read from the motor driver and corresponds to 38 volts (Page 45 of datasheet).
+     */
     float map_voltage(uint8_t vmtr) { return ((float) vmtr / 228.f) * 38.f; }
 
     /**
-    * Converts the speed value read from the motor driver in Rad/s to RPM.
-    */
+     * Converts the speed value read from the motor driver in Rad/s to RPM.
+     */
     float speed_rpm(uint8_t speed, int32_t w_scale) {
         float radps = speed * w_scale;
         float rpm = 60.f * radps / 6.28318f;
@@ -157,33 +157,8 @@ class Motor {
     }
 
     /**
-    * Resets the motor driver:
-    *  Toggles the nsleep pin
-    *  Sets the motor driver registers to defaults
-    */
-    void reset(){
-        //reset flt variable to 0
-        flt = 0;
-
-        gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_INACTIVE);
-
-        k_msleep(10);
-
-        gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
-
-        set_w_scale_value(DEFAULT_W_SCALE_VALUE);
-
-        uint8_t rc_ctrl0_reg = 0b11100010;
-        uint8_t reg_ctrl_0 = 0b00100111;
-        i2c_reg_write_byte_dt(&motor, RC_CTRL0_REG, rc_ctrl0_reg);
-        i2c_reg_write_byte_dt(&motor, REG_CTRL0_REG, reg_ctrl_0);
-        i2c_reg_write_byte_dt(&motor, REG_CTRL1_REG, 0x03);
-        motorOn = true;
-    }
-
-    /**
-    * Sets the motor driver to speed control mode
-    */
+     * Sets the motor driver to speed control mode
+     */
     void setToSpeedControlMode(){
         uint8_t reg_ctrl_0;
         i2c_reg_read_byte_dt(&motor, REG_CTRL0_REG, &reg_ctrl_0);
@@ -201,8 +176,8 @@ class Motor {
     }
 
     /**
-    * Sets the motor driver to voltage control mode
-    */
+     * Sets the motor driver to voltage control mode
+     */
     void setToVoltageControlMode(){
         uint8_t reg_ctrl_0;
         i2c_reg_read_byte_dt(&motor, REG_CTRL0_REG, &reg_ctrl_0);
@@ -219,8 +194,8 @@ class Motor {
     }
 
     /**
-    * Reads and prints the voltage, speed, ripple count, and direction from the motor driver.
-    */
+     * Reads and prints the voltage, speed, ripple count, and direction from the motor driver.
+     */
     void printInfo(){
         //Read voltage from the motor driver
         uint8_t vmtr = 0;
@@ -258,16 +233,16 @@ class Motor {
     }
 
     /**
-    * Reads and prints the fault register from the motor driver.
-    */
+     * Reads and prints the fault register from the motor driver.
+     */
     void printFault(){
         i2c_reg_read_byte_dt(&motor, 0, &flt);
         printk("Fault: %02x\n", flt);
     }
 
     /**
-    * Sets up the ripple counting on the motor driver by writing to the appropriate registers.
-    */
+     * Sets up the ripple counting on the motor driver by writing to the appropriate registers.
+     */
     void setupRippleCounting(){
         static const uint8_t inv_r_scale = 0b10;
         static const uint8_t inv_r = 42;
@@ -279,23 +254,58 @@ class Motor {
         uint8_t rc_ctrl_3 = inv_r;
         uint8_t rc_ctrl_4 = kmc;
 
+        i2c_reg_write_byte_dt(&motor, RC_CTRL0_REG, 0b11100010);
         i2c_reg_write_byte_dt(&motor, RC_CTRL2_REG, rc_ctrl_2);
         i2c_reg_write_byte_dt(&motor, RC_CTRL3_REG, rc_ctrl_3);
         i2c_reg_write_byte_dt(&motor, RC_CTRL4_REG, rc_ctrl_4);
     }
 
     /**
-    * Enable motor spinning, overvoltage protection, and stall protection
-    */
-    void enableSpin(){
-        i2c_reg_write_byte_dt(&motor, CONFIG0_REG, 0xe0);
+     * Enable overvoltage protection, and stall protection
+     */
+    void enableOVSProtection(){
+        uint8_t regval;
+        i2c_reg_read_byte_dt(&motor, CONFIG0_REG, &regval);
+        regval |= 0b01100000;
+        i2c_reg_write_byte_dt(&motor, CONFIG0_REG, regval);
     }
 
     /**
-    * Sets the spin mode of the motor driver by writing to the appropriate register.
-    * @param mode: 0 = forward, 1 = backward, 2 = brake
-    * We don't actually know which way forward and backward are, because it depends on how the motor is wired
-    */
+     * Disable overvoltage protection, and stall protection
+     */
+    void disableOVSProtection(){
+        uint8_t regval;
+        i2c_reg_read_byte_dt(&motor, CONFIG0_REG, &regval);
+        regval &= 0b10011111;
+        i2c_reg_write_byte_dt(&motor, CONFIG0_REG, regval);
+    }
+
+    /**
+     * Enable motor spinning, overvoltage protection, and stall protection
+     */
+    void enableSpin(){
+        uint8_t regval;
+        i2c_reg_read_byte_dt(&motor, CONFIG0_REG, &regval);
+        regval |= 0b10000000;
+        i2c_reg_write_byte_dt(&motor, CONFIG0_REG, regval);
+        enableOVSProtection();
+    }
+
+    /**
+     * Disable motor spinning
+     */
+    void disableSpin(){
+        uint8_t regval;
+        i2c_reg_read_byte_dt(&motor, CONFIG0_REG, &regval);
+        regval &= 0b01111111;
+        i2c_reg_write_byte_dt(&motor, CONFIG0_REG, regval);
+    }
+
+    /**
+     * Sets the spin mode of the motor driver by writing to the appropriate register.
+     * @param mode: 0 = forward, 1 = backward, 2 = brake
+     * We don't actually know which way forward and backward are, because it depends on how the motor is wired
+     */
     void setSpinMode(uint8_t mode){
         if (mode == 0){
             i2c_reg_write_byte_dt(&motor, CONFIG4_REG, 0x36);
@@ -307,9 +317,29 @@ class Motor {
     }
 
     /**
-    * Tests running the motor by controlling the voltage sent to it
-    * @param dir the direction to run the motor in, 0 for forward and 1 for backward
-    */
+     * Enables the soft start feature of the motor driver by writing to the appropriate register.
+     */
+    void enableSoftStart(){
+        uint8_t regval;
+        i2c_reg_read_byte_dt(&motor, REG_CTRL0_REG, &regval);
+        regval |= 0b00100000;
+        i2c_reg_write_byte_dt(&motor, REG_CTRL0_REG, regval);
+    }
+
+    /**
+     * Disables the soft start feature of the motor driver by writing to the appropriate register.
+     */
+    void disableSoftStart(){
+        uint8_t regval;
+        i2c_reg_read_byte_dt(&motor, REG_CTRL0_REG, &regval);
+        regval &= 0b11011111;
+        i2c_reg_write_byte_dt(&motor, REG_CTRL0_REG, regval);
+    }
+
+    /**
+     * Tests running the motor by controlling the voltage sent to it
+     * @param dir the direction to run the motor in, 0 for forward and 1 for backward
+     */
     void voltageControlTest(uint8_t dir){
         setToVoltageControlMode();
         setupRippleCounting();
@@ -324,7 +354,7 @@ class Motor {
         setSpinMode(2); // brake mode to start
         printFault();
         
-        set_speed(0);
+        setSpeed(0);
 
         enableSpin();
         printFault();
@@ -333,7 +363,7 @@ class Motor {
         printFault();
 
         for (int i = 4; i <= 12; i++){
-            set_voltage(i);
+            setVoltage(i);
             printInfo();
             k_msleep(500);
         }
@@ -342,9 +372,9 @@ class Motor {
     }
 
     /**
-    * Tests running the motor by directly controlling the speed
-    * @param dir the direction to run the motor in, 0 for forward and 1 for backward
-    */
+     * Tests running the motor by directly controlling the speed
+     * @param dir the direction to run the motor in, 0 for forward and 1 for backward
+     */
     void speedControlTest(uint8_t dir){
         setToSpeedControlMode();
         setupRippleCounting();
@@ -359,7 +389,7 @@ class Motor {
         setSpinMode(2); // brake mode to start
         printFault();
         
-        set_speed(0);
+        setSpeed(0);
 
         enableSpin();
         printFault();
@@ -368,7 +398,7 @@ class Motor {
         printFault();
 
         for (int i = 1; i <= 10; i++){
-            set_speed(i * 40);
+            setSpeed(i * 40);
             printInfo();
             k_msleep(2000);
         }
@@ -385,10 +415,12 @@ class Motor {
             return 0;
         }
 
-        reset();
         setToSpeedControlMode();
         setupRippleCounting();
+        enableSoftStart();
         setSpinMode(2); // default to brake mode
+        setSpeed(0);
+        motorOn = true;
         return 1;
     }
 
@@ -401,17 +433,31 @@ class Motor {
             return 0;
         }
 
-        reset();
         setToVoltageControlMode();
         setupRippleCounting();
+        enableSoftStart();
         setSpinMode(2); // default to brake mode
+        setVoltage(0);
+        motorOn = true;
         return 1;
     }
 };
 
+/**
+* Resets the motor drivers by toggling the nsleep pin
+* ***WARNING*** RESETS ALL MOTORS, WILL NEED TO REINIT AFTER CALLING THIS FUNCTION
+*/
+void reset(){
+    gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_INACTIVE);
+    k_msleep(10);
+    gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
+}
+
 int main(void) { 
     Motor motor1(motor1_i2c);
     Motor motor2(motor2_i2c);
+
+    reset();
 
     if (!motor1.initSpeedControl()){
         printk("Failed to initialize motor 1");
@@ -424,9 +470,22 @@ int main(void) {
 
     motor1.speedControlTest(0);
     k_msleep(2000);
-    motor1.speedControlTest(1);
-    k_msleep(2000);
-    motor2.speedControlTest(0);
-    k_msleep(2000);
-    motor2.speedControlTest(1);
+    // motor2.speedControlTest(1);
+
+    
+    motor1.enableSpin();
+    motor1.setSpinMode(0); // set motor 1 to forward
+    motor2.enableSpin();
+    motor2.setSpinMode(1); // set motor 2 to backward
+
+    for (int i = 0; i <= 10; i++){
+        motor2.setSpeed(40 * i);
+        motor1.setSpeed(400 - 40 * i);
+        motor1.printInfo();
+        motor2.printInfo();
+        k_msleep(2000);
+    }
+
+    motor1.disableSpin();
+    motor2.disableSpin();
 }
