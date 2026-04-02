@@ -18,7 +18,9 @@
 /* The devicetree node identifiers*/
 #define NSLEEP_NODE DT_NODELABEL(nsleep)
 const struct device* const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(arduino_i2c));
-const struct i2c_dt_spec i2c_dev = {.bus = i2c_bus, .addr = 0x30};
+const struct i2c_dt_spec motor1 = {.bus = i2c_bus, .addr = 0x32};
+const struct i2c_dt_spec motor2 = {.bus = i2c_bus, .addr = 0x30};
+
 /*
  * A build error on this line means your board is unsupported.
  * See the sample documentation for information on how to fix this.
@@ -72,7 +74,7 @@ void set_voltage(float volts) {
     // The value 228 is the maximum value that can be written to the motor driver and corresponds to 38 volts (Page 45 of datasheet).
     float val = (volts / 38.f) * 227;
     uint8_t regval = (uint8_t) (val + .5f);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL1_REG, regval);
+    i2c_reg_write_byte_dt(&motor1, REG_CTRL1_REG, regval);
 }
 
 /**
@@ -81,25 +83,25 @@ void set_voltage(float volts) {
  */
 void set_w_scale_value(uint32_t w_scale){
     uint8_t regval;
-    i2c_reg_read_byte_dt(&i2c_dev, REG_CTRL0_REG, &regval);
+    i2c_reg_read_byte_dt(&motor1, REG_CTRL0_REG, &regval);
     if (w_scale == 16){
         // set bits 0,1 to 00 to set w_scale to 16 (page 31 of datasheet)
         regval &= 0b11111100; 
-        i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, regval);
+        i2c_reg_write_byte_dt(&motor1, REG_CTRL0_REG, regval);
     } else if (w_scale == 32){
         // set bits 0,1 to 01 to set w_scale to 32 (page 31 of datasheet)
         regval &= 0b11111101;
         regval |= 0b00000001;
-        i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, regval);
+        i2c_reg_write_byte_dt(&motor1, REG_CTRL0_REG, regval);
     } else if (w_scale == 64){
         // set bits 0,1 to 10 to set w_scale to 64 (page 31 of datasheet)
         regval &= 0b11111110;
         regval |= 0b00000010;
-        i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, regval);
+        i2c_reg_write_byte_dt(&motor1, REG_CTRL0_REG, regval);
     } else if (w_scale == 128){
         // set bits 0,1 to 11 to set w_scale to 128 (page 31 of datasheet)
         regval |= 0b00000011;
-        i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, regval);
+        i2c_reg_write_byte_dt(&motor1, REG_CTRL0_REG, regval);
     } else {
         printk("invalid w_scale");
         return;
@@ -125,7 +127,7 @@ void set_speed(uint16_t radps) {
         printk("invalid speed");
     }
     uint16_t speed_val = radps / w_scale_value;
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL1_REG, speed_val);
+    i2c_reg_write_byte_dt(&motor1, REG_CTRL1_REG, speed_val);
 }
 
 /**
@@ -162,9 +164,9 @@ void reset(){
 
     uint8_t rc_ctrl0_reg = 0b11100010;
     uint8_t reg_ctrl_0 = 0b00100111;
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL0_REG, rc_ctrl0_reg);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, reg_ctrl_0);
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL1_REG, 0x03);
+    i2c_reg_write_byte_dt(&motor1, RC_CTRL0_REG, rc_ctrl0_reg);
+    i2c_reg_write_byte_dt(&motor1, REG_CTRL0_REG, reg_ctrl_0);
+    i2c_reg_write_byte_dt(&motor1, REG_CTRL1_REG, 0x03);
     motorOn = true;
 }
 
@@ -173,18 +175,18 @@ void reset(){
  */
 void setToSpeedControlMode(){
     uint8_t reg_ctrl_0;
-    i2c_reg_read_byte_dt(&i2c_dev, REG_CTRL0_REG, &reg_ctrl_0);
+    i2c_reg_read_byte_dt(&motor1, REG_CTRL0_REG, &reg_ctrl_0);
 
     // set bits 4,3 to 10 to set speed control mode (page 30 of datasheet)
     reg_ctrl_0 &= 0b11100111;
     reg_ctrl_0 |= 0b00010000;
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, reg_ctrl_0);
+    i2c_reg_write_byte_dt(&motor1, REG_CTRL0_REG, reg_ctrl_0);
 
     // set duty ctrl to 0
     uint8_t config0;
-    i2c_reg_read_byte_dt(&i2c_dev, CONFIG0_REG, &config0);
+    i2c_reg_read_byte_dt(&motor1, CONFIG0_REG, &config0);
     config0 &= 0b11111110;
-    i2c_reg_write_byte_dt(&i2c_dev, CONFIG0_REG, config0);
+    i2c_reg_write_byte_dt(&motor1, CONFIG0_REG, config0);
 }
 
 /**
@@ -192,17 +194,17 @@ void setToSpeedControlMode(){
  */
 void setToVoltageControlMode(){
     uint8_t reg_ctrl_0;
-    i2c_reg_read_byte_dt(&i2c_dev, REG_CTRL0_REG, &reg_ctrl_0);
+    i2c_reg_read_byte_dt(&motor1, REG_CTRL0_REG, &reg_ctrl_0);
 
     // set bits 4,3 to 11 to set voltage control mode (page 30 of datasheet)
     reg_ctrl_0 |= 0b00011000;
-    i2c_reg_write_byte_dt(&i2c_dev, REG_CTRL0_REG, reg_ctrl_0);
+    i2c_reg_write_byte_dt(&motor1, REG_CTRL0_REG, reg_ctrl_0);
 
     // set duty ctrl to 0
     uint8_t config0;
-    i2c_reg_read_byte_dt(&i2c_dev, CONFIG0_REG, &config0);
+    i2c_reg_read_byte_dt(&motor1, CONFIG0_REG, &config0);
     config0 &= 0b11111110;
-    i2c_reg_write_byte_dt(&i2c_dev, CONFIG0_REG, config0);
+    i2c_reg_write_byte_dt(&motor1, CONFIG0_REG, config0);
 }
 
 /**
@@ -211,25 +213,25 @@ void setToVoltageControlMode(){
 void printInfo(){
     //Read voltage from the motor driver
     uint8_t vmtr = 0;
-    i2c_reg_read_byte_dt(&i2c_dev, REG_STATUS1, &vmtr);
+    i2c_reg_read_byte_dt(&motor1, REG_STATUS1, &vmtr);
     float volts = map_voltage(vmtr);
 
     //Read speed from the motor driver
     uint8_t speed;
-    i2c_reg_read_byte_dt(&i2c_dev, RC_STATUS1, &speed);
+    i2c_reg_read_byte_dt(&motor1, RC_STATUS1, &speed);
     printk("Speed: %02x\n", speed);
     float speedrpm = speed_rpm(speed, w_scale_value);
 
     //Read ripple count from the motor driver
     uint8_t rcc0 = 0;
     uint8_t rcc1 = 0;
-    i2c_reg_read_byte_dt(&i2c_dev, RC_STATUS2, &rcc0);
-    i2c_reg_read_byte_dt(&i2c_dev, RC_STATUS3, &rcc1);
+    i2c_reg_read_byte_dt(&motor1, RC_STATUS2, &rcc0);
+    i2c_reg_read_byte_dt(&motor1, RC_STATUS3, &rcc1);
     uint16_t rc_cnt = (rcc1 << 8) | rcc0;
 
     //Read direction from the motor driver
     uint8_t dir = 0;
-    i2c_reg_read_byte_dt(&i2c_dev, CONFIG4_REG, &dir);
+    i2c_reg_read_byte_dt(&motor1, CONFIG4_REG, &dir);
 
     //Print voltage, speed, ripple count, and direction returned by the motor driver
     printk("V=%.4f V, S=%.4f rpm, RC=%d, Dir=%02x ", (double) volts, (double) speedrpm, (int) rc_cnt, dir);
@@ -248,7 +250,7 @@ void printInfo(){
  * Reads and prints the fault register from the motor driver.
  */
 void printFault(){
-    i2c_reg_read_byte_dt(&i2c_dev, 0, &flt);
+    i2c_reg_read_byte_dt(&motor1, 0, &flt);
     printk("Fault: %02x\n", flt);
 }
 
@@ -266,16 +268,16 @@ void setupRippleCounting(){
     uint8_t rc_ctrl_3 = inv_r;
     uint8_t rc_ctrl_4 = kmc;
 
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL2_REG, rc_ctrl_2);
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL3_REG, rc_ctrl_3);
-    i2c_reg_write_byte_dt(&i2c_dev, RC_CTRL4_REG, rc_ctrl_4);
+    i2c_reg_write_byte_dt(&motor1, RC_CTRL2_REG, rc_ctrl_2);
+    i2c_reg_write_byte_dt(&motor1, RC_CTRL3_REG, rc_ctrl_3);
+    i2c_reg_write_byte_dt(&motor1, RC_CTRL4_REG, rc_ctrl_4);
 }
 
 /**
  * Enable motor spinning, overvoltage protection, and stall protection
  */
 void enableSpin(){
-    i2c_reg_write_byte_dt(&i2c_dev, CONFIG0_REG, 0xe0);
+    i2c_reg_write_byte_dt(&motor1, CONFIG0_REG, 0xe0);
 }
 
 /**
@@ -285,11 +287,11 @@ void enableSpin(){
  */
 void setSpinMode(uint8_t mode){
     if (mode == 0){
-        i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x36);
+        i2c_reg_write_byte_dt(&motor1, CONFIG4_REG, 0x36);
     } else if (mode == 1){
-        i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x37);
+        i2c_reg_write_byte_dt(&motor1, CONFIG4_REG, 0x37);
     } else if (mode == 2){
-        i2c_reg_write_byte_dt(&i2c_dev, CONFIG4_REG, 0x34);
+        i2c_reg_write_byte_dt(&motor1, CONFIG4_REG, 0x34);
     }
 }
 
@@ -351,7 +353,7 @@ void speedControlTest(uint8_t dir){
     printFault();
 
     for (int i = 1; i <= 10; i++){
-        set_speed(i * 400); // increment speed by 408 Rad/s (which is 1 w_scale increment) every loop iteration
+        set_speed(i * 40);
         printInfo();
         k_msleep(2000);
     }
@@ -359,7 +361,7 @@ void speedControlTest(uint8_t dir){
     setSpinMode(2); // brake mode to stop
 }
 
-int main(void) {
+int main(void) { 
     if (!device_is_ready(i2c_bus)) {
         printk("No i2c ready");
         return 0;
