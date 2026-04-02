@@ -127,7 +127,11 @@ class CLora {
   private:
     const device* lora_dev;
     lora_modem_config config = {
-        .frequency = 906900000,
+#ifdef CONFIG_LICENSED_FREQUENCY
+        .frequency = 433'000'000,
+#else
+        .frequency = 906'900'000,
+#endif
         .bandwidth = BW_125_KHZ,
         .datarate = SF_12,
         .coding_rate = CR_4_8,

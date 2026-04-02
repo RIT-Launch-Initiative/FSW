@@ -1,1 +1,10 @@
+config LICENSED_FREQUENCY
+	bool "Use licensed LoRa frequency defaults"
+	depends on F_CORE_RADIO
+	default y
+	help
+	  Enable licensed-band defaults for LoRa settings.
+	  When enabled, CLora starts at 433 MHz and licensed-band
+	  frequency checks are used.
+
 rsource "protocols/horus/Kconfig"
