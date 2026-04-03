@@ -92,9 +92,10 @@ int main() {
         NBoost::FeedDetector(vertical);
 
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - NPreBoost::GetGroundLevelASL();
-        NModel::FeedKalman(packet.timestamp, altMeters, vertical);
 
-        packet.kalmanState = NModel::LastKalmanState();
+        NModel::FeedKalman(altMeters, vertical);
+        NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
+
         packet.effort = 0; // no fun until after burnout
 
         NPreBoost::SubmitPreBoostPacket(packet);
@@ -132,9 +133,8 @@ int main() {
         NModel::FeedGyro(packet.timestamp, unbiasedGyro);
         NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
 
-        NModel::FeedKalman(packet.timestamp, altMeters, vertical);
-        packet.kalmanState = NModel::LastKalmanState();
-        NModel::FillPacketWithKalmanInnovation(packet.kalmanInnovation);
+        NModel::FeedKalman(altMeters, vertical);
+        NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
 
