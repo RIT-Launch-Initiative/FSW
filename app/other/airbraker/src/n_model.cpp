@@ -142,7 +142,6 @@ void FeedGyro(uint32_t msSinceBoot, const NTypes::GyroscopeData& gyro)
   {
     const int32_t deltaMs = (int32_t)(msSinceBoot - lastGyroIntegrationMsSinceBoot);
     t = static_cast<float>(deltaMs) / 1000.F;
-    printk("T = %f\n", t);
   }
   lastGyroIntegrationMsSinceBoot = msSinceBoot;
   Matrix<3, 3> eAT = expGyro(gyro.X, gyro.Y, gyro.Z, t);
@@ -163,7 +162,9 @@ void FeedGyro(uint32_t msSinceBoot, const NTypes::GyroscopeData& gyro)
     return a.Get(0, 0) * b.Get(0, 0) + a.Get(1, 0) * b.Get(1, 0) + a.Get(2, 0) * b.Get(2, 0);
   };
 
-  float offStart = acos(dot(initial, now));
+  float normOfNow = std::sqrt(initial.Get(0,0)*initial.Get(0,0) + initial.Get(1,0)*initial.Get(1,0) + initial.Get(2,0)*initial.Get(2,0));
+  Matrix<3, 1> normedNow = initial * (1.F / normOfNow);
+  float offStart = acos(dot(initial, normedNow));
   bool outOfBounds = offStart > deg2rad(30);
   everWentOutOfBounds |= outOfBounds;
 }
