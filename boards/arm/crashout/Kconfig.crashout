@@ -1,0 +1,2 @@
+config BOARD_CRASHOUT
+	select SOC_STM32F103X8

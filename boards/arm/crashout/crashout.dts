@@ -1,0 +1,152 @@
+/*
+ * Copyright (c) 2026 Launch Initiative
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <st/f1/stm32f103X8.dtsi>
+#include <st/f1/stm32f103c(8-b)tx-pinctrl.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "CRASHOUT";
+	compatible = "launch,crashout";
+
+	chosen {
+		zephyr,console = &usart2;
+		zephyr,shell-uart = &usart2;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+	};
+
+	leds: leds {
+		compatible = "gpio-leds";
+		led1: led1{
+
+			gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
+			label = "LED";
+		};
+
+		flip_servo_pwr_en: flip_servo_pwr_en {
+			// 8.4v buck
+			gpios = <&gpioa 15 GPIO_ACTIVE_HIGH>;
+			label = "Flip Servo Power Enable";
+		};
+		wrist_servo_pwr_en: wrist_servo_pwr_en {
+			// 8.4v buck
+			gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
+			label = "Wrist Servo Power Enable";
+		};
+	};
+
+	aliases {
+		led0 = &led1;
+		die-temp0 = &die_temp;
+	};
+
+	servos: servos{
+		status="okay";
+		compatible = "pwm-leds";
+		// 500 -2500 for wrist servo
+		min-pulse = <PWM_USEC(100)>; // 800  maybe
+		max-pulse = <PWM_USEC(3000)>; //1700 maybe
+
+		servo1: servo1 {
+			label = "Servo 1 PWM";
+			// name of pin
+			pwms = <&pwm1 4 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+		};
+		servo2: servo2 {
+			label = "Servo 2 PWM";
+			// name of pin
+			pwms = <&pwm1 3 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+		};
+		servo3: servo3 {
+			label = "Servo 3 PWM";
+			// name of pin
+			pwms = <&pwm1 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+		};
+		servo4: servo4 {
+			label = "Servo 4 PWM";
+			// name of pin
+			pwms = <&pwm1 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+		};
+	};
+
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+&pll {
+	mul = <7>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(28)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <1>;
+	apb2-prescaler = <1>;
+};
+
+// Debug Header UART
+&usart2 {
+	pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+motor_i2c: &i2c1 {
+	// motor i2c
+	pinctrl-0 = <&i2c1_scl_remap1_pb8 &i2c1_sda_remap1_pb9>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+};
+
+imu_i2c:&i2c2 {
+	// imu i2c
+	pinctrl-0 = <&i2c2_scl_pb10 &i2c2_sda_pb11>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	link1_imu: lis3dh@18 {
+		compatible = "st,lis3dh";
+		reg = <0x18>;
+	};
+
+	link2_imu: lis3dh@19 {
+		compatible = "st,lis3dh";
+		reg = <0x19>;
+	};
+
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_slave_pa5 &spi1_miso_slave_pa6 &spi1_mosi_slave_pa7>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpiob 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+	status = "okay";
+};
+
+&timers1 {
+	st,prescaler = <1000>; // maybe: check control freak for prescaler vals for these servos
+	status = "okay";
+
+	pwm1: pwm {
+		status = "okay";
+		pinctrl-0 = <&tim1_ch1_pwm_out_pa8 &tim1_ch2_pwm_out_pa9 &tim1_ch3_pwm_out_pa10 &tim1_ch4_pwm_out_pa11>;
+		pinctrl-names = "default";
+	};
+};
+
+&die_temp {
+	status = "okay";
+};
