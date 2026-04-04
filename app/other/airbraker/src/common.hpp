@@ -1,5 +1,7 @@
 #pragma once
 #include "n_autocoder_types.h"
+#include "quantile_lut_data.h"
+#include <zsl/orientation/quaternions.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -52,9 +54,9 @@ constexpr float UpAxisFrom(UpAxis axis, const NTypes::AccelerometerData &acc) {
 }
 
 // time for burnout and decellerating under .8 mach after start of boost
-constexpr uint32_t LOCKOUT_MS = 3 * 1000;
+constexpr uint32_t LOCKOUT_MS = AUTOGEN_LOCKOUT_MS;
 // from boost to ground hit time
-constexpr uint32_t FLIGHT_TIME_MS = 3 * 60 * 1000;
+constexpr uint32_t FLIGHT_TIME_MS = AUTOGEN_FLIGHT_TIME_MS;
 // number of packets at 100hz to save for that length
 constexpr uint32_t NUM_FLIGHT_PACKETS = FLIGHT_TIME_MS / 10; // 100 a sec, 1 every 10ms
 
@@ -67,11 +69,19 @@ constexpr size_t NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED = 25;
 // thershold to exceed to start counting towards boost detect
 constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 10;
 
+constexpr float ATMOSPHERE[] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
+
 #ifdef CONFIG_OPENROCKET_SENSORS
-constexpr UpAxis UP_AXIS = UpAxis::PosZ;
+inline zsl_quat IMU_TO_ROCKET_QUAT{1,0,0,0};
+inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{1,0,0,0};
 #else
-constexpr UpAxis UP_AXIS = UpAxis::NegXNegY;
+// linkers hate this one weird trick
+// zsl_quat_mult doesnt take const parameters so just like dont modify these
+inline zsl_quat IMU_TO_ROCKET_QUAT{AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
+inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{AUTOGEN_IMU_TO_ROCKET_QUAT_CONJUGATED_INITIALIZER};
+ 
 #endif
+
 
 struct KalmanState {
     float estAltitude;
@@ -84,7 +94,7 @@ struct Parameters {
     static constexpr uint32_t MAGIC = 2'435'220'000; // the number that louis told me
     uint32_t magic = MAGIC;                          // if equal to MAGIC, a flight has happened
     // measurments that need to be saved
-    uint32_t timestampOfBoost = {0};
+    uint32_t timestampOfBoostDetect = {0};
     float preBoostPressure = {0};
     NTypes::GyroscopeData gyroBias = {0};
     uint32_t bootcount = {0};
@@ -93,12 +103,12 @@ struct Parameters {
     uint32_t numFlightPackets = NUM_FLIGHT_PACKETS;
     uint32_t numPreboostPackets = NUM_STORED_PREBOOST_PACKETS;
     uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
-    uint32_t controllerHash = {0}; // TODO: hash of CSV of LUT that ran this flight
-    UpAxis upAxis;
-    uint8_t dummy[3];
+    uint8_t controllerHash[LUT_MD5SUM_ARRAY_LEN] = {LUT_MD5SUM_INITIALIZER};
+    float upAxisQuaternion[4] = {AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
+    float atmosphere[AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
 };
 
-static_assert(sizeof(Parameters) == 52, "Check size of parameters");
+static_assert(sizeof(Parameters) == 100, "Check size of parameters");
 
 struct Packet {
     uint32_t timestamp;
@@ -109,11 +119,12 @@ struct Packet {
 
     KalmanState kalmanState;
 
-    float orientationQuat[4];
+    float kalmanInnovation[2];
+    float orientationMatrix[9];
     float effort;
 };
 
-static_assert(sizeof(Packet) == 72, "Check size of packet");
+static_assert(sizeof(Packet) == 100, "Check size of packet");
 
 /**
  * Cancel flight from anywhere at anytime. 
@@ -127,3 +138,8 @@ void CancelFlight();
  * @return true if the flight has been cancelled. False otherwise
  */
 bool IsFlightCancelled();
+
+float GetUpAxis(const NTypes::AccelerometerData &xyz);
+void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out);
+
+void RotateRocketVectorToIMUVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out);
