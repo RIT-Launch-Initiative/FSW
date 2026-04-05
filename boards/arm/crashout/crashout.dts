@@ -9,6 +9,10 @@
 #include <st/f1/stm32f103c(8-b)tx-pinctrl.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
+&pinctrl{
+	swj-cfg = "jtag-disable";
+};
+
 / {
 	model = "CRASHOUT";
 	compatible = "launch,crashout";
@@ -34,7 +38,7 @@
 			label = "Flip Servo Power Enable";
 		};
 		wrist_servo_pwr_en: wrist_servo_pwr_en {
-			// 8.4v buck
+			// 5v efuse
 			gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
 			label = "Wrist Servo Power Enable";
 		};
