@@ -1,0 +1,12 @@
+/ {
+	aliases {
+		nsleep = &pinctrl;
+	};
+	leds: leds {
+		compatible = "gpio-leds";
+		nsleep: nsleep{
+			gpios = <&gpioc 8 GPIO_ACTIVE_HIGH>;
+			label = "GPS LED";
+		};
+	};
+};

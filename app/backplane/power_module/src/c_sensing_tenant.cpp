@@ -11,6 +11,8 @@ LOG_MODULE_REGISTER(CSensingTenant);
 void CSensingTenant::Startup() {
     static constexpr uint32_t minuteInMillis = 1000 * 60;
     timer.StartTimer(minuteInMillis, 0); // Log every minute on the pad
+    sendingTimer.StartTimer(5000); // send downlink data every 5 seconds
+
 }
 
 void CSensingTenant::PostStartup() {}
@@ -68,7 +70,9 @@ void CSensingTenant::Run() {
 #endif
 
     dataToBroadcast.Send(data, K_MSEC(5));
-    sendDownlinkData(data);
+    if (sendingTimer.IsExpired()) {
+        sendDownlinkData(data);
+    }
 
     if (timer.IsExpired()) {
         dataToLog.Send(timestampedData, K_MSEC(5));

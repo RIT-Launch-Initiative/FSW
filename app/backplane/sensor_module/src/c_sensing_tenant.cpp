@@ -31,6 +31,9 @@ CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData
 }
 
 void CSensingTenant::Startup() {
+    sendingTimer.StartTimer(5000);
+    broadcastTimer.StartTimer(100);
+
 #ifndef CONFIG_ARCH_POSIX
     const sensor_value imuOdr{.val1 = 104, .val2 = 0};
 
@@ -112,12 +115,16 @@ void CSensingTenant::Run() {
 
     // If we can't send immediately, drop the packet
     // we're gonna sleep then give it new data anywas
-    if (dataToBroadcast.Send(data, K_NO_WAIT)) {
-        LOG_ERR("Failed to send sensor data to broadcast port");
-    } else {
-        LOG_DBG("Sensor data sent to broadcast port");
+    if (broadcastTimer.IsExpired()) {
+        if (dataToBroadcast.Send(data, K_NO_WAIT)) {
+            LOG_ERR("Failed to send sensor data to broadcast port");
+        } else {
+            LOG_DBG("Sensor data sent to broadcast port");
+        }
     }
-    sendDownlinkData(data);
+    if (sendingTimer.IsExpired()) {
+        sendDownlinkData(data);
+    }
 
     detectionHandler.HandleData(uptime, data, sensor_states);
     if (detectionHandler.FlightOccurring()) {

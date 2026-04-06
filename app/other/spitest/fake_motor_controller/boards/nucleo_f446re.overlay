@@ -1,0 +1,24 @@
+/ {
+	gpio_keys {
+		compatible = "gpio-keys";
+
+		cs_spi: cs_spi {
+			label = "CS for spi peripheral";
+			gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
+};
+
+&dma2{
+	status = "okay";
+};
+
+&arduino_spi {
+	status = "okay";
+
+	dmas = <&dma2 5 3 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x03>,
+		   <&dma2 2 3 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH | STM32_DMA_OFFSET_FIXED_4 | STM32_DMA_PERIPH_8BITS | STM32_DMA_MEM_8BITS) 0x03>;
+	dma-names = "tx", "rx";
+
+};

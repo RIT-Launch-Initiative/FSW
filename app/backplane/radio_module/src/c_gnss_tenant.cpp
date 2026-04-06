@@ -71,6 +71,11 @@ void CGnssTenant::Run() {
         }
 
         gnssUpdated = 0;
+    } else {
+        if (transmitTimer.IsExpired()) {
+            LOG_INF("Fake Data");
+            sendGnssToLora();
+        }
     }
 }
 

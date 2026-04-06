@@ -48,7 +48,7 @@ class CDataLoggerTenant : public CRunnableTenant {
 
   private:
     CMessagePort<T>& messagePort;
-    CDataLogger<T> dataLogger;
+    CFsDataLogger<T> dataLogger;
     const char* filename;
 
     // FS Sync after every X time

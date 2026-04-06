@@ -74,7 +74,7 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
                              size_t syncFrequency = 10) {
     LOG_INF("\n\n=== %s ===", testName);
 
-    CDataLogger<T> logger(filePath, mode, maxPackets);
+    CFsDataLogger<T> logger(filePath, mode, maxPackets);
 
     uint64_t totalWriteCycles = 0;
     uint64_t totalSyncCycles = 0;

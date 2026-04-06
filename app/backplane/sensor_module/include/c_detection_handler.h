@@ -31,7 +31,6 @@ class CDetectionHandler {
 
     SensorModulePhaseController& controller;
     AccBoostDetector primaryImuBoostSquaredDetector;
-    AccBoostDetector secondaryImuBoostSquaredDetector;
 
     VelocityFinder primaryBaromVelocityFinder;
     VelocityFinder secondaryBaromVelocityFinder;

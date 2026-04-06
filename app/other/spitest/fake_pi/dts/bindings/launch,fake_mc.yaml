@@ -1,0 +1,7 @@
+description: |
+    fake motor controller
+
+compatible: "launch,fake_mc"
+
+include: [spi-device.yaml]
+
