@@ -33,7 +33,7 @@
 		compatible = "launch,fake_mc";
 		reg = <0>;
 		status = "okay";
-		spi-max-frequency = <20000000>;
+		spi-max-frequency = <1000000>;
 		spi-cs-setup-delay-ns = <2000>;
 		spi-cpha;
 		spi-cpol;

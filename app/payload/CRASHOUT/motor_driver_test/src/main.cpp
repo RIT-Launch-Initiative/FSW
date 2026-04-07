@@ -17,9 +17,8 @@
 
 /* The devicetree node identifiers*/
 #define NSLEEP_NODE DT_NODELABEL(nsleep)
-const struct device* const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(arduino_i2c));
+const struct device* const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(motor_i2c));
 const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
-const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
 
 /*
  * A build error on this line means your board is unsupported.
@@ -453,9 +452,12 @@ void reset(){
     gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
 }
 
+
+
+const struct device *const dcm_enc1 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc1));
+
 int main(void) { 
     Motor motor1(motor1_i2c);
-    Motor motor2(motor2_i2c);
 
     reset();
 
@@ -463,29 +465,15 @@ int main(void) {
         printk("Failed to initialize motor 1");
         return 0;
     }
-    if (!motor2.initSpeedControl()){
-        printk("Failed to initialize motor 2");
-        return 0;
-    }
-
-    motor1.speedControlTest(0);
-    k_msleep(2000);
-    // motor2.speedControlTest(1);
-
     
     motor1.enableSpin();
-    motor1.setSpinMode(0); // set motor 1 to forward
-    motor2.enableSpin();
-    motor2.setSpinMode(1); // set motor 2 to backward
 
     for (int i = 0; i <= 10; i++){
-        motor2.setSpeed(40 * i);
-        motor1.setSpeed(400 - 40 * i);
-        motor1.printInfo();
-        motor2.printInfo();
+        int dir = 0;
+        motor1.setSpinMode(dir); // set motor 1 to forward
+        motor1.setSpeed(err);
         k_msleep(2000);
     }
 
     motor1.disableSpin();
-    motor2.disableSpin();
 }

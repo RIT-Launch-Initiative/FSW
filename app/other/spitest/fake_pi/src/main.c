@@ -80,10 +80,11 @@ int main(void) {
         return 0;
     }
 
-    uint8_t tx[1] = {0xa3};
+    uint8_t tx[4] = {0xa3};
+    uint8_t rx[8] = {0};
     
-    struct spi_buf tx_buf = {.buf = &st, .len = sizeof(tx)};
-    struct spi_buf rx_buf = {.buf = &st, .len = sizeof(struct exposed_state)};
+    struct spi_buf tx_buf = {.buf = &tx, .len = sizeof(tx)};
+    struct spi_buf rx_buf = {.buf = &rx, .len = sizeof(rx)};
 
     struct spi_buf_set tx_bufs = {.buffers = &tx_buf, .count = 1};
     struct spi_buf_set rx_bufs = {.buffers = &rx_buf, .count = 1}; // &rx_buf
@@ -104,20 +105,19 @@ int main(void) {
         // ret = spi_write_dt(&spidt, &tx_bufs);
         // k_usleep(400);
         // int ret2 = spi_read_dt(&spidt, &rx_bufs);
-        uint8_t b = k_uptime_get() % 256;
+        int64_t uptime = k_uptime_get();
+        uint8_t b = uptime  % 256;
         tx[0] = b;
         tx[1] = b;
         tx[2] = b;
-        tx[3] = 0;
+        tx[3] = b;
         ret = spi_transceive_dt(&spidt, &tx_bufs, &rx_bufs);
         if (ret != 0) {
             printk("Ret: %d\n", ret);
         } else {
-            printk("Uptime: %lld\n", k_uptime_get());
+            printk("Uptime: %lld %08llx\n", uptime, uptime);
             printk("Txed: %02x %02x %02x %02x\n", tx[0], tx[1], tx[2], tx[3]);
-            // printk("Rxed: %02x %02x %02x %02x\n", rx[0], rx[1], rx[2], rx[3]);
-            printk("SUptime: %d\n", st.uptime_ms);
-            printk("S: %d\n", st.accel1_x);
+            printk("Rxed: %02x %02x %02x %02x %02x %02x %02x %02x\n", rx[0], rx[1], rx[2], rx[3], rx[4], rx[5], rx[6], rx[7]);
         }
         // if (ret2 != 0) {
         // printk("Ret2: %d\n", ret);

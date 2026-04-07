@@ -42,6 +42,11 @@
 			gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
 			label = "Wrist Servo Power Enable";
 		};
+		nsleep: nsleep {
+			// motor nsleep
+			gpios = <&gpioc 15 GPIO_ACTIVE_HIGH>;
+			label = "nsleep driver pin";
+		};
 	};
 
 	aliases {
