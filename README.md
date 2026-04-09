@@ -10,6 +10,12 @@ View the latest test results and build reports on our [GitHub Pages](https://rit
 
 Reports are available in multiple formats (HTML, JSON, XML) for both human viewing and automated analysis.
 
+## Design And Development Docs
+
+- [FSW Architecture](docs/architecture.md)
+- [Backplane Modules](docs/backplane_modules.md)
+- [Software Development Guide](docs/software_development_guide.md)
+
 ## Installation
 
 ### All OSes
@@ -250,5 +256,4 @@ Most modern IDEs support clang-tidy integration:
 - **VS Code**: Install the "clangd" extension for real-time clang-tidy diagnostics
 - **CLion**: Built-in support, enable in Settings → Editor → Inspections → C/C++ → General → Clang-Tidy
 - **Vim/Neovim**: Use LSP plugins with clangd
-
 
