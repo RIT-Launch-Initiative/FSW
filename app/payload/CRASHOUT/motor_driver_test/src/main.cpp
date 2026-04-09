@@ -241,6 +241,16 @@ class Motor {
     }
 
     /**
+     * Prints the values of all of the registers in the motor driver
+     */
+    void regDump(){
+        for(int i = 0; i <= 0x19; i++){
+            i2c_reg_read_byte_dt(&motor, i, &flt);
+            printk("Reg%d: %02x\n", i, flt);
+        }
+    }
+
+    /**
      * Sets up the ripple counting on the motor driver by writing to the appropriate registers.
      */
     void setupRippleCounting(){
