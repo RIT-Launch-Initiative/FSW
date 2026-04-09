@@ -67,16 +67,13 @@ KalmanState LastKalmanState()
 #ifdef CUSTOM_ATMOSPHERE
 float AltitudeMetersFromPressureKPa(float kPa)
 {
-  float x = kPa * 1000;
-  float sum = 0;
-  float xn = x;
-  for (size_t i = 1; i < AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS; i++)
+  const float x = kPa * 1000.0F;
+  float sum = ATMOSPHERE[AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS - 1];
+  for (size_t i = AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS - 1; i-- > 0;)
   {
-    const float coeff = ATMOSPHERE[i];
-    sum += coeff * xn;
-    xn *= x;
+    sum = (sum * x) + ATMOSPHERE[i];
   }
-  return sum + ATMOSPHERE[0];
+  return sum;
 }
 #else
 float AltitudeMetersFromPressureKPa(float pressure_kpa)
