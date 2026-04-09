@@ -89,40 +89,27 @@ float AltitudeMetersFromPressureKPa(float pressure_kpa)
 
 Matrix<3, 3> expGyro(float w_1, float w_2, float w_3, float t)
 {
-  w_1 *= t;
-  w_2 *= t;
-  w_3 *= t;
+  const float wx = w_1 * t;
+  const float wy = w_2 * t;
+  const float wz = w_3 * t;
 
-  float w_1² = w_1 * w_1;
-  float w_2² = w_2 * w_2;
-  float w_3² = w_3 * w_3;
-  float w_1w_2 = w_1 * w_2;
-  float w_1w_3 = w_1 * w_3;
-  float w_2w_3 = w_2 * w_3;
-  // clang-format off
-        Matrix<3,3> A{{
-            0,    -w_3,    w_2, 
-            w_3,    0,    -w_1, 
-            -w_2,    w_1,     0,
-        }};
-        Matrix<3,3> A²{{
-            -(w_2² + w_3²),    w_1w_2,           w_1w_3,
-            w_1w_2,         -(w_1²+w_3²),       w_2w_3,
-            w_1w_3,           w_2w_3,         -(w_1²+w_2²),
-        }};
+  const float wx2 = wx * wx;
+  const float wy2 = wy * wy;
+  const float wz2 = wz * wz;
+  const float wxwy = wx * wy;
+  const float wxwz = wx * wz;
+  const float wywz = wy * wz;
 
-  // clang-format on
-  float norm_sqred = w_1² + w_2² + w_3²;
-  float norm = std::sqrt(norm_sqred);
+  const float thetaSq = wx2 + wy2 + wz2;
+  const float theta = std::sqrt(thetaSq);
+  const float s = (theta == 0.0F) ? 1.0F : (std::sin(theta) / theta);
+  const float c = (theta == 0.0F) ? 0.0F : ((1.0F - std::cos(theta)) / thetaSq);
 
-  // proof via desmos, this is what happens. (sinx/x = 1   (1-cosx)/x = 0 )
-  float s = (norm == 0) ? 1 : (std::sin(norm) / norm);
-  float c = (norm == 0) ? 0 : ((1 - std::cos(norm)) / (norm_sqred));
-
-  Matrix<3, 3> I = Matrix<3, 3>::Identity();
-
-  auto eᴬᵗ = I + A * s + A² * c;
-  return eᴬᵗ;
+  return Matrix<3, 3>{ {
+    1.0F - c * (wy2 + wz2), c * wxwy - s * wz, c * wxwz + s * wy,
+    c * wxwy + s * wz, 1.0F - c * (wx2 + wz2), c * wywz - s * wx,
+    c * wxwz - s * wy, c * wywz + s * wx, 1.0F - c * (wx2 + wy2),
+  } };
 }
 
 float deg2rad(float d)
