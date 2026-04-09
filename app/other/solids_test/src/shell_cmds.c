@@ -62,11 +62,11 @@ static int cmd_test_dump(const struct shell *shell, size_t argc, char **argv) {
     ARG_UNUSED(argv);
 
     if (argc == 1) {
-        shell_print(shell, "Dumping all test data...");
+        shell_print(shell, "# Dumping all test data...");
         control_dump_data(shell);
     } else if (argc == 2) {
         uint32_t test_num = atoi(argv[1]);
-        shell_print(shell, "Dumping test %u data...", test_num);
+        shell_print(shell, "# Dumping test %u data...", test_num);
         control_dump_one(shell, test_num);
     } else {
         shell_print(shell, "Enter <test dump> or <test dump [number]>");

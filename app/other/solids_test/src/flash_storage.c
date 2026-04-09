@@ -211,6 +211,18 @@ void stop_flash_storage() {
     k_msgq_put(&storage_control_queue, &event, K_FOREVER);
 }
 
+int flash_list(const struct shell *shell){
+    for (int i = 0; i < metadata.current_test_number){
+       read metadata, print metadta
+       maybe save channel as well, maybe as 0/1 or as double-ended, single-ended 
+    }
+}
+// 
+// 1, test1name_LC, terminal
+// 2, test1name_LC, meep
+// 3, test2name_LC, terminal
+// 4, test2name_LC, meep
+
 int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     if (test_index >= MAX_TESTS ){
         shell_print(shell, "Pick a valid test [0-%d]", MAX_TESTS - 1);
@@ -238,10 +250,10 @@ int flash_dump_one(const struct shell *shell, uint32_t test_index) {
     flash_read(flash_dev, block_addr, local_test_type, sizeof(local_test_type));
     block_addr += sizeof(local_test_type);
 
-    shell_print(shell, "================================\nDumping Test #%d", test_index);
-    shell_print(shell, "CALIBRATION: %s", calib_name);
-    shell_print(shell, "Test triggered by %s", local_test_type);
-    shell_print(shell, "timestamp, value\n================================");
+    shell_print(shell, "# ================================\n# Dumping Test #%d", test_index);
+    shell_print(shell, "# CALIBRATION: %s", calib_name);
+    shell_print(shell, "# Test triggered by %s", local_test_type);
+    shell_print(shell, "# timestamp, value\n# ================================");
 
     for (int i = 0; i < (SPI_FLASH_BLOCK_SIZE / sizeof(sample)); i++) {
         if (flash_read(flash_dev, block_addr, &sample, sizeof(sample)) < 0) {
