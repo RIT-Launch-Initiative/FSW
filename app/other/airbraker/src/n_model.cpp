@@ -9,6 +9,39 @@
 
 namespace NModel
 {
+namespace
+{
+constexpr float kCosMaxTilt = 0.8660254037844386F;
+
+float ClampUnit(float v)
+{
+  if (v > 1.0F)
+  {
+    return 1.0F;
+  }
+  if (v < -1.0F)
+  {
+    return -1.0F;
+  }
+  return v;
+}
+
+const Matrix<3, 1>& InitialRocketZAxisInIMUSpace()
+{
+  static const Matrix<3, 1> initial = [] {
+    NTypes::AccelerometerData zInIMUSpace{};
+    RotateRocketVectorToIMUVector({ 0, 0, 1 }, zInIMUSpace);
+    return Matrix<3, 1>{ { zInIMUSpace.X, zInIMUSpace.Y, zInIMUSpace.Z } };
+  }();
+  return initial;
+}
+
+float Dot3(const Matrix<3, 1>& a, const Matrix<3, 1>& b)
+{
+  return (a.Get(0, 0) * b.Get(0, 0)) + (a.Get(1, 0) * b.Get(1, 0)) + (a.Get(2, 0) * b.Get(2, 0));
+}
+}  // namespace
+
 const char* GetMatlabLUTName()
 {
   return LUT_NAME;
@@ -130,26 +163,11 @@ void FeedGyro(uint32_t msSinceBoot, const NTypes::GyroscopeData& gyro)
   lastGyroIntegrationMsSinceBoot = msSinceBoot;
   Matrix<3, 3> eAT = expGyro(gyro.X, gyro.Y, gyro.Z, t);
   gyroOrientation = gyroOrientation * eAT;
-  NTypes::AccelerometerData zInIMUSpace;
-  RotateRocketVectorToIMUVector({ 0, 0, 1 }, zInIMUSpace);
-  // initial and startAxis are dependent on orientation_quat of imu
-
-  Matrix<3, 1> initial{ { zInIMUSpace.X, zInIMUSpace.Y, zInIMUSpace.Z } };
-  Matrix<3, 1> now = gyroOrientation * initial;
-  NTypes::AccelerometerData rotatedUsInRocketSpace{ 0, 0, 1 };
-  RotateIMUVectorToRocketVector({ now.Get(0, 0), now.Get(1, 0), now.Get(2, 0) }, rotatedUsInRocketSpace);
-
-  // initial = rotate([0 0 1] by quaternion)
-  //  now = rotate initial by gyroOrientation
-
-  auto dot = [](const Matrix<3, 1>& a, const Matrix<3, 1>& b) {
-    return a.Get(0, 0) * b.Get(0, 0) + a.Get(1, 0) * b.Get(1, 0) + a.Get(2, 0) * b.Get(2, 0);
-  };
-
-  float normOfNow = std::sqrt(initial.Get(0,0)*initial.Get(0,0) + initial.Get(1,0)*initial.Get(1,0) + initial.Get(2,0)*initial.Get(2,0));
-  Matrix<3, 1> normedNow = initial * (1.F / normOfNow);
-  float offStart = acos(dot(initial, normedNow));
-  bool outOfBounds = offStart > deg2rad(30);
+  const Matrix<3, 1>& initial = InitialRocketZAxisInIMUSpace();
+  const Matrix<3, 1> now = gyroOrientation * initial;
+  const float nowNorm = std::sqrt(Dot3(now, now));
+  const float cosOffStart = (nowNorm == 0.0F) ? 1.0F : ClampUnit(Dot3(initial, now) / nowNorm);
+  const bool outOfBounds = cosOffStart < kCosMaxTilt;
   everWentOutOfBounds |= outOfBounds;
 }
 
