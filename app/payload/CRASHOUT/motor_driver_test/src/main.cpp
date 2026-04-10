@@ -28,32 +28,32 @@ const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
 static const struct gpio_dt_spec nSleep = GPIO_DT_SPEC_GET(NSLEEP_NODE, gpios);
 
 /* Motor Driver Register Addresses */
-#define RC_STATUS1  0x1
-#define RC_STATUS2  0x2
-#define RC_STATUS3  0x3
-#define REG_STATUS1 0x4
-#define REG_STATUS2 0x5
-#define REG_STATUS3 0x6
+#define RC_STATUS1    0x01
+#define RC_STATUS2    0x02
+#define RC_STATUS3    0x03
+#define REG_STATUS1   0x04
+#define REG_STATUS2   0x05
+#define REG_STATUS3   0x06
 
-#define CONFIG0_REG 0x9
-#define CONFIG1_REG 0xa
-#define CONFIG2_REG 0xb
-#define CONFIG3_REG 0xc
-#define CONFIG4_REG 0xd
+#define CONFIG0_REG   0x09
+#define CONFIG1_REG   0x0a
+#define CONFIG2_REG   0x0b
+#define CONFIG3_REG   0x0c
+#define CONFIG4_REG   0x0d
 
-#define REG_CTRL0_REG 0xe
-#define REG_CTRL1_REG 0xf
+#define REG_CTRL0_REG 0x0e
+#define REG_CTRL1_REG 0x0f
 #define REG_CTRL2_REG 0x10
 
-#define RC_CTRL0_REG 0x11
-#define RC_CTRL1_REG 0x12
-#define RC_CTRL2_REG 0x13
-#define RC_CTRL3_REG 0x14
-#define RC_CTRL4_REG 0x15
-#define RC_CTRL5_REG 0x16
-#define RC_CTRL6_REG 0x17
-#define RC_CTRL7_REG 0x18
-#define RC_CTRL8_REG 0x19
+#define RC_CTRL0_REG  0x11
+#define RC_CTRL1_REG  0x12
+#define RC_CTRL2_REG  0x13
+#define RC_CTRL3_REG  0x14
+#define RC_CTRL4_REG  0x15
+#define RC_CTRL5_REG  0x16
+#define RC_CTRL6_REG  0x17
+#define RC_CTRL7_REG  0x18
+#define RC_CTRL8_REG  0x19
 
 class Motor {
     public:
@@ -61,7 +61,6 @@ class Motor {
     /* Global variables */
     struct i2c_dt_spec motor;
     uint8_t flt = 0;
-    bool motorOn = false;
     // w_scale_value is used to convert the speed value read from the motor driver in Rad/s to RPM
     // The default value 16 is the minimum value and maxes the motor out at 4080 Rad/s (Page 31 of datatsheet)
     #define DEFAULT_W_SCALE_VALUE 16
@@ -164,7 +163,7 @@ class Motor {
         i2c_reg_read_byte_dt(&motor, REG_CTRL0_REG, &reg_ctrl_0);
 
         // set bits 4,3 to 10 to set speed control mode (page 30 of datasheet)
-        reg_ctrl_0 &= 0b11100111;
+        reg_ctrl_0 &= 0b11110111;
         reg_ctrl_0 |= 0b00010000;
         i2c_reg_write_byte_dt(&motor, REG_CTRL0_REG, reg_ctrl_0);
 
@@ -246,7 +245,7 @@ class Motor {
     void regDump(){
         for(int i = 0; i <= 0x19; i++){
             i2c_reg_read_byte_dt(&motor, i, &flt);
-            printk("Reg%d: %02x\n", i, flt);
+            printk("Reg%02x: %02x\n", i, flt);
         }
     }
 
@@ -354,13 +353,6 @@ class Motor {
         setToVoltageControlMode();
         setupRippleCounting();
 
-        if(!motorOn){
-            printk("Motor is off, cannot spin\n");
-            return;
-        } else {
-            printk("Initted i2c dev\n");
-        }
-
         setSpinMode(2); // brake mode to start
         printFault();
         
@@ -388,13 +380,6 @@ class Motor {
     void speedControlTest(uint8_t dir){
         setToSpeedControlMode();
         setupRippleCounting();
-
-        if(!motorOn){
-            printk("Motor is off, cannot spin\n");
-            return;
-        } else {
-            printk("Initted i2c dev\n");
-        }
 
         setSpinMode(2); // brake mode to start
         printFault();
@@ -426,11 +411,11 @@ class Motor {
         }
 
         setToSpeedControlMode();
+        regDump();
         setupRippleCounting();
         enableSoftStart();
         setSpinMode(2); // default to brake mode
         setSpeed(0);
-        motorOn = true;
         return 1;
     }
 
@@ -448,7 +433,6 @@ class Motor {
         enableSoftStart();
         setSpinMode(2); // default to brake mode
         setVoltage(0);
-        motorOn = true;
         return 1;
     }
 };
@@ -473,24 +457,28 @@ int main(void) {
         printk("Failed to initialize motor 1");
         return 0;
     }
-    if (!motor2.initSpeedControl()){
-        printk("Failed to initialize motor 2");
-        return 0;
-    }
+    // if (!motor2.initSpeedControl()){
+    //     printk("Failed to initialize motor 2");
+    //     return 0;
+    // }
 
-    motor1.speedControlTest(0);
-    k_msleep(2000);
+    // motor1.speedControlTest(0);
+    // k_msleep(2000);
     // motor2.speedControlTest(1);
 
-    
+    motor1.regDump();
+    motor1.setToSpeedControlMode();
+    motor1.regDump();
     motor1.enableSpin();
     motor1.setSpinMode(0); // set motor 1 to forward
     motor2.enableSpin();
     motor2.setSpinMode(1); // set motor 2 to backward
 
+
+
     for (int i = 0; i <= 10; i++){
-        motor2.setSpeed(40 * i);
         motor1.setSpeed(400 - 40 * i);
+        motor2.setSpeed(40 * i);
         motor1.printInfo();
         motor2.printInfo();
         k_msleep(2000);
