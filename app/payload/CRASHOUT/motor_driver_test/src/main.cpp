@@ -465,20 +465,25 @@ int main(void) {
     }
 
     motor1.enableSpin();
-    motor1.setSpinMode(0); // set motor 1 to forward
     motor2.enableSpin();
-    motor2.setSpinMode(1); // set motor 2 to backward
 
-    for (int i = 0; i <= 10; i++){
-        motor1.setSpeed(400 - 40 * i);
-        motor2.setSpeed(40 * i);
-        motor1.printInfo();
-        motor2.printInfo();
-        k_msleep(2000);
-    }
+    motor1.setSpinMode(1);
+    motor2.setSpinMode(1);
 
-    motor1.regDump();
-    motor2.regDump();
+    motor1.setSpeed(200);
+    motor2.setSpeed(200);
+    k_msleep(20000);
+
+    // motor1.setSpinMode(0); // set motor 1 to forward
+    // motor2.setSpinMode(1); // set motor 2 to backward
+
+    // for (int i = 0; i <= 40; i++){
+    //     motor1.setSpeed(1600 - 40 * i);
+    //     motor2.setSpeed(40 * i);
+    //     motor1.printInfo();
+    //     motor2.printInfo();
+    //     k_msleep(500);
+    // }
 
     motor1.disableSpin();
     motor2.disableSpin();
