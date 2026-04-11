@@ -1,5 +1,4 @@
 #include "quantile_lut_data.h"
-
 #include <cmath>
 #include <cstdint>
 
@@ -9,11 +8,6 @@ static const float lower_bounds_lut[] = {LUT_LOWER_BOUNDS_INITIALIZER};
 static const float upper_bounds_lut[] = {LUT_UPPER_BOUNDS_INITIALIZER};
 
 
-//static const float lut_pressure_values[] = {0, 1, 2, 3, 4};
-
-//#define LUT_PRESSURE_SIZE 10
-//#define LUT_PRESSURE_MINX 0
-//#define LUT_PRESSURE_MAXX 100
 
 struct IndexParts {
     std::size_t whole; // The index of the LUT value just before this value
@@ -21,7 +15,25 @@ struct IndexParts {
 };
 
 
-/*
+/**
+ * Linearly interpolate between from and to
+ * @param amt value between 0 and 1 inclusive. How far between the two values
+ * @returns linearly interpolated between from and to depending on amt
+ *          if amt = 0, returns from
+ *          if amt = 1, returns to
+ * This does not do bounds checking (it extrapolates), it is your responsibility to not pass in
+ * any value of amount outside of the suggested range (or be prepared to face the consequences)
+ */
+float lerp(float amount, float from, float to) { return (from * (1 - amount)) + (to * amount); }
+
+
+#define LUT_PRESSURE_SIZE 18
+
+#define LUT_PRESSURE_MINX 60000
+#define LUT_PRESSURE_MAXX 102500
+
+static const float lut_pressure_values[LUT_PRESSURE_SIZE] = {4259.0210, 3949.3704, 3639.7197, 3350.5430, 3061.3660, 2790.1885, 2519.0112, 2264.7319, 2010.4525, 1772.9661, 1535.4795, 1310.3572, 1085.2350, 867.00781, 652.98242, 442.84741, 236.23834, 29.629272};
+
 IndexParts genAltitudeIndexParts(float value) {
     if (value < LUT_PRESSURE_MINX) {
         return {0, 0};
@@ -37,25 +49,22 @@ IndexParts genAltitudeIndexParts(float value) {
     float whole_part = 0;
     float fractional_part = modff(float_index, &whole_part);
 
-    if (whole_part >= lut_pressure_size - 1) {
+    if (whole_part >= LUT_PRESSURE_SIZE - 1) {
         // to keep common code path below, if we would be at the point of last element and element off the end of the array
         // this will return second to last, 1 which causes the lerping to calculate the last element in its entirety
-        return {lut_pressure_size - 2, 1};
+        return {LUT_PRESSURE_SIZE - 2, 1};
     }
 
     return {(std::size_t) whole_part, fractional_part};
 }
 
 
-void altitudeLut(float pressure_kpa, float *alt_out){
-    IndexParts index = genIndexParts(pressure_kpa);
-    float previous = lower_bounds_lut[index.whole];
-    float next = lower_bounds_lut[index.whole + 1];
-    *alt_out = lerp(index.fraction, lowerPrevious, lowerNext);
+void AltitudeLut(float pressure_pa, float *alt_out){
+    IndexParts index = genAltitudeIndexParts(pressure_pa);
+    float previous = lut_pressure_values[index.whole];
+    float next = lut_pressure_values[index.whole + 1];
+    *alt_out = lerp(index.fraction, previous, next);
 }
-
-
-*/
 
 
 IndexParts genIndexParts(float value) {
@@ -82,17 +91,6 @@ IndexParts genIndexParts(float value) {
     return {(std::size_t) whole_part, fractional_part};
 }
 
-
-/**
- * Linearly interpolate between from and to
- * @param amt value between 0 and 1 inclusive. How far between the two values
- * @returns linearly interpolated between from and to depending on amt
- *          if amt = 0, returns from
- *          if amt = 1, returns to
- * This does not do bounds checking (it extrapolates), it is your responsibility to not pass in
- * any value of amount outside of the suggested range (or be prepared to face the consequences)
- */
-float lerp(float amount, float from, float to) { return (from * (1 - amount)) + (to * amount); }
 
 /**
  * Find bounds in LUT based on altitude

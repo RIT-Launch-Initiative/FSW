@@ -65,6 +65,16 @@ KalmanState LastKalmanState()
 }
 #define CUSTOM_ATMOSPHERE 1
 #ifdef CUSTOM_ATMOSPHERE
+void AltitudeLut(float pressure__kPa, float *altitudeM);
+float AltitudeMetersFromPressureKPa(float kPa)
+{
+  float x = kPa * 1000;
+  float y = 0;
+  AltitudeLut(x, &y);
+  return y;
+}
+
+/*
 float AltitudeMetersFromPressureKPa(float kPa)
 {
   float x = kPa * 1000;
@@ -78,6 +88,7 @@ float AltitudeMetersFromPressureKPa(float kPa)
   }
   return sum + ATMOSPHERE[0];
 }
+*/
 #else
 float AltitudeMetersFromPressureKPa(float pressure_kpa)
 {

@@ -1,0 +1,7 @@
+uart connected to pseudotty: /dev/pts/11
+[00:00:00.000,000] [0m<inf> openrocket: Initializing OpenRocket data[0m
+*** Booting Zephyr OS build v4.3.0 ***
+[00:00:00.049,010] [0m<inf> storage: Bootcount 44[0m
+[00:00:00.049,010] [0m<inf> servo: set to 0.000000[0m
+[00:00:00.749,205] [0m<inf> main: Cancelled flight[0m
+[00:00:00.749,205] [1;33m<wrn> main: NOT FLYING[0m
