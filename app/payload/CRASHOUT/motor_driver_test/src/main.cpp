@@ -378,8 +378,8 @@ class Motor {
      * @param dir the direction to run the motor in, 0 for forward and 1 for backward
      */
     void speedControlTest(uint8_t dir){
-        setToSpeedControlMode();
         setupRippleCounting();
+        setToSpeedControlMode();
 
         setSpinMode(2); // brake mode to start
         printFault();
@@ -409,10 +409,12 @@ class Motor {
             printk("No i2c ready");
             return 0;
         }
-
-        setToSpeedControlMode();
-        regDump();
         setupRippleCounting();
+        setToSpeedControlMode();
+        // for some reason I need to run this again after speed mode
+        // Maybe an i2c failure? maybe breadboard noise? unsure, retest on crashout board
+        setupRippleCounting(); 
+        //regDump();
         enableSoftStart();
         setSpinMode(2); // default to brake mode
         setSpeed(0);
@@ -457,24 +459,15 @@ int main(void) {
         printk("Failed to initialize motor 1");
         return 0;
     }
-    // if (!motor2.initSpeedControl()){
-    //     printk("Failed to initialize motor 2");
-    //     return 0;
-    // }
+    if (!motor2.initSpeedControl()){
+        printk("Failed to initialize motor 2");
+        return 0;
+    }
 
-    // motor1.speedControlTest(0);
-    // k_msleep(2000);
-    // motor2.speedControlTest(1);
-
-    motor1.regDump();
-    motor1.setToSpeedControlMode();
-    motor1.regDump();
     motor1.enableSpin();
     motor1.setSpinMode(0); // set motor 1 to forward
     motor2.enableSpin();
     motor2.setSpinMode(1); // set motor 2 to backward
-
-
 
     for (int i = 0; i <= 10; i++){
         motor1.setSpeed(400 - 40 * i);
@@ -483,6 +476,9 @@ int main(void) {
         motor2.printInfo();
         k_msleep(2000);
     }
+
+    motor1.regDump();
+    motor2.regDump();
 
     motor1.disableSpin();
     motor2.disableSpin();
