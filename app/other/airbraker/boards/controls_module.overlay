@@ -13,8 +13,8 @@
         status = "okay";
         compatible = "pwm-servo";
         pwms = <&pwm2 4 PWM_USEC(3000) PWM_POLARITY_NORMAL>;
-        min-pulse = <PWM_USEC(500)>;
-        max-pulse = <PWM_USEC(2500)>;
+        min-pulse = <PWM_USEC(1200)>;
+        max-pulse = <PWM_USEC(2032)>;
     };
 
 };

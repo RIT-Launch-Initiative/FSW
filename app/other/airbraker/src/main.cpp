@@ -43,9 +43,16 @@ NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes
 }
 
 int main() {
+    EnableServo();
+    SetServoEffort(0);
     NBuzzer::SetBuzzer(true);
-    k_msleep(100);
     NBuzzer::SetBuzzer(false);
+    k_msleep(500);
+    NBuzzer::SetBuzzer(true);
+    k_msleep(200);
+    NBuzzer::SetBuzzer(false);
+    DisableServo();
+
 
     NSensing::InitSensors();
 
@@ -92,7 +99,6 @@ int main() {
         NBoost::FeedDetector(vertical);
 
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - NPreBoost::GetGroundLevelASL();
-
         NModel::FeedKalman(altMeters, vertical);
         NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
 
