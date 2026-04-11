@@ -151,19 +151,21 @@ void FeedGyro(uint32_t msSinceBoot, const NTypes::GyroscopeData& gyro)
   // initial and startAxis are dependent on orientation_quat of imu
 
   Matrix<3, 1> initial{ { zInIMUSpace.X, zInIMUSpace.Y, zInIMUSpace.Z } };
-  Matrix<3, 1> now = gyroOrientation * initial;
-  NTypes::AccelerometerData rotatedUsInRocketSpace{ 0, 0, 1 };
-  RotateIMUVectorToRocketVector({ now.Get(0, 0), now.Get(1, 0), now.Get(2, 0) }, rotatedUsInRocketSpace);
+  Matrix<3, 1> nowInIMUSpace = gyroOrientation * initial;
 
-  // initial = rotate([0 0 1] by quaternion)
-  //  now = rotate initial by gyroOrientation
-
+  // for debugging only
+  // NTypes::AccelerometerData rotatedUsInRocketSpace{ 0, 0, 1 };
+  // RotateIMUVectorToRocketVector({ nowInIMUSpace.Get(0, 0), nowInIMUSpace.Get(1, 0), nowInIMUSpace.Get(2, 0) }, rotatedUsInRocketSpace);
+  // end for debugging only
+  
   auto dot = [](const Matrix<3, 1>& a, const Matrix<3, 1>& b) {
     return a.Get(0, 0) * b.Get(0, 0) + a.Get(1, 0) * b.Get(1, 0) + a.Get(2, 0) * b.Get(2, 0);
   };
 
-  float normOfNow = std::sqrt(initial.Get(0,0)*initial.Get(0,0) + initial.Get(1,0)*initial.Get(1,0) + initial.Get(2,0)*initial.Get(2,0));
-  Matrix<3, 1> normedNow = initial * (1.F / normOfNow);
+  float normOfNow = std::sqrt(nowInIMUSpace.Get(0,0)*nowInIMUSpace.Get(0,0) + nowInIMUSpace.Get(1,0)*nowInIMUSpace.Get(1,0) + nowInIMUSpace.Get(2,0)*nowInIMUSpace.Get(2,0));
+  Matrix<3, 1> normedNow = nowInIMUSpace * (1.F / normOfNow);
+
+
   float offStart = acos(dot(initial, normedNow));
   bool outOfBounds = offStart > deg2rad(30);
   everWentOutOfBounds |= outOfBounds;
