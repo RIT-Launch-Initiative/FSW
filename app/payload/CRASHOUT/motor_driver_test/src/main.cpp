@@ -472,7 +472,7 @@ int main(void) {
 
     motor1.setSpeed(200);
     motor2.setSpeed(200);
-    k_msleep(20000);
+    k_msleep(60000);
 
     // motor1.setSpinMode(0); // set motor 1 to forward
     // motor2.setSpinMode(1); // set motor 2 to backward
