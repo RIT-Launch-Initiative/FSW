@@ -12,7 +12,6 @@ template <std::size_t R, std::size_t C>
 using Matrix = ManualMatrix<R, C, float>;
 
 #endif
-#include <zephyr/kernel.h>
 
 template<std::size_t R, std::size_t C>
 Matrix<R,C> matrixExpPowSeries(const Matrix<R,C> &At, std::size_t iterations){
@@ -34,6 +33,5 @@ Matrix<R,C> matrixExpPowSeries(const Matrix<R,C> &At, std::size_t iterations){
     }
     return sum;
 }
-
 
 

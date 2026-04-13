@@ -1,8 +1,23 @@
+#ifndef AIRBRAKER_BENCHMARK
 #include "n_model.hpp"
+#include "n_preboost.hpp"
+#else
+#include "math/matrix.hpp"
+#include "n_autocoder_types.h"
+
+namespace NModel {
+struct KalmanState {
+    float estAltitude;
+    float estVelocity;
+    float estAcceleration;
+    float estBias;
+};
+void RotateRocketVectorToIMUVector(const NTypes::AccelerometerData& xyz, NTypes::AccelerometerData& out);
+} // namespace NModel
+#endif
 
 #include "math/matrix.hpp"
 #include "n_autocoder_types.h"
-#include "n_preboost.hpp"
 #include "quantile_lut_data.h"
 
 #include <cmath>
@@ -233,6 +248,14 @@ void FeedGyro(uint32_t msSinceBoot, const NTypes::GyroscopeData& gyro) {
 
 int GetOrientation() { return 0; }
 bool EverWentOutOfBounds() { return everWentOutOfBounds; }
+
+#ifdef AIRBRAKER_BENCHMARK
+void ResetGyroStateForBenchmark() {
+    gyroOrientation = {1.0F, 0.0F, 0.0F, 0.0F};
+    everWentOutOfBounds = false;
+    lastGyroIntegrationMsSinceBoot = 0;
+}
+#endif
 
 void FillPacketWithOrientationMatrix(float* arr) {
     const float ww = gyroOrientation.w * gyroOrientation.w;
