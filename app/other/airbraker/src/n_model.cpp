@@ -176,32 +176,32 @@ float AltitudeMetersFromPressureKPa(float pressure_kpa) {
 #endif
 
 Matrix<3, 3> expGyro(float w_1, float w_2, float w_3, float t) {
-    const float wx = w_1 * t;
-    const float wy = w_2 * t;
-    const float wz = w_3 * t;
+    const float w_1ᵗ = w_1 * t;
+    const float w_2ᵗ = w_2 * t;
+    const float w_3ᵗ = w_3 * t;
 
-    const float wx2 = wx * wx;
-    const float wy2 = wy * wy;
-    const float wz2 = wz * wz;
-    const float wxwy = wx * wy;
-    const float wxwz = wx * wz;
-    const float wywz = wy * wz;
+    const float w_1² = w_1ᵗ * w_1ᵗ;
+    const float w_2² = w_2ᵗ * w_2ᵗ;
+    const float w_3² = w_3ᵗ * w_3ᵗ;
+    const float w_1w_2 = w_1ᵗ * w_2ᵗ;
+    const float w_1w_3 = w_1ᵗ * w_3ᵗ;
+    const float w_2w_3 = w_2ᵗ * w_3ᵗ;
 
-    const float thetaSq = wx2 + wy2 + wz2;
-    const float theta = std::sqrt(thetaSq);
-    const float s = (theta == 0.0F) ? 1.0F : (std::sin(theta) / theta);
-    const float c = (theta == 0.0F) ? 0.0F : ((1.0F - std::cos(theta)) / thetaSq);
+    const float θ² = w_1² + w_2² + w_3²;
+    const float θ = std::sqrt(θ²);
+    const float s = (θ == 0.0F) ? 1.0F : (std::sin(θ) / θ);
+    const float c = (θ == 0.0F) ? 0.0F : ((1.0F - std::cos(θ)) / θ²);
 
     return Matrix<3, 3>{{
-        1.0F - c * (wy2 + wz2),
-        c * wxwy - s * wz,
-        c * wxwz + s * wy,
-        c * wxwy + s * wz,
-        1.0F - c * (wx2 + wz2),
-        c * wywz - s * wx,
-        c * wxwz - s * wy,
-        c * wywz + s * wx,
-        1.0F - c * (wx2 + wy2),
+        1.0F - c * (w_2² + w_3²),
+        c * w_1w_2 - s * w_3ᵗ,
+        c * w_1w_3 + s * w_2ᵗ,
+        c * w_1w_2 + s * w_3ᵗ,
+        1.0F - c * (w_1² + w_3²),
+        c * w_2w_3 - s * w_1ᵗ,
+        c * w_1w_3 - s * w_2ᵗ,
+        c * w_2w_3 + s * w_1ᵗ,
+        1.0F - c * (w_1² + w_2²),
     }};
 }
 

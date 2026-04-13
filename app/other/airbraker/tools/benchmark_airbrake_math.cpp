@@ -113,32 +113,32 @@ Matrix3 ExpGyroOriginal(float w1, float w2, float w3, float t) {
 }
 
 Matrix3 ExpGyroNew(float w1, float w2, float w3, float t) {
-    const float wx = w1 * t;
-    const float wy = w2 * t;
-    const float wz = w3 * t;
+    const float w₁ᵗ = w1 * t;
+    const float w₂ᵗ = w2 * t;
+    const float w₃ᵗ = w3 * t;
 
-    const float wx2 = wx * wx;
-    const float wy2 = wy * wy;
-    const float wz2 = wz * wz;
-    const float wxwy = wx * wy;
-    const float wxwz = wx * wz;
-    const float wywz = wy * wz;
+    const float w₁² = w₁ᵗ * w₁ᵗ;
+    const float w₂² = w₂ᵗ * w₂ᵗ;
+    const float w₃² = w₃ᵗ * w₃ᵗ;
+    const float w₁w₂ = w₁ᵗ * w₂ᵗ;
+    const float w₁w₃ = w₁ᵗ * w₃ᵗ;
+    const float w₂w₃ = w₂ᵗ * w₃ᵗ;
 
-    const float thetaSq = wx2 + wy2 + wz2;
-    const float theta = std::sqrt(thetaSq);
-    const float s = (theta == 0.0F) ? 1.0F : (std::sin(theta) / theta);
-    const float c = (theta == 0.0F) ? 0.0F : ((1.0F - std::cos(theta)) / thetaSq);
+    const float θ² = w₁² + w₂² + w₃²;
+    const float θ = std::sqrt(θ²);
+    const float s = (θ == 0.0F) ? 1.0F : (std::sin(θ) / θ);
+    const float c = (θ == 0.0F) ? 0.0F : ((1.0F - std::cos(θ)) / θ²);
 
     return Matrix3{{
-        1.0F - c * (wy2 + wz2),
-        c * wxwy - s * wz,
-        c * wxwz + s * wy,
-        c * wxwy + s * wz,
-        1.0F - c * (wx2 + wz2),
-        c * wywz - s * wx,
-        c * wxwz - s * wy,
-        c * wywz + s * wx,
-        1.0F - c * (wx2 + wy2),
+        1.0F - c * (w₂² + w₃²),
+        c * w₁w₂ - s * w₃ᵗ,
+        c * w₁w₃ + s * w₂ᵗ,
+        c * w₁w₂ + s * w₃ᵗ,
+        1.0F - c * (w₁² + w₃²),
+        c * w₂w₃ - s * w₁ᵗ,
+        c * w₁w₃ - s * w₂ᵗ,
+        c * w₂w₃ + s * w₁ᵗ,
+        1.0F - c * (w₁² + w₂²),
     }};
 }
 
