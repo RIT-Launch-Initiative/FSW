@@ -85,7 +85,7 @@
 				label = "parameter_storage";
 			};
 			flight_storage@20000{
-				reg = <0x20000 DT_SIZE_M(2)>; 
+				reg = <0x20000 DT_SIZE_K(3072)>; 
 				label = "flight_storage";
 			};
 		};
