@@ -26,5 +26,9 @@ manifest:
           - segger
           - percepio
           - lz4
-      clone-depth: 1
+          - zscilib
 
+      clone-depth: 1
+    - name: zscilib
+      remote: zephyrproject-rtos
+      revision: master
