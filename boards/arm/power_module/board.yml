@@ -1,5 +1,6 @@
 board:
   name: power_module
+  full_name: PowerModule
   vendor: launch
   socs:
     - name: stm32f446xx

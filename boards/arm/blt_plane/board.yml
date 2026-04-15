@@ -1,6 +1,6 @@
 board:
   name: blt_plane
-  full_name:
+  full_name: BLTPlane
   vendor: launch
   socs:
     - name: stm32f446xx
