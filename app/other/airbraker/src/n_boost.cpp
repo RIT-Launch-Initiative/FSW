@@ -26,4 +26,6 @@ void FeedDetector(float accelVertical) {
     isDetected = detected;
 }
 bool IsDetected() { return isDetected; }
+
+void FakeBoost() { isDetected = true; }
 } // namespace NBoost

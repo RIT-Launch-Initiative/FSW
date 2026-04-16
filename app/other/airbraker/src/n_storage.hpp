@@ -67,5 +67,5 @@ uint32_t GetDataPartitionSize();
  * @param data[out] buffer to read into
  * @return 0 if success, negative error code if problem
  */
-int ReadDataBlock(uint32_t addr, uint32_t size, uint8_t *data);
+int ReadDataBlock(uint32_t addr, uint32_t size, uint8_t*data);
 } // namespace NStorage
