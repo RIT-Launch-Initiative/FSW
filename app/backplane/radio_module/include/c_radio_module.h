@@ -83,8 +83,8 @@ class CRadioModule : public CProjectConfiguration {
 
     // Tenants
     CGnssTenant gnssTenant{"GNSS Tenant", &gnssTelemetryMessagePort, &gnssDataLogMessagePort};
-    CCallsignBroadcastTenant callsignBroadcastTenant{"KD2YIE",       // TODO: Settings
-                                                     K_SECONDS(300), // Every 5 minutes to be safe
+    CCallsignBroadcastTenant callsignBroadcastTenant{CONFIG_RADIO_MODULE_CALLSIGN,
+                                                     K_SECONDS(CONFIG_RADIO_MODULE_CALLSIGN_TX_INTERVAL_SECONDS),
                                                      loraDownlinkMessagePort, 0};
 
     CUdpListenerTenant sensorModuleListenerTenant{"Sensor Module Listener Tenant", ipAddrStr.c_str(),
