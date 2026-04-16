@@ -22,6 +22,19 @@ config GNSS_DATA_TX_INTERVAL
 	help
 	  The interval at which GNSS data is transmitted through LoRa in milliseconds.
 
+config RADIO_MODULE_CALLSIGN
+	string "Radio module callsign"
+	default "KD2YIE"
+	help
+	  Callsign string to broadcast over LoRa for the radio module.
+
+config RADIO_MODULE_CALLSIGN_TX_INTERVAL_SECONDS
+	int "Radio module callsign broadcast interval (seconds)"
+	default 300
+	range 1 86400
+	help
+	  Interval in seconds between LoRa callsign broadcasts.
+
 module = APP_RADIO_MODULE
 module-str = APP_RADIO_MODULE
 source "subsys/logging/Kconfig.template.log_config"
