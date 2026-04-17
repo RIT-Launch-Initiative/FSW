@@ -116,8 +116,13 @@ int CLora::SetTxPower(int8_t txPower) {
 }
 
 int CLora::SetFrequency(uint32_t frequencyHz) {
+#ifdef CONFIG_LICENSED_FREQUENCY
+    if (frequencyHz < 410'000'000 || frequencyHz > 450'000'000) {
+        LOG_ERR("Frequency %u Hz is out of range (410-450 MHz)", frequencyHz);
+#else
     if (frequencyHz < 902'000'000 || frequencyHz > 928'000'000) {
         LOG_ERR("Frequency %u Hz is out of range (902-928 MHz)", frequencyHz);
+#endif
         return -EINVAL;
     }
 
