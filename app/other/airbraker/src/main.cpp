@@ -43,6 +43,14 @@ NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes
 }
 
 int main() {
+
+    float xs[] = {101, 100, 98, 95, 90, 88, 85, 84, 82, 80};
+    for (int i = 0; i < sizeof(xs)/sizeof(float); i++){
+        float x = xs[i];
+        float y = NModel::AltitudeMetersFromPressureKPa(x);
+        printk("%f  %f\n", x, y);
+    }
+
     EnableServo();
     SetServoEffort(0);
     NBuzzer::SetBuzzer(true);

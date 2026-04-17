@@ -69,8 +69,6 @@ constexpr size_t NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED = 25;
 // thershold to exceed to start counting towards boost detect
 constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 7;
 
-constexpr float ATMOSPHERE[] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
-
 #ifdef CONFIG_OPENROCKET_SENSORS
 inline zsl_quat IMU_TO_ROCKET_QUAT{1,0,0,0};
 inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{1,0,0,0};
@@ -105,10 +103,9 @@ struct Parameters {
     uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
     uint8_t controllerHash[LUT_MD5SUM_ARRAY_LEN] = {LUT_MD5SUM_INITIALIZER};
     float upAxisQuaternion[4] = {AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
-    float atmosphere[AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
 };
 
-static_assert(sizeof(Parameters) == 100, "Check size of parameters");
+static_assert(sizeof(Parameters) == 76, "Check size of parameters");
 
 struct Packet {
     uint32_t timestamp;

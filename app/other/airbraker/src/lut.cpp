@@ -27,32 +27,27 @@ struct IndexParts {
 float lerp(float amount, float from, float to) { return (from * (1 - amount)) + (to * amount); }
 
 
-#define LUT_PRESSURE_SIZE 18
-
-#define LUT_PRESSURE_MINX 60000
-#define LUT_PRESSURE_MAXX 102500
-
-static const float lut_pressure_values[LUT_PRESSURE_SIZE] = {4259.0210, 3949.3704, 3639.7197, 3350.5430, 3061.3660, 2790.1885, 2519.0112, 2264.7319, 2010.4525, 1772.9661, 1535.4795, 1310.3572, 1085.2350, 867.00781, 652.98242, 442.84741, 236.23834, 29.629272};
+static const float lut_pressure_values[AUTOGEN_ATMOSPHERE_LUT_LEN] = {AUTOGEN_ATMOSPHERE_LUT_Y};
 
 IndexParts genAltitudeIndexParts(float value) {
-    if (value < LUT_PRESSURE_MINX) {
+    if (value < AUTOGEN_ATMOSPHERE_LUT_MIN_X) {
         return {0, 0};
     }
-    if (value > LUT_PRESSURE_MAXX) {
+    if (value > AUTOGEN_ATMOSPHERE_LUT_MAX_X) {
         // to keep common code path below, if we would be at the point of last element and element off the end of the array
         // this will return second to last, 1 which causes the lerping to calculate the last element in its entirety
-        return {LUT_PRESSURE_SIZE - 2, 1};
+        return {AUTOGEN_ATMOSPHERE_LUT_LEN - 2, 1};
     }
 
-    float float_index = (LUT_PRESSURE_SIZE - 1) * (value - LUT_PRESSURE_MINX) / (LUT_PRESSURE_MAXX - LUT_PRESSURE_MINX);
+    float float_index = (AUTOGEN_ATMOSPHERE_LUT_LEN - 1) * (value - AUTOGEN_ATMOSPHERE_LUT_MIN_X) / (AUTOGEN_ATMOSPHERE_LUT_MAX_X - AUTOGEN_ATMOSPHERE_LUT_MIN_X);
 
     float whole_part = 0;
     float fractional_part = modff(float_index, &whole_part);
 
-    if (whole_part >= LUT_PRESSURE_SIZE - 1) {
+    if (whole_part >= AUTOGEN_ATMOSPHERE_LUT_LEN - 1) {
         // to keep common code path below, if we would be at the point of last element and element off the end of the array
         // this will return second to last, 1 which causes the lerping to calculate the last element in its entirety
-        return {LUT_PRESSURE_SIZE - 2, 1};
+        return {AUTOGEN_ATMOSPHERE_LUT_LEN - 2, 1};
     }
 
     return {(std::size_t) whole_part, fractional_part};

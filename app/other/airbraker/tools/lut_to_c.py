@@ -18,7 +18,7 @@ Usage:
 '''
 
 
-def generate_h(name: str, date_str: str, md5sum: bytes, flightTimeMs: int, lockoutMs: int, atmosphere: List[float], controller: Controller, orientation_quat: List[float], xMin: float, xMax: float, lower_bounds: List[float], upper_bounds: List[float]) -> str:
+def generate_h(name: str, date_str: str, md5sum: bytes, flightTimeMs: int, lockoutMs: int, atmosphere: (float, float, List[float]), controller: Controller, orientation_quat: List[float], xMin: float, xMax: float, lower_bounds: List[float], upper_bounds: List[float]) -> str:
     comma_separate_floats = lambda lst : ', '.join([str(v) for v in lst])
     orientation_quat_conjugate = [orientation_quat[0], -orientation_quat[1], -orientation_quat[2], -orientation_quat[3]]
     return f'''
@@ -44,8 +44,10 @@ def generate_h(name: str, date_str: str, md5sum: bytes, flightTimeMs: int, locko
 #define AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER {comma_separate_floats(orientation_quat)}
 #define AUTOGEN_IMU_TO_ROCKET_QUAT_CONJUGATED_INITIALIZER {comma_separate_floats(orientation_quat_conjugate)}
 
-#define AUTOGEN_ATMOSPHERE_COEFFICIENTS {comma_separate_floats(atmosphere)}
-#define AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS {len(atmosphere)}
+#define AUTOGEN_ATMOSPHERE_LUT_LEN {len(atmosphere[2])}
+#define AUTOGEN_ATMOSPHERE_LUT_MIN_X {atmosphere[0]}
+#define AUTOGEN_ATMOSPHERE_LUT_MAX_X {atmosphere[1]}
+#define AUTOGEN_ATMOSPHERE_LUT_Y {comma_separate_floats(atmosphere[2])}
 
 #define AUTOGEN_LOCKOUT_MS {lockoutMs}
 #define AUTOGEN_FLIGHT_TIME_MS {flightTimeMs}
@@ -132,12 +134,21 @@ schema = {
         ]
         },
         "atmosphere": {
-            "type": "array",
-            "items": {
-                "type": "number"
-            },
-            "minItems": 6,
-            "maxItems": 6
+            "type": "object",
+            "properties": {
+                "pressure":{
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                },
+                "altitude":{
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                }
+            }
         },
         "quantile_lut": {
         "type": "object",
@@ -231,12 +242,15 @@ def main():
     flightTimeMs = controller_desc["flight_time_ms"]
     lockoutMs = controller_desc["lockout_ms"]
     atmosphere = controller_desc["atmosphere"]
+    atmo_press = atmosphere["pressure"][::-1]
+    atmo_alt = atmosphere["altitude"][::-1]
+    
     controller = Controller(kalman["state_transition_matrix"], kalman["kalman_gain"], kalman["kalman_output"], kalman["initial_state"])
     orientation = controller_desc["orientation_quat"]
 
     xMin, xMax = min(x), max(x)
 
-    print(generate_h(name, date, md5sum, flightTimeMs, lockoutMs, atmosphere, controller, orientation, xMin, xMax, lower, upper))
+    print(generate_h(name, date, md5sum, flightTimeMs, lockoutMs, (atmo_press[0], atmo_press[-1], atmo_alt), controller, orientation, xMin, xMax, lower, upper))
 
 if __name__ == '__main__':
     main()
