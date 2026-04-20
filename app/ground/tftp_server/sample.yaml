@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: TFTP Server
   name: tftp-server
 common:
   build_only: true

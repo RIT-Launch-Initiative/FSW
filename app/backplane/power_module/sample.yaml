@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: Power Module
   name: power-module
 common:
   build_only: true
