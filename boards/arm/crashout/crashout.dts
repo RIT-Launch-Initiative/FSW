@@ -154,7 +154,7 @@ imu_i2c:&i2c2 {
 
 	pwm1: pwm {
 		status = "okay";
-		// corespond to servo 4-1
+		// corresponds to servo 4-1
 		pinctrl-0 = <&tim1_ch1_pwm_out_pa8 &tim1_ch2_pwm_out_pa9 &tim1_ch3_pwm_out_pa10 &tim1_ch4_pwm_out_pa11>;
 		pinctrl-names = "default";
 	};
@@ -168,7 +168,7 @@ imu_i2c:&i2c2 {
 		pinctrl-0 = <&tim2_ch1_pwm_in_pa0 &tim2_ch2_pwm_in_pa1>;
 		pinctrl-names = "default";
 		// https://docs.zephyrproject.org/latest/build/dts/api/bindings/sensor/st%2Cstm32-qdec.html
-		st,counts-per-revolution = <4172>; // 298:1 gearbox 298 rotations of output to 1 input. 7 PPR hall sensoir 
+		st,counts-per-revolution = <4172>; // 298:1 gearbox 298 rotations of output to 1 input. 7 PPR hall sensor 
 	};
 };
 
@@ -180,7 +180,7 @@ imu_i2c:&i2c2 {
 		pinctrl-0 = <&tim3_ch1_remap1_pwm_in_pb4 &tim3_ch2_remap1_pwm_in_pb5>;
 		pinctrl-names = "default";
 		// https://docs.zephyrproject.org/latest/build/dts/api/bindings/sensor/st%2Cstm32-qdec.html
-		st,counts-per-revolution = <4172>; // 298:1 gearbox 298 rotations of output to 1 input. 7 PPR hall sensoir 
+		st,counts-per-revolution = <4172>; // 298:1 gearbox 298 rotations of output to 1 input. 7 PPR hall sensor 
 	};
 };
 
@@ -192,7 +192,7 @@ imu_i2c:&i2c2 {
 		pinctrl-0 = <&tim4_ch1_pwm_in_pb6 &tim4_ch2_pwm_in_pb7>;
 		pinctrl-names = "default";
 		// https://docs.zephyrproject.org/latest/build/dts/api/bindings/sensor/st%2Cstm32-qdec.html
-		st,counts-per-revolution = <4172>; // 298:1 gearbox 298 rotations of output to 1 input. 7 PPR hall sensoir 
+		st,counts-per-revolution = <4172>; // 298:1 gearbox 298 rotations of output to 1 input. 7 PPR hall sensor 
 	};
 };
 
