@@ -1,5 +1,6 @@
 board:
   name: controls_module
+  full_name: Controls Module
   vendor: launch
   socs:
     - name: stm32f446xx

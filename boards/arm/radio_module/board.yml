@@ -1,5 +1,6 @@
 board:
   name: radio_module
+  full_name: Radio Module
   vendor: launch
   socs:
     - name: stm32f446xx
