@@ -1,2 +1,3 @@
+# SPDX-License-Identifier: Apache-2.0
 config BOARD_CRASHOUT
 	select SOC_STM32F103X8
