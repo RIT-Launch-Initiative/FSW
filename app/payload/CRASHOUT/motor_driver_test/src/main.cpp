@@ -23,8 +23,8 @@ const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
 const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
 const struct i2c_dt_spec motor3_i2c = {.bus = i2c_bus, .addr = 0x36};
 
-const struct device *dcm_enc1 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc1));
-const struct device *dcm_enc2 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc2));
+const struct device *dcm_enc1 = DEVICE_DT_GET(DT_NODELABEL(yaw_enc));
+const struct device *dcm_enc2 = DEVICE_DT_GET(DT_NODELABEL(pitch_enc));
 const struct device *dcm_enc3 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc3));
 
 
