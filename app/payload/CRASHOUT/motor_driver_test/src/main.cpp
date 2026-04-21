@@ -20,6 +20,12 @@
 const struct device* const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(arduino_i2c));
 const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
 const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
+const struct i2c_dt_spec motor3_i2c = {.bus = i2c_bus, .addr = 0x36};
+
+const struct device *const dcm_enc1 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc1));
+const struct device *const dcm_enc2 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc2));
+const struct device *const dcm_enc3 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc3));
+
 
 /*
  * A build error on this line means your board is unsupported.
@@ -59,7 +65,8 @@ class Motor {
     public:
 
     /* Global variables */
-    struct i2c_dt_spec motor;
+    const struct i2c_dt_spec motor;
+    const struct device *enc
     uint8_t flt = 0;
     // w_scale_value is used to convert the speed value read from the motor driver in Rad/s to RPM
     // The default value 16 is the minimum value and maxes the motor out at 4080 Rad/s (Page 31 of datatsheet)
@@ -71,6 +78,14 @@ class Motor {
      */
     Motor(struct i2c_dt_spec motor_spec){
         motor = motor_spec;
+    }
+
+    /**
+     * Contructs an instance of the Motor class with the given i2c device specification and encoder.
+     */
+    Motor(struct i2c_dt_spec motor_spec, struct device *dcm_enc){
+        motor = motor_spec;
+        enc = dcm_enc;
     }
 
     /**
@@ -437,6 +452,25 @@ class Motor {
         setVoltage(0);
         return 1;
     }
+
+    int64_t read_enc(){
+        struct sensor_value counter_val;
+
+        int ret = sensor_sample_fetch(enc);
+        if (ret < 0) {
+            printk("Unable to fetch sensor sample: %d\n", ret);
+            return ret;
+        }
+
+        ret = sensor_channel_get(enc, SENSOR_CHAN_ROTATION, &counter_val);
+        if (ret < 0) {
+            printk("Unable to read sensor channel: %d\n", ret);
+            return ret;
+        }
+        int64_t millirotation = sensor_value_to_micro(&counter_val);
+
+        return millirotation;
+    }
 };
 
 /**
@@ -449,42 +483,91 @@ void reset(){
     gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
 }
 
+
+
+void doPid(Motor &mot, int64_t target){
+    mot.enableSpin();
+    int64_t integral = 0;
+    for (int i = 0; i <= 1000; i++){
+        int64_t point = read_enc();
+        int64_t err = target - point;
+
+        int64_t kP = 4'000;
+        int64_t kI = 100'000;
+        int64_t outp = (err / kP) + (integral / kI);
+
+        int dir = outp > 0 ? 0 : 1;
+        float volts = (outp < 0 ? -outp : outp);
+        if (volts > 12000){
+            volts = 12000;
+        } else {
+            integral += err;
+        }
+        printk("Err: %lld %d %d\n", err/1000, dir, (int)(volts));
+        printk("m2: "); mot.printInfo();
+        mot.setSpinMode(dir); // set motor 1 to forward
+        mot.setVoltage(volts/1000.F);
+        k_msleep(10);
+    }
+    mot.disableSpin();
+}
+
 int main(void) { 
-    Motor motor1(motor1_i2c);
-    Motor motor2(motor2_i2c);
+    Motor motor1(motor1_i2c, dcm_enc1);
+    Motor motor2(motor2_i2c, dcm_enc2);
+    Motor motor3(motor3_i2c, dcm_enc3);
 
     reset();
 
-    if (!motor1.initSpeedControl()){
+    if (!motor1.initVoltageControl()){
         printk("Failed to initialize motor 1");
         return 0;
     }
-    if (!motor2.initSpeedControl()){
+    
+    if (!motor2.initVoltageControl()){
         printk("Failed to initialize motor 2");
         return 0;
     }
 
-    motor1.enableSpin();
-    motor2.enableSpin();
+    if (!motor3.initVoltageControl()){
+        printk("Failed to initialize motor 3");
+        return 0;
+    }
+    
 
-    motor1.setSpinMode(1);
-    motor2.setSpinMode(1);
+    doPid(motor2, 180'000'000);
+    // k_msleep(100);
+    // motor3.enableSpin();
+    // motor3.setSpinMode(0); // set motor 1 to forward
+    // motor3.setVoltage(5.0);
 
-    motor1.setSpeed(200);
-    motor2.setSpeed(200);
-    k_msleep(60000);
+    // k_msleep(100);
+    // motor2.enableSpin();
+    // motor2.setSpinMode(0); // set motor 1 to forward
+    // motor2.setVoltage(5.0);
 
-    // motor1.setSpinMode(0); // set motor 1 to forward
-    // motor2.setSpinMode(1); // set motor 2 to backward
+    for (;;){
+        int64_t md1 = read_enc();
+        int64_t md2 = read_enc();
+        int64_t md3 = read_enc();
+        printk("Milldeg: %lld, %lld, %08lld\n", md1/1000000, md2/1000000, md3);
+        printk("m1: "); motor1.printInfo();
+        printk("m2: "); motor2.printInfo();
+        printk("m3: "); motor3.printInfo();
+        k_msleep(200);
+    }
 
-    // for (int i = 0; i <= 40; i++){
-    //     motor1.setSpeed(1600 - 40 * i);
-    //     motor2.setSpeed(40 * i);
-    //     motor1.printInfo();
-    //     motor2.printInfo();
-    //     k_msleep(500);
-    // }
 
-    motor1.disableSpin();
-    motor2.disableSpin();
+    // printk("Motor 1\n");
+    // doPid(motor1, dcm_enc1, 90'000'000);
+    // k_msleep(1000);
+
+    // printk("Motor 2\n");
+    // doTheSpin(motor2);
+    // k_msleep(1000);
+    
+    // printk("Motor 3\n");
+    // doTheSpin(motor3);
+    // k_msleep(1000);
+
 }
