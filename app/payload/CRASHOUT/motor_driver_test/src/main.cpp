@@ -9,9 +9,9 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 #include <string.h>
-#include <zephyr/drivers/sensor.h>
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 1000
@@ -20,8 +20,13 @@
 #define NSLEEP_NODE DT_NODELABEL(nsleep)
 const struct device* const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(motor_i2c));
 const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
-const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x36};
-const struct i2c_dt_spec motor3_i2c = {.bus = i2c_bus, .addr = 0x32};
+const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
+const struct i2c_dt_spec motor3_i2c = {.bus = i2c_bus, .addr = 0x36};
+
+const struct device *dcm_enc1 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc1));
+const struct device *dcm_enc2 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc2));
+const struct device *dcm_enc3 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc3));
+
 
 /*
  * A build error on this line means your board is unsupported.
@@ -30,40 +35,40 @@ const struct i2c_dt_spec motor3_i2c = {.bus = i2c_bus, .addr = 0x32};
 static const struct gpio_dt_spec nSleep = GPIO_DT_SPEC_GET(NSLEEP_NODE, gpios);
 
 /* Motor Driver Register Addresses */
-#define RC_STATUS1  0x1
-#define RC_STATUS2  0x2
-#define RC_STATUS3  0x3
-#define REG_STATUS1 0x4
-#define REG_STATUS2 0x5
-#define REG_STATUS3 0x6
+#define RC_STATUS1    0x01
+#define RC_STATUS2    0x02
+#define RC_STATUS3    0x03
+#define REG_STATUS1   0x04
+#define REG_STATUS2   0x05
+#define REG_STATUS3   0x06
 
-#define CONFIG0_REG 0x9
-#define CONFIG1_REG 0xa
-#define CONFIG2_REG 0xb
-#define CONFIG3_REG 0xc
-#define CONFIG4_REG 0xd
+#define CONFIG0_REG   0x09
+#define CONFIG1_REG   0x0a
+#define CONFIG2_REG   0x0b
+#define CONFIG3_REG   0x0c
+#define CONFIG4_REG   0x0d
 
-#define REG_CTRL0_REG 0xe
-#define REG_CTRL1_REG 0xf
+#define REG_CTRL0_REG 0x0e
+#define REG_CTRL1_REG 0x0f
 #define REG_CTRL2_REG 0x10
 
-#define RC_CTRL0_REG 0x11
-#define RC_CTRL1_REG 0x12
-#define RC_CTRL2_REG 0x13
-#define RC_CTRL3_REG 0x14
-#define RC_CTRL4_REG 0x15
-#define RC_CTRL5_REG 0x16
-#define RC_CTRL6_REG 0x17
-#define RC_CTRL7_REG 0x18
-#define RC_CTRL8_REG 0x19
+#define RC_CTRL0_REG  0x11
+#define RC_CTRL1_REG  0x12
+#define RC_CTRL2_REG  0x13
+#define RC_CTRL3_REG  0x14
+#define RC_CTRL4_REG  0x15
+#define RC_CTRL5_REG  0x16
+#define RC_CTRL6_REG  0x17
+#define RC_CTRL7_REG  0x18
+#define RC_CTRL8_REG  0x19
 
 class Motor {
     public:
 
     /* Global variables */
     struct i2c_dt_spec motor;
+    const struct device *enc;
     uint8_t flt = 0;
-    bool motorOn = false;
     // w_scale_value is used to convert the speed value read from the motor driver in Rad/s to RPM
     // The default value 16 is the minimum value and maxes the motor out at 4080 Rad/s (Page 31 of datatsheet)
     #define DEFAULT_W_SCALE_VALUE 16
@@ -74,6 +79,14 @@ class Motor {
      */
     Motor(struct i2c_dt_spec motor_spec){
         motor = motor_spec;
+        enc = NULL;
+    }
+    /**
+     * Contructs an instance of the Motor class with the given i2c device specification and encoder.
+     */
+    Motor(struct i2c_dt_spec motor_spec, const struct device *dcm_enc){
+        motor = motor_spec;
+        enc = dcm_enc;
     }
 
     /**
@@ -166,7 +179,7 @@ class Motor {
         i2c_reg_read_byte_dt(&motor, REG_CTRL0_REG, &reg_ctrl_0);
 
         // set bits 4,3 to 10 to set speed control mode (page 30 of datasheet)
-        reg_ctrl_0 &= 0b11100111;
+        reg_ctrl_0 &= 0b11110111;
         reg_ctrl_0 |= 0b00010000;
         i2c_reg_write_byte_dt(&motor, REG_CTRL0_REG, reg_ctrl_0);
 
@@ -240,6 +253,16 @@ class Motor {
     void printFault(){
         i2c_reg_read_byte_dt(&motor, 0, &flt);
         printk("Fault: %02x\n", flt);
+    }
+
+    /**
+     * Prints the values of all of the registers in the motor driver
+     */
+    void regDump(){
+        for(int i = 0; i <= 0x19; i++){
+            i2c_reg_read_byte_dt(&motor, i, &flt);
+            printk("Reg%02x: %02x\n", i, flt);
+        }
     }
 
     /**
@@ -346,13 +369,6 @@ class Motor {
         setToVoltageControlMode();
         setupRippleCounting();
 
-        if(!motorOn){
-            printk("Motor is off, cannot spin\n");
-            return;
-        } else {
-            printk("Initted i2c dev\n");
-        }
-
         setSpinMode(2); // brake mode to start
         printFault();
         
@@ -378,15 +394,8 @@ class Motor {
      * @param dir the direction to run the motor in, 0 for forward and 1 for backward
      */
     void speedControlTest(uint8_t dir){
-        setToSpeedControlMode();
         setupRippleCounting();
-
-        if(!motorOn){
-            printk("Motor is off, cannot spin\n");
-            return;
-        } else {
-            printk("Initted i2c dev\n");
-        }
+        setToSpeedControlMode();
 
         setSpinMode(2); // brake mode to start
         printFault();
@@ -416,13 +425,15 @@ class Motor {
             printk("No i2c ready");
             return 0;
         }
-
-        setToSpeedControlMode();
         setupRippleCounting();
+        setToSpeedControlMode();
+        // for some reason I need to run this again after speed mode
+        // Maybe an i2c failure? maybe breadboard noise? unsure, retest on crashout board
+        setupRippleCounting(); 
+        //regDump();
         enableSoftStart();
         setSpinMode(2); // default to brake mode
         setSpeed(0);
-        motorOn = true;
         return 1;
     }
 
@@ -440,8 +451,29 @@ class Motor {
         enableSoftStart();
         setSpinMode(2); // default to brake mode
         setVoltage(0);
-        motorOn = true;
         return 1;
+    }
+
+    /**
+     * 
+     */
+    int64_t read_enc(){
+        struct sensor_value counter_val;
+
+        int ret = sensor_sample_fetch(enc);
+        if (ret < 0) {
+            printk("Unable to fetch sensor sample: %d\n", ret);
+            return ret;
+        }
+
+        ret = sensor_channel_get(enc, SENSOR_CHAN_ROTATION, &counter_val);
+        if (ret < 0) {
+            printk("Unable to read sensor channel: %d\n", ret);
+            return ret;
+        }
+        int64_t millirotation = sensor_value_to_micro(&counter_val);
+
+        return millirotation;
     }
 };
 
@@ -457,36 +489,16 @@ void reset(){
 
 
 
-const struct device *const dcm_enc1 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc1));
-const struct device *const dcm_enc2 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc2));
-const struct device *const dcm_enc3 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc3));
-
-int64_t read_enc(const struct device *enc){
-	struct sensor_value counter_val;
-
-	int ret = sensor_sample_fetch(enc);
-    if (ret < 0) {
-        printk("Unable to fetch sensor sample: %d\n", ret);
-        return ret;
-    }
-
-    ret = sensor_channel_get(enc, SENSOR_CHAN_ROTATION, &counter_val);
-    if (ret < 0) {
-        printk("Unable to read sensor channel: %d\n", ret);
-        return ret;
-    }
-	int64_t millirotation = sensor_value_to_micro(&counter_val);
-
-	return millirotation;
-}
-
-
-void doPid(Motor &mot, const struct device *enc, int64_t target){
+void doPid(Motor &mot, int64_t target){
     mot.enableSpin();
     int64_t integral = 0;
     for (int i = 0; i <= 1000; i++){
-        int64_t point = read_enc(enc);
+        int64_t point = mot.read_enc();
         int64_t err = target - point;
+
+        if (err < 5 && err > -5) {
+            break;
+        }
 
         int64_t kP = 4'000;
         int64_t kI = 100'000;
@@ -509,9 +521,9 @@ void doPid(Motor &mot, const struct device *enc, int64_t target){
 }
 
 int main(void) { 
-    Motor motor1(motor1_i2c);
-    Motor motor2(motor2_i2c);
-    Motor motor3(motor3_i2c);
+    Motor motor1(motor1_i2c, dcm_enc1);
+    Motor motor2(motor2_i2c, dcm_enc2);
+    Motor motor3(motor3_i2c, dcm_enc3);
 
     reset();
 
@@ -524,14 +536,16 @@ int main(void) {
         printk("Failed to initialize motor 2");
         return 0;
     }
+
     if (!motor3.initVoltageControl()){
         printk("Failed to initialize motor 3");
         return 0;
     }
     
-    
+    doPid(motor1, 180'000'000);
+    doPid(motor2, 180'000'000);
+    doPid(motor3, 180'000'000);
 
-    doPid(motor2, dcm_enc3, 180'000'000);
     // k_msleep(100);
     // motor3.enableSpin();
     // motor3.setSpinMode(0); // set motor 1 to forward
@@ -543,9 +557,9 @@ int main(void) {
     // motor2.setVoltage(5.0);
 
     for (;;){
-        int64_t md1 = read_enc(dcm_enc1);
-        int64_t md2 = read_enc(dcm_enc2);
-        int64_t md3 = read_enc(dcm_enc3);
+        int64_t md1 = motor1.read_enc();
+        int64_t md2 = motor2.read_enc();
+        int64_t md3 = motor3.read_enc();
         printk("Milldeg: %lld, %lld, %08lld\n", md1/1000000, md2/1000000, md3);
         printk("m1: "); motor1.printInfo();
         printk("m2: "); motor2.printInfo();
