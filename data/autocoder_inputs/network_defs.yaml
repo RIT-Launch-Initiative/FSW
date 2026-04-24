@@ -38,7 +38,7 @@ modules:
     base_port: 13000
     port_offsets:
       ork_launch_trigger:
-        port_number: 7
+        port_number: 999
       downlink_data:
         port_number: 20
       telemetry:
