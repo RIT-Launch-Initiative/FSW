@@ -23,8 +23,8 @@ const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
 const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
 const struct i2c_dt_spec motor3_i2c = {.bus = i2c_bus, .addr = 0x36};
 
-const struct device *dcm_enc1 = DEVICE_DT_GET(DT_NODELABEL(yaw_enc));
-const struct device *dcm_enc2 = DEVICE_DT_GET(DT_NODELABEL(pitch_enc));
+const struct device *yaw_enc = DEVICE_DT_GET(DT_NODELABEL(yaw_enc));
+const struct device *pitch_enc = DEVICE_DT_GET(DT_NODELABEL(pitch_enc));
 const struct device *dcm_enc3 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc3));
 
 
@@ -81,6 +81,7 @@ class Motor {
         motor = motor_spec;
         enc = NULL;
     }
+
     /**
      * Contructs an instance of the Motor class with the given i2c device specification and encoder.
      */
@@ -455,9 +456,11 @@ class Motor {
     }
 
     /**
-     * 
+     * Reads the motor's quadrature encoder (if it has one)
      */
     int64_t read_enc(){
+        if (enc == NULL) return 0xFFFFFFFFFFFFFFFF; // int 64 -limit
+
         struct sensor_value counter_val;
 
         int ret = sensor_sample_fetch(enc);
@@ -488,96 +491,76 @@ void reset(){
 }
 
 
-
 void doPid(Motor &mot, int64_t target){
     mot.enableSpin();
     int64_t integral = 0;
     for (int i = 0; i <= 1000; i++){
         int64_t point = mot.read_enc();
         int64_t err = target - point;
+        printk("%lld\n", point);
 
-        if (err < 5 && err > -5) {
+        if (err < 500000 && err > -500000) {
             break;
         }
 
-        int64_t kP = 4'000;
-        int64_t kI = 100'000;
+        int64_t kP = 9'000;
+        int64_t kI = 0x7fffffffffffffff;
         int64_t outp = (err / kP) + (integral / kI);
 
         int dir = outp > 0 ? 0 : 1;
-        float volts = (outp < 0 ? -outp : outp);
-        if (volts > 12000){
-            volts = 12000;
+        int speed = (outp < 0 ? -outp : outp);
+        if (speed > 12000){
+            speed = 12000;
         } else {
             integral += err;
         }
-        printk("Err: %lld %d %d\n", err/1000, dir, (int)(volts));
-        printk("m2: "); mot.printInfo();
+        // printk("Err: %lld %d %d\n", err/1000, dir, speed);
+        // printk("m2: "); mot.printInfo();
         mot.setSpinMode(dir); // set motor 1 to forward
-        mot.setVoltage(volts/1000.F);
+        mot.setSpeed(speed);
         k_msleep(10);
     }
     mot.disableSpin();
 }
 
 int main(void) { 
-    Motor motor1(motor1_i2c, dcm_enc1);
-    Motor motor2(motor2_i2c, dcm_enc2);
-    Motor motor3(motor3_i2c, dcm_enc3);
+    Motor motor1(motor1_i2c, yaw_enc);
+    Motor motor2(motor2_i2c, pitch_enc);
+    // Motor motor3(motor3_i2c, dcm_enc3);
 
     reset();
 
-    if (!motor1.initVoltageControl()){
+    if (!motor1.initSpeedControl()){
         printk("Failed to initialize motor 1");
         return 0;
     }
     
-    if (!motor2.initVoltageControl()){
+    if (!motor2.initSpeedControl()){
         printk("Failed to initialize motor 2");
         return 0;
     }
 
-    if (!motor3.initVoltageControl()){
-        printk("Failed to initialize motor 3");
-        return 0;
-    }
+    // if (!motor3.initSpeedControl()){
+    //     printk("Failed to initialize motor 3");
+    //     return 0;
+    // }
+
+    k_msleep(2000);
     
     doPid(motor1, 180'000'000);
-    doPid(motor2, 180'000'000);
-    doPid(motor3, 180'000'000);
-
-    // k_msleep(100);
-    // motor3.enableSpin();
-    // motor3.setSpinMode(0); // set motor 1 to forward
-    // motor3.setVoltage(5.0);
-
-    // k_msleep(100);
-    // motor2.enableSpin();
-    // motor2.setSpinMode(0); // set motor 1 to forward
-    // motor2.setVoltage(5.0);
+    // doPid(motor2, 180'000'000);
+    // doPid(motor3, 180'000'000);
 
     for (;;){
         int64_t md1 = motor1.read_enc();
         int64_t md2 = motor2.read_enc();
-        int64_t md3 = motor3.read_enc();
-        printk("Milldeg: %lld, %lld, %08lld\n", md1/1000000, md2/1000000, md3);
-        printk("m1: "); motor1.printInfo();
-        printk("m2: "); motor2.printInfo();
-        printk("m3: "); motor3.printInfo();
+        // int64_t md3 = motor3.read_enc();
+        // printk("Milldeg: %lld, %lld, %08lld\n", md1/1000000, md2/1000000, md3);
+        //printk("Milldeg: %lld, %lld\n", md1/1000000, md2/1000000);
+        //printk("m1: "); motor1.printInfo();
+        //printk("m2: "); motor2.printInfo();
+        // printk("m3: "); motor3.printInfo();
         k_msleep(200);
     }
-
-
-    // printk("Motor 1\n");
-    // doPid(motor1, dcm_enc1, 90'000'000);
-    // k_msleep(1000);
-
-    // printk("Motor 2\n");
-    // doTheSpin(motor2);
-    // k_msleep(1000);
-    
-    // printk("Motor 3\n");
-    // doTheSpin(motor3);
-    // k_msleep(1000);
 
 }
