@@ -526,41 +526,49 @@ void doPid(Motor &mot, int64_t target){
 int main(void) { 
     Motor motor1(motor1_i2c, yaw_enc);
     Motor motor2(motor2_i2c, pitch_enc);
-    // Motor motor3(motor3_i2c, dcm_enc3);
+    Motor motor3(motor3_i2c, dcm_enc3);
 
     reset();
 
-    if (!motor1.initSpeedControl()){
+    if (!motor1.initVoltageControl()){
         printk("Failed to initialize motor 1");
         return 0;
     }
     
-    if (!motor2.initSpeedControl()){
+    if (!motor2.initVoltageControl()){
         printk("Failed to initialize motor 2");
         return 0;
     }
 
-    // if (!motor3.initSpeedControl()){
-    //     printk("Failed to initialize motor 3");
-    //     return 0;
-    // }
+    if (!motor3.initVoltageControl()){
+        printk("Failed to initialize motor 3");
+        return 0;
+    }
+    motor1.enableSpin();
+    motor2.enableSpin();
+    motor3.enableSpin();
+// 
+    motor1.setSpinMode(1); // set motor 1 to forward
+    motor2.setSpinMode(1); // set motor 1 to forward
+    motor3.setSpinMode(1); // set motor 1 to forward
 
-    k_msleep(2000);
-    
-    doPid(motor1, 180'000'000);
+    k_msleep(1000);
+    motor1.setVoltage(12.0);    
+    motor2.setVoltage(12.0);    
+    motor3.setVoltage(12.0);    
+    // doPid(motor1, 180'000'000);
     // doPid(motor2, 180'000'000);
     // doPid(motor3, 180'000'000);
 
     for (;;){
-        int64_t md1 = motor1.read_enc();
+        // int64_t md1 = motor1.read_enc();
         int64_t md2 = motor2.read_enc();
         // int64_t md3 = motor3.read_enc();
-        // printk("Milldeg: %lld, %lld, %08lld\n", md1/1000000, md2/1000000, md3);
+        printk("Milldeg: %lld\n", md2);
         //printk("Milldeg: %lld, %lld\n", md1/1000000, md2/1000000);
-        //printk("m1: "); motor1.printInfo();
+        // printk("m1: "); motor1.printInfo();
         //printk("m2: "); motor2.printInfo();
         // printk("m3: "); motor3.printInfo();
         k_msleep(200);
     }
-
 }

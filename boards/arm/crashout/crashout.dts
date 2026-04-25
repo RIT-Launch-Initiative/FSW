@@ -160,7 +160,19 @@ imu_i2c:&i2c2 {
 	};
 };
 
+
+&pinctrl{
+	/omit-if-no-ref/ tim3_ch1_remap2_pwm_in_pb4: tim3_ch1_remap2_pwm_in_pb4 {
+		pinmux = <STM32F1_PINMUX('B', 4, GPIO_IN, TIM3_REMAP2)>;
+	};
+
+	/omit-if-no-ref/ tim3_ch2_remap2_pwm_in_pb5: tim3_ch2_remap2_pwm_in_pb5 {
+		pinmux = <STM32F1_PINMUX('B', 5, GPIO_IN, TIM3_REMAP2)>;
+	};
+};
+
 &timers2 {
+	status="okay";
 	yaw_enc: qdec {
 		compatible = "st,stm32-qdec";
 		status = "okay";
@@ -173,18 +185,20 @@ imu_i2c:&i2c2 {
 };
 
 &timers3 {
+	status="okay";
 	pitch_enc: qdec {
 		compatible = "st,stm32-qdec";
 		status = "okay";
 		st,input-filter-level = <NO_FILTER>;
-		pinctrl-0 = <&tim3_ch1_remap1_pwm_in_pb4 &tim3_ch2_remap1_pwm_in_pb5>;
+		pinctrl-0 = <&tim3_ch1_remap2_pwm_in_pb4 &tim3_ch2_remap2_pwm_in_pb5>;
 		pinctrl-names = "default";
 		// https://docs.zephyrproject.org/latest/build/dts/api/bindings/sensor/st%2Cstm32-qdec.html
-		st,counts-per-revolution = <42000>; // 100:1 motor gearbox, 100 rotations of output to 1 input, 30:1 arm gearbox, 7 PPR hall sensor, Magic x2
+		st,counts-per-revolution = <4172>; // 100:1 motor gearbox, 100 rotations of output to 1 input, 30:1 arm gearbox, 7 PPR hall sensor, Magic x2
 	};
 };
 
 &timers4 {
+	status="okay";
 	dcm_enc3: qdec {
 		compatible = "st,stm32-qdec";
 		status = "okay";
