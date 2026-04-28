@@ -522,7 +522,7 @@ void doPid(Motor &mot, int64_t target){
             speed = 32000;
         } else {
             integral += err;
-        }
+        }  
         // printk("Err: %lld %d %d\n", err/1000, dir, speed);
         // printk("m2: "); mot.printInfo();
         mot.setSpinMode(dir); // set motor 1 to forward
@@ -554,20 +554,13 @@ int main(void) {
         return 0;
     }
 
-    k_msleep(1000);  
-    // doPid(motor1, 180'000'000);
-    // doPid(motor2, 180'000'000);
+    k_msleep(1000);
 
-    while(1){
-        doPid(motor3, 90'000'000);
-        printk("90: %lld\n", motor3.read_enc());
-        k_msleep(500);
-        doPid(motor3, 180'000'000);
-        printk("180: %lld\n", motor3.read_enc());
-        k_msleep(500);
-        doPid(motor3, 270'000'000);
-        printk("270: %lld\n", motor3.read_enc());
-        k_msleep(500);
+    while(1){  
+        for (int i = 90'000'000; i <= 270'000'000; i += 10'000'000){
+            doPid(motor3, i);
+            k_msleep(500);
+        }
     }
 
     // for (;;){
