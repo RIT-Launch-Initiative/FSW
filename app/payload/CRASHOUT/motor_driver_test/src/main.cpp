@@ -494,23 +494,32 @@ void reset(){
 void doPid(Motor &mot, int64_t target){
     mot.enableSpin();
     int64_t integral = 0;
-    for (int i = 0; i <= 1000; i++){
+    int count = 0;
+    for (int i = 0; i <= 200; i++){
         int64_t point = mot.read_enc();
         int64_t err = target - point;
         printk("%lld\n", point);
 
         if (err < 500000 && err > -500000) {
+            count++;
+        } else {
+            count = 0;
+        }
+
+        if (count > 25){
             break;
         }
 
         int64_t kP = 9'000;
         int64_t kI = 0x7fffffffffffffff;
         int64_t outp = (err / kP) + (integral / kI);
+        outp = outp / 11; // scale down output so we're not always running max speed
+        // printk("%lld\n", outp);
 
         int dir = outp > 0 ? 0 : 1;
         int speed = (outp < 0 ? -outp : outp);
-        if (speed > 12000){
-            speed = 12000;
+        if (speed > 32000){
+            speed = 32000;
         } else {
             integral += err;
         }
@@ -530,45 +539,45 @@ int main(void) {
 
     reset();
 
-    if (!motor1.initVoltageControl()){
+    if (!motor1.initSpeedControl()){
         printk("Failed to initialize motor 1");
         return 0;
     }
     
-    if (!motor2.initVoltageControl()){
+    if (!motor2.initSpeedControl()){
         printk("Failed to initialize motor 2");
         return 0;
     }
 
-    if (!motor3.initVoltageControl()){
+    if (!motor3.initSpeedControl()){
         printk("Failed to initialize motor 3");
         return 0;
     }
-    motor1.enableSpin();
-    motor2.enableSpin();
-    motor3.enableSpin();
-// 
-    motor1.setSpinMode(1); // set motor 1 to forward
-    motor2.setSpinMode(1); // set motor 1 to forward
-    motor3.setSpinMode(1); // set motor 1 to forward
 
-    k_msleep(1000);
-    motor1.setVoltage(12.0);    
-    motor2.setVoltage(12.0);    
-    motor3.setVoltage(12.0);    
+    k_msleep(1000);  
     // doPid(motor1, 180'000'000);
     // doPid(motor2, 180'000'000);
-    // doPid(motor3, 180'000'000);
 
-    for (;;){
-        // int64_t md1 = motor1.read_enc();
-        int64_t md2 = motor2.read_enc();
-        // int64_t md3 = motor3.read_enc();
-        printk("Milldeg: %lld\n", md2);
-        //printk("Milldeg: %lld, %lld\n", md1/1000000, md2/1000000);
-        // printk("m1: "); motor1.printInfo();
-        //printk("m2: "); motor2.printInfo();
-        // printk("m3: "); motor3.printInfo();
-        k_msleep(200);
+    while(1){
+        doPid(motor3, 90'000'000);
+        printk("90: %lld\n", motor3.read_enc());
+        k_msleep(500);
+        doPid(motor3, 180'000'000);
+        printk("180: %lld\n", motor3.read_enc());
+        k_msleep(500);
+        doPid(motor3, 270'000'000);
+        printk("270: %lld\n", motor3.read_enc());
+        k_msleep(500);
     }
+
+    // for (;;){
+    //     int64_t md1 = motor1.read_enc();
+    //     int64_t md2 = motor2.read_enc();
+    //     int64_t md3 = motor3.read_enc();
+    //     printk("Milldeg: %lld, %lld, %lld\n", md1/1000000, md2/1000000, md3/1000000);
+    //     printk("m1: "); motor1.printInfo();
+    //     printk("m2: "); motor2.printInfo();
+    //     printk("m3: "); motor3.printInfo();
+    //     k_msleep(200);
+    // }
 }
