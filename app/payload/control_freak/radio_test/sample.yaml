@@ -6,4 +6,4 @@ common:
   platform_allow:
     - control_freak
 tests:
-  control_freak.radio-test.default: {}
+  control_freak.radio-testing.default: {}
