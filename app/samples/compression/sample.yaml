@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: compression
   name: compression
 common:
   build_only: true
