@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: sensor
   name: sensor
 common:
   build_only: true

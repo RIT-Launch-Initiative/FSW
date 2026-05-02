@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: udp-rcv
   name: udp-rcv
 common:
   build_only: true
