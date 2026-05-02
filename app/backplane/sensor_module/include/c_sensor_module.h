@@ -2,6 +2,9 @@
 
 #include "c_sensing_tenant.h"
 #include "flight.hpp"
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+#include "c_ork_toggle_tenant.h"
+#endif
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
@@ -50,6 +53,9 @@ class CSensorModule : public CProjectConfiguration {
     static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
     static constexpr int telemetryDownlinkPort = NNetworkDefs::SENSOR_MODULE_DOWNLINK_DATA_PORT;
     static constexpr int alertPort = NNetworkDefs::ALERT_PORT;
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    static constexpr int orkLaunchTriggerPort = NNetworkDefs::SENSOR_MODULE_ORK_LAUNCH_TRIGGER_PORT;
+#endif
 
     // Devices
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
@@ -82,6 +88,9 @@ class CSensorModule : public CProjectConfiguration {
                                                                       sensorDataLogMessagePort,
                                                                       K_SECONDS(3),
                                                                       64};
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    COrkToggleTenant orkLaunchTriggerTenant{"Ork Toggle Tenant", ipAddrStr.c_str(), orkLaunchTriggerPort};
+#endif
 
     // Tasks
     CTask networkTask{"Networking Task", 15, 3072, 10};
