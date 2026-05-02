@@ -2,8 +2,8 @@
 
 #include "zephyr/logging/log.h"
 
-#include <arpa/inet.h>
 #include <cstring>
+#include <zephyr/posix/arpa/inet.h>
 
 LOG_MODULE_REGISTER(CFrequencyChangeHandler);
 

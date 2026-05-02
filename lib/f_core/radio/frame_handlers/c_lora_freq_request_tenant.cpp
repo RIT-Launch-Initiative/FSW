@@ -1,9 +1,9 @@
 #include "f_core/radio/frame_handlers/c_lora_freq_request_tenant.h"
 
-#include <arpa/inet.h>
 #include <cerrno>
 #include <cstring>
 #include <zephyr/logging/log.h>
+#include <zephyr/posix/arpa/inet.h>
 
 LOG_MODULE_REGISTER(CLoraFreqRequestTenant);
 
