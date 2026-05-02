@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: tenants-and-tasks
   name: tenants-and-tasks
 common:
   build_only: true
