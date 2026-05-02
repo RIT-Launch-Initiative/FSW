@@ -37,7 +37,6 @@ app/ground/tftp_server:
 # Payload
 app/payload/control_freak/flight-software:
   - paths:
-      - "app/payload/control_freak/flight-software/**"
 
 ALL:
   - paths:
