@@ -34,9 +34,6 @@ app/ground/tftp_server:
       - "boards/arm/radio_module/**"
       - "boards/arm/sensor_module/**"
 
-# Payload
-app/payload/control_freak/flight-software:
-  - paths:
 
 ALL:
   - paths:
