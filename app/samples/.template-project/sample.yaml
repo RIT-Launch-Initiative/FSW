@@ -1,9 +1,9 @@
 sample:
   description:
-  name: template
+  name: sample template
 common:
   build_only: true
   platform_allow:
     - native_sim
 tests:
-  samples.template.default: {}
+  samples.sample-template.default: {}

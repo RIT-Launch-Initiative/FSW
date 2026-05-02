@@ -1,9 +1,9 @@
 sample:
   description:
-  name: template
+  name: template-backplane
 common:
   build_only: true
   platform_allow:
     - native_sim
 tests:
-  samples.template.default: {}
+  samples.template-backplane.default: {}

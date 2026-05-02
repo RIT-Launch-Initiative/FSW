@@ -1,6 +1,6 @@
 sample:
   description: TFTP Server
-  name: tftp-server
+  name: ground-tftp-server
 common:
   build_only: true
   platform_allow:
@@ -10,4 +10,4 @@ common:
     - radio_module
     - sensor_module
 tests:
-  samples.tftp_server.default: {}
+  samples.ground_tftp_server.default: {}

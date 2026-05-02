@@ -6,4 +6,4 @@ common:
   platform_allow:
     - control_freak
 tests:
-  control_freak.flight.default: {}
+  control_freak.ground-station.default: {}
