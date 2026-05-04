@@ -14,9 +14,9 @@ CIPv4::CIPv4(const char* ip) : CIPv4(ip, net_if_get_default()) {};
 CIPv4::CIPv4(const char* ip, const device* dev) : CIPv4(ip, net_if_lookup_by_dev(dev)) {};
 
 int CIPv4::initialize() {
-    in_addr subnet{};
+    struct in_addr subnet{};
 
-    err = z_impl_net_addr_pton(AF_INET, ip, &addr);
+    err = net_addr_pton(AF_INET, ip, &addr);
     if (err < 0) {
         LOG_ERR("Invalid IP address");
         return err;
@@ -28,7 +28,7 @@ int CIPv4::initialize() {
         return -ENODEV;
     }
 
-    err = z_impl_net_addr_pton(AF_INET, CLASS_A_NETMASK, &subnet);
+    err = net_addr_pton(AF_INET, CLASS_A_NETMASK, &subnet);
     if (err < 0) {
         LOG_ERR("Invalid subnet mask");
         return err;

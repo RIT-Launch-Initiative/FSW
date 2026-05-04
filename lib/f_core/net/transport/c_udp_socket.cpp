@@ -27,7 +27,7 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         .sin_addr = INADDR_ANY // Bind to all interfaces TODO: Might not need ipv4 variable anymore
     };
 
-    if (zsock_bind(sockfd.fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
+    if (zsock_bind(sockfd.fd, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) < 0) {
         LOG_ERR("Failed to bind socket: %d", errno);
         zsock_close(sockfd.fd);
         sockfd.fd = -1;
@@ -58,9 +58,9 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
         .sin_port = htons(dstPort),
     };
 
-    z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
+    net_addr_pton(AF_INET, BROADCAST_IP, &addr.sin_addr);
 
-    int ret = zsock_sendto(sockfd.fd, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+    int ret = zsock_sendto(sockfd.fd, data, len, 0, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr));
     if (ret < 0) {
         LOG_ERR("Failed to send broadcast message (%d)", errno);
     }
@@ -68,7 +68,7 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
     return ret;
 }
 
-int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr* srcAddr, socklen_t* srcAddrLen) {
+int CUdpSocket::ReceiveSynchronous(void* data, size_t len, struct sockaddr* srcAddr, socklen_t* srcAddrLen) {
     return zsock_recvfrom(sockfd.fd, data, len, 0, srcAddr, srcAddrLen);
 }
 
@@ -93,8 +93,8 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstP
         }
     }
 
-    z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
-    int ret = zsock_sendto(sockfd.fd, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+    net_addr_pton(AF_INET, BROADCAST_IP, &addr.sin_addr);
+    int ret = zsock_sendto(sockfd.fd, data, len, 0, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr));
     if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
         LOG_ERR("Failed to send async message (%d)", errno);
     }
@@ -102,7 +102,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstP
     return ret;
 }
 
-int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr* srcAddr, socklen_t* srcAddrLen) {
+int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, struct sockaddr* srcAddr, socklen_t* srcAddrLen) {
     int flags = zsock_fcntl(sockfd.fd, F_GETFL, 0);
     if (flags < 0) {
         LOG_ERR("Failed to get socket flags (%d)", flags);

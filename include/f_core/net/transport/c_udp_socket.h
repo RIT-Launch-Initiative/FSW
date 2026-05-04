@@ -6,6 +6,7 @@
 #include <f_core/net/c_transciever.h>
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
+#include <zephyr/posix/sys/socket.h>
 
 class CIPv4;
 
@@ -45,7 +46,8 @@ class CUdpSocket {
      * @param[in] srcAddrLen Optional source address length
      * @return Number of bytes received or negative error code
      */
-    int ReceiveSynchronous(void* data, size_t len, sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
+    int ReceiveSynchronous(void* data, size_t len, struct sockaddr* srcAddr = nullptr,
+                           socklen_t* srcAddrLen = nullptr);
 
     /**
      * Transmit data asynchronously
@@ -68,7 +70,8 @@ class CUdpSocket {
     /**
      * See parent docs
      */
-    int ReceiveAsynchronous(void* data, size_t len, sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
+    int ReceiveAsynchronous(void* data, size_t len, struct sockaddr* srcAddr = nullptr,
+                            socklen_t* srcAddrLen = nullptr);
 
     /**
      * Set transmit timeout
