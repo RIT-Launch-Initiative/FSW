@@ -159,7 +159,7 @@ class CSntpServerTenant : public CCallbackTenant {
 
     int getLastUpdateTimeAsSeconds(uint32_t& seconds);
 
-    uint32_t reckonAndByteSwapTimestamp(uint32_t timestamp) { return htonl(timestamp + OFFSET_1970_JAN_1); }
+    uint32_t reckonAndByteSwapTimestamp(uint32_t timestamp) { return net_htonl(timestamp + OFFSET_1970_JAN_1); }
 
     void setupRtcTime();
 };

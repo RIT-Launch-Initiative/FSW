@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: lora-back-and-forth
   name: lora-back-and-forth
 common:
   build_only: true

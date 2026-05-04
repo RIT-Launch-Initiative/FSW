@@ -1,9 +1,9 @@
 #include "f_core/radio/frame_handlers/c_lora_freq_request_tenant.h"
 
-#include <arpa/inet.h>
 #include <cerrno>
 #include <cstring>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/net_ip.h>
 
 LOG_MODULE_REGISTER(CLoraFreqRequestTenant);
 
@@ -101,7 +101,7 @@ bool CLoraFreqRequestTenant::receiveCommand(uint32_t& freqHz) {
         return false;
     }
 
-    const uint32_t hostOrder = ntohl(networkOrder);
+    const uint32_t hostOrder = net_ntohl(networkOrder);
     float freqMhz = 0.0f;
     memcpy(&freqMhz, &hostOrder, sizeof(freqMhz));
 
@@ -121,7 +121,7 @@ bool CLoraFreqRequestTenant::sendFrequencyCommand(const uint32_t freqHz) {
     frame.Port = commandUdpPort;
     frame.Size = sizeof(uint32_t);
 
-    const uint32_t networkOrder = htonl(freqHz);
+    const uint32_t networkOrder = net_htonl(freqHz);
     memcpy(frame.Payload, &networkOrder, sizeof(networkOrder));
 
     const int ret = downlinkMessagePort.Send(frame, K_NO_WAIT);
