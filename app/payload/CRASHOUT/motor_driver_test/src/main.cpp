@@ -18,6 +18,9 @@
 #define SLEEP_TIME_MS 1000
 
 /* The devicetree node identifiers*/
+#define LED1_NODE DT_NODELABEL(led1)
+
+
 #define NSLEEP_NODE DT_NODELABEL(nsleep)
 const struct device* const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(motor_i2c));
 const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
@@ -28,11 +31,9 @@ const struct device *yaw_enc = DEVICE_DT_GET(DT_NODELABEL(yaw_enc));
 const struct device *pitch_enc = DEVICE_DT_GET(DT_NODELABEL(pitch_enc));
 const struct device *dcm_enc3 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc3));
 
-/*
- * A build error on this line means your board is unsupported.
- * See the sample documentation for information on how to fix this.
- */
+
 static const struct gpio_dt_spec nSleep = GPIO_DT_SPEC_GET(NSLEEP_NODE, gpios);
+static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
 
 /**
