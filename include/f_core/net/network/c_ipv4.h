@@ -1,6 +1,8 @@
 #pragma once
 
-#include <zephyr/posix/arpa/inet.h>
+#include <zephyr/net/net_ip.h>
+#include <zephyr/net/socket.h>
+#include <zephyr/posix/netinet/in.h>
 
 struct net_if; // Forward declaration
 struct device;
@@ -39,7 +41,7 @@ class CIPv4 {
      * Getter for address structure
      * @return Address structure
      */
-    [[nodiscard]] in_addr GetAddr() const { return addr; }
+    [[nodiscard]] struct in_addr GetAddr() const { return addr; }
 
     /**
      * Getter for error code from initialization
@@ -56,7 +58,7 @@ class CIPv4 {
   private:
     const char* ip;
     net_if& netIface;
-    in_addr addr{};
+    struct in_addr addr{};
     int err = 0;
 
     int initialize();

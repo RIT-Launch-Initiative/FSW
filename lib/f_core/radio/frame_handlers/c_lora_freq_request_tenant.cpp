@@ -101,7 +101,7 @@ bool CLoraFreqRequestTenant::receiveCommand(uint32_t& freqHz) {
         return false;
     }
 
-    const uint32_t hostOrder = ntohl(networkOrder);
+    const uint32_t hostOrder = net_ntohl(networkOrder);
     float freqMhz = 0.0f;
     memcpy(&freqMhz, &hostOrder, sizeof(freqMhz));
 
@@ -121,7 +121,7 @@ bool CLoraFreqRequestTenant::sendFrequencyCommand(const uint32_t freqHz) {
     frame.Port = commandUdpPort;
     frame.Size = sizeof(uint32_t);
 
-    const uint32_t networkOrder = htonl(freqHz);
+    const uint32_t networkOrder = net_htonl(freqHz);
     memcpy(frame.Payload, &networkOrder, sizeof(networkOrder));
 
     const int ret = downlinkMessagePort.Send(frame, K_NO_WAIT);
