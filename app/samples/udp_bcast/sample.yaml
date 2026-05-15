@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: udp-bcast
   name: udp-bcast
 common:
   build_only: true

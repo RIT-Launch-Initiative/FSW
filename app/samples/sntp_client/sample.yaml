@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: sntp-client
   name: sntp-client
 common:
   build_only: true

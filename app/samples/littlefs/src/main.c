@@ -35,7 +35,7 @@ FS_LITTLEFS_DECLARE_CUSTOM_CONFIG(lfs3, 4, 16, 16, 64, 32);
 // FS_LITTLEFS_DECLARE_DEFAULT_CONFIG(lfs3);
 static struct fs_mount_t lfs3_mnt = {.type = FS_LITTLEFS,
                                      .fs_data = &lfs3,
-                                     .storage_dev = (void*) FIXED_PARTITION_ID(ext_storage_3),
+                                     .storage_dev = (void*) PARTITION_ID(ext_storage_3),
                                      .mnt_point = "/lfs3"};
 
 // create peripherals from devicetree
@@ -104,7 +104,7 @@ void print_statvfs(char* fname) {
 
 /**
  * @brief Clear the entire flash area
- * @param fa_id		ID of the flash area, usually a result of FIXED_PARTITION_ID
+ * @param fa_id		ID of the flash area, usually a result of PARTITION_ID
  */
 int32_t clear_flash_area(uint8_t fa_id) {
     int32_t ret = 0;

@@ -89,7 +89,7 @@ class CTftpServerTenant : public CCallbackTenant {
      * @param packet Packet data
      * @param len Length of the packet
      */
-    void handleReadRequest(const sockaddr &srcAddr, const uint8_t *packet, int len);
+    void handleReadRequest(const struct sockaddr& srcAddr, const uint8_t* packet, int len);
 
     /**
      * Wait for acknowledgement from the client
@@ -98,7 +98,7 @@ class CTftpServerTenant : public CCallbackTenant {
      * @param blockNum Block number to wait for
      * @return 0 on success, negative error code on failure
      */
-    int waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr, uint16_t blockNum);
+    int waitForAck(CUdpSocket& dataSock, const struct sockaddr& srcAddr, uint16_t blockNum);
 
     /**
      * Non-standard TFTP function for generating a filesystem tree
