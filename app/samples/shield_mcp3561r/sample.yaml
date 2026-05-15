@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: shield_blinky
   name: shield_blinky
 common:
   build_only: true

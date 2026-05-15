@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: control_freak
   name: control_freak
 common:
   build_only: true

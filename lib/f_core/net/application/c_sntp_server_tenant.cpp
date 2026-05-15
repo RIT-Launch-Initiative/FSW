@@ -75,7 +75,7 @@ void CSntpServerTenant::Callback() {
     uint32_t rxPacketSecondsTimestamp = 0;
     uint32_t txPacketSecondsTimestamp = 0;
     uint32_t lastUpdateTimeSeconds = 0;
-    sockaddr srcAddr = {0};
+    struct sockaddr srcAddr = {0};
     socklen_t srcAddrLen = sizeof(srcAddr);
 
     const int rxLen = sock.ReceiveAsynchronous(&clientPacket, sizeof(clientPacket), &srcAddr, &srcAddrLen);
@@ -116,7 +116,7 @@ void CSntpServerTenant::Callback() {
         .poll = pollInterval,
         .precision = precisionExponent,
         .rootDelay = 0, // Unknown, but very small with the assumption Ethernet is used
-        .rootDispersion = htonl(GNSS_ROOT_DISPERSION_FIXED_POINT), // 0.5 ms
+        .rootDispersion = net_htonl(GNSS_ROOT_DISPERSION_FIXED_POINT), // 0.5 ms
         .refTimestampSeconds = reckonAndByteSwapTimestamp(lastUpdateTimeSeconds),
         .refTimestampFraction = 0,
         .originateTimestampSeconds = clientPacket.txTimestampSeconds,
@@ -129,7 +129,7 @@ void CSntpServerTenant::Callback() {
     memcpy(packet.referenceId, GPS_REFERENCE_CODE, 4);
 
     sockaddr_in clientAddr = *reinterpret_cast<const sockaddr_in*>(&srcAddr);
-    uint16_t clientPort = ntohs(clientAddr.sin_port);
+    uint16_t clientPort = net_ntohs(clientAddr.sin_port);
     sock.SetDstPort(clientPort);
 
     int ret = sock.TransmitAsynchronous(&packet, sizeof(packet));
