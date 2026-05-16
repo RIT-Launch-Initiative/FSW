@@ -21,9 +21,9 @@
 
 &lsm6dsv{
     accel-range = <16>;
-    accel-odr = <LSM6DSV16X_DT_ODR_HA02_AT_100Hz>;
+    accel-odr = <LSM6DSVXXX_DT_ODR_HA02_AT_100Hz>;
     gyro-range = <LSM6DSV16X_DT_FS_4000DPS>;
-    gyro-odr = <LSM6DSV16X_DT_ODR_HA02_AT_100Hz>;
+    gyro-odr = <LSM6DSVXXX_DT_ODR_HA02_AT_100Hz>;
 };
 
 &w25q128{

@@ -42,9 +42,6 @@ NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes
     };
 }
 
-int MAXIMUM_EFFORT_ITERATIONS = 100; // can spend X iterations at full extension before retracting and taking a good look at it
-int SETTLING_TIME_ITERATIONS = 15; // need X iterations of loop at effort=0 before we trust the barometer again
-int OBSERVATION_TIME_ITERATIONS = 20; // need X iterations of pure effort=0 known good barometer data before we can open again
 
 // returns whether or not we should reset our upcounter
 bool actual_effort(int upcounter, uint16_t effort_iterations, bool out_of_bounds, uint16_t *state, float *effort){
@@ -61,17 +58,18 @@ bool actual_effort(int upcounter, uint16_t effort_iterations, bool out_of_bounds
         return false;
     }
     // retracting
-    if (upcounter < effort_iterations + SETTLING_TIME_ITERATIONS){
+    if (upcounter < effort_iterations + DEAD_TIME_ITERATIONS){
         *effort = 0;
         *state = StateWaitingToSettle;
         return false;
     }
-    if (upcounter < effort_iterations + SETTLING_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS){
+    if (upcounter < effort_iterations + DEAD_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS){
         *effort = 0;
         *state = StateJustLooking;
     }
+    *state = StateJustLooking;
     // if on the last step before rollover, reset to 0
-    return upcounter == (effort_iterations + SETTLING_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS - 1);
+    return upcounter == (effort_iterations + DEAD_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS - 1);
 }
 
 int main() {
@@ -133,7 +131,7 @@ int main() {
         NBoost::FeedDetector(vertical);
 
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - NPreBoost::GetGroundLevelASL();
-        NModel::FeedKalman(altMeters, vertical);
+        NModel::FeedKalman(altMeters, vertical, false); // always use real barometer data before boost (no servo extension yet)
         NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
 
         packet.effort = 0; // no fun until after burnout
@@ -167,9 +165,10 @@ int main() {
         k_timer_status_sync(&measurement_timer);
 
         packet.timestamp = packet_timestamp();
+        bool preLockout = packet.timestamp > (liftoffTimeMs + LOCKOUT_MS);
         if (upcounter == 0){
             last_commanded_effort = packet.effort;
-            open_time_for_lce = std::MIN(MAXIMUM_EFFORT_ITERATIONS, MAXIMUM_EFFORT_ITERATIONS * last_commanded_effort);
+            open_time_for_lce = std::min(MAXIMUM_EFFORT_ITERATIONS, (uint16_t)(MAXIMUM_EFFORT_ITERATIONS * last_commanded_effort));
         }
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
@@ -182,15 +181,17 @@ int main() {
         NModel::FeedGyro(packet.timestamp, unbiasedGyro);
         NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
 
-        NModel::FeedKalman(altMeters, vertical, upcounter < open_time_for_lce + SETTLING_TIME_ITERATIONS);
+
+        bool wantToImagine = (upcounter < open_time_for_lce + DEAD_TIME_ITERATIONS);
+        NModel::FeedKalman(altMeters, vertical, false);
         NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
 
-        if (packet.timestamp > (liftoffTimeMs + LOCKOUT_MS)) {
+        if (preLockout) {
             float actual_effort_value = 0;
             uint16_t state = 0;
-            bool need_to_reset = actual_effort(upcounter, open_time_for_lce, NModel::EverWentOutOfBounds(), &state, &actual_effort_value)
+            bool need_to_reset = actual_effort(upcounter, open_time_for_lce, NModel::EverWentOutOfBounds(), &state, &actual_effort_value);
             packet.controller_state = (state << STATE_LOCATION) | (upcounter & UPCOUNTER_BITMASK);
             SetServoEffort(actual_effort_value);
             upcounter++;

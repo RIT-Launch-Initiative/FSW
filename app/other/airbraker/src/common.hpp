@@ -88,6 +88,10 @@ struct KalmanState {
     float estBias;
 };
 
+constexpr uint16_t MAXIMUM_EFFORT_ITERATIONS = 100; // can spend X iterations at full extension before retracting and taking a good look at it
+constexpr uint16_t DEAD_TIME_ITERATIONS = 15; // need X iterations of loop at effort=0 before we trust the barometer again
+constexpr uint16_t OBSERVATION_TIME_ITERATIONS = 100; // need X iterations of pure effort=0 known good barometer data before we can open again
+
 struct Parameters {
     static constexpr uint32_t MAGIC = 2'435'220'000; // the number that louis told me
     uint32_t magic = MAGIC;                          // if equal to MAGIC, a flight has happened
@@ -103,9 +107,15 @@ struct Parameters {
     uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
     uint8_t controllerHash[LUT_MD5SUM_ARRAY_LEN] = {LUT_MD5SUM_INITIALIZER};
     float upAxisQuaternion[4] = {AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
+
+
+    uint16_t maximum_effort_iterations = MAXIMUM_EFFORT_ITERATIONS;
+    uint16_t dead_time_iterations = DEAD_TIME_ITERATIONS;
+    uint16_t observation_time_iterations = OBSERVATION_TIME_ITERATIONS;
+    uint16_t random_padding = 12345;
 };
 
-static_assert(sizeof(Parameters) == 76, "Check size of parameters");
+static_assert(sizeof(Parameters) == 84, "Check size of parameters");
 
 
 constexpr uint16_t StatePrelockout = 0;
@@ -117,9 +127,9 @@ constexpr uint16_t STATE_BITMASK = 0b1110000000000000;
 constexpr uint16_t UPCOUNTER_BITMASK = 0b000111111111111111;
 constexpr uint16_t STATE_LOCATION = 13;
 
+
 struct Packet {
     uint32_t timestamp;
-    float tempRaw;
     // commanding 0 and purely seeing, commanding 1, commanding 0 but waiting
     // 0: pre-lockout
     // 1: purely seeing effort = 0

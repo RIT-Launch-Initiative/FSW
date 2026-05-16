@@ -222,13 +222,13 @@ static int cmd_bootcount(const struct shell *shell, size_t /*argc*/, char ** /*a
 static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     BAILOUT_IF_NOT_CANCELLED(shell);
     Packet p = {0};
-    int ret = NSensing::MeasureSensors(p.pressureRaw, p.tempRaw, p.accelRaw, p.gyro);
+    int ret = NSensing::MeasureSensors(p.tempRaw, p.pressureRaw, p.accelRaw, p.gyro);
     if (ret < 0) {
         shell_error(shell, "Failed to read sensors: %d", ret);
         return ret;
     }
-    shell_info(shell, "Temp:       %f C", (double) p.pressureRaw);
-    shell_info(shell, "Press:      %f kPa", (double) p.tempRaw);
+    shell_info(shell, "Temp:       %f C", (double) p.tempRaw/100.0);
+    shell_info(shell, "Press:      %f kPa", (double) p.pressureRaw);
 
     shell_info(shell, "Accel X:    %f m/s2", (double) p.accelRaw.X);
     shell_info(shell, "Accel Y:    %f m/s2", (double) p.accelRaw.Y);
