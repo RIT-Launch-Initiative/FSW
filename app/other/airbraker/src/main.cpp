@@ -42,6 +42,38 @@ NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes
     };
 }
 
+int MAXIMUM_EFFORT_ITERATIONS = 100; // can spend X iterations at full extension before retracting and taking a good look at it
+int SETTLING_TIME_ITERATIONS = 15; // need X iterations of loop at effort=0 before we trust the barometer again
+int OBSERVATION_TIME_ITERATIONS = 20; // need X iterations of pure effort=0 known good barometer data before we can open again
+
+// returns whether or not we should reset our upcounter
+bool actual_effort(int upcounter, uint16_t effort_iterations, bool out_of_bounds, uint16_t *state, float *effort){
+    if (out_of_bounds){
+        *state = StateOutOfPitchBounds;
+        *effort = 0;
+        return false;
+    }
+
+    // extending/extended
+    if (upcounter < effort_iterations){
+        *effort = 1;
+        *state = StateMaximumEffort;
+        return false;
+    }
+    // retracting
+    if (upcounter < effort_iterations + SETTLING_TIME_ITERATIONS){
+        *effort = 0;
+        *state = StateWaitingToSettle;
+        return false;
+    }
+    if (upcounter < effort_iterations + SETTLING_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS){
+        *effort = 0;
+        *state = StateJustLooking;
+    }
+    // if on the last step before rollover, reset to 0
+    return upcounter == (effort_iterations + SETTLING_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS - 1);
+}
+
 int main() {
 
     EnableServo();
@@ -68,6 +100,7 @@ int main() {
 
     Packet packet{
         .timestamp = 0,
+        .controller_state = StatePrelockout,
         .tempRaw = 0,
         .pressureRaw = 0,
         .accelRaw = 0,
@@ -104,6 +137,7 @@ int main() {
         NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
 
         packet.effort = 0; // no fun until after burnout
+        packet.controller_state = StatePrelockout;
 
         NPreBoost::SubmitPreBoostPacket(packet);
     }
@@ -125,32 +159,48 @@ int main() {
     uint32_t preboostWriteHead = 0;
 
     // normal flight time
+    float last_commanded_effort = 0;
+    uint16_t open_time_for_lce = 0;
+    uint16_t upcounter = 0;
     for (uint32_t i = 0; i < NUM_FLIGHT_PACKETS; i++) {
         RETURN0_IF_CANCELLED;
         k_timer_status_sync(&measurement_timer);
 
         packet.timestamp = packet_timestamp();
+        if (upcounter == 0){
+            last_commanded_effort = packet.effort;
+            open_time_for_lce = std::MIN(MAXIMUM_EFFORT_ITERATIONS, MAXIMUM_EFFORT_ITERATIONS * last_commanded_effort);
+        }
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
         float vertical = GetUpAxis(packet.accelRaw);
 
 
+
         NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
         NModel::FeedGyro(packet.timestamp, unbiasedGyro);
         NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
 
-        NModel::FeedKalman(altMeters, vertical);
+        NModel::FeedKalman(altMeters, vertical, upcounter < open_time_for_lce + SETTLING_TIME_ITERATIONS);
         NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
 
         if (packet.timestamp > (liftoffTimeMs + LOCKOUT_MS)) {
-            if (NModel::EverWentOutOfBounds()) {
-                SetServoEffort(0);
-            } else {
-                SetServoEffort(packet.effort);
+            float actual_effort_value = 0;
+            uint16_t state = 0;
+            bool need_to_reset = actual_effort(upcounter, open_time_for_lce, NModel::EverWentOutOfBounds(), &state, &actual_effort_value)
+            packet.controller_state = (state << STATE_LOCATION) | (upcounter & UPCOUNTER_BITMASK);
+            SetServoEffort(actual_effort_value);
+            upcounter++;
+            if (need_to_reset){
+                upcounter = 0;
             }
+        } else {
+            packet.controller_state = StatePrelockout;
+            upcounter = 0;
+            // don't start counting yet
         }
 
         NStorage::WriteFlightPacket(i, &packet);

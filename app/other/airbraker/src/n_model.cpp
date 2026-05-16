@@ -34,13 +34,14 @@ static Matrix<3, 3> gyroOrientation = Matrix<3, 3>::Identity();
 static bool everWentOutOfBounds = false;
 
 Matrix<4, 1> kalmanPredictAndUpdate(const Matrix<4, 1>& state, const float altitudeMeters,
-				    const float verticalAccelerationMS2)
+				    const float verticalAccelerationMS2, bool imagineBarometerAltitude);
 {
-  Matrix<2, 1> sensorIn = Matrix<2, 1>::Column({ altitudeMeters, verticalAccelerationMS2 });
 
   // change via physics model
   Matrix<4, 1> fx = state_transition_matrix * state;
 
+  float inputAltitudeMeters = imagineBarometerAltitude ?  fx.Get(0,0) :  altitudeMeters;
+  Matrix<2, 1> sensorIn = Matrix<2, 1>::Column({, verticalAccelerationMS2 });
   // change via sensors
   Matrix<2, 1> innovation = sensorIn - (kalman_output_matrix * fx);
   lastInnovation = innovation;
@@ -50,9 +51,9 @@ Matrix<4, 1> kalmanPredictAndUpdate(const Matrix<4, 1>& state, const float altit
   return fx + correction;
 }
 
-void FeedKalman(float altitudeMeters, float verticalAccelerationMS2)
+void FeedKalman(float altitudeMeters, float verticalAccelerationMS2, bool imagineBarometerAltitude)
 {
-  kalman_state = kalmanPredictAndUpdate(kalman_state, altitudeMeters, verticalAccelerationMS2);
+  kalman_state = kalmanPredictAndUpdate(kalman_state, altitudeMeters, verticalAccelerationMS2, imagineBarometerAltitude);
 }
 KalmanState LastKalmanState()
 {

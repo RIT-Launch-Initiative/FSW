@@ -107,9 +107,26 @@ struct Parameters {
 
 static_assert(sizeof(Parameters) == 76, "Check size of parameters");
 
+
+constexpr uint16_t StatePrelockout = 0;
+constexpr uint16_t StateJustLooking = 1;
+constexpr uint16_t StateMaximumEffort = 2;
+constexpr uint16_t StateWaitingToSettle = 3;
+constexpr uint16_t StateOutOfPitchBounds = 4;
+constexpr uint16_t STATE_BITMASK = 0b1110000000000000;
+constexpr uint16_t UPCOUNTER_BITMASK = 0b000111111111111111;
+constexpr uint16_t STATE_LOCATION = 13;
+
 struct Packet {
     uint32_t timestamp;
     float tempRaw;
+    // commanding 0 and purely seeing, commanding 1, commanding 0 but waiting
+    // 0: pre-lockout
+    // 1: purely seeing effort = 0
+    // 2: commanding 1
+    // 3: commanding 0 but waiting for things to settle
+    uint16_t controller_state;
+    int16_t tempRaw;
     float pressureRaw;
     NTypes::AccelerometerData accelRaw;
     NTypes::GyroscopeData gyro;
@@ -118,7 +135,8 @@ struct Packet {
 
     float kalmanInnovation[2];
     float orientationMatrix[9];
-    float effort;
+    float effort; // what we want to say, not necessarily what we did say
+    
 };
 
 static_assert(sizeof(Packet) == 100, "Check size of packet");

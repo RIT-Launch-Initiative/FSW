@@ -8,7 +8,7 @@ const char *GetMatlabLUTDate();
 
 float AltitudeMetersFromPressureKPa(float kPa);
 
-void FeedKalman(float altitudeMeters, float verticalAccelerationMS2);
+void FeedKalman(float altitudeMeters, float verticalAccelerationMS2, bool imagineBarometerAltitude);
 KalmanState LastKalmanState();
 
 struct GyroState {
