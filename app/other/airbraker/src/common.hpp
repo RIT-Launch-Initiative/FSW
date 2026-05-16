@@ -89,8 +89,8 @@ struct KalmanState {
 };
 
 constexpr uint16_t MAXIMUM_EFFORT_ITERATIONS = 100; // can spend X iterations at full extension before retracting and taking a good look at it
-constexpr uint16_t DEAD_TIME_ITERATIONS = 15; // need X iterations of loop at effort=0 before we trust the barometer again
-constexpr uint16_t OBSERVATION_TIME_ITERATIONS = 100; // need X iterations of pure effort=0 known good barometer data before we can open again
+constexpr uint16_t DEAD_TIME_ITERATIONS = 45; // need X iterations of loop at effort=0 before we trust the barometer again
+constexpr uint16_t OBSERVATION_TIME_ITERATIONS = 40; // need X iterations of pure effort=0 known good barometer data before we can open again
 
 struct Parameters {
     static constexpr uint32_t MAGIC = 2'435'220'000; // the number that louis told me

@@ -66,9 +66,8 @@ Matrix<4, 1> kalmanPredictAndUpdate(const Matrix<4, 1>& state, const float altit
     return x_post;
 }
 
-void FeedKalman(float altitudeMeters, float verticalAccelerationMS2, bool imagineBarometerAltitude) {
-    kalmanPredictAndUpdate(kalman_state, altitudeMeters, verticalAccelerationMS2, imagineBarometerAltitude);
-    printk("state: %f %f %f %f\n", kalman_state.Get(0, 0), kalman_state.Get(1, 0), kalman_state.Get(2, 0), kalman_state.Get(3, 0));
+void FeedKalman(float altitudeMeters, float verticalAccelerationMS2, bool ignoreBarometer) {
+    kalmanPredictAndUpdate(kalman_state, altitudeMeters, verticalAccelerationMS2, ignoreBarometer);
 }
 KalmanState LastKalmanState() {
     return {
