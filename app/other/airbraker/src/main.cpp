@@ -44,7 +44,7 @@ NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes
 
 
 // returns whether or not we should reset our upcounter
-bool actual_effort(int upcounter, uint16_t effort_iterations, bool out_of_bounds, uint16_t *state, float *effort){
+bool actual_effort(int upcounter, float wanted_effort, bool out_of_bounds, uint16_t *state, float *effort){
     if (out_of_bounds){
         *state = StateOutOfPitchBounds;
         *effort = 0;
@@ -52,24 +52,24 @@ bool actual_effort(int upcounter, uint16_t effort_iterations, bool out_of_bounds
     }
 
     // extending/extended
-    if (upcounter < effort_iterations){
-        *effort = 1;
+    if (upcounter < MAXIMUM_EFFORT_ITERATIONS){
+        *effort = wanted_effort;
         *state = StateMaximumEffort;
         return false;
     }
     // retracting
-    if (upcounter < effort_iterations + DEAD_TIME_ITERATIONS){
+    if (upcounter < MAXIMUM_EFFORT_ITERATIONS + DEAD_TIME_ITERATIONS){
         *effort = 0;
         *state = StateWaitingToSettle;
         return false;
     }
-    if (upcounter < effort_iterations + DEAD_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS){
+    if (upcounter < MAXIMUM_EFFORT_ITERATIONS + DEAD_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS){
         *effort = 0;
         *state = StateJustLooking;
     }
     *state = StateJustLooking;
     // if on the last step before rollover, reset to 0
-    return upcounter == (effort_iterations + DEAD_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS - 1);
+    return upcounter == (MAXIMUM_EFFORT_ITERATIONS + DEAD_TIME_ITERATIONS + OBSERVATION_TIME_ITERATIONS - 1);
 }
 
 int main() {
@@ -157,8 +157,6 @@ int main() {
     uint32_t preboostWriteHead = 0;
 
     // normal flight time
-    float last_commanded_effort = 0;
-    uint16_t open_time_for_lce = 0;
     uint16_t upcounter = 0;
     for (uint32_t i = 0; i < NUM_FLIGHT_PACKETS; i++) {
         RETURN0_IF_CANCELLED;
@@ -166,10 +164,6 @@ int main() {
 
         packet.timestamp = packet_timestamp();
         bool preLockout = packet.timestamp > (liftoffTimeMs + LOCKOUT_MS);
-        if (upcounter == 0){
-            last_commanded_effort = packet.effort;
-            open_time_for_lce = std::min(MAXIMUM_EFFORT_ITERATIONS, (uint16_t)(MAXIMUM_EFFORT_ITERATIONS * last_commanded_effort));
-        }
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
@@ -182,8 +176,8 @@ int main() {
         NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
 
 
-        bool wantToImagine = (upcounter < open_time_for_lce + DEAD_TIME_ITERATIONS);
-        NModel::FeedKalman(altMeters, vertical, false);
+        bool shouldntTrustBarom = (upcounter < MAXIMUM_EFFORT_ITERATIONS + DEAD_TIME_ITERATIONS);
+        NModel::FeedKalman(altMeters, vertical, shouldntTrustBarom && !preLockout);
         NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
@@ -191,7 +185,7 @@ int main() {
         if (preLockout) {
             float actual_effort_value = 0;
             uint16_t state = 0;
-            bool need_to_reset = actual_effort(upcounter, open_time_for_lce, NModel::EverWentOutOfBounds(), &state, &actual_effort_value);
+            bool need_to_reset = actual_effort(upcounter, packet.effort, NModel::EverWentOutOfBounds(), &state, &actual_effort_value);
             packet.controller_state = (state << STATE_LOCATION) | (upcounter & UPCOUNTER_BITMASK);
             SetServoEffort(actual_effort_value);
             upcounter++;
