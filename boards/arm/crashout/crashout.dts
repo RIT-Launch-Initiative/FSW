@@ -91,17 +91,18 @@
 };
 
 &pll {
-	mul = <7>;
+	mul = <8>;
 	clocks = <&clk_hsi>;
 	status = "okay";
 };
 
 &rcc {
 	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(28)>;
+	clock-frequency = <DT_FREQ_M(32)>;
 	ahb-prescaler = <1>;
 	apb1-prescaler = <1>;
 	apb2-prescaler = <1>;
+
 };
 
 // Debug Header UART
@@ -141,11 +142,19 @@ imu_i2c:&i2c2 {
 
 };
 
-&spi1 {
+&dma1 {
+	status = "okay";
+};
+
+pispi: &spi1 {
 	pinctrl-0 = <&spi1_sck_slave_pa5 &spi1_miso_slave_pa6 &spi1_mosi_slave_pa7>;
 	pinctrl-names = "default";
-	cs-gpios = <&gpiob 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 	status = "okay";
+
+
+	dmas =  <&dma1 3 (STM32_DMA_PERIPH_TX | STM32_DMA_PRIORITY_HIGH)>,
+			<&dma1 2 (STM32_DMA_PERIPH_RX | STM32_DMA_PRIORITY_HIGH)>;
+dma-names = "tx", "rx";
 };
 
 &pinctrl{

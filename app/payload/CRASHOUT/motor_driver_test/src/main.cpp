@@ -3,16 +3,24 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include "arm.hpp"
+#include "common.hpp"
+#include "servo.hpp"
 
 #include <stdio.h>
+#include <string.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/irq.h>
 #include <zephyr/kernel.h>
-#include <string.h>
-#include "motor.cpp"
+#include <zephyr/logging/log.h>
+#include <zephyr/sys/reboot.h>
+
+LOG_MODULE_REGISTER(main);
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 1000
@@ -20,9 +28,8 @@
 /* The devicetree node identifiers*/
 #define LED1_NODE DT_NODELABEL(led1)
 
-
 #define NSLEEP_NODE DT_NODELABEL(nsleep)
-const struct device* const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(motor_i2c));
+const struct device *const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(motor_i2c));
 const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
 const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
 const struct i2c_dt_spec motor3_i2c = {.bus = i2c_bus, .addr = 0x36};
@@ -31,109 +38,197 @@ const struct device *yaw_enc = DEVICE_DT_GET(DT_NODELABEL(yaw_enc));
 const struct device *pitch_enc = DEVICE_DT_GET(DT_NODELABEL(pitch_enc));
 const struct device *dcm_enc3 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc3));
 
-
 static const struct gpio_dt_spec nSleep = GPIO_DT_SPEC_GET(NSLEEP_NODE, gpios);
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
+#define MAIN_LOOP_TIME K_MSEC(10)
+K_TIMER_DEFINE(main_loop_timer, NULL, NULL);
 
-/**
-* Resets the motor drivers by toggling the nsleep pin
-* ***WARNING*** RESETS ALL MOTORS, WILL NEED TO REINIT AFTER CALLING THIS FUNCTION
-*/
-void reset(){
-    gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_INACTIVE);
-    k_msleep(10);
-    gpio_pin_configure_dt(&nSleep, GPIO_OUTPUT_ACTIVE);
+uint32_t base_accel_set_time = 0;
+Vec3_16 base_accel = {0};
+
+ArmPose arm_target = {0};
+
+void handle_arm() { printk("doing arm things\n"); }
+
+K_MSGQ_DEFINE(command_msgq, sizeof(InternalCommand), 4, alignof(InternalCommand));
+
+int send_internal_command(InternalCommand *cmd) {
+    return k_msgq_put(&command_msgq, static_cast<void *>(cmd), K_NO_WAIT);
 }
 
+static uint32_t iterations = 0;
 
-void doPid(Motor &mot, int64_t target){
-    mot.enableSpin();
-    int64_t integral = 0;
-    int count = 0;
-    for (int i = 0; i <= 200; i++){
-        int64_t point = mot.read_enc();
-        int64_t err = target - point;
-        printk("%lld\n", point);
-
-        if (err < 500000 && err > -500000) {
-            count++;
-        } else {
-            count = 0;
-        }
-
-        if (count > 25){
-            break;
-        }
-
-        int64_t kP = 9'000;
-        int64_t kI = 0x7fffffffffffffff;
-        int64_t outp = (err / kP) + (integral / kI);
-        outp = outp / 11; // scale down output so we're not always running max speed
-        // printk("%lld\n", outp);
-
-        int dir = outp > 0 ? 0 : 1;
-        int speed = (outp < 0 ? -outp : outp);
-        if (speed > 32000){
-            speed = 32000;
-        } else {
-            integral += err;
-        }  
-        // printk("Err: %lld %d %d\n", err/1000, dir, speed);
-        // printk("m2: "); mot.printInfo();
-        mot.setSpinMode(dir); // set motor 1 to forward
-        mot.setSpeed(speed);
-        k_msleep(10);
+int main() {
+    int ret = gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE);
+    if (ret < 0) {
+        printk("Error %d: failed to configure led pin \n", ret);
+        return 0;
     }
-    mot.disableSpin();
+    servo_init();
+    printk("Setup LED\n");
+    k_timer_start(&main_loop_timer, MAIN_LOOP_TIME, MAIN_LOOP_TIME);
+
+    State state = State::Chilling;
+    while (true) {
+        iterations++;
+        k_timer_status_sync(&main_loop_timer);
+        StatusWord sw = MakeStatusWord(State::Chilling, false, false, false, false, false);
+        SubmitStatus(sw, {0, 0, 0, 0});
+
+        InternalCommand cmd;
+        State next_state = state;
+        if (k_msgq_get(&command_msgq, &cmd, K_NO_WAIT) == 0) {
+            // handle message
+            switch (cmd.kind) {
+                case InternalCommandKind::Reset:
+                    printk("REBOOT\n");
+                    sys_reboot(SYS_REBOOT_COLD);
+                    break;
+                case InternalCommandKind::StartArm:
+                    if (state == State::Chilling) {
+                        next_state = State::ArmMoving;
+                    } else {
+                        LOG_WRN("Not starting arm bc not in resting state");
+                    }
+                    break;
+                case InternalCommandKind::StartServo1:
+                    if (state == State::Chilling) {
+                        next_state = State::Servo1Moving;
+                    } else {
+                        LOG_WRN("Not starting servo 1 bc not in resting state");
+                    }
+                    break;
+                case InternalCommandKind::StartServo2:
+                    if (state == State::Chilling) {
+                        next_state = State::Servo2Moving;
+                    } else {
+                        LOG_WRN("Not starting servo 2 bc not in resting state");
+                    }
+                    break;
+                case InternalCommandKind::StartServo3:
+                    if (state == State::Chilling) {
+                        next_state = State::Servo3Moving;
+                    } else {
+                        LOG_WRN("Not starting servo 3 bc not in resting state");
+                    }
+                    break;
+                case InternalCommandKind::Stop:
+                    if (state == State::Chilling) {
+                        LOG_WRN("Nothing to stop");
+                    } else {
+                        next_state = State::Chilling;
+                    }
+                    break;
+                case InternalCommandKind::SetBaseAccel:
+                    base_accel = cmd.set_base_accel;
+                    base_accel_set_time = k_uptime_get();
+                    break;
+                case InternalCommandKind::SetArmTarget:
+                    set_arm_target(cmd.set_arm_target);
+                    break;
+                case InternalCommandKind::SetServo1Motion:
+                    set_servo_motion(FlipServo::Servo1, cmd.set_servo1_motion);
+                    // printk("Set Servo Motion 1: %d %d %d %d %d\n", cmd.set_servo1_motion.open_duration, cmd.set_servo1_motion.openness, cmd.set_servo1_motion.open_travel_duration, cmd.set_servo1_motion.closedness, cmd.set_servo1_motion.close_travel_duration);
+                    break;
+                case InternalCommandKind::SetServo2Motion:
+                    set_servo_motion(FlipServo::Servo2, cmd.set_servo2_motion);
+                    break;
+                case InternalCommandKind::SetServo3Motion:
+                    set_servo_motion(FlipServo::Servo3, cmd.set_servo3_motion);
+                    break;
+                case InternalCommandKind::SetArmPose:
+                    set_arm_pose(cmd.set_arm_pose);
+            }
+        }
+        // otherwise, continue
+
+        // things that happen no matter what
+        // read temps
+        // if motors on, read their positions
+        //
+        if (state != next_state) {
+            switch (state) {
+                case State::Chilling:
+                    break;
+                case State::ArmMoving:
+                    stop_arm();
+                    break;
+                case State::Servo1Moving:
+                    stop_servo_move(FlipServo::Servo1);
+                    break;
+                case State::Servo2Moving:
+                    stop_servo_move(FlipServo::Servo2);
+                    break;
+                case State::Servo3Moving:
+                    stop_servo_move(FlipServo::Servo3);
+                    break;
+            }
+            switch (next_state) {
+                case State::Chilling:
+                    break;
+                case State::ArmMoving:
+                    start_arm();
+                    break;
+                case State::Servo1Moving:
+                    start_servo_move(FlipServo::Servo1);
+                    break;
+                case State::Servo2Moving:
+                    start_servo_move(FlipServo::Servo2);
+                    break;
+                case State::Servo3Moving:
+                    start_servo_move(FlipServo::Servo3);
+                    break;
+            }
+        }
+        state = next_state;
+        MovementResult move_result = MovementResult::Ongoing;
+        switch (state) {
+            case State::Chilling:
+                // don't need to do anything
+                break;
+            case State::ArmMoving:
+                step_arm();
+                break;
+            case State::Servo1Moving:
+                move_result = step_servo(FlipServo::Servo1);
+                break;
+            case State::Servo2Moving:
+                move_result = step_servo(FlipServo::Servo2);
+                break;
+            case State::Servo3Moving:
+                move_result = step_servo(FlipServo::Servo3);
+                break;
+        }
+        if (state != State::Chilling) {
+            printk("state wasnt chilling\n");
+
+            if (move_result != MovementResult::Ongoing) {
+                printk("not ongoing anymore\n");
+                switch (state) {
+                    case State::Chilling:
+                        // don't need to do anything
+                        break;
+                    case State::ArmMoving:
+                        stop_arm();
+                        break;
+                    case State::Servo1Moving:
+                        stop_servo_move(FlipServo::Servo1);
+                        break;
+                    case State::Servo2Moving:
+                        stop_servo_move(FlipServo::Servo2);
+                        break;
+                    case State::Servo3Moving:
+                        stop_servo_move(FlipServo::Servo3);
+                        break;
+                }
+                state = State::Chilling;
+            }
+        }
+    }
 }
 
-int main(void) { 
-    Motor motor1(i2c_bus, motor1_i2c, yaw_enc);
-    Motor motor2(i2c_bus, motor2_i2c, pitch_enc);
-    Motor motor3(i2c_bus, motor3_i2c, dcm_enc3);
-
-    reset();
-
-    if (!motor1.initSpeedControl()){
-        printk("Failed to initialize motor 1");
-        return 0;
-    }
-    
-    if (!motor2.initSpeedControl()){
-        printk("Failed to initialize motor 2");
-        return 0;
-    }
-
-    if (!motor3.initSpeedControl()){
-        printk("Failed to initialize motor 3");
-        return 0;
-    }
-
-    k_msleep(1000);
-
-    while(1){  
-        for (int i = 270'000'000; i >= 90'000'000; i -= 10'000'000){
-            doPid(motor1, i);
-            printk("m1: %lld\n", motor1.read_enc());
-            k_msleep(500);
-            doPid(motor2, i);
-            printk("m2: %lld\n", motor2.read_enc());
-            k_msleep(500);
-            doPid(motor3, i);
-            printk("m3: %lld\n", motor3.read_enc());
-            k_msleep(500);
-        }
-    }
-
-    // for (;;){
-    //     int64_t md1 = motor1.read_enc();
-    //     int64_t md2 = motor2.read_enc();
-    //     int64_t md3 = motor3.read_enc();
-    //     printk("Milldeg: %lld, %lld, %lld\n", md1/1000000, md2/1000000, md3/1000000);
-    //     printk("m1: "); motor1.printInfo();
-    //     printk("m2: "); motor2.printInfo();
-    //     printk("m3: "); motor3.printInfo();
-    //     k_msleep(200);
-    // }
-}
+namespace CurrentState {
+Temperatures temperatures() { return {.link1_temp = 1, .link2_temp = 2, .stm_temp = 3}; }
+uint32_t current_iteration() { return iterations; }
+} // namespace CurrentState
