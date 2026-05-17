@@ -14,7 +14,12 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    LOG_INF("Receiver starting");
+#ifdef CONFIG_LICENSED_FREQUENCY
+    LOG_INF("Receiver boot: 433 MHz build");
+#else
+    LOG_INF("Receiver boot: 915 MHz build");
+#endif
+
     static CReceiverModule receiverModule{};
     receiverModule.AddTenantsToTasks();
     receiverModule.AddTasksToRtos();
