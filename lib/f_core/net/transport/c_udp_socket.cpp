@@ -61,7 +61,7 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
         return -EBADF;
     }
 
-    const sockaddr_in addr{
+    sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
@@ -91,7 +91,7 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstP
         return -EBADF;
     }
 
-    const sockaddr_in addr{
+    sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };

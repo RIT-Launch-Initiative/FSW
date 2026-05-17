@@ -1,7 +1,10 @@
 #include <errno.h>
 
 #include <f_core/device/openrocket_launch.h>
+
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
 #include <openrocket_sensors.h>
+#endif
 
 int z_impl_ork_trigger_launch(void) {
 #ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
