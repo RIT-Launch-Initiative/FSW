@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: datalogger
   name: datalogger
 common:
   build_only: true

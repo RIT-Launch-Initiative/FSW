@@ -2,8 +2,8 @@
 
 #include "zephyr/logging/log.h"
 
-#include <arpa/inet.h>
 #include <cstring>
+#include <zephyr/net/net_ip.h>
 
 LOG_MODULE_REGISTER(CFrequencyChangeHandler);
 
@@ -16,7 +16,7 @@ void CFrequencyChangeHandler::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame
 
     uint32_t freqNetworkOrder = 0;
     memcpy(&freqNetworkOrder, frame.Payload, sizeof(freqNetworkOrder));
-    const uint32_t freqHz = ntohl(freqNetworkOrder);
+    const uint32_t freqHz = net_ntohl(freqNetworkOrder);
     const float freqMhz = static_cast<float>(freqHz) / 1'000'000.0f;
 
     LOG_INF("Changing frequency to %f MHz", static_cast<double>(freqMhz));

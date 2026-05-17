@@ -12,7 +12,11 @@
 LOG_MODULE_REGISTER(main);
 
 int main() {
-    LOG_INF("Transmitter started");
+#ifdef CONFIG_LICENSED_FREQUENCY
+    LOG_INF("Radio module boot: 433 MHz build, callsign=%s", CONFIG_RADIO_MODULE_CALLSIGN);
+#else
+    LOG_INF("Radio module boot: 915 MHz build, callsign=%s", CONFIG_RADIO_MODULE_CALLSIGN);
+#endif
     static CRadioModule radioModule{};
 
     radioModule.AddTenantsToTasks();
