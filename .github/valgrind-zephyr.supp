@@ -1,0 +1,37 @@
+# Valgrind suppressions for Zephyr RTOS
+# This file suppresses known false positives and Zephyr-internal behaviors
+
+{
+   zephyr_thread_stack_uninitialized
+   Memcheck:Cond
+   ...
+   fun:z_*
+}
+
+{
+   zephyr_syscall_uninitialized
+   Memcheck:Value*
+   ...
+   fun:z_*
+}
+
+{
+   zephyr_kernel_internal
+   Memcheck:Addr*
+   ...
+   fun:z_*
+}
+
+{
+   native_posix_driver
+   Memcheck:Leak
+   ...
+   fun:*posix*
+}
+
+{
+   native_sim_driver
+   Memcheck:Leak
+   ...
+   fun:*native*
+}
