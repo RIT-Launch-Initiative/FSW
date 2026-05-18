@@ -1,7 +1,7 @@
 #include "quantile_lut_data.h"
 #include <cmath>
 #include <cstdint>
-
+#include <zephyr/kernel.h>
 namespace NModel {
 
 static const float lower_bounds_lut[] = {LUT_LOWER_BOUNDS_INITIALIZER};
@@ -59,6 +59,7 @@ void AltitudeLut(float pressure_pa, float *alt_out){
     float previous = lut_pressure_values[index.whole];
     float next = lut_pressure_values[index.whole + 1];
     *alt_out = lerp(index.fraction, previous, next);
+    //printk("%f pa = %f m\n", pressure_pa, *alt_out);
 }
 
 

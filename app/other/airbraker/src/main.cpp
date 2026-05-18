@@ -163,7 +163,7 @@ int main() {
         k_timer_status_sync(&measurement_timer);
 
         packet.timestamp = packet_timestamp();
-        bool preLockout = packet.timestamp > (liftoffTimeMs + LOCKOUT_MS);
+        bool preLockout = packet.timestamp < (liftoffTimeMs + LOCKOUT_MS);
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
@@ -182,7 +182,7 @@ int main() {
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
 
-        if (preLockout) {
+        if (!preLockout) {
             float actual_effort_value = 0;
             uint16_t state = 0;
             bool need_to_reset = actual_effort(upcounter, packet.effort, NModel::EverWentOutOfBounds(), &state, &actual_effort_value);

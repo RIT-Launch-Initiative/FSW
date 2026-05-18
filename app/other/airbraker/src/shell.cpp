@@ -250,7 +250,7 @@ static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*a
     shell_info(shell, "Gyro Z:     %f dps", (double) p.gyro.Z);
 
     shell_info(shell, "\nSecondary Products =========\n");
-    shell_info(shell, "Altitude:   %f m", (double) NModel::AltitudeMetersFromPressureKPa(p.tempRaw));
+    shell_info(shell, "Altitude:   %f m", (double) NModel::AltitudeMetersFromPressureKPa(p.pressureRaw));
 
     NTypes::AccelerometerData rocket{0, 0, 0};
     RotateIMUVectorToRocketVector(p.accelRaw, rocket);
