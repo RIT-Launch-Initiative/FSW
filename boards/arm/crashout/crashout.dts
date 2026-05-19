@@ -65,22 +65,22 @@
 			// 5v one
 			label = "Servo 1 PWM";
 			// name of pin
-			pwms = <&pwm1 4 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+			pwms = <&pwm1 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
 		};
 		servo2: servo2 {
 			label = "Servo 2 PWM";
 			// name of pin
-			pwms = <&pwm1 3 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+			pwms = <&pwm1 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
 		};
 		servo3: servo3 {
 			label = "Servo 3 PWM";
 			// name of pin
-			pwms = <&pwm1 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+			pwms = <&pwm1 3 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
 		};
 		servo4: servo4 {
 			label = "Servo 4 PWM";
 			// name of pin
-			pwms = <&pwm1 1 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+			pwms = <&pwm1 4 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
 		};
 	};
 

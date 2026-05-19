@@ -18,13 +18,13 @@ const gpio_dt_spec flip_servo_enable = GPIO_DT_SPEC_GET(DT_NODELABEL(flip_servo_
 // TODO some of these will be flipped
 const uint32_t min_pulses[3] = {
     800,
-    800,
+    1970,
     800,
 };
 
 const uint32_t max_pulses[3] = {
     1700,
-    1700,
+    800,
     1700,
 };
 
