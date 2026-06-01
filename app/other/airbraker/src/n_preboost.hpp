@@ -17,6 +17,13 @@ void SubmitPreBoostPacket(const Packet &packet);
 */
 NTypes::GyroscopeData GetGyroBias();
 
+
+/** 
+ * Return the quaternion representing the orientation of the rocket on the rod
+*/
+zsl_quat GetOnRodOrientation();
+
+
 /**
  * Return the altitude we found at ground level before launch
  * @return meters over sea level

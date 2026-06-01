@@ -172,9 +172,6 @@ void FeedGyro(uint32_t msSinceBoot, const NTypes::GyroscopeData& gyro) {
     // RotateIMUVectorToRocketVector({ nowInIMUSpace.Get(0, 0), nowInIMUSpace.Get(1, 0), nowInIMUSpace.Get(2, 0) }, rotatedUsInRocketSpace);
     // end for debugging only
 
-    auto dot = [](const Matrix<3, 1>& a, const Matrix<3, 1>& b) {
-        return a.Get(0, 0) * b.Get(0, 0) + a.Get(1, 0) * b.Get(1, 0) + a.Get(2, 0) * b.Get(2, 0);
-    };
 
     float normOfNow = std::sqrt(nowInIMUSpace.Get(0, 0) * nowInIMUSpace.Get(0, 0) +
                                 nowInIMUSpace.Get(1, 0) * nowInIMUSpace.Get(1, 0) +
@@ -202,3 +199,7 @@ void FillPacketWithKalmanInformation(float* inno, KalmanState& state) {
 }
 
 } // namespace NModel
+
+float dot(const Matrix<3, 1>& a, const Matrix<3, 1>& b){
+    return (a.Get(0, 0) * b.Get(0, 0)) + (a.Get(1, 0) * b.Get(1, 0)) + (a.Get(2, 0) * b.Get(2, 0));
+}

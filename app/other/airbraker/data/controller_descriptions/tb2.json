@@ -3,12 +3,7 @@
   "date": "2026-05-16T07:17:01",
   "lockout_ms": 3150,
   "flight_time_ms": 106208,
-  "orientation_quat": [
-    1,
-    0,
-    0,
-    0
-  ],
+  "orientation_quat": [ 0.9238796, 0, 0, -0.3826834 ],
   "controller": {
     "state_transition_matrix": [
       1,

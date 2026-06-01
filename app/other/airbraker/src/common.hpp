@@ -6,53 +6,6 @@
 #include <cstddef>
 #include <cstdint>
 
-enum class UpAxis : uint8_t {
-    PosX = 0b000,
-    NegX = 0b001,
-
-    PosY = 0b010,
-    NegY = 0b011,
-
-    PosZ = 0b100,
-    NegZ = 0b101,
-
-    PosXPosY = 0b110,
-    PosXNegY = 0b111,
-
-    NegXPosY = 0b1000,
-    NegXNegY = 0b1001,
-};
-
-constexpr float UpAxisFrom(UpAxis axis, const NTypes::AccelerometerData &acc) {
-    constexpr float inv_sqrt2 = 0.7071067811865475;
-    switch (axis) {
-        case UpAxis::PosX:
-            return acc.X;
-        case UpAxis::PosY:
-            return acc.Y;
-        case UpAxis::PosZ:
-            return acc.Z;
-        case UpAxis::NegX:
-            return -acc.X;
-        case UpAxis::NegY:
-            return -acc.Y;
-        case UpAxis::NegZ:
-            return -acc.Z;
-
-        case UpAxis::PosXPosY:
-            return (acc.X + acc.Y) * inv_sqrt2;
-        case UpAxis::PosXNegY:
-            return (acc.X - acc.Y) * inv_sqrt2;
-        case UpAxis::NegXPosY:
-            return (-acc.X + acc.Y) * inv_sqrt2;
-        case UpAxis::NegXNegY:
-            return -(acc.X + acc.Y) * inv_sqrt2;
-
-        default:
-            return 0;
-    }
-}
-
 // time for burnout and decellerating under .8 mach after start of boost
 constexpr uint32_t LOCKOUT_MS = AUTOGEN_LOCKOUT_MS;
 // from boost to ground hit time
@@ -107,7 +60,7 @@ struct Parameters {
     uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
     uint8_t controllerHash[LUT_MD5SUM_ARRAY_LEN] = {LUT_MD5SUM_INITIALIZER};
     float upAxisQuaternion[4] = {AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
-
+    float rodQuaternion[4] = {1,0,0,0};
 
     uint16_t maximum_effort_iterations = MAXIMUM_EFFORT_ITERATIONS;
     uint16_t dead_time_iterations = DEAD_TIME_ITERATIONS;
@@ -115,7 +68,7 @@ struct Parameters {
     uint16_t random_padding = 12345;
 };
 
-static_assert(sizeof(Parameters) == 84, "Check size of parameters");
+static_assert(sizeof(Parameters) == 100, "Check size of parameters");
 
 
 constexpr uint16_t StatePrelockout = 0;
