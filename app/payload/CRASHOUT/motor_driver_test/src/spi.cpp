@@ -9,35 +9,36 @@
 #include <zephyr/kernel.h>
 
 enum class SpiCommand : uint8_t {
-  NoOp = 0, // do nothing, just asking for status
-  Reset = 1,
-  R_ReadLink1Accel = 2,
-  R_ReadLink2Accel = 3,
-  R_ReadBaseAccel = 4,
-  WriteBaseAccel = 5,
-  StartArm = 6,
-  StartServo1 = 7,
-  StartServo2 = 8,
-  StartServo3 = 9,
-  StopMoving = 10,
+    NoOp = 0, // do nothing, just asking for status
+    Reset = 1,
+    R_ReadLink1Accel = 2,
+    R_ReadLink2Accel = 3,
+    R_ReadBaseAccel = 4,
+    WriteBaseAccel = 5,
+    StartArm = 6,
+    StartServo1 = 7,
+    StartServo2 = 8,
+    StartServo3 = 9,
+    StartHold = 10,
+    StopMoving = 11,
 
-  WritePoseEst = 11,  // 'rezero' yaw, spitch, epitch, wpitch
-  R_ReadPoseEst = 12, // yaw, spitch, epitch, wpitch
+    WritePoseEst = 12,  // 'rezero' yaw, spitch, epitch, wpitch
+    R_ReadPoseEst = 13, // yaw, spitch, epitch, wpitch
 
-  WriteArmTarget = 13,
-  R_ReadArmTarget = 14,
+    WriteArmTarget = 14,
+    R_ReadArmTarget = 15,
 
-  WriteFlipServo1Motion = 15,
-  WriteFlipServo2Motion = 16,
-  WriteFlipServo3Motion = 17,
+    WriteFlipServo1Motion = 16,
+    WriteFlipServo2Motion = 17,
+    WriteFlipServo3Motion = 18,
 
-  R_ReadFlipServo1Motion = 18,
-  R_ReadFlipServo2Motion = 19,
-  R_ReadFlipServo3Motion = 20,
+    R_ReadFlipServo1Motion = 19,
+    R_ReadFlipServo2Motion = 20,
+    R_ReadFlipServo3Motion = 21,
 
-  R_ReadTemps = 21, // stm, link1, link2
-
+    R_ReadTemps = 22, // stm, link1, link2
 };
+
 StatusWord ModifyStatusWordResponseType(StatusWord status, ResponseKind kind) {
     status &= 0b00000111'11111111;
     status |= kind << 11;
@@ -47,23 +48,7 @@ StatusWord ModifyStatusWordResponseType(StatusWord status, ResponseKind kind) {
 uint16_t MakeStatusWord(State state, bool wrist_en, bool flip_en, bool motor_en, bool movement_failed, bool overtemp) {
 
     uint8_t lower = 1; // 1 always bc we're booted
-    switch (state) {
-        case State::Chilling:
-            lower |= 0b00000;
-            break;
-        case State::ArmMoving:
-            lower |= 0b00010;
-            break;
-        case State::Servo1Moving:
-            lower |= 0b00100;
-            break;
-        case State::Servo2Moving:
-            lower |= 0b01000;
-            break;
-        case State::Servo3Moving:
-            lower |= 0b10000;
-            break;
-    }
+    lower |= static_cast<uint8_t>(state) << 1;
     lower |= movement_failed << 5;
     lower |= wrist_en << 6;
     lower |= flip_en << 7;
@@ -77,7 +62,7 @@ const struct device *spi_periph_dev = DEVICE_DT_GET(DT_NODELABEL(pispi));
 
 // Unless after read request, stm spits out generic status frame
 // 3 imu axes + 2 extra bytes for header
-#define TRANSFER_SIZE ((2 * 3) + 2)
+constexpr size_t TRANSFER_SIZE =  ((2 * 3) + 2);
 
 static const struct spi_config spi_periph_cfg = {
     .frequency = 4'000'000, // 4 mhz
@@ -96,9 +81,8 @@ static struct spi_buf status_tx_buf = {
     .len = TRANSFER_SIZE,
 };
 
-
-void write_status_word(StatusWord word, uint8_t *buf){
-    buf[0] = (word >> 8) * 0xff;
+void write_status_word(StatusWord word, uint8_t *buf) {
+    buf[0] = (word >> 8) & 0xff;
     buf[1] = word & 0xff;
 }
 
@@ -157,7 +141,6 @@ void encode_flip_servo_motion(const FlipServoMotion &motion, uint8_t *buf) {
     buf[4] = motion.close_travel_duration;
 }
 
-
 Vec3_16 read_vec3_16(uint8_t *buf) {
     return {
         .x = (int16_t) ((buf[0] << 8) | buf[1]),
@@ -166,24 +149,22 @@ Vec3_16 read_vec3_16(uint8_t *buf) {
     };
 }
 
-void encode_vec3_16(Vec3_16 v, uint8_t *buf){
-    buf[0] = (v.x >> 8)  & 0xff;
-    buf[1] = v.x  & 0xff;
-    buf[2] = (v.y >> 8)  & 0xff;
-    buf[3] = v.y  & 0xff;
-    buf[4] = (v.z >> 8)  & 0xff;
-    buf[5] = v.z  & 0xff;
+void encode_vec3_16(Vec3_16 v, uint8_t *buf) {
+    buf[0] = (v.x >> 8) & 0xff;
+    buf[1] = v.x & 0xff;
+    buf[2] = (v.y >> 8) & 0xff;
+    buf[3] = v.y & 0xff;
+    buf[4] = (v.z >> 8) & 0xff;
+    buf[5] = v.z & 0xff;
 }
 
-void encode_arm_pose(ArmPose pose, uint8_t *buf){
+void encode_arm_pose(ArmPose pose, uint8_t *buf) {
     buf[0] = pose.shoulder_yaw;
     buf[1] = pose.shoulder_pitch;
     buf[2] = pose.elbow_pitch;
     buf[3] = pose.wrist_pitch;
-    
-
 }
-void encode_temps(Temperatures temps, uint8_t *buf){
+void encode_temps(Temperatures temps, uint8_t *buf) {
     buf[0] = temps.link1_temp;
     buf[1] = temps.link2_temp;
     buf[2] = temps.stm_temp;
@@ -193,7 +174,7 @@ bool handle_receive(uint8_t *in_buf) {
     // printk("Uptime: %lld\n", k_uptime_get());
     // printk("SRXed: ");
     // for (int i = 0; i < TRANSFER_SIZE; i++) {
-        // printk("%02x ", in_buf[i]);
+    // printk("%02x ", in_buf[i]);
     // }
     // printk("\n");
 
@@ -207,20 +188,24 @@ bool handle_receive(uint8_t *in_buf) {
             send_internal_command(&internal_cmd);
             return false;
         case SpiCommand::R_ReadLink1Accel:
-            encode_vec3_16(CurrentState::link1_imu(), spi_response_buf+2);
+            encode_vec3_16(CurrentState::link1_imu(), spi_response_buf + 2);
             spi_response_kind = ResponseKind::ResponseKind_Link1Accel;
             return true;
         case SpiCommand::R_ReadLink2Accel:
-            encode_vec3_16(CurrentState::link2_imu(), spi_response_buf+2);
+            encode_vec3_16(CurrentState::link2_imu(), spi_response_buf + 2);
             spi_response_kind = ResponseKind::ResponseKind_Link2Accel;
             return true;
         case SpiCommand::R_ReadBaseAccel:
-            encode_vec3_16(CurrentState::base_imu(), spi_response_buf+2);
+            encode_vec3_16(CurrentState::base_imu(), spi_response_buf + 2);
             spi_response_kind = ResponseKind::ResponseKind_BaseAccel;
             return true;
         case SpiCommand::WriteBaseAccel:
             internal_cmd.kind = InternalCommandKind::SetBaseAccel;
             internal_cmd.set_base_accel = read_vec3_16(in_buf + 1);
+            send_internal_command(&internal_cmd);
+            return false;
+        case SpiCommand::StartHold:
+            internal_cmd.kind = InternalCommandKind::StartHold;
             send_internal_command(&internal_cmd);
             return false;
         case SpiCommand::StartArm:
@@ -249,7 +234,7 @@ bool handle_receive(uint8_t *in_buf) {
             send_internal_command(&internal_cmd);
             return false;
         case SpiCommand::R_ReadPoseEst:
-            encode_arm_pose(CurrentState::arm_pose_est(), spi_response_buf+2);
+            encode_arm_pose(CurrentState::arm_pose_est(), spi_response_buf + 2);
             spi_response_kind = ResponseKind::ResponseKind_ArmPoseEst;
             return true;
 
@@ -260,45 +245,44 @@ bool handle_receive(uint8_t *in_buf) {
             return false;
 
         case SpiCommand::R_ReadArmTarget:
-            encode_arm_pose(CurrentState::arm_pose_target(), spi_response_buf+2);
+            encode_arm_pose(CurrentState::arm_pose_target(), spi_response_buf + 2);
             spi_response_kind = ResponseKind::ResponseKind_ArmTarget;
             return true;
 
         case SpiCommand::WriteFlipServo1Motion:
             internal_cmd.kind = InternalCommandKind::SetServo1Motion;
-            internal_cmd.set_servo1_motion = decode_flip_servo_motion(in_buf+1);
+            internal_cmd.set_servo1_motion = decode_flip_servo_motion(in_buf + 1);
             send_internal_command(&internal_cmd);
             return false;
         case SpiCommand::WriteFlipServo2Motion:
             internal_cmd.kind = InternalCommandKind::SetServo2Motion;
-            internal_cmd.set_servo2_motion = decode_flip_servo_motion(in_buf+1);
+            internal_cmd.set_servo2_motion = decode_flip_servo_motion(in_buf + 1);
             send_internal_command(&internal_cmd);
             return false;
         case SpiCommand::WriteFlipServo3Motion:
             internal_cmd.kind = InternalCommandKind::SetServo3Motion;
-            internal_cmd.set_servo3_motion = decode_flip_servo_motion(in_buf+1);
+            internal_cmd.set_servo3_motion = decode_flip_servo_motion(in_buf + 1);
             send_internal_command(&internal_cmd);
             return false;
 
         case SpiCommand::R_ReadFlipServo1Motion:
-            encode_flip_servo_motion(CurrentState::servo_motion(FlipServo::Servo1), spi_response_buf+2);
+            encode_flip_servo_motion(CurrentState::servo_motion(FlipServo::Servo1), spi_response_buf + 2);
             return true;
         case SpiCommand::R_ReadFlipServo2Motion:
-            encode_flip_servo_motion(CurrentState::servo_motion(FlipServo::Servo2), spi_response_buf+2);
+            encode_flip_servo_motion(CurrentState::servo_motion(FlipServo::Servo2), spi_response_buf + 2);
             spi_response_kind = ResponseKind::ResponseKind_Servo2Motion;
             return true;
         case SpiCommand::R_ReadFlipServo3Motion:
-            encode_flip_servo_motion(CurrentState::servo_motion(FlipServo::Servo3), spi_response_buf+2);
+            encode_flip_servo_motion(CurrentState::servo_motion(FlipServo::Servo3), spi_response_buf + 2);
             spi_response_kind = ResponseKind::ResponseKind_Servo3Motion;
             return true;
 
-
         case SpiCommand::R_ReadTemps:
-            encode_temps(CurrentState::temperatures(), spi_response_buf+2);
+            encode_temps(CurrentState::temperatures(), spi_response_buf + 2);
             return true;
 
     };
-    printk("Unknown spi command: %d\n", (int)spi_cmd);
+    printk("Unknown spi command: %d\n", (int) spi_cmd);
 
     return false;
 }
@@ -317,12 +301,12 @@ int spi_thread_fn(void) {
 
     while (true) {
 
-        if (needs_response){
+        if (needs_response) {
             uint8_t status_word_msb = (*active_status_buf)[0];
             uint8_t status_word_lsb = (*active_status_buf)[1];
             status_word_msb ^= 0b00000111;
             status_word_msb |= spi_response_kind << 3;
-            spi_response_buf[0] = status_word_msb; 
+            spi_response_buf[0] = status_word_msb;
             spi_response_buf[1] = status_word_lsb;
         }
         struct spi_buf_set tx_bufs = {

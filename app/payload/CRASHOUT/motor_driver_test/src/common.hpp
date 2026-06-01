@@ -7,16 +7,17 @@ enum class State {
     Servo1Moving = 2,
     Servo2Moving = 3,
     Servo3Moving = 4,
+    Holding = 5,
 };
 
 using StatusWord = uint16_t;
 
 enum StatusBit {
     StatusBitBooted = 0,            // set to 1 if board is ready
-    StatusBit_MovingArm = 1,        // Arm
-    StatusBit_MovingFlipServo1 = 2, // Flipping Servo 1
-    StatusBit_MovingFlipServo2 = 3, // Flipping Servo 2
-    StatusBit_MovingFlipServo3 = 4, // Flipping Servo 3
+    StatusBit_State0 = 1,        // Arm
+    StatusBit_State1 = 2, // Flipping Servo 1
+    StatusBit_State2 = 3, // Flipping Servo 2
+    
     StatusBit_MovingArmFailed = 5,  // Arm failed bc OCP
     StatusBit_WristServoEn = 6,     // Efuse enable
     StatusBit_FlipServoEn = 7,      // 8.4V Buck enable
@@ -118,7 +119,9 @@ enum class MovementResult {
 
 namespace CurrentState {
 uint32_t current_iteration();
-
+bool wrist_en();
+bool motors_en();
+bool flip_en();
 FlipServoMotion servo_motion(FlipServo servoid);
 
 ArmPose arm_pose_est();
@@ -137,7 +140,9 @@ Vec3_16 link2_imu();
 
 
 enum class InternalCommandKind {
+    Tick,
     Reset,
+    StartHold,
     StartArm,
     StartServo1,
     StartServo2,

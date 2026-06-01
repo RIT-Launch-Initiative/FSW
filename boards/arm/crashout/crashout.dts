@@ -126,7 +126,7 @@ imu_i2c:&i2c2 {
 	pinctrl-0 = <&i2c2_scl_pb10 &i2c2_sda_pb11>;
 	pinctrl-names = "default";
 	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
+	clock-frequency = <I2C_BITRATE_STANDARD>;
 
 	link1_imu: lis3dh@18 {
 		compatible = "st,lis3dh";
@@ -220,5 +220,8 @@ dma-names = "tx", "rx";
 
 
 &die_temp {
+	status = "okay";
+};
+&adc1{
 	status = "okay";
 };

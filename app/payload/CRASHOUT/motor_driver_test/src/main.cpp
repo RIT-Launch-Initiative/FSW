@@ -27,35 +27,28 @@ LOG_MODULE_REGISTER(main);
 
 /* The devicetree node identifiers*/
 #define LED1_NODE DT_NODELABEL(led1)
-
-#define NSLEEP_NODE DT_NODELABEL(nsleep)
-const struct device *const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(motor_i2c));
-const struct i2c_dt_spec motor1_i2c = {.bus = i2c_bus, .addr = 0x30};
-const struct i2c_dt_spec motor2_i2c = {.bus = i2c_bus, .addr = 0x32};
-const struct i2c_dt_spec motor3_i2c = {.bus = i2c_bus, .addr = 0x36};
-
-const struct device *yaw_enc = DEVICE_DT_GET(DT_NODELABEL(yaw_enc));
-const struct device *pitch_enc = DEVICE_DT_GET(DT_NODELABEL(pitch_enc));
-const struct device *dcm_enc3 = DEVICE_DT_GET(DT_NODELABEL(dcm_enc3));
-
-static const struct gpio_dt_spec nSleep = GPIO_DT_SPEC_GET(NSLEEP_NODE, gpios);
+const device *stm_temp = DEVICE_DT_GET(DT_NODELABEL(die_temp));
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
-
-#define MAIN_LOOP_TIME K_MSEC(10)
-K_TIMER_DEFINE(main_loop_timer, NULL, NULL);
 
 uint32_t base_accel_set_time = 0;
 Vec3_16 base_accel = {0};
 
-ArmPose arm_target = {0};
-
-void handle_arm() { printk("doing arm things\n"); }
+int8_t stored_stm_temp = 0;
 
 K_MSGQ_DEFINE(command_msgq, sizeof(InternalCommand), 4, alignof(InternalCommand));
 
 int send_internal_command(InternalCommand *cmd) {
     return k_msgq_put(&command_msgq, static_cast<void *>(cmd), K_NO_WAIT);
 }
+
+void tick_timer_handler(struct k_timer *dummy) {
+    InternalCommand cmd{};
+    cmd.kind = InternalCommandKind::Tick;
+    send_internal_command(&cmd);
+}
+
+#define MAIN_LOOP_TIME K_MSEC(10)
+K_TIMER_DEFINE(main_loop_timer, tick_timer_handler, NULL);
 
 static uint32_t iterations = 0;
 
@@ -65,25 +58,40 @@ int main() {
         printk("Error %d: failed to configure led pin \n", ret);
         return 0;
     }
+    arm_init();
     servo_init();
     printk("Setup LED\n");
     k_timer_start(&main_loop_timer, MAIN_LOOP_TIME, MAIN_LOOP_TIME);
 
     State state = State::Chilling;
     while (true) {
-        iterations++;
-        k_timer_status_sync(&main_loop_timer);
-        StatusWord sw = MakeStatusWord(State::Chilling, false, false, false, false, false);
-        SubmitStatus(sw, {0, 0, 0, 0});
+        StatusWord sw = MakeStatusWord(state, CurrentState::wrist_en(), CurrentState::flip_en(),
+                                       CurrentState::motors_en(), false, false);
+
+        gpio_pin_toggle_dt(&led1);
+
+        // printk("%lld ms\n", k_uptime_get());
+        // printk("SW: %04x  %d\n", sw, state);
+        SubmitStatus(sw, CurrentState::arm_pose_est());
 
         InternalCommand cmd;
         State next_state = state;
-        if (k_msgq_get(&command_msgq, &cmd, K_NO_WAIT) == 0) {
+        if (k_msgq_get(&command_msgq, &cmd, K_FOREVER) == 0) {
             // handle message
             switch (cmd.kind) {
+                case InternalCommandKind::Tick:
+                    iterations++;
+                    break;
                 case InternalCommandKind::Reset:
                     printk("REBOOT\n");
                     sys_reboot(SYS_REBOOT_COLD);
+                    break;
+                case InternalCommandKind::StartHold:
+                    if (state == State::Chilling) {
+                        next_state = State::Holding;
+                    } else {
+                        LOG_WRN("Not starting hold bc not in resting state");
+                    }
                     break;
                 case InternalCommandKind::StartArm:
                     if (state == State::Chilling) {
@@ -129,7 +137,6 @@ int main() {
                     break;
                 case InternalCommandKind::SetServo1Motion:
                     set_servo_motion(FlipServo::Servo1, cmd.set_servo1_motion);
-                    // printk("Set Servo Motion 1: %d %d %d %d %d\n", cmd.set_servo1_motion.open_duration, cmd.set_servo1_motion.openness, cmd.set_servo1_motion.open_travel_duration, cmd.set_servo1_motion.closedness, cmd.set_servo1_motion.close_travel_duration);
                     break;
                 case InternalCommandKind::SetServo2Motion:
                     set_servo_motion(FlipServo::Servo2, cmd.set_servo2_motion);
@@ -142,14 +149,22 @@ int main() {
             }
         }
         // otherwise, continue
+        sensor_sample_fetch(stm_temp);
+        sensor_value die_temp{};
+        sensor_channel_get(stm_temp, SENSOR_CHAN_DIE_TEMP, &die_temp);
+        stored_stm_temp = static_cast<int8_t>(die_temp.val1);
+        // printk("Die temp: %d\n", die_temp.val1);
 
         // things that happen no matter what
         // read temps
-        // if motors on, read their positions
-        //
+
         if (state != next_state) {
             switch (state) {
                 case State::Chilling:
+                    break;
+                case State::Holding:
+                    stop_arm_hold();
+                    stop_servo_hold();
                     break;
                 case State::ArmMoving:
                     stop_arm();
@@ -166,6 +181,10 @@ int main() {
             }
             switch (next_state) {
                 case State::Chilling:
+                    break;
+                case State::Holding:
+                    start_arm_hold();
+                    start_servo_hold();
                     break;
                 case State::ArmMoving:
                     start_arm();
@@ -187,8 +206,12 @@ int main() {
             case State::Chilling:
                 // don't need to do anything
                 break;
+            case State::Holding:
+                move_result = step_arm_hold();
+                // servos don't need a step
+            break;
             case State::ArmMoving:
-                step_arm();
+                move_result = step_arm();
                 break;
             case State::Servo1Moving:
                 move_result = step_servo(FlipServo::Servo1);
@@ -201,14 +224,16 @@ int main() {
                 break;
         }
         if (state != State::Chilling) {
-            printk("state wasnt chilling\n");
 
             if (move_result != MovementResult::Ongoing) {
-                printk("not ongoing anymore\n");
+                printk("ending movement\n");
                 switch (state) {
                     case State::Chilling:
                         // don't need to do anything
                         break;
+                    case State::Holding:
+                        stop_servo_hold();
+                        stop_arm_hold();
                     case State::ArmMoving:
                         stop_arm();
                         break;
@@ -229,6 +254,6 @@ int main() {
 }
 
 namespace CurrentState {
-Temperatures temperatures() { return {.link1_temp = 1, .link2_temp = 2, .stm_temp = 3}; }
+Temperatures temperatures() { return {.link1_temp = 1, .link2_temp = 2, .stm_temp = stored_stm_temp}; }
 uint32_t current_iteration() { return iterations; }
 } // namespace CurrentState
