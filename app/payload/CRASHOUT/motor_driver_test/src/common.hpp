@@ -100,6 +100,12 @@ struct Vec3_16 {
     int16_t y;
     int16_t z;
 };
+struct Vec3_32 {
+    int32_t x;
+    int32_t y;
+    int32_t z;
+    Vec3_16 to16();
+};
 
 struct ServoTargets {
     uint16_t servo1;

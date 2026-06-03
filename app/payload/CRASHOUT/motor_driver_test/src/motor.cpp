@@ -8,12 +8,13 @@
  * @author Collin Casey, Richard Sommers
  */
 #include "motor.hpp"
+
 #include <zephyr/drivers/sensor.h>
 /* Motor Driver Register Addresses */
-static constexpr uint8_t REG_FAULT  =  0x0;
-static constexpr uint8_t RC_STATUS1 =  0x01;
-static constexpr uint8_t RC_STATUS2 =  0x02;
-static constexpr uint8_t RC_STATUS3 =  0x03;
+static constexpr uint8_t REG_FAULT = 0x0;
+static constexpr uint8_t RC_STATUS1 = 0x01;
+static constexpr uint8_t RC_STATUS2 = 0x02;
+static constexpr uint8_t RC_STATUS3 = 0x03;
 static constexpr uint8_t REG_STATUS1 = 0x04;
 static constexpr uint8_t REG_STATUS2 = 0x05;
 static constexpr uint8_t REG_STATUS3 = 0x06;
@@ -41,30 +42,35 @@ static constexpr uint8_t RC_CTRL8_REG = 0x19;
 /**
  * Contructs an instance of the Motor class with the given i2c address.
  */
-Motor::Motor(const struct device* i2c_bus, uint8_t addr) : Motor(i2c_bus, {.bus = i2c_bus, .addr = addr}) {}
+Motor::Motor(const struct device* i2c_bus, uint8_t addr, bool flip_voltage)
+    : Motor(i2c_bus, {.bus = i2c_bus, .addr = addr}, flip_voltage) {}
 
 /**
  * Contructs an instance of the Motor class with the given i2c device specification.
  */
-Motor::Motor(const struct device* i2c_bus, struct i2c_dt_spec motor_spec) {
+Motor::Motor(const struct device* i2c_bus, struct i2c_dt_spec motor_spec, bool flip_voltage_) {
     this->i2c_bus = i2c_bus;
     motor = motor_spec;
     enc = NULL;
+    flip_voltage = flip_voltage_;
 }
 
 /**
  * Contructs an instance of the Motor class with the given i2c address and encoder.
  */
-Motor::Motor(const struct device* i2c_bus, uint8_t addr, const struct device* dcm_enc) : Motor(i2c_bus, {.bus = i2c_bus, .addr = addr}, dcm_enc) {}
-
+Motor::Motor(const struct device* i2c_bus, uint8_t addr, bool flip_voltage, const struct device* dcm_enc, bool flip_enc)
+    : Motor(i2c_bus, {.bus = i2c_bus, .addr = addr}, flip_voltage, dcm_enc, flip_enc) {}
 
 /**
  * Contructs an instance of the Motor class with the given i2c device specification and encoder.
  */
-Motor::Motor(const struct device* i2c_bus, struct i2c_dt_spec motor_spec, const struct device* dcm_enc) {
+Motor::Motor(const struct device* i2c_bus, struct i2c_dt_spec motor_spec, bool flip_voltage_,
+             const struct device* dcm_enc, bool flip_enc) {
     this->i2c_bus = i2c_bus;
     motor = motor_spec;
     enc = dcm_enc;
+    flip_voltage = flip_voltage_;
+    flip_encoder = flip_enc;
 }
 
 /**
@@ -86,14 +92,13 @@ void Motor::setVoltage16(uint16_t millivolts) {
         return;
     }
     // The value 228 is the maximum value that can be written to the motor driver and corresponds to 38 volts (Page 45 of datasheet).
-    int val = ((uint32_t)millivolts * 228) / 38000;
-    if  (val > 228){
+    int val = ((uint32_t) millivolts * 228) / 38000;
+    if (val > 228) {
         val = 228;
     }
     uint8_t regval = (uint8_t) val;
     i2c_reg_write_byte_dt(&motor, REG_CTRL1_REG, regval);
 }
-
 
 /**
  * Sets the w_scale value of the motor driver by writing to the appropriate register 
@@ -214,7 +219,6 @@ void Motor::printInfo() {
     // 4 amps = 0xc0
     float amps = 1.0 * (imtr / 192.0);
 
-
     //Read speed from the motor driver
     uint8_t speed;
     i2c_reg_read_byte_dt(&motor, RC_STATUS1, &speed);
@@ -233,7 +237,8 @@ void Motor::printInfo() {
     i2c_reg_read_byte_dt(&motor, CONFIG4_REG, &dir);
 
     //Print voltage, speed, ripple count, and direction returned by the motor driver
-    printk("V=%d mV, I=%d mA, S=%d rpm, RC=%d, Dir=%02x ", (int)(1000*volts), (int)(1000*amps), (int)(1000 * speedrpm), (int) rc_cnt, dir);
+    printk("V=%d mV, I=%d mA, S=%d rpm, RC=%d, Dir=%02x ", (int) (1000 * volts), (int) (1000 * amps),
+           (int) (1000 * speedrpm), (int) rc_cnt, dir);
     if (dir == 0x36) {
         printk("Forward\n");
     } else if (dir == 0x37) {
@@ -260,15 +265,14 @@ void Motor::clearFault() {
     i2c_reg_write_byte_dt(&motor, CONFIG0_REG, reg);
 }
 
-bool Motor::didFault(uint8_t *fault_out){
+bool Motor::didFault(uint8_t* fault_out) {
     uint8_t fault = 0;
     i2c_reg_read_byte_dt(&this->motor, 0, &fault);
-    if (fault_out != NULL){
+    if (fault_out != NULL) {
         *fault_out = fault;
     }
     return (fault >> 7) == 1;
 }
-
 
 /**
  * Prints the values of all of the registers in the motor driver
@@ -347,6 +351,13 @@ void Motor::disableSpin() {
  * We don't actually know which way forward and backward are, because it depends on how the motor is wired
  */
 void Motor::setSpinMode(Motor::SpinMode mode) {
+    if (flip_voltage) {
+        if (mode == SpinMode::Forward) {
+            mode = SpinMode::Backward;
+        } else if (mode == SpinMode::Backward) {
+            mode = SpinMode::Forward;
+        }
+    }
     if (mode == SpinMode::Forward) {
         i2c_reg_write_byte_dt(&motor, CONFIG4_REG, 0x36);
     } else if (mode == SpinMode::Backward) {
@@ -453,7 +464,7 @@ int Motor::initSpeedControl() {
     return 1;
 }
 
-void Motor::setTInrush(uint16_t val){
+void Motor::setTInrush(uint16_t val) {
     i2c_reg_write_byte_dt(&motor, CONFIG1_REG, val & 0xff);
     i2c_reg_write_byte_dt(&motor, CONFIG1_REG, val >> 8);
 }
@@ -495,6 +506,8 @@ int64_t Motor::read_enc() {
         return ret;
     }
     int64_t microdegrees = sensor_value_to_micro(&counter_val);
-
+    if (flip_encoder){
+        return (static_cast<int64_t>(360)*1000000)-microdegrees;
+    }
     return microdegrees;
 }

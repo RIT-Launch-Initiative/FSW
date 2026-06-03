@@ -16,7 +16,10 @@ class Motor {
     const struct device* i2c_bus;
     struct i2c_dt_spec motor;
     const struct device* enc;
+    bool flip_voltage = false;
+    bool flip_encoder = false;
     uint8_t flt = 0;
+
     // w_scale_value is used to convert the speed value read from the motor driver in Rad/s to RPM
     // The default value 16 is the minimum value and maxes the motor out at 4080 Rad/s (Page 31 of datatsheet)
     static constexpr uint8_t DEFAULT_W_SCALE_VALUE = 16;
@@ -25,23 +28,23 @@ class Motor {
     /**
      * Contructs an instance of the Motor class with the given i2c address.
      */
-    Motor(const struct device* i2c_bus, uint8_t addr);
+    Motor(const struct device* i2c_bus, uint8_t addr, bool flip_voltage);
 
     /**
      * Contructs an instance of the Motor class with the given i2c device specification.
      */
-    Motor(const struct device* i2c_bus, struct i2c_dt_spec motor_spec);
+    Motor(const struct device* i2c_bus, struct i2c_dt_spec motor_spec, bool flip_voltage);
 
 
     /**
      * Contructs an instance of the Motor class with the given i2c address and encoder.
      */
-    Motor(const struct device* i2c_bus, uint8_t addr, const struct device* dcm_enc);
+    Motor(const struct device* i2c_bus, uint8_t addr, bool flip_voltage, const struct device* dcm_enc, bool flip_encoder);
 
     /**
      * Contructs an instance of the Motor class with the given i2c device specification and encoder.
      */
-    Motor(const struct device* i2c_bus, struct i2c_dt_spec motor_spec, const struct device* dcm_enc);
+    Motor(const struct device* i2c_bus, struct i2c_dt_spec motor_spec, bool flip_voltage, const struct device* dcm_enc, bool flip_encoder);
 
     /**
      * Sets the voltage of the motor driver by writing to the appropriate register.

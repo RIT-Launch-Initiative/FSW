@@ -161,7 +161,7 @@ void encode_flip_servo_motion(const FlipServoMotion &motion, uint8_t *buf) {
     buf[4] = motion.close_travel_duration;
 }
 
-Vec3_16 read_vec3_16(uint8_t *buf) {
+Vec3_16 decode_vec3_16(uint8_t *buf) {
     return {
         .x = (int16_t) ((buf[0] << 8) | buf[1]),
         .y = (int16_t) ((buf[2] << 8) | buf[3]),
@@ -221,7 +221,7 @@ bool handle_receive(uint8_t *in_buf) {
             return true;
         case SpiCommand::WriteBaseAccel:
             internal_cmd.kind = InternalCommandKind::SetBaseAccel;
-            internal_cmd.set_base_accel = read_vec3_16(in_buf + 1);
+            internal_cmd.set_base_accel = decode_vec3_16(in_buf + 1);
             send_internal_command(&internal_cmd);
             return false;
         case SpiCommand::StartJog:
