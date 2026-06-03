@@ -47,6 +47,7 @@ class Motor {
      * Sets the voltage of the motor driver by writing to the appropriate register.
      */
     void setVoltage(float volts);
+    void setVoltage16(uint16_t millivolts);
 
     void setTInrush(uint16_t val);
     /**

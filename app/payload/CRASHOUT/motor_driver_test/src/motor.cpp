@@ -80,6 +80,20 @@ void Motor::setVoltage(float volts) {
     uint8_t regval = (uint8_t) (val + .5f);
     i2c_reg_write_byte_dt(&motor, REG_CTRL1_REG, regval);
 }
+void Motor::setVoltage16(uint16_t millivolts) {
+    if (millivolts > 38000) {
+        printk("invalid volts");
+        return;
+    }
+    // The value 228 is the maximum value that can be written to the motor driver and corresponds to 38 volts (Page 45 of datasheet).
+    int val = ((uint32_t)millivolts * 228) / 38000;
+    if  (val > 228){
+        val = 228;
+    }
+    uint8_t regval = (uint8_t) val;
+    i2c_reg_write_byte_dt(&motor, REG_CTRL1_REG, regval);
+}
+
 
 /**
  * Sets the w_scale value of the motor driver by writing to the appropriate register 

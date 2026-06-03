@@ -7,6 +7,7 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <cmath>
 LOG_MODULE_REGISTER(arm);
 
 struct ShoulderMotors;
@@ -39,7 +40,10 @@ ShoulderMotors ShoulderPosition::to_motors() const {
 
 static ArmPose current_pose = {1, 2, 3, 4};
 static ArmPose target_pose = {5, 6, 7, 8};
-int counter = 0;
+
+JogAction jog_action{0};
+
+uint32_t counter = 0;
 ShoulderMotors motor_zero_offset{0};
 
 #define NSLEEP_NODE DT_NODELABEL(nsleep)
@@ -52,6 +56,8 @@ const struct device *const i2c_bus = DEVICE_DT_GET(DT_NODELABEL(motor_i2c));
 Motor motor1(i2c_bus, 0x30, yaw_enc);
 Motor motor2(i2c_bus, 0x32, pitch_enc);
 Motor motor3(i2c_bus, 0x36);
+
+Motor *motors[] = {&motor1, &motor2, &motor3};
 
 Servo wrist_servo{PWM_DT_SPEC_GET(DT_NODELABEL(servo4)), 500, 2500, 800};
 const gpio_dt_spec wrist_servo_enable = GPIO_DT_SPEC_GET(DT_NODELABEL(wrist_servo_pwr_en), gpios);
@@ -127,7 +133,7 @@ void set_wrist(int8_t angle) {
 
 constexpr size_t MOTOR_STARTUP_TIME = 5;
 void start_arm() {
-    printk("Starting arm");
+    printk("Starting arm\n");
     gpio_pin_set_dt(&wrist_servo_enable, 1);
     wakeup_motors();
     counter = 0;
@@ -157,6 +163,44 @@ void stop_arm_hold() {
     sleep_motors();
 }
 
+void set_jog_paramters(const JogAction &params){
+    if (params.motor > 2){
+        LOG_WRN("Invalid motor for jog params: %d", params.motor);
+        return;
+    }
+    printk("Received jog req: motor %d %d mV for %d iters", jog_action.motor, jog_action.millivolts, jog_action.iterations);
+    jog_action = params;
+}
+void start_arm_jog() {
+    // just turn the stuff on
+    printk("Starting jog for %d iters at %d mv", jog_action.iterations, jog_action.millivolts);
+    start_arm();
+}
+
+MovementResult step_arm_jog() {
+    counter++;
+    if (counter == MOTOR_STARTUP_TIME) {
+        motors[jog_action.motor]->initVoltageControl();
+        motors[jog_action.motor]->clearFault();
+        motors[jog_action.motor]->enableSpin();
+        motors[jog_action.motor]->setSpinMode(jog_action.millivolts < 0 ? Motor::Backward : Motor::Forward);
+        uint16_t mv = std::abs(jog_action.millivolts);
+        printk("Starting motor at %d mv for %d iters", (int)mv, jog_action.iterations);
+        motors[jog_action.motor]->setVoltage16(mv);
+        
+    } else if (counter > jog_action.iterations){
+        return MovementResult::Finished;
+    }
+    return MovementResult::Ongoing;
+}
+void stop_arm_jog() {
+    motors[jog_action.motor]->setVoltage(0.0);
+    motors[jog_action.motor]->setSpinMode(Motor::Brake);
+    motors[jog_action.motor]->disableSpin();
+    sleep_motors();
+}
+
+
 MovementResult step_arm() {
     counter++;
     if (counter < MOTOR_STARTUP_TIME) {
@@ -168,18 +212,20 @@ MovementResult step_arm() {
         motor3.initVoltageControl();
         motor1.regDump();
         set_wrist(target_pose.wrist_pitch);
-        printk("Setting 8.0V\n");
 
-        // motor1.clearFault();
-        // motor1.printFault();
-        // motor1.enableSpin();
-        // motor1.setSpinMode(Motor::Forward);
-        // motor1.setVoltage(8.0);
-        //
+        motor1.clearFault();
+        motor1.printFault();
+        motor1.enableSpin();
+        motor1.setSpinMode(Motor::Forward);
+
         motor2.clearFault();
         motor2.enableSpin();
-        motor2.setSpinMode(Motor::Backward);
-        motor2.setVoltage(12.0);
+        motor2.setSpinMode(Motor::Forward);
+
+        motor2.clearFault();
+        motor2.enableSpin();
+        motor2.setSpinMode(Motor::Forward);
+
     }
 
     ShoulderMotors motors = get_current_motors();

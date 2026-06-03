@@ -86,6 +86,14 @@ int main() {
                     printk("REBOOT\n");
                     sys_reboot(SYS_REBOOT_COLD);
                     break;
+                case InternalCommandKind::StartJog:
+                    if (state == State::Chilling) {
+                        printk("Start Jog main");
+                        next_state = State::Jogging;
+                    } else {
+                        LOG_WRN("Not starting jog bc not in resting state");
+                    }
+                    break;
                 case InternalCommandKind::StartHold:
                     if (state == State::Chilling) {
                         next_state = State::Holding;
@@ -146,6 +154,11 @@ int main() {
                     break;
                 case InternalCommandKind::SetArmPose:
                     set_arm_pose(cmd.set_arm_pose);
+                    break;
+                case InternalCommandKind::SetJogMotion:
+                    LOG_INF("Setting jog motion");
+                    set_jog_paramters(cmd.jog_action);
+                    break;
             }
         }
         // otherwise, continue
@@ -178,6 +191,9 @@ int main() {
                 case State::Servo3Moving:
                     stop_servo_move(FlipServo::Servo3);
                     break;
+                case State::Jogging:
+                    stop_arm_jog();
+                    break;
             }
             switch (next_state) {
                 case State::Chilling:
@@ -198,6 +214,10 @@ int main() {
                 case State::Servo3Moving:
                     start_servo_move(FlipServo::Servo3);
                     break;
+                case State::Jogging:
+                    printk("Staritng jog");
+                    start_arm_jog();
+                    break;
             }
         }
         state = next_state;
@@ -209,7 +229,7 @@ int main() {
             case State::Holding:
                 move_result = step_arm_hold();
                 // servos don't need a step
-            break;
+                break;
             case State::ArmMoving:
                 move_result = step_arm();
                 break;
@@ -221,6 +241,10 @@ int main() {
                 break;
             case State::Servo3Moving:
                 move_result = step_servo(FlipServo::Servo3);
+                break;
+            case State::Jogging:
+                LOG_INF("Stepping arm jog");
+                move_result = step_arm_jog();
                 break;
         }
         if (state != State::Chilling) {
@@ -245,6 +269,9 @@ int main() {
                         break;
                     case State::Servo3Moving:
                         stop_servo_move(FlipServo::Servo3);
+                        break;
+                    case State::Jogging:
+                        stop_arm_jog();
                         break;
                 }
                 state = State::Chilling;

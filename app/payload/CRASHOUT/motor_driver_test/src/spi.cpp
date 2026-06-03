@@ -20,23 +20,25 @@ enum class SpiCommand : uint8_t {
     StartServo2 = 8,
     StartServo3 = 9,
     StartHold = 10,
-    StopMoving = 11,
+    StartJog = 11,
+    StopMoving = 12,
 
-    WritePoseEst = 12,  // 'rezero' yaw, spitch, epitch, wpitch
-    R_ReadPoseEst = 13, // yaw, spitch, epitch, wpitch
+    WritePoseEst = 13,  // 'rezero' yaw, spitch, epitch, wpitch
+    R_ReadPoseEst = 14, // yaw, spitch, epitch, wpitch
 
-    WriteArmTarget = 14,
-    R_ReadArmTarget = 15,
+    WriteArmTarget = 15,
+    R_ReadArmTarget = 16,
 
-    WriteFlipServo1Motion = 16,
-    WriteFlipServo2Motion = 17,
-    WriteFlipServo3Motion = 18,
+    WriteFlipServo1Motion = 17,
+    WriteFlipServo2Motion = 18,
+    WriteFlipServo3Motion = 19,
 
-    R_ReadFlipServo1Motion = 19,
-    R_ReadFlipServo2Motion = 20,
-    R_ReadFlipServo3Motion = 21,
+    R_ReadFlipServo1Motion = 20,
+    R_ReadFlipServo2Motion = 21,
+    R_ReadFlipServo3Motion = 22,
 
-    R_ReadTemps = 22, // stm, link1, link2
+    WriteJog = 23,
+    R_ReadTemps = 24, // stm, link1, link2
 };
 
 StatusWord ModifyStatusWordResponseType(StatusWord status, ResponseKind kind) {
@@ -133,6 +135,24 @@ FlipServoMotion decode_flip_servo_motion(uint8_t *buf) {
         .close_travel_duration = buf[4],
     };
 }
+
+
+JogAction decode_jog_action(uint8_t *buf) {
+    printk("decja %02x %02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3], buf[4]);
+    return {
+        .motor = buf[0],
+        .iterations = (uint16_t)((buf[1] << 8) | buf[2]),
+        .millivolts = (int16_t)((buf[3] << 8) | buf[4]),
+    };
+}
+void encode_jog_action(const JogAction *act, uint8_t *buf){
+    buf[0] = act->motor;
+    buf[1] = (act->iterations >> 8) & 0xff;
+    buf[2] = act->iterations & 0xff;
+    buf[3] = (act->millivolts >> 8) & 0xff;
+    buf[4] = act->millivolts & 0xff;
+}
+
 void encode_flip_servo_motion(const FlipServoMotion &motion, uint8_t *buf) {
     buf[0] = motion.open_duration;
     buf[1] = motion.openness;
@@ -202,6 +222,11 @@ bool handle_receive(uint8_t *in_buf) {
         case SpiCommand::WriteBaseAccel:
             internal_cmd.kind = InternalCommandKind::SetBaseAccel;
             internal_cmd.set_base_accel = read_vec3_16(in_buf + 1);
+            send_internal_command(&internal_cmd);
+            return false;
+        case SpiCommand::StartJog:
+            printk("SartJog recved\n");
+            internal_cmd.kind = InternalCommandKind::StartJog;
             send_internal_command(&internal_cmd);
             return false;
         case SpiCommand::StartHold:
@@ -276,6 +301,12 @@ bool handle_receive(uint8_t *in_buf) {
             encode_flip_servo_motion(CurrentState::servo_motion(FlipServo::Servo3), spi_response_buf + 2);
             spi_response_kind = ResponseKind::ResponseKind_Servo3Motion;
             return true;
+
+        case SpiCommand::WriteJog:
+            internal_cmd.kind = InternalCommandKind::SetJogMotion;
+            internal_cmd.jog_action = decode_jog_action(in_buf+1);
+            send_internal_command(&internal_cmd);
+            return false;
 
         case SpiCommand::R_ReadTemps:
             encode_temps(CurrentState::temperatures(), spi_response_buf + 2);

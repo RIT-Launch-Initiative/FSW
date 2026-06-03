@@ -8,20 +8,21 @@ enum class State {
     Servo2Moving = 3,
     Servo3Moving = 4,
     Holding = 5,
+    Jogging = 6,
 };
 
 using StatusWord = uint16_t;
 
 enum StatusBit {
-    StatusBitBooted = 0,            // set to 1 if board is ready
-    StatusBit_State0 = 1,        // Arm
+    StatusBitBooted = 0,  // set to 1 if board is ready
+    StatusBit_State0 = 1, // Arm
     StatusBit_State1 = 2, // Flipping Servo 1
     StatusBit_State2 = 3, // Flipping Servo 2
-    
-    StatusBit_MovingArmFailed = 5,  // Arm failed bc OCP
-    StatusBit_WristServoEn = 6,     // Efuse enable
-    StatusBit_FlipServoEn = 7,      // 8.4V Buck enable
-    StatusBit_MotorEn = 8,          // not sleeping
+
+    StatusBit_MovingArmFailed = 5, // Arm failed bc OCP
+    StatusBit_WristServoEn = 6,    // Efuse enable
+    StatusBit_FlipServoEn = 7,     // 8.4V Buck enable
+    StatusBit_MotorEn = 8,         // not sleeping
     StatusBitOvertemp = 9,
 
     // identify what kind of response this is 0 - 31
@@ -109,8 +110,14 @@ struct ServoTargets {
 enum class MovementResult {
     Ongoing = 0,
     Finished = 1,
-    Failed = 2, 
-    Invalid = 3, 
+    Failed = 2,
+    Invalid = 3,
+};
+
+struct JogAction {
+    uint8_t motor;
+    uint16_t iterations;
+    int16_t millivolts;
 };
 
 /**
@@ -137,8 +144,6 @@ Vec3_16 link2_imu();
 
 } // namespace CurrentState
 
-
-
 enum class InternalCommandKind {
     Tick,
     Reset,
@@ -147,6 +152,7 @@ enum class InternalCommandKind {
     StartServo1,
     StartServo2,
     StartServo3,
+    StartJog,
     Stop,
     SetBaseAccel,
     SetArmTarget,
@@ -154,9 +160,10 @@ enum class InternalCommandKind {
     SetServo2Motion,
     SetServo3Motion,
     SetArmPose,
+    SetJogMotion,
 };
 
-struct InternalCommand{
+struct InternalCommand {
     InternalCommandKind kind;
     union {
         Vec3_16 set_base_accel;
@@ -165,6 +172,7 @@ struct InternalCommand{
         FlipServoMotion set_servo2_motion;
         FlipServoMotion set_servo3_motion;
         ArmPose set_arm_pose;
+        JogAction jog_action;
     };
 };
 
