@@ -505,9 +505,35 @@ int64_t Motor::read_enc() {
         printk("Unable to read sensor channel: %d\n", ret);
         return ret;
     }
+    constexpr int64_t udeg360 = 360'000'000;
     int64_t microdegrees = sensor_value_to_micro(&counter_val);
-    if (flip_encoder){
-        return (static_cast<int64_t>(360)*1000000)-microdegrees;
+    if (flip_encoder) {
+        microdegrees = udeg360 - microdegrees;
     }
-    return microdegrees;
+    // if underflowed or overflowed, add 1 or subtract one based on estimate
+    // threshold found by 100 output rpm motor at 1:298 = 3.12 rad/ms
+    // threshold found by 30 output rpm motor at 1:1000 = 3.14 rad/ms
+    // if we skip our encoder check 10 times at 10 ms cycle it could
+    // be as much as 100 ms so jump 314 rad
+    // 314 rad = 17990 deg = 49.9 rotations ~= 50 rotations
+    // 7 ticks per rotation but kinda 14 bc two pulses = 700 ticks
+    // ticks per 360 degrees = 56000, 62580 for encoder 1, encoder 2
+    // 6428.57, 5752.63 udeg / tick
+    // 6428 udeg/tick * 700 ticks  = 4499600
+    // =  ~4 degrees
+    // 4 degrees per 100 ms vs 356 degrees per 100 ms assuming shorter path
+    constexpr int64_t wrap_guess_threshold_microdeg = 4499600;
+    constexpr int64_t wrap_guess_threshold_microdeg_top = udeg360 - wrap_guess_threshold_microdeg;
+
+    if (last_microdegrees < wrap_guess_threshold_microdeg && microdegrees > wrap_guess_threshold_microdeg_top) {
+        // underflow
+        full_enc_rotations--;
+    } else if (last_microdegrees > wrap_guess_threshold_microdeg_top && microdegrees < wrap_guess_threshold_microdeg) {
+        // overflow
+        full_enc_rotations++;
+    }
+
+    last_microdegrees = microdegrees;
+    int64_t combined = (full_enc_rotations * udeg360) + microdegrees;
+    return combined;
 }

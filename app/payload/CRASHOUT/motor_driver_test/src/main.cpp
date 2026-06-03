@@ -175,6 +175,7 @@ int main() {
         }
 
         // things that happen no matter what
+        arm_measure();
         // read temps
         sensor_sample_fetch(stm_temp);
         sensor_value die_temp{};

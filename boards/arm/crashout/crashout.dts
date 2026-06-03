@@ -109,7 +109,7 @@
 &usart2 {
 	pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
 	pinctrl-names = "default";
-	current-speed = <115200>;
+	current-speed = <460800>;
 	status = "okay";
 };
 
@@ -196,6 +196,7 @@ dma-names = "tx", "rx";
 
 &timers3 {
 	status="okay";
+	// st,prescaler = <2>;
 	pitch_enc: qdec {
 		compatible = "st,stm32-qdec";
 		status = "okay";
@@ -203,7 +204,9 @@ dma-names = "tx", "rx";
 		pinctrl-0 = <&tim3_ch1_remap2_pwm_in_pb4 &tim3_ch2_remap2_pwm_in_pb5>;
 		pinctrl-names = "default";
 		// https://docs.zephyrproject.org/latest/build/dts/api/bindings/sensor/st%2Cstm32-qdec.html
-		st,counts-per-revolution = <62580>; // 100 rpm 298:1 motor gearbox, 298 rotations of output to 1 input, 15:1 arm gearbox 7 PPR hall sensor, Magic x2
+		// 100 rpm 298:1 motor gearbox, 298 rotations of output to 1 input, 15:1 arm gearbox 7 PPR hall sensor, Magic x2
+		// x2 by prescaler so we can measure all
+		st,counts-per-revolution = <62580>; 
 	};
 };
 

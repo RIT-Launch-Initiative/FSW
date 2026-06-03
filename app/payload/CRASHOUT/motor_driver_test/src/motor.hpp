@@ -18,6 +18,8 @@ class Motor {
     const struct device* enc;
     bool flip_voltage = false;
     bool flip_encoder = false;
+    int32_t full_enc_rotations = 0;
+    int64_t last_microdegrees = 0;
     uint8_t flt = 0;
 
     // w_scale_value is used to convert the speed value read from the motor driver in Rad/s to RPM
