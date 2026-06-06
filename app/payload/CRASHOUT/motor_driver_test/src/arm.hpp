@@ -4,7 +4,7 @@
 void arm_init();
 
 // call > 10 times a second to accurately detect wraparounds
-void arm_measure();
+void arm_measure(const Vec3_16 &base_imu, const Vec3_32 &l2_imu);
 
 
 void set_jog_paramters(const JogAction &);

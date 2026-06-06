@@ -53,6 +53,7 @@ class Motor {
      */
     void setVoltage(float volts);
     void setVoltage16(uint16_t millivolts);
+    void setDirAndVoltage16(int16_t millivolts);
 
     void setTInrush(uint16_t val);
     /**
@@ -87,6 +88,8 @@ class Motor {
      * Sets the motor driver to voltage control mode
      */
     void setToVoltageControlMode();
+
+    void setStopOnStall(bool enabled);
 
     /**
      * Reads and prints the voltage, speed, ripple count, and direction from the motor driver.

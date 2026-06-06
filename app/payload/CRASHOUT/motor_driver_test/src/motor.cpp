@@ -99,6 +99,14 @@ void Motor::setVoltage16(uint16_t millivolts) {
     uint8_t regval = (uint8_t) val;
     i2c_reg_write_byte_dt(&motor, REG_CTRL1_REG, regval);
 }
+void Motor::setDirAndVoltage16(int16_t millivolts) {
+    if (millivolts > 0) {
+        setSpinMode(Motor::Forward);
+    } else {
+        setSpinMode(Motor::Backward);
+    }
+    setVoltage16(std::abs(millivolts));
+}
 
 /**
  * Sets the w_scale value of the motor driver by writing to the appropriate register 
@@ -203,6 +211,14 @@ void Motor::setToVoltageControlMode() {
     i2c_reg_read_byte_dt(&motor, CONFIG0_REG, &config0);
     config0 &= 0b11111110;
     i2c_reg_write_byte_dt(&motor, CONFIG0_REG, config0);
+}
+
+void Motor::setStopOnStall(bool enabled) {
+    uint8_t config3 = 0;
+    i2c_reg_read_byte_dt(&motor, CONFIG3_REG, &config3);
+    config3 &= 0b11011111;
+    config3 |= enabled << 0b100000;
+    i2c_reg_write_byte_dt(&motor, CONFIG3_REG, config3);
 }
 
 /**

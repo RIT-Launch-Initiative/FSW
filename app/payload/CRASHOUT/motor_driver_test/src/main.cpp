@@ -36,12 +36,18 @@ static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 uint32_t base_accel_set_time = 0;
 Vec3_16 base_accel = {0};
 
-Vec3_32 l2_accel{0};
+Vec3_32 l2_accel_n16{0};
 
-void imu_read_to_v32_normalize(sensor_value *xyz, Vec3_32 &vec) {
-    vec.x = sensor_value_to_micro(&xyz[0]);
-    vec.y = sensor_value_to_micro(&xyz[1]);
-    vec.z = sensor_value_to_micro(&xyz[2]);
+void l2_imu_read_to_v32_normalize(sensor_value *xyz, Vec3_32 &vec_out) {
+    Vec3_32 vec{0};
+    // imu x is arm -z
+    // imu y = y
+    // imu z is arm x
+    vec.x = -sensor_value_to_milli(&xyz[2]);
+    vec.y = sensor_value_to_milli(&xyz[1]);
+    vec.z = sensor_value_to_milli(&xyz[0]);
+    vec = normalize_to16(vec);
+    vec_out = vec;
 }
 
 int8_t stored_stm_temp = 0;
@@ -175,7 +181,6 @@ int main() {
         }
 
         // things that happen no matter what
-        arm_measure();
         // read temps
         sensor_sample_fetch(stm_temp);
         sensor_value die_temp{};
@@ -187,13 +192,14 @@ int main() {
             sensor_value l2_reading[3] = {0};
             int gret = sensor_channel_get(l2_imu, SENSOR_CHAN_ACCEL_XYZ, &l2_reading[0]);
             if (gret == 0) {
-                imu_read_to_v32_normalize(l2_reading, l2_accel);
+                l2_imu_read_to_v32_normalize(l2_reading, l2_accel_n16);
             } else {
                 printk("Failed to get l2 imu: %d\n", gret);
             }
         } else {
             printk("Failed to fetch l2 imu %d\n", iret);
         }
+        arm_measure(base_accel, l2_accel_n16);
 
         if (state != next_state) {
             switch (state) {
@@ -304,6 +310,16 @@ int main() {
 }
 
 namespace CurrentState {
+
+bool base_accel_is_valid() {
+    if (base_accel_set_time == 0) {
+        // never set
+        return false;
+    }
+    int64_t elapsed = k_uptime_get() - base_accel_set_time;
+    return elapsed < 500;
+}
+
 Temperatures temperatures() { return {.link1_temp = 1, .link2_temp = 2, .stm_temp = stored_stm_temp}; }
 uint32_t current_iteration() { return iterations; }
 
@@ -315,8 +331,10 @@ Vec3_16 link1_imu() {
         .z = 1,
     };
 }
-Vec3_16 link2_imu() { return l2_accel.to16(); }
+Vec3_16 link2_imu() { return l2_accel_n16.toMillig(); }
 
 } // namespace CurrentState
 
-Vec3_16 Vec3_32::to16() { return {static_cast<int16_t>(x / 1000), static_cast<int16_t>(y / 1000), static_cast<int16_t>(z / 1000)}; }
+Vec3_16 Vec3_32::toMillig() {
+    return {static_cast<int16_t>(x / 1000), static_cast<int16_t>(y / 1000), static_cast<int16_t>(z / 1000)};
+}

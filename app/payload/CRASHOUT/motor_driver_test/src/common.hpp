@@ -19,11 +19,12 @@ enum StatusBit {
     StatusBit_State1 = 2, // Flipping Servo 1
     StatusBit_State2 = 3, // Flipping Servo 2
 
-    StatusBit_MovingArmFailed = 5, // Arm failed bc OCP
-    StatusBit_WristServoEn = 6,    // Efuse enable
-    StatusBit_FlipServoEn = 7,     // 8.4V Buck enable
-    StatusBit_MotorEn = 8,         // not sleeping
-    StatusBitOvertemp = 9,
+    StatusBit_MovingArmFailed = 5,       // Arm failed bc OCP
+    StatusBit_WristServoEn = 6,          // Efuse enable
+    StatusBit_FlipServoEn = 7,           // 8.4V Buck enable
+    StatusBit_MotorEn = 8,               // not sleeping
+    StatusBitCantTrustImuLink = 9, // if we're on our side, the top joint doesnt know where it is
+    StatusBitEncodersNotUpdating = 10,
 
     // identify what kind of response this is 0 - 31
     StatusBit_RType0 = 11,
@@ -104,8 +105,12 @@ struct Vec3_32 {
     int32_t x;
     int32_t y;
     int32_t z;
-    Vec3_16 to16();
+    Vec3_16 toMillig();
 };
+
+bool getVerticalAngleFromImus(Vec3_16 base_imu16_normalized, Vec3_32 link_imu, int64_t yaw, int64_t pitch,
+                              int64_t *microdeg_out);
+Vec3_32 normalize_to16(Vec3_32 v);
 
 struct ServoTargets {
     uint16_t servo1;
@@ -131,6 +136,7 @@ struct JogAction {
  */
 
 namespace CurrentState {
+bool base_accel_is_valid();
 uint32_t current_iteration();
 bool wrist_en();
 bool motors_en();
