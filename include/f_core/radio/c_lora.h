@@ -128,7 +128,7 @@ class CLora {
     const device* lora_dev;
     lora_modem_config config = {
 #ifdef CONFIG_LICENSED_FREQUENCY
-        .frequency = 435'000'000,
+        .frequency = 425'720'000,
 #else
         .frequency = 906'900'000,
 #endif
