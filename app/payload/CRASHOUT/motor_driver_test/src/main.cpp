@@ -231,6 +231,7 @@ int main() {
         sensor_channel_get(stm_temp, SENSOR_CHAN_DIE_TEMP, &die_temp);
         stored_stm_temp = static_cast<int8_t>(die_temp.val1);
 
+
         int iret = sensor_sample_fetch(l2_imu);
         if (iret == 0) {
             sensor_value l2_reading[3] = {0};
@@ -377,10 +378,14 @@ Vec3_16 link1_imu() {
         .z = 1,
     };
 }
-Vec3_16 link2_imu() { return l2_accel_n16.toMillig(); }
+Vec3_16 link2_imu() { return l2_accel_n16.Saturated16(); }
 
 } // namespace CurrentState
 
 Vec3_16 Vec3_32::toMillig() {
     return {static_cast<int16_t>(x / 1000), static_cast<int16_t>(y / 1000), static_cast<int16_t>(z / 1000)};
+}
+
+Vec3_16 Vec3_32::Saturated16() {
+    return {saturate_i16(x), saturate_i16(y), saturate_i16(z)};
 }

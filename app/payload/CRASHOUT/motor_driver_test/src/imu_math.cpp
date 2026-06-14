@@ -95,7 +95,6 @@ bool getVerticalAngleFromImus(Vec3_16 base_imu16_normalized, Vec3_32 link_imu, i
     // just need to change datatypes
     Vec3_32 base_imu32_normed_16{base_imu16_normalized.x, base_imu16_normalized.y, base_imu16_normalized.z};
 
-    Vec3_32 up_normed_16{0, 0, max_16};
     // need to actualy normalize here
     Vec3_32 link_imu32_normed_16 = normalize_to16(link_imu);
     if (shouldntUseAccel(link_imu32_normed_16)) {

@@ -106,7 +106,10 @@ struct Vec3_32 {
     int32_t y;
     int32_t z;
     Vec3_16 toMillig();
+    Vec3_16 Saturated16();
 };
+int16_t saturate_i16(int32_t v);
+
 
 bool getVerticalAngleFromImus(Vec3_16 base_imu16_normalized, Vec3_32 link_imu, int64_t yaw, int64_t pitch,
                               int64_t *microdeg_out);
