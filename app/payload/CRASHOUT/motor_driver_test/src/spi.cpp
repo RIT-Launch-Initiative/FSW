@@ -39,6 +39,7 @@ enum class SpiCommand : uint8_t {
 
     WriteJog = 23,
     R_ReadTemps = 24, // stm, link1, link2
+    StartArmNoCurrentLimit = 25,
 };
 
 StatusWord ModifyStatusWordResponseType(StatusWord status, ResponseKind kind) {
@@ -235,6 +236,10 @@ bool handle_receive(uint8_t *in_buf) {
             return false;
         case SpiCommand::StartArm:
             internal_cmd.kind = InternalCommandKind::StartArm;
+            send_internal_command(&internal_cmd);
+            return false;
+        case SpiCommand::StartArmNoCurrentLimit:
+            internal_cmd.kind = InternalCommandKind::StartArmNoCurrentLimit;
             send_internal_command(&internal_cmd);
             return false;
         case SpiCommand::StartServo1:

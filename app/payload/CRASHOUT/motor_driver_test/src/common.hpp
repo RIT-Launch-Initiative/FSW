@@ -161,6 +161,7 @@ enum class InternalCommandKind {
     Reset,
     StartHold,
     StartArm,
+    StartArmNoCurrentLimit,
     StartServo1,
     StartServo2,
     StartServo3,

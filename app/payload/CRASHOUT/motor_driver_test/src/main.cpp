@@ -15,6 +15,7 @@
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/watchdog.h>
 #include <zephyr/irq.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -30,8 +31,11 @@ LOG_MODULE_REGISTER(main);
 const device *stm_temp = DEVICE_DT_GET(DT_NODELABEL(die_temp));
 const device *l2_imu = DEVICE_DT_GET(DT_NODELABEL(link2_imu));
 const device *imu_bus = DEVICE_DT_GET(DT_NODELABEL(imu_i2c));
+const device *wdt_dev = DEVICE_DT_GET(DT_ALIAS(watchdog0));
 
 static const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+
+bool last_movement_failed = false;
 
 uint32_t base_accel_set_time = 0;
 Vec3_16 base_accel = {0};
@@ -69,12 +73,41 @@ K_TIMER_DEFINE(main_loop_timer, tick_timer_handler, NULL);
 
 static uint32_t iterations = 0;
 
+int wdt_channel_id = 0;
+void setup_watchdog() {
+    struct wdt_timeout_cfg wdt_config;
+    int wdt_channel_id;
+
+    if (!device_is_ready(wdt_dev)) {
+        printk("Watchdog device not ready\n");
+        return;
+    }
+
+    /* Set up watchdog parameters (Timeout window: 0 to 2000 milliseconds) */
+    wdt_config.flags = WDT_FLAG_RESET_SOC;
+    wdt_config.window.min = 0U;
+    wdt_config.window.max = 2000U;
+    wdt_config.callback = NULL; /* IWDG typically triggers hard reset directly */
+
+    /* Install the timeout configuration */
+    wdt_channel_id = wdt_install_timeout(wdt_dev, &wdt_config);
+    if (wdt_channel_id < 0) {
+        printk("Watchdog install timeout failed\n");
+        return;
+    }
+
+}
+void feed_watchdog() { wdt_feed(wdt_dev, wdt_channel_id); }
+
 int main() {
     int ret = gpio_pin_configure_dt(&led1, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
         printk("Error %d: failed to configure led pin \n", ret);
         return 0;
     }
+
+    setup_watchdog();
+
     i2c_recover_bus(imu_bus);
     arm_init();
     servo_init();
@@ -83,8 +116,10 @@ int main() {
 
     State state = State::Chilling;
     while (true) {
+        feed_watchdog();
+
         StatusWord sw = MakeStatusWord(state, CurrentState::wrist_en(), CurrentState::flip_en(),
-                                       CurrentState::motors_en(), false, false);
+                                       CurrentState::motors_en(), last_movement_failed, false);
 
         gpio_pin_toggle_dt(&led1);
 
@@ -121,6 +156,15 @@ int main() {
                     break;
                 case InternalCommandKind::StartArm:
                     if (state == State::Chilling) {
+                        arm_set_ignore_stall(false);
+                        next_state = State::ArmMoving;
+                    } else {
+                        LOG_WRN("Not starting arm bc not in resting state");
+                    }
+                    break;
+                case InternalCommandKind::StartArmNoCurrentLimit:
+                    if (state == State::Chilling) {
+                        arm_set_ignore_stall(true);
                         next_state = State::ArmMoving;
                     } else {
                         LOG_WRN("Not starting arm bc not in resting state");
@@ -198,6 +242,7 @@ int main() {
             }
         } else {
             printk("Failed to fetch l2 imu %d\n", iret);
+            i2c_recover_bus(imu_bus);
         }
         arm_measure(base_accel, l2_accel_n16);
 
@@ -225,6 +270,7 @@ int main() {
                     stop_arm_jog();
                     break;
             }
+            last_movement_failed = false;
             switch (next_state) {
                 case State::Chilling:
                     break;
@@ -272,7 +318,6 @@ int main() {
                 move_result = step_servo(FlipServo::Servo3);
                 break;
             case State::Jogging:
-                printk("Stepping arm jog\n");
                 move_result = step_arm_jog();
                 break;
         }
@@ -280,6 +325,7 @@ int main() {
 
             if (move_result != MovementResult::Ongoing) {
                 printk("ending movement\n");
+                last_movement_failed = move_result != MovementResult::Finished;
                 switch (state) {
                     case State::Chilling:
                         // don't need to do anything

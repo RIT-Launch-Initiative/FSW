@@ -217,7 +217,7 @@ void Motor::setStopOnStall(bool enabled) {
     uint8_t config3 = 0;
     i2c_reg_read_byte_dt(&motor, CONFIG3_REG, &config3);
     config3 &= 0b11011111;
-    config3 |= enabled << 0b100000;
+    config3 |= enabled << 5;
     i2c_reg_write_byte_dt(&motor, CONFIG3_REG, config3);
 }
 
@@ -482,7 +482,7 @@ int Motor::initSpeedControl() {
 
 void Motor::setTInrush(uint16_t val) {
     i2c_reg_write_byte_dt(&motor, CONFIG1_REG, val & 0xff);
-    i2c_reg_write_byte_dt(&motor, CONFIG1_REG, val >> 8);
+    i2c_reg_write_byte_dt(&motor, CONFIG2_REG, val >> 8);
 }
 /**
  * Sets up the motor driver to run in voltage control mode

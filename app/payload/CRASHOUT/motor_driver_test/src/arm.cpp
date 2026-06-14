@@ -8,6 +8,9 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include "f_core/utils/linear_fit.hpp"
+
+
 LOG_MODULE_REGISTER(arm);
 
 struct ShoulderEncoders;
@@ -54,8 +57,9 @@ struct ShoulderEncoders {
 // kP  =        (mV/udeg)
 // ikP = 1/kP = (udeg/mV)
 // udeg * ikP = mV
-constexpr int16_t max_mv = 12000; // mV
-int16_t clamp_voltage(int64_t mV) {
+constexpr int16_t max_mv_shoulder = 12000; // mV
+constexpr int16_t max_mv_elbow = 9000; // mV
+int16_t clamp_voltage(int64_t mV, int64_t max_mv) {
     if (mV > max_mv) {
         return max_mv;
     } else if (mV < -max_mv) {
@@ -65,7 +69,7 @@ int16_t clamp_voltage(int64_t mV) {
 }
 constexpr int64_t ikP1 = 3000000; // udegm/mV
 constexpr int64_t ikP2 = 3000000; // udegm/mV
-constexpr int64_t ikP3 = 4000;    // udeg/mV
+constexpr int64_t ikP3 = 3000;    // udeg/mV
 
 struct MotorVec {
     int64_t m1;
@@ -137,8 +141,8 @@ void safeBox(ShoulderEncoders offCorrection, ShoulderEncoders onCorrection, int1
 
     // bound of box in motor space is just voltage
     // bound of box in encoder space is in udeg
-    constexpr int64_t bound1e = max_mv * ikP1; // mV * (udeg/mv) = udegm (udeg of motor)
-    constexpr int64_t bound2e = max_mv * ikP2; // mV * (udeg/mV) = udegm (udeg of motor)
+    constexpr int64_t bound1e = max_mv_shoulder * ikP1; // mV * (udeg/mv) = udegm (udeg of motor)
+    constexpr int64_t bound2e = max_mv_shoulder * ikP2; // mV * (udeg/mV) = udegm (udeg of motor)
     MotorVec low_bounds{-bound1e, -bound2e};
     MotorVec high_bounds{bound1e, bound2e};
     int64_t m1off = offCorrection.to_motor1_udeg();
@@ -159,8 +163,8 @@ void safeBox(ShoulderEncoders offCorrection, ShoulderEncoders onCorrection, int1
     int64_t m1_udeg = motOff.m1 + motOn.m1;
     int64_t m2_udeg = motOff.m2 + motOn.m2;
 
-    *m1_out = clamp_voltage(m1_udeg / ikP1);
-    *m2_out = clamp_voltage(m2_udeg / ikP2);
+    *m1_out = clamp_voltage(m1_udeg / ikP1, max_mv_shoulder);
+    *m2_out = clamp_voltage(m2_udeg / ikP2, max_mv_shoulder);
 }
 
 ShoulderEncoders ShoulderPosition::to_encoders() const {
@@ -171,9 +175,9 @@ ShoulderEncoders ShoulderPosition::to_encoders() const {
 
 // 90 degrees further than we expect bc time can't count as high as we want and overflow itnerrupts are annoying enought to add that i dont want to deal with it
 constexpr int8_t LOCKIN_SHOULDER_YAW_ANGLE_B = 0;
-constexpr int8_t LOCKIN_SHOULDER_PITCH_ANGLE_B = 0;
+constexpr int8_t LOCKIN_SHOULDER_PITCH_ANGLE_B = 90;
 constexpr int8_t LOCKIN_ELBOW_ANGLE_B = -127;
-constexpr int8_t LOCKIN_WRIST_ANGLE_B = -127;
+constexpr int8_t LOCKIN_WRIST_ANGLE_B = 127;
 
 static ArmPose current_pose = {LOCKIN_SHOULDER_YAW_ANGLE_B, LOCKIN_SHOULDER_PITCH_ANGLE_B, LOCKIN_ELBOW_ANGLE_B,
                                LOCKIN_WRIST_ANGLE_B};
@@ -184,8 +188,10 @@ static ArmPose target_pose = {0, 0, 0, 0};
 static ShoulderPosition target_shoulder{0, 0};
 static ShoulderPosition initial_shoulder{0, 0};
 static uint32_t servo_travel_time = 0;
-static int64_t j2_angle = 0;
+CMovingAverage<int64_t, 5> j2_angle_avg{LOCKIN_ELBOW_ANGLE_B};
 static bool should_trust_j2 = false;
+static bool ignoring_stall = false;
+void arm_set_ignore_stall(bool ignore) { ignoring_stall = ignore; }
 
 JogAction jog_action{0};
 
@@ -205,7 +211,7 @@ Motor motor3(i2c_bus, 0x36, true);
 
 Motor *motors[] = {&motor1, &motor2, &motor3};
 
-Servo wrist_servo{PWM_DT_SPEC_GET(DT_NODELABEL(servo4)), 500, 2500, 800};
+Servo wrist_servo{PWM_DT_SPEC_GET(DT_NODELABEL(servo4)), 2500, 500, 800};
 const gpio_dt_spec wrist_servo_enable = GPIO_DT_SPEC_GET(DT_NODELABEL(wrist_servo_pwr_en), gpios);
 
 ShoulderEncoders shoulder_bytes_to_encoder_zero_point(const ShoulderEncoders &current_zeros, int64_t current_e1_ticks,
@@ -244,7 +250,7 @@ int8_t elbow_ang_microdegrees_to_byte(int64_t microdegrees) {
 
 int64_t elbow_byte_to_ang_microdegrees(int8_t b) {
     // elbow can actually go -180 to 180 so need to reserve space for that
-    int64_t ang = (int64_t)b * DEG_TO_UDEG_MUL * 3 / 2;
+    int64_t ang = (int64_t) b * DEG_TO_UDEG_MUL * 3 / 2;
     constexpr int64_t u180 = 180 * DEG_TO_UDEG_MUL;
     if (ang < -u180) {
         return -u180;
@@ -264,14 +270,14 @@ void arm_measure(const Vec3_16 &base_imu, const Vec3_32 &l2_imu) {
     int64_t j2_udeg = 0;
     bool should_trust_base = CurrentState::base_accel_is_valid();
     bool should_trust_link = false;
-    if (should_trust_base){
+    if (should_trust_base) {
         should_trust_link = getVerticalAngleFromImus(base_imu, l2_imu, current_shoulder_position.yaw,
-                                             current_shoulder_position.pitch, &j2_udeg);
+                                                     current_shoulder_position.pitch, &j2_udeg);
     }
     should_trust_j2 = should_trust_link && should_trust_base;
     if (should_trust_j2) {
-        j2_angle = j2_udeg;
-        current_pose.elbow_pitch = elbow_ang_microdegrees_to_byte(j2_angle);
+        j2_angle_avg.Feed(j2_udeg);
+        current_pose.elbow_pitch = elbow_ang_microdegrees_to_byte(j2_angle_avg.Avg());
     } else {
         printk("Not trusting imu for second angle measuremnt Base %d, Link %d\n", should_trust_base, should_trust_link);
     }
@@ -285,11 +291,6 @@ void arm_init() {
     int64_t m2enc = motor2.read_enc();
     motor_zero_offset = shoulder_bytes_to_encoder_zero_point(
         motor_zero_offset, m1enc, m2enc, LOCKIN_SHOULDER_YAW_ANGLE_B, LOCKIN_SHOULDER_PITCH_ANGLE_B);
-    // on activation,
-    //  shoulder yaw = 0 deg
-    //  shoulder pitch = 90 deg (90 b)
-    // elbow pitch = -180 deg (~-127 b)
-    // wrist pitch = -90 deg (-127 b)
 }
 
 void wakeup_motors() { gpio_pin_set_dt(&nSleep, 1); }
@@ -465,12 +466,15 @@ MovementResult step_arm_jog() {
     uint8_t flt = 0;
     if (motor1.didFault(&flt)) {
         printk("MOTOR 1 FAULT: %02x", flt);
+        motor1.printInfo();
     }
     if (motor2.didFault(&flt)) {
         printk("MOTOR 2 FAULT: %02x", flt);
+        motor1.printInfo();
     }
     if (motor3.didFault(&flt)) {
         printk("MOTOR 3 FAULT: %02x", flt);
+        motor1.printInfo();
     }
 
     return MovementResult::Ongoing;
@@ -494,6 +498,11 @@ MovementResult step_arm() {
         motor1.initVoltageControl();
         motor2.initVoltageControl();
         motor3.initVoltageControl();
+
+        motor1.setTInrush(200); // ~20 ms
+        motor2.setTInrush(200); // ~20 ms
+        motor3.setTInrush(200); // ~20 ms
+
         motor1.regDump();
         set_wrist(target_pose.wrist_pitch);
         servo_travel_time = counter + std::abs(current_pose.wrist_pitch - target_pose.wrist_pitch); // TODO fill this
@@ -509,13 +518,12 @@ MovementResult step_arm() {
         motor3.enableSpin();
         motor3.setSpinMode(Motor::Forward);
         motor3.setStopOnStall(false);
-
     }
     if (!should_trust_j2) {
         // failed bc we don't know where joint 2 is
         return MovementResult::Failed;
     }
-    motor3.printInfo();
+
     PathInfo path_info = calcSholderPathInfo(initial_shoulder, target_shoulder, current_shoulder_position);
     printk("============ %d\n", counter);
     // printk("Zeroed Motor at  ");
@@ -544,12 +552,13 @@ MovementResult step_arm() {
     // printk("Needed on Change in Encoder space ");
     // println_motordeg(onTogoE.e1, onTogoE.e2);
 
-    printk("Elbow: going (%db) ", (int)target_pose.elbow_pitch);
+    printk("Elbow: going (%db) ", (int) target_pose.elbow_pitch);
+    int64_t j2_angle = j2_angle_avg.Avg();
     println_microdeg(j2_angle, elbow_byte_to_ang_microdegrees(target_pose.elbow_pitch));
     int64_t elbow_error = elbow_byte_to_ang_microdegrees(target_pose.elbow_pitch) - j2_angle;
 
-    static constexpr int64_t elbow_deadband = 2 * DEG_TO_UDEG_MUL;
-    static constexpr int64_t deadband = 1 * DEG_TO_UDEG_MUL;
+    static constexpr int64_t elbow_deadband = 3 * DEG_TO_UDEG_MUL;
+    static constexpr int64_t deadband = 2 * DEG_TO_UDEG_MUL;
     bool on_target = (std::abs(path_info.remaining.yaw) < deadband) &&
                      (std::abs(path_info.remaining.pitch) < deadband) && (std::abs(elbow_error) < elbow_deadband) &&
                      (counter > servo_travel_time);
@@ -572,7 +581,7 @@ MovementResult step_arm() {
 
     int16_t m1out = 0;
     int16_t m2out = 0;
-    int16_t m3out = clamp_voltage(elbow_error / ikP3);
+    int16_t m3out = clamp_voltage(elbow_error / ikP3, max_mv_elbow);
 
     safeBox(offTogoE, onTogoE, &m1out, &m2out);
 
@@ -588,15 +597,21 @@ MovementResult step_arm() {
     motor3.setDirAndVoltage16(m3out);
 
     if (motor1.didFault(&this_fault)) {
-        printk("MOTOR 1 FAULT: %02x", this_fault);
-        return MovementResult::Failed;
-    }
+        printk("MOTOR 1 FAULT: %02x ", this_fault);
+        motor1.printInfo();
+        if (!ignoring_stall) {
+            return MovementResult::Failed;
+        }    }
     if (motor2.didFault(&this_fault)) {
-        printk("MOTOR 2 FAULT: %02x", this_fault);
-        return MovementResult::Failed;
-    }
+        printk("MOTOR 2 FAULT: %02x ", this_fault);
+        motor2.printInfo();
+        if (!ignoring_stall) {
+            return MovementResult::Failed;
+        }    }
     if (motor3.didFault(&this_fault)) {
-        printk("MOTOR 3 FAULT: %02x", this_fault);
+        printk("MOTOR 3 FAULT: %02x ", this_fault);
+        motor3.printInfo();
+        // dont fail on motor 3 stall
     }
     return MovementResult::Ongoing;
 }

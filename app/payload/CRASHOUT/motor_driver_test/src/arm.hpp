@@ -7,6 +7,8 @@ void arm_init();
 void arm_measure(const Vec3_16 &base_imu, const Vec3_32 &l2_imu);
 
 
+void arm_set_ignore_stall(bool ignore);
+
 void set_jog_paramters(const JogAction &);
 void start_arm_jog();
 MovementResult step_arm_jog();
