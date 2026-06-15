@@ -11,7 +11,7 @@ constexpr size_t SERVO_PERIOD_NS = 3000000; // 3 ms
 const gpio_dt_spec flip_servo_enable = GPIO_DT_SPEC_GET(DT_NODELABEL(flip_servo_pwr_en), gpios);
 Servo flip_servo1{PWM_DT_SPEC_GET(DT_NODELABEL(servo1)), 1700, 800, 800}; // back
 Servo flip_servo2{PWM_DT_SPEC_GET(DT_NODELABEL(servo2)), 800, 1970,  1970}; // back
-Servo flip_servo3{PWM_DT_SPEC_GET(DT_NODELABEL(servo3)), 800, 1700, 800};
+Servo flip_servo3{PWM_DT_SPEC_GET(DT_NODELABEL(servo3)), 900, 1800, 800};
 
 Servo *flip_servos[3] = {&flip_servo1, &flip_servo2, &flip_servo3};
 
@@ -131,7 +131,7 @@ void start_servo_hold() {
     gpio_pin_set_dt(&flip_servo_enable, 1);
     printk("Starting servo hold\n");
     for (auto servo : flip_servos) {
-        servo->set_us(servo->last_us); 
+        servo->set_us(servo->closed_us); 
     }
 }
 void stop_servo_hold() {
