@@ -45,17 +45,21 @@ class CReceiverModule : public CProjectConfiguration {
     static constexpr uint16_t radioModuleFrequencyAckPort = NNetworkDefs::RADIO_MODULE_FREQUENCY_CHANGE_RESPONSE_PORT;
 
     // Devices
+#ifndef CONFIG_ARCH_POSIX
     CLora lora;
+#endif
 
     // Message Ports
     CMessagePort<LaunchLoraFrame>& loraBroadcastMessagePort;
     CMessagePort<LaunchLoraFrame>& udpBroadcastMessagePort;
 
     // Tenants
+#ifndef CONFIG_ARCH_POSIX
     CLoraTenant loraTenant{lora, loraBroadcastMessagePort};
 
     CLoraFreqRequestTenant freqRequestTenant{ipAddrStr.c_str(), lora, radioModuleFrequencyCommandPort,
                                              loraBroadcastMessagePort, K_SECONDS(15)};
+#endif
 
     CUdpListenerTenant commandListenerTenant{"Radio Module Command Listener Tenant", ipAddrStr.c_str(),
                                              radioModuleCommandPort, &loraBroadcastMessagePort};
