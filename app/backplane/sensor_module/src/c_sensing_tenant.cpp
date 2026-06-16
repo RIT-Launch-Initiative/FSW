@@ -145,14 +145,16 @@ void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
     NTypes::LoRaBroadcastSensorData downlinkData{
         .Barometer =
             {
-                .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
+                // x10: 0.1 kPa resolution, covers 0-3276 kPa (int16_t max)
+                .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure * 10.0f),
                 .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
             },
         .Acceleration =
             {
-                .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.X)),
-                .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Y)),
-                .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
+                // x10: 0.1 m/s² resolution, covers ±3276 m/s² (~±334g) — safe for ADXL375 200g range
+                .X = static_cast<int16_t>(data.Acceleration.X * 10.0f),
+                .Y = static_cast<int16_t>(data.Acceleration.Y * 10.0f),
+                .Z = static_cast<int16_t>(data.Acceleration.Z * 10.0f),
             },
         .Gyroscope =
             {

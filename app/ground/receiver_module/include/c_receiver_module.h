@@ -66,7 +66,8 @@ class CReceiverModule : public CProjectConfiguration {
     CUdpListenerTenant dataRequestListenerTenant{"Radio Module Data Request Listener Tenant", ipAddrStr.c_str(),
                                                  radioModuleDataRequestPort, &loraBroadcastMessagePort};
 
-    CLoraFrameToUdpHandler loraToUdpHandler{ipAddrStr.c_str(), radioModuleSourcePort};
+    CLoraFrameToUdpHandler loraToUdpHandler{ipAddrStr.c_str(), radioModuleSourcePort,
+                                             NNetworkDefs::RADIO_MODULE_LORA_RX_STATS_PORT};
 
     // Tasks
     CTask networkingTask{"UDP Listener Task", 15, 4096, 0};
