@@ -45,8 +45,13 @@ class CDetectionHandler {
     static constexpr uint64_t BOOST_NOT_YET_HAPPENED = ~0;
     uint64_t boost_detected_time = BOOST_NOT_YET_HAPPENED;
 
-    static constexpr uint32_t boostAlertResendCycles = 20;
+    static constexpr uint32_t alertResendCycles = 20;
     uint32_t boostAlertResendsRemaining = 0;
+    uint32_t landedAlertResendsRemaining = alertResendCycles;
+
+    // Rebroadcast the landed alert once GroundHit occurs. Covers both the
+    // barometer and timer paths, and survives UDP loss like the boost alert.
+    void ServiceLandedAlert();
 
     /**
      * Process sensor information 
