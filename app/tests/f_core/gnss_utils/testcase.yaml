@@ -1,0 +1,8 @@
+common:
+  tags:
+    - f_core
+    - utilities
+    - gnss
+tests:
+  f_core.gnss_utils:
+    type: unit
