@@ -3,7 +3,7 @@
 #include "zephyr/logging/log.h"
 
 #include <cstring>
-#include <zephyr/net/net_ip.h>
+#include <zephyr/posix/arpa/inet.h>
 
 LOG_MODULE_REGISTER(CFrequencyChangeHandler);
 
