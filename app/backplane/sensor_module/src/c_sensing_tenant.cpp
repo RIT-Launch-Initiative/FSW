@@ -55,6 +55,7 @@ void CSensingTenant::Startup() {
 void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
+    detectionHandler.ServiceLandedAlert();
     if (!detectionHandler.ContinueCollecting()) {
         return;
     }
