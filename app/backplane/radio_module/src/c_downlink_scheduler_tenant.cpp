@@ -23,6 +23,18 @@ CDownlinkSchedulerTenant::CDownlinkSchedulerTenant(
         }(telemetryDownlinkTimers.GetPtr(NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT)));
 }
 
+void CDownlinkSchedulerTenant::SendFrame(LaunchLoraFrame& frame) {
+    // Piggyback the flight phase onto GNSS frames. Reflects the radio's belief
+    // of the phase, not independent confirmation of physical events.
+    if (frame.Port == NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT && frame.Size < sizeof(frame.Payload)) {
+        frame.Payload[frame.Size++] = static_cast<uint8_t>(state);
+    }
+
+    if (loraDownlinkMessagePort.Send(frame, K_NO_WAIT) < 0) {
+        LOG_ERR("Failed to send telemetry frame on port %d", frame.Port);
+    }
+}
+
 void CDownlinkSchedulerTenant::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) {
     const LaunchLoraFrame& frame = rxFrame.Frame;
     if (this->state == State::PAD || this->state == State::LANDED) {
@@ -43,10 +55,7 @@ void CDownlinkSchedulerTenant::HandleFrame(const ReceivedLaunchLoraFrame& rxFram
                 LOG_ERR("Failed to receive telemetry frame on port %d", port);
             }
 
-            ret = loraDownlinkMessagePort.Send(telemFrame, K_NO_WAIT);
-            if (ret < 0) {
-                LOG_ERR("Failed to send telemetry frame on port %d", port);
-            }
+            SendFrame(telemFrame);
         }
     }
 }
@@ -83,10 +92,7 @@ void CDownlinkSchedulerTenant::FlightRun() {
                 continue;
             }
 
-            ret = loraDownlinkMessagePort.Send(telemFrame, K_NO_WAIT);
-            if (ret < 0) {
-                LOG_ERR("Failed to send telemetry frame on port %d", port);
-            }
+            SendFrame(telemFrame);
         }
     }
 }
@@ -107,10 +113,7 @@ void CDownlinkSchedulerTenant::LandedRun() {
             return;
         }
 
-        ret = loraDownlinkMessagePort.Send(telemFrame, K_NO_WAIT);
-        if (ret < 0) {
-            LOG_ERR("Failed to send GNSS telemetry frame");
-        }
+        SendFrame(telemFrame);
     }
 }
 
