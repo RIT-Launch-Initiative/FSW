@@ -1,0 +1,9 @@
+common:
+  tags:
+    - f_core
+    - radio
+    - protocols
+    - golay
+tests:
+  f_core.golay:
+    type: unit
