@@ -19,6 +19,17 @@ class CSoftTimer {
     CSoftTimer& operator=(CSoftTimer&&) = delete;
 
     /**
+    * Constructor
+    * @param timeoutMillis Time in milliseconds until the timer expires
+    * @param expirationFn Function to call when the timer expires
+    * @param stopFn Function to call when the timer is stopped
+    */
+    CSoftTimer(const uint32_t timeoutMillis, k_timer_expiry_t expirationFn = nullptr, k_timer_stop_t stopFn = nullptr) {
+        k_timer_init(&timer, expirationFn, stopFn);
+        StartTimer(timeoutMillis);
+    }
+
+    /**
     * Destructor
     */
     ~CSoftTimer() { StopTimer(); }
@@ -27,7 +38,7 @@ class CSoftTimer {
     * Start the timer with the given expiration time
     * @param millis Time in milliseconds until the timer expires
     */
-    void StartTimer(int millis) {
+    void StartTimer(uint32_t millis) {
         // Duration (second arg) is the initial expiration time
         // Period (third arg) is the time set after each expiration
         k_timer_start(&timer, K_MSEC(millis), K_MSEC(millis));
@@ -62,7 +73,7 @@ class CSoftTimer {
     * @param millis Time in milliseconds until the timer expires
     * @param initialExpirationMillis Time in milliseconds to wait before the first expiration
     */
-    void StartTimer(int millis, int initialExpirationMillis) {
+    void StartTimer(uint32_t millis, uint32_t initialExpirationMillis) {
         // Duration (second arg) is the initial expiration time
         // Period (third arg) is the time set after each expiration
         k_timer_start(&timer, K_MSEC(initialExpirationMillis), K_MSEC(millis));
