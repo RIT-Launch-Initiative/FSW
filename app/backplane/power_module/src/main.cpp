@@ -9,8 +9,18 @@
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
 #include <n_autocoder_network_defs.h>
+#ifdef CONFIG_ARCH_POSIX
+#include <signal.h>
+#include <nsi_main.h>
+#endif
 
 LOG_MODULE_REGISTER(main);
+
+#ifdef CONFIG_ARCH_POSIX
+static volatile sig_atomic_t shutdownRequested = 0;
+
+static void NativeSimSignalHandler(int) { shutdownRequested = 1; }
+#endif
 
 int main() {
     static CPowerModule powerModule{};
@@ -22,10 +32,16 @@ int main() {
     NRtos::StartRtos();
 
 #ifdef CONFIG_ARCH_POSIX
-    k_sleep(K_SECONDS(300));
+    signal(SIGINT, NativeSimSignalHandler);
+    signal(SIGTERM, NativeSimSignalHandler);
+
+    while (!shutdownRequested) {
+        k_sleep(K_MSEC(100));
+    }
+
     NRtos::StopRtos();
     powerModule.Cleanup();
-    k_sleep(K_FOREVER);
+    nsi_exit(0);
 #endif
 
     return 0;
