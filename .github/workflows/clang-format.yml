@@ -44,17 +44,14 @@ jobs:
             echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit and push changes
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git checkout -b auto/clang-format-fix
-          git add .
-          git commit -m "Apply clang-format formatting"
-          git push origin auto/clang-format-fix
       - name: Create Pull Request
+        if: steps.check_changes.outputs.changes == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           branch: auto/clang-format-fix
+          delete-branch: true
+          commit-message: Apply clang-format formatting
+          committer: GitHub Actions <actions@github.com>
+          author: GitHub Actions <actions@github.com>
           title: Clang Format Fix
           body: Automated clang-format suggestions
