@@ -775,7 +775,4 @@ Reserve a module ID and base port in `network_defs.yaml` before writing code. Ge
 - Use devicetree aliases instead of direct chip-node references in application code.
 - Use generated definitions instead of literal port numbers or IP addresses.
 - Units in identifier names, or SI throughout.
-- Every new tenant documents its blocking behavior.
-- Every change builds and passes on `native_sim`.
 - Packet layout changes update FSW and GSW definitions in the same review.
-- Deployment module changes require two reviewers.
