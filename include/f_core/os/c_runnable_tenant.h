@@ -18,7 +18,7 @@ class CRunnableTenant : public CTenant {
      * Constructor
      * @param name Name of the tenant
      */
-    explicit CRunnableTenant(const char* name) : CTenant(name) {};
+    explicit CRunnableTenant(const char* name) : CTenant(name){};
 
     /**
      * Destructor

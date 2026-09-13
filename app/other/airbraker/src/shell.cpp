@@ -1,9 +1,9 @@
 #include "common.hpp"
+#include "n_boost.hpp"
 #include "n_buzzer.hpp"
 #include "n_model.hpp"
 #include "n_sensing.hpp"
 #include "n_storage.hpp"
-#include "n_boost.hpp"
 #include "servo.hpp"
 
 #include <cmath>
@@ -409,7 +409,7 @@ static int cmd_fakeboost(const struct shell *shell, size_t argc, char **argv) {
     }
     long seconds = 0;
     bool parsed = parse_long(argv[1], &seconds);
-    if (!parsed){
+    if (!parsed) {
         shell_error(shell, "Invalid number of seconds to wait for");
     }
 

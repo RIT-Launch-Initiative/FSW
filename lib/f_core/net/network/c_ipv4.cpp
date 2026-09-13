@@ -9,12 +9,12 @@ LOG_MODULE_REGISTER(CIPv4);
 
 CIPv4::CIPv4(const char* ip, net_if* net_iface) : ip(ip), netIface(*net_iface) { initialize(); };
 
-CIPv4::CIPv4(const char* ip) : CIPv4(ip, net_if_get_default()) {};
+CIPv4::CIPv4(const char* ip) : CIPv4(ip, net_if_get_default()){};
 
-CIPv4::CIPv4(const char* ip, const device* dev) : CIPv4(ip, net_if_lookup_by_dev(dev)) {};
+CIPv4::CIPv4(const char* ip, const device* dev) : CIPv4(ip, net_if_lookup_by_dev(dev)){};
 
 int CIPv4::initialize() {
-    struct in_addr subnet{};
+    struct in_addr subnet {};
 
     err = net_addr_pton(AF_INET, ip, &addr);
     if (err < 0) {

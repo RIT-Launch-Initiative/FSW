@@ -46,8 +46,7 @@ class CUdpSocket {
      * @param[in] srcAddrLen Optional source address length
      * @return Number of bytes received or negative error code
      */
-    int ReceiveSynchronous(void* data, size_t len, struct sockaddr* srcAddr = nullptr,
-                           socklen_t* srcAddrLen = nullptr);
+    int ReceiveSynchronous(void* data, size_t len, struct sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
 
     /**
      * Transmit data asynchronously

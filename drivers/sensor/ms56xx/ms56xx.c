@@ -366,16 +366,14 @@ static const struct sensor_driver_api ms56xx_api_funcs = {
 /* Initializes a struct ms56xx_config for an ms56xx on a SPI bus. */
 #define MS56XX_CONFIG_SPI(nodeid, coeffs_num)                                                                          \
     {                                                                                                                  \
-        .tf = &ms56xx_spi_transfer_function,                                                                           \
-        .bus_cfg.spi = SPI_DT_SPEC_GET(nodeid, MS56XX_SPI_OPERATION),                                                  \
+        .tf = &ms56xx_spi_transfer_function, .bus_cfg.spi = SPI_DT_SPEC_GET(nodeid, MS56XX_SPI_OPERATION),             \
         .calc_coefficients = MS56XX_CONFIG_##coeffs_num##_COEFFICIENTS,                                                \
     }
 
 /* Initializes a struct ms56xx_config for an ms56xx on a I2C bus. */
 #define MS56XX_CONFIG_I2C(nodeid, coeffs_num)                                                                          \
     {                                                                                                                  \
-        .tf = &ms56xx_i2c_transfer_function,                                                                           \
-        .bus_cfg.i2c = I2C_DT_SPEC_GET(nodeid),                                                                        \
+        .tf = &ms56xx_i2c_transfer_function, .bus_cfg.i2c = I2C_DT_SPEC_GET(nodeid),                                   \
         .calc_coefficients = MS56XX_CONFIG_##coeffs_num##_COEFFICIENTS,                                                \
     }
 

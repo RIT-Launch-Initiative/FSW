@@ -7,12 +7,11 @@
 #include "n_storage.hpp"
 #include "servo.hpp"
 
+#include <cmath>
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/atomic.h>
-#include <cmath>
-
 #include <zsl/orientation/quaternions.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
@@ -34,12 +33,8 @@ uint32_t packet_timestamp() {
         return 0;                                                                                                      \
     }
 
-NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes::GyroscopeData &bias){
-    return {
-        .X = data.X - bias.X,
-        .Y = data.Y - bias.Y,
-        .Z = data.Z - bias.Z
-    };
+NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes::GyroscopeData &bias) {
+    return {.X = data.X - bias.X, .Y = data.Y - bias.Y, .Z = data.Z - bias.Z};
 }
 
 int main() {
@@ -128,7 +123,6 @@ int main() {
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
         float vertical = GetUpAxis(packet.accelRaw);
 
-
         NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
         NModel::FeedGyro(packet.timestamp, unbiasedGyro);
         NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
@@ -148,8 +142,6 @@ int main() {
 
         NStorage::WriteFlightPacket(i, &packet);
 
-
-
         // Write preboost if needed
         if (preboostWriteHead < NUM_STORED_PREBOOST_PACKETS) {
             NStorage::WritePreboostPacket(preboostWriteHead, NPreBoost::GetPreBoostPacketPtr(preboostWriteHead));
@@ -161,7 +153,7 @@ int main() {
     CancelFlight();
 
     // happy beep for reco team
-    while(true){
+    while (true) {
         NBuzzer::SetBuzzer(true);
         k_msleep(200);
         NBuzzer::SetBuzzer(false);
@@ -182,13 +174,12 @@ void CancelFlight() {
 }
 bool IsFlightCancelled() { return atomic_get(&flightCancelled) == 1; }
 
-
-float GetUpAxis(const NTypes::AccelerometerData &xyz){
-    NTypes::AccelerometerData out{0,0,0};
+float GetUpAxis(const NTypes::AccelerometerData &xyz) {
+    NTypes::AccelerometerData out{0, 0, 0};
     RotateIMUVectorToRocketVector(xyz, out);
     return out.Z;
 }
-void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out){
+void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out) {
     zsl_quat p{.r = 0, .i = xyz.X, .j = xyz.Y, .k = xyz.Z};
 
     // q p q*
@@ -202,7 +193,7 @@ void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes:
     out.Z = output.k;
 }
 
-void RotateRocketVectorToIMUVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out){
+void RotateRocketVectorToIMUVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out) {
     zsl_quat p{.r = 0, .i = xyz.X, .j = xyz.Y, .k = xyz.Z};
 
     // q p q*

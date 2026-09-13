@@ -398,17 +398,11 @@ static int bme280_pm_action(const struct device *dev, enum pm_device_action acti
 
 /* Initializes a struct bme280_config for an instance on a SPI bus. */
 #define BME280_CONFIG_SPI(inst)                                                                                        \
-    {                                                                                                                  \
-        .bus.spi = SPI_DT_SPEC_INST_GET(inst, BME280_SPI_OPERATION, 0),                                                \
-        .bus_io = &bme280_bus_io_spi,                                                                                  \
-    }
+    { .bus.spi = SPI_DT_SPEC_INST_GET(inst, BME280_SPI_OPERATION, 0), .bus_io = &bme280_bus_io_spi, }
 
 /* Initializes a struct bme280_config for an instance on an I2C bus. */
 #define BME280_CONFIG_I2C(inst)                                                                                        \
-    {                                                                                                                  \
-        .bus.i2c = I2C_DT_SPEC_INST_GET(inst),                                                                         \
-        .bus_io = &bme280_bus_io_i2c,                                                                                  \
-    }
+    { .bus.i2c = I2C_DT_SPEC_INST_GET(inst), .bus_io = &bme280_bus_io_i2c, }
 
 /*
  * Main instantiation macro, which selects the correct bus-specific

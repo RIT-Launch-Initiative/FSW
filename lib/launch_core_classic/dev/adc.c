@@ -43,7 +43,7 @@ int l_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *
 
     if (ret == 0) {
         if (channel->channel_cfg.differential) { // Differential channels are 16 bits
-            val_mv = (int32_t) *((int16_t *) sequence->buffer);
+            val_mv = (int32_t) * ((int16_t *) sequence->buffer);
         } else {
             val_mv = *((int32_t *) (sequence->buffer));
         }
