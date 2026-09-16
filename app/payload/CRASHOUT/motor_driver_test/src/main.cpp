@@ -84,28 +84,50 @@ void doPid(Motor &mot, int64_t target){
 }
 
 int main(void) { 
-    Motor motor1(i2c_bus, motor1_i2c, yaw_enc);
-    Motor motor2(i2c_bus, motor2_i2c, pitch_enc);
-    Motor motor3(i2c_bus, motor3_i2c, dcm_enc3);
 
-    reset();
+    printk("BOOT OK\n");
 
-    if (!motor1.initSpeedControl()){
-        printk("Failed to initialize motor 1");
-        return 0;
+    while (1) {
+        printk("ALIVE\n");
+        k_msleep(1000);
     }
+
+    // while(1){
+    //     printk("Program Running\n");
+    //     k_msleep(1000);
+    // }
+
+    // Motor motor1(i2c_bus, motor1_i2c, yaw_enc);
+    // Motor motor2(i2c_bus, motor2_i2c, pitch_enc);
+    // Motor motor3(i2c_bus, motor3_i2c, dcm_enc3);
+
+    // reset();
+
+    // if (!motor1.initSpeedControl()){
+    //     printk("Failed to initialize motor 1");
+    //     return 0;
+    // }
     
-    if (!motor2.initSpeedControl()){
-        printk("Failed to initialize motor 2");
-        return 0;
-    }
+    // if (!motor2.initSpeedControl()){
+    //     printk("Failed to initialize motor 2");
+    //     return 0;
+    // }
 
-    if (!motor3.initSpeedControl()){
-        printk("Failed to initialize motor 3");
-        return 0;
-    }
+    // if (!motor3.initSpeedControl()){
+    //     printk("Failed to initialize motor 3");
+    //     return 0;
+    // }
 
-    k_msleep(1000);
+    // k_msleep(1000);
+
+    // doPid(motor1, 90'000'000);
+    // doPid(motor2, 90'000'000);
+    // doPid(motor3, 90'000'000);
+
+    // while(1){
+    //     printk("Program Running\n");
+    //     k_msleep(1000);
+    // }
 
     // while(1){  
     //     for (int i = 270'000'000; i >= 90'000'000; i -= 10'000'000){
