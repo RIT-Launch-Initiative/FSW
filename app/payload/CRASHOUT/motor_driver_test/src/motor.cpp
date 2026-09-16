@@ -86,6 +86,7 @@ void Motor::setVoltage(float volts) {
     uint8_t regval = (uint8_t) (val + .5f);
     i2c_reg_write_byte_dt(&motor, REG_CTRL1_REG, regval);
 }
+
 void Motor::setVoltage16(uint16_t millivolts) {
     if (millivolts > 38000) {
         printk("invalid volts");
@@ -99,13 +100,14 @@ void Motor::setVoltage16(uint16_t millivolts) {
     uint8_t regval = (uint8_t) val;
     i2c_reg_write_byte_dt(&motor, REG_CTRL1_REG, regval);
 }
+
 void Motor::setDirAndVoltage16(int16_t millivolts) {
     if (millivolts > 0) {
         setSpinMode(Motor::Forward);
     } else {
         setSpinMode(Motor::Backward);
     }
-    setVoltage16(std::abs(millivolts));
+    setVoltage16(abs(millivolts));
 }
 
 /**
