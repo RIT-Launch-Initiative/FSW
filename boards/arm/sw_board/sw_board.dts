@@ -40,19 +40,23 @@
 		button1: button1 {
 			gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;
 			label = "Button1"; // (Hardware SW3)
+			zephyr,code = <INPUT_KEY_0>;
 		};
 		button2: button2 {
 			gpios = <&gpiob 9 GPIO_ACTIVE_LOW>;
 			label = "Button2"; // (Hardware SW4)
+			zephyr,code = <INPUT_KEY_0>;
 		};
 
 		sd-card-detect {
 			// 0 when no card detected
 			// 1 when card detected
 			gpios = <&gpiob 1 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_0>;
 		};
 		vbus-detect {
 			gpios = <&gpioa 9 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_0>;
 		};
 	};
 
