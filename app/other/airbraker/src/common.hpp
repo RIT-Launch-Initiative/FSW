@@ -77,7 +77,7 @@ inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{1,0,0,0};
 // zsl_quat_mult doesnt take const parameters so just like dont modify these
 inline zsl_quat IMU_TO_ROCKET_QUAT{AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
 inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{AUTOGEN_IMU_TO_ROCKET_QUAT_CONJUGATED_INITIALIZER};
- 
+
 #endif
 
 

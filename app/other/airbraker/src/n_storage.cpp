@@ -43,7 +43,7 @@ static_assert(PARAM_PARTITION_SIZE == SECTOR_SIZE && IS_ALIGNED(PARAM_PARTITION_
 static_assert(IS_ALIGNED(FLIGHT_PARTITION_SIZE, BIG_SECTOR_SIZE),
               "Invalid place parameter partition. Needs 64KB Alignment");
 
-static_assert((NUM_FLIGHT_PACKETS + NUM_STORED_PREBOOST_PACKETS) * sizeof(Packet) < FLIGHT_PARTITION_SIZE);
+static_assert((NUM_FLIGHT_PACKETS + NUM_STORED_PREBOOST_PACKETS) * sizeof(Packet) > FLIGHT_PARTITION_SIZE);
 
 static uint32_t thisBootcount = 0;
 

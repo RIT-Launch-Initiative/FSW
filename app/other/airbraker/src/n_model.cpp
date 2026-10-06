@@ -17,8 +17,7 @@ const StateTransitionT state_transition_matrix{{// aka F
                                                 KALMAN_STATE_TRANSITION_INITIALIZER}};
 
 const Matrix<2, 4> kalman_output_matrix{{// aka H
-                                         KALMAN_OUTPUT_INITIALIZER}};
-const Matrix<4, 2> kalman_gain{{KALMAN_GAIN_INITIALIZER}};
+                                        STATE_TO_MEASUREMENT_INITIALIZER}};
 
 static Matrix<4, 1> kalman_state({KALMAN_INITIAL_STATE_INITIALIZER});
 static Matrix<4, 4> kalman_covariance = Matrix<4, 4>::Identity();
