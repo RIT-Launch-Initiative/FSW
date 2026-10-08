@@ -35,10 +35,20 @@ if OPENROCKET_SENSORS
 
     config OPENROCKET_MS_BEFORE_LAUNCH
         int "OpenRocket ms before launch"
-        depends on OPENROCKET_SENSORS
+        depends on OPENROCKET_SENSORS && !OPENROCKET_MANUAL_LAUNCH_TRIGGER
         default 1000
         help
             Milliseconds to delay the launch from the device booting.
+
+    config OPENROCKET_MANUAL_LAUNCH_TRIGGER
+        bool "OpenRocket Manual Launch Trigger"
+        depends on OPENROCKET_SENSORS
+        default n
+        help
+            When enabled, the simulation does not start on a fixed delay after boot.
+            Instead, sensor reads return pad values until or_trigger_launch() is called
+            (e.g. from a ground station command). The event log thread also waits for
+            the trigger before beginning.
 
     config OPENROCKET_NOISE
         bool "OpenRocket Sensor Noise"
