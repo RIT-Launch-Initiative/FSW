@@ -13,17 +13,17 @@
         status = "okay";
         compatible = "pwm-servo";
         pwms = <&pwm2 4 PWM_USEC(3000) PWM_POLARITY_NORMAL>;
-        min-pulse = <PWM_USEC(500)>;
-        max-pulse = <PWM_USEC(2500)>;
+        min-pulse = <PWM_USEC(1200)>;
+        max-pulse = <PWM_USEC(2032)>;
     };
 
 };
 
 &lsm6dsv{
     accel-range = <16>;
-    accel-odr = <LSM6DSV16X_DT_ODR_HA02_AT_100Hz>;
+    accel-odr = <LSM6DSVXXX_DT_ODR_HA02_AT_100Hz>;
     gyro-range = <LSM6DSV16X_DT_FS_4000DPS>;
-    gyro-odr = <LSM6DSV16X_DT_ODR_HA02_AT_100Hz>;
+    gyro-odr = <LSM6DSVXXX_DT_ODR_HA02_AT_100Hz>;
 };
 
 &w25q128{

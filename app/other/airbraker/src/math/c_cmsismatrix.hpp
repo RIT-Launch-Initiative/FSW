@@ -50,6 +50,25 @@ class CMSISMatrix {
         return m;
     }
 
+    static CMSISMatrix Diagonal(const std::array<Scalar, R> list) {
+        static_assert(C == R, "Diag vector must be square");
+        CMSISMatrix m = Zeros();
+        for (std::size_t i = 0; i < R; i++) {
+            m.data[i * C + i] = list[i];
+        }
+        return m;
+    }
+
+    CMSISMatrix<C, R> Transpose() const {
+        CMSISMatrix<C, R> m = CMSISMatrix<C, R>::Zeros();
+        for (std::size_t r = 0; r < R; r++) {
+            for (std::size_t c = 0; c < C; c++) {
+                m.Set(c, r, Get(r, c));
+            }
+        }
+        return m;
+    }
+
     template <std::size_t R2, std::size_t C2>
     CMSISMatrix<R, C2> operator+(const CMSISMatrix<R2, C2> &rhs) const {
         static_assert(C == C2 && R == R2, "Dimensions must match to add");
@@ -79,7 +98,6 @@ class CMSISMatrix {
         arm_mat_scale_f32(&this->inst, rhs, &outp.inst);
         return outp;
     }
-
 
     void Set(std::size_t r, std::size_t c, Scalar value) { data[r * C + c] = value; }
     Scalar Get(std::size_t r, std::size_t c) const { return data[r * C + c]; }
