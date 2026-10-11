@@ -11,8 +11,8 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 #ifdef CONFIG_ARCH_POSIX
-#include <signal.h>
 #include <nsi_main.h>
+#include <signal.h>
 #endif
 
 LOG_MODULE_REGISTER(main);

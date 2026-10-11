@@ -10,8 +10,8 @@
 #include <f_core/os/n_rtos.h>
 #include <n_autocoder_network_defs.h>
 #ifdef CONFIG_ARCH_POSIX
-#include <signal.h>
 #include <nsi_main.h>
+#include <signal.h>
 #endif
 
 LOG_MODULE_REGISTER(main);

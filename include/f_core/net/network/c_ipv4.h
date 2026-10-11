@@ -58,7 +58,7 @@ class CIPv4 {
   private:
     const char* ip;
     net_if& netIface;
-    struct in_addr addr{};
+    struct in_addr addr {};
     int err = 0;
 
     int initialize();
