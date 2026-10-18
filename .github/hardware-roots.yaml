@@ -47,14 +47,10 @@ ALL:
       - "snippets/**"
 
 # Unit Tests
-app/tests/f_core/gnss_utils:
+app/tests/gnss_utils:
   - paths:
-      - "app/tests/f_core/gnss_utils/**"
-      - "include/f_core/utils/n_gnss_utils.h"
+      - "app/tests/gnss_utils/**"
 
-app/tests/f_core/golay:
+app/tests/utils:
   - paths:
-      - "app/tests/f_core/golay/**"
-      - "include/f_core/radio/protocols/horus/golay.h"
-      - "lib/f_core/radio/protocols/horus/golay.c"
-
+      - "app/tests/utils/**"
