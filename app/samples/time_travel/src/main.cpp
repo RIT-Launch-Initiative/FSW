@@ -3,15 +3,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include <zephyr/kernel.h>
 #include <f_core/device/c_rtc.h>
-
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);
 
 void printTime(const tm &time, time_t unixTime) {
-    LOG_INF("\t%02d-%02d-%04d %02d:%02d:%02d", time.tm_mon + 1, time.tm_mday, time.tm_year + 1900, time.tm_hour, time.tm_min, time.tm_sec);
+    LOG_INF("\t%02d-%02d-%04d %02d:%02d:%02d", time.tm_mon + 1, time.tm_mday, time.tm_year + 1900, time.tm_hour,
+            time.tm_min, time.tm_sec);
 
 #ifdef CONFIG_RTC_STM32
     LOG_INF("\t%lld", unixTime);
@@ -19,7 +19,6 @@ void printTime(const tm &time, time_t unixTime) {
     LOG_INF("\t%d", unixTime);
 #endif
 }
-
 
 int main() {
     const device *rtcDev = DEVICE_DT_GET(DT_ALIAS(rtc));

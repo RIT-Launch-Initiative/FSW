@@ -4,15 +4,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "c_radio_module.h"
+
 #include <f_core/os/c_task.h>
 #include <f_core/os/n_rtos.h>
-
-#include "c_radio_module.h"
+#ifdef CONFIG_ARCH_POSIX
+#include <signal.h>
+#include <nsi_main.h>
+#endif
 
 LOG_MODULE_REGISTER(main);
 
+#ifdef CONFIG_ARCH_POSIX
+static volatile sig_atomic_t shutdownRequested = 0;
+
+static void NativeSimSignalHandler(int) { shutdownRequested = 1; }
+#endif
+
 int main() {
-    LOG_INF("Transmitter started");
+#ifdef CONFIG_LICENSED_FREQUENCY
+    LOG_INF("Radio module boot: 433 MHz build, callsign=%s", CONFIG_RADIO_MODULE_CALLSIGN);
+#else
+    LOG_INF("Radio module boot: 915 MHz build, callsign=%s", CONFIG_RADIO_MODULE_CALLSIGN);
+#endif
     static CRadioModule radioModule{};
 
     radioModule.AddTenantsToTasks();
@@ -24,10 +38,16 @@ int main() {
     NRtos::StartRtos();
 
 #ifdef CONFIG_ARCH_POSIX
-    k_sleep(K_SECONDS(300));
+    signal(SIGINT, NativeSimSignalHandler);
+    signal(SIGTERM, NativeSimSignalHandler);
+
+    while (!shutdownRequested) {
+        k_sleep(K_MSEC(100));
+    }
+
     NRtos::StopRtos();
+    nsi_exit(0);
 #endif
 
     return 0;
 }
-

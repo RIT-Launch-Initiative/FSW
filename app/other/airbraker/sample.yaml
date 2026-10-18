@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: airbrake_ctrler
   name: airbrake_ctrler
 common:
   build_only: true

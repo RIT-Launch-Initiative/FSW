@@ -10,14 +10,12 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <stddef.h>
-
-#include <zephyr/kernel.h>
+#include <stdint.h>
 #include <zephyr/device.h>
-
-#include <zephyr/net/socket.h>
+#include <zephyr/kernel.h>
 #include <zephyr/net/net_event.h>
+#include <zephyr/net/socket.h>
 
 typedef void (*l_udp_handler_t)(uint8_t *data, size_t data_len);
 
@@ -97,7 +95,6 @@ int l_send_udp_broadcast(int sock, const uint8_t *buff, size_t len, uint16_t por
  */
 int l_receive_udp(int sock, const uint8_t *buff, size_t len);
 
-
 /**
  * Default UDP receive thread meant to be started, not called
  * Create and add port handlers to handle data from specific ports
@@ -122,6 +119,3 @@ int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler);
  * @return Zephyr status code
  */
 int l_remove_port_handler(uint16_t port);
-
-
-

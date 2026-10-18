@@ -1,10 +1,10 @@
 #include "c_gnss_tenant.h"
+
 #include "c_radio_module.h"
 
 #include <f_core/utils/n_gnss_utils.h>
-
-#include <zephyr/drivers/rtc.h>
 #include <zephyr/drivers/gnss.h>
+#include <zephyr/drivers/rtc.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CGnssTenant);
@@ -32,10 +32,8 @@ static void gnssCallback(const device *, const gnss_data *data) {
 
     gnssUpdated = 1;
 
-    LOG_DBG("Latitude: %f, Longitude: %f, Altitude: %f",
-        static_cast<double>(gnssData.Coordinates.Latitude),
-        static_cast<double>(gnssData.Coordinates.Longitude),
-        static_cast<double>(gnssData.Coordinates.Altitude));
+    LOG_DBG("Latitude: %f, Longitude: %f, Altitude: %f", static_cast<double>(gnssData.Coordinates.Latitude),
+            static_cast<double>(gnssData.Coordinates.Longitude), static_cast<double>(gnssData.Coordinates.Altitude));
 
     // Set the rtc time
     rtc_time lastUpdated = {
@@ -57,13 +55,9 @@ static void gnssCallback(const device *, const gnss_data *data) {
 
 GNSS_DATA_CALLBACK_DEFINE(DEVICE_DT_GET(DT_ALIAS(gnss)), gnssCallback);
 
-void CGnssTenant::Startup() {
-    transmitTimer.StartTimer(5000);
-}
+void CGnssTenant::Startup() { transmitTimer.StartTimer(5000); }
 
-void CGnssTenant::PostStartup() {
-    sendGnssToLora();
-}
+void CGnssTenant::PostStartup() { sendGnssToLora(); }
 
 void CGnssTenant::Run() {
     NTypes::GnssData logData{0};
@@ -82,12 +76,10 @@ void CGnssTenant::Run() {
 
 void CGnssTenant::sendGnssToLora() const {
     LaunchLoraFrame broadcastData{0};
-    NTypes::GnssBroadcastPacket broadcastPacket {
-        .Coordinates = gnssData.Coordinates,
-        .SatelliteCount = gnssData.Info.SatelliteCount,
-        .FixStatus = gnssData.Info.FixStatus,
-        .FixQuality = gnssData.Info.FixQuality
-    };
+    NTypes::GnssBroadcastPacket broadcastPacket{.Coordinates = gnssData.Coordinates,
+                                                .SatelliteCount = gnssData.Info.SatelliteCount,
+                                                .FixStatus = gnssData.Info.FixStatus,
+                                                .FixQuality = gnssData.Info.FixQuality};
 
     broadcastData.Port = NNetworkDefs::RADIO_MODULE_GNSS_DATA_PORT;
     broadcastData.Size = sizeof(NTypes::GnssBroadcastPacket);
@@ -95,4 +87,3 @@ void CGnssTenant::sendGnssToLora() const {
 
     loraTransmitPort.Send(broadcastData);
 }
-

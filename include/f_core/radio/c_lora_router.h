@@ -1,13 +1,13 @@
 #pragma once
 
-#include "f_core/radio/c_lora_link.h"
 #include "f_core/radio/c_lora_frame_handler.h"
+#include "f_core/radio/c_lora_link.h"
 
 #include <f_core/utils/c_hashmap.h>
 #include <zephyr/kernel.h>
 
 class CLoraRouter {
-public:
+  public:
     explicit CLoraRouter(CLoraLink& link) : link(link) {}
 
     /**
@@ -21,9 +21,7 @@ public:
      * Register a default frame handler for frames with no specific handler
      * @param handler Handler to run when no specific handler is registered for a received frame
      */
-    void RegisterDefaultHandler(CLoraFrameHandler& handler) {
-        defaultHandler = &handler;
-    }
+    void RegisterDefaultHandler(CLoraFrameHandler& handler) { defaultHandler = &handler; }
 
     /**
      * Blocking poll once. If no frame is received before @timeout, returns without calling handlers.
@@ -31,10 +29,8 @@ public:
      */
     void PollOnce(const k_timeout_t timeout);
 
-private:
+  private:
     CLoraLink& link;
     CHashMap<uint16_t, CLoraFrameHandler*> handlers;
-    CLoraFrameHandler *defaultHandler = nullptr;
+    CLoraFrameHandler* defaultHandler = nullptr;
 };
-
-

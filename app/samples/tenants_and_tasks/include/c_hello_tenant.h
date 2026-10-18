@@ -7,7 +7,7 @@
  * Print "Hello, " followed by a name.
  */
 class CHelloTenant : public CRunnableTenant {
-public:
+  public:
     /**
      * Constructor
      * @param name The name to print after "Hello, ".
@@ -19,5 +19,3 @@ public:
      */
     void Run() override;
 };
-
-

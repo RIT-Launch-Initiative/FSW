@@ -1,4 +1,4 @@
-#include "servo.h"
+#include "servo.hpp"
 
 #include <cmath>
 #include <zephyr/drivers/gpio.h>

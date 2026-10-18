@@ -18,7 +18,7 @@ add_dependencies(app ac_types)
 # Options for LUT Generator
 set(LUT_SCRIPT_PATH ${CMAKE_SOURCE_DIR}/tools/lut_to_c.py)
 set(LUT_DEFS_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/lut_generated/quantile_lut_data.h)
-set(LUT_INPUT_PATH ${CMAKE_SOURCE_DIR}/data/quantile_luts/omen_lut.csv)
+set(LUT_INPUT_PATH ${CMAKE_SOURCE_DIR}/data/controller_descriptions/john_2026-03-28t16-00-32.json)
 
 
 # LUT Generator implementation
@@ -30,7 +30,7 @@ make_directory(${LUT_DEFS_OUTPUT_DIR})
 add_custom_command(
     OUTPUT ${LUT_DEFS_OUTPUT_PATH} ${LUT_DEFS_OUTPUT_DIR}
     COMMAND ${PYTHON_EXECUTABLE} ${LUT_SCRIPT_PATH} ${LUT_INPUT_PATH} > ${LUT_DEFS_OUTPUT_PATH}
-    DEPENDS ${LOWER_PATH} ${UPPER_PATH} ${LUT_SCRIPT_PATH}
+    DEPENDS ${LUT_INPUT_PATH} ${LUT_SCRIPT_PATH}
     VERBATIM
     COMMENT "Generating Quantile LUT C Defines"
 )

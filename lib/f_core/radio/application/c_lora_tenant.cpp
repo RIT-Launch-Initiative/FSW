@@ -2,22 +2,17 @@
 
 LOG_MODULE_REGISTER(CLoraTenant);
 
-CLoraTenant::CLoraTenant(CLora& lora, CMessagePort<LaunchLoraFrame>& txPort) : CRunnableTenant("CLoraTenant"),
-    link(lora), router(link),
-    loraTransmitPort(txPort) {}
+CLoraTenant::CLoraTenant(CLora& lora, CMessagePort<LaunchLoraFrame>& txPort)
+    : CRunnableTenant("CLoraTenant"), link(lora), router(link), loraTransmitPort(txPort) {}
 
-void CLoraTenant::Startup() {
-
-}
+void CLoraTenant::Startup() {}
 
 void CLoraTenant::PadRun() {
     serviceTx();
     serviceRx(K_MSEC(2000));
 }
 
-void CLoraTenant::FlightRun() {
-    serviceTx();
-}
+void CLoraTenant::FlightRun() { serviceTx(); }
 
 void CLoraTenant::LandedRun() {
     serviceTx();
@@ -29,9 +24,7 @@ void CLoraTenant::GroundRun() {
     serviceRx(K_MSEC(1000));
 }
 
-void CLoraTenant::Run() {
-    this->Clock();
-}
+void CLoraTenant::Run() { this->Clock(); }
 
 void CLoraTenant::serviceTx() {
     LaunchLoraFrame msg{};
@@ -47,6 +40,4 @@ void CLoraTenant::serviceTx() {
     }
 }
 
-void CLoraTenant::serviceRx(const k_timeout_t timeout) {
-    router.PollOnce(timeout);
-}
+void CLoraTenant::serviceRx(const k_timeout_t timeout) { router.PollOnce(timeout); }

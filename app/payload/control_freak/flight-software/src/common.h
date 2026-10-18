@@ -83,5 +83,3 @@ small_orientation minify_orientation(const NTypes::AccelerometerData &normed);
 
 int submit_horus_data(const float &tempC, const float &press, const float &batteryVoltage,
                       const small_orientation &orientation, const FlightState &fs);
-
-

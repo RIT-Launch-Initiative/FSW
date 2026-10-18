@@ -20,4 +20,3 @@ float get_skew_smart();
  * The inside of this function 
  */
 int reset_gps_if_acting_funny();
-

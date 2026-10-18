@@ -54,7 +54,7 @@ class CDataLogger {
      */
     CDataLogger(const char *filename, LogMode mode, std::size_t num_packets) : internal(filename, mode, num_packets) {}
 
-   /**
+    /**
      * Write a packet to the file
      * @param packet the data to write to the file
      */

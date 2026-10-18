@@ -6,11 +6,12 @@
 #include <f_core/net/c_transciever.h>
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
+#include <zephyr/posix/sys/socket.h>
 
 class CIPv4;
 
 class CUdpSocket {
-public:
+  public:
     struct SocketServiceUserData {
         CUdpSocket* socket;
         void* userData;
@@ -45,7 +46,8 @@ public:
      * @param[in] srcAddrLen Optional source address length
      * @return Number of bytes received or negative error code
      */
-    int ReceiveSynchronous(void* data, size_t len, sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
+    int ReceiveSynchronous(void* data, size_t len, struct sockaddr* srcAddr = nullptr,
+                           socklen_t* srcAddrLen = nullptr);
 
     /**
      * Transmit data asynchronously
@@ -68,7 +70,8 @@ public:
     /**
      * See parent docs
      */
-    int ReceiveAsynchronous(void* data, size_t len, sockaddr* srcAddr = nullptr, socklen_t* srcAddrLen = nullptr);
+    int ReceiveAsynchronous(void* data, size_t len, struct sockaddr* srcAddr = nullptr,
+                            socklen_t* srcAddrLen = nullptr);
 
     /**
      * Set transmit timeout
@@ -88,9 +91,7 @@ public:
      * Set destination port
      * @param[in] port Destination port
      */
-    void SetDstPort(const int port) {
-        dstPort = port;
-    }
+    void SetDstPort(const int port) { dstPort = port; }
 
     /**
      * Register the socket service descriptor
@@ -99,7 +100,7 @@ public:
      */
     int RegisterSocketService(net_socket_service_desc* desc, void* userData);
 
-private:
+  private:
     // CONFIG_ARCH_POSIX uses loopback for broadcast
 #if defined(CONFIG_ARCH_POSIX) && defined(CONFIG_NET_NATIVE_OFFLOADED_SOCKETS)
     static constexpr char BROADCAST_IP[] = "127.0.0.1";
@@ -110,11 +111,5 @@ private:
     int dstPort = -1;
 
     net_socket_service_desc* serviceDesc = nullptr;
-    zsock_pollfd sockfd = {
-        .fd = -1,
-        .events = POLLIN,
-        .revents = 0
-    };
+    zsock_pollfd sockfd = {.fd = -1, .events = POLLIN, .revents = 0};
 };
-
-

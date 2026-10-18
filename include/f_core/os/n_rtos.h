@@ -14,7 +14,7 @@ namespace NRtos {
  * Add a task to be scheduled on the RTOS
  * @param task Task to be scheduled on the RTOS
  */
-void AddTask(CTask& task);
+void AddTask(CTask &task);
 
 /**
  * Initialize and start all tasks added to the RTOS
@@ -54,4 +54,4 @@ void SuspendTask(const std::string &taskName);
  * Suspend the currently executing task
  */
 void SuspendCurrentTask();
-};
+}; // namespace NRtos

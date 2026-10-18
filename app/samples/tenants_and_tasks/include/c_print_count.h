@@ -7,7 +7,7 @@
  * Increments and prints the current count for a given integer.
  */
 class CPrintCount : public CRunnableTenant {
-public:
+  public:
     /**
      * Constructor.
      * @param name The name of the tenant.
@@ -25,7 +25,7 @@ public:
      */
     void Run() override;
 
-private:
+  private:
     using CBase = CRunnableTenant;
 
     int* count;

@@ -11,10 +11,9 @@
  */
 template <typename T>
 class CLatestMailbox {
-    static_assert(std::is_trivially_copyable_v<T>,
-                  "LatestMailbox<T> requires T to be trivially copyable");
+    static_assert(std::is_trivially_copyable_v<T>, "LatestMailbox<T> requires T to be trivially copyable");
 
-public:
+  public:
     /**
      * Constructor
      * NOTE: Latest value is memset to 0 on construction to avoid undefined state
@@ -72,7 +71,7 @@ public:
         } while (true);
     }
 
-private:
+  private:
     // mutable since atomic_t isn't const friendly
     // Zephyr's atomic functions for seq utilize sequential consistent memory order
     mutable atomic_t seq{};

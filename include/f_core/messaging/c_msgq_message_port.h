@@ -5,14 +5,12 @@
 
 template <typename T>
 class CMsgqMessagePort : public CMessagePort<T> {
-public:
+  public:
     /**
      * Constructor
      * @param queue Message queue to use
      */
-    explicit CMsgqMessagePort(k_msgq& queue) {
-        this->queue = &queue;
-    }
+    explicit CMsgqMessagePort(k_msgq& queue) { this->queue = &queue; }
 
     /**
      * Destructor
@@ -25,33 +23,23 @@ public:
     /**
      * See parent docs
      */
-    int Send(const T& message, const k_timeout_t timeout) override {
-        return k_msgq_put(queue, &message, timeout);
-    }
+    int Send(const T& message, const k_timeout_t timeout) override { return k_msgq_put(queue, &message, timeout); }
 
     /**
      * See parent docs
      */
-    int Receive(T& message, const k_timeout_t timeout) override {
-        return k_msgq_get(queue, &message, timeout);
-    }
+    int Receive(T& message, const k_timeout_t timeout) override { return k_msgq_get(queue, &message, timeout); }
 
     /**
      * See parent docs
      */
-    void Clear() override {
-        k_msgq_purge(queue);
-    }
+    void Clear() override { k_msgq_purge(queue); }
 
     /**
      * See parent docs
      */
-    size_t AvailableSpace() override {
-        return k_msgq_num_free_get(queue);
-    }
+    size_t AvailableSpace() override { return k_msgq_num_free_get(queue); }
 
-private:
-    k_msgq *queue;
+  private:
+    k_msgq* queue;
 };
-
-

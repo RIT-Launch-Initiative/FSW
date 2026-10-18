@@ -31,5 +31,3 @@ class CShunt : public CSensorDevice {
 
     SShuntData shuntData;
 };
-
-

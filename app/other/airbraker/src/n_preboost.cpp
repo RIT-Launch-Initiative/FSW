@@ -1,5 +1,7 @@
 #include "n_preboost.hpp"
 
+#include "n_model.hpp"
+
 #include <f_core/utils/linear_fit.hpp>
 namespace NPreBoost {
 
@@ -34,16 +36,30 @@ GyroAxes zeroAxes = {0};
 
 CMovingAverage<GyroAxes, NUM_SAMPLES_FOR_GYRO_BIAS> gyroBiasAverager{zeroAxes};
 CCircularBuffer<Packet, NUM_STORED_PREBOOST_PACKETS> preboostPackets{zeroPacket};
+float groundLevelPressure = 0;
+float groundLevelASLMeters = 0; // altitude from pressure reading at our most current idea of before launch
 
 void SubmitPreBoostPacket(const Packet &packet) {
     // newest sample for gyro bias
     preboostPackets.AddSample(packet);
     Packet *newestSampleForGyroBias = &preboostPackets.OldestSample();
     gyroBiasAverager.Feed({newestSampleForGyroBias->gyro});
+    
+    // Grab ground level altitude from most recent if we're before the circular buffer is initialized
+    if (preboostPackets.OldestSample().pressureRaw == 0) {
+        groundLevelPressure = packet.pressureRaw;
+    } else {
+        groundLevelPressure = preboostPackets.OldestSample().pressureRaw;
+    }
+    groundLevelASLMeters = NModel::AltitudeMetersFromPressureKPa(groundLevelPressure); 
 }
 
 NTypes::GyroscopeData GetGyroBias() { return gyroBiasAverager.Avg().internal; }
 
+float GetGroundLevelASL() { return groundLevelASLMeters; }
+float GetGroundLevelPressure() { return groundLevelPressure; }
+
 void GetPreBoostPacket(size_t index, Packet &packetOut) { packetOut = preboostPackets[index]; }
+Packet *GetPreBoostPacketPtr(size_t index) { return &preboostPackets[index]; }
 
 }; // namespace NPreBoost

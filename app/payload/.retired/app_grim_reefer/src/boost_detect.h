@@ -27,4 +27,3 @@ bool get_boost_detected();
  * Filenames determined by config.h
 */
 void save_boost_data();
-

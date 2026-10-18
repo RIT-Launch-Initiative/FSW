@@ -7,6 +7,7 @@
         barom = &ms5607;
         servo = &servo1;
         servo-en = &servo1_pwr;
+        buzzer = &led2;
     };
 
     servo1: servo1 {
@@ -31,5 +32,26 @@
         status = "okay";
         pinctrl-0 = <&tim2_ch1_pa15>;
         pinctrl-names = "default";
+    };
+};
+
+
+&w25q128{
+    partitions {
+        bootcount_storage@0{
+            reg = <0 DT_SIZE_K(8)>; // two pages
+            label = "bootcount_storage";
+        };
+        parameter_storage@2000{
+            reg = <0x2000 DT_SIZE_K(4)>; // 1 page
+            label = "parameter_storage";
+        };
+        // hole/buffer so that we can use 64KB erases for this guy
+        flight_storage@10000{
+            // DT_SIZE_K(16320) (~15.9 MB) left after this. 
+            // We don't need all of it (yet) and it would take forever to erase
+            reg = <0x10000 DT_SIZE_K(3072)>; 
+            label = "flight_storage";
+        };
     };
 };

@@ -2,8 +2,8 @@
 
 #include <time.h>
 #include <zephyr/device.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/drivers/rtc.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CRtc);
 
@@ -20,8 +20,8 @@ CRtc::CRtc(const device& dev) : rtc(dev) {
     if (int ret = GetTime(rtcTime); ret < 0) {
         LOG_ERR("Failed to get RTC time during initialization: %d", ret);
     } else {
-        LOG_INF("RTC initialized to %04d-%02d-%02d %02d:%02d:%02d", rtcTime.tm_year + 1900,
-                rtcTime.tm_mon + 1, rtcTime.tm_mday, rtcTime.tm_hour, rtcTime.tm_min, rtcTime.tm_sec);
+        LOG_INF("RTC initialized to %04d-%02d-%02d %02d:%02d:%02d", rtcTime.tm_year + 1900, rtcTime.tm_mon + 1,
+                rtcTime.tm_mday, rtcTime.tm_hour, rtcTime.tm_min, rtcTime.tm_sec);
     }
 }
 
@@ -31,10 +31,7 @@ static bool IsLeapYear(int year) {
 }
 
 static int DaysInMonth(const int year, const int month) {
-    static const int daysInMonth[] = {
-        31, 28, 31, 30, 31, 30,
-        31, 31, 30, 31, 30, 31
-    };
+    static const int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     if (month == 1 && IsLeapYear(year)) {
         return 29;
     }
@@ -62,16 +59,11 @@ static uint64_t ComputeUnixMillis(const rtc_time& rtcTime) {
     days += day - 1;
 
     // Convert to seconds
-    uint64_t seconds = days * 86400ull
-                     + rtcTime.tm_hour * 3600ull
-                     + rtcTime.tm_min * 60ull
-                     + rtcTime.tm_sec;
+    uint64_t seconds = days * 86400ull + rtcTime.tm_hour * 3600ull + rtcTime.tm_min * 60ull + rtcTime.tm_sec;
 
     // Convert to milliseconds
     return seconds * 1000ull + rtcTime.tm_nsec / 1000000;
 }
-
-
 
 int CRtc::GetTime(rtc_time& time) {
     if (int ret = rtc_get_time(&rtc, &time); ret < 0) {
@@ -81,9 +73,7 @@ int CRtc::GetTime(rtc_time& time) {
     return 0;
 }
 
-int CRtc::GetTime(tm& time) {
-    return GetTime(reinterpret_cast<rtc_time&>(time));
-}
+int CRtc::GetTime(tm& time) { return GetTime(reinterpret_cast<rtc_time&>(time)); }
 
 int CRtc::GetMillisTime(uint32_t& millis) {
     if (int ret = GetMillisTime(reinterpret_cast<uint64_t&>(millis)); ret < 0) {
@@ -123,7 +113,6 @@ int CRtc::GetUnixTime(uint32_t& unixTimestamp) {
     return 0;
 }
 
-
 int CRtc::SetTime(rtc_time& rtcTime) {
 #ifdef CONFIG_RTC_STM32
     if (rtcTime.tm_year < 100) {
@@ -139,9 +128,7 @@ int CRtc::SetTime(rtc_time& rtcTime) {
     return 0;
 }
 
-int CRtc::SetTime(tm& time) {
-    return SetTime(*reinterpret_cast<rtc_time*>(&time));
-}
+int CRtc::SetTime(tm& time) { return SetTime(*reinterpret_cast<rtc_time*>(&time)); }
 
 int CRtc::SetUnixTime(time_t unixTimestamp) {
     tm* tmTime = gmtime(&unixTimestamp);
@@ -152,4 +139,3 @@ int CRtc::SetUnixTime(time_t unixTimestamp) {
 
     return SetTime(*reinterpret_cast<rtc_time*>(tmTime));
 }
-

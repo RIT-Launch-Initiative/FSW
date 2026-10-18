@@ -12,7 +12,7 @@
  * See CRunnableTenant and CCallbackTenant for more specific types of tenants
  */
 class CTenant {
-public:
+  public:
     /**
      * Constructor
      * @param name Name of the tenant
@@ -33,9 +33,8 @@ public:
      * Get the name of the tenant
      * @return Name of the tenant
      */
-    const char *GetName() const {
-        return name;
-    }
-protected:
+    const char *GetName() const { return name; }
+
+  protected:
     const char *name;
 };

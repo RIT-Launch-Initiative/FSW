@@ -2,7 +2,7 @@
 #include <cstddef>
 
 class CTransceiver {
-public:
+  public:
     CTransceiver() = default;
 
     /**
@@ -51,7 +51,6 @@ public:
      */
     virtual int SetRxTimeout(int timeoutMillis) = 0;
 
-protected:
+  protected:
     virtual ~CTransceiver() = default;
 };
-

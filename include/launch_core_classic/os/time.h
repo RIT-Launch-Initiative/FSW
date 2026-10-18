@@ -8,7 +8,6 @@
  * Utility functions for keeping track of the time of day
  */
 
-
 #pragma once
 
 #include <stdint.h>
@@ -25,5 +24,3 @@ void l_init_time(uint32_t time_of_day_ms);
  * @return Time of day in milliseconds, or 0 if the time of day has not been set
  */
 uint32_t l_get_time_of_day_ms(uint32_t current_uptime_ms);
-
-

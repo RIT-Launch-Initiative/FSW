@@ -6,7 +6,7 @@
  * Interface for components that want to handle frames on a particular port.
  */
 class CLoraFrameHandler {
-public:
+  public:
     virtual ~CLoraFrameHandler() = default;
 
     /**
@@ -15,4 +15,3 @@ public:
      */
     virtual void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) = 0;
 };
-

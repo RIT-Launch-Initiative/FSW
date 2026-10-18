@@ -1,7 +1,6 @@
 #include <launch_core_classic/dev/adc.h>
-
-#include <zephyr/logging/log.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(launch_adc_utils);
 
@@ -44,9 +43,9 @@ int l_read_adc_mv(const struct adc_dt_spec *const channel, struct adc_sequence *
 
     if (ret == 0) {
         if (channel->channel_cfg.differential) { // Differential channels are 16 bits
-            val_mv = (int32_t) * ((int16_t *) sequence->buffer);
+            val_mv = (int32_t) *((int16_t *) sequence->buffer);
         } else {
-            val_mv = *((int32_t * )(sequence->buffer));
+            val_mv = *((int32_t *) (sequence->buffer));
         }
 
         ret = adc_raw_to_millivolts_dt(channel, &val_mv);

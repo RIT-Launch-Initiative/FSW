@@ -13,7 +13,7 @@
  * Application tenants can block, but should recognize other tenants that could be sharing the same thread context
  */
 class CRunnableTenant : public CTenant {
-public:
+  public:
     /**
      * Constructor
      * @param name Name of the tenant
