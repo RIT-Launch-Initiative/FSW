@@ -106,22 +106,22 @@
     status = "okay";
 };
 
-//&pll {
-//	div-m = <8>;
-//	mul-n = <384>;
-//	div-p = <2>;
-//	div-q = <2>;
-//	clocks = <&clk_hsi>;
-//	status = "okay";
-//};
+&pll {
+    div-m = <16>;
+    mul-n = <180>;
+    div-p = <4>;
+    clocks = <&clk_hsi>;
+    status = "okay";
+};
 
 &rcc {
-    clocks = <&clk_hsi>;
-    clock-frequency = <DT_FREQ_M(16)>;
+    clocks = <&pll>;
+    clock-frequency = <DT_FREQ_M(45)>;
     ahb-prescaler = <1>;
-    apb1-prescaler = <2>;
+    apb1-prescaler = <1>;
     apb2-prescaler = <1>;
 };
+
 
 &usart2 {
     pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;

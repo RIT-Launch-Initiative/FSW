@@ -1,19 +1,19 @@
-#ifndef C_SNTP_SERVER_H
-#define C_SNTP_SERVER_H
+#pragma once
 
-#include <f_core/device/c_rtc.h>
-
-#include "f_core/os/c_tenant.h"
 #include "f_core/net/network/c_ipv4.h"
 #include "f_core/net/transport/c_udp_socket.h"
+#include "f_core/os/c_callback_tenant.h"
+#include "f_core/os/c_runnable_tenant.h"
+
+#include <f_core/device/c_rtc.h>
 
 // Static instances
 // Note these must be defined outside the class to avoid linker issues
 static rtc_time lastUpdatedTime;
 static K_MUTEX_DEFINE(lastUpdatedTimeLock); // Use macro here so we dont need to call init
 
-class CSntpServerTenant : public CTenant {
-public:
+class CSntpServerTenant : public CCallbackTenant {
+  public:
     enum SntpPrecisionExponents : int8_t {
         SNTP_NANOSECONDS_PRECISION = -30,
         SNTP_MICROSECONDS_PRECISION = -26,
@@ -27,8 +27,7 @@ public:
      * Singleton getter to avoid multiple instances of the SNTP server.
      */
     static CSntpServerTenant* GetInstance(CRtc& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT,
-                                          uint8_t stratum = 1,
-                                          uint8_t pollInterval = 4,
+                                          uint8_t stratum = 1, uint8_t pollInterval = 4,
                                           int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION) {
         if (instance == nullptr) {
             instance = new CSntpServerTenant(rtc, ipv4, port, stratum, pollInterval, precisionExponent);
@@ -71,24 +70,19 @@ public:
     /**
      * See parent docs
      */
-    void Startup() override;
-
-    /**
-     * See parent docs
-     */
-    void PostStartup() override;
-
-    /**
-     * See parent docs
-     */
     void Cleanup() override;
 
     /**
      * See parent docs
      */
-    void Run() override;
+    void Register() override;
 
-private:
+    /**
+     * See parent docs
+     */
+    void Callback() override;
+
+  private:
     inline static CSntpServerTenant* instance = nullptr;
 
     static constexpr uint8_t SERVER_VERSION_NUMBER = 4;
@@ -110,7 +104,6 @@ private:
     const uint8_t pollInterval;
     const int8_t precisionExponent;
     const uint16_t sockPort;
-
 
     enum LeapIndicator : uint8_t {
         LI_NO_WARNING = 0,
@@ -136,9 +129,9 @@ private:
         uint8_t vn : 3;
         uint8_t li : 2;
 #else
-        uint8_t li: 2;
-        uint8_t vn: 3;
-        uint8_t mode: 3;
+        uint8_t li : 2;
+        uint8_t vn : 3;
+        uint8_t mode : 3;
 #endif /* CONFIG_LITTLE_ENDIAN */
         uint8_t stratum;
         uint8_t poll;
@@ -159,17 +152,14 @@ private:
 
     static constexpr char GPS_REFERENCE_CODE[] = "GPS";
 
-
     CSntpServerTenant(CRtc& rtc, const CIPv4& ipv4, uint16_t port = SNTP_DEFAULT_PORT, uint8_t stratum = 1,
                       uint8_t pollInterval = 4, int8_t precisionExponent = SNTP_NANOSECONDS_PRECISION)
-        : CTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc), stratum(stratum),
+        : CCallbackTenant("SNTP server"), sock(ipv4, port, port), ip(ipv4), rtc(rtc), stratum(stratum),
           pollInterval(pollInterval), precisionExponent(precisionExponent), sockPort(port) {}
 
     int getLastUpdateTimeAsSeconds(uint32_t& seconds);
 
-    uint32_t reckonAndByteSwapTimestamp(uint32_t timestamp) {
-        return htonl(timestamp + OFFSET_1970_JAN_1);
-    }
-};
+    uint32_t reckonAndByteSwapTimestamp(uint32_t timestamp) { return net_htonl(timestamp + OFFSET_1970_JAN_1); }
 
-#endif // C_SNTP_SERVER_H
+    void setupRtcTime();
+};

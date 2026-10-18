@@ -2,6 +2,7 @@
 **/.idea/* export-ignore linguist-generated=true -diff
 data/orksim_csv/* export-ignore linguist-generated=true -diff
 data/sim/* export-ignore linguist-generated=true -diff
+**/*.ipynb linguist-vendored
 
 # Source Code
 *.c     text diff=cpp

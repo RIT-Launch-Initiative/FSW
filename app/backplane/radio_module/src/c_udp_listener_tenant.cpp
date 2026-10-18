@@ -1,4 +1,5 @@
 #include "c_udp_listener_tenant.h"
+
 #include "c_radio_module.h"
 
 #include <n_autocoder_types.h>
@@ -6,16 +7,12 @@
 
 LOG_MODULE_REGISTER(CUdpListenerTenant);
 
-void CUdpListenerTenant::Startup() {
-    LOG_INF("Listening on port %d", listenPort);
-}
+void CUdpListenerTenant::Startup() { LOG_INF("Listening on port %d", listenPort); }
 
-void CUdpListenerTenant::PostStartup() {
-    udp.SetRxTimeout(10);
-}
+void CUdpListenerTenant::PostStartup() { udp.SetRxTimeout(10); }
 
 void CUdpListenerTenant::Run() {
-    NTypes::LoRaBroadcastData radioBroadcastData{0};
+    LaunchLoraFrame radioBroadcastData{0};
 
     // Note len argument is the size of the data buffer, not how much data to receive!
     // rcvResult will contain the actual amount of data received or -1 on error

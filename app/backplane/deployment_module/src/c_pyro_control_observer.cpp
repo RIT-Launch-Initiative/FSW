@@ -4,8 +4,8 @@
 
 #include <cstdio>
 #include <f_core/n_alerts.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/drivers/rtc.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CPyroControlObserver);
 
@@ -16,12 +16,10 @@ static void chargeDisableTimerCallback(k_timer* timer) {
     NRtos::ResumeTask("Networking Task");
 }
 
-CPyroControlObserver::CPyroControlObserver() {
+CPyroControlObserver::CPyroControlObserver() : chargeDisableTimer(chargeDisableTimerCallback) {
     // flightLog.Write("Pyro Controller Observer initialized");
-    chargeDisableTimer = CSoftTimer(chargeDisableTimerCallback);
     chargeDisableTimer.SetUserData(this);
 }
-
 
 void CPyroControlObserver::Notify(void* ctx) {
     uint8_t pyroCount = 0;
@@ -32,13 +30,12 @@ void CPyroControlObserver::Notify(void* ctx) {
             LOG_INF("Noseover detected. Deploying charges in one second.");
             // flightLog.Write("Noseover detected. Deploying charges in one second.");
             // TODO: Settings library for handling deployment timing
-            k_sleep(K_SECONDS(1));
 
             for (auto& [sense, ctrl, led] : pyroTrios) {
                 // if (sense.GetPin() == 1) {
-                    ctrl.SetPin(1);
-                    led.SetPin(1);
-                    LOG_INF("Deployed charge %d", pyroCount);
+                ctrl.SetPin(1);
+                led.SetPin(1);
+                LOG_INF("Deployed charge %d", pyroCount);
                 // }
                 pyroCount++;
             }
@@ -51,7 +48,6 @@ void CPyroControlObserver::Notify(void* ctx) {
         default:
             break;
     }
-
 
     // flightLog.Sync();
 }

@@ -1,16 +1,39 @@
 #include "f_core/net/application/c_sntp_server_tenant.h"
+
+#include "zephyr/net/socket_service.h"
+
 #include <zephyr/net/net_ip.h>
 
 LOG_MODULE_REGISTER(CSntpServerTenant);
 
-void CSntpServerTenant::Startup() {
-    LOG_INF("Starting SNTP server on port %d", sockPort);
+extern net_socket_service_desc sntpSocketService;
+extern "C" void sntpSocketServiceHandler(net_socket_service_event* pev) {
+    auto userData = static_cast<CUdpSocket::SocketServiceUserData*>(pev->user_data);
+
+    if (userData == nullptr) {
+        LOG_ERR("User data is null in alertSocketServiceHandler");
+        k_oops();
+    }
+
+    auto* tenant = static_cast<CCallbackTenant*>(userData->userData);
+    if (tenant == nullptr) {
+        LOG_ERR("Tenant is null in tftpSocketServiceHandler");
+        k_oops();
+    }
+
+    tenant->Callback();
 }
 
-void CSntpServerTenant::PostStartup() {
+void CSntpServerTenant::Register() {
+    LOG_INF("Starting SNTP server on port %d", sockPort);
+    int ret = sock.RegisterSocketService(&sntpSocketService, this);
+    if (ret < 0) {
+        LOG_ERR("Failed to register socket service for CSntpServerTenant: %d", ret);
+    }
+
     rtc_time time = {0};
 
-    int ret = rtc.GetTime(time);
+    ret = rtc.GetTime(time);
     if (ret < 0) {
         LOG_ERR("Failed to get RTC time on SNTP server startup (%d). Defaulting to 2025-01-01 00:00:00", ret);
         // Default to 2025-01-01 00:00:00 until the RTC is set
@@ -47,12 +70,12 @@ void CSntpServerTenant::PostStartup() {
 
 void CSntpServerTenant::Cleanup() {}
 
-void CSntpServerTenant::Run() {
+void CSntpServerTenant::Callback() {
     SntpPacket clientPacket = {0};
     uint32_t rxPacketSecondsTimestamp = 0;
     uint32_t txPacketSecondsTimestamp = 0;
     uint32_t lastUpdateTimeSeconds = 0;
-    sockaddr srcAddr = {0};
+    struct sockaddr srcAddr = {0};
     socklen_t srcAddrLen = sizeof(srcAddr);
 
     const int rxLen = sock.ReceiveAsynchronous(&clientPacket, sizeof(clientPacket), &srcAddr, &srcAddrLen);
@@ -74,8 +97,7 @@ void CSntpServerTenant::Run() {
     }
 
     uint8_t li = LI_NO_WARNING;
-    if (rtc.GetUnixTime(txPacketSecondsTimestamp) ||
-        getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds)) {
+    if (rtc.GetUnixTime(txPacketSecondsTimestamp) || getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds)) {
         li = LI_ALARM_CONDITION;
         // Keep going. The packet will be sent with the alarm condition signaling we are desynchronized
     }
@@ -94,7 +116,7 @@ void CSntpServerTenant::Run() {
         .poll = pollInterval,
         .precision = precisionExponent,
         .rootDelay = 0, // Unknown, but very small with the assumption Ethernet is used
-        .rootDispersion = htonl(GNSS_ROOT_DISPERSION_FIXED_POINT), // 0.5 ms
+        .rootDispersion = net_htonl(GNSS_ROOT_DISPERSION_FIXED_POINT), // 0.5 ms
         .refTimestampSeconds = reckonAndByteSwapTimestamp(lastUpdateTimeSeconds),
         .refTimestampFraction = 0,
         .originateTimestampSeconds = clientPacket.txTimestampSeconds,
@@ -107,7 +129,7 @@ void CSntpServerTenant::Run() {
     memcpy(packet.referenceId, GPS_REFERENCE_CODE, 4);
 
     sockaddr_in clientAddr = *reinterpret_cast<const sockaddr_in*>(&srcAddr);
-    uint16_t clientPort = ntohs(clientAddr.sin_port);
+    uint16_t clientPort = net_ntohs(clientAddr.sin_port);
     sock.SetDstPort(clientPort);
 
     int ret = sock.TransmitAsynchronous(&packet, sizeof(packet));
@@ -123,14 +145,12 @@ int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     }
 
     // Calculate seconds since epoch properly with all time components
-    struct tm timeinfo = {
-        .tm_sec = time.tm_sec,
-        .tm_min = time.tm_min,
-        .tm_hour = time.tm_hour,
-        .tm_mday = time.tm_mday,
-        .tm_mon = time.tm_mon - 1,
-        .tm_year = time.tm_year
-    };
+    struct tm timeinfo = {.tm_sec = time.tm_sec,
+                          .tm_min = time.tm_min,
+                          .tm_hour = time.tm_hour,
+                          .tm_mday = time.tm_mday,
+                          .tm_mon = time.tm_mon - 1,
+                          .tm_year = time.tm_year};
     seconds = mktime(&timeinfo);
     return 0;
 }

@@ -3,8 +3,7 @@
 
 LOG_MODULE_REGISTER(CTemperatureSensor);
 
-CTemperatureSensor::CTemperatureSensor(const device& dev) : CSensorDevice(dev) {
-}
+CTemperatureSensor::CTemperatureSensor(const device& dev) : CSensorDevice(dev) {}
 
 bool CTemperatureSensor::UpdateSensorValue() {
     return CBase::UpdateSensorValue() && (0 == sensor_channel_get(&dev, SENSOR_CHAN_AMBIENT_TEMP, &temperature));
@@ -15,7 +14,7 @@ sensor_value CTemperatureSensor::GetSensorValue(sensor_channel chan) const {
         return temperature;
     }
 
-    LOG_ERR("Invalid sensor channel (%d) called for temperature sensor", chan);
+    LOG_ERR("Invalid sensor channel (%d) called for temperature sensor", static_cast<int>(chan));
     k_oops();
     return {INT32_MIN, INT32_MIN};
 }

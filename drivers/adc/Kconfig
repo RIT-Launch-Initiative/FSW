@@ -2,5 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 if ADC
-    rsource "mcp356x/Kconfig"
 endif

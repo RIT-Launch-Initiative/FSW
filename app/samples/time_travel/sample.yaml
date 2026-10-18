@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: time-travel
   name: time-travel
 common:
   build_only: true

@@ -1,0 +1,19 @@
+identifier: crashout
+name: CRASHOUT
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 20
+flash: 64
+supported:
+  - gpio
+  - spi
+  - pwm
+  - watchdog
+  - adc
+  - dma
+  - nvs
+  - counter
+vendor: launch

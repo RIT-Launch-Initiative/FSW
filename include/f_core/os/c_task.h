@@ -3,20 +3,17 @@
 *
 * SPDX-License-Identifier: Apache-2.0
 */
-#ifndef C_TASK_H
-#define C_TASK_H
+#pragma once
 
-#include <cstdint>
+#include <f_core/os/c_runnable_tenant.h>
 #include <vector>
-
-#include <f_core/os/c_tenant.h>
 #include <zephyr/kernel.h>
 
 /**
  * Thread to be ran in the RTOS
  */
 class CTask {
-public:
+  public:
     /**
      * Constructor
      * @param name Name of the task
@@ -40,7 +37,7 @@ public:
      * Bind a tenant to the task
      * @param tenant Tenant to bind to a task
      */
-    void AddTenant(CTenant& tenant);
+    void AddTenant(CRunnableTenant& tenant);
 
     /**
      * @brief Run through the tenants and execute their Run method
@@ -51,26 +48,17 @@ public:
      * Get the Zephyr thread associated with the task
      * @return Zephyr thread
      */
-    k_thread GetThread()
-    {
-        return this->thread;
-    };
+    k_thread GetThread() { return this->thread; };
 
-    k_tid_t GetTaskId() {
-        return this->taskId;
-    }
+    k_tid_t GetTaskId() { return this->taskId; }
 
     /**
      * Get the name of the task
      * @return Name of the task
      */
-    const char *GetName()
-    {
-        return this->name;
-    };
+    const char* GetName() { return this->name; };
 
-
-private:
+  private:
     const char* name;
     const int priority;
     const size_t stackSize;
@@ -79,7 +67,5 @@ private:
     k_thread thread;
     k_thread_stack_t* stack;
 
-    std::vector<CTenant*> tenants;
+    std::vector<CRunnableTenant*> tenants;
 };
-
-#endif //C_TASK_H

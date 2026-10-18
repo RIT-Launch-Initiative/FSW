@@ -1,10 +1,9 @@
-#ifndef C_STATE_MACHINE_UPDATER_H
-#define C_STATE_MACHINE_UPDATER_H
+#pragma once
 
 #include <f_core/utils/c_observer.h>
 
 class CStateMachineUpdater : public CObserver {
-public:
+  public:
     /**
      * Constructor
      */
@@ -20,5 +19,3 @@ public:
      */
     void Notify(void *ctx) override;
 };
-
-#endif //C_STATE_MACHINE_UPDATER_H

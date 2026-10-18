@@ -1,5 +1,4 @@
-#ifndef PHASE_DETECTION_FLIGHT_H_
-#define PHASE_DETECTION_FLIGHT_H_
+#pragma once
 #include <array>
 #include <cstdint>
 #include <f_core/flight/c_phase_controller.h>
@@ -26,13 +25,8 @@ enum Sources : uint8_t {
     NumSources
 };
 inline constexpr std::array<const char *, Sources::NumSources> sourceNames = {
-    "IMU 1 (LSM6DSL)",     
-    "Barom 1 (BME280)",  
-    "Noseover Lockout",  
-    "Boost2Coast Timer",
-    "Noseover2Main Timer", 
-    "Full Flight Timer", 
-    "ExtraCamera Timer",
+    "IMU 1 (LSM6DSL)",     "Barom 1 (BME280)",  "Noseover Lockout",  "Boost2Coast Timer",
+    "Noseover2Main Timer", "Full Flight Timer", "ExtraCamera Timer",
 };
 
 inline constexpr std::size_t num_timer_events = 5;
@@ -41,7 +35,7 @@ using Controller = CPhaseController<Events, Events::NumEvents, Sources, Sources:
 /**
  * Special events triggered not by sensors but by timers between phases
  */
-inline std::array<Controller::TimerEvent, num_timer_events> timer_events = {
+inline std::array<Controller::TimerEvent, num_timer_events> timerEvents = {
     // The engine should burn for around X seconds. don't detect coast unless the engine has been firing for a bit
     // Can be implemented as a lockout or as another way of progressing states if you don't want to do unboost detection
     Controller::TimerEvent{
@@ -125,5 +119,3 @@ inline constexpr std::array<Controller::DecisionFunc, Events::NumEvents> decider
 
     return arr;
 }();
-
-#endif

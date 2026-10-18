@@ -3,11 +3,16 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef C_TENANT_H
-#define C_TENANT_H
+#pragma once
 
+/**
+ * Base class for all tenants - Ideally applications should not inherit from this class directly
+ * A tenant is considered a software module meant to be ran periodically
+ * The user can choose how they are executed whether in a task, callback, superloop...
+ * See CRunnableTenant and CCallbackTenant for more specific types of tenants
+ */
 class CTenant {
-public:
+  public:
     /**
      * Constructor
      * @param name Name of the tenant
@@ -20,30 +25,16 @@ public:
     virtual ~CTenant() = default;
 
     /**
-     * Initialize the tenant
-     */
-    virtual void Startup() {};
-
-    /**
-     * Perform any other initializations after all tenants in the same task have been initialized
-     */
-    virtual void PostStartup() {};
-
-    /**
-     * Run the tenant
-     */
-    virtual void Run() = 0;
-
-    /**
      * Cleanup the tenant
      */
     virtual void Cleanup() {};
 
-    const char *GetName() const {
-        return name;
-    }
-protected:
+    /**
+     * Get the name of the tenant
+     * @return Name of the tenant
+     */
+    const char *GetName() const { return name; }
+
+  protected:
     const char *name;
 };
-
-#endif //C_TENANT_H

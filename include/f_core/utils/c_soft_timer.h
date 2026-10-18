@@ -1,9 +1,8 @@
-#ifndef C_SOFT_TIMER_H
-#define C_SOFT_TIMER_H
+#pragma once
 #include <zephyr/kernel.h>
 
 class CSoftTimer {
-public:
+  public:
     /**
     * Constructor
     * @param expirationFn Function to call when the timer expires
@@ -13,12 +12,16 @@ public:
         k_timer_init(&timer, expirationFn, stopFn);
     }
 
+    // Make the timer non-copyable and non-movable
+    CSoftTimer(const CSoftTimer&) = delete;
+    CSoftTimer& operator=(const CSoftTimer&) = delete;
+    CSoftTimer(CSoftTimer&&) = delete;
+    CSoftTimer& operator=(CSoftTimer&&) = delete;
+
     /**
     * Destructor
     */
-    ~CSoftTimer() {
-        StopTimer();
-    }
+    ~CSoftTimer() { StopTimer(); }
 
     /**
     * Start the timer with the given expiration time
@@ -77,70 +80,51 @@ public:
     /**
     * Block until the timer expires
     */
-    void BlockUntilExpired() {
-        k_timer_status_sync(&timer);
-    }
+    void BlockUntilExpired() { k_timer_status_sync(&timer); }
 
     /**
     * Get the remaining ticks until the timer expires
     * @return Remaining ticks
     */
-    int64_t GetRemainingTicks() const {
-        return k_timer_remaining_ticks(&timer);
-    }
+    int64_t GetRemainingTicks() const { return k_timer_remaining_ticks(&timer); }
 
     /**
     * Get the remaining milliseconds until the timer expires
     * @return Remaining milliseconds
     */
-    uint32_t GetRemainingMillis() {
-        return k_timer_remaining_get(&timer);
-    }
+    uint32_t GetRemainingMillis() { return k_timer_remaining_get(&timer); }
 
     /**
      * Check if the timer is running
      * @return True if the timer is running, false otherwise
      */
-    bool IsRunning() const {
-        return running;
-    }
+    bool IsRunning() const { return running; }
 
     /**
     * Check if the timer has expired
     * @return True if the timer has expired, false otherwise
     */
-    bool IsExpired() {
-        return k_timer_status_get(&timer) != 0;
-    }
+    bool IsExpired() { return k_timer_status_get(&timer) != 0; }
 
     /**
      * Set the user data for the timer. Ideal for passing data to callbacks
      * @param data User data to set
      */
-    void SetUserData(void* data) {
-        k_timer_user_data_set(&timer, data);
-    }
+    void SetUserData(void* data) { k_timer_user_data_set(&timer, data); }
 
     /**
      * Get the user data for the timer
      * @return User data
      */
-    void* GetUserData() const {
-        return k_timer_user_data_get(&timer);
-    }
+    void* GetUserData() const { return k_timer_user_data_get(&timer); }
 
     /**
      * Get the number of times the timer expired since this function was last called
      * @return Expiration count since last read
      */
-    int GetExpiredCountSinceLastRead() {
-        return k_timer_status_get(&timer);
-    }
+    int GetExpiredCountSinceLastRead() { return k_timer_status_get(&timer); }
 
-private:
+  private:
     k_timer timer;
     bool running = false;
 };
-
-
-#endif //C_SOFT_TIMER_H

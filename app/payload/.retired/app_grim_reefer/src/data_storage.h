@@ -1,5 +1,4 @@
-#ifndef REEFER_INLCUDE_DATA_STORAGE_H
-#define REEFER_INLCUDE_DATA_STORAGE_H
+#pragma once
 
 #include <launch_core_classic/types.h>
 #include <stdint.h>
@@ -42,5 +41,3 @@ int start_data_storage_thread();
  * @brief Stop accepting new data and save everything to disk
  */
 void finish_data_storage();
-
-#endif

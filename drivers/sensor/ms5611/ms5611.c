@@ -6,16 +6,14 @@
 
 #define DT_DRV_COMPAT meas_ms5611
 
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/sensor.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/sys/byteorder.h>
 
-#include <zephyr/logging/log.h>
-
-LOG_MODULE_REGISTER(ms5611, CONFIG_SENSOR_LOG_LEVEL
-);
+LOG_MODULE_REGISTER(ms5611, CONFIG_SENSOR_LOG_LEVEL);
 
 /* according to device datasheet - reload of registers should take 2.8ms */
 #define MS5611_SLEEP_AFTER_RESET_MS 3
@@ -86,8 +84,8 @@ struct ms5611_config {
     struct i2c_dt_spec i2c_bus;
 };
 
-static int ms5611_pressure_osr_set(const struct device *dev, const struct sensor_value *val) {
-    struct ms5611_data *data = dev->data;
+static int ms5611_pressure_osr_set(const struct device* dev, const struct sensor_value* val) {
+    struct ms5611_data* data = dev->data;
 
     switch (val->val1) {
         case MS5611_OSR_256:
@@ -122,8 +120,8 @@ static int ms5611_pressure_osr_set(const struct device *dev, const struct sensor
     return 0;
 }
 
-static int ms5611_temperature_osr_set(const struct device *dev, const struct sensor_value *val) {
-    struct ms5611_data *data = dev->data;
+static int ms5611_temperature_osr_set(const struct device* dev, const struct sensor_value* val) {
+    struct ms5611_data* data = dev->data;
 
     switch (val->val1) {
         case MS5611_OSR_256:
@@ -158,8 +156,8 @@ static int ms5611_temperature_osr_set(const struct device *dev, const struct sen
     return 0;
 }
 
-static int ms5611_attr_set(const struct device *dev, enum sensor_channel chan,
-                           enum sensor_attribute attr, const struct sensor_value *val) {
+static int ms5611_attr_set(const struct device* dev, enum sensor_channel chan, enum sensor_attribute attr,
+                           const struct sensor_value* val) {
     int ret;
 
     if (attr != SENSOR_ATTR_OVERSAMPLING) {
@@ -187,15 +185,20 @@ static int ms5611_attr_set(const struct device *dev, enum sensor_channel chan,
     return ret;
 }
 
-static int ms5611_fetch_temp_and_press(const struct device *dev) {
-    const struct ms5611_config *cfg = dev->config;
-    struct ms5611_data *data = dev->data;
+static int ms5611_fetch_temp_and_press(const struct device* dev) {
+    const struct ms5611_config* cfg = dev->config;
+    struct ms5611_data* data = dev->data;
     uint8_t temp_data[3], press_data[3];
     uint32_t raw_temp, raw_press;
     int ret;
-    int32_t dT, temp, t2, p;
+    int32_t dT;
+    int32_t temp;
+    int32_t t2;
     uint8_t i2c_cmd;
-    int64_t off, off2, sens, sens2;
+    int64_t off;
+    int64_t off2;
+    int64_t sens;
+    int64_t sens2;
 
     /* Request temperature conversion */
     i2c_cmd = data->osr[MS5611_OSR_TEMP_IDX].read_cmd;
@@ -275,13 +278,19 @@ static int ms5611_fetch_temp_and_press(const struct device *dev) {
 
     /* Second order temperature compensation */
     if (temp < 2000) {
-        t2 = ((dT ^ 2) >> 31);
-        off2 = 5 * ((temp - 2000) ^ 2) / 2;
-        sens2 = 5 * (temp - 2000) ^ 2 / 4;
+        int64_t dt = dT;
+        int64_t t = temp - 2000;
+        int64_t t_sq = t * t;
+
+        t2 = (int32_t) ((dt * dt) >> 31);
+        off2 = (5 * t_sq) >> 1;  // /2
+        sens2 = (5 * t_sq) >> 2; // /4
 
         if (temp < -1500) {
-            off2 = off2 + (7 * (temp + 1500) ^ 2);
-            sens2 = sens2 + (11 * ((temp + 1500) ^ 2)) / 2;
+            int64_t t3 = temp + 1500;
+            int64_t t3_sq = t3 * t3;
+            off2 += 7 * t3_sq;
+            sens2 += (11 * t3_sq) >> 1; // /2
         }
     } else {
         t2 = 0;
@@ -292,22 +301,22 @@ static int ms5611_fetch_temp_and_press(const struct device *dev) {
     /* Calculate values with respect to offsets */
     temp = temp - t2;
 
-    off = (uint32_t)(data->prom[2] << 16) + (((int64_t) data->prom[4] * dT) >> 7);
+    off = ((int64_t) data->prom[2] << 16) + (((int64_t) data->prom[4] * dT) >> 7);
     off = off - off2;
 
-    sens = (data->prom[1] << 15) + (((int64_t) data->prom[3] * dT) >> 8);
+    sens = ((int64_t) data->prom[1] << 15) + (((int64_t) data->prom[3] * dT) >> 8);
     sens = sens - sens2;
 
-    p = (((uint64_t)(raw_press * sens) >> 21) - off) >> 15;
+    int64_t raw = raw_press;
+    int64_t p_pa = (((raw * sens) >> 21) - off) >> 15;
 
     data->meas.temp = temp;
-    /* 10mbar = 1kPa */
-    data->meas.press = p / 10;
+    data->meas.press = (p_pa > 0) ? (uint32_t) p_pa : 0;
 
     return 0;
 }
 
-static int ms5611_sample_fetch(const struct device *dev, enum sensor_channel chan) {
+static int ms5611_sample_fetch(const struct device* dev, enum sensor_channel chan) {
     int ret;
 
     __ASSERT_NO_MSG(chan == SENSOR_CHAN_ALL);
@@ -322,20 +331,19 @@ static int ms5611_sample_fetch(const struct device *dev, enum sensor_channel cha
     return 0;
 }
 
-static int ms5611_channel_get(const struct device *dev, enum sensor_channel chan,
-                              struct sensor_value *val) {
-    struct ms5611_data *data = dev->data;
-    struct ms5611_meas_data *meas = &data->meas;
+static int ms5611_channel_get(const struct device* dev, enum sensor_channel chan, struct sensor_value* val) {
+    struct ms5611_data* data = dev->data;
+    struct ms5611_meas_data* meas = &data->meas;
 
     switch (chan) {
         case SENSOR_CHAN_PRESS:
-            val->val1 = meas->press / 100;
-            val->val2 = meas->press % 100;
+            int64_t kpa_micro = (int64_t) meas->press * 1000; // Pa -> micro-kPa
+            sensor_value_from_micro(val, kpa_micro);
             break;
 
         case SENSOR_CHAN_AMBIENT_TEMP:
-            val->val1 = meas->temp / 100;
-            val->val2 = meas->temp % 100;
+            int64_t c_micro = (int64_t) meas->temp * 10000; // 0.01C -> micro-C
+            sensor_value_from_micro(val, c_micro);
             break;
 
         default:
@@ -345,16 +353,15 @@ static int ms5611_channel_get(const struct device *dev, enum sensor_channel chan
     return 0;
 }
 
-static int ms5611_fetch_prom(const struct device *dev) {
-    const struct ms5611_config *cfg = dev->config;
-    struct ms5611_data *data = dev->data;
+static int ms5611_fetch_prom(const struct device* dev) {
+    const struct ms5611_config* cfg = dev->config;
+    struct ms5611_data* data = dev->data;
     int ret;
     uint8_t i;
     uint8_t i2c_cmd;
     uint8_t data_bytes[2];
 
     for (i = 0; i < MS5611_PROM_SIZE; i++) {
-
         i2c_cmd = MS5611_PROM_READ_BASE;
 
         /* last bit is not significant */
@@ -385,8 +392,8 @@ static int ms5611_fetch_prom(const struct device *dev) {
  * https://www.amsys-sensor.com/downloads/notes/MS5XXX-C-code-
  * example-for-MS56xx-MS57xx-MS58xx-AMSYS-an520e.pdf
  */
-static uint8_t ms5611_calculate_crc4(const struct device *dev) {
-    struct ms5611_data *data = dev->data;
+static uint8_t ms5611_calculate_crc4(const struct device* dev) {
+    struct ms5611_data* data = dev->data;
     int cnt;
     unsigned int n_rem = 0;
     unsigned int crc_read;
@@ -400,9 +407,9 @@ static uint8_t ms5611_calculate_crc4(const struct device *dev) {
 
     for (cnt = 0; cnt < MS5611_PROM_BYTES; cnt++) {
         if (cnt % 2 == 1) {
-            n_rem ^= (uint8_t)((data->prom[cnt >> 1]) & 0x00FF);
+            n_rem ^= (uint8_t) ((data->prom[cnt >> 1]) & 0x00FF);
         } else {
-            n_rem ^= (uint8_t)(data->prom[cnt >> 1] >> 8);
+            n_rem ^= (uint8_t) (data->prom[cnt >> 1] >> 8);
         }
 
         for (n_bit = 8; n_bit > 0; n_bit--) {
@@ -420,9 +427,9 @@ static uint8_t ms5611_calculate_crc4(const struct device *dev) {
     return (n_rem ^ 0x00);
 }
 
-static int ms5611_check_coef_crc(const struct device *dev) {
-    const struct ms5611_config *cfg = dev->config;
-    struct ms5611_data *data = dev->data;
+static int ms5611_check_coef_crc(const struct device* dev) {
+    const struct ms5611_config* cfg = dev->config;
+    struct ms5611_data* data = dev->data;
     int ret;
     uint8_t crc_bytes[2];
     uint8_t crc_value;
@@ -456,10 +463,10 @@ static int ms5611_check_coef_crc(const struct device *dev) {
     return 0;
 }
 
-static int ms5611_init(const struct device *dev) {
+static int ms5611_init(const struct device* dev) {
     int ret;
     uint8_t i2c_cmd;
-    const struct ms5611_config *cfg = dev->config;
+    const struct ms5611_config* cfg = dev->config;
     struct sensor_value osr_config;
 
     /* reset to make sure that calibration PROM gets loaded into internal
@@ -507,17 +514,17 @@ static int ms5611_init(const struct device *dev) {
 }
 
 static const struct sensor_driver_api ms5611_api = {
-        .attr_set = ms5611_attr_set,
-        .sample_fetch = ms5611_sample_fetch,
-        .channel_get = ms5611_channel_get,
+    .attr_set = ms5611_attr_set,
+    .sample_fetch = ms5611_sample_fetch,
+    .channel_get = ms5611_channel_get,
 };
 
-#define MS5611_DEVICE(inst)                                                                     \
-    static struct ms5611_data ms5611_data_##inst;                                               \
-    static const struct ms5611_config ms5611_cfg_##inst = {                                     \
-        .i2c_bus = I2C_DT_SPEC_INST_GET(inst),                                                  \
-    };                                                                                          \
-    DEVICE_DT_INST_DEFINE(inst, ms5611_init, NULL, &ms5611_data_##inst, &ms5611_cfg_##inst,     \
-                  POST_KERNEL, CONFIG_SENSOR_INIT_PRIORITY, &ms5611_api)
+#define MS5611_DEVICE(inst)                                                                                            \
+    static struct ms5611_data ms5611_data_##inst;                                                                      \
+    static const struct ms5611_config ms5611_cfg_##inst = {                                                            \
+        .i2c_bus = I2C_DT_SPEC_INST_GET(inst),                                                                         \
+    };                                                                                                                 \
+    DEVICE_DT_INST_DEFINE(inst, ms5611_init, NULL, &ms5611_data_##inst, &ms5611_cfg_##inst, POST_KERNEL,               \
+                          CONFIG_SENSOR_INIT_PRIORITY, &ms5611_api)
 
 DT_INST_FOREACH_STATUS_OKAY(MS5611_DEVICE);

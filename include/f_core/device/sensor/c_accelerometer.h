@@ -1,10 +1,9 @@
-#ifndef C_ACCELEROMETER_DEVICE_H
-#define C_ACCELEROMETER_DEVICE_H
+#pragma once
 
 #include "c_sensor_device.h"
 
 class CAccelerometer : public CSensorDevice {
-public:
+  public:
     /**
      * Constructor
      * @param[in] dev Zephyr Device Structure
@@ -21,7 +20,7 @@ public:
      */
     sensor_value GetSensorValue(sensor_channel chan) const override;
 
-private:
+  private:
     using CBase = CSensorDevice;
 
     typedef struct {
@@ -32,7 +31,3 @@ private:
 
     SAccelerometerData acceleration;
 };
-
-
-
-#endif //C_ACCELEROMETER_DEVICE_H

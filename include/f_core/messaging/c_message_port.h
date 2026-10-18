@@ -1,11 +1,10 @@
-#ifndef CMESSAGEPORT_H
-#define CMESSAGEPORT_H
+#pragma once
 
 #include <zephyr/kernel.h>
 
 template <typename T>
 class CMessagePort {
-public:
+  public:
     using MessageType = T;
 
     /**
@@ -24,7 +23,7 @@ public:
      * @param timeout Time before sending times out
      * @return Zephyr status code
      */
-    virtual int Send(const T &message, const k_timeout_t timeout = K_NO_WAIT) = 0;
+    virtual int Send(const T& message, const k_timeout_t timeout = K_NO_WAIT) = 0;
 
     /**
      * Receive a message
@@ -42,9 +41,5 @@ public:
     /**
      * Get available space left in the message port
      */
-    virtual int AvailableSpace() = 0;
+    virtual size_t AvailableSpace() = 0;
 };
-
-
-
-#endif //CMESSAGEPORT_H

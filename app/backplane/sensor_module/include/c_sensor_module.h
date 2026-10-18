@@ -1,11 +1,14 @@
-#ifndef C_SENSOR_MODULE_H
-#define C_SENSOR_MODULE_H
+#pragma once
 
 #include "c_sensing_tenant.h"
 #include "flight.hpp"
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+#include "c_ork_toggle_tenant.h"
+#endif
 
 // F-Core Includes
 #include <f_core/c_project_configuration.h>
+#include <f_core/device/c_rtc.h>
 #include <f_core/messaging/c_message_port.h>
 #include <f_core/n_alerts.h>
 #include <f_core/net/application/c_udp_broadcast_tenant.h>
@@ -14,7 +17,6 @@
 #include <f_core/os/tenants/c_datalogger_tenant.h>
 #include <n_autocoder_network_defs.h>
 #include <n_autocoder_types.h>
-#include <f_core/device/c_rtc.h>
 #include <zephyr/fs/littlefs.h>
 
 class CSensorModule : public CProjectConfiguration {
@@ -46,11 +48,14 @@ class CSensorModule : public CProjectConfiguration {
 
   private:
     std::string ipAddrStr = CREATE_IP_ADDR(NNetworkDefs::SENSOR_MODULE_IP_ADDR_BASE, 1, CONFIG_MODULE_ID);
-    const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames? Also, still need to fix the create ip addr bug...
+    const char* sntpServerAddr = "10.2.1.1"; // TODO: Maybe we should look into hostnames?
 
     static constexpr int telemetryBroadcastPort = NNetworkDefs::SENSOR_MODULE_TELEMETRY_PORT;
     static constexpr int telemetryDownlinkPort = NNetworkDefs::SENSOR_MODULE_DOWNLINK_DATA_PORT;
     static constexpr int alertPort = NNetworkDefs::ALERT_PORT;
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    static constexpr int orkLaunchTriggerPort = NNetworkDefs::SENSOR_MODULE_ORK_LAUNCH_TRIGGER_PORT;
+#endif
 
     // Devices
     CRtc rtc{*DEVICE_DT_GET(DT_ALIAS(rtc))};
@@ -62,21 +67,33 @@ class CSensorModule : public CProjectConfiguration {
     CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 
     CFlightLog flight_log;
-    SensorModulePhaseController controller{sourceNames, eventNames, timer_events, deciders, NULL};
+    SensorModulePhaseController controller{sourceNames, eventNames, timerEvents, deciders, NULL};
     CDetectionHandler detectionHandler{controller, alertMessagePort};
 
     // Tenants
-    CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, downlinkMessagePort, sensorDataLogMessagePort,
-                             detectionHandler};
-    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(), telemetryBroadcastPort, telemetryBroadcastPort, sensorDataBroadcastMessagePort};
-    CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{"Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort, downlinkMessagePort};
-    CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort, alertPort, alertMessagePort};
-    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant", "/lfs/sensor_module_data.bin", LogMode::Growing, 0, sensorDataLogMessagePort, K_SECONDS(3), 64};
+    CSensingTenant sensingTenant{"Sensing Tenant", sensorDataBroadcastMessagePort, downlinkMessagePort,
+                                 sensorDataLogMessagePort, detectionHandler};
+    CUdpBroadcastTenant<NTypes::SensorData> broadcastTenant{"Broadcast Tenant", ipAddrStr.c_str(),
+                                                            telemetryBroadcastPort, telemetryBroadcastPort,
+                                                            sensorDataBroadcastMessagePort};
+    CUdpBroadcastTenant<NTypes::LoRaBroadcastSensorData> downlinkTelemTenant{
+        "Telemetry Downlink Tenant", ipAddrStr.c_str(), telemetryDownlinkPort, telemetryDownlinkPort,
+        downlinkMessagePort};
+    CUdpBroadcastTenant<NAlerts::AlertPacket> udpAlertTenant{"UDP Alert Tenant", ipAddrStr.c_str(), alertPort,
+                                                             alertPort, alertMessagePort};
+    CDataLoggerTenant<NTypes::TimestampedSensorData> dataLoggerTenant{"Data Logger Tenant",
+                                                                      "/lfs/sensor_module_data.bin",
+                                                                      LogMode::Growing,
+                                                                      0,
+                                                                      sensorDataLogMessagePort,
+                                                                      K_SECONDS(3),
+                                                                      64};
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    COrkToggleTenant orkLaunchTriggerTenant{"Ork Toggle Tenant", ipAddrStr.c_str(), orkLaunchTriggerPort};
+#endif
 
     // Tasks
-    CTask networkTask{"Networking Task", 15, 3072, 0};
+    CTask networkTask{"Networking Task", 15, 3072, 10};
     CTask sensingTask{"Sensing Task", 14, 4096, 10};
     CTask dataLogTask{"Data Logging Task", 13, 4096, 5};
 };
-
-#endif //C_SENSOR_MODULE_H

@@ -1,0 +1,9 @@
+sample:
+  description: control_freak
+  name: control_freak
+common:
+  build_only: true
+  platform_allow:
+    - control_freak
+tests:
+  control_freak.flight.default: {}

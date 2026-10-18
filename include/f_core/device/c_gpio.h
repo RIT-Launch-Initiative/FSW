@@ -1,10 +1,9 @@
-#ifndef C_GPIO_DEVICE
-#define C_GPIO_DEVICE
+#pragma once
 
 #include <zephyr/drivers/gpio.h>
 
 class CGpio {
-public:
+  public:
     /**
      * Constructor
      * @param[in] dev Zephyr device structure
@@ -39,8 +38,6 @@ public:
 
     const gpio_dt_spec* GetDev();
 
-private:
+  private:
     const gpio_dt_spec* gpioDev;
 };
-
-#endif // C_GPIO_DEVICE

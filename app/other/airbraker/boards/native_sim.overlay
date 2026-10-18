@@ -1,0 +1,93 @@
+/ {
+	chosen {
+		storage = &flash0;
+	};
+
+	aliases {
+		led0 = &led1;
+		imu = &imu;
+		barom = &barom;
+		servo-en = &servo_en;
+		buzzer = &buzzer;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led1: led1 {
+			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			label = "LED";
+		};
+		servo_en: servo_en {
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "Servo Enable";
+		};
+		buzzer: buzzer {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "Buzzer";
+		};
+	};
+
+	imu: imu {
+		status = "okay";
+		compatible = "openrocket,imu";
+		vertical-axis = "OPENROCKET_AXIS_Z";
+		vertical-axis-invert;
+		lateral-axis = "OPENROCKET_AXIS_X";
+		lag-time-us = <2>; // 2 ms delay
+		sampling-period-us = <10>;// 100 hz
+
+		roll-axis = "OPENROCKET_AXIS_Z";
+		pitch-axis = "OPENROCKET_AXIS_Y";
+		yaw-axis = "OPENROCKET_AXIS_X";
+
+		accel-noise = <0>;
+		gyro-noise = <0>;
+	};
+
+	barom: barom {
+		status = "okay";
+		compatible = "openrocket,barometer";
+		lag-time-us = <2>;
+		sampling-period-us = <10>;
+		temp-noise = <0>; // millicelsius - everett
+		pressure-noise = <0>; // pascals
+	};
+
+};
+
+&flashcontroller0 {
+	status = "okay";
+	compatible = "zephyr,sim-flash";
+	reg = <0x00000000 DT_SIZE_M(129)>;
+
+	#address-cells = <1>;
+	#size-cells = <1>;
+	erase-value = <0xff>;
+
+	flash0: flash@0 {
+		status = "okay";
+		compatible = "soc-nv-flash";
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		reg = <0x00000000 DT_SIZE_M(17)>; // builtin stuff + external flash simulation
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			bootcount_storage@10000{
+				reg = <0x10000 DT_SIZE_K(8)>; // two pages
+				label = "bootcount_storage";
+			};
+			parameter_storage@12000{
+				reg = <0x12000 DT_SIZE_K(4)>; // 1 page
+				label = "parameter_storage";
+			};
+			flight_storage@20000{
+				reg = <0x20000 DT_SIZE_K(3072)>; 
+				label = "flight_storage";
+			};
+		};
+	};
+};

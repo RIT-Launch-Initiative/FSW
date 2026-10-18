@@ -5,9 +5,7 @@
  *
  */
 
-
 #include <launch_core_classic/extension_boards.h>
-
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(extension_boards);
@@ -27,7 +25,6 @@ l_extension_board_id_t find_extension_board(const struct device *dev, uint16_t b
     uint32_t elapsed_time = 0;
     uint32_t received_byte = 0;
 
-
     while (elapsed_time < timeout_ms) {
         // TODO: Read UART
 
@@ -46,7 +43,6 @@ l_extension_board_id_t find_extension_board(const struct device *dev, uint16_t b
     LOG_ERR("Failed to determine extension board ID");
     return NO_EXTENSION_BOARD;
 }
-
 
 int initiate_arbitration(l_extension_board_id_t id, uint32_t timeout_ms) {
     uint32_t start_time = k_uptime_get_32();
@@ -69,7 +65,6 @@ int initiate_arbitration(l_extension_board_id_t id, uint32_t timeout_ms) {
 
     return -1;
 }
-
 
 void receive_potato_data(void *data, size_t len) {
     // TODO: Implement when we know what data to send

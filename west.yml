@@ -12,18 +12,22 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: v4.1.0
+      revision: v4.4.0
       import:
         name-allowlist:
-          - cmsis
+          - cmsis_6
+          - cmsis-dsp
           - hal_st
           - hal_stm32
           - hal_nxp
           - littlefs
           - loramac-node
-          - lz4
+          - hal_st
           - segger
           - percepio
+          - lz4
+          - zscilib
+
       clone-depth: 1
     - name: zscilib
       remote: zephyrproject-rtos

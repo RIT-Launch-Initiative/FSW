@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_BLT_PLANE
+	select SOC_STM32F446XX
