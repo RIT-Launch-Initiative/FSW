@@ -46,3 +46,11 @@ ALL:
       - "lib/f_core/**"
       - "snippets/**"
 
+# Unit Tests
+app/tests/gnss_utils:
+  - paths:
+      - "app/tests/gnss_utils/**"
+
+app/tests/utils:
+  - paths:
+      - "app/tests/utils/**"
