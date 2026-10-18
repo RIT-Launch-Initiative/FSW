@@ -94,7 +94,7 @@
 
         lora = &lora0;
         gnss = &maxm10s;
-		watchdog = &iwdg;
+        watchdog0 = &iwdg;
     };
 };
 
@@ -282,5 +282,5 @@
 };
 
 &iwdg {
-	status = "okay";
+    status = "okay";
 };

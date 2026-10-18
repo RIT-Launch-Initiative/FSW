@@ -20,7 +20,10 @@
 //		logfs = &lfs1;
 
 		rtc = &rtc;
-		watchdog = &iwdg;
+	};
+
+	aliases {
+		watchdog0 = &iwdg;
 	};
 
 //	fstab {

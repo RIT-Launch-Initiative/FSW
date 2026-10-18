@@ -27,7 +27,7 @@
         ina5v0 = &ina2;
         vin = &adc1;
         rtc = &rtc;
-		watchdog = &iwdg;
+        watchdog0 = &iwdg;
     };
 
     leds: leds {
@@ -256,5 +256,5 @@
 };
 
 &iwdg {
-	status = "okay";
+    status = "okay";
 };
