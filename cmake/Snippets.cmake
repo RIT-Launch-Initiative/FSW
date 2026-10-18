@@ -39,15 +39,3 @@ function(AddSimSnippets)
 
     AddSnippets(${SIM_SNIPPETS})
 endfunction()
-
-function(AddCompilerWarningsSnippets)
-    AddSnippets("compiler-warnings")
-endfunction()
-
-function(AddAsanSnippets)
-    AddSnippets("asan")
-endfunction()
-
-function(AddUbsanSnippets)
-    AddSnippets("ubsan")
-endfunction()
