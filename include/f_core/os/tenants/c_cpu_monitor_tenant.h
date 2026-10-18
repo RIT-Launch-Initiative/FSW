@@ -1,10 +1,10 @@
-#ifndef C_CPU_MONITOR_TENANT_H
-#define C_CPU_MONITOR_TENANT_H
+#pragma once
 
 #include "f_core/messaging/c_message_port.h"
-#include "f_core/os/c_tenant.h"
+#include "f_core/os/c_runnable_tenant.h"
 
-#include <stdint.h>
+#include <cstdint>
+#include <zephyr/device.h>
 
 struct __attribute__((packed)) CpuMonitorData {
     uint32_t Uptime;
@@ -12,35 +12,35 @@ struct __attribute__((packed)) CpuMonitorData {
     uint8_t Utilization;
 };
 
-class CCpuMonitorTenant : public CTenant {
-public:
-    CCpuMonitorTenant(CMessagePort<CpuMonitorData>& outputPort) :
-        CTenant("CPU Monitor Tenant"), outputPort(outputPort) {
-    };
+/**
+ * Tenant that publishes uptime, CPU utilization and die temperature
+ * Die temperature is read from the die-temp alias if it exists, otherwise it is reported as 0
+ */
+class CCpuMonitorTenant : public CRunnableTenant {
+  public:
+    /**
+     * Constructor
+     * @param outputPort Port to publish CPU statistics to
+     */
+    explicit CCpuMonitorTenant(CMessagePort<CpuMonitorData>& outputPort)
+        : CRunnableTenant("CPU Monitor Tenant"), outputPort(outputPort) {}
 
     void Startup() override;
 
-    void PostStartup() override;
-
     void Run() override;
 
-    void Cleanup() override;
-
-private:
+  private:
     CMessagePort<CpuMonitorData>& outputPort;
-    uint64_t prevExecutionCycles = 0;  // All cycles (active + idle) - Based on Zephyr naming
-    uint64_t prevTotalCycles = 0;      // Active cycles only - Based on Zephyr naming
-    uint32_t prevUptime = 0;
 
-#if DT_NODE_EXISTS(DT_ALIAS(die_temp))
-    const device *dieTempSensor = DEVICE_DT_GET(DT_ALIAS(die_temp));
+    // Zephyr's naming: execution_cycles is all cycles (active + idle), total_cycles is active cycles only
+    uint64_t prevExecutionCycles = 0;
+    uint64_t prevTotalCycles = 0;
+
+#if defined(CONFIG_SENSOR) && DT_NODE_HAS_STATUS_OKAY(DT_ALIAS(die_temp))
+    const device* dieTempSensor = DEVICE_DT_GET(DT_ALIAS(die_temp));
 #endif
 
     uint8_t getUtilization();
 
-    uint32_t getUptime();
-
     int32_t getDieTemperature();
 };
-
-#endif //C_CPU_MONITOR_TENANT_H
