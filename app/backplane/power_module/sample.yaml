@@ -1,10 +1,11 @@
 sample:
-  description:
+  description: Power Module
   name: power-module
 common:
   build_only: true
   integration_platforms:
     - power_module@2
+    - blt_plane
     - native_sim
 tests:
   backplane.power_module.debug:

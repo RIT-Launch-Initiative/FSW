@@ -1,5 +1,4 @@
-#ifndef FREAK_BUZZER_H
-#define FREAK_BUZZER_H
+#pragma once
 void buzzer_entry_point(void *, void *, void *);
 
 enum BuzzCommand {
@@ -12,4 +11,3 @@ enum BuzzCommand {
 
 };
 void buzzer_tell(enum BuzzCommand bc);
-#endif

@@ -1,29 +1,16 @@
-#ifndef L_LOGGER_H
-#define L_LOGGER_H
+#pragma once
 
-#include <zephyr/kernel.h>
 #include <zephyr/fs/fs.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#define ENOTINIT 200 // device not initialized
+#define ENOTINIT                                                        200 // device not initialized
+#define L_FS_CREATE_FILE(name, filename, sample_width, n_samples, mode) l_fs_file_t name = {.fname = #filename,
+.width = sample_width, .mode = mode, .size = sample_width * n_samples, .initialized = false, .file = {0}, .dirent = {0},
+    .vfs = {0}, .wpos = 0
+}
 
-#define L_FS_CREATE_FILE(name, filename, sample_width, n_samples, mode) \
-    l_fs_file_t name = { \
-        .fname = #filename, \
-        .width = sample_width, \
-        .mode = mode, \
-        .size = sample_width * n_samples, \
-        .initialized = false, \
-        .file = {0}, \
-        .dirent = {0}, \
-        .vfs = {0}, \
-        .wpos = 0 \
-    }
-
-typedef enum {
-    SLOG_ONCE,
-    SLOG_CIRC
-} l_fs_log_mode_t;
+typedef enum { SLOG_ONCE, SLOG_CIRC } l_fs_log_mode_t;
 
 typedef struct {
     const char *fname;
@@ -37,7 +24,6 @@ typedef struct {
     struct fs_statvfs vfs;
     off_t wpos;
 } l_fs_file_t;
-
 
 /**
  * @brief Initialize the logger
@@ -135,5 +121,3 @@ int32_t l_fs_format(uintptr_t partition_id);
  * @return Zephyr status code
  */
 int32_t l_fs_mkdir(const char *dir_name);
-
-#endif

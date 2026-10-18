@@ -1,10 +1,9 @@
-#ifndef C_GYROSCOPE_H
-#define C_GYROSCOPE_H
+#pragma once
 
 #include "c_sensor_device.h"
 
 class CGyroscope : public CSensorDevice {
-public:
+  public:
     /**
      * Constructor
      * @param[in] dev Zephyr device structure
@@ -21,7 +20,7 @@ public:
      */
     sensor_value GetSensorValue(sensor_channel chan) const override;
 
-private:
+  private:
     /**
      * Destructor
      */
@@ -35,7 +34,3 @@ private:
 
     SGyroscopeData gyroscopeData;
 };
-
-
-
-#endif //C_GYROSCOPE_H

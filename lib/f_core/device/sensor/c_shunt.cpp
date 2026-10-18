@@ -3,9 +3,7 @@
 
 LOG_MODULE_REGISTER(CShunt);
 
-CShunt::CShunt(const device& dev)
-    : CSensorDevice(dev) {
-}
+CShunt::CShunt(const device& dev) : CSensorDevice(dev) {}
 
 bool CShunt::UpdateSensorValue() {
     sensor_value voltage{};
@@ -47,7 +45,7 @@ sensor_value CShunt::GetSensorValue(sensor_channel chan) const {
         case SENSOR_CHAN_POWER:
             return shuntData.power;
         default:
-            LOG_ERR("Invalid sensor channel (%d) called for shunt", chan);
+            LOG_ERR("Invalid sensor channel (%d) called for shunt", static_cast<int>(chan));
             k_oops();
             return sensor_value{INT32_MIN, INT32_MIN};
     }

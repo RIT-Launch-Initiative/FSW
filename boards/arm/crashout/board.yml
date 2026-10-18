@@ -1,0 +1,6 @@
+board:
+  name: crashout
+  full_name: CRASHOUT
+  vendor: Launch Initiative
+  socs:
+    - name: stm32f103xb #lying voice. this is just to make west happy. memory map and peripherals are x8

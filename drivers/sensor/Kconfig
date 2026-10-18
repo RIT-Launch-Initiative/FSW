@@ -3,7 +3,7 @@
 
 if SENSOR
 rsource "adxl375/Kconfig"
-rsource "ms5611/Kconfig"
+rsource "ms56xx/Kconfig"
 rsource "ina260/Kconfig"
 rsource "openrocket/Kconfig"
 rsource "simshunt/Kconfig"

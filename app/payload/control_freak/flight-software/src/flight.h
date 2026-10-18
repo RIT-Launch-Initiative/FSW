@@ -1,13 +1,12 @@
-#ifndef FREAK_FLIGHT_H
-#define FREAK_FLIGHT_H
+#pragma once
 #include "f_core/flight/c_phase_controller.h"
 
 #include <array>
 
 // Boost
 // IMU
-static constexpr float imuBoostThresholdMPerS2 = 5 * 9.8;  // m/s^2
-static constexpr uint32_t imuBoostTimeThreshold = 250;     // millis
+static constexpr float imuBoostThresholdMPerS2 = 5 * 9.8; // m/s^2
+static constexpr uint32_t imuBoostTimeThreshold = 250;    // millis
 
 // Barometer - sustained velocity of 100 m/s over 1 second
 static constexpr float baromBoostThresholdMPerS = 100;    // m/s
@@ -80,5 +79,3 @@ inline constexpr std::array<FreakFlightController::DecisionFunc, Events::NumEven
     };
     return arr;
 }();
-
-#endif

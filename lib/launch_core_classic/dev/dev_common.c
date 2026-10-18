@@ -5,7 +5,6 @@
  */
 
 #include <launch_core_classic/dev/dev_common.h>
-
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -20,5 +19,3 @@ int l_check_device(const struct device *const dev) {
     LOG_INF("Device %s is ready.\n", dev->name);
     return 0;
 }
-
-

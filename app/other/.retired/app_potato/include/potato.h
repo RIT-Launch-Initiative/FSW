@@ -1,5 +1,4 @@
-#ifndef POTATO_H
-#define POTATO_H
+#pragma once
 
 #include <launch_core_classic/types.h>
 #include <stdint.h>
@@ -8,7 +7,7 @@
 // #define ADC_SAMPLE_COUNT 10
 // #define THREAD_START_TIME 0
 // #else
-#define ADC_SAMPLE_COUNT (128000000 / sizeof(potato_adc_telemetry_t))
+#define ADC_SAMPLE_COUNT  (128000000 / sizeof(potato_adc_telemetry_t))
 #define THREAD_START_TIME 60000 * 5 // 5 minutes
 // #endif
 
@@ -54,5 +53,3 @@ typedef struct __attribute__((packed)) {
  * @return Event byte
  */
 uint8_t get_event_from_serial();
-
-#endif //POTATO_H

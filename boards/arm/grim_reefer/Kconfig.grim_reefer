@@ -1,0 +1,3 @@
+config BOARD_GRIM_REEFER
+	bool "Grim Reefer"
+	select SOC_STM32F446XX

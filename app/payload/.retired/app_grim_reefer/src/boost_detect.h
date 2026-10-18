@@ -1,5 +1,4 @@
-#ifndef REEFER_INLCUDE_BOOST_DETECT_H
-#define REEFER_INLCUDE_BOOST_DETECT_H
+#pragma once
 
 #include <zephyr/device.h>
 /**
@@ -28,5 +27,3 @@ bool get_boost_detected();
  * Filenames determined by config.h
 */
 void save_boost_data();
-
-#endif

@@ -5,10 +5,10 @@
  */
 
 // F-Core Includes
-#include <f_core/net/transport/c_udp_socket.h>
-#include <f_core/net/network/c_ipv4.h>
-#include <f_core/net/application/c_udp_broadcast_tenant.h>
 #include <f_core/messaging/c_msgq_message_port.h>
+#include <f_core/net/application/c_udp_broadcast_tenant.h>
+#include <f_core/net/network/c_ipv4.h>
+#include <f_core/net/transport/c_udp_socket.h>
 
 // Zephyr Includes
 #include <zephyr/kernel.h>
@@ -34,7 +34,8 @@ int main() {
     CUdpBroadcastTenant broadcaster("Broadcast Tenant", ipAddrStr, udpPort, udpPort, messagePort);
 
     auto secondMessagePort = CMsgqMessagePort<char[SECOND_BROADCAST_STRLEN]>(secondBroadcastQueue);
-    CUdpBroadcastTenant secondBroadcaster("Second Broadcast Tenant", ipAddrStr, secondBroadcasterSrcPort, secondBroadcasterDstPort, secondMessagePort);
+    CUdpBroadcastTenant secondBroadcaster("Second Broadcast Tenant", ipAddrStr, secondBroadcasterSrcPort,
+                                          secondBroadcasterDstPort, secondMessagePort);
 
     while (true) {
         messagePort.Send(broadcastStr, K_NO_WAIT);

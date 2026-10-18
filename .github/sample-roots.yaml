@@ -7,9 +7,10 @@ app/samples/sensor:
 app/samples/shield_blinky:
   - paths:
       - "app/samples/shield_blinky/**"
-app/samples/shield_mcp3561r:
-  - paths:
-      - "app/samples/shield_mcp3561r/**"
+# Disabled sample - Would need to update overlay to upstream driver
+#app/samples/shield_mcp3561r:
+#  - paths:
+#      - "app/samples/shield_mcp3561r/**"
 app/samples/lora_bcast:
   - paths:
       - "app/samples/lora_bcast/**"

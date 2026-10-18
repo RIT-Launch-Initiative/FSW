@@ -1,0 +1,36 @@
+/*
+* Copyright (c) 2025 RIT Launch Initiative
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+#pragma once
+
+#include "f_core/os/c_tenant.h"
+
+/**
+ * Tenant designed to be executed in a callback periodically
+ * This tenant should not block under any circumstance when executing
+ */
+class CCallbackTenant : public CTenant {
+  public:
+    /**
+     * Constructor
+     * @param name Name of the tenant
+     */
+    explicit CCallbackTenant(const char *name) : CTenant(name) {};
+
+    /**
+     * Destructor
+     */
+    virtual ~CCallbackTenant() = default;
+
+    /**
+     * Sets up the tenant to be ran in a callback
+     */
+    virtual void Register() = 0;
+
+    /**
+     * Function to execute on callback. This function should not block
+     */
+    virtual void Callback() = 0;
+};

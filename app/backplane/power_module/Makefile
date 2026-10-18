@@ -6,3 +6,9 @@ power-sim:
 
 power-flight:
 	west build -b power_module@2 app/backplane/power_module -p auto
+
+blt:
+	west build -b blt_plane app/backplane/power_module -p auto -DDEBUG=y
+
+blt-flight:
+	west build -b blt_plane app/backplane/power_module -p auto

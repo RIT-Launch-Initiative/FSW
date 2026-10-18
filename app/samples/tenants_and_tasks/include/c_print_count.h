@@ -1,14 +1,13 @@
-#ifndef PRINTCOUNT_H
-#define PRINTCOUNT_H
+#pragma once
 
 // F-Core Includes
-#include <f_core/os/c_tenant.h>
+#include <f_core/os/c_runnable_tenant.h>
 
 /**
  * Increments and prints the current count for a given integer.
  */
-class CPrintCount : public CTenant {
-public:
+class CPrintCount : public CRunnableTenant {
+  public:
     /**
      * Constructor.
      * @param name The name of the tenant.
@@ -26,11 +25,8 @@ public:
      */
     void Run() override;
 
-private:
-    using CBase = CTenant;
+  private:
+    using CBase = CRunnableTenant;
 
     int* count;
 };
-
-#endif //PRINTCOUNT_H
-

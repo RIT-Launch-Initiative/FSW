@@ -1,6 +1,134 @@
 # Launch Flight Software
 Current source code for Launch's custom flight hardware utilizing Zephyr RTOS. This includes but is not limited to the Backplane (modules), GRIM and POTATO.  
 
+## Test Reports
+
+View the latest test results and build reports on our [GitHub Pages](https://rit-launch-initiative.github.io/FSW/). The reports are automatically generated from the main branch builds and include:
+
+- **Build Samples**: Test results for sample applications and test suites
+- **Build Projects**: Test results for hardware project builds
+
+Reports are available in multiple formats (HTML, JSON, XML) for both human viewing and automated analysis.
+
+## Installation
+
+### All OSes
+1. Find a proper subdirectory to clone this repository into. You will have other folders at the same level in this subdirectory with FSW too.
+2. Follow the [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/develop/getting_started/index.html) for installing west.
+3. Run ```west init -l FSW``` where FSW is referencing the cloned repository
+4. Run ```west update```
+5. You should now have 3 directories ```FSW```, ```zephyr``` and ```modules``` 
+6. Continue to other sections based on your OS
+
+### Linux 
+7. Just reference the rest of the guide for installing the Zephyr SDK :)
+8. Confirm you can compile software. See below sections of this README. Work with teammates and avionics lead if issues arise.
+
+### Windows and MacOS
+7. See the below section on Docker Environment
+8. Confirm you can compile software. See below sections of this README. Work with teammates and avionics lead if issues arise.
+
+## Docker Environment (Non-Linux Users)
+NOTE: Non-Linux users will still need to setup Zephyr for now including cloning the FSW repo, setting up west and getting the necessary Zephyr modules downloaded for now through west update. This should hopefully go away in the future. The reason is that the Docker setup mounts the FSW, zephyr and modules directories for now  
+
+This project includes a pre-configured development container that sets up the necessary dependencies for running in an Ubuntu environment. Dev Containers were mainly designed for VSCode, but should work with IDEs like CLion. Docker Compose is also available to run outside of an IDE. Although you can build FSW for hardware, simulation is only supported in Zephyr due to OS limitations.
+
+#### Quick Start
+1. Open the FSW repository in VS Code
+2. When prompted, click "Reopen in Container" or run the command "Dev Containers: Reopen in Container"
+3. The container will automatically build and configure the environment for use.
+
+## Manual Docker Setup
+If you prefer to use Docker directly without VS Code:
+
+```bash
+# Start the development environment
+make dev-start
+
+# Enter the container shell
+make docker-shell
+
+# Stop the development environment
+make dev-stop
+
+# Rebuild and restart
+make dev-restart
+```
+
+#### Container Features
+- **Ubuntu 24.04** base image
+- **Zephyr SDK 0.16.8** pre-installed
+- **West build tool** configured
+- **Python virtual environment** with Zephyr dependencies
+- **Cross-compilation tools** for ARM targets
+- **Simulation support** with 32-bit libraries
+- **Git, CMake, Ninja** and other development tools
+
+#### Environment Variables
+The container automatically sets up:
+- `ZEPHYR_BASE=/workspace/zephyr`
+- `ZEPHYR_TOOLCHAIN_VARIANT=zephyr`
+- `ZEPHYR_SDK_INSTALL_DIR=/opt/zephyr-sdk-0.16.8`
+
+#### Workspace Structure
+The container mounts three directories:
+- `/workspace/FSW` - This repository
+- `/workspace/zephyr` - Zephyr RTOS source
+- `/workspace/modules` - Additional Zephyr modules
+
+#### Troubleshooting
+- Container logs can be viewed with: `make docker-logs`
+
+## Creating New Projects
+
+You can create a new Zephyr project from a template using the `create-project` west command.
+
+### Usage
+```bash
+west create-project <project-name> <location>
+```
+
+### Arguments
+- `<project-name>`: Name of the new project (e.g., `my_project`, `sensor_module`)
+- `<location>`: Location where the project should be created (e.g., `app/samples`, `app/backplane`)
+
+### Examples
+```bash
+# Create a new sample project
+west create-project my_sample app/samples
+
+# Create a new backplane module
+west create-project new_module app/backplane
+
+# Create a project with hyphens in the name
+west create-project my-cool-project app/samples
+```
+
+### What it does
+The command will:
+1. Automatically select the appropriate template based on location:
+   - `app/.template-project` for samples and general projects
+   - `app/.template-project-backplane` for backplane and payload projects (includes autocoders, snippets, and conf files)
+2. Copy the template to the specified location
+3. Customize the project files with your specified name
+
+The generated project includes:
+- `CMakeLists.txt` - Build configuration
+- `prj.conf` or `core.conf` - Project configuration
+- `Kconfig` - Kconfig settings
+- `sample.yaml` - Sample metadata
+- `src/main.cpp` - Main source file
+
+**For backplane/payload projects, additional files include:**
+- `debug.conf`, `sim.conf` - Configuration files for different build modes
+- `ac/types.yaml` - Autocoder types configuration
+- `include/` - Header files directory
+
+After creating the project, you can build it with:
+```bash
+west build -b <board> <location>/<project-name>
+```
+
 ## Ways to Compile FSW Applications
 There are 3 different ways to compile a project:
 - Run make <name of project> from the root of the repository. 
@@ -49,5 +177,78 @@ also be a folder called flash where you can access data natively. Note that the 
 
 ## Running on Flight Hardware
 Connect to board and run west flash. You must first build the project so west knows what project you want to flash.
+
+## Code Style and Formatting
+
+This project uses `clang-format` to enforce consistent code style across all C/C++ source files. A `.clang-format` configuration file is provided at the root of the repository.
+
+### Checking Code Style
+
+The GitHub CI automatically checks for style violations in pull requests. To check your code locally before pushing:
+
+```bash
+# Check a specific file
+clang-format --dry-run --Werror <file>
+
+# Check all C/C++ files
+git ls-files | grep -E '\.(c|h|cpp|hpp)$' | xargs clang-format --dry-run --Werror
+```
+
+### Formatting Code
+
+To automatically format your code:
+
+```bash
+# Format a specific file
+clang-format -i <file>
+
+# Format all C/C++ files
+git ls-files | grep -E '\.(c|h|cpp|hpp)$' | xargs clang-format -i
+```
+
+### IDE Integration
+
+Most modern IDEs and editors support clang-format integration:
+- **VS Code**: Install the "C/C++" extension which includes clang-format support
+- **CLion**: Built-in support, go to Settings → Editor → Code Style → C/C++
+- **Vim/Neovim**: Use plugins like `vim-clang-format`
+
+The project's `.clang-format` file will be automatically detected by these tools.
+
+## Code Quality and Static Analysis
+
+This project uses `clang-tidy` for static code analysis and to enforce naming conventions. A `.clang-tidy` configuration file is provided at the root of the repository.
+
+### Naming Conventions
+
+The project follows these naming conventions, enforced by clang-tidy:
+
+- **Classes**: Start with `C` and use CamelCase (e.g., `CTask`, `CSensor`)
+- **Namespaces**: Start with `N` and use CamelCase (e.g., `NTimeUtils`, `NAlerts`)
+- **Public Methods**: CamelCase with capitalized first letter (e.g., `Initialize()`, `GetValue()`)
+- **Private/Protected Methods**: camelBack with lowercase first letter (e.g., `doSomethingPrivate()`, `resetInternal()`)
+- **Member Variables**: camelBack (e.g., `logLevel`, `startTime`)
+- **C Functions**: Underscores allowed for Zephyr compatibility (e.g., `k_sleep()`, `device_init()`)
+
+### Running clang-tidy
+
+To run clang-tidy on your code:
+
+```bash
+# Check a specific file
+clang-tidy <file> -- -I./include -I./zephyr/include
+
+# Check with specific checks only (e.g., naming conventions)
+clang-tidy --checks=readability-identifier-naming <file> -- -std=c++17
+```
+
+Note: clang-tidy works best when you have a compilation database (`compile_commands.json`). This is automatically generated when you build the project with CMake.
+
+### IDE Integration
+
+Most modern IDEs support clang-tidy integration:
+- **VS Code**: Install the "clangd" extension for real-time clang-tidy diagnostics
+- **CLion**: Built-in support, enable in Settings → Editor → Inspections → C/C++ → General → Clang-Tidy
+- **Vim/Neovim**: Use LSP plugins with clangd
 
 

@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef N_RTOS_H
-#define N_RTOS_H
+#pragma once
 
 #include "f_core/os/c_task.h"
 
@@ -15,7 +14,7 @@ namespace NRtos {
  * Add a task to be scheduled on the RTOS
  * @param task Task to be scheduled on the RTOS
  */
-void AddTask(CTask& task);
+void AddTask(CTask &task);
 
 /**
  * Initialize and start all tasks added to the RTOS
@@ -55,7 +54,4 @@ void SuspendTask(const std::string &taskName);
  * Suspend the currently executing task
  */
 void SuspendCurrentTask();
-};
-
-
-#endif //N_RTOS_H
+}; // namespace NRtos

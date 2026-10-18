@@ -23,7 +23,7 @@ sensor_value CGyroscope::GetSensorValue(sensor_channel chan) const {
             return gyroscopeData.z;
         default:
             // Assert here since this should never occur
-            LOG_ERR("Invalid sensor channel (%d) called for gyroscope", chan);
+            LOG_ERR("Invalid sensor channel (%d) called for gyroscope", static_cast<int>(chan));
             k_oops();
             return {INT32_MIN, INT32_MIN};
     }

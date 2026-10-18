@@ -2,6 +2,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 // Unless otherwise noted, code from https://github.com/mikaelnousiainen/RS41ng/tree/main
 
 #include <stdbool.h>

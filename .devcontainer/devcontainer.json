@@ -1,0 +1,25 @@
+{
+    "name": "Launch Initiative FSW Dev (Ubuntu 24.04)",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh"
+            }
+        }
+    },
+    "postCreateCommand": "/workspace/FSW/.devcontainer/setup.sh",
+    "remoteUser": "launch",
+    "features": {},
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/workspace/FSW,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder}/../zephyr,target=/workspace/zephyr,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder}/../modules,target=/workspace/modules,type=bind,consistency=cached"
+    ],
+    "workspaceFolder": "/workspace/FSW",
+    "containerEnv": {
+        "ZEPHYR_BASE": "/workspace/zephyr"
+    }
+}

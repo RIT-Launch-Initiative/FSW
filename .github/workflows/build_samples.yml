@@ -77,3 +77,79 @@ jobs:
             done;
           }
           west twister $(add_arglist -T "${{ env.test_roots }}") $(add_arglist -p "${{ env.platforms }}") $(if [ "${{ runner.os }}" = "Linux" ]; then add_arglist -p "${{ env.linux_only_platforms }}"; fi) -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+
+      - name: Print Test Results Summary
+        if: runner.os == 'Linux' && steps.set_test_roots.outcome == 'success' && env.test_roots != ''
+        working-directory: FSW
+        shell: bash
+        run: |
+          if [ -f "twister-out/twister.json" ]; then
+            python3 << 'PYTHON_SCRIPT'
+          import json
+          import sys
+          
+          try:
+              with open('twister-out/twister.json', 'r') as f:
+                  data = json.load(f)
+              
+              print("\n" + "="*80)
+              print("TWISTER TEST RESULTS SUMMARY")
+              print("="*80)
+              
+              # Environment info
+              env = data.get('environment', {})
+              print(f"\nEnvironment:")
+              print(f"  OS: {env.get('os', 'N/A')}")
+              print(f"  Zephyr Version: {env.get('zephyr_version', 'N/A')}")
+              print(f"  Run Date: {env.get('run_date', 'N/A')}")
+              
+              # Test statistics
+              testsuites = data.get('testsuites', [])
+              total = len(testsuites)
+              
+              status_counts = {}
+              for suite in testsuites:
+                  status = suite.get('status', 'unknown')
+                  status_counts[status] = status_counts.get(status, 0) + 1
+              
+              print(f"\nTest Statistics:")
+              print(f"  Total Test Suites: {total}")
+              for status, count in sorted(status_counts.items()):
+                  print(f"  {status.capitalize()}: {count}")
+              
+              # Total build time
+              total_build_time = sum(float(suite.get('build_time', 0)) for suite in testsuites)
+              print(f"\nTotal Build Time: {total_build_time:.2f}s")
+              
+              # Per-suite details
+              print(f"\nTest Suite Details:")
+              print(f"{'Name':<50} {'Platform':<25} {'Status':<12} {'Build Time':<10}")
+              print("-"*100)
+              
+              for suite in testsuites:
+                  name = suite.get('name', 'unknown')[:48]
+                  platform = suite.get('platform', 'unknown')[:23]
+                  status = suite.get('status', 'unknown')[:10]
+                  build_time = suite.get('build_time', '0')
+                  print(f"{name:<50} {platform:<25} {status:<12} {build_time:<10}s")
+              
+              print("="*80 + "\n")
+              
+          except Exception as e:
+              print(f"Error parsing twister.json: {e}", file=sys.stderr)
+              sys.exit(1)
+          PYTHON_SCRIPT
+          else
+            echo "Warning: twister-out/twister.json not found"
+          fi
+
+      - name: Upload Twister Reports
+        if: runner.os == 'Linux' && steps.set_test_roots.outcome == 'success' && env.test_roots != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: twister-reports-samples
+          path: |
+            FSW/twister-out/twister.html
+            FSW/twister-out/twister.json
+            FSW/twister-out/twister.xml
+          if-no-files-found: warn

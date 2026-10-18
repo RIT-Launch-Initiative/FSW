@@ -9,19 +9,15 @@
 
 LOG_MODULE_REGISTER(CDeploymentModule);
 
-CDeploymentModule::CDeploymentModule(): CProjectConfiguration() {}
+CDeploymentModule::CDeploymentModule() : CProjectConfiguration() {}
 
-void CDeploymentModule::AddTenantsToTasks() {
-    // Networking
-    networkTask.AddTenant(alertTenant);
-}
+void CDeploymentModule::AddTenantsToTasks() {}
 
-void CDeploymentModule::AddTasksToRtos() {
-    // Networking
-    NRtos::AddTask(networkTask);
-}
+void CDeploymentModule::AddTasksToRtos() {}
 
 void CDeploymentModule::SetupCallbacks() {
+    alertTenant.Register();
     alertTenant.Subscribe(&pyroControlObserver);
+
     NTimeUtils::SntpSynchronize(rtc, sntpServerAddr, 5, K_MSEC(100));
 }
