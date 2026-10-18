@@ -1,4 +1,5 @@
 #include "f_core/net/application/c_tftp_server_tenant.h"
+
 #include "f_core/os/c_file.h"
 
 #include <cstdio>
@@ -6,26 +7,50 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket_service.h>
 
 LOG_MODULE_REGISTER(CTftpServerTenant);
 
-char *inet_ntoa(struct in_addr in) {
+char* inet_ntoa(struct in_addr in) {
     static char buf[INET_ADDRSTRLEN];
-    unsigned char *bytes = (unsigned char *)&in.s_addr;
+    unsigned char* bytes = (unsigned char*)&in.s_addr;
 
     snprintf(buf, sizeof(buf), "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
 
     return buf;
 }
 
-void CTftpServerTenant::Startup() {
+extern net_socket_service_desc tftpSocketService;
+extern "C" void tftpSocketServiceHandler(net_socket_service_event *pev) {
+    auto userData = static_cast<CUdpSocket::SocketServiceUserData *>(pev->user_data);
+
+    if (userData == nullptr) {
+        LOG_ERR("User data is null in alertSocketServiceHandler");
+        k_oops();
+    }
+
+    CCallbackTenant *tenant = static_cast<CCallbackTenant *>(userData->userData);
+    if (tenant == nullptr) {
+        LOG_ERR("Tenant is null in tftpSocketServiceHandler");
+        k_oops();
+    }
+
+    tenant->Callback();
 }
 
-void CTftpServerTenant::Cleanup() {
+void CTftpServerTenant::Register() {
+    int ret = sock.RegisterSocketService(&tftpSocketService, this);
+    if (ret < 0) {
+        LOG_ERR("Failed to register socket service for CTftpServerTenant: %d", ret);
+    } else {
+        LOG_INF("TFTP socket service registered.");
+    }
 }
 
-void CTftpServerTenant::Run() {
-    sockaddr srcAddr = {0};
+void CTftpServerTenant::Cleanup() {}
+
+void CTftpServerTenant::Callback() {
+    struct sockaddr srcAddr = {0};
     socklen_t srcAddrLen = sizeof(srcAddr);
     uint8_t packet[rwRequestPacketSize] = {0};
     int rxLen = sock.ReceiveAsynchronous(packet, rwRequestPacketSize, &srcAddr, &srcAddrLen);
@@ -48,14 +73,14 @@ void CTftpServerTenant::Run() {
     }
 }
 
-int CTftpServerTenant::waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr, uint16_t blockNum) {
+int CTftpServerTenant::waitForAck(CUdpSocket& dataSock, const struct sockaddr& srcAddr, uint16_t blockNum) {
     static constexpr uint16_t ackPktSize = 4;
     uint8_t ack[ackPktSize] = {0}; // 2 bytes for opcode, 2 for block number
     const int maxRetries = 5;
     int retries = 0;
 
     while (retries < maxRetries) {
-        int ret = dataSock.ReceiveAsynchronous(ack, 4, const_cast<sockaddr *>(&srcAddr), nullptr);
+        int ret = dataSock.ReceiveAsynchronous(ack, 4, const_cast<struct sockaddr*>(&srcAddr), nullptr);
         if (ret < 0) {
             // If no data available yet, wait and retry.
             if (errno == EWOULDBLOCK || errno == EAGAIN) {
@@ -83,8 +108,9 @@ int CTftpServerTenant::waitForAck(CUdpSocket &dataSock, const sockaddr &srcAddr,
     return -1;
 }
 
-void CTftpServerTenant::handleReadRequest(const sockaddr &clientAddr, const uint8_t *packet, int len) {
-    static constexpr uint16_t maxFilenameLen = rwRequestPacketSize - strlen(tftpModeStrings[NETASCII]) + 4; // 4 for opcode and both zero terminators
+void CTftpServerTenant::handleReadRequest(const struct sockaddr& clientAddr, const uint8_t* packet, int len) {
+    static constexpr uint16_t maxFilenameLen =
+        rwRequestPacketSize - strlen(tftpModeStrings[NETASCII]) + 4; // 4 for opcode and both zero terminators
     const char *filename = reinterpret_cast<const char *>(&packet[2]);
     const uint16_t filenameLen = strnlen(filename, maxFilenameLen);
     const char *modeStr = reinterpret_cast<const char *>(&packet[2 + filenameLen + 1]);
@@ -127,7 +153,7 @@ void CTftpServerTenant::handleReadRequest(const sockaddr &clientAddr, const uint
 
     uint16_t clientPort = reinterpret_cast<const sockaddr_in *>(&clientAddr)->sin_port;
     clientPort = (clientPort >> 8) | (clientPort << 8);
-    
+
     CUdpSocket dataSock(ip, 0, clientPort);
 
     uint16_t blockNumber = 1;

@@ -1,6 +1,15 @@
 # Launch Flight Software
 Current source code for Launch's custom flight hardware utilizing Zephyr RTOS. This includes but is not limited to the Backplane (modules), GRIM and POTATO.  
 
+## Test Reports
+
+View the latest test results and build reports on our [GitHub Pages](https://rit-launch-initiative.github.io/FSW/). The reports are automatically generated from the main branch builds and include:
+
+- **Build Samples**: Test results for sample applications and test suites
+- **Build Projects**: Test results for hardware project builds
+
+Reports are available in multiple formats (HTML, JSON, XML) for both human viewing and automated analysis.
+
 ## Installation
 
 ### All OSes
@@ -70,6 +79,55 @@ The container mounts three directories:
 #### Troubleshooting
 - Container logs can be viewed with: `make docker-logs`
 
+## Creating New Projects
+
+You can create a new Zephyr project from a template using the `create-project` west command.
+
+### Usage
+```bash
+west create-project <project-name> <location>
+```
+
+### Arguments
+- `<project-name>`: Name of the new project (e.g., `my_project`, `sensor_module`)
+- `<location>`: Location where the project should be created (e.g., `app/samples`, `app/backplane`)
+
+### Examples
+```bash
+# Create a new sample project
+west create-project my_sample app/samples
+
+# Create a new backplane module
+west create-project new_module app/backplane
+
+# Create a project with hyphens in the name
+west create-project my-cool-project app/samples
+```
+
+### What it does
+The command will:
+1. Automatically select the appropriate template based on location:
+   - `app/.template-project` for samples and general projects
+   - `app/.template-project-backplane` for backplane and payload projects (includes autocoders, snippets, and conf files)
+2. Copy the template to the specified location
+3. Customize the project files with your specified name
+
+The generated project includes:
+- `CMakeLists.txt` - Build configuration
+- `prj.conf` or `core.conf` - Project configuration
+- `Kconfig` - Kconfig settings
+- `sample.yaml` - Sample metadata
+- `src/main.cpp` - Main source file
+
+**For backplane/payload projects, additional files include:**
+- `debug.conf`, `sim.conf` - Configuration files for different build modes
+- `ac/types.yaml` - Autocoder types configuration
+- `include/` - Header files directory
+
+After creating the project, you can build it with:
+```bash
+west build -b <board> <location>/<project-name>
+```
 
 ## Ways to Compile FSW Applications
 There are 3 different ways to compile a project:
@@ -119,5 +177,78 @@ also be a folder called flash where you can access data natively. Note that the 
 
 ## Running on Flight Hardware
 Connect to board and run west flash. You must first build the project so west knows what project you want to flash.
+
+## Code Style and Formatting
+
+This project uses `clang-format` to enforce consistent code style across all C/C++ source files. A `.clang-format` configuration file is provided at the root of the repository.
+
+### Checking Code Style
+
+The GitHub CI automatically checks for style violations in pull requests. To check your code locally before pushing:
+
+```bash
+# Check a specific file
+clang-format --dry-run --Werror <file>
+
+# Check all C/C++ files
+git ls-files | grep -E '\.(c|h|cpp|hpp)$' | xargs clang-format --dry-run --Werror
+```
+
+### Formatting Code
+
+To automatically format your code:
+
+```bash
+# Format a specific file
+clang-format -i <file>
+
+# Format all C/C++ files
+git ls-files | grep -E '\.(c|h|cpp|hpp)$' | xargs clang-format -i
+```
+
+### IDE Integration
+
+Most modern IDEs and editors support clang-format integration:
+- **VS Code**: Install the "C/C++" extension which includes clang-format support
+- **CLion**: Built-in support, go to Settings → Editor → Code Style → C/C++
+- **Vim/Neovim**: Use plugins like `vim-clang-format`
+
+The project's `.clang-format` file will be automatically detected by these tools.
+
+## Code Quality and Static Analysis
+
+This project uses `clang-tidy` for static code analysis and to enforce naming conventions. A `.clang-tidy` configuration file is provided at the root of the repository.
+
+### Naming Conventions
+
+The project follows these naming conventions, enforced by clang-tidy:
+
+- **Classes**: Start with `C` and use CamelCase (e.g., `CTask`, `CSensor`)
+- **Namespaces**: Start with `N` and use CamelCase (e.g., `NTimeUtils`, `NAlerts`)
+- **Public Methods**: CamelCase with capitalized first letter (e.g., `Initialize()`, `GetValue()`)
+- **Private/Protected Methods**: camelBack with lowercase first letter (e.g., `doSomethingPrivate()`, `resetInternal()`)
+- **Member Variables**: camelBack (e.g., `logLevel`, `startTime`)
+- **C Functions**: Underscores allowed for Zephyr compatibility (e.g., `k_sleep()`, `device_init()`)
+
+### Running clang-tidy
+
+To run clang-tidy on your code:
+
+```bash
+# Check a specific file
+clang-tidy <file> -- -I./include -I./zephyr/include
+
+# Check with specific checks only (e.g., naming conventions)
+clang-tidy --checks=readability-identifier-naming <file> -- -std=c++17
+```
+
+Note: clang-tidy works best when you have a compilation database (`compile_commands.json`). This is automatically generated when you build the project with CMake.
+
+### IDE Integration
+
+Most modern IDEs support clang-tidy integration:
+- **VS Code**: Install the "clangd" extension for real-time clang-tidy diagnostics
+- **CLion**: Built-in support, enable in Settings → Editor → Inspections → C/C++ → General → Clang-Tidy
+- **Vim/Neovim**: Use LSP plugins with clangd
 
 

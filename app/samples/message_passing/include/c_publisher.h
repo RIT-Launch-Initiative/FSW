@@ -1,5 +1,4 @@
-#ifndef PRINTCOUNT_H
-#define PRINTCOUNT_H
+#pragma once
 
 #include "message.h"
 
@@ -11,7 +10,7 @@
  * Increments and prints the current count for a given integer.
  */
 class CPublisher : public CRunnableTenant {
-public:
+  public:
     /**
      * Constructor.
      * @param name The name of the tenant.
@@ -29,12 +28,9 @@ public:
      */
     void Run() override;
 
-private:
+  private:
     using CBase = CRunnableTenant;
 
     CMessagePort<Message> &messagePort;
     Message message;
 };
-
-#endif //PRINTCOUNT_H
-

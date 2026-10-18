@@ -1,27 +1,23 @@
-#ifndef PADFLIGHTSTATEMACHINE_H
-#define PADFLIGHTSTATEMACHINE_H
+#pragma once
 
 #include <zephyr/kernel.h>
 
 namespace NStateMachineGlobals {
-    extern volatile bool boostDetected;
-    extern volatile bool landingDetected;
-    extern k_mutex boostMutex;
-    extern k_mutex landingMutex;
-}
+extern volatile bool boostDetected;
+extern volatile bool landingDetected;
+extern k_mutex boostMutex;
+extern k_mutex landingMutex;
+} // namespace NStateMachineGlobals
 
 class CPadFlightLandedStateMachine {
-public:
-    enum class State {
-        PAD = 0,
-        FLIGHT,
-        LANDED,
-        GROUND
-    };
+  public:
+    enum class State { PAD = 0, FLIGHT, LANDED, GROUND };
 
     CPadFlightLandedStateMachine();
 
-protected:
+    void SetToGround() { state = State::GROUND; }
+
+  protected:
     State state;
 
     void Clock();
@@ -40,13 +36,24 @@ protected:
 
     virtual void PadRun() = 0;
 
+    virtual void PadExit() {}
+
+    virtual void FlightEntry() {}
+
     virtual void FlightRun() = 0;
+
+    virtual void FlightExit() {}
+
+    virtual void LandedEntry() {}
 
     virtual void LandedRun() = 0;
 
-private:
+    virtual void LandedExit() {}
+
+    virtual void GroundRun() = 0;
+
+  private:
     bool boostDetected;
     bool landingDetected;
+    bool stateEntryFunctionHandled = false;
 };
-
-#endif //PADFLIGHTSTATEMACHINE_H

@@ -57,7 +57,6 @@ static void adc_read_task(void*) {
 
     LOG_INF("ADC Reader Ready");
 
-
     while (1) {
         adc_data.timestamp = k_uptime_get();
         err = adc_read_dt(&adc_chan0, &sequence);

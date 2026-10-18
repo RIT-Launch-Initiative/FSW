@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef C_TENANT_H
-#define C_TENANT_H
+#pragma once
 
 /**
  * Base class for all tenants - Ideally applications should not inherit from this class directly
@@ -13,7 +12,7 @@
  * See CRunnableTenant and CCallbackTenant for more specific types of tenants
  */
 class CTenant {
-public:
+  public:
     /**
      * Constructor
      * @param name Name of the tenant
@@ -34,11 +33,8 @@ public:
      * Get the name of the tenant
      * @return Name of the tenant
      */
-    const char *GetName() const {
-        return name;
-    }
-protected:
+    const char *GetName() const { return name; }
+
+  protected:
     const char *name;
 };
-
-#endif //C_TENANT_H

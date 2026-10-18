@@ -229,10 +229,11 @@
 		odr = "100";
 		osr-press = <1>;
 		osr-temp = <1>;
+		iir-filter = <1>;
 	};
 
 	ms5611: ms5611@77 {
-		compatible = "meas,ms5611";
+		compatible = "launch,ms5611";
 		reg = <0x77>;
 		status = "okay";
 	};

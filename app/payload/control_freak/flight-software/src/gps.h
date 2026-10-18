@@ -1,5 +1,4 @@
-#ifndef FLIGHT_GPS_H
-#define FLIGHT_GPS_H
+#pragma once
 #include "common.h"
 #include "f_core/radio/protocols/horus/horus.h"
 
@@ -21,5 +20,3 @@ float get_skew_smart();
  * The inside of this function 
  */
 int reset_gps_if_acting_funny();
-
-#endif

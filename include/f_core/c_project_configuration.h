@@ -1,17 +1,16 @@
-#ifndef C_PROJECT_CONFIGURATION_H
-#define C_PROJECT_CONFIGURATION_H
+#pragma once
 
 class CProjectConfiguration {
-public:
- virtual ~CProjectConfiguration() = default;
+  public:
+    virtual ~CProjectConfiguration() = default;
 
-protected:
+  protected:
     /**
      * Constructor
      */
     CProjectConfiguration() = default;
 
-private:
+  private:
     /**
      * Add tenants to a task
      */
@@ -27,7 +26,3 @@ private:
      */
     virtual void SetupCallbacks() = 0;
 };
-
-
-
-#endif //C_PROJECT_CONFIGURATION_H

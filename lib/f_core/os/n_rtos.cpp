@@ -5,48 +5,32 @@
  */
 
 #include "f_core/os/n_rtos.h"
-#include "f_core/utils/c_hashmap.h"
 
 #include <string>
-#include <zephyr/drivers/watchdog.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(NRtos);
 
 std::vector<CTask*> tasks;
-CHashMap<std::string, k_tid_t> taskNameIdMap;
 
-void NRtos::AddTask(CTask& task) {
-    tasks.push_back(&task);
+static CTask* FindTaskByName(const std::string& taskName) {
+    for (CTask* task : tasks) {
+        if (taskName == task->GetName()) {
+            return task;
+        }
+    }
+
+    return nullptr;
 }
 
+void NRtos::AddTask(CTask& task) { tasks.push_back(&task); }
+
 void NRtos::StartRtos() {
-    const device* watchdogDev = nullptr;
-#if DT_NODE_EXISTS(DT_ALIAS(watchdog))
-    watchdogDev = DEVICE_DT_GET(DT_ALIAS(watchdog));
-#endif
-
-    // ReSharper disable once CppDFAConstantConditions
-    if (watchdogDev != nullptr) {
-            // ReSharper disable once CppDFAUnreachableCode
-        int ret = wdt_setup(watchdogDev, WDT_FLAG_RESET_CPU_CORE);
-        if (ret == -EBUSY) {
-            LOG_ERR("Watchdog already setup");
-            k_oops();
-        } else if (ret < 0) {
-            LOG_ERR("Failed to setup watchdog: %d", ret);
-        } else {
-            LOG_INF("Watchdog setup successfully");
-        }
-
-        for (CTask* task : tasks) {
-            LOG_INF("Starting task %s", task->GetName());
-            task->Initialize();
-            k_tid_t taskId = task->GetTaskId();
-            taskNameIdMap.Insert(std::string(k_thread_name_get(taskId)), taskId);
-        }
-
-        LOG_INF("RTOS Started!");
+    for (CTask* task : tasks) {
+        LOG_INF("Starting task %s", task->GetName());
+        task->Initialize();
     }
+
+    LOG_INF("RTOS Started!");
 }
 
 void NRtos::StopRtos() {
@@ -59,25 +43,21 @@ void NRtos::StopRtos() {
     LOG_RAW("\n");
 }
 
-void NRtos::ResumeTask(k_tid_t taskId) {
-    k_thread_resume(taskId);
-}
+void NRtos::ResumeTask(k_tid_t taskId) { k_thread_resume(taskId); }
 
 void NRtos::ResumeTask(const std::string& taskName) {
-    if (taskNameIdMap.Contains(taskName)) {
-        k_thread_resume(taskNameIdMap.Get(taskName).value());
+    if (CTask* task = FindTaskByName(taskName)) {
+        k_thread_resume(task->GetTaskId());
     } else {
         LOG_WRN("Cannot resume %s, because task was not found in map!", taskName.c_str());
     }
 }
 
-void NRtos::SuspendTask(k_tid_t taskId) {
-    k_thread_suspend(taskId);
-}
+void NRtos::SuspendTask(k_tid_t taskId) { k_thread_suspend(taskId); }
 
 void NRtos::SuspendTask(const std::string& taskName) {
-    if (taskNameIdMap.Contains(taskName)) {
-        k_thread_suspend(taskNameIdMap.Get(taskName).value());
+    if (CTask* task = FindTaskByName(taskName)) {
+        k_thread_suspend(task->GetTaskId());
     } else {
         LOG_WRN("Cannot suspend %s, because task was not found in map!", taskName.c_str());
     }
