@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: soft-timer
   name: soft-timer
 common:
   build_only: true

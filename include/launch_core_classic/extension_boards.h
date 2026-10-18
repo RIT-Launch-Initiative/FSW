@@ -6,14 +6,11 @@
  * Define extension board constants and functionality for interactions
  */
 
-#ifndef EXTENSION_BOARDS_H
-#define EXTENSION_BOARDS_H
-
+#pragma once
 #include <stdint.h>
-
 #include <zephyr/device.h>
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/uart.h>
+#include <zephyr/kernel.h>
 
 /********** GENERAL **********/
 
@@ -49,5 +46,3 @@ int initiate_arbitration(l_extension_board_id_t id, uint32_t timeout_ms);
  * @param len - Size of data buffer
  */
 void receive_potato_data(void *data, size_t len);
-
-#endif

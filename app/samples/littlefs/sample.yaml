@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: littlefs
   name: littlefs
 common:
   build_only: true

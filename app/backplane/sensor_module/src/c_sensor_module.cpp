@@ -1,17 +1,15 @@
 #include "c_sensor_module.h"
 
 // F-Core Tenant
+#include <f_core/messaging/c_latest_message_port.h>
 #include <f_core/messaging/c_msgq_message_port.h>
 #include <f_core/os/n_rtos.h>
 #include <f_core/utils/n_time_utils.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(sensor_module);
 
-K_MSGQ_DEFINE(broadcastQueue, sizeof(NTypes::SensorData), 10, 4);
-static auto broadcastMsgQueue = CMsgqMessagePort<NTypes::SensorData>(broadcastQueue);
-
-K_MSGQ_DEFINE(downlinkQueue, sizeof(NTypes::LoRaBroadcastSensorData), 10, 4);
-static auto downlinkMsgQueue = CMsgqMessagePort<NTypes::LoRaBroadcastSensorData>(downlinkQueue);
+static auto broadcastMsgQueue = CLatestMessagePort<NTypes::SensorData>();
+static auto downlinkMsgQueue = CLatestMessagePort<NTypes::LoRaBroadcastSensorData>();
 
 K_MSGQ_DEFINE(dataLogQueue, sizeof(NTypes::TimestampedSensorData), 12, 4);
 static auto dataLogMsgQueue = CMsgqMessagePort<NTypes::TimestampedSensorData>(dataLogQueue);
@@ -28,6 +26,9 @@ void CSensorModule::AddTenantsToTasks() {
     networkTask.AddTenant(broadcastTenant);
     networkTask.AddTenant(downlinkTelemTenant);
     networkTask.AddTenant(udpAlertTenant);
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    networkTask.AddTenant(orkLaunchTriggerTenant);
+#endif
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);
@@ -47,6 +48,4 @@ void CSensorModule::AddTasksToRtos() {
     NRtos::AddTask(dataLogTask);
 }
 
-void CSensorModule::SetupCallbacks() {
-    NTimeUtils::SntpSynchronize(rtc, sntpServerAddr, 5, K_MSEC(100));
-}
+void CSensorModule::SetupCallbacks() { NTimeUtils::SntpSynchronize(rtc, sntpServerAddr, 5, K_MSEC(100)); }

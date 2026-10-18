@@ -4,8 +4,7 @@
 
 LOG_MODULE_REGISTER(counter);
 
-CPrintCount::CPrintCount(const char* name, int *count) : CRunnableTenant(name), count(count) {
-}
+CPrintCount::CPrintCount(const char* name, int* count) : CRunnableTenant(name), count(count) {}
 
 void CPrintCount::Startup() {
     CBase::Startup(); // Initialize any parent functionality
@@ -17,5 +16,3 @@ void CPrintCount::Run() {
     *count += 1;
     LOG_INF("%s: %d", name, *count);
 }
-
-

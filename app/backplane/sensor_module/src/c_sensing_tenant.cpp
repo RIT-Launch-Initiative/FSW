@@ -7,13 +7,17 @@
 #include <f_core/device/sensor/c_gyroscope.h>
 #include <f_core/device/sensor/c_magnetometer.h>
 #include <f_core/device/sensor/c_temperature_sensor.h>
+#include <f_core/device/sensor/n_sensor_calibrators.h>
+#include <math.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CSensingTenant);
 
-CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
+CSensingTenant::CSensingTenant(const char* name, CMessagePort<NTypes::SensorData>& dataToBroadcast,
+                               CMessagePort<NTypes::LoRaBroadcastSensorData>& downlinkDataToBroadcast,
                                CMessagePort<NTypes::TimestampedSensorData>& dataToLog, CDetectionHandler& handler)
-    : CRunnableTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog), dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
+    : CRunnableTenant(name), dataToBroadcast(dataToBroadcast), dataToLog(dataToLog),
+      dataToDownlink(downlinkDataToBroadcast), detectionHandler(handler),
       imuAccelerometer(*DEVICE_DT_GET(DT_ALIAS(imu))), imuGyroscope(*DEVICE_DT_GET(DT_ALIAS(imu))),
       primaryBarometer(*DEVICE_DT_GET(DT_ALIAS(primary_barometer))),
       secondaryBarometer(*DEVICE_DT_GET(DT_ALIAS(secondary_barometer))),
@@ -43,20 +47,20 @@ void CSensingTenant::Startup() {
         LOG_WRN("MS5611 pressure oversampling configuration failed. Pressure readings may be inaccurate.");
     }
 
+    calibrateADXL375();
+
 #endif
 }
 
 void CSensingTenant::PostStartup() {}
 
 void CSensingTenant::Run() {
+    detectionHandler.ServiceLandedAlert();
     if (!detectionHandler.ContinueCollecting()) {
         return;
     }
-    NTypes::TimestampedSensorData timestampedData{
-        .timestamp = 0,
-        .data = {0}
-    };
-    NTypes::SensorData &data = timestampedData.data;
+    NTypes::TimestampedSensorData timestampedData{.timestamp = 0, .data = {0}};
+    NTypes::SensorData& data = timestampedData.data;
 
     uint64_t uptime = k_uptime_get();
 
@@ -140,22 +144,91 @@ void CSensingTenant::Run() {
 
 void CSensingTenant::sendDownlinkData(const NTypes::SensorData& data) {
     NTypes::LoRaBroadcastSensorData downlinkData{
-        .Barometer = {
-            .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure),
-            .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
-        },
-        .Acceleration = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.Acceleration.Z)),
-        },
-        .Gyroscope = {
-            .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
-            .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
-            .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
-        },
+        .Barometer =
+            {
+                // x10: 0.1 kPa resolution, covers 0-3276 kPa (int16_t max)
+                .Pressure = static_cast<int16_t>(data.PrimaryBarometer.Pressure * 10.0f),
+                .Temperature = static_cast<int16_t>(data.PrimaryBarometer.Temperature),
+            },
+        .Acceleration =
+            {
+                // x10: 0.1 m/s² resolution, covers ±3276 m/s² (~±334g) — safe for ADXL375 200g range
+                .X = static_cast<int16_t>(data.Acceleration.X * 10.0f),
+                .Y = static_cast<int16_t>(data.Acceleration.Y * 10.0f),
+                .Z = static_cast<int16_t>(data.Acceleration.Z * 10.0f),
+            },
+        .Gyroscope =
+            {
+                .X = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.X)),
+                .Y = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Y)),
+                .Z = static_cast<int16_t>(CSensorDevice::ToMilliUnits(data.ImuGyroscope.Z)),
+            },
     };
 
     dataToDownlink.Send(downlinkData, K_NO_WAIT);
+}
 
+void CSensingTenant::calibrateADXL375() {
+    LOG_INF("Starting accelerometer calibration");
+
+    // Use the LSM6DSL IMU accelerometer for calibration reference
+    if (!imuAccelerometer.UpdateSensorValue()) {
+        LOG_ERR("Failed to read IMU accelerometer for accelerometer calibration");
+        return;
+    }
+
+    NSensorCalibrators::GravityOrientation calibGravOrientation;
+
+    // Check which axis is aligned with gravity
+    sensor_value imuAccels[3]{0};
+    imuAccels[0] = imuAccelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_X);
+    imuAccels[1] = imuAccelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Y);
+    imuAccels[2] = imuAccelerometer.GetSensorValue(SENSOR_CHAN_ACCEL_Z);
+
+    // Convert to micro m/s^2 to compare against SENSOR_G
+    int32_t imuX = sensor_ms2_to_ug(&imuAccels[0]);
+    int32_t imuY = sensor_ms2_to_ug(&imuAccels[1]);
+    int32_t imuZ = sensor_ms2_to_ug(&imuAccels[2]);
+
+    int32_t xDiff = abs(abs(imuX) - SENSOR_G);
+    int32_t yDiff = abs(abs(imuY) - SENSOR_G);
+    int32_t zDiff = abs(abs(imuZ) - SENSOR_G);
+
+    if (xDiff < yDiff && xDiff < zDiff) {
+        calibGravOrientation =
+            (imuX > 0) ? NSensorCalibrators::GravityOrientation::PosX : NSensorCalibrators::GravityOrientation::NegX;
+    } else if (yDiff < xDiff && yDiff < zDiff) {
+        calibGravOrientation =
+            (imuY > 0) ? NSensorCalibrators::GravityOrientation::PosY : NSensorCalibrators::GravityOrientation::NegY;
+    } else {
+        calibGravOrientation =
+            (imuZ > 0) ? NSensorCalibrators::GravityOrientation::PosZ : NSensorCalibrators::GravityOrientation::NegZ;
+    }
+
+    // Need to account for the mounting orientation difference between the IMU and the ADXL375
+    // Doing it separately from above to avoid confusion
+    LOG_INF("Calibration gravity orientation determined: %d", static_cast<int>(calibGravOrientation));
+    switch (calibGravOrientation) {
+        case NSensorCalibrators::GravityOrientation::PosX:
+            calibGravOrientation = NSensorCalibrators::GravityOrientation::NegY;
+            break;
+        case NSensorCalibrators::GravityOrientation::NegX:
+            calibGravOrientation = NSensorCalibrators::GravityOrientation::PosY;
+            break;
+        case NSensorCalibrators::GravityOrientation::PosY:
+            calibGravOrientation = NSensorCalibrators::GravityOrientation::PosX;
+            break;
+        case NSensorCalibrators::GravityOrientation::NegY:
+            calibGravOrientation = NSensorCalibrators::GravityOrientation::NegX;
+            break;
+        default:
+            break;
+    }
+
+    bool ret = NSensorCalibrators::CalibrateADXL375(accelerometer, 200, calibGravOrientation);
+    if (ret) {
+        LOG_INF("Accelerometer calibration complete");
+    } else {
+        LOG_ERR("Accelerometer calibration failed");
+    }
 }

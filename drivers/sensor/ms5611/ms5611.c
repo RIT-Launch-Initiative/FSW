@@ -6,16 +6,14 @@
 
 #define DT_DRV_COMPAT meas_ms5611
 
-#include <zephyr/kernel.h>
-#include <zephyr/drivers/sensor.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include <zephyr/sys/byteorder.h>
 
-#include <zephyr/logging/log.h>
-
-LOG_MODULE_REGISTER(ms5611, CONFIG_SENSOR_LOG_LEVEL
-);
+LOG_MODULE_REGISTER(ms5611, CONFIG_SENSOR_LOG_LEVEL);
 
 /* according to device datasheet - reload of registers should take 2.8ms */
 #define MS5611_SLEEP_AFTER_RESET_MS 3
@@ -90,33 +88,33 @@ static int ms5611_pressure_osr_set(const struct device* dev, const struct sensor
     struct ms5611_data* data = dev->data;
 
     switch (val->val1) {
-    case MS5611_OSR_256:
-        data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_256;
-        data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_256;
-        data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_256_US;
-        break;
-    case MS5611_OSR_512:
-        data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_512;
-        data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_512;
-        data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_512_US;
-        break;
-    case MS5611_OSR_1024:
-        data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_1024;
-        data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_1024;
-        data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_1024_US;
-        break;
-    case MS5611_OSR_2048:
-        data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_2048;
-        data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_2048;
-        data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_2048_US;
-        break;
-    case MS5611_OSR_4096:
-        data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_4096;
-        data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_4096;
-        data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_4096_US;
-        break;
-    default:
-        return -EINVAL;
+        case MS5611_OSR_256:
+            data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_256;
+            data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_256;
+            data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_256_US;
+            break;
+        case MS5611_OSR_512:
+            data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_512;
+            data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_512;
+            data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_512_US;
+            break;
+        case MS5611_OSR_1024:
+            data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_1024;
+            data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_1024;
+            data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_1024_US;
+            break;
+        case MS5611_OSR_2048:
+            data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_2048;
+            data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_2048;
+            data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_2048_US;
+            break;
+        case MS5611_OSR_4096:
+            data->osr[MS5611_OSR_PRES_IDX].ratio = MS5611_OSR_4096;
+            data->osr[MS5611_OSR_PRES_IDX].read_cmd = MS5611_CMD_CONVERT_D1_OSR_4096;
+            data->osr[MS5611_OSR_PRES_IDX].resp_time = MS5611_RES_TIME_OSR_4096_US;
+            break;
+        default:
+            return -EINVAL;
     }
 
     return 0;
@@ -126,40 +124,40 @@ static int ms5611_temperature_osr_set(const struct device* dev, const struct sen
     struct ms5611_data* data = dev->data;
 
     switch (val->val1) {
-    case MS5611_OSR_256:
-        data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_256;
-        data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_256;
-        data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_256_US;
-        break;
-    case MS5611_OSR_512:
-        data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_512;
-        data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_512;
-        data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_512_US;
-        break;
-    case MS5611_OSR_1024:
-        data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_1024;
-        data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_1024;
-        data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_1024_US;
-        break;
-    case MS5611_OSR_2048:
-        data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_2048;
-        data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_2048;
-        data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_2048_US;
-        break;
-    case MS5611_OSR_4096:
-        data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_4096;
-        data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_4096;
-        data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_4096_US;
-        break;
-    default:
-        return -EINVAL;
+        case MS5611_OSR_256:
+            data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_256;
+            data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_256;
+            data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_256_US;
+            break;
+        case MS5611_OSR_512:
+            data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_512;
+            data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_512;
+            data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_512_US;
+            break;
+        case MS5611_OSR_1024:
+            data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_1024;
+            data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_1024;
+            data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_1024_US;
+            break;
+        case MS5611_OSR_2048:
+            data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_2048;
+            data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_2048;
+            data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_2048_US;
+            break;
+        case MS5611_OSR_4096:
+            data->osr[MS5611_OSR_TEMP_IDX].ratio = MS5611_OSR_4096;
+            data->osr[MS5611_OSR_TEMP_IDX].read_cmd = MS5611_CMD_CONVERT_D2_OSR_4096;
+            data->osr[MS5611_OSR_TEMP_IDX].resp_time = MS5611_RES_TIME_OSR_4096_US;
+            break;
+        default:
+            return -EINVAL;
     }
 
     return 0;
 }
 
-static int ms5611_attr_set(const struct device* dev, enum sensor_channel chan,
-                           enum sensor_attribute attr, const struct sensor_value* val) {
+static int ms5611_attr_set(const struct device* dev, enum sensor_channel chan, enum sensor_attribute attr,
+                           const struct sensor_value* val) {
     int ret;
 
     if (attr != SENSOR_ATTR_OVERSAMPLING) {
@@ -167,22 +165,22 @@ static int ms5611_attr_set(const struct device* dev, enum sensor_channel chan,
     }
 
     switch (chan) {
-    case SENSOR_CHAN_AMBIENT_TEMP:
-        ret = ms5611_temperature_osr_set(dev, val);
-        break;
-    case SENSOR_CHAN_PRESS:
-        ret = ms5611_pressure_osr_set(dev, val);
-        break;
-    case SENSOR_CHAN_ALL:
-        ret = ms5611_pressure_osr_set(dev, val);
-        if (ret != 0) {
+        case SENSOR_CHAN_AMBIENT_TEMP:
+            ret = ms5611_temperature_osr_set(dev, val);
             break;
-        }
+        case SENSOR_CHAN_PRESS:
+            ret = ms5611_pressure_osr_set(dev, val);
+            break;
+        case SENSOR_CHAN_ALL:
+            ret = ms5611_pressure_osr_set(dev, val);
+            if (ret != 0) {
+                break;
+            }
 
-        ret = ms5611_temperature_osr_set(dev, val);
-        break;
-    default:
-        return -ENOTSUP;
+            ret = ms5611_temperature_osr_set(dev, val);
+            break;
+        default:
+            return -ENOTSUP;
     }
     return ret;
 }
@@ -276,7 +274,7 @@ static int ms5611_fetch_temp_and_press(const struct device* dev) {
 
     /* Calculate compensated temperature value */
     dT = raw_temp - (data->prom[5] << 8);
-    temp = 2000 + (((int64_t)dT * data->prom[6]) >> 23);
+    temp = 2000 + (((int64_t) dT * data->prom[6]) >> 23);
 
     /* Second order temperature compensation */
     if (temp < 2000) {
@@ -284,8 +282,8 @@ static int ms5611_fetch_temp_and_press(const struct device* dev) {
         int64_t t = temp - 2000;
         int64_t t_sq = t * t;
 
-        t2 = (int32_t)((dt * dt) >> 31);
-        off2 = (5 * t_sq) >> 1; // /2
+        t2 = (int32_t) ((dt * dt) >> 31);
+        off2 = (5 * t_sq) >> 1;  // /2
         sens2 = (5 * t_sq) >> 2; // /4
 
         if (temp < -1500) {
@@ -303,17 +301,17 @@ static int ms5611_fetch_temp_and_press(const struct device* dev) {
     /* Calculate values with respect to offsets */
     temp = temp - t2;
 
-    off = ((int64_t)data->prom[2] << 16) + (((int64_t)data->prom[4] * dT) >> 7);
+    off = ((int64_t) data->prom[2] << 16) + (((int64_t) data->prom[4] * dT) >> 7);
     off = off - off2;
 
-    sens = ((int64_t)data->prom[1] << 15) + (((int64_t)data->prom[3] * dT) >> 8);
+    sens = ((int64_t) data->prom[1] << 15) + (((int64_t) data->prom[3] * dT) >> 8);
     sens = sens - sens2;
 
     int64_t raw = raw_press;
     int64_t p_pa = (((raw * sens) >> 21) - off) >> 15;
 
     data->meas.temp = temp;
-    data->meas.press = (p_pa > 0) ? (uint32_t)p_pa : 0;
+    data->meas.press = (p_pa > 0) ? (uint32_t) p_pa : 0;
 
     return 0;
 }
@@ -333,24 +331,23 @@ static int ms5611_sample_fetch(const struct device* dev, enum sensor_channel cha
     return 0;
 }
 
-static int ms5611_channel_get(const struct device* dev, enum sensor_channel chan,
-                              struct sensor_value* val) {
+static int ms5611_channel_get(const struct device* dev, enum sensor_channel chan, struct sensor_value* val) {
     struct ms5611_data* data = dev->data;
     struct ms5611_meas_data* meas = &data->meas;
 
     switch (chan) {
-    case SENSOR_CHAN_PRESS:
-        int64_t kpa_micro = (int64_t)meas->press * 1000; // Pa -> micro-kPa
-        sensor_value_from_micro(val, kpa_micro);
-        break;
+        case SENSOR_CHAN_PRESS:
+            int64_t kpa_micro = (int64_t) meas->press * 1000; // Pa -> micro-kPa
+            sensor_value_from_micro(val, kpa_micro);
+            break;
 
-    case SENSOR_CHAN_AMBIENT_TEMP:
-        int64_t c_micro = (int64_t)meas->temp * 10000; // 0.01C -> micro-C
-        sensor_value_from_micro(val, c_micro);
-        break;
+        case SENSOR_CHAN_AMBIENT_TEMP:
+            int64_t c_micro = (int64_t) meas->temp * 10000; // 0.01C -> micro-C
+            sensor_value_from_micro(val, c_micro);
+            break;
 
-    default:
-        return -ENOTSUP;
+        default:
+            return -ENOTSUP;
     }
 
     return 0;
@@ -410,9 +407,9 @@ static uint8_t ms5611_calculate_crc4(const struct device* dev) {
 
     for (cnt = 0; cnt < MS5611_PROM_BYTES; cnt++) {
         if (cnt % 2 == 1) {
-            n_rem ^= (uint8_t)((data->prom[cnt >> 1]) & 0x00FF);
+            n_rem ^= (uint8_t) ((data->prom[cnt >> 1]) & 0x00FF);
         } else {
-            n_rem ^= (uint8_t)(data->prom[cnt >> 1] >> 8);
+            n_rem ^= (uint8_t) (data->prom[cnt >> 1] >> 8);
         }
 
         for (n_bit = 8; n_bit > 0; n_bit--) {
@@ -522,12 +519,12 @@ static const struct sensor_driver_api ms5611_api = {
     .channel_get = ms5611_channel_get,
 };
 
-#define MS5611_DEVICE(inst)                                                                     \
-    static struct ms5611_data ms5611_data_##inst;                                               \
-    static const struct ms5611_config ms5611_cfg_##inst = {                                     \
-        .i2c_bus = I2C_DT_SPEC_INST_GET(inst),                                                  \
-    };                                                                                          \
-    DEVICE_DT_INST_DEFINE(inst, ms5611_init, NULL, &ms5611_data_##inst, &ms5611_cfg_##inst,     \
-                  POST_KERNEL, CONFIG_SENSOR_INIT_PRIORITY, &ms5611_api)
+#define MS5611_DEVICE(inst)                                                                                            \
+    static struct ms5611_data ms5611_data_##inst;                                                                      \
+    static const struct ms5611_config ms5611_cfg_##inst = {                                                            \
+        .i2c_bus = I2C_DT_SPEC_INST_GET(inst),                                                                         \
+    };                                                                                                                 \
+    DEVICE_DT_INST_DEFINE(inst, ms5611_init, NULL, &ms5611_data_##inst, &ms5611_cfg_##inst, POST_KERNEL,               \
+                          CONFIG_SENSOR_INIT_PRIORITY, &ms5611_api)
 
 DT_INST_FOREACH_STATUS_OKAY(MS5611_DEVICE);

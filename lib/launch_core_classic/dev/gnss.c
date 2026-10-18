@@ -25,8 +25,7 @@ void l_gnss_data_debug_cb(const struct device *dev, const struct gnss_data *data
 
         LOG_INF("%s has fix!\r\n", dev->name);
         LOG_INF("Coordinates: %lf, %lf, %lf\r\n", latitude, longitude, altitude);
-        LOG_INF("UTC Time: %u-%u-%u %u:%u:%02u.%02u\r\n",
-                data->utc.month, data->utc.month_day, data->utc.century_year,
+        LOG_INF("UTC Time: %u-%u-%u %u:%u:%02u.%02u\r\n", data->utc.month, data->utc.month_day, data->utc.century_year,
                 data->utc.hour, data->utc.minute, data->utc.millisecond / 1000, data->utc.millisecond % 1000);
         LOG_INF("Satellites: %u, Quality: %u\r\n", data->info.satellites_cnt, data->info.fix_quality);
 
@@ -37,6 +36,6 @@ void l_gnss_data_debug_cb(const struct device *dev, const struct gnss_data *data
 
 // clang-format off
 void l_gnss_debug_sat_count_cb(const struct device *dev, const struct gnss_satellite *satellites, uint16_t size) {
-// clang-format on
+    // clang-format on
     LOG_INF("%s reported %u satellites!\r\n", dev->name, size);
 }

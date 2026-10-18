@@ -1,8 +1,7 @@
-#ifndef C_OBSERVER_H
-#define C_OBSERVER_H
+#pragma once
 
 class CObserver {
-public:
+  public:
     virtual ~CObserver() = default;
 
     /**
@@ -12,5 +11,3 @@ public:
      */
     virtual void Notify(void *ctx) = 0;
 };
-
-#endif //C_OBSERVER_H

@@ -8,8 +8,8 @@
 #include <f_core/os/c_task.h>
 
 // F-Core Includes
-#include <functional>
 #include <f_core/os/c_tenant.h>
+#include <functional>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(CTask);
@@ -27,10 +27,8 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
     }
 }
 
-CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs) : name(name),
-                                                                               priority(priority), stackSize(stackSize),
-                                                                               sleepTimeMs(sleepTimeMs) {
-}
+CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs)
+    : name(name), priority(priority), stackSize(stackSize), sleepTimeMs(sleepTimeMs) {}
 
 CTask::~CTask() {
     for (CRunnableTenant* tenant : tenants) {
@@ -59,15 +57,13 @@ void CTask::Initialize() {
         k_panic();
     }
 
-    taskId = k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, nullptr, nullptr, priority, 0,
-                             K_NO_WAIT);
+    taskId =
+        k_thread_create(&thread, stack, stackSize, taskEntryWrapper, this, nullptr, nullptr, priority, 0, K_NO_WAIT);
 
     k_thread_name_set(taskId, name);
 }
 
-void CTask::AddTenant(CRunnableTenant& tenant) {
-    tenants.push_back(&tenant);
-}
+void CTask::AddTenant(CRunnableTenant& tenant) { tenants.push_back(&tenant); }
 
 void CTask::Run() {
     for (CRunnableTenant* tenant : tenants) {

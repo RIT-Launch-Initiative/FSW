@@ -5,4 +5,5 @@
 #
 zephyr_library()
 
+zephyr_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 zephyr_library_sources(openrocket_imu.c)

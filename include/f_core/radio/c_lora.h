@@ -1,10 +1,9 @@
-#ifndef C_LORA_H
-#define C_LORA_H
+#pragma once
 
 #include <zephyr/drivers/lora.h>
 
 class CLora {
-public:
+  public:
     /**
      * Constructor
      * @param lora_dev[in] The LoRa device to use
@@ -47,11 +46,18 @@ public:
     int TransmitAsynchronous(const void* data, size_t len, k_poll_signal* signal);
 
     /**
-     * Receive data asynchronously (non-blocking)
+     * Enable asynchronous reception
      * @param cb Callback to run when a packet is received
+     * @param userData User data to pass to the callback
      * @return Zephyr status code
      */
-    int ReceiveAsynchronous(lora_recv_cb cb);
+    int EnableAsynchronous(lora_recv_cb cb, void* userData = nullptr);
+
+    /**
+     * Disable asynchronous reception
+     * @return Zephyr status code
+     */
+    int DisableAsynchronous();
 
     /**
      * Set the LoRa bandwidth
@@ -96,16 +102,36 @@ public:
     int SetFrequency(float frequencyMHz);
 
     /**
+     * Get the current configured LoRa frequency (Hz).
+     */
+    uint32_t GetFrequencyHz() const { return config.frequency; }
+
+    /**
+     * Get the current configured LoRa frequency (MHz).
+     */
+    float GetFrequencyMhz() const { return static_cast<float>(config.frequency) / 1'000'000.0f; }
+
+    /**
      * Set the entire LoRa modem configuration
      * @param newConfig New LoRa modem configuration
      * @return Zephyr status code
      */
     int SetConfiguration(const lora_modem_config& newConfig);
 
-private:
+    /**
+     * Check if the current frequency is within the licensed frequency range (410-450 MHz)
+     * @return True if the current frequency is within the licensed frequency range (410-450 MHz), false otherwise
+     */
+    bool IsLicensedFrequency() const { return (config.frequency >= 410'000'000u && config.frequency <= 450'000'000u); }
+
+  private:
     const device* lora_dev;
     lora_modem_config config = {
-        .frequency = 906900000,
+#ifdef CONFIG_LICENSED_FREQUENCY
+        .frequency = 425'720'000,
+#else
+        .frequency = 906'900'000,
+#endif
         .bandwidth = BW_125_KHZ,
         .datarate = SF_12,
         .coding_rate = CR_4_8,
@@ -116,10 +142,10 @@ private:
         .public_network = false,
     };
 
-    enum Direction {
-        RX = 0,
-        TX
-    };
+    lora_recv_cb lastAsyncRxCallback = nullptr;
+    void* lastAsyncRxUserData = nullptr;
+
+    enum Direction { RX = 0, TX };
 
     /**
      * Set the LoRa modem to transmit or receive mode
@@ -130,6 +156,3 @@ private:
 
     int updateSettings();
 };
-
-
-#endif //C_LORA_H

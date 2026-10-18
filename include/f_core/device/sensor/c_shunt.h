@@ -1,5 +1,4 @@
-#ifndef C_SHUNT_DEVICE_H
-#define C_SHUNT_DEVICE_H
+#pragma once
 
 #include "c_sensor_device.h"
 
@@ -32,5 +31,3 @@ class CShunt : public CSensorDevice {
 
     SShuntData shuntData;
 };
-
-#endif //C_ACCELEROMETER_DEVICE_H

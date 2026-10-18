@@ -5,9 +5,7 @@
 
 LOG_MODULE_REGISTER(CLora);
 
-CLora::CLora(const device& lora_dev) : lora_dev(&lora_dev) {
-    updateSettings();
-}
+CLora::CLora(const device& lora_dev) : lora_dev(&lora_dev) { updateSettings(); }
 
 CLora::CLora(const device& lora_dev, const lora_modem_config& config) : lora_dev(&lora_dev) {
     memcpy(&this->config, &config, sizeof(lora_modem_config));
@@ -16,6 +14,7 @@ CLora::CLora(const device& lora_dev, const lora_modem_config& config) : lora_dev
 
 int CLora::TransmitSynchronous(const void* data, const size_t len) {
     if (const int ret = setTxRx(TX); ret != 0) {
+        LOG_ERR("Failed to set TX mode: %d", ret);
         return ret;
     }
 
@@ -31,7 +30,6 @@ int CLora::ReceiveSynchronous(void* data, const size_t len, int16_t* const rssi,
     return lora_recv(lora_dev, static_cast<uint8_t*>(data), len, timeout, rssi, snr);
 }
 
-
 int CLora::TransmitAsynchronous(const void* data, const size_t len, k_poll_signal* signal) {
     if (const int ret = setTxRx(TX); ret != 0) {
         return ret;
@@ -39,12 +37,21 @@ int CLora::TransmitAsynchronous(const void* data, const size_t len, k_poll_signa
     return lora_send_async(lora_dev, static_cast<uint8_t*>(const_cast<void*>(data)), len, signal);
 }
 
-int CLora::ReceiveAsynchronous(const lora_recv_cb cb) {
+int CLora::EnableAsynchronous(const lora_recv_cb cb, void* userData) {
     if (const int ret = setTxRx(RX); ret != 0) {
         return ret;
     }
 
-    return lora_recv_async(lora_dev, cb, nullptr);
+    lastAsyncRxCallback = cb;
+    lastAsyncRxUserData = userData;
+
+    return lora_recv_async(lora_dev, cb, userData);
+}
+
+int CLora::DisableAsynchronous() {
+    lastAsyncRxCallback = nullptr;
+    lastAsyncRxUserData = nullptr;
+    return lora_recv_async(lora_dev, nullptr, nullptr);
 }
 
 inline int CLora::setTxRx(const Direction transmitDirection) {
@@ -83,7 +90,7 @@ int CLora::SetSpreadingFactor(const lora_datarate spreadingFactor) {
 int CLora::SetCodingRate(const lora_coding_rate codingRate) {
     const lora_coding_rate originalCodingRate = config.coding_rate;
     config.coding_rate = codingRate;
-    if (updateSettings() != 0) {;
+    if (updateSettings() != 0) {
         config.coding_rate = originalCodingRate;
         return updateSettings();
     }
@@ -109,8 +116,13 @@ int CLora::SetTxPower(int8_t txPower) {
 }
 
 int CLora::SetFrequency(uint32_t frequencyHz) {
+#ifdef CONFIG_LICENSED_FREQUENCY
+    if (frequencyHz < 410'000'000 || frequencyHz > 450'000'000) {
+        LOG_ERR("Frequency %u Hz is out of range (410-450 MHz)", frequencyHz);
+#else
     if (frequencyHz < 902'000'000 || frequencyHz > 928'000'000) {
         LOG_ERR("Frequency %u Hz is out of range (902-928 MHz)", frequencyHz);
+#endif
         return -EINVAL;
     }
 
@@ -139,9 +151,27 @@ int CLora::SetConfiguration(const lora_modem_config& newConfig) {
 }
 
 int CLora::updateSettings() {
+    // Need to disable async reception before changing frequency
+    lora_recv_cb asyncRxCallback = lastAsyncRxCallback;
+    void* asyncRxUserData = lastAsyncRxUserData;
+    if (asyncRxCallback != nullptr) {
+        if (const int ret = DisableAsynchronous(); ret != 0) {
+            LOG_ERR("Failed to disable asynchronous reception before frequency change: %d", ret);
+            return ret;
+        }
+    }
+
     const int ret = lora_config(lora_dev, &config);
     if (ret != 0) {
         LOG_ERR("Failed to update LoRa settings: %d", ret);
+    }
+
+    // Re-enable async
+    if (asyncRxUserData != nullptr) {
+        if (const int ret = EnableAsynchronous(asyncRxCallback, asyncRxUserData); ret != 0) {
+            LOG_ERR("Failed to re-enable asynchronous reception after frequency change: %d", ret);
+            return ret;
+        }
     }
     return ret;
 }
