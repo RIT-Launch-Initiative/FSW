@@ -16,8 +16,8 @@
 		sampling-period-us = <10>;// 100 hz
 
 		roll-axis = "OPENROCKET_AXIS_Z";
-		pitch-axis = "OPENROCKET_AXIS_Y";
-		yaw-axis = "OPENROCKET_AXIS_X";
+		pitch-axis = "OPENROCKET_AXIS_X";
+		yaw-axis = "OPENROCKET_AXIS_Y";
 
 		accel-noise = <0>;
 		gyro-noise = <0>;

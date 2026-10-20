@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #ifdef CONFIG_CMSIS_DSP_MATRIX
 #include "c_cmsismatrix.hpp"
 
@@ -35,5 +36,18 @@ Matrix<R,C> matrixExpPowSeries(const Matrix<R,C> &At, std::size_t iterations){
     return sum;
 }
 
+
+inline std::optional<Matrix<2,2>> inv2x2(const Matrix<2, 2> &mat){
+    float a = mat.Get(0,0);
+    float b = mat.Get(0,1);
+    float c = mat.Get(1,0);
+    float d = mat.Get(1,1);
+    float det = a*d - b * c;
+    if (fabs(det) < 0.0001F){
+        return std::nullopt;
+    }
+    Matrix<2,2> mat2{{d, -b, -c, a}};
+    return mat2 * (1.0F/det);
+}
 
 

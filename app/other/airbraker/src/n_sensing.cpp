@@ -33,7 +33,7 @@ int InitSensors() {
     return 0;
 }
 
-int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2, NTypes::GyroscopeData &gyroDps) {
+int MeasureSensors(int16_t &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2, NTypes::GyroscopeData &gyroDps) {
     // todo, can make this less noisy by kicking off fetch, then doing other stuff, then reading
     int bret = sensor_sample_fetch(barom_dev);
     if (bret < 0) {
@@ -50,7 +50,7 @@ int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &
         pressureKPa = sensor_value_to_float(&press);
         sensor_value temp = {0};
         sensor_channel_get(barom_dev, SENSOR_CHAN_AMBIENT_TEMP, &temp);
-        tempC = sensor_value_to_float(&temp);
+        tempC = (int16_t)(sensor_value_to_float(&temp)*100);
     }
 
     if (iret == 0) {
