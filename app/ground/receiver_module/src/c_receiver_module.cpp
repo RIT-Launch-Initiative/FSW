@@ -11,7 +11,11 @@ static auto loraBroadcastMsgQueue = CMsgqMessagePort<LaunchLoraFrame>(broadcastQ
 static auto udpBroadcastMsgQueue = CMsgqMessagePort<LaunchLoraFrame>(broadcastQueue);
 
 CReceiverModule::CReceiverModule()
-    : CProjectConfiguration(), lora(*DEVICE_DT_GET(DT_ALIAS(lora))), loraBroadcastMessagePort(loraBroadcastMsgQueue),
+    : CProjectConfiguration(),
+#ifndef CONFIG_ARCH_POSIX
+      lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
+#endif
+      loraBroadcastMessagePort(loraBroadcastMsgQueue),
       udpBroadcastMessagePort(udpBroadcastMsgQueue) {}
 
 void CReceiverModule::AddTenantsToTasks() {
@@ -19,12 +23,14 @@ void CReceiverModule::AddTenantsToTasks() {
     networkingTask.AddTenant(commandListenerTenant);
     networkingTask.AddTenant(dataRequestListenerTenant);
 
+#ifndef CONFIG_ARCH_POSIX
     // LoRa
     loraTenant.SetToGround();
     loraTenant.RegisterFrameHandler(radioModuleFrequencyAckPort, freqRequestTenant);
     loraTenant.RegisterDefaultFrameHandler(loraToUdpHandler);
     loraTask.AddTenant(freqRequestTenant);
     loraTask.AddTenant(loraTenant);
+#endif
 }
 
 void CReceiverModule::AddTasksToRtos() {

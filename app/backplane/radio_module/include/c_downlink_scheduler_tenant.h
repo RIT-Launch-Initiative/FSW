@@ -51,6 +51,10 @@ class CDownlinkSchedulerTenant : public CRunnableTenant, public CPadFlightLanded
     void GroundRun() override;
 
   private:
+    // Send a telemetry frame, piggybacking the flight phase onto GNSS frames
+    // (port 12005) so the ground can observe the radio's state.
+    void SendFrame(LaunchLoraFrame& frame);
+
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
     CHashMap<uint16_t, CMessagePort<LaunchLoraFrame>*> telemetryMessagePortMap;
     CHashMap<uint16_t, std::unique_ptr<CSoftTimer>> telemetryDownlinkTimers;

@@ -56,7 +56,7 @@ void CRadioModule::AddTasksToRtos() {
 
 void CRadioModule::SetupCallbacks() {
     alertTenant.Subscribe(&stateMachineUpdater);
-    sntpServerTenant.Register();
+//    // sntpServerTenant.Register();
     alertTenant.Register();
 
     callsignBroadcastTenant.Register();

@@ -10,11 +10,26 @@
 #include <f_core/os/n_rtos.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
+#ifdef CONFIG_ARCH_POSIX
+#include <signal.h>
+#include <nsi_main.h>
+#endif
 
 LOG_MODULE_REGISTER(main);
 
+#ifdef CONFIG_ARCH_POSIX
+static volatile sig_atomic_t shutdownRequested = 0;
+
+static void NativeSimSignalHandler(int) { shutdownRequested = 1; }
+#endif
+
 int main() {
-    LOG_INF("Receiver starting");
+#ifdef CONFIG_LICENSED_FREQUENCY
+    LOG_INF("Receiver boot: 433 MHz build");
+#else
+    LOG_INF("Receiver boot: 915 MHz build");
+#endif
+
     static CReceiverModule receiverModule{};
     receiverModule.AddTenantsToTasks();
     receiverModule.AddTasksToRtos();
@@ -25,8 +40,15 @@ int main() {
     NRtos::StartRtos();
 
 #ifdef CONFIG_ARCH_POSIX
-    k_sleep(K_SECONDS(300));
+    signal(SIGINT, NativeSimSignalHandler);
+    signal(SIGTERM, NativeSimSignalHandler);
+
+    while (!shutdownRequested) {
+        k_sleep(K_MSEC(100));
+    }
+
     NRtos::StopRtos();
+    nsi_exit(0);
 #endif
 
     return 0;
