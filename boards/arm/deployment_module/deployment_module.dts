@@ -22,6 +22,10 @@
 		rtc = &rtc;
 	};
 
+	aliases {
+		watchdog0 = &iwdg;
+	};
+
 //	fstab {
 //		compatible = "zephyr,fstab";
 //
@@ -288,4 +292,8 @@
 			reg = <0x00060000 DT_SIZE_K(128)>;
 		};
 	};
+};
+
+&iwdg {
+	status = "okay";
 };
