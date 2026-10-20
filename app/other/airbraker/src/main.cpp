@@ -111,7 +111,7 @@ int main() {
 
     Parameters params{};
     params.bootcount = NStorage::GetBootcount();
-    NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
+    //NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro); Aiden flag
     float vertical = GetUpAxis(packet.accelRaw);
 
     NBoost::FeedDetector(vertical);
