@@ -1,0 +1,40 @@
+name: Sanitizers
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+  schedule:
+    - cron: "0 0 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [ asan, ubsan ]
+    name: Tests (${{ matrix.sanitizer }})
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: FSW
+          fetch-depth: 2
+
+      - name: Run Starter Steps
+        uses: ./FSW/.github/actions/fsw-setup
+
+      - name: Run tests
+        working-directory: FSW
+        shell: bash
+        env:
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: |
+          west twister -T app/tests -p native_sim/native/64 --force-platform -x=SNIPPET=${{ matrix.sanitizer }} -v --inline-logs
