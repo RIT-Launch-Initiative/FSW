@@ -64,17 +64,17 @@ ZTEST(debouncer, test_simulated_flight) {
 
     CDebouncer<ThresholdDirection::Over, Timestamp, Value> db(timeOver, valOver);
 
-    for (float t = 0; t < 2; t += 0.001) {
+    for (float t = 0; t < 2; t += 0.001f) {
         Value v = flight(t);
         db.Feed(t, v);
-        printf("%.3f\t%.3f: %d\n", t, v, int(db.Passed()));
+        printf("%.3f\t%.3f: %d\n", static_cast<double>(t), static_cast<double>(v), int(db.Passed()));
 
-        if (t < 1.0 + timeOver) {
-            zassert_false(db.Passed(), "havent achieved height + timeOver seconds: t=%f, h=%f", t, v);
+        if (t < 1.0f + timeOver) {
+            zassert_false(db.Passed(), "havent achieved height + timeOver seconds: t=%f, h=%f", static_cast<double>(t), static_cast<double>(v));
         }
-        float epsilon = 0.001;
-        if (t > 1.0 + timeOver + epsilon) {
-            zassert_true(db.Passed(), "have achieved height for timeOver seconds: t=%f, h=%f", t, v);
+        float epsilon = 0.001f;
+        if (t > 1.0f + timeOver + epsilon) {
+            zassert_true(db.Passed(), "have achieved height for timeOver seconds: t=%f, h=%f", static_cast<double>(t), static_cast<double>(v));
         }
     }
 }
