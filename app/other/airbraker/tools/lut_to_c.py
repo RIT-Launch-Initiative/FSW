@@ -37,11 +37,11 @@ def generate_h(name: str, date_str: str, md5sum: bytes, flightTimeMs: int, locko
 
 
 #define KALMAN_STATE_TRANSITION_INITIALIZER {comma_separate_floats(filter.state_transition)}
-#define STATE_TO_MEASUREMENT_INITIALIZER {comma_separate_floats(filter.state_to_measurement)}
+#define KALMAN_STATE_TO_MEASUREMENT_INITIALIZER {comma_separate_floats(filter.state_to_measurement)}
 
 #define KALMAN_INITIAL_STATE_INITIALIZER {comma_separate_floats(filter.initial_state)}
-#define KALMAN_INITIAL_STATE_PROCESS_COVARIANCE {comma_separate_floats(filter.process_covariance)}
-#define KALMAN_INITIAL_STATE_MEASUREMENT_COVARIANCE {comma_separate_floats(filter.measurement_covariance)}
+#define KALMAN_PROCESS_COVARIANCE_INITIALIZER {comma_separate_floats(filter.process_covariance)}
+#define KALMAN_MEASUREMENT_COVARIANCE_INITIALIZER {comma_separate_floats(filter.measurement_covariance)}
 #define AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER {comma_separate_floats(orientation_quat)}
 #define AUTOGEN_IMU_TO_ROCKET_QUAT_CONJUGATED_INITIALIZER {comma_separate_floats(orientation_quat_conjugate)}
 
