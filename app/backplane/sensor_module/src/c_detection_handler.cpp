@@ -43,8 +43,8 @@ void CDetectionHandler::HandleData(const uint64_t timestamp, const NTypes::Senso
     if (!controller.HasEventOccurred(Events::Boost)) {
         HandleBoost(timestamp, data, sensor_states);
         if (controller.HasEventOccurred(Events::Boost)) {
-            // Boost confirmed so record for noseover and ground detection to 
-            // measure time since boost and schedule rebroadcast of alert 
+            // Boost confirmed so record for noseover and ground detection to
+            // measure time since boost and schedule rebroadcast of alert
             boost_detected_time = timestamp;
             boostAlertResendsRemaining = alertResendCycles;
         }

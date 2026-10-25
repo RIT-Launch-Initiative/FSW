@@ -33,10 +33,8 @@ struct fs_mount_t* lfs2_mnt_p = &FS_FSTAB_ENTRY(LFS2);
 // create mount point structure from scratch
 FS_LITTLEFS_DECLARE_CUSTOM_CONFIG(lfs3, 4, 16, 16, 64, 32);
 // FS_LITTLEFS_DECLARE_DEFAULT_CONFIG(lfs3);
-static struct fs_mount_t lfs3_mnt = {.type = FS_LITTLEFS,
-                                     .fs_data = &lfs3,
-                                     .storage_dev = (void*) PARTITION_ID(ext_storage_3),
-                                     .mnt_point = "/lfs3"};
+static struct fs_mount_t lfs3_mnt = {
+    .type = FS_LITTLEFS, .fs_data = &lfs3, .storage_dev = (void*) PARTITION_ID(ext_storage_3), .mnt_point = "/lfs3"};
 
 // create peripherals from devicetree
 const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);

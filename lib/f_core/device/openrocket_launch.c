@@ -1,5 +1,4 @@
 #include <errno.h>
-
 #include <f_core/device/openrocket_launch.h>
 
 #ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER

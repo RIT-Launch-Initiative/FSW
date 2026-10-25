@@ -80,7 +80,6 @@ class CMSISMatrix {
         return outp;
     }
 
-
     void Set(std::size_t r, std::size_t c, Scalar value) { data[r * C + c] = value; }
     Scalar Get(std::size_t r, std::size_t c) const { return data[r * C + c]; }
 
