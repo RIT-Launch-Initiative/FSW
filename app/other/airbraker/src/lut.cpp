@@ -68,7 +68,11 @@ float CalcActuatorEffort(float altitude, float velocity) {
     float z_hat_min = 0;
     float z_hat_max = 0;
     boundsLUT(altitude, &z_hat_min, &z_hat_max);
-    float q = (velocity - z_hat_min) / (z_hat_max - z_hat_min);
+    const float span = z_hat_max - z_hat_min;
+    if (span <= 0.0F) {
+        return 0.0F;
+    }
+    float q = (velocity - z_hat_min) / span;
     if (q > 1) {
         return 1;
     } else if (q < 0) {
