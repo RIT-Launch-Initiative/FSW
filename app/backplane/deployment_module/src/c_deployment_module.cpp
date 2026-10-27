@@ -9,13 +9,11 @@
 
 LOG_MODULE_REGISTER(CDeploymentModule);
 
-CDeploymentModule::CDeploymentModule(): CProjectConfiguration() {}
+CDeploymentModule::CDeploymentModule() : CProjectConfiguration() {}
 
-void CDeploymentModule::AddTenantsToTasks() {
-}
+void CDeploymentModule::AddTenantsToTasks() {}
 
-void CDeploymentModule::AddTasksToRtos() {
-}
+void CDeploymentModule::AddTasksToRtos() {}
 
 void CDeploymentModule::SetupCallbacks() {
     alertTenant.Register();

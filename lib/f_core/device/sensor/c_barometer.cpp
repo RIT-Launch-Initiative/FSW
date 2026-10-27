@@ -3,9 +3,7 @@
 
 LOG_MODULE_REGISTER(CBarometer);
 
-CBarometer::CBarometer(const device& dev)
-    : CSensorDevice(dev) {
-}
+CBarometer::CBarometer(const device& dev) : CSensorDevice(dev) {}
 
 bool CBarometer::UpdateSensorValue() {
     sensor_value pressure{};

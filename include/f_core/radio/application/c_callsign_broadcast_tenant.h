@@ -1,13 +1,13 @@
 #pragma once
 
-#include <string>
-
 #include "f_core/os/c_callback_tenant.h"
 #include "f_core/radio/c_lora_link.h"
 #include "f_core/utils/c_soft_timer.h"
 
+#include <string>
+
 class CCallsignBroadcastTenant : public CCallbackTenant {
-public:
+  public:
     /**
      *
      * @param callsign Callsign to broadcast
@@ -15,20 +15,20 @@ public:
      * @param txPort Message port to send the callsign frame to for transmission over LoRa
      * @param loraBroadcastPort LoRa port to broadcast the callsign on
      */
-    CCallsignBroadcastTenant(const char* callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort, const uint8_t loraBroadcastPort);
+    CCallsignBroadcastTenant(const char* callsign, k_timeout_t transmitFrequency, CMessagePort<LaunchLoraFrame>& txPort,
+                             const uint8_t loraBroadcastPort);
 
     /**
      * See parent docs
      */
     void Register() override;
 
-
     /**
      * See parent docs
      */
     void Callback() override;
 
-private:
+  private:
     CMessagePort<LaunchLoraFrame>& txPort;
     CSoftTimer broadcastTimer;
     const k_timeout_t transmitFrequency;

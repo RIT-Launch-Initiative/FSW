@@ -15,7 +15,6 @@ LOG_MODULE_REGISTER(data_logger);
 // Message Queues
 K_MSGQ_DEFINE(adc_logging_queue, sizeof(potato_adc_telemetry_t), 1000, 1);
 
-
 static void adc_logging_task(void*);
 K_THREAD_DEFINE(adc_log_thread, LOGGING_THREAD_STACK_SIZE, adc_logging_task, NULL, NULL, NULL, K_PRIO_PREEMPT(20), 0,
                 THREAD_START_TIME);

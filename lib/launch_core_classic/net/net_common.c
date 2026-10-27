@@ -1,8 +1,5 @@
 #include <launch_core_classic/net/net_common.h>
-
 #include <stdio.h>
-
-
 
 int l_create_ip_str(char *ip_str, int a, int b, int c, int d) {
     if (!ip_str) return -5;

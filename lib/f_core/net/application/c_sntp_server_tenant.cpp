@@ -75,7 +75,7 @@ void CSntpServerTenant::Callback() {
     uint32_t rxPacketSecondsTimestamp = 0;
     uint32_t txPacketSecondsTimestamp = 0;
     uint32_t lastUpdateTimeSeconds = 0;
-    sockaddr srcAddr = {0};
+    struct sockaddr srcAddr = {0};
     socklen_t srcAddrLen = sizeof(srcAddr);
 
     const int rxLen = sock.ReceiveAsynchronous(&clientPacket, sizeof(clientPacket), &srcAddr, &srcAddrLen);
@@ -97,8 +97,7 @@ void CSntpServerTenant::Callback() {
     }
 
     uint8_t li = LI_NO_WARNING;
-    if (rtc.GetUnixTime(txPacketSecondsTimestamp) ||
-        getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds)) {
+    if (rtc.GetUnixTime(txPacketSecondsTimestamp) || getLastUpdateTimeAsSeconds(lastUpdateTimeSeconds)) {
         li = LI_ALARM_CONDITION;
         // Keep going. The packet will be sent with the alarm condition signaling we are desynchronized
     }
@@ -117,7 +116,7 @@ void CSntpServerTenant::Callback() {
         .poll = pollInterval,
         .precision = precisionExponent,
         .rootDelay = 0, // Unknown, but very small with the assumption Ethernet is used
-        .rootDispersion = htonl(GNSS_ROOT_DISPERSION_FIXED_POINT), // 0.5 ms
+        .rootDispersion = net_htonl(GNSS_ROOT_DISPERSION_FIXED_POINT), // 0.5 ms
         .refTimestampSeconds = reckonAndByteSwapTimestamp(lastUpdateTimeSeconds),
         .refTimestampFraction = 0,
         .originateTimestampSeconds = clientPacket.txTimestampSeconds,
@@ -130,7 +129,7 @@ void CSntpServerTenant::Callback() {
     memcpy(packet.referenceId, GPS_REFERENCE_CODE, 4);
 
     sockaddr_in clientAddr = *reinterpret_cast<const sockaddr_in*>(&srcAddr);
-    uint16_t clientPort = ntohs(clientAddr.sin_port);
+    uint16_t clientPort = net_ntohs(clientAddr.sin_port);
     sock.SetDstPort(clientPort);
 
     int ret = sock.TransmitAsynchronous(&packet, sizeof(packet));
@@ -139,7 +138,6 @@ void CSntpServerTenant::Callback() {
     }
 }
 
-
 int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     rtc_time time{0};
     if (int ret = GetLastUpdatedTime(time, K_NO_WAIT); ret != 0) {
@@ -147,14 +145,12 @@ int CSntpServerTenant::getLastUpdateTimeAsSeconds(uint32_t& seconds) {
     }
 
     // Calculate seconds since epoch properly with all time components
-    struct tm timeinfo = {
-        .tm_sec = time.tm_sec,
-        .tm_min = time.tm_min,
-        .tm_hour = time.tm_hour,
-        .tm_mday = time.tm_mday,
-        .tm_mon = time.tm_mon - 1,
-        .tm_year = time.tm_year
-    };
+    struct tm timeinfo = {.tm_sec = time.tm_sec,
+                          .tm_min = time.tm_min,
+                          .tm_hour = time.tm_hour,
+                          .tm_mday = time.tm_mday,
+                          .tm_mon = time.tm_mon - 1,
+                          .tm_year = time.tm_year};
     seconds = mktime(&timeinfo);
     return 0;
 }

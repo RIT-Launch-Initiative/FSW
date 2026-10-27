@@ -10,7 +10,7 @@ LOG_MODULE_REGISTER(main);
 
 int main() {
     LOG_INF("Application started");
-    
+
     while (true) {
         k_msleep(1000);
     }

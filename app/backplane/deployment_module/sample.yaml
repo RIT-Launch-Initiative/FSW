@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: Deployment Module
   name: deployment-module
 common:
   build_only: true

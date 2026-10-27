@@ -3,7 +3,7 @@
 #include <zephyr/drivers/gpio.h>
 
 class CGpio {
-public:
+  public:
     /**
      * Constructor
      * @param[in] dev Zephyr device structure
@@ -38,8 +38,6 @@ public:
 
     const gpio_dt_spec* GetDev();
 
-private:
+  private:
     const gpio_dt_spec* gpioDev;
 };
-
-

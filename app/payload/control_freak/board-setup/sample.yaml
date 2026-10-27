@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: control_freak bring up and debugging
   name: control_freak bring up and debugging
 common:
   build_only: true

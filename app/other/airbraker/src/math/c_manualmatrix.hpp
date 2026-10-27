@@ -10,6 +10,14 @@ class ManualMatrix {
     ManualMatrix() = default;
     constexpr ManualMatrix(std::array<std::array<S, C>, R> init) : vals(init) {}
 
+    ManualMatrix(const Scalar (&arr)[R * C]) {
+        for (std::size_t i = 0; i < R; i++) {
+            for (std::size_t j = 0; j < C; j++) {
+                vals[i][j] = arr[i * C + j];
+            }
+        }
+    }
+
     static constexpr ManualMatrix Zeros() {
         ManualMatrix m;
         std::fill(m.vals.begin(), m.vals.end(), std::array<S, C>{0});
@@ -44,25 +52,35 @@ class ManualMatrix {
         return outp;
     }
     template <std::size_t R2, std::size_t C2>
-    constexpr ManualMatrix<R, C2, Scalar, Index> operator-(const ManualMatrix<R2, C2, Scalar, Index> &lhs) const {
+    constexpr ManualMatrix<R, C2, Scalar, Index> operator-(const ManualMatrix<R2, C2, Scalar, Index> &rhs) const {
         static_assert(C == C2 && R == R2, "Dimensions must match to subtract");
         ManualMatrix<R, C2, Scalar, Index> outp = ManualMatrix<R, C, Scalar, Index>::Zeros();
         for (Index r = 0; r < R; r++) {
             for (Index c = 0; c < C; c++) {
-                outp.vals[r][c] = this->vals[r][c] - lhs.vals[r][c];
+                outp.vals[r][c] = this->vals[r][c] - rhs.vals[r][c];
+            }
+        }
+        return outp;
+    }
+
+    constexpr ManualMatrix<R, C, Scalar, Index> operator*(const Scalar &rhs) const {
+        ManualMatrix<R, C, Scalar, Index> outp = ManualMatrix<R, C, Scalar, Index>::Zeros();
+        for (Index r = 0; r < R; r++) {
+            for (Index c = 0; c < C; c++) {
+                outp.vals[r][c] = this->vals[r][c] * rhs;
             }
         }
         return outp;
     }
 
     template <std::size_t R2, std::size_t C2>
-    constexpr ManualMatrix<R, C2, Scalar, Index> operator*(const ManualMatrix<R2, C2, Scalar, Index> &lhs) const {
+    constexpr ManualMatrix<R, C2, Scalar, Index> operator*(const ManualMatrix<R2, C2, Scalar, Index> &rhs) const {
         static_assert(C == R2, "Middles must match to multiply them");
         ManualMatrix<R, C2, Scalar, Index> outp = ManualMatrix<R, C2, Scalar, Index>::Zeros();
         for (Index r = 0; r < R; r++) {
             for (Index c = 0; c < C2; c++) {
                 for (Index i = 0; i < R2; i++) {
-                    outp.vals[r][c] += this->vals[r][i] * lhs.vals[i][c];
+                    outp.vals[r][c] += this->vals[r][i] * rhs.vals[i][c];
                 }
             }
         }
@@ -70,7 +88,7 @@ class ManualMatrix {
     }
 
     void Set(Index r, Index c, Scalar value) { vals[r][c] = value; }
-    Scalar Get(Index r, Index c) { return vals[r][c]; }
+    Scalar Get(Index r, Index c) const { return vals[r][c]; }
 
     std::array<std::array<S, C>, R> vals = {{0}};
 };

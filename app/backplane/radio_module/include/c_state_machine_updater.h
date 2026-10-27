@@ -3,7 +3,7 @@
 #include <f_core/utils/c_observer.h>
 
 class CStateMachineUpdater : public CObserver {
-public:
+  public:
     /**
      * Constructor
      */
@@ -19,5 +19,3 @@ public:
      */
     void Notify(void *ctx) override;
 };
-
-

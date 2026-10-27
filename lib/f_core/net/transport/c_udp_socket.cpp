@@ -1,9 +1,7 @@
-#include <f_core/net/transport/c_udp_socket.h>
 #include <f_core/net/network/c_ipv4.h>
-
-#include <zephyr/net/socket.h>
-
+#include <f_core/net/transport/c_udp_socket.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/socket.h>
 #include <zephyr/net/socket_service.h>
 #include <zephyr/posix/fcntl.h>
 
@@ -22,22 +20,26 @@ CUdpSocket::CUdpSocket(const CIPv4& ipv4, uint16_t srcPort, uint16_t dstPort) : 
         return;
     }
 
-#if !defined(CONFIG_ARCH_POSIX) && !defined(CONFIG_NET_NATIVE_OFFLOADED_SOCKETS)
+    const int reuse = 1;
+    if (zsock_setsockopt(sockfd.fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+        LOG_WRN("Failed to enable SO_REUSEADDR: %d", errno);
+    }
+    if (zsock_setsockopt(sockfd.fd, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse)) < 0) {
+        LOG_WRN("Failed to enable SO_REUSEPORT: %d", errno);
+    }
+
     sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(srcPort),
         .sin_addr = INADDR_ANY // Bind to all interfaces TODO: Might not need ipv4 variable anymore
     };
 
-    if (zsock_bind(sockfd.fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
+    if (zsock_bind(sockfd.fd, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) < 0) {
         LOG_ERR("Failed to bind socket: %d", errno);
         zsock_close(sockfd.fd);
         sockfd.fd = -1;
         return;
     }
-#else
-    LOG_WRN("Skipping bind. Using native_sim loopback");
-#endif
 
     // Link takes around 2 seconds to come up. Wait to avoid errors when tx/rxing
     const uint32_t uptime = k_uptime_get_32();
@@ -55,14 +57,18 @@ CUdpSocket::~CUdpSocket() {
 }
 
 int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
-    const sockaddr_in addr{
+    if (sockfd.fd < 0) {
+        return -EBADF;
+    }
+
+    sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
 
-    z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
+    net_addr_pton(AF_INET, BROADCAST_IP, &addr.sin_addr);
 
-    int ret = zsock_sendto(sockfd.fd, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+    int ret = zsock_sendto(sockfd.fd, data, len, 0, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr));
     if (ret < 0) {
         LOG_ERR("Failed to send broadcast message (%d)", errno);
     }
@@ -70,16 +76,22 @@ int CUdpSocket::TransmitSynchronous(const void* data, size_t len) {
     return ret;
 }
 
-int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr *srcAddr, socklen_t *srcAddrLen) {
+int CUdpSocket::ReceiveSynchronous(void* data, size_t len, sockaddr* srcAddr, socklen_t* srcAddrLen) {
+    if (sockfd.fd < 0) {
+        return -EBADF;
+    }
+
     return zsock_recvfrom(sockfd.fd, data, len, 0, srcAddr, srcAddrLen);
 }
 
-int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) {
-    return TransmitAsynchronous(data, len, dstPort);
-}
+int CUdpSocket::TransmitAsynchronous(const void* data, size_t len) { return TransmitAsynchronous(data, len, dstPort); }
 
 int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstPort) {
-    const sockaddr_in addr{
+    if (sockfd.fd < 0) {
+        return -EBADF;
+    }
+
+    sockaddr_in addr{
         .sin_family = AF_INET,
         .sin_port = htons(dstPort),
     };
@@ -97,8 +109,8 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstP
         }
     }
 
-    z_impl_net_addr_pton(AF_INET, BROADCAST_IP, const_cast<in_addr*>(&addr.sin_addr));
-    int ret = zsock_sendto(sockfd.fd, data, len, 0, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+    net_addr_pton(AF_INET, BROADCAST_IP, &addr.sin_addr);
+    int ret = zsock_sendto(sockfd.fd, data, len, 0, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr));
     if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
         LOG_ERR("Failed to send async message (%d)", errno);
     }
@@ -106,7 +118,11 @@ int CUdpSocket::TransmitAsynchronous(const void* data, size_t len, uint16_t dstP
     return ret;
 }
 
-int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr *srcAddr, socklen_t *srcAddrLen) {
+int CUdpSocket::ReceiveAsynchronous(void* data, size_t len, sockaddr* srcAddr, socklen_t* srcAddrLen) {
+    if (sockfd.fd < 0) {
+        return -EBADF;
+    }
+
     int flags = zsock_fcntl(sockfd.fd, F_GETFL, 0);
     if (flags < 0) {
         LOG_ERR("Failed to get socket flags (%d)", flags);
@@ -162,11 +178,18 @@ int CUdpSocket::RegisterSocketService(net_socket_service_desc* desc, void* userD
     return 0;
 }
 
-
 int CUdpSocket::SetTxTimeout(const int timeoutMillis) {
+    if (sockfd.fd < 0) {
+        return -EBADF;
+    }
+
     return zsock_setsockopt(sockfd.fd, SOL_SOCKET, SO_SNDTIMEO, &timeoutMillis, sizeof(timeoutMillis));
 }
 
 int CUdpSocket::SetRxTimeout(const int timeoutMillis) {
+    if (sockfd.fd < 0) {
+        return -EBADF;
+    }
+
     return zsock_setsockopt(sockfd.fd, SOL_SOCKET, SO_RCVTIMEO, &timeoutMillis, sizeof(timeoutMillis));
 }

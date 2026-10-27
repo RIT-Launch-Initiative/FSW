@@ -26,4 +26,3 @@ void buzzer_tell(enum buzzer_cond cond);
  * @param buzzer_pin the gpio pin that goes to the buzzer transistor
 */
 void begin_buzzer_thread(const struct gpio_dt_spec *buzzer_pin);
-

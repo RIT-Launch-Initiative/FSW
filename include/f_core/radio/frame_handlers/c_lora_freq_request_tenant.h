@@ -1,17 +1,17 @@
 #pragma once
 
-#include <f_core/os/c_runnable_tenant.h>
-#include <f_core/messaging/c_message_port.h>
-#include <f_core/radio/c_lora.h>
-#include <f_core/radio/c_lora_frame_handler.h>
-#include <f_core/net/network/c_ipv4.h>
-#include <f_core/net/transport/c_udp_socket.h>
-#include <zephyr/kernel.h>
-
 #include "f_core/utils/c_soft_timer.h"
 
+#include <f_core/messaging/c_message_port.h>
+#include <f_core/net/network/c_ipv4.h>
+#include <f_core/net/transport/c_udp_socket.h>
+#include <f_core/os/c_runnable_tenant.h>
+#include <f_core/radio/c_lora.h>
+#include <f_core/radio/c_lora_frame_handler.h>
+#include <zephyr/kernel.h>
+
 class CLoraFreqRequestTenant : public CRunnableTenant, public CLoraFrameHandler {
-public:
+  public:
     /**
      * @param ipStr IP to bind the UDP socket
      * @param lora Radio instance to change frequency on and to receive ACK via CLoraLink
@@ -19,11 +19,8 @@ public:
      * @param downlinkMessagePort Message port used to queue LaunchLoraFrame for downlink
      * @param rxTimeout Timeout waiting for LoRa ACK in millis
      */
-    CLoraFreqRequestTenant(const char* ipStr,
-                          CLora& lora,
-                          const uint16_t commandUdpPort,
-                          CMessagePort<LaunchLoraFrame>& downlinkMessagePort,
-                          k_timeout_t rxTimeout = K_SECONDS(15));
+    CLoraFreqRequestTenant(const char* ipStr, CLora& lora, const uint16_t commandUdpPort,
+                           CMessagePort<LaunchLoraFrame>& downlinkMessagePort, k_timeout_t rxTimeout = K_SECONDS(15));
 
     /**
      * See parent docs
@@ -37,7 +34,7 @@ public:
 
     void RequestRevertFrequency();
 
-private:
+  private:
     /**
      * Receive a frequency change command over UDP
      * @param freqHz Reference to store received frequency in Hz
@@ -66,6 +63,4 @@ private:
     const k_timeout_t rxTimeout;
     CSoftTimer ackTimer;
     bool revertFrequencyRequested = false;
-
 };
-

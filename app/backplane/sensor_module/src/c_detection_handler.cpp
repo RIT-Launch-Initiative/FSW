@@ -26,8 +26,7 @@ CDetectionHandler::CDetectionHandler(SensorModulePhaseController& controller,
       primaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
       secondaryBaromNoseoverDetector{noseoverTimeThreshold, noseoverVelocityThresshold},
       primaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
-      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold},
-      alertMessagePort(alertMessagePort) {}
+      secondaryBaromGroundDetector{groundTimeThreshold, groundVelocityThreshold}, alertMessagePort(alertMessagePort) {}
 
 bool CDetectionHandler::ContinueCollecting() { return !controller.HasEventOccurred(Events::GroundHit); }
 
@@ -43,6 +42,15 @@ void CDetectionHandler::HandleData(const uint64_t timestamp, const NTypes::Senso
 
     if (!controller.HasEventOccurred(Events::Boost)) {
         HandleBoost(timestamp, data, sensor_states);
+        if (controller.HasEventOccurred(Events::Boost)) {
+            // Boost confirmed so record for noseover and ground detection to 
+            // measure time since boost and schedule rebroadcast of alert 
+            boost_detected_time = timestamp;
+            boostAlertResendsRemaining = alertResendCycles;
+        }
+    } else if (boostAlertResendsRemaining > 0) {
+        alertMessagePort.Send(boostNotification);
+        boostAlertResendsRemaining--;
     }
     // Don't worry about the rest until we've got boost
     if (!controller.HasEventOccurred(Events::Boost)) {
@@ -76,11 +84,16 @@ void CDetectionHandler::HandleGround(const uint32_t t_plus_ms, const NTypes::Sen
 
     if (primaryBaromGroundDetector.Passed() && sensor_states.primaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromMS5611, Events::GroundHit);
-        alertMessagePort.Send(landedNotification);
     }
     if (secondaryBaromGroundDetector.Passed() && sensor_states.secondaryBarometerOk) {
         controller.SubmitEvent(Sources::BaromBMP, Events::GroundHit);
+    }
+}
+
+void CDetectionHandler::ServiceLandedAlert() {
+    if (controller.HasEventOccurred(Events::GroundHit) && landedAlertResendsRemaining > 0) {
         alertMessagePort.Send(landedNotification);
+        landedAlertResendsRemaining--;
     }
 }
 

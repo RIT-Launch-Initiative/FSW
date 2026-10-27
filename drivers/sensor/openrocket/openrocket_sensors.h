@@ -127,6 +127,15 @@ struct or_event_occurance_t {
  */
 void or_get_presim(struct or_data_t* packet);
 
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+/**
+ * @brief Trigger the start of the OpenRocket simulation.
+ * Records the current uptime as t=0 for sensor interpolation and unblocks
+ * the event log thread. Safe to call from any context.
+ */
+int or_trigger_launch(void);
+#endif
+
 /**
  * @brief fill a packet with values after the simulation
  * @param packet the packet of data to fill in

@@ -1,8 +1,8 @@
 #include "c_sensor_module.h"
 
 // F-Core Tenant
-#include <f_core/messaging/c_msgq_message_port.h>
 #include <f_core/messaging/c_latest_message_port.h>
+#include <f_core/messaging/c_msgq_message_port.h>
 #include <f_core/os/n_rtos.h>
 #include <f_core/utils/n_time_utils.h>
 #include <zephyr/logging/log.h>
@@ -26,6 +26,9 @@ void CSensorModule::AddTenantsToTasks() {
     networkTask.AddTenant(broadcastTenant);
     networkTask.AddTenant(downlinkTelemTenant);
     networkTask.AddTenant(udpAlertTenant);
+#ifdef CONFIG_OPENROCKET_MANUAL_LAUNCH_TRIGGER
+    networkTask.AddTenant(orkLaunchTriggerTenant);
+#endif
 
     // Sensing
     sensingTask.AddTenant(sensingTenant);
@@ -45,6 +48,4 @@ void CSensorModule::AddTasksToRtos() {
     NRtos::AddTask(dataLogTask);
 }
 
-void CSensorModule::SetupCallbacks() {
-    NTimeUtils::SntpSynchronize(rtc, sntpServerAddr, 5, K_MSEC(100));
-}
+void CSensorModule::SetupCallbacks() { NTimeUtils::SntpSynchronize(rtc, sntpServerAddr, 5, K_MSEC(100)); }

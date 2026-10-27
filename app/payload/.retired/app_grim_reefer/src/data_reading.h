@@ -32,4 +32,3 @@ void start_data_reading(const struct data_devices* devs);
  * Tell the system to stop reading data
  */
 void stop_data_reading();
-

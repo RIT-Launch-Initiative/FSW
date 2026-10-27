@@ -38,9 +38,8 @@
         };
         // hole/buffer so that we can use 64KB erases for this guy
         flight_storage@10000{
-            // DT_SIZE_K(16320)> left after this. 
             // We don't need all of it (yet) and it would take forever to erase
-            reg = <0x10000 DT_SIZE_M(2)>; 
+            reg = <0x10000 DT_SIZE_K(3072)>; 
             label = "flight_storage";
         };
     };

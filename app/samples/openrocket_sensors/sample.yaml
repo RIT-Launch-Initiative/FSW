@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: openrocket-sensors
   name: openrocket-sensors
 common:
   build_only: true

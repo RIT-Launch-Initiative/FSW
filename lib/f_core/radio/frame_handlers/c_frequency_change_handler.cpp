@@ -1,8 +1,9 @@
 #include "f_core/radio/frame_handlers/c_frequency_change_handler.h"
 
 #include "zephyr/logging/log.h"
-#include <arpa/inet.h>
+
 #include <cstring>
+#include <zephyr/posix/arpa/inet.h>
 
 LOG_MODULE_REGISTER(CFrequencyChangeHandler);
 
@@ -15,7 +16,7 @@ void CFrequencyChangeHandler::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame
 
     uint32_t freqNetworkOrder = 0;
     memcpy(&freqNetworkOrder, frame.Payload, sizeof(freqNetworkOrder));
-    const uint32_t freqHz = ntohl(freqNetworkOrder);
+    const uint32_t freqHz = net_ntohl(freqNetworkOrder);
     const float freqMhz = static_cast<float>(freqHz) / 1'000'000.0f;
 
     LOG_INF("Changing frequency to %f MHz", static_cast<double>(freqMhz));
@@ -37,7 +38,6 @@ void CFrequencyChangeHandler::HandleFrame(const ReceivedLaunchLoraFrame& rxFrame
     // Safe to do this since we can re-request telem if needed on pad/landing
     // And we shouldn't be changing frequency when the rocket is literally flying
     loraDownlinkMessagePort.Clear();
-
 
     const int sendRet = loraDownlinkMessagePort.Send(ackFrame, K_NO_WAIT);
     if (sendRet < 0) {

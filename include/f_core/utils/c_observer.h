@@ -1,7 +1,7 @@
 #pragma once
 
 class CObserver {
-public:
+  public:
     virtual ~CObserver() = default;
 
     /**
@@ -11,5 +11,3 @@ public:
      */
     virtual void Notify(void *ctx) = 0;
 };
-
-

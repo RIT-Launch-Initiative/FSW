@@ -75,4 +75,3 @@ void horusv2_decode(const horus_packet_v2_encoded_buffer_t *input_buffer, struct
 #ifdef __cplusplus
 }
 #endif
-

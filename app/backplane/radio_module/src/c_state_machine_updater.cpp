@@ -1,7 +1,7 @@
 #include "c_state_machine_updater.h"
 
-#include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
 #include <f_core/n_alerts.h>
+#include <f_core/state_machine/c_pad_flight_landing_state_machine.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
@@ -25,5 +25,3 @@ void CStateMachineUpdater::Notify(void* ctx) {
             return;
     }
 }
-
-

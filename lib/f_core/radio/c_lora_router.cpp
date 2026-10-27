@@ -2,7 +2,6 @@
 #include "../../../include/f_core/radio/c_lora_router.h"
 
 #include <cstdint>
-
 #include <f_core/utils/c_hashmap.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -31,4 +30,3 @@ void CLoraRouter::PollOnce(const k_timeout_t timeout) {
         LOG_WRN("no handler for port %u", rxFrame.Frame.Port);
     }
 }
-

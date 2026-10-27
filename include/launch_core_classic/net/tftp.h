@@ -13,7 +13,7 @@
 
 #include <zephyr/net/tftp.h>
 
-#define L_TFTP_PORT "69"
+#define L_TFTP_PORT         "69"
 #define L_DEFAULT_SERVER_IP "10.0.0.0"
 /**
 * Initialize the TFTP client
@@ -38,7 +38,4 @@ int l_tftp_put(struct tftpc *const client, const char *const filename, const uin
 * @param buffer - Buffer of data to send over TFTP
 * @param buffer_size - Size of the buffer
 */
-int l_tftp_init_and_put(const char *ip, const char* fname, uint8_t *buff, size_t buff_size);
-
-
-
+int l_tftp_init_and_put(const char *ip, const char *fname, uint8_t *buff, size_t buff_size);

@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include "c_detection_handler.h"
 #include "f_core/device/c_rtc.h"
@@ -18,7 +18,8 @@ class CSensorDevice;
 
 class CSensingTenant : public CRunnableTenant {
   public:
-    explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast, CMessagePort<NTypes::LoRaBroadcastSensorData> &downlinkDataToBroadcast,
+    explicit CSensingTenant(const char *name, CMessagePort<NTypes::SensorData> &dataToBroadcast,
+                            CMessagePort<NTypes::LoRaBroadcastSensorData> &downlinkDataToBroadcast,
                             CMessagePort<NTypes::TimestampedSensorData> &dataToLog, CDetectionHandler &handler);
     ~CSensingTenant() override = default;
 

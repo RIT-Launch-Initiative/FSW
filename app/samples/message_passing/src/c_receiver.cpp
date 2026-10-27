@@ -1,15 +1,14 @@
-#include <f_core/os/c_runnable_tenant.h>
 #include "c_receiver.h"
+
+#include <f_core/os/c_runnable_tenant.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(Receiver);
 
-CReceiver::CReceiver(CMessagePort<Message>& messagePort, CMessagePort<bool>& completedPort, int messageCountToReceive) :
-    CRunnableTenant("Receiver"), messagePort(messagePort), completedPort(completedPort),
-    messageCountToReceive(messageCountToReceive) {
-
-}
+CReceiver::CReceiver(CMessagePort<Message>& messagePort, CMessagePort<bool>& completedPort, int messageCountToReceive)
+    : CRunnableTenant("Receiver"), messagePort(messagePort), completedPort(completedPort),
+      messageCountToReceive(messageCountToReceive) {}
 
 void CReceiver::Run() {
     if (messageCountToReceive == 0) {
@@ -23,4 +22,3 @@ void CReceiver::Run() {
 
     messageCountToReceive--;
 }
-

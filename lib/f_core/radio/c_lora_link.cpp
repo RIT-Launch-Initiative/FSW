@@ -1,18 +1,16 @@
 #include "f_core/radio/c_lora_link.h"
 
-#include <cstddef>
 #include <array>
+#include <cstddef>
 #include <cstring>
-
+#include <f_core/radio/c_lora.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#include <f_core/radio/c_lora.h>
-
 LOG_MODULE_REGISTER(CLoraLink);
 
-extern "C" void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size,
-                                   int16_t rssi, int8_t snr, void* userData) {
+extern "C" void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr,
+                                   void* userData) {
     if (userData == nullptr) {
         LOG_ERR("loraLinkRxCallback called with null userData");
         return;
@@ -65,7 +63,6 @@ int CLoraLink::Send(const LaunchLoraFrame& frame) {
     return ret;
 }
 
-
 int CLoraLink::send(const uint8_t* data, uint16_t len) {
     if (len > RADIO_MAX_FRAME_SIZE) {
         LOG_ERR("Payload too large (%u)", len);
@@ -86,7 +83,6 @@ int CLoraLink::send(const uint8_t* data, uint16_t len) {
     lora.EnableAsynchronous(loraLinkRxCallback, this);
     return ret;
 }
-
 
 int CLoraLink::Receive(ReceivedLaunchLoraFrame& frame, k_timeout_t timeout) {
     ReceivedLoraRawFrame raw{};
@@ -131,5 +127,5 @@ void CLoraLink::enqueueReceivedFrame(const ReceivedLoraRawFrame& receivedFrame) 
     if (ret < 0) {
         LOG_WRN("RX queue full, dropping packet");
     }
-    (void)ret;
+    (void) ret;
 }

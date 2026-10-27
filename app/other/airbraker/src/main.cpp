@@ -1,3 +1,4 @@
+#include "math/matrix.hpp"
 #include "n_boost.hpp"
 #include "n_buzzer.hpp"
 #include "n_model.hpp"
@@ -10,6 +11,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/atomic.h>
+#include <cmath>
+
+#include <zsl/orientation/quaternions.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_AIRBRAKE_LOG_LEVEL);
 
@@ -30,8 +34,19 @@ uint32_t packet_timestamp() {
         return 0;                                                                                                      \
     }
 
+NTypes::GyroscopeData unbiasGyro(const NTypes::GyroscopeData &data, const NTypes::GyroscopeData &bias){
+    return {
+        .X = data.X - bias.X,
+        .Y = data.Y - bias.Y,
+        .Z = data.Z - bias.Z
+    };
+}
+
 int main() {
-    // NBuzzer::SetBuzzer(true);
+    NBuzzer::SetBuzzer(true);
+    k_msleep(100);
+    NBuzzer::SetBuzzer(false);
+
     NSensing::InitSensors();
 
     if (NStorage::HasStoredFlight()) {
@@ -50,14 +65,15 @@ int main() {
         .accelRaw = 0,
         .gyro = {0},
         .kalmanState = {0},
-        .orientationQuat = {1, 0, 0, 0},
+        .kalmanInnovation = {0, 0},
+        .orientationMatrix = {1, 0, 0, 0, 1, 0, 0, 0, 1},
         .effort = 0,
     };
 
     Parameters params{};
     params.bootcount = NStorage::GetBootcount();
     NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-    float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
+    float vertical = GetUpAxis(packet.accelRaw);
 
     NBoost::FeedDetector(vertical);
 
@@ -71,14 +87,15 @@ int main() {
         k_timer_status_sync(&measurement_timer);
         packet.timestamp = packet_timestamp();
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
-        float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
+        float vertical = GetUpAxis(packet.accelRaw);
 
         NBoost::FeedDetector(vertical);
 
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - NPreBoost::GetGroundLevelASL();
-        NModel::FeedKalman(packet.timestamp, altMeters, vertical);
 
-        packet.kalmanState = NModel::LastKalmanState();
+        NModel::FeedKalman(altMeters, vertical);
+        NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
+
         packet.effort = 0; // no fun until after burnout
 
         NPreBoost::SubmitPreBoostPacket(packet);
@@ -91,7 +108,7 @@ int main() {
     NTypes::GyroscopeData bias = NPreBoost::GetGyroBias();
     float groundLevelASLMeters = NPreBoost::GetGroundLevelASL();
 
-    params.timestampOfBoost = packet.timestamp;
+    params.timestampOfBoostDetect = packet.timestamp;
     params.gyroBias = bias;
     params.preBoostPressure = NPreBoost::GetGroundLevelPressure();
     NStorage::WriteParameters(&params);
@@ -109,12 +126,15 @@ int main() {
 
         NSensing::MeasureSensors(packet.tempRaw, packet.pressureRaw, packet.accelRaw, packet.gyro);
         float altMeters = NModel::AltitudeMetersFromPressureKPa(packet.pressureRaw) - groundLevelASLMeters;
-        float vertical = UpAxisFrom(UP_AXIS, packet.accelRaw);
+        float vertical = GetUpAxis(packet.accelRaw);
 
-        NModel::FeedGyro(packet.timestamp, packet.gyro);
 
-        NModel::FeedKalman(packet.timestamp, altMeters, vertical);
-        packet.kalmanState = NModel::LastKalmanState();
+        NTypes::GyroscopeData unbiasedGyro = unbiasGyro(packet.gyro, bias);
+        NModel::FeedGyro(packet.timestamp, unbiasedGyro);
+        NModel::FillPacketWithOrientationMatrix(packet.orientationMatrix);
+
+        NModel::FeedKalman(altMeters, vertical);
+        NModel::FillPacketWithKalmanInformation(packet.kalmanInnovation, packet.kalmanState);
 
         packet.effort = NModel::CalcActuatorEffort(packet.kalmanState.estAltitude, packet.kalmanState.estVelocity);
 
@@ -128,6 +148,8 @@ int main() {
 
         NStorage::WriteFlightPacket(i, &packet);
 
+
+
         // Write preboost if needed
         if (preboostWriteHead < NUM_STORED_PREBOOST_PACKETS) {
             NStorage::WritePreboostPacket(preboostWriteHead, NPreBoost::GetPreBoostPacketPtr(preboostWriteHead));
@@ -136,6 +158,19 @@ int main() {
     }
     LOG_INF("Flight over");
     DisableServo();
+    CancelFlight();
+
+    // happy beep for reco team
+    while(true){
+        NBuzzer::SetBuzzer(true);
+        k_msleep(200);
+        NBuzzer::SetBuzzer(false);
+        k_msleep(50);
+        NBuzzer::SetBuzzer(true);
+        k_msleep(100);
+        NBuzzer::SetBuzzer(false);
+        k_msleep(50);
+    }
 }
 
 static atomic_t flightCancelled = ATOMIC_INIT(0);
@@ -146,3 +181,37 @@ void CancelFlight() {
     }
 }
 bool IsFlightCancelled() { return atomic_get(&flightCancelled) == 1; }
+
+
+float GetUpAxis(const NTypes::AccelerometerData &xyz){
+    NTypes::AccelerometerData out{0,0,0};
+    RotateIMUVectorToRocketVector(xyz, out);
+    return out.Z;
+}
+void RotateIMUVectorToRocketVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out){
+    zsl_quat p{.r = 0, .i = xyz.X, .j = xyz.Y, .k = xyz.Z};
+
+    // q p q*
+    zsl_quat intermediate;
+    zsl_quat_mult(&IMU_TO_ROCKET_QUAT, &p, &intermediate);
+
+    zsl_quat output;
+    zsl_quat_mult(&intermediate, &IMU_TO_ROCKET_QUAT_CONJUGATE, &output);
+    out.X = output.i;
+    out.Y = output.j;
+    out.Z = output.k;
+}
+
+void RotateRocketVectorToIMUVector(const NTypes::AccelerometerData &xyz, NTypes::AccelerometerData &out){
+    zsl_quat p{.r = 0, .i = xyz.X, .j = xyz.Y, .k = xyz.Z};
+
+    // q p q*
+    zsl_quat intermediate;
+    zsl_quat_mult(&IMU_TO_ROCKET_QUAT_CONJUGATE, &p, &intermediate);
+
+    zsl_quat output;
+    zsl_quat_mult(&intermediate, &IMU_TO_ROCKET_QUAT, &output);
+    out.X = output.i;
+    out.Y = output.j;
+    out.Z = output.k;
+}

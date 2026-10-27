@@ -4,4 +4,3 @@ struct Message {
     int count;
     char message[32];
 };
-

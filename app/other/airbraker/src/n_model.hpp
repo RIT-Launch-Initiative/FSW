@@ -4,10 +4,11 @@
 namespace NModel {
 // Return static string built into LUT definition from matlab
 const char *GetMatlabLUTName();
+const char *GetMatlabLUTDate();
 
 float AltitudeMetersFromPressureKPa(float kPa);
 
-void FeedKalman(uint64_t usSinceBoot, float altitudeMeters, float verticalAccelerationMS2);
+void FeedKalman(float altitudeMeters, float verticalAccelerationMS2);
 KalmanState LastKalmanState();
 
 struct GyroState {
@@ -15,7 +16,10 @@ struct GyroState {
     float angleUncertainty;
 };
 
-void FeedGyro(uint64_t usSinceBoot, const NTypes::GyroscopeData &gyro);
+void FeedGyro(uint32_t msSinceBoot, const NTypes::GyroscopeData &gyro);
+void FillPacketWithOrientationMatrix(float *arr);
+void FillPacketWithKalmanInformation(float *inno, KalmanState &state);
+
 int GetOrientation();
 bool EverWentOutOfBounds();
 

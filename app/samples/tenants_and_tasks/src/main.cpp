@@ -3,12 +3,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include <zephyr/kernel.h>
-#include <f_core/os/n_rtos.h>
-#include <f_core/os/c_task.h>
 #include "c_hello_tenant.h"
 #include "c_print_count.h"
 
+#include <f_core/os/c_task.h>
+#include <f_core/os/n_rtos.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main);

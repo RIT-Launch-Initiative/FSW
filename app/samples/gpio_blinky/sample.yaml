@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: gpio-blinky
   name: gpio-blinky
 common:
   build_only: true

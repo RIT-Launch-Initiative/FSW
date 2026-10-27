@@ -3,24 +3,22 @@
 #include <zephyr/drivers/gnss.h>
 
 namespace NGnssUtils {
-    static constexpr float nanodegreesToDegreesScale = 1e9f;
-    static constexpr float millimeterToMeterScale = 1e3f;
+static constexpr float nanodegreesToDegreesScale = 1e9f;
+static constexpr float millimeterToMeterScale = 1e3f;
 
-    inline float NanodegreesToDegreesFloat(const int64_t latitude) {
-        return static_cast<float>(latitude) / nanodegreesToDegreesScale;
-    }
+inline float NanodegreesToDegreesFloat(const int64_t latitude) {
+    return static_cast<float>(latitude) / nanodegreesToDegreesScale;
+}
 
-    inline float MillimetersToMetersFloat(const int64_t altitude) {
-        return static_cast<float>(altitude) / millimeterToMeterScale;
-    }
+inline float MillimetersToMetersFloat(const int64_t altitude) {
+    return static_cast<float>(altitude) / millimeterToMeterScale;
+}
 
-    inline double NanodegreesToDegreesDouble(const int64_t latitude) {
-        return static_cast<double>(latitude) / static_cast<double>(nanodegreesToDegreesScale);
-    }
+inline double NanodegreesToDegreesDouble(const int64_t latitude) {
+    return static_cast<double>(latitude) / static_cast<double>(nanodegreesToDegreesScale);
+}
 
-    inline double MillimetersToMetersDouble(const int64_t altitude) {
-        return static_cast<double>(altitude) / static_cast<double>(millimeterToMeterScale);
-    }
-};
-
-
+inline double MillimetersToMetersDouble(const int64_t altitude) {
+    return static_cast<double>(altitude) / static_cast<double>(millimeterToMeterScale);
+}
+}; // namespace NGnssUtils

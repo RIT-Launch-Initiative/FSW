@@ -5,12 +5,12 @@
 #include "f_core/utils/linear_fit.hpp"
 #include "flight.hpp"
 
-#include <n_autocoder_types.h>
-#include <f_core/n_alerts.h>
 #include <f_core/messaging/c_message_port.h>
+#include <f_core/n_alerts.h>
+#include <n_autocoder_types.h>
 
 class CDetectionHandler {
-public:
+  public:
     struct SensorWorkings {
         bool primaryAccOk;
         bool secondaryAccOk;
@@ -27,8 +27,7 @@ public:
 
     using BaromNoseoverDetector = CDebouncer<ThresholdDirection::Under, double>;
     using BaromGroundDetector = CDebouncer<ThresholdDirection::Under, double>;
-    CDetectionHandler(SensorModulePhaseController& controller,
-                      CMessagePort<NAlerts::AlertPacket>& alertMessagePort);
+    CDetectionHandler(SensorModulePhaseController& controller, CMessagePort<NAlerts::AlertPacket>& alertMessagePort);
 
     SensorModulePhaseController& controller;
     AccBoostDetector primaryImuBoostSquaredDetector;
@@ -45,6 +44,14 @@ public:
 
     static constexpr uint64_t BOOST_NOT_YET_HAPPENED = ~0;
     uint64_t boost_detected_time = BOOST_NOT_YET_HAPPENED;
+
+    static constexpr uint32_t alertResendCycles = 20;
+    uint32_t boostAlertResendsRemaining = 0;
+    uint32_t landedAlertResendsRemaining = alertResendCycles;
+
+    // Rebroadcast the landed alert once GroundHit occurs. Covers both the
+    // barometer and timer paths, and survives UDP loss like the boost alert.
+    void ServiceLandedAlert();
 
     /**
      * Process sensor information 
@@ -98,13 +105,10 @@ public:
      */
     bool ContinueCollecting();
 
-private:
-    static constexpr NAlerts::AlertPacket boostNotification = {
-        'L', 'A', 'U', 'N', 'C', 'H', 'b'};
-    static constexpr NAlerts::AlertPacket noseoverNotification = {
-        'L', 'A', 'U', 'N', 'C', 'H', 'n'};
-    static constexpr NAlerts::AlertPacket landedNotification = {
-        'L', 'A', 'U', 'N', 'C', 'H', 'l'};
+  private:
+    static constexpr NAlerts::AlertPacket boostNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'b'};
+    static constexpr NAlerts::AlertPacket noseoverNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'n'};
+    static constexpr NAlerts::AlertPacket landedNotification = {'L', 'A', 'U', 'N', 'C', 'H', 'l'};
 
     CMessagePort<NAlerts::AlertPacket>& alertMessagePort;
 };

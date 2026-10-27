@@ -9,4 +9,6 @@ namespace NBoost {
 void FeedDetector(float accelVertical);
 bool IsDetected();
 
+void FakeBoost();
+
 } // namespace NBoost

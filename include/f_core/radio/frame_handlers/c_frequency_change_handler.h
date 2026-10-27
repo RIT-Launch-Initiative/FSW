@@ -4,17 +4,14 @@
 #include "f_core/radio/c_lora_frame_handler.h"
 
 class CFrequencyChangeHandler : public CLoraFrameHandler {
-public:
-    CFrequencyChangeHandler(CLora& lora, CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort,
-                            const uint16_t ackPort) :
-        lora(lora), loraDownlinkMessagePort(loraDownlinkMessagePort), ackPort(ackPort) {}
+  public:
+    CFrequencyChangeHandler(CLora& lora, CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort, const uint16_t ackPort)
+        : lora(lora), loraDownlinkMessagePort(loraDownlinkMessagePort), ackPort(ackPort) {}
 
     void HandleFrame(const ReceivedLaunchLoraFrame& rxFrame) override;
 
-private:
+  private:
     CLora& lora;
     CMessagePort<LaunchLoraFrame>& loraDownlinkMessagePort;
     const uint16_t ackPort;
 };
-
-

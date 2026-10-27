@@ -50,7 +50,7 @@
         flight_storage@10000{
             // DT_SIZE_K(16320) (~15.9 MB) left after this. 
             // We don't need all of it (yet) and it would take forever to erase
-            reg = <0x10000 DT_SIZE_M(2)>; 
+            reg = <0x10000 DT_SIZE_K(3072)>; 
             label = "flight_storage";
         };
     };

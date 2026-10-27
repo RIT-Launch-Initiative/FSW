@@ -3,23 +3,20 @@
 #include "f_core/os/n_rtos.h"
 
 #include <f_core/messaging/c_message_port.h>
-#include <f_core/os/c_runnable_tenant.h>
 #include <f_core/os/c_datalogger.h>
+#include <f_core/os/c_runnable_tenant.h>
 #include <f_core/utils/c_soft_timer.h>
 #include <zephyr/logging/log.h>
 
-
 template <typename T>
 class CDataLoggerTenant : public CRunnableTenant {
-public:
+  public:
     explicit CDataLoggerTenant(const char* name, const char* filename, LogMode mode, std::size_t numPackets,
-                      CMessagePort<T>& messagePort, k_timeout_t syncTimeout = K_FOREVER, int syncOnCount = 0)
+                               CMessagePort<T>& messagePort, k_timeout_t syncTimeout = K_FOREVER, int syncOnCount = 0)
         : CRunnableTenant(name), messagePort(messagePort), dataLogger(filename, mode, numPackets), filename(filename),
           syncTimeout(syncTimeout), syncOnCount(syncOnCount) {}
 
-    ~CDataLoggerTenant() override {
-        Cleanup();
-    }
+    ~CDataLoggerTenant() override { Cleanup(); }
 
     void Startup() override {
         if (syncTimeout.ticks != K_FOREVER.ticks) {
@@ -33,8 +30,7 @@ public:
         while (messagePort.Receive(message, K_NO_WAIT) == 0) {
             dataLogger.Write(message);
             syncCounter++;
-            if ((syncTimer.IsRunning() && syncTimer.IsExpired()) ||
-                (syncOnCount > 0 && syncCounter >= syncOnCount)) {
+            if ((syncTimer.IsRunning() && syncTimer.IsExpired()) || (syncOnCount > 0 && syncCounter >= syncOnCount)) {
                 dataLogger.Sync();
                 syncCounter = 0;
                 if (syncTimer.IsRunning()) {
@@ -48,11 +44,9 @@ public:
         NRtos::SuspendCurrentTask();
     }
 
-    void Cleanup() override {
-        dataLogger.Close();
-    }
+    void Cleanup() override { dataLogger.Close(); }
 
-private:
+  private:
     CMessagePort<T>& messagePort;
     CDataLogger<T> dataLogger;
     const char* filename;
@@ -65,4 +59,3 @@ private:
     int syncCounter = 0;
     int syncOnCount;
 };
-

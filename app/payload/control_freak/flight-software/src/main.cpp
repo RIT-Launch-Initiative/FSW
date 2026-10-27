@@ -89,9 +89,9 @@ int main() {
     if (ret != 0) {
         LOG_ERR("Couldn't read battery");
     }
-        if (startup_voltage < BATTERY_WARNING_THRESH) {
-            buzzer_tell(BuzzCommand::BatteryWarning);
-        }
+    if (startup_voltage < BATTERY_WARNING_THRESH) {
+        buzzer_tell(BuzzCommand::BatteryWarning);
+    }
 
     if (!device_is_ready(superfast_storage)) {
         LOG_ERR("Storage not ready");

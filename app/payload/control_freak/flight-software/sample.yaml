@@ -1,5 +1,5 @@
 sample:
-  description:
+  description: Control Freak flight software
   name: control_freak
 common:
   build_only: true

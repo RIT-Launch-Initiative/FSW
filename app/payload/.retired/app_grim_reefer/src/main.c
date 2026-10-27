@@ -20,7 +20,6 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/smf.h>
 
-
 LOG_MODULE_REGISTER(main, CONFIG_APP_GRIM_REEFER_LOG_LEVEL);
 
 // Device Tree Gets

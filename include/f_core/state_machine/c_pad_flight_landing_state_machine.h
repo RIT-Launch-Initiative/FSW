@@ -3,28 +3,21 @@
 #include <zephyr/kernel.h>
 
 namespace NStateMachineGlobals {
-    extern volatile bool boostDetected;
-    extern volatile bool landingDetected;
-    extern k_mutex boostMutex;
-    extern k_mutex landingMutex;
-}
+extern volatile bool boostDetected;
+extern volatile bool landingDetected;
+extern k_mutex boostMutex;
+extern k_mutex landingMutex;
+} // namespace NStateMachineGlobals
 
 class CPadFlightLandedStateMachine {
-public:
-    enum class State {
-        PAD = 0,
-        FLIGHT,
-        LANDED,
-        GROUND
-    };
+  public:
+    enum class State { PAD = 0, FLIGHT, LANDED, GROUND };
 
     CPadFlightLandedStateMachine();
 
-    void SetToGround() {
-        state = State::GROUND;
-    }
+    void SetToGround() { state = State::GROUND; }
 
-protected:
+  protected:
     State state;
 
     void Clock();
@@ -59,10 +52,8 @@ protected:
 
     virtual void GroundRun() = 0;
 
-private:
+  private:
     bool boostDetected;
     bool landingDetected;
     bool stateEntryFunctionHandled = false;
 };
-
-

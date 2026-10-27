@@ -5,21 +5,16 @@
  */
 
 #include "zephyr/net/net_ip.h"
-#include <stdio.h>
 
 #include <launch_core_classic/backplane_defs.h>
 #include <launch_core_classic/net/net_common.h>
 #include <launch_core_classic/net/udp.h>
-
+#include <stdio.h>
+#include <unistd.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/net/socket.h>
 #include <zephyr/sys/hash_map.h>
 #include <zephyr/types.h>
-
-#include <zephyr/logging/log.h>
-
-#include <zephyr/net/socket.h>
-#include <unistd.h>
-#include <zephyr/net/socket.h>
-
 
 LOG_MODULE_REGISTER(launch_udp_utils);
 
@@ -52,15 +47,12 @@ int l_init_udp_net_stack(struct net_if *net_interface, const char *ip_addr) {
 
     net_if_set_promisc(net_interface);
 
-
     LOG_INF("IPv4 address configured: %s", ip_addr);
 
     return 0;
 }
 
-int l_init_udp_net_stack_default(const char *ip_addr) {
-    return l_init_udp_net_stack(net_if_get_default(), ip_addr);
-}
+int l_init_udp_net_stack_default(const char *ip_addr) { return l_init_udp_net_stack(net_if_get_default(), ip_addr); }
 
 int l_init_udp_net_stack_by_device(const struct device *dev, const char *ip_addr) {
     return l_init_udp_net_stack(net_if_lookup_by_dev(dev), ip_addr);
@@ -102,9 +94,7 @@ int l_init_udp_socket(const char *ip, uint16_t port) {
     return sock;
 }
 
-int l_deinit_udp_socket(int sock) {
-    return close(sock);
-}
+int l_deinit_udp_socket(int sock) { return close(sock); }
 
 int l_set_socket_rx_timeout(int sock, int timeout) {
     struct timeval time_val;
@@ -161,6 +151,4 @@ int l_add_port_handler(uint16_t port, l_udp_port_handler_t *handler) {
     return sys_hashmap_insert(&UDP_PORT_HANDLERS, port, POINTER_TO_INT(handler), NULL);
 }
 
-int l_remove_port_handler(uint16_t port) {
-    return sys_hashmap_remove(&UDP_PORT_HANDLERS, port, NULL);
-}
+int l_remove_port_handler(uint16_t port) { return sys_hashmap_remove(&UDP_PORT_HANDLERS, port, NULL); }

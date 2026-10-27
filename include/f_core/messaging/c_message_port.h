@@ -4,7 +4,7 @@
 
 template <typename T>
 class CMessagePort {
-public:
+  public:
     using MessageType = T;
 
     /**
@@ -23,7 +23,7 @@ public:
      * @param timeout Time before sending times out
      * @return Zephyr status code
      */
-    virtual int Send(const T &message, const k_timeout_t timeout = K_NO_WAIT) = 0;
+    virtual int Send(const T& message, const k_timeout_t timeout = K_NO_WAIT) = 0;
 
     /**
      * Receive a message
@@ -43,7 +43,3 @@ public:
      */
     virtual size_t AvailableSpace() = 0;
 };
-
-
-
-

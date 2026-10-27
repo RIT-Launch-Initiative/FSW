@@ -1,12 +1,10 @@
 #pragma once
 
-#include <array>
-
-#include <zephyr/kernel.h>
-
-#include <f_core/radio/c_lora.h>
-
 #include "f_core/messaging/c_msgq_message_port.h"
+
+#include <array>
+#include <f_core/radio/c_lora.h>
+#include <zephyr/kernel.h>
 
 static constexpr uint16_t RADIO_MAX_FRAME_SIZE = UINT8_MAX;
 
@@ -31,15 +29,11 @@ typedef struct {
 } ReceivedLaunchLoraFrame;
 
 // Forward declare the RX callback
-extern "C" void loraLinkRxCallback(const device* dev,
-                                  uint8_t* data,
-                                  uint16_t size,
-                                  int16_t rssi,
-                                  int8_t snr,
-                                  void* userData);
+extern "C" void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr,
+                                   void* userData);
 
 class CLoraLink {
-public:
+  public:
     /**
      * @brief Constructor
      * @param lora[in] LoRa device
@@ -53,7 +47,6 @@ public:
      */
     int Send(const LaunchLoraFrame& frame);
 
-
     /**
      * @brief Blocking receive with timeout.
      * @param[out] frame Frame to fill with received data
@@ -62,7 +55,7 @@ public:
      */
     int Receive(ReceivedLaunchLoraFrame& frame, k_timeout_t timeout);
 
-private:
+  private:
     CLora& lora;
 
     // Async Receive Queue
@@ -77,7 +70,6 @@ private:
      */
     void enqueueReceivedFrame(const ReceivedLoraRawFrame& receivedFrame);
 
-
     /**
      * @brief Send a raw payload on a given port.
      * @param[in] data Pointer to the payload data
@@ -90,8 +82,6 @@ private:
      * Callback function for asynchronous LoRa RX
      * See Zephyr docs for parameters
      */
-    friend void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size,
-                                   int16_t rssi, int8_t snr, void* userData);
+    friend void loraLinkRxCallback(const device* dev, uint8_t* data, uint16_t size, int16_t rssi, int8_t snr,
+                                   void* userData);
 };
-
-

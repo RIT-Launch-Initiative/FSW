@@ -1,8 +1,7 @@
 #include <launch_core_classic/dev/sensor.h>
-
 #include <zephyr/device.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(launch_sensor_utils);
 

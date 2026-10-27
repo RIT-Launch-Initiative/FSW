@@ -60,7 +60,6 @@ uint32_t GetParamPartitionSize();
  */
 uint32_t GetDataPartitionSize();
 
-
 /**
  * Read a block of data from the data partition at addr of size size into data
  * @param addr the address at which to read (in bytes, not packets)

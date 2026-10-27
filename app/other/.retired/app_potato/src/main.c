@@ -5,8 +5,8 @@
 #include <launch_core_classic/os/fs.h>
 
 // Zephyr Includes
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(app_potato);
@@ -14,7 +14,6 @@ LOG_MODULE_REGISTER(app_potato);
 // Global Variables
 uint32_t boot_count = -1;
 bool boost_detected = false;
-
 
 int main() {
     static const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);

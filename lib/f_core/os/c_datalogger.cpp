@@ -57,5 +57,4 @@ int datalogger::sync() {
     return fs_sync(&file);
 }
 
-
 } // namespace detail

@@ -70,7 +70,8 @@ void printFilesystemStats(const char *mountPoint) {
 }
 
 template <typename T>
-void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 1000, size_t syncFrequency = 10) {
+void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode mode, size_t maxPackets = 1000,
+                             size_t syncFrequency = 10) {
     LOG_INF("\n\n=== %s ===", testName);
 
     CDataLogger<T> logger(filePath, mode, maxPackets);
@@ -84,10 +85,8 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     uint64_t totalWriteFailures = 0;
     uint64_t totalSyncFailures = 0;
 
-
     for (size_t i = 0; i < maxPackets; i++) {
         T packet;
-
 
         // Fill packet
         {
@@ -136,7 +135,8 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
                 uint64_t elapsedCycles = timing_cycles_get(&start, &end);
                 totalSyncCycles += elapsedCycles;
                 totalSyncs++;
-                LOG_INF("\tSynchronized after %zu packets in %llu ns (%llu cycles)", i + 1, timing_cycles_to_ns(elapsedCycles), elapsedCycles);
+                LOG_INF("\tSynchronized after %zu packets in %llu ns (%llu cycles)", i + 1,
+                        timing_cycles_to_ns(elapsedCycles), elapsedCycles);
             }
         }
     }
@@ -152,9 +152,10 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
     LOG_INF("Total write time: %llu ns (%llu cycles)", totalWriteTimeNs, totalWriteCycles);
     LOG_INF("Total sync time: %llu ns (%llu cycles)", totalSyncTimeNs, totalSyncCycles);
 
-    LOG_INF("Average write time: %.2f ns", totalWrites > 0 ? (double)totalWriteTimeNs / totalWrites : 0.0);
-    LOG_INF("Average sync time: %.2f ns", totalSyncs > 0 ? (double)totalSyncTimeNs / totalSyncs : 0.0);
-    LOG_INF("Throughput: %.2f bytes/s", totalWrites > 0 ? (double)(totalWrites * sizeof(T)) / (totalWriteTimeNs / 1e9) : 0.0);
+    LOG_INF("Average write time: %.2f ns", totalWrites > 0 ? (double) totalWriteTimeNs / totalWrites : 0.0);
+    LOG_INF("Average sync time: %.2f ns", totalSyncs > 0 ? (double) totalSyncTimeNs / totalSyncs : 0.0);
+    LOG_INF("Throughput: %.2f bytes/s",
+            totalWrites > 0 ? (double) (totalWrites * sizeof(T)) / (totalWriteTimeNs / 1e9) : 0.0);
 
     fs_dirent st;
     int ret = fs_stat(filePath, &st);
@@ -167,7 +168,8 @@ void benchmarkDataloggerMode(const char *testName, const char *filePath, LogMode
 }
 
 static void runDataloggerBenchmarks() {
-    benchmarkDataloggerMode<SmallPacket>("Small Packet (Growing Mode)", "/lfs/small_growing.bin", LogMode::Growing, 1000, 100);
+    benchmarkDataloggerMode<SmallPacket>("Small Packet (Growing Mode)", "/lfs/small_growing.bin", LogMode::Growing,
+                                         1000, 100);
 
     benchmarkDataloggerMode<MediumPacket>("Medium Packet (Growing Mode)", "/lfs/medium_growing.bin", LogMode::Growing);
 
