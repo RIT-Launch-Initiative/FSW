@@ -11,6 +11,7 @@ LOG_MODULE_REGISTER(main);
 #define DEFAULT_VAL 0
 
 static uint8_t storedVal = DEFAULT_VAL;
+static uint8_t storedVal2 = DEFAULT_VAL;
 
 static int test_settings_get(const char *name, char *val_buffer, int val_len_max) {
     const char *next;
@@ -22,6 +23,15 @@ static int test_settings_get(const char *name, char *val_buffer, int val_len_max
 
         memcpy(val_buffer, &storedVal, sizeof(storedVal));
         return sizeof(storedVal);
+    }
+
+    if (settings_name_steq(name, "test_child2", &next) && !next) {
+        if (val_len_max != sizeof(storedVal2)) {
+            return -EINVAL;
+        }
+
+        memcpy(val_buffer, &storedVal2, sizeof(storedVal2));
+        return sizeof(storedVal2);
     }
 
     return -ENOENT;
@@ -49,6 +59,23 @@ static int test_settings_set(const char *name, size_t len, settings_read_cb read
         return rc;
     }
 
+    if (settings_name_steq(name, "test_child2", &next) && !next) {
+        // if the read storage doesn't match, be sad
+        if (len != sizeof(storedVal2)) {
+            return -EINVAL;
+        }
+
+        rc = read_cb(cb_arg, &storedVal2, sizeof(storedVal2));
+
+        if (rc >= 0) {
+            // rc contains value length, so it'll
+            // be 0 if key-value is properly read
+            return 0;
+        }
+
+        return rc;
+    }
+
     return -ENOENT;
 }
 
@@ -58,7 +85,10 @@ static int test_settings_commit() {
 }
 
 static int test_settings_export(int (*storage_func)(const char *name, const void *value, size_t val_len)) {
-    return storage_func("test/test_child", &storedVal, sizeof(storedVal));
+    int res1 = storage_func("test/test_child", &storedVal, sizeof(storedVal));
+    int res2 = storage_func("test/test_child2", &storedVal2, sizeof(storedVal2));
+
+    return res1 + res2;
 }
 
 struct settings_handler config = {
@@ -67,7 +97,7 @@ struct settings_handler config = {
     .h_get = test_settings_get, // called to get data with settings_runtime_get(), could be usefull in bigger projects
     .h_set = test_settings_set, // called when data is loaded from storage with settings_load
     .h_commit = test_settings_commit, // called when data has fully been loaded
-    .h_export = test_settings_export, // called to write all current settings
+    .h_export = test_settings_export, // called to write all current settings with settings_save()
 };
 
 int main() {
@@ -83,11 +113,18 @@ int main() {
 
     for (int i = 0; i < 10; i++) {
         storedVal++;
+        storedVal2--;
+
+        // save one value
         int rc4 = settings_save_one("test/test_child", &storedVal, sizeof(storedVal));
 
-        LOG_INF("value is %d", storedVal);
-        if (rc4) {
-            LOG_ERR("There was an error saving data: %d", rc4);
+        // save all values
+        int rc5 = settings_save();
+
+        LOG_INF("value 1 is %d, value 2 is %d", storedVal, storedVal2);
+
+        if (rc4 || rc5) {
+            LOG_ERR("There was an error saving data: %d, %d", rc4, rc5);
         }
 
         k_msleep(1000);
