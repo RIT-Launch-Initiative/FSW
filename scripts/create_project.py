@@ -80,6 +80,7 @@ Example usage:
         fsw_root = None
         possible_locations = [
             workspace_root / 'FSW',  # Standard west workspace structure
+            workspace_root / 'FSW.git',  # Standard west workspace structure
             workspace_root,  # Direct repository
         ]
         
