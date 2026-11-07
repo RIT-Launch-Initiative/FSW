@@ -1,5 +1,6 @@
 board:
   name: liquids_module
+  full_name: Liquids Module
   vendor: launch
   socs:
     - name: stm32f446xx

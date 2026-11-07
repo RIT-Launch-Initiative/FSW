@@ -20,6 +20,7 @@ manifest:
           - hal_st
           - hal_stm32
           - hal_nxp
+          - hal_nordic
           - littlefs
           - loramac-node
           - hal_st
