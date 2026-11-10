@@ -79,6 +79,39 @@
 	};
 };
 
+
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pa5
+				 &spi1_miso_pa6 &spi1_mosi_pa7>;
+	cs-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+
+	pinctrl-names = "default";
+	status = "okay";
+
+	w5500: w5500@0 {
+		compatible = "wiznet,w5500";
+		reg = <0x0>;
+		spi-max-frequency = <DT_FREQ_M(80)>;
+		int-gpios = <&gpioa 3 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioa 2 GPIO_ACTIVE_LOW>;
+		zephyr,random-mac-address;
+	};
+};
+
+
+&spi3 {
+	pinctrl-0 = <&spi3_sck_pb3
+				 &spi3_miso_pc11 &spi3_mosi_pb5>;
+	cs-gpios = <&gpioa 15 GPIO_ACTIVE_LOW>, <&gpioc 3 GPIO_ACTIVE_LOW>, <&gpioc 4 GPIO_ACTIVE_LOW>;
+
+	pinctrl-names = "default";
+	status = "okay";
+
+};
+
+
+
 &clk_lsi {
 	status = "okay";
 };
@@ -124,6 +157,8 @@ zephyr_udc0: &usbotg_fs {
 	};
 };
 
+
+// debug uart
 &uart4 {
 	pinctrl-0 = <&uart4_tx_pa0 &uart4_rx_pa1>;
 	pinctrl-names = "default";

@@ -1,0 +1,7 @@
+SensorData:
+  description: Liquids Module reading data
+  fields:
+    - name: Reading
+      type: Float
+      type: ShuntData
+  timestamp: true

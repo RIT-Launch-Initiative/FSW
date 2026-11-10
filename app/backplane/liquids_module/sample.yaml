@@ -1,0 +1,9 @@
+sample:
+  description: Liquids Module
+  name: liquids-module
+common:
+  build_only: true
+  integration_platforms:
+    - liquids_module
+    - native_sim
+
