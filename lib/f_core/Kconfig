@@ -51,6 +51,15 @@ config F_CORE_OS
     help
       This option enables OS functionality for F-Core
 
+config F_CORE_TASK_WATCHDOG
+    bool "Task Watchdog"
+    depends on F_CORE_OS
+    help
+      Allows tasks to be monitored by a software watchdog channel. Uses the
+      watchdog0 alias as a hardware fallback if it exists
+    select TASK_WDT
+    imply WATCHDOG
+
 config F_CORE_UTILS
     bool "Utility"
     help

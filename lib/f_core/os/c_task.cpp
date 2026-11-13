@@ -11,6 +11,7 @@
 #include <f_core/os/c_tenant.h>
 #include <functional>
 #include <zephyr/logging/log.h>
+#include <zephyr/task_wdt/task_wdt.h>
 
 LOG_MODULE_REGISTER(CTask);
 
@@ -27,13 +28,21 @@ static void taskEntryWrapper(void* taskObj, void*, void*) {
     }
 }
 
-CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs)
-    : name(name), priority(priority), stackSize(stackSize), sleepTimeMs(sleepTimeMs) {}
+CTask::CTask(const char* name, int priority, int stackSize, int sleepTimeMs, uint32_t watchdogTimeoutMs)
+    : name(name), priority(priority), stackSize(stackSize), sleepTimeMs(sleepTimeMs),
+      watchdogTimeoutMs(watchdogTimeoutMs) {}
 
 CTask::~CTask() {
     for (CRunnableTenant* tenant : tenants) {
         tenant->Cleanup();
     }
+
+#ifdef CONFIG_F_CORE_TASK_WATCHDOG
+    if (watchdogChannel >= 0) {
+        task_wdt_delete(watchdogChannel);
+        watchdogChannel = -1;
+    }
+#endif
 
     k_thread_abort(&thread);
     if (stack != nullptr) {
@@ -49,6 +58,17 @@ void CTask::Initialize() {
 
     for (CRunnableTenant* tenant : tenants) {
         tenant->PostStartup();
+    }
+
+    if (watchdogTimeoutMs > 0) {
+#ifdef CONFIG_F_CORE_TASK_WATCHDOG
+        watchdogChannel = task_wdt_add(watchdogTimeoutMs, nullptr, nullptr);
+        if (watchdogChannel < 0) {
+            LOG_ERR("Failed to add watchdog channel for %s: %d", name, watchdogChannel);
+        }
+#else
+        LOG_WRN("Watchdog timeout set for %s, but CONFIG_F_CORE_TASK_WATCHDOG is disabled", name);
+#endif
     }
 
     stack = k_thread_stack_alloc(stackSize, 0);
@@ -69,5 +89,12 @@ void CTask::Run() {
     for (CRunnableTenant* tenant : tenants) {
         tenant->Run();
     }
+
+#ifdef CONFIG_F_CORE_TASK_WATCHDOG
+    if (watchdogChannel >= 0) {
+        task_wdt_feed(watchdogChannel);
+    }
+#endif
+
     k_msleep(sleepTimeMs);
 }

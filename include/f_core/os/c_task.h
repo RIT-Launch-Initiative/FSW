@@ -20,8 +20,11 @@ class CTask {
      * @param priority Zephyr priority level
      * @param stackSize Size of the stack to allocate
      * @param sleepTimeMs Time to sleep between a single cycle of the task
+     * @param watchdogTimeoutMs Time the task has to complete a cycle before the system resets. 0 disables the watchdog.
+     * Tasks that get suspended should not use a watchdog
      */
-    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512, int sleepTimeMs = 0);
+    CTask(const char* name, int priority = CONFIG_NUM_PREEMPT_PRIORITIES, int stackSize = 512, int sleepTimeMs = 0,
+          uint32_t watchdogTimeoutMs = 0);
 
     /**
      * Destructor
@@ -63,6 +66,8 @@ class CTask {
     const int priority;
     const size_t stackSize;
     const int sleepTimeMs;
+    const uint32_t watchdogTimeoutMs;
+    int watchdogChannel = -1;
     k_tid_t taskId;
     k_thread thread;
     k_thread_stack_t* stack;
