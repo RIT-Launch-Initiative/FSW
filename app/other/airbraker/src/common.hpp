@@ -67,9 +67,7 @@ constexpr size_t NUM_SAMPLES_FOR_GYRO_BIAS = 200;
 // number of samples that are required to exceed boost threshold before we decide boost is decided
 constexpr size_t NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED = 25;
 // thershold to exceed to start counting towards boost detect
-constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 10;
-
-constexpr float ATMOSPHERE[] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
+constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 7;
 
 #ifdef CONFIG_OPENROCKET_SENSORS
 inline zsl_quat IMU_TO_ROCKET_QUAT{1,0,0,0};
@@ -79,7 +77,7 @@ inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{1,0,0,0};
 // zsl_quat_mult doesnt take const parameters so just like dont modify these
 inline zsl_quat IMU_TO_ROCKET_QUAT{AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
 inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{AUTOGEN_IMU_TO_ROCKET_QUAT_CONJUGATED_INITIALIZER};
- 
+
 #endif
 
 
@@ -89,6 +87,10 @@ struct KalmanState {
     float estAcceleration;
     float estBias;
 };
+
+constexpr uint16_t MAXIMUM_EFFORT_ITERATIONS = 100; // can spend X iterations at full extension before retracting and taking a good look at it
+constexpr uint16_t DEAD_TIME_ITERATIONS = 45; // need X iterations of loop at effort=0 before we trust the barometer again
+constexpr uint16_t OBSERVATION_TIME_ITERATIONS = 40; // need X iterations of pure effort=0 known good barometer data before we can open again
 
 struct Parameters {
     static constexpr uint32_t MAGIC = 2'435'220'000; // the number that louis told me
@@ -105,14 +107,36 @@ struct Parameters {
     uint32_t numSamplesForGyroBias = NUM_SAMPLES_FOR_GYRO_BIAS;
     uint8_t controllerHash[LUT_MD5SUM_ARRAY_LEN] = {LUT_MD5SUM_INITIALIZER};
     float upAxisQuaternion[4] = {AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
-    float atmosphere[AUTOGEN_ATMOSPHERE_NUM_COEFFECIENTS] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
+
+
+    uint16_t maximum_effort_iterations = MAXIMUM_EFFORT_ITERATIONS;
+    uint16_t dead_time_iterations = DEAD_TIME_ITERATIONS;
+    uint16_t observation_time_iterations = OBSERVATION_TIME_ITERATIONS;
+    uint16_t random_padding = 12345;
 };
 
-static_assert(sizeof(Parameters) == 100, "Check size of parameters");
+static_assert(sizeof(Parameters) == 84, "Check size of parameters");
+
+
+constexpr uint16_t StatePrelockout = 0;
+constexpr uint16_t StateJustLooking = 1;
+constexpr uint16_t StateMaximumEffort = 2;
+constexpr uint16_t StateWaitingToSettle = 3;
+constexpr uint16_t StateOutOfPitchBounds = 4;
+constexpr uint16_t STATE_BITMASK = 0b1110000000000000;
+constexpr uint16_t UPCOUNTER_BITMASK = 0b000111111111111111;
+constexpr uint16_t STATE_LOCATION = 13;
+
 
 struct Packet {
     uint32_t timestamp;
-    float tempRaw;
+    // commanding 0 and purely seeing, commanding 1, commanding 0 but waiting
+    // 0: pre-lockout
+    // 1: purely seeing effort = 0
+    // 2: commanding 1
+    // 3: commanding 0 but waiting for things to settle
+    uint16_t controller_state;
+    int16_t tempRaw;
     float pressureRaw;
     NTypes::AccelerometerData accelRaw;
     NTypes::GyroscopeData gyro;
@@ -121,7 +145,8 @@ struct Packet {
 
     float kalmanInnovation[2];
     float orientationMatrix[9];
-    float effort;
+    float effort; // what we want to say, not necessarily what we did say
+    
 };
 
 static_assert(sizeof(Packet) == 100, "Check size of packet");

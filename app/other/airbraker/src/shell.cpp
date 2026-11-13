@@ -61,6 +61,12 @@ static int cmd_read_info(const struct shell *shell, size_t /*argc*/, char ** /*a
     shell_print(shell, "Threshold:          %.2f m/s² (%.2f g)", (double) BOOST_DETECT_THRESHOLD_MS2,
                 (double) (BOOST_DETECT_THRESHOLD_MS2) / 9.8);
     shell_print(shell, "Count:              %u samples", NUM_SAMPLES_OVER_BOOST_THRESHOLD_REQUIRED);
+
+    shell_print(shell, "Periodicly: =============================");
+    shell_print(shell, "Effort iters:       %u", MAXIMUM_EFFORT_ITERATIONS);
+    shell_print(shell, "Yev Dead iters:     %u", DEAD_TIME_ITERATIONS);
+    shell_print(shell, "Observe iters:      %u", OBSERVATION_TIME_ITERATIONS);
+
     return 0;
 }
 static int cmd_read_params64(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
@@ -203,13 +209,18 @@ static int cmd_read_params(const struct shell *shell, size_t /*argc*/, char ** /
     shell_print(shell, "Flight Length:            %d (pkts)", p.numFlightPackets);
     shell_print(shell, "Preboost Length:          %d (pkts)", p.numPreboostPackets);
     shell_print(shell, "Gyro Bias Length:         %d (samples)", p.numSamplesForGyroBias);
+
+    shell_print(shell, "Effort Iters:             %d", p.maximum_effort_iterations);
+    shell_print(shell, "Yev Dead Iters:           %d", p.dead_time_iterations);
+    shell_print(shell, "Observe Iters:         %d", p.observation_time_iterations);
+
     shell_fprintf_normal(shell, "ControllerHash:  ");
     shell_hexdump(shell, p.controllerHash, LUT_MD5SUM_ARRAY_LEN);
     shell_print(shell, "UpAxis Quaternion:");
-    shell_print(shell, "    A:                    %f", (double) IMU_TO_ROCKET_QUAT.i);
-    shell_print(shell, "    B:                    %f", (double) IMU_TO_ROCKET_QUAT.j);
-    shell_print(shell, "    C:                    %f", (double) IMU_TO_ROCKET_QUAT.k);
-    shell_print(shell, "    D:                    %f", (double) IMU_TO_ROCKET_QUAT.j);
+    shell_print(shell, "    A:                    %f", (double) p.upAxisQuaternion[0]);
+    shell_print(shell, "    B:                    %f", (double) p.upAxisQuaternion[1]);
+    shell_print(shell, "    C:                    %f", (double) p.upAxisQuaternion[2]);
+    shell_print(shell, "    D:                    %f", (double) p.upAxisQuaternion[3]);
 
     return 0;
 }
@@ -222,13 +233,13 @@ static int cmd_bootcount(const struct shell *shell, size_t /*argc*/, char ** /*a
 static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*argv*/) {
     BAILOUT_IF_NOT_CANCELLED(shell);
     Packet p = {0};
-    int ret = NSensing::MeasureSensors(p.pressureRaw, p.tempRaw, p.accelRaw, p.gyro);
+    int ret = NSensing::MeasureSensors(p.tempRaw, p.pressureRaw, p.accelRaw, p.gyro);
     if (ret < 0) {
         shell_error(shell, "Failed to read sensors: %d", ret);
         return ret;
     }
-    shell_info(shell, "Temp:       %f C", (double) p.pressureRaw);
-    shell_info(shell, "Press:      %f kPa", (double) p.tempRaw);
+    shell_info(shell, "Temp:       %f C", (double) p.tempRaw/100.0);
+    shell_info(shell, "Press:      %f kPa", (double) p.pressureRaw);
 
     shell_info(shell, "Accel X:    %f m/s2", (double) p.accelRaw.X);
     shell_info(shell, "Accel Y:    %f m/s2", (double) p.accelRaw.Y);
@@ -239,7 +250,7 @@ static int cmd_sampleone(const struct shell *shell, size_t /*argc*/, char ** /*a
     shell_info(shell, "Gyro Z:     %f dps", (double) p.gyro.Z);
 
     shell_info(shell, "\nSecondary Products =========\n");
-    shell_info(shell, "Altitude:   %f m", (double) NModel::AltitudeMetersFromPressureKPa(p.tempRaw));
+    shell_info(shell, "Altitude:   %f m", (double) NModel::AltitudeMetersFromPressureKPa(p.pressureRaw));
 
     NTypes::AccelerometerData rocket{0, 0, 0};
     RotateIMUVectorToRocketVector(p.accelRaw, rocket);

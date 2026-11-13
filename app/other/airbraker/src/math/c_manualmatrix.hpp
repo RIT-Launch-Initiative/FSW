@@ -40,6 +40,27 @@ class ManualMatrix {
         return m;
     }
 
+
+    static ManualMatrix Diagonal(const std::array<Scalar, R> list) {
+        static_assert(C == R, "Diag vector must be square");
+        ManualMatrix m = Zeros();
+        for (std::size_t i = 0; i < R; i++) {
+            m.vals[i * C + i] = list[i];
+        }
+        return m;
+    }
+
+    ManualMatrix<C, R> Transpose() const {
+        ManualMatrix<C, R> m = CMSISMatrix<C, R>::Zeros();
+        for (std::size_t r = 0; r < R; r++) {
+            for (std::size_t c = 0; c < C; c++){
+                m.Set(c, r, Get(r, c));
+            }
+        }
+        return m;
+    }
+
+
     template <std::size_t R2, std::size_t C2>
     constexpr ManualMatrix<R, C2, Scalar, Index> operator+(const ManualMatrix<R2, C2, Scalar, Index> &rhs) const {
         static_assert(C == C2 && R == R2, "Dimensions must match to add");

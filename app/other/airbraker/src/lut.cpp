@@ -1,17 +1,67 @@
 #include "quantile_lut_data.h"
-
 #include <cmath>
 #include <cstdint>
-
+#include <zephyr/kernel.h>
 namespace NModel {
 
 static const float lower_bounds_lut[] = {LUT_LOWER_BOUNDS_INITIALIZER};
 static const float upper_bounds_lut[] = {LUT_UPPER_BOUNDS_INITIALIZER};
 
+
+
 struct IndexParts {
     std::size_t whole; // The index of the LUT value just before this value
     float fraction;    // How far between LUT[whole] and LUT[whole+1] we are for interpolating
 };
+
+
+/**
+ * Linearly interpolate between from and to
+ * @param amt value between 0 and 1 inclusive. How far between the two values
+ * @returns linearly interpolated between from and to depending on amt
+ *          if amt = 0, returns from
+ *          if amt = 1, returns to
+ * This does not do bounds checking (it extrapolates), it is your responsibility to not pass in
+ * any value of amount outside of the suggested range (or be prepared to face the consequences)
+ */
+float lerp(float amount, float from, float to) { return (from * (1 - amount)) + (to * amount); }
+
+
+static const float lut_pressure_values[AUTOGEN_ATMOSPHERE_LUT_LEN] = {AUTOGEN_ATMOSPHERE_LUT_Y};
+
+IndexParts genAltitudeIndexParts(float value) {
+    if (value < AUTOGEN_ATMOSPHERE_LUT_MIN_X) {
+        return {0, 0};
+    }
+    if (value > AUTOGEN_ATMOSPHERE_LUT_MAX_X) {
+        // to keep common code path below, if we would be at the point of last element and element off the end of the array
+        // this will return second to last, 1 which causes the lerping to calculate the last element in its entirety
+        return {AUTOGEN_ATMOSPHERE_LUT_LEN - 2, 1};
+    }
+
+    float float_index = (AUTOGEN_ATMOSPHERE_LUT_LEN - 1) * (value - AUTOGEN_ATMOSPHERE_LUT_MIN_X) / (AUTOGEN_ATMOSPHERE_LUT_MAX_X - AUTOGEN_ATMOSPHERE_LUT_MIN_X);
+
+    float whole_part = 0;
+    float fractional_part = modff(float_index, &whole_part);
+
+    if (whole_part >= AUTOGEN_ATMOSPHERE_LUT_LEN - 1) {
+        // to keep common code path below, if we would be at the point of last element and element off the end of the array
+        // this will return second to last, 1 which causes the lerping to calculate the last element in its entirety
+        return {AUTOGEN_ATMOSPHERE_LUT_LEN - 2, 1};
+    }
+
+    return {(std::size_t) whole_part, fractional_part};
+}
+
+
+void AltitudeLut(float pressure_pa, float *alt_out){
+    IndexParts index = genAltitudeIndexParts(pressure_pa);
+    float previous = lut_pressure_values[index.whole];
+    float next = lut_pressure_values[index.whole + 1];
+    *alt_out = lerp(index.fraction, previous, next);
+    //printk("%f pa = %f m\n", pressure_pa, *alt_out);
+}
+
 
 IndexParts genIndexParts(float value) {
     if (value < LUT_MINIMUM_X) {
@@ -37,16 +87,6 @@ IndexParts genIndexParts(float value) {
     return {(std::size_t) whole_part, fractional_part};
 }
 
-/**
- * Linearly interpolate between from and to
- * @param amt value between 0 and 1 inclusive. How far between the two values
- * @returns linearly interpolated between from and to depending on amt
- *          if amt = 0, returns from
- *          if amt = 1, returns to
- * This does not do bounds checking (it extrapolates), it is your responsibility to not pass in
- * any value of amount outside of the suggested range (or be prepared to face the consequences)
- */
-float lerp(float amount, float from, float to) { return (from * (1 - amount)) + (to * amount); }
 
 /**
  * Find bounds in LUT based on altitude
