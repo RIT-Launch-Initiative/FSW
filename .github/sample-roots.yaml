@@ -26,6 +26,9 @@ app/samples/openrocket_sensors:
 app/samples/soft_timer:
   - paths:
       - "app/samples/soft_timer/**"
+app/samples/cpu_monitor:
+  - paths:
+      - "app/samples/cpu_monitor/**"
 app/samples/tenants_and_tasks:
   - paths:
       - "app/samples/tenants_and_tasks/**"
