@@ -1,10 +1,10 @@
 #pragma once
 #include "n_autocoder_types.h"
 #include "quantile_lut_data.h"
-#include <zsl/orientation/quaternions.h>
 
 #include <cstddef>
 #include <cstdint>
+#include <zsl/orientation/quaternions.h>
 
 enum class UpAxis : uint8_t {
     PosX = 0b000,
@@ -72,16 +72,15 @@ constexpr float BOOST_DETECT_THRESHOLD_MS2 = 9.8 * 10;
 constexpr float ATMOSPHERE[] = {AUTOGEN_ATMOSPHERE_COEFFICIENTS};
 
 #ifdef CONFIG_OPENROCKET_SENSORS
-inline zsl_quat IMU_TO_ROCKET_QUAT{1,0,0,0};
-inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{1,0,0,0};
+inline zsl_quat IMU_TO_ROCKET_QUAT{1, 0, 0, 0};
+inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{1, 0, 0, 0};
 #else
 // linkers hate this one weird trick
 // zsl_quat_mult doesnt take const parameters so just like dont modify these
 inline zsl_quat IMU_TO_ROCKET_QUAT{AUTOGEN_IMU_TO_ROCKET_QUAT_INITIALIZER};
 inline zsl_quat IMU_TO_ROCKET_QUAT_CONJUGATE{AUTOGEN_IMU_TO_ROCKET_QUAT_CONJUGATED_INITIALIZER};
- 
-#endif
 
+#endif
 
 struct KalmanState {
     float estAltitude;

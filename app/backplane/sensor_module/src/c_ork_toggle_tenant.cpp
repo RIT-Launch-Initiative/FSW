@@ -1,7 +1,6 @@
 #include "c_ork_toggle_tenant.h"
 
 #include <errno.h>
-
 #include <f_core/device/openrocket_launch.h>
 #include <zephyr/logging/log.h>
 

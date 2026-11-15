@@ -15,8 +15,8 @@ CReceiverModule::CReceiverModule()
 #ifndef CONFIG_ARCH_POSIX
       lora(*DEVICE_DT_GET(DT_ALIAS(lora))),
 #endif
-      loraBroadcastMessagePort(loraBroadcastMsgQueue),
-      udpBroadcastMessagePort(udpBroadcastMsgQueue) {}
+      loraBroadcastMessagePort(loraBroadcastMsgQueue), udpBroadcastMessagePort(udpBroadcastMsgQueue) {
+}
 
 void CReceiverModule::AddTenantsToTasks() {
     // Networking

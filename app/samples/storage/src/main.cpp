@@ -92,8 +92,8 @@ static int test_settings_export(int (*storage_func)(const char *name, const void
 }
 
 struct settings_handler config = {
-    .name = "test", // name of the subtree
-    .cprio = 0, // priority at which h_commit gets called
+    .name = "test",             // name of the subtree
+    .cprio = 0,                 // priority at which h_commit gets called
     .h_get = test_settings_get, // called to get data with settings_runtime_get(), could be usefull in bigger projects
     .h_set = test_settings_set, // called when data is loaded from storage with settings_load
     .h_commit = test_settings_commit, // called when data has fully been loaded

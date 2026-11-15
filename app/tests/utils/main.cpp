@@ -70,11 +70,13 @@ ZTEST(debouncer, test_simulated_flight) {
         printf("%.3f\t%.3f: %d\n", static_cast<double>(t), static_cast<double>(v), int(db.Passed()));
 
         if (t < 1.0f + timeOver) {
-            zassert_false(db.Passed(), "havent achieved height + timeOver seconds: t=%f, h=%f", static_cast<double>(t), static_cast<double>(v));
+            zassert_false(db.Passed(), "havent achieved height + timeOver seconds: t=%f, h=%f", static_cast<double>(t),
+                          static_cast<double>(v));
         }
         float epsilon = 0.001f;
         if (t > 1.0f + timeOver + epsilon) {
-            zassert_true(db.Passed(), "have achieved height for timeOver seconds: t=%f, h=%f", static_cast<double>(t), static_cast<double>(v));
+            zassert_true(db.Passed(), "have achieved height for timeOver seconds: t=%f, h=%f", static_cast<double>(t),
+                         static_cast<double>(v));
         }
     }
 }

@@ -14,26 +14,23 @@ using Matrix = ManualMatrix<R, C, float>;
 #endif
 #include <zephyr/kernel.h>
 
-template<std::size_t R, std::size_t C>
-Matrix<R,C> matrixExpPowSeries(const Matrix<R,C> &At, std::size_t iterations){
+template <std::size_t R, std::size_t C>
+Matrix<R, C> matrixExpPowSeries(const Matrix<R, C> &At, std::size_t iterations) {
 
-    Matrix<R,C> id = Matrix<R,C>::Identity();
+    Matrix<R, C> id = Matrix<R, C>::Identity();
 
-    Matrix<R,C> sum = Matrix<R,C>::Identity();
-    
-    Matrix<R,C> Atn = At;
-    
-    for (std::size_t i = 1; i <= iterations; i++){
+    Matrix<R, C> sum = Matrix<R, C>::Identity();
 
-        float overI = (1.F / (float)i);
+    Matrix<R, C> Atn = At;
+
+    for (std::size_t i = 1; i <= iterations; i++) {
+
+        float overI = (1.F / (float) i);
         Matrix<R, C> scaled = Atn * overI;
         sum = sum + scaled;
         // sum = sum + (Atn * (1/(float)factorial));
-        Matrix<R,C> Atn2  = Atn * At;
+        Matrix<R, C> Atn2 = Atn * At;
         Atn = Atn2 * overI;
     }
     return sum;
 }
-
-
-
