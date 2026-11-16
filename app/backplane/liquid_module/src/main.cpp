@@ -6,19 +6,26 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/sys/printk.h>
 
 #define AD4112_NODE DT_NODELABEL(ad4112)
+#define MAX31856_NODE DT_NODELABEL(max31856)
+
 static const struct spi_dt_spec ad4112_dev = SPI_DT_SPEC_GET(
     AD4112_NODE, 
     SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA, 
     0
 );
-
+static const struct spi_dt_spec max31856_dev = SPI_DT_SPEC_GET(
+    MAX31856_NODE,
+    SPI_OP_MODE_MASTER | SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPHA,
+    0
+);
 
 LOG_MODULE_REGISTER(main);
 
 int main() {
-
 
     LOG_INF("Application started");
     
