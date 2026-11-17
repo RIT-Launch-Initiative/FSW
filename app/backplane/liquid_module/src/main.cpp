@@ -25,9 +25,18 @@ static const struct spi_dt_spec max31856_dev = SPI_DT_SPEC_GET(
 
 LOG_MODULE_REGISTER(main);
 
-int main() {
+// Note: Use Functions that end in DT
 
+int main() {
     LOG_INF("Application started");
+
+    if(!spi_is_ready_dt(&ad4112_dev)){
+        printk("No PT");
+        return -1;
+    }
+    if(!spi_is_ready_dt(&max31856_dev)){
+        printk("No TC");
+    }
     
     while (true) {
         k_msleep(1000);

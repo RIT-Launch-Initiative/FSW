@@ -146,7 +146,7 @@ zephyr_udc0: &usbotg_fs {
 
 &spi3 {
 	pinctrl-0 = <&spi3_sck_pb3 &spi3_miso_pc11 &spi3_mosi_pb5>;
-	cs-gpios = <&gpioc 3 GPIO_ACTIVE_LOW &gpioc 4 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpioa 15 GPIO_ACTIVE_LOW &gpioc 3 GPIO_ACTIVE_LOW &gpioc 4 GPIO_ACTIVE_LOW>;
 
 	pinctrl-names = "default";
 	status = "okay";
