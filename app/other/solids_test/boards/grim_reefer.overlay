@@ -1,0 +1,75 @@
+/delete-node/ &adc;
+
+/ {
+    zephyr,user {
+        io-channels = <&adc 0>, <&adc 1>;
+    };
+
+    aliases {
+        adc0 = &adc;
+        buzzer = &buzzer;
+    };
+
+    leds: leds {
+        button: button{ // TX
+            gpios = <&gpioa 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            label = "Button";
+        };
+    };
+};
+
+// https://docs.zephyrproject.org/latest/build/dts/api/bindings/clock/pwm-clock.html
+// init pwm
+
+&uart4 {
+    status = "disabled";
+};
+
+&spi2 {
+    status = "okay";
+    adc: mcp3561@0 { // new and cool driver
+        #io-channel-cells = <1>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+        compatible = "microchip,mcp356xr";
+        status = "okay";
+        reg = <0>;
+        address = <1>;
+        analog-clock-prescaler = <0>;
+        boost-current-bias = <0>;
+        spi-max-frequency = <DT_FREQ_M(20)>;
+        irq-gpios = <&gpiob 14 GPIO_ACTIVE_LOW>;
+        use-internal-clock;
+
+        loadcell: channel@0 {
+            reg = <0>;
+            zephyr,gain = "ADC_GAIN_32";
+            zephyr,reference = "ADC_REF_INTERNAL";
+            zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+
+            zephyr,resolution = <24>;
+
+            zephyr,differential;
+            zephyr,input-positive = <0x1>;
+            zephyr,input-negative = <0x0>;
+
+            zephyr,oversampling = <7>;
+        };
+
+        pressure_transducer: channel@1 {
+            reg = <1>;
+            zephyr,gain = "ADC_GAIN_32";
+            zephyr,reference = "ADC_REF_INTERNAL";
+            zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+
+            zephyr,resolution = <24>;
+
+            zephyr,differential;
+            zephyr,input-positive = <0x0>;
+            zephyr,input-negative = <0x8>; // internal ground
+
+            zephyr,oversampling = <7>;
+        };
+
+    };
+};
