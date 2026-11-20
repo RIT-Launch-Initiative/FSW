@@ -33,7 +33,8 @@ int InitSensors() {
     return 0;
 }
 
-int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2, NTypes::GyroscopeData &gyroDps) {
+int MeasureSensors(float &tempC, float &pressureKPa, NTypes::AccelerometerData &accelMs2,
+                   NTypes::GyroscopeData &gyroDps) {
     // todo, can make this less noisy by kicking off fetch, then doing other stuff, then reading
     int bret = sensor_sample_fetch(barom_dev);
     if (bret < 0) {

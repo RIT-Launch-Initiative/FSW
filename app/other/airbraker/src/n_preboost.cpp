@@ -44,14 +44,14 @@ void SubmitPreBoostPacket(const Packet &packet) {
     preboostPackets.AddSample(packet);
     Packet *newestSampleForGyroBias = &preboostPackets.OldestSample();
     gyroBiasAverager.Feed({newestSampleForGyroBias->gyro});
-    
+
     // Grab ground level altitude from most recent if we're before the circular buffer is initialized
     if (preboostPackets.OldestSample().pressureRaw == 0) {
         groundLevelPressure = packet.pressureRaw;
     } else {
         groundLevelPressure = preboostPackets.OldestSample().pressureRaw;
     }
-    groundLevelASLMeters = NModel::AltitudeMetersFromPressureKPa(groundLevelPressure); 
+    groundLevelASLMeters = NModel::AltitudeMetersFromPressureKPa(groundLevelPressure);
 }
 
 NTypes::GyroscopeData GetGyroBias() { return gyroBiasAverager.Avg().internal; }
